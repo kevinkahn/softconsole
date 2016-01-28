@@ -1,0 +1,77 @@
+import pygame
+ISYChangeEvent = pygame.USEREVENT+2
+
+WAITNORMALBUTTON = 0
+WAITTIMEOUT = 1
+WAITCONTROLBUTTON = 2
+WAITRANDOMTOUCH = 3 
+WAITISYCHANGE = 4
+WAITEXTRACONTROLBUTTON = 5
+WAITGOHOME = 6
+
+
+toDaemon = None
+fromDaemon = None
+watchlist =[]
+starttime = 0
+
+# Debug flags
+isytreewalkdbgprt = False
+dbgscreenbuild = False
+dbgMain = False
+dbgdaemon = False
+
+def debugprint(flag,*args):
+    if flag:
+        for arg in args:
+            print arg,
+        print
+
+
+ConnISY = None
+
+isDim = False
+screen = None
+backlight = None
+
+ParsedConfigFile = None
+screenwidth = 320
+screenheight = 480
+horizborder = 20
+topborder = 20
+botborder = 80
+
+# Global Defaults
+ISYaddr = ""
+ISYuser = ""
+ISYpassword = ""
+
+currentscreen = None
+previousscreen = None
+HomeScreenName = ""
+HomeScreen = None
+DimLevel = 10
+BrightLevel = 100
+HomeScreenTO = 60 
+DimTO = 20
+CmdKeyCol = "red"
+CmdCharCol = "white"
+
+# General Screen Defaults
+BColor = "maroon"
+
+# Key Screen Defaults
+
+
+# Key Defaults
+Kcolor = "aqua"
+KOnColor = "white"
+KOffColor = "black"
+Ktype = "ONOFF"
+Krunthen = ""
+
+# Clock Screen Defaults
+CharCol = "white"
+CharSize = 35
+
+
