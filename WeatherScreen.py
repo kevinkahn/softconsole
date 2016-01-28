@@ -12,14 +12,20 @@ import pywapi
 class WeatherScreenDesc(Screen.ScreenDesc):
     # Describes a Clock Screen: name, background, dimtimeout, charcolor, (lineformat 3 tuple), fontsize)
     
-    def __init__(self, sname, sbkg, lab, schar, oformat, cfs):
-        self.charcolor = schar
+    def __init__(self, screensection, screenname):
+        debugprint(config.dbgscreenbuild, "New WeatherScreenDesc ",screenname)
+        Screen.ScreenDesc.__init__(self, screensection, screenname)
+        self.charcolor    = screensection.get("CharCol",config.CharCol)
+        
+        
+        self.lineformat   = screensection.get("OutFormat","")
+        self.fontsize     = int(screensection.get("CharSize",config.CharSize))
+    
+
         placename = ""
         placeid = ??  lookup = pywapi.get_location_ids(placename)
         #self.lineformat = oformat
-        self.fontsize = int(cfs)
-        Screen.ScreenDesc.__init__(self,sname,sbkg, lab)
-        
+
     def __repr__(self):
         return Screen.ScreenDesc.__repr__(self)+"\r\n     WeatherScreenDesc:"+str(self.charcolor)+":"+str(self.lineformat)+":"+str(self.fontsize)
 
@@ -75,7 +81,7 @@ class WeatherScreenDesc(Screen.ScreenDesc):
 
 import urllib2
 import json
-f = urllib2.urlopen('http://api.wunderground.com/api/47dc922e667b69a1/geolookup/conditions/q/IA/Cedar_Rapids.json')
+f = urllib2.urlopen('http://api.wunderground.com/api/<key>/geolookup/conditions/q/IA/Cedar_Rapids.json')
 json_string = f.read()
 parsed_json = json.loads(json_string)
 location = parsed_json['location']['city']
