@@ -1,0 +1,91 @@
+ISYaddr = "192.168.1.15"
+ISYuser = admin
+ISYpassword = admin
+HomeScreenName = BR
+HomeScreenTO = 90
+DimLevel = 5
+DimTO =25
+
+[MyClock]
+typ=Clock
+label="Time","and","Date"
+Bcolor = maroon
+CharCol = white
+CharSize = 45
+CmdKeyCol = blue
+OutFormat = "%A","%b %d %Y","%I:%M:%S %p","Day:  %j Week: %U"
+[BR]
+typ=Keys
+label="Bedroom"
+[[Window Sconce]]
+Kcolor=blue
+label="Window","Bed"
+OnUrl="test of special On"
+[[Inside Sconce]]
+Kcolor=red
+label="Inside","Bed","Light"
+[[Bath Prep]]
+Ktype=ONBLINKRUNTHEN
+Kcolor=green
+label="Setup","Bathroom"
+Krunthen="Prep Bath"
+[[BR Ambient]]
+Kcolor=blue
+[[Pucks]]
+[[Art Wall]]
+[[Night Light]]
+[[Light Up]]
+label="Emergency","Lights"
+Ktype=ONBLINKRUNTHEN
+Kcolor=red
+Krunthen="LightUp"
+
+[Upper Level]
+typ=Keys
+label="Other","Upper","Level"
+[[Office Ceiling]]
+Kcolor=purple
+label="Office"
+screentype=keys
+[[Changing Room]]
+Kcolor=khaki
+label="Closet"
+[[Back Closet]]
+Kcolor=khaki
+label="Back Closet"
+[[Upper Hall]]
+Kcolor=grey
+[[Kitchen Path]]
+sceneproxy="3B 92 51 3"
+Kcolor=violet
+label="Kitchen","Path"
+[[Laundry Path]]
+Kcolor=violet
+label="Laundry","Path"
+sceneproxy="3B 92 51 4"
+[[Garage Door (Relay)]]
+sceneproxy="3B 92 51 6"
+label="Garage","Door"
+Kcolor=red
+[Bathroom]
+typ=Keys
+[[Vanity]]
+Kcolor=magenta
+label="Mirror Lights"
+[[Floor Heat]]
+Kcolor=firebrick
+[[Hall Downlight]]
+label="Linen","Closet"
+Kcolor=coral
+[[Shower Downlights]]
+label="Shower"
+Kcolor=aqua
+[[Toe Kick]]
+Kcolor=darkgoldenrod
+[[Towel Heat]]
+Kcolor=firebrick
+[[Tub Downlight]]
+label="Tub"
+Kcolor=azure
+[[Toilet]]
+Kcolor=brown
