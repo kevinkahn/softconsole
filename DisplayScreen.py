@@ -79,10 +79,9 @@ class DisplayScreen:
         
         pygame.display.init()
         config.screenwidth, config.screenheight = (pygame.display.Info().current_w, pygame.display.Info().current_h)
-        
         self.screen = pygame.display.set_mode((config.screenwidth,config.screenheight), pygame.FULLSCREEN)
         # Clear the screen to start
-        self.screen.fill((0, 0, 0))        
+        self.screen.fill((0, 0, 0))  
         # Initialise font support
         pygame.font.init()
         # Render the screen
@@ -90,7 +89,7 @@ class DisplayScreen:
         pygame.mouse.set_visible(False)
         pygame.font.init()
         self.MyFont = pygame.font.Font(None, 25)
-    
+  
    
 
     def NewWaitPress(self,ActiveScreen,maxwait=0,callbackint=0,callbackproc=None,callbackcount=0, resetHome = True):

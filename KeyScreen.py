@@ -3,36 +3,57 @@ import ISYSetup
 import DisplayScreen
 import webcolors
 import config
+from config import debugprint, WAITNORMALBUTTON, WAITTIMEOUT, WAITCONTROLBUTTON, WAITRANDOMTOUCH, WAITISYCHANGE, WAITEXTRACONTROLBUTTON, WAITGOHOME
 import functools
-from config import *
+from configobj import Section
 wc = webcolors.name_to_rgb
 import Screen
 
 class KeyDesc:
     # Describe a Key: name, background, keycharon, keycharoff, label(string tuple), type (ONOFF,ONBlink,OnOffRun,?),addr,OnU,OffU 
     
-    def __init__(self, kname, adr="", O=None, bkg="maroon", keyon="white", keyoff="aqua", klab=[], ktyp="", rt="", OffU="",sprox=""):
-        debugprint(dbgscreenbuild, "             New Key Desc ", kname)
-        self.name = kname
-        self.backcolor = bkg
-        self.charcoloron = keyon
-        self.charcoloroff = keyoff
-        self.label = klab if not isinstance(klab, basestring) else [klab]
-        self.typ = ktyp
-        self.addr = adr
-        self.sceneproxy = sprox
-        self.Krunthen = ISYSetup.ISYsetup.ProgramDict[rt] if rt<>"" else None
+    def __init__(self, keysection, keyname):
+        debugprint(config.dbgscreenbuild, "             New Key Desc ", keyname)
+        
+        self.name = keyname
+        self.backcolor    = keysection.get("Kcolor",config.Kcolor)
+        self.charcoloron  = keysection.get("KOnColor",config.KOnColor)
+        self.charcoloroff = keysection.get("KOffColor",config.KOffColor)
+        l                 = keysection.get("label",keyname)
+        self.label        = l if not isinstance(l, basestring) else [l]
+        self.typ          = keysection.get("Ktype",config.Ktype)
+        rt=keysection.get("Krunthen","")
+        self.Krunthen     = ISYSetup.ISYsetup.ProgramDict[rt] if rt<>"" else None
+        self.sceneproxy   = keysection.get("sceneproxy","")
+        # dummy values
+        self.State        = False
+        self.Center       = (0,0)
+        self.Size         = (10,10)
+
         if self.typ == "ONBLINKRUNTHEN" and self.Krunthen <> None:
             print self.name, " bound to run then of program ", self.Krunthen.name
-        self.OffURL = OffU
-        self.State = False
-        self.Center =(0,0)
-        self.Size = (10,10)
-        self.Obj = O  # the ISY object itself if appropriate
+        
+        # map the key to a scene or device - prefer to map to a scene so check that first
+        # Obj is the representation of the ISY Object itself, addr is the address of the ISY device/scene
+        if keyname in ISYSetup.ISYsetup.SceneDict:
+            self.addr = ISYSetup.ISYsetup.SceneDict[keyname].addr
+            self.Obj = ISYSetup.ISYsetup.SceneDict[keyname]
+        elif keyname in ISYSetup.ISYsetup.NodeDict:
+            self.addr = ISYSetup.ISYsetup.NodeDict[keyname].addr
+            self.Obj = ISYSetup.ISYsetup.NodeDict[keyname]
+        else:
+            self.addr = ""
+            self.Obj = None
+            print "Key not Node or Scene: ", keyname, " in Screen Creation"                        
+
         if isinstance(self.Obj,ISYSetup.SceneItem):
             # if key is for scene and explicit proxy, push down the explicit over the default
             if self.sceneproxy <> "":
                 self.Obj.proxy = self.sceneproxy
+
+        debugprint(config.dbgscreenbuild,repr(self))
+        
+        
         
     def __repr__(self):
         return "KeyDesc:"+self.name+"|ST:"+str(self.State)+"|Clr:"+str(self.backcolor)+"|OnC:"+str(self.charcoloron)+"|OffC:"\
@@ -46,24 +67,27 @@ class KeyScreenDesc(Screen.ScreenDesc):
     # Describes a Key Screen: name, background, dimtimeout, keys(dict:keyname->ord),keysbyord(array of keynames),
     
     
-    def __init__(self, sname, sbkg, lab):
-        debugprint(dbgscreenbuild, "New KeyScreenDesc ",sname)
-        
+    def __init__(self, screensection, screenname):
+        debugprint(config.dbgscreenbuild, "New KeyScreenDesc ",screenname)
+        Screen.ScreenDesc.__init__(self, screensection, screenname)
         self.keys = {}
         self.keysbyord = []
         self.buttonsperrow = -1
         self.buttonspercol = -1
-        Screen.ScreenDesc.__init__(self,sname,sbkg, lab)
         self.subscriptionlist = {}
         
+        for keyname in screensection:
+            if isinstance(screensection[keyname], Section):
+                NewKey = KeyDesc(screensection[keyname],keyname)
+                self.keys[keyname] = NewKey
+                self.keysbyord.append(keyname)
+                self.NumKeys = self.NumKeys + 1                
+
+
     def __repr__(self):
         return Screen.ScreenDesc.__repr__(self)+"\r\n     KeyScreenDesc:"+":<"+str(self.keysbyord)+">"
 
-    def AddKey(self,name,key):
-        self.keys[name] = key
-        self.keysbyord.append(name)
-        self.NumKeys = self.NumKeys + 1
-    
+
     def HandleScreen(self,newscr=True):
         
         def BlinkKey(screen,lab,back,center,size,finalstate,cycle):
@@ -77,18 +101,18 @@ class KeyScreenDesc(Screen.ScreenDesc):
             # key screen change actually occurred
             config.screen.screen.fill(wc(self.backcolor))
             self.subscriptionlist = {}
-            debugprint(dbgMain, "Switching to screen: ", self.name)
+            debugprint(config.dbgMain, "Switching to screen: ", self.name)
             for j in range(NumKeys):
                 K = self.keys[self.keysbyord[j]]
                 if K.addr <> "":   # Key is bound to some actual device/scene
                     if isinstance(K.Obj, ISYSetup.SceneItem):
                         # if its a scene then need to get the real time status of the proxy device via rest call which returns xml
                         state = ISYSetup.get_real_time_status(K.Obj.proxy)
-                        debugprint(dbgMain, "Status from proxy: ",K.name, K.Obj.proxy, state)
+                        debugprint(config.dbgMain, "Status from proxy: ",K.name, K.Obj.proxy, state)
                         subscribeas = K.Obj.proxy
                     else:
                         state = ISYSetup.get_real_time_status(K.Obj.addr)
-                        debugprint(dbgMain, "Status from node: ", K.name, state)
+                        debugprint(config.dbgMain, "Status from node: ", K.name, state)
                         subscribeas = K.addr
             
                     K.State = not (state == 0)  # K is off (false) only if state is 0
@@ -97,10 +121,10 @@ class KeyScreenDesc(Screen.ScreenDesc):
         
             DisplayScreen.draw_cmd_buttons(config.screen,self)
 
-            debugprint(dbgMain, "Active Subscription List will be:")
+            debugprint(config.dbgMain, "Active Subscription List will be:")
             addressestoscanfor = []
             for i in self.subscriptionlist:
-                debugprint(dbgMain, "  Subscribe: ",i,self.subscriptionlist[i].name," : ",self.subscriptionlist[i].addr)   
+                debugprint(config.dbgMain, "  Subscribe: ",i,self.subscriptionlist[i].name," : ",self.subscriptionlist[i].addr)   
                 addressestoscanfor.append(i)
             config.toDaemon.put(addressestoscanfor)
         
@@ -111,7 +135,7 @@ class KeyScreenDesc(Screen.ScreenDesc):
         resetH = True
         
         while 1:
-            choice = config.screen.NewWaitPress(self, DimTO, callbackint=blinktime,callbackproc=blinkproc,callbackcount=blinks,resetHome=resetH)
+            choice = config.screen.NewWaitPress(self, config.DimTO, callbackint=blinktime,callbackproc=blinkproc,callbackcount=blinks,resetHome=resetH)
             resetH = False
             blinkproc = None
             blinktime = 0

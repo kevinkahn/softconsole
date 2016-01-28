@@ -11,22 +11,41 @@ import ISYSetup
 import multiprocessing
 from  multiprocessing import Process, Queue
 import WatchDaemon
+import sys, signal, time
 
+def signal_handler(signal, frame):
+    print "Signal: {}".format(signal)
+    time.sleep(1)
+    pygame.quit()
+    print "Console Exiting"
+    sys.exit(0)
 
 """
 Actual Code to Drive Console
 """
 
+print "Console Starting"
+
+signal.signal(signal.SIGTERM, signal_handler)
+signal.signal(signal.SIGINT, signal_handler)
+
 config.screen = DisplayScreen.DisplayScreen()
 config.ParsedConfigFile = ConfigObj(infile="/home/pi/Console/config.txt")
 
-config.ISYaddr = str(config.ParsedConfigFile.get("ISYaddr",""))
-config.ISYuser = str(config.ParsedConfigFile.get("ISYuser",""))
-config.ISYpassword = str(config.ParsedConfigFile.get("ISYpassword",""))
+# Global settings from config file
+config.ISYaddr        = str(config.ParsedConfigFile.get("ISYaddr",""))
+config.ISYuser        = str(config.ParsedConfigFile.get("ISYuser",""))
+config.ISYpassword    = str(config.ParsedConfigFile.get("ISYpassword",""))
 config.HomeScreenName = str(config.ParsedConfigFile.get("HomeScreenName",""))
-config.HomeScreenTO = int(config.ParsedConfigFile.get("HomeScreenTO",config.HomeScreenTO))
+config.HomeScreenTO   = int(config.ParsedConfigFile.get("HomeScreenTO",config.HomeScreenTO))
+config.DimLevel       = int(config.ParsedConfigFile.get("DimLevel",config.DimLevel))
+config.BrightLevel    = int(config.ParsedConfigFile.get("BrightLevel",config.BrightLevel))
+config.DimTO          = int(config.ParsedConfigFile.get("DimTO",config.DimTO))
+config.CmdKeyCol      = str(config.ParsedConfigFile.get("CmKeyColor",config.CmdKeyCol))
+config.CmdCharCol     = str(config.ParsedConfigFile.get("CmdCharCol",config.CmdCharCol))
 
 
+GPIO.setwarnings(False)
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(18, GPIO.OUT)
 config.backlight = GPIO.PWM(18,1024)
@@ -71,7 +90,7 @@ while 1:
 
 
 
-Tstat = ConnISY.myisy.nodes["22 18 A3 1"]
+
 
 
 

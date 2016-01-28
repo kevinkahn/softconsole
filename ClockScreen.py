@@ -12,18 +12,22 @@ import Screen
 class ClockScreenDesc(Screen.ScreenDesc):
     # Describes a Clock Screen: name, background, dimtimeout, charcolor, (lineformat 3 tuple), fontsize)
     
-    def __init__(self, sname, sbkg, lab, schar, oformat, cfs):
-        self.charcolor = schar
-        self.lineformat = oformat
-        self.fontsize = int(cfs)
-        Screen.ScreenDesc.__init__(self,sname,sbkg, lab)
+    def __init__(self, screensection, screenname):
+        debugprint(config.dbgscreenbuild, "Build Clock Screen")
+        Screen.ScreenDesc.__init__(self, screensection, screenname)
+        self.charcolor    = screensection.get("CharCol",config.CharCol)
+        self.lineformat   = screensection.get("OutFormat","")
+        self.fontsize     = int(screensection.get("CharSize",config.CharSize))
+
         
     def __repr__(self):
         return Screen.ScreenDesc.__repr__(self)+"\r\n     ClockScreenDesc:"+str(self.charcolor)+":"+str(self.lineformat)+":"+str(self.fontsize)
 
     def HandleScreen(self,newscr=True):
     
-        #ActiveScreen = CurrentScreenInfo.screenlist[ScreenName]
+        # stop any watching for device stream
+        config.toDaemon.put([])
+         
         isDim = False
         config.screen.screen.fill(wc(self.backcolor))
 
