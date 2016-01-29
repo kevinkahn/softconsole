@@ -14,7 +14,7 @@ class ClockScreenDesc(Screen.ScreenDesc):
     
     def __init__(self, screensection, screenname):
         debugprint(config.dbgscreenbuild, "Build Clock Screen")
-        Screen.ScreenDesc.__init__(self, screensection, screenname)
+        Screen.ScreenDesc.__init__(self, screensection, screenname, 0) # no extra cmd keys
         self.charcolor    = screensection.get("CharCol",config.CharCol)
         self.lineformat   = screensection.get("OutFormat","")
         self.fontsize     = int(screensection.get("CharSize",config.CharSize))

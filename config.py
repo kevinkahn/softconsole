@@ -41,6 +41,7 @@ screenheight = 480
 horizborder = 20
 topborder = 20
 botborder = 80
+cmdvertspace = 10 # this is the space around the top/bot of  cmd button within the bot border
 
 # Global Defaults
 ISYaddr = ""

@@ -9,6 +9,27 @@ from configobj import Section
 wc = webcolors.name_to_rgb
 import Screen
 
+
+def ButLayout(butcount):
+    if butcount == 0:
+        return (1, 1)
+    if butcount > 0 and butcount < 5 :
+        return (1, butcount)
+    elif butcount > 4 and butcount < 9 :
+        return (2, 4)
+    elif butcount > 8 and butcount < 13 :
+        return (3, 4)
+    elif butcount > 12 and butcount < 17 :
+        return (4, 4)
+    elif butcount > 16 and butcount < 21 :
+        return (4, 5)
+    else :
+        return (-1, -1)
+
+def ButSize(bpr,bpc):
+    return ((config.screenwidth - 2*config.horizborder)/bpr, (config.screenheight - config.topborder - config.botborder)/bpc)
+
+
 class KeyDesc:
     # Describe a Key: name, background, keycharon, keycharoff, label(string tuple), type (ONOFF,ONBlink,OnOffRun,?),addr,OnU,OffU 
     
@@ -69,19 +90,38 @@ class KeyScreenDesc(Screen.ScreenDesc):
     
     def __init__(self, screensection, screenname):
         debugprint(config.dbgscreenbuild, "New KeyScreenDesc ",screenname)
-        Screen.ScreenDesc.__init__(self, screensection, screenname)
+        Screen.ScreenDesc.__init__(self, screensection, screenname, 0) # no extra cmd keys
         self.keys = {}
         self.keysbyord = []
         self.buttonsperrow = -1
         self.buttonspercol = -1
         self.subscriptionlist = {}
         
+        # Build the Key objects
         for keyname in screensection:
             if isinstance(screensection[keyname], Section):
                 NewKey = KeyDesc(screensection[keyname],keyname)
                 self.keys[keyname] = NewKey
                 self.keysbyord.append(keyname)
-                self.NumKeys = self.NumKeys + 1                
+                self.NumKeys = self.NumKeys + 1    
+                
+        # Compute the positions and sizes for the Keys and store in the Key objects
+        bpr, bpc = ButLayout(self.NumKeys)
+        self.buttonsperrow = bpr
+        self.buttonspercol = bpc
+        buttonsize = ButSize(bpr,bpc)
+        hpos = []
+        vpos = []
+        for i in range(bpr) :
+            hpos.append(config.horizborder + (.5+i)*buttonsize[0])
+        for i in range(bpc) :
+            vpos.append(config.topborder + (.5+i)*buttonsize[1])
+        
+        for i in range(self.NumKeys):
+            K = self.keys[self.keysbyord[i]]
+            K.Center = (hpos[i%bpr], vpos[i//bpr])
+            K.Size = buttonsize
+
 
 
     def __repr__(self):
@@ -117,6 +157,9 @@ class KeyScreenDesc(Screen.ScreenDesc):
             
                     K.State = not (state == 0)  # K is off (false) only if state is 0
                     self.subscriptionlist[subscribeas] = K
+            # this loop is separate from the above one only because doing so make the screen draw look more instantaneous
+            for j in range(NumKeys):
+                K = self.keys[self.keysbyord[j]]
                 DisplayScreen.draw_button(config.screen,K.label,K.backcolor,K.State,K.Center,K.Size)
         
             DisplayScreen.draw_cmd_buttons(config.screen,self)

@@ -25,10 +25,10 @@ def dim_change(c):
         return False
 
 def draw_cmd_buttons(scr,AS):
-    #fix - DESIGN FOR nav buttons with middle is messed up
     draw_button(scr,AS.PrevScreen.label,AS.CmdKeyColor,True,AS.PrevScreenButCtr,AS.CmdButSize)
     draw_button(scr,AS.NextScreen.label,AS.CmdKeyColor,True,AS.NextScreenButCtr,AS.CmdButSize)
-    # add stuff for extra command buttons - fix CmdCenters for Nav buttons as fixed attributes, move to ScreenDescr obj
+    for i in range(AS.ExtraCmdKeys):
+        draw_button(scr,AS.ExtraCmdTitles[i],AS.CmdKeyColor,True,AS.ExtraCmdKeysCtr[i],AS.CmdButSize)
 
 def draw_button(dispscreen, txt, color, on, Center, size):
 
