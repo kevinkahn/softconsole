@@ -114,7 +114,7 @@ class DisplayScreen:
         while True:
             if not config.fromDaemon.empty():
                 alert = config.fromDaemon.get()
-                print time.time(),"ISY reports change: ","Key: ", alert
+                debugprint(config.dbgMain, time.time(),"ISY reports change: ","Key: ", alert)
                 rtn = (WAITISYCHANGE,alert)
                 break
             event = pygame.fastevent.poll()
