@@ -141,15 +141,10 @@ class DisplayScreen:
                     rtn = (WAITCONTROLBUTTON, ActiveScreen.NextScreen)
                     found = True
                 else:
-                    #handle extra command buttons
-                    pass
-                """
-                for i in range(len(ActiveScreen.Layout.CmdCenters)):
-                    L = ActiveScreen.Layout
-                    if ButLayout.InBut(pos, L.CmdCenters[i],(L.cbutwidth,L.cbutheight)):
-                        rtn = (WAITCONTROLBUTTON, i)
-                        found = True
-                """    
+                    for i in range(ActiveScreen.ExtraCmdKeys):
+                        if ButLayout.InBut(pos, ActiveScreen.ExtraCmdKeysCtr, ActiveScreen.CmdButSize):
+                            rtn = (WAITEXTRACONTROLBUTTON, i)
+                            found = true
                 if not found:
                     rtn = (WAITRANDOMTOUCH, 0)
                 break

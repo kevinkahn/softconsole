@@ -17,6 +17,8 @@ class ScreenDesc:
         self.CmdButSize       = (0,0)
         self.CmdKeyColor      = screensection.get("CmdKeyCol",config.CmdKeyCol)
         self.CmdCharColor     = screensection.get("CmdCharCol",config.CmdCharCol)
+        self.ExtraCmdKeys     = 0     # allows for no extra keys
+        self.ExtraCmdKeysCtr  = []    # elements are (x,y) tuples with centers of keys, size is same CmdButSize (all same)
         
                     
         
