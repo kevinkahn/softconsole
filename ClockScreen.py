@@ -53,10 +53,8 @@ class ClockScreenDesc(Screen.ScreenDesc):
         repaintClock(0)
         DisplayScreen.draw_cmd_buttons(config.screen,self)
         
-        resetH = True
         while 1:
-            choice = config.screen.NewWaitPress(self, config.DimTO, callbackproc=repaintClock, callbackint=.5, resetHome = resetH)
-            resetH = False
+            choice = config.screen.NewWaitPress(self, config.DimTO, callbackproc=repaintClock, callbackint=.5)
             if not DisplayScreen.dim_change(choice):
                 if choice[0] == WAITCONTROLBUTTON:
                     resetH = True
@@ -68,9 +66,6 @@ class ClockScreenDesc(Screen.ScreenDesc):
                     pass # random touch
                 elif choice[0] == WAITGOHOME:
                     return  config.HomeScreen
-            else:
-                if not config.isDim:
-                    resetH = True
         return choice[1]
 
         

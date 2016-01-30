@@ -71,7 +71,7 @@ def draw_button(dispscreen, txt, color, on, Center, size, shrink=True, firstfont
 
 class DisplayScreen:
     screen = None
-    
+
     
     def __init__(self):
         "Ininitializes a new pygame screen using the framebuffer"
@@ -92,12 +92,15 @@ class DisplayScreen:
         pygame.display.update()
         pygame.mouse.set_visible(False)
         pygame.font.init()
-        #self.MyFontSize = 25
-        #self.MyFont = pygame.font.SysFont("", self.MyFontSize)
+        
+        # define user events
+        self.MAXTIMEHIT = pygame.event.Event(pygame.USEREVENT)
+        self.INTERVALHIT = pygame.event.Event(pygame.USEREVENT+1)
+        self.GOHOMEHIT = pygame.event.Event(pygame.USEREVENT+2)
   
    
 
-    def NewWaitPress(self,ActiveScreen,maxwait=0,callbackint=0,callbackproc=None,callbackcount=0, resetHome = True):
+    def NewWaitPress(self,ActiveScreen,maxwait=0,callbackint=0,callbackproc=None,callbackcount=0):
         """
         wait for a mouse click a maximum of maxwait seconds
         if callbackint <> 0 call the callbackproc every callbackint time
@@ -105,16 +108,12 @@ class DisplayScreen:
         (4,keyname) ISY event on device associated with keyname  
         (5,keyname) blink need on device associated with keyname???
         """
-        MAXTIMEHIT = pygame.event.Event(pygame.USEREVENT)
-        INTERVALHIT = pygame.event.Event(pygame.USEREVENT+1)
-        GOHOMEHIT = pygame.event.Event(pygame.USEREVENT+2)
-        if resetHome:
-            pygame.time.set_timer(GOHOMEHIT.type, int(config.HomeScreenTO)*1000)
+
         if callbackint <> 0:
-            pygame.time.set_timer(INTERVALHIT.type, int(callbackint*1000))
+            pygame.time.set_timer(self.INTERVALHIT.type, int(callbackint*1000))
         cycle = callbackcount if callbackcount <> 0 else 100000000  # essentially infinite
         if maxwait <> 0:
-            pygame.time.set_timer(MAXTIMEHIT.type, maxwait*1000)
+            pygame.time.set_timer(self.MAXTIMEHIT.type, maxwait*1000)
         
         while True:
             if not config.fromDaemon.empty():
@@ -130,6 +129,8 @@ class DisplayScreen:
             #print "Waitloop: ",time.time()
             #print "Event",event
             elif event.type == pygame.MOUSEBUTTONDOWN:
+                # on any touch reset return to home screen
+                pygame.time.set_timer(self.GOHOMEHIT.type, int(config.HomeScreenTO)*1000)
                 found = False
                 pos = (pygame.mouse.get_pos()[0],pygame.mouse.get_pos()[1])
                 
@@ -154,21 +155,21 @@ class DisplayScreen:
                     rtn = (WAITRANDOMTOUCH, 0)
                 break
             
-            elif event.type == MAXTIMEHIT.type:
+            elif event.type == self.MAXTIMEHIT.type:
                 rtn = (WAITTIMEOUT,0)
                 break
-            elif event.type == INTERVALHIT.type:
+            elif event.type == self.INTERVALHIT.type:
                 if (callbackproc <> None) and (cycle > 0):
                     callbackproc(cycle)
                     cycle -= 1
-            elif event.type == GOHOMEHIT.type:
+            elif event.type == self.GOHOMEHIT.type:
                 rtn = (WAITGOHOME,0)
                 break
             else:
                 pass # ignore and flush other events
             
-        pygame.time.set_timer(INTERVALHIT.type, 0)
-        pygame.time.set_timer(MAXTIMEHIT.type, 0)
+        pygame.time.set_timer(self.INTERVALHIT.type, 0)
+        pygame.time.set_timer(self.MAXTIMEHIT.type, 0)
         
         return rtn
     

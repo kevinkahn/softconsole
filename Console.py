@@ -31,7 +31,7 @@ signal.signal(signal.SIGTERM, signal_handler)
 signal.signal(signal.SIGINT, signal_handler)
 
 config.screen = DisplayScreen.DisplayScreen()
-print sys.argv
+
 if len(sys.argv) == 2:
     config.ParsedConfigFile = ConfigObj(infile=sys.argv[1])
 else:

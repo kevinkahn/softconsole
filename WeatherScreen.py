@@ -143,13 +143,10 @@ class WeatherScreenDesc(Screen.ScreenDesc):
             f.close()
         self.ShowScreen(currentconditions)        
         
-        resetH = True
         while 1:
-            choice = config.screen.NewWaitPress(self, config.DimTO, resetHome = resetH)
-            resetH = False
+            choice = config.screen.NewWaitPress(self, config.DimTO)
             if not DisplayScreen.dim_change(choice):
                 if choice[0] == WAITCONTROLBUTTON:
-                    resetH = True
                     break
                 elif choice[0] == WAITISYCHANGE:
                     pass
@@ -158,9 +155,6 @@ class WeatherScreenDesc(Screen.ScreenDesc):
                     self.ShowScreen(currentconditions)
                 elif choice[0] == WAITGOHOME:
                     return  config.HomeScreen
-            else:
-                if not config.isDim:
-                    resetH = True
         return choice[1]
 
 

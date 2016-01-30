@@ -178,14 +178,12 @@ class KeyScreenDesc(Screen.ScreenDesc):
         resetH = True
         
         while 1:
-            choice = config.screen.NewWaitPress(self, config.DimTO, callbackint=blinktime,callbackproc=blinkproc,callbackcount=blinks,resetHome=resetH)
-            resetH = False
+            choice = config.screen.NewWaitPress(self, config.DimTO, callbackint=blinktime,callbackproc=blinkproc,callbackcount=blinks)
             blinkproc = None
             blinktime = 0
             blinks = 0
             if not DisplayScreen.dim_change(choice):
                 if choice[0] == WAITNORMALBUTTON:
-                    resetH = True
                     # handle various keytype cases
                     K = self.keys[self.keysbyord[choice[1]]]
                     if K.typ == "ONOFF":
@@ -209,10 +207,8 @@ class KeyScreenDesc(Screen.ScreenDesc):
                     elif K.typ == "ONOFFRUN":
                         pass
                 elif choice[0] == WAITCONTROLBUTTON:
-                    resetH = True
                     return choice[1]
                 elif choice[0] == WAITRANDOMTOUCH:
-                    resetH = True
                     pass
                 elif choice[0] == WAITGOHOME:
                     return config.HomeScreen
@@ -224,8 +220,5 @@ class KeyScreenDesc(Screen.ScreenDesc):
                     if ActState <> K.State:
                         K.State =  ActState
                         DisplayScreen.draw_button(config.screen,K.label,K.backcolor,K.State,K.Center,K.Size)
-            else:
-                if not config.isDim:
-                    resetH = True
 
 
