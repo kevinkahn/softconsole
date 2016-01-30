@@ -31,7 +31,11 @@ signal.signal(signal.SIGTERM, signal_handler)
 signal.signal(signal.SIGINT, signal_handler)
 
 config.screen = DisplayScreen.DisplayScreen()
-config.ParsedConfigFile = ConfigObj(infile="/home/pi/Console/config.txt")
+print sys.argv
+if len(sys.argv) == 2:
+    config.ParsedConfigFile = ConfigObj(infile=sys.argv[1])
+else:
+    config.ParsedConfigFile = ConfigObj(infile="/home/pi/Console/config.txt")
 
 # Global settings from config file
 config.ISYaddr        = str(config.ParsedConfigFile.get("ISYaddr",""))
@@ -52,14 +56,13 @@ GPIO.setup(18, GPIO.OUT)
 config.backlight = GPIO.PWM(18,1024)
 config.backlight.start(100)
 
-
 config.ConnISY = ISYSetup.ISYsetup()
 nodemgr = config.ConnISY.myisy.nodes
 programs = config.ConnISY.myisy.programs
 
 config.ConnISY.WalkFolder(nodemgr)
 config.ConnISY.EnumeratePrograms(programs)
-print "Done ISY Enumerations"
+
 pygame.fastevent.init()
 CurrentScreenInfo = ConfigObjects.MyScreens()
 
@@ -67,11 +70,11 @@ config.toDaemon = Queue()
 config.fromDaemon = Queue()
 p = Process(target=WatchDaemon.Watcher)
 p.daemon = True
+
 p.start()
 debugprint(dbgMain, "Spawned watcher as: ", p.pid)
 
 ButLayout.InitButtonFonts()
-
 
 
 
@@ -88,10 +91,4 @@ while 1:
     else:
         config.currentscreen = config.currentscreen.HandleScreen(False)
         
-
-
-
-
-
-
 

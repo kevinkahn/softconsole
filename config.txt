@@ -6,6 +6,26 @@ HomeScreenTO = 90
 DimLevel = 5
 DimTO =25
 
+[Pumpkin]
+label="Pumpkin","Ridge"
+typ=Weather
+location=pws:KORNORTH18
+wunderkey=47dc922e667b69a1
+
+
+[Local]
+typ=Weather
+label="Council","Crest"
+location=pws:KORPORTL244
+wunderkey=47dc922e667b69a1
+
+
+[Portland]
+typ=Weather
+location=KPDX
+wunderkey=47dc922e667b69a1
+
+
 [MyClock]
 typ=Clock
 label="Time","and","Date"

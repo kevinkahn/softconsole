@@ -11,6 +11,8 @@ import json
 import functools
 from configobj import Section
 
+WeathFont = [None,None,None]
+
 def TreeDict(d,*args):
     # Allow a nest of dictionaries to be accessed by a tuple of keys for easier code
     if len(args) == 1:
@@ -18,14 +20,41 @@ def TreeDict(d,*args):
     else:
         return TreeDict(d[args[0]],*args[1:])
 
+def RenderScreenLines(recipe,extracter,color):
+    h = 0
+    renderedlines = []
+    centered = []
+    for line in recipe:
+        if isinstance(line[3], basestring):
+            linestr = line[2].format(d=line[3])
+        else:
+            args = []
+            for item in line[3]:
+                args.append(str(extracter(*item)))
+            if len(args) == 1 and isinstance(args[0], basestring):
+                linestr = line[2].format(d=args[0])
+            else:
+                linestr = line[2].format(d=args)
+        r = WeathFont[line[0]].render(linestr,0,wc(color))
+        renderedlines.append(r)
+        centered.append(line[1])
+        h = h + r.get_height()
+    return (renderedlines,centered,h)
+
+    
+
 class WeatherScreenDesc(Screen.ScreenDesc):
 
     def __init__(self, screensection, screenname):
         debugprint(config.dbgscreenbuild, "New WeatherScreenDesc ",screenname)
-        self.WeathFont   = [pygame.font.SysFont(None,20,False,False),
-                            pygame.font.SysFont(None,30,True,False),
-                            pygame.font.SysFont(None,45,True,True)]
-        self.lineheight  = [x.get_linesize() for x in self.WeathFont]
+        
+        if WeathFont[0] == None:
+            # initialize on first entry
+            WeathFont[0] = pygame.font.SysFont(None,20,False,False)
+            WeathFont[1] = pygame.font.SysFont(None,30,True,False)
+            WeathFont[2] = pygame.font.SysFont(None,45,True,True)
+
+        self.lineheight  = [x.get_linesize() for x in WeathFont]
         self.wunderkey = screensection.get("wunderkey","NoKeySupplied")
         self.location = screensection.get("location","")
         Screen.ScreenDesc.__init__(self, screensection, screenname, 1)
@@ -56,6 +85,8 @@ class WeatherScreenDesc(Screen.ScreenDesc):
     def __repr__(self):
         return Screen.ScreenDesc.__repr__(self)+"\r\n     WeatherScreenDesc:"+str(self.charcolor)+":"+str(self.lineformat)+":"+str(self.fontsize)
 
+    
+
     def ShowScreen(self,conditions):
         config.screen.screen.fill(wc(self.backcolor))
         usefulheight = config.screenheight - config.topborder - config.botborder
@@ -65,49 +96,20 @@ class WeatherScreenDesc(Screen.ScreenDesc):
         
         if conditions:
             self.SetExtraCmdTitles([('Forecast',)])
-            for line in self.conditions:
-                if isinstance(line[3], str):
-                    linestr = line[2].format(d=line[3])
-                else:
-                    args = []
-                    for item in line[3]:
-                        args.append(str(self.js(*item)))
-                    if len(args) == 1 and isinstance(args[0], str):
-                        linestr = line[2].format(d=args[0])
-                    else:
-                        linestr = line[2].format(d=args)
-                r = self.WeathFont[line[0]].render(linestr,0,wc(self.charcolor))
-                renderedlines.append(r)
-                centered.append(line[1])
-                h = h + r.get_height()
-
+            renderedlines, centered, h = RenderScreenLines(self.conditions,self.js,self.charcolor)
         else:
             self.SetExtraCmdTitles([('Conditions',)])
-            renderedlines.append(self.WeathFont[2].render(self.scrlabel,0,wc(self.charcolor)))
+            renderedlines.append(WeathFont[2].render(self.scrlabel,0,wc(self.charcolor)))
             centered.append(True)
             h = h + renderedlines[0].get_height()
             for fcst in self.fcsts:
                 fs = functools.partial(TreeDict,fcst)
-                for line in self.forecast:
-                    print line
-                    if isinstance(line[3], str):
-                        linestr = line[2].format(d=line[3])
-                    else:
-                        args=[]
-                        for item in line[3]:
-                            args.append(str(fs(*item)))
-                        print args
-                        if len(args) == 1 and isinstance(args[0], str):
-                            linestr = line[2].format(d=args[0])
-                        else:
-                            linestr = line[2].format(d=args)
-                    r = self.WeathFont[line[0]].render(linestr,0,wc(self.charcolor))
-                    renderedlines.append(r)
-                    centered.append(line[1])
-                    h = h + r.get_height()
-
+                r, c, temph = RenderScreenLines(self.forecast,fs,self.charcolor)
+                h = h + temph
+                renderedlines = renderedlines + r
+                centered = centered + c
+                
         s = (usefulheight - h)/(len(renderedlines)-1)
-        print usefulheight, h, len(renderedlines)-1, s
         vert_off = config.topborder
 
         for i in range(len(renderedlines)):

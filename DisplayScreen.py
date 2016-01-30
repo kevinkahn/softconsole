@@ -79,12 +79,13 @@ class DisplayScreen:
         os.environ['SDL_MOUSEDEV'] = '/dev/input/touchscreen'
         os.environ['SDL_MOUSEDRV'] = 'TSLIB'
         os.environ['SDL_VIDEODRIVER'] = 'fbcon'
-        
+
         pygame.display.init()
         config.screenwidth, config.screenheight = (pygame.display.Info().current_w, pygame.display.Info().current_h)
         self.screen = pygame.display.set_mode((config.screenwidth,config.screenheight), pygame.FULLSCREEN)
         # Clear the screen to start
         self.screen.fill((0, 0, 0))  
+
         # Initialise font support
         pygame.font.init()
         # Render the screen

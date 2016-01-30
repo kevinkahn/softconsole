@@ -11,7 +11,7 @@ import Screen, ClockScreen, KeyScreen, WeatherScreen
 
 class MyScreens:
     
-    #screentype = dict()   # dict keyed by name of screen; entries are screentype, dict(keyname,keynumber),list keynames indexed by keynum 
+
     """
     screenlist: dict (screenname -> (screentype,screenordinal,appropriate xxxScreenDesc)
     """
@@ -19,10 +19,10 @@ class MyScreens:
 
 
     def __init__(self):
+        
         thisconfig = config.ParsedConfigFile   
         
         debugprint(config.dbgscreenbuild, "Process Configuration File")
-        
         
         prevscreen = None
         firstscreen = None
@@ -36,15 +36,12 @@ class MyScreens:
                 debugprint(config.dbgscreenbuild, "Screen of type ", tempscreentype)
                 
                 if tempscreentype == "Keys":
-                    # Key Screen
                     NewScreen = KeyScreen.KeyScreenDesc(thisScreen, screenitem)
 
                 elif tempscreentype == "Clock":
-                    # Clock Screen
                     NewScreen = ClockScreen.ClockScreenDesc(thisScreen, screenitem)
                     
                 elif tempscreentype == "Weather":
-                    # Weather Screen
                     NewScreen = WeatherScreen.WeatherScreenDesc(thisScreen, screenitem)
 
                 elif tempscreentype == "deviceall":
@@ -74,9 +71,3 @@ class MyScreens:
         config.HomeScreen = self.screenlist[config.HomeScreenName]
 
         
-            
-            
-        
-            
-
-    
