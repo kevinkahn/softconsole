@@ -18,7 +18,7 @@ class ClockScreenDesc(Screen.ScreenDesc):
         self.charcolor    = screensection.get("CharCol",config.CharCol)
         self.lineformat   = screensection.get("OutFormat","")
         self.fontsize     = int(screensection.get("CharSize",config.CharSize))
-
+        self.ClkFont      = pygame.font.SysFont(None,self.fontsize,True,True)
         
     def __repr__(self):
         return Screen.ScreenDesc.__repr__(self)+"\r\n     ClockScreenDesc:"+str(self.charcolor)+":"+str(self.lineformat)+":"+str(self.fontsize)
@@ -31,14 +31,15 @@ class ClockScreenDesc(Screen.ScreenDesc):
         isDim = False
         config.screen.screen.fill(wc(self.backcolor))
 
+        
         def repaintClock(cycle):
             # param ignored for clock
             usefulheight = config.screenheight - config.topborder - config.botborder
             h = 0
             l = []
-            ClkFont = pygame.font.SysFont(None,self.fontsize,True,True)
+            
             for i in range(len(self.lineformat)):
-                l.append(ClkFont.render(time.strftime(self.lineformat[i]), 0, wc(self.charcolor)))
+                l.append(self.ClkFont.render(time.strftime(self.lineformat[i]), 0, wc(self.charcolor)))
                 h = h + l[i].get_height()
             s = (usefulheight - h)/len(l)
         

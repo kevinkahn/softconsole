@@ -2,7 +2,7 @@ import config
 
 class ScreenDesc:
     
-    def SetExtraCmdTitles(titles):
+    def SetExtraCmdTitles(self, titles):
         self.ExtraCmdTitles   = titles
         # Titles are a list of tuples, one list item per button with tuple as the text string(s)
         

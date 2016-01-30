@@ -1,4 +1,5 @@
 import config
+import pygame
 
 
 def InBut(pos,center,size):
@@ -7,3 +8,9 @@ def InBut(pos,center,size):
     else:
         return False
         
+ButtonFontSizes = (30,25,23,21,19)
+ButtonFonts = []
+
+def InitButtonFonts():
+    for i in ButtonFontSizes:
+        ButtonFonts.append(pygame.font.SysFont("",i))

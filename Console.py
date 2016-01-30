@@ -11,10 +11,11 @@ import ISYSetup
 import multiprocessing
 from  multiprocessing import Process, Queue
 import WatchDaemon
-import sys, signal, time
+import sys, signal, time, os
 
 def signal_handler(signal, frame):
     print "Signal: {}".format(signal)
+    print "pid: ", os.getpid()
     time.sleep(1)
     pygame.quit()
     print "Console Exiting"
@@ -24,7 +25,7 @@ def signal_handler(signal, frame):
 Actual Code to Drive Console
 """
 
-print "Console Starting"
+print "Console Starting pid:", os.getpid()
 
 signal.signal(signal.SIGTERM, signal_handler)
 signal.signal(signal.SIGINT, signal_handler)
@@ -58,6 +59,7 @@ programs = config.ConnISY.myisy.programs
 
 config.ConnISY.WalkFolder(nodemgr)
 config.ConnISY.EnumeratePrograms(programs)
+print "Done ISY Enumerations"
 pygame.fastevent.init()
 CurrentScreenInfo = ConfigObjects.MyScreens()
 
@@ -68,8 +70,7 @@ p.daemon = True
 p.start()
 debugprint(dbgMain, "Spawned watcher as: ", p.pid)
 
-
-    
+ButLayout.InitButtonFonts()
 
 
 

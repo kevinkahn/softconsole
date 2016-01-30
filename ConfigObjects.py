@@ -4,7 +4,7 @@ import DisplayScreen
 import ButLayout
 import config
 from config import debugprint
-import Screen, ClockScreen, KeyScreen
+import Screen, ClockScreen, KeyScreen, WeatherScreen
 
 
 
@@ -42,6 +42,10 @@ class MyScreens:
                 elif tempscreentype == "Clock":
                     # Clock Screen
                     NewScreen = ClockScreen.ClockScreenDesc(thisScreen, screenitem)
+                    
+                elif tempscreentype == "Weather":
+                    # Weather Screen
+                    NewScreen = WeatherScreen.WeatherScreenDesc(thisScreen, screenitem)
 
                 elif tempscreentype == "deviceall":
                     debugprint(config.dbgscreenbuild, "Build Deviceall Screen")
@@ -49,7 +53,7 @@ class MyScreens:
                     pass
                     
                 else:
-                    debugprint(config.dbgscreenbuild, "Unknown Screen")
+                    print "Unknown screen type in config file: ",tempscreentype
                     # unknown - skip
                     pass
             
@@ -62,10 +66,11 @@ class MyScreens:
                 prevscreen.NextScreen = NewScreen 
                 NewScreen.PrevScreen = prevscreen
                 NewScreen.NextScreen = firstscreen
+                #print "Linking: ", NewScreen.label, " Prev: ", NewScreen.PrevScreen.label, " Next: ", NewScreen.NextScreen.label
                 prevscreen = NewScreen
                 firstscreen.PrevScreen = NewScreen
          
-        
+        #print "Finished linking first screen ",firstscreen.label," Prev: ", firstscreen.PrevScreen.label
         config.HomeScreen = self.screenlist[config.HomeScreenName]
 
         

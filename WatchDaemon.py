@@ -36,6 +36,7 @@ def Watcher():
     config.starttime = time.time()
     config.watchlist = []
     debugprint(config.dbgdaemon, "Watcher: ", config.starttime, os.getpid())
+    print "Watcher: ", os.getpid()
     server = ISYEvent()
     server.subscribe(addr=config.ISYaddr, userl=config.ISYuser, userp=config.ISYpassword)
     server.set_process_func(event_feed, "")

@@ -1,91 +1,165 @@
-import ISYSetup
 import DisplayScreen
+import pygame
 import webcolors
 import config
-import functools
+from config import debugprint, WAITNORMALBUTTON, WAITTIMEOUT, WAITCONTROLBUTTON, WAITRANDOMTOUCH, WAITISYCHANGE, WAITEXTRACONTROLBUTTON, WAITGOHOME
 import time
-from config import *
 wc = webcolors.name_to_rgb
 import Screen
-import pywapi
+import urllib2
+import json
+import functools
+from configobj import Section
+
+def TreeDict(d,*args):
+    # Allow a nest of dictionaries to be accessed by a tuple of keys for easier code
+    if len(args) == 1:
+        return d[args[0]]
+    else:
+        return TreeDict(d[args[0]],*args[1:])
 
 class WeatherScreenDesc(Screen.ScreenDesc):
-    # Describes a Clock Screen: name, background, dimtimeout, charcolor, (lineformat 3 tuple), fontsize)
-    
+
     def __init__(self, screensection, screenname):
         debugprint(config.dbgscreenbuild, "New WeatherScreenDesc ",screenname)
-        Screen.ScreenDesc.__init__(self, screensection, screenname)
+        self.WeathFont   = [pygame.font.SysFont(None,20,False,False),
+                            pygame.font.SysFont(None,30,True,False),
+                            pygame.font.SysFont(None,45,True,True)]
+        self.lineheight  = [x.get_linesize() for x in self.WeathFont]
+        self.wunderkey = screensection.get("wunderkey","NoKeySupplied")
+        self.location = screensection.get("location","")
+        Screen.ScreenDesc.__init__(self, screensection, screenname, 1)
         self.charcolor    = screensection.get("CharCol",config.CharCol)
+        self.lastwebreq = 0 # time of last call out to wunderground
+        self.url = 'http://api.wunderground.com/api/' + self.wunderkey + '/geolookup/conditions/forecast/astronomy/q/' + self.location + '.json'
+        self.parsed_json = {}
+        self.scrlabel =""
+        for s in self.label:
+            self.scrlabel = self.scrlabel + " " + s
+        self.conditions = [(2,True,"{d}",self.scrlabel),
+                           (1,True,"{d}",(('location','city'),)),
+                           (1,False,u"Currently: {d[0]} {d[1]}\u00B0F",(('current_observation','weather'),('current_observation','temp_f'))),
+                           (0,False,u"  Feels like: {d}\u00B0",(('current_observation','feelslike_f'),)),
+                           (1,False,"Wind {d[0]} at {d[1]} gusts {d[2]}",(('current_observation','wind_dir'),('current_observation','wind_mph'),('current_observation','wind_gust_mph'))),
+                           (1,False,"Sunrise: {d[0]}:{d[1]}",(('sun_phase','sunrise','hour'),('sun_phase','sunrise','minute'))),
+                           (1,False,"Sunset: {d[0]}:{d[1]}",(('sun_phase','sunset','hour'),('sun_phase','sunset','minute'))),
+                           (0,False,"Moon rise: {d[0]}:{d[1]}  set: {d[2]}:{d[3]}",(('moon_phase','moonrise','hour'),('moon_phase','moonrise','minute'),
+                                                                                   ('moon_phase','moonset','hour'),('moon_phase','moonset','minute'))),
+                           (0,False,"     {d}% illuminated",(('moon_phase','percentIlluminated'),)),
+                           (0,False,"will be replaced","")]
+        self.forecast    = [(1,False,u"{d[0]}   {d[1]}\u00B0/{d[2]}\u00B0 {d[3]}",(('date','weekday_short'),('high','fahrenheit'),('low','fahrenheit'),('conditions',))),
+                            (1,False,"Wind: {d[0]} at {d[1]}",(('avewind','dir'),('avewind','mph')))]
+                           
         
         
-        self.lineformat   = screensection.get("OutFormat","")
-        self.fontsize     = int(screensection.get("CharSize",config.CharSize))
-    
-
-        placename = ""
-        placeid = ??  lookup = pywapi.get_location_ids(placename)
-        #self.lineformat = oformat
 
     def __repr__(self):
         return Screen.ScreenDesc.__repr__(self)+"\r\n     WeatherScreenDesc:"+str(self.charcolor)+":"+str(self.lineformat)+":"+str(self.fontsize)
 
+    def ShowScreen(self,conditions):
+        config.screen.screen.fill(wc(self.backcolor))
+        usefulheight = config.screenheight - config.topborder - config.botborder
+        renderedlines = []
+        h = 0
+        centered = []
+        
+        if conditions:
+            self.SetExtraCmdTitles([('Forecast',)])
+            for line in self.conditions:
+                if isinstance(line[3], str):
+                    linestr = line[2].format(d=line[3])
+                else:
+                    args = []
+                    for item in line[3]:
+                        args.append(str(self.js(*item)))
+                    if len(args) == 1 and isinstance(args[0], str):
+                        linestr = line[2].format(d=args[0])
+                    else:
+                        linestr = line[2].format(d=args)
+                r = self.WeathFont[line[0]].render(linestr,0,wc(self.charcolor))
+                renderedlines.append(r)
+                centered.append(line[1])
+                h = h + r.get_height()
+
+        else:
+            self.SetExtraCmdTitles([('Conditions',)])
+            renderedlines.append(self.WeathFont[2].render(self.scrlabel,0,wc(self.charcolor)))
+            centered.append(True)
+            h = h + renderedlines[0].get_height()
+            for fcst in self.fcsts:
+                fs = functools.partial(TreeDict,fcst)
+                for line in self.forecast:
+                    print line
+                    if isinstance(line[3], str):
+                        linestr = line[2].format(d=line[3])
+                    else:
+                        args=[]
+                        for item in line[3]:
+                            args.append(str(fs(*item)))
+                        print args
+                        if len(args) == 1 and isinstance(args[0], str):
+                            linestr = line[2].format(d=args[0])
+                        else:
+                            linestr = line[2].format(d=args)
+                    r = self.WeathFont[line[0]].render(linestr,0,wc(self.charcolor))
+                    renderedlines.append(r)
+                    centered.append(line[1])
+                    h = h + r.get_height()
+
+        s = (usefulheight - h)/(len(renderedlines)-1)
+        print usefulheight, h, len(renderedlines)-1, s
+        vert_off = config.topborder
+
+        for i in range(len(renderedlines)):
+            if centered[i]:
+                horiz_off = (config.screenwidth - renderedlines[i].get_width())/2
+            else:
+                horiz_off = config.horizborder
+            config.screen.screen.blit(renderedlines[i],(horiz_off, vert_off))
+            vert_off = vert_off + renderedlines[i].get_height() + s
+        DisplayScreen.draw_cmd_buttons(config.screen,self)    
+        pygame.display.update()
+    
     def HandleScreen(self,newscr=True):
     
+        # stop any watching for device stream
+        config.toDaemon.put([])
+        
         isDim = False
-        config.screen.screen.fill(wc(self.backcolor))
-        
-        
-        weather_result = pywapi.get_weather_from_weather_com(location_id)
-        
-"""
-        def repaintClock(cycle):
-            # param ignored for clock
-            usefulheight = config.screenheight - config.topborder - config.botborder
-            h = 0
-            l = []
-            ClkFont = pygame.font.SysFont(None,self.fontsize,True,True)
-            for i in range(len(self.lineformat)):
-                l.append(ClkFont.render(time.strftime(self.lineformat[i]), 0, wc(self.charcolor)))
-                h = h + l[i].get_height()
-            s = (usefulheight - h)/len(l)
-        
-            config.screen.screen.fill(wc(self.backcolor),pygame.Rect(0,0,config.screenwidth,config.screenheight-config.botborder))
-            for i in range(len(l)):
-                vert_off = config.topborder + (i+1)*s + l[i].get_height()/2
-                horiz_off = (config.screenwidth - l[i].get_width())/2
-                config.screen.screen.blit(l[i],(horiz_off, vert_off))
-            pygame.display.update()
-"""            
-        repaintClock(0)
-        
-        DisplayScreen.draw_cmd_buttons(config.screen,self)
+        currentconditions = True
+
+        if time.time() > self.lastwebreq + 5*60:
+            # refresh the conditions - don't do more than once per 5 minutes
+            f = urllib2.urlopen(self.url)
+            self.lastwebreq = time.time()
+            self.parsed_json = json.loads(f.read())
+
+            self.js = functools.partial(TreeDict,self.parsed_json)
+            self.fcsts = TreeDict(self.parsed_json,'forecast','simpleforecast','forecastday')
+            self.local = time.strftime(" %c %Z",time.localtime(int(self.js('current_observation','observation_epoch'))))
+            self.conditions[-1] = (0,False,"Readings as of {d}", self.local)
+            f.close()
+        self.ShowScreen(currentconditions)        
         
         resetH = True
         while 1:
-"""
-            choice = config.screen.NewWaitPress(self, 10, callbackproc=repaintClock, callbackint=.5, resetHome = resetH)
+            choice = config.screen.NewWaitPress(self, config.DimTO, resetHome = resetH)
             resetH = False
             if not DisplayScreen.dim_change(choice):
                 if choice[0] == WAITCONTROLBUTTON:
                     resetH = True
                     break
                 elif choice[0] == WAITISYCHANGE:
-                    pass 
+                    pass
+                elif choice[0] == WAITEXTRACONTROLBUTTON:
+                    currentconditions = not currentconditions
+                    self.ShowScreen(currentconditions)
                 elif choice[0] == WAITGOHOME:
                     return  config.HomeScreen
             else:
                 if not config.isDim:
                     resetH = True
-"""
         return choice[1]
 
-import urllib2
-import json
-f = urllib2.urlopen('http://api.wunderground.com/api/<key>/geolookup/conditions/q/IA/Cedar_Rapids.json')
-json_string = f.read()
-parsed_json = json.loads(json_string)
-location = parsed_json['location']['city']
-temp_f = parsed_json['current_observation']['temp_f']
-print "Current temperature in %s is: %s" % (location, temp_f)
-f.close()
-        
+
+

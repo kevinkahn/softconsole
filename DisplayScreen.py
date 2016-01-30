@@ -30,11 +30,11 @@ def draw_cmd_buttons(scr,AS):
     for i in range(AS.ExtraCmdKeys):
         draw_button(scr,AS.ExtraCmdTitles[i],AS.CmdKeyColor,True,AS.ExtraCmdKeysCtr[i],AS.CmdButSize)
 
-def draw_button(dispscreen, txt, color, on, Center, size):
+def draw_button(dispscreen, txt, color, on, Center, size, shrink=True, firstfont=0):
 
     screen = dispscreen.screen
     lines = len(txt)
-    buttonsmaller = (size[0] - 10, size[1] - 10)
+    buttonsmaller = (size[0] - 6, size[1] - 6)
     x = Center[0] - size[0]/2
     y = Center[1] - size[1]/2
     if on :
@@ -42,16 +42,26 @@ def draw_button(dispscreen, txt, color, on, Center, size):
     else :
         HiColor = wc("black")
     pygame.draw.rect(screen, wc(color), ((x,y), size), 0)
-    pygame.draw.rect(screen, HiColor, ((x+5,y+5), buttonsmaller), 5)
+    pygame.draw.rect(screen, HiColor, ((x+3,y+3), buttonsmaller), 3)
     s = pygame.Surface(size)
     s.set_alpha(150)
     s.fill(wc("white"))
     
     if on == False :
         screen.blit(s, (x,y))
-    
+    # compute writeable area for text
+    textarea = (buttonsmaller[0]-6,buttonsmaller[1]-1)
+    fontchoice = firstfont
+    if shrink:
+        for l in range(lines):
+            for i in range(fontchoice,len(ButLayout.ButtonFonts)):
+                txtsize = ButLayout.ButtonFonts[fontchoice].size(txt[l])
+                if lines*txtsize[1] >= textarea[1] or txtsize[0] >= textarea[0]:
+                    fontchoice = i
+                    
     for i in range(lines) :
-        ren = pygame.transform.rotate(dispscreen.MyFont.render(txt[i], 0, HiColor), 0)
+        #ren = pygame.transform.rotate(dispscreen.MyFont.render(txt[i], 0, HiColor), 0)
+        ren = ButLayout.ButtonFonts[fontchoice].render(txt[i], 0, HiColor)
         vert_off = ((i+1)*size[1]/(1+lines)) - ren.get_height()/2
         horiz_off = (size[0] - ren.get_width())/2
         screen.blit(ren,(x+horiz_off, y+vert_off))
@@ -62,13 +72,6 @@ def draw_button(dispscreen, txt, color, on, Center, size):
 class DisplayScreen:
     screen = None
     
-    
-    
-    """    
-    def draw_command_buttons(screen, CmdTxt, keycolor, charcolor):
-    # Draw the command button
-        draw_button(screen, CmdTxt[i], keycolor, True, CmdCenters[i],(cbutwidth,cbutheight)) 
-    """
     
     def __init__(self):
         "Ininitializes a new pygame screen using the framebuffer"
@@ -88,7 +91,8 @@ class DisplayScreen:
         pygame.display.update()
         pygame.mouse.set_visible(False)
         pygame.font.init()
-        self.MyFont = pygame.font.Font(None, 25)
+        #self.MyFontSize = 25
+        #self.MyFont = pygame.font.SysFont("", self.MyFontSize)
   
    
 
@@ -142,9 +146,9 @@ class DisplayScreen:
                     found = True
                 else:
                     for i in range(ActiveScreen.ExtraCmdKeys):
-                        if ButLayout.InBut(pos, ActiveScreen.ExtraCmdKeysCtr, ActiveScreen.CmdButSize):
+                        if ButLayout.InBut(pos, ActiveScreen.ExtraCmdKeysCtr[i], ActiveScreen.CmdButSize):
                             rtn = (WAITEXTRACONTROLBUTTON, i)
-                            found = true
+                            found = True
                 if not found:
                     rtn = (WAITRANDOMTOUCH, 0)
                 break
