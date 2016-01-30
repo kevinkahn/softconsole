@@ -175,50 +175,48 @@ class KeyScreenDesc(Screen.ScreenDesc):
         blinkproc = None
         blinktime = 0
         blinks = 0
-        resetH = True
         
         while 1:
-            choice = config.screen.NewWaitPress(self, config.DimTO, callbackint=blinktime,callbackproc=blinkproc,callbackcount=blinks)
+            choice = config.screen.NewWaitPress(self, callbackint=blinktime,callbackproc=blinkproc,callbackcount=blinks)
             blinkproc = None
             blinktime = 0
             blinks = 0
-            if not DisplayScreen.dim_change(choice):
-                if choice[0] == WAITNORMALBUTTON:
-                    # handle various keytype cases
-                    K = self.keys[self.keysbyord[choice[1]]]
-                    if K.typ == "ONOFF":
-                        K.State = not K.State
-                        if K.addr <> "":
-                            if K.State:
-                                config.ConnISY.myisy.nodes[K.addr].on()
-                            else:
-                                config.ConnISY.myisy.nodes[K.addr].off()
+            if choice[0] == WAITNORMALBUTTON:
+                # handle various keytype cases
+                K = self.keys[self.keysbyord[choice[1]]]
+                if K.typ == "ONOFF":
+                    K.State = not K.State
+                    if K.addr <> "":
+                        if K.State:
+                            config.ConnISY.myisy.nodes[K.addr].on()
                         else:
-                            #print "no on/off addr"
-                            pass
-                        DisplayScreen.draw_button(config.screen,K.label,K.backcolor,K.State,K.Center,K.Size)
-                    elif K.typ == "ONBLINKRUNTHEN":
-                        K.Krunthen.runThen()
-                        blinkproc = functools.partial(BlinkKey,config.screen,K.label,K.backcolor,K.Center,K.Size,False)
-                        blinktime = .5
-                        blinks = 7
-                        DisplayScreen.draw_button(config.screen,K.label,K.backcolor,True,K.Center,K.Size)
-                        # leave K.State as is - key will return to off at end
-                    elif K.typ == "ONOFFRUN":
+                            config.ConnISY.myisy.nodes[K.addr].off()
+                    else:
+                        #print "no on/off addr"
                         pass
-                elif choice[0] == WAITCONTROLBUTTON:
-                    return choice[1]
-                elif choice[0] == WAITRANDOMTOUCH:
+                    DisplayScreen.draw_button(config.screen,K.label,K.backcolor,K.State,K.Center,K.Size)
+                elif K.typ == "ONBLINKRUNTHEN":
+                    K.Krunthen.runThen()
+                    blinkproc = functools.partial(BlinkKey,config.screen,K.label,K.backcolor,K.Center,K.Size,False)
+                    blinktime = .5
+                    blinks = 7
+                    DisplayScreen.draw_button(config.screen,K.label,K.backcolor,True,K.Center,K.Size)
+                    # leave K.State as is - key will return to off at end
+                elif K.typ == "ONOFFRUN":
                     pass
-                elif choice[0] == WAITGOHOME:
-                    return config.HomeScreen
+            elif choice[0] == WAITCONTROLBUTTON:
+                return choice[1]
+            elif choice[0] == WAITRANDOMTOUCH:
+                pass
+            elif choice[0] == WAITGOHOME:
+                return config.HomeScreen
                     
-                elif choice[0] == WAITISYCHANGE:
-                    K = self.keys[self.subscriptionlist[choice[1][0]].name]
-                    ActState = int(choice[1][1]) <> 0
+            elif choice[0] == WAITISYCHANGE:
+                K = self.keys[self.subscriptionlist[choice[1][0]].name]
+                ActState = int(choice[1][1]) <> 0
 
-                    if ActState <> K.State:
-                        K.State =  ActState
-                        DisplayScreen.draw_button(config.screen,K.label,K.backcolor,K.State,K.Center,K.Size)
+                if ActState <> K.State:
+                    K.State =  ActState
+                    DisplayScreen.draw_button(config.screen,K.label,K.backcolor,K.State,K.Center,K.Size)
 
 

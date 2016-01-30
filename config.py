@@ -31,7 +31,6 @@ def debugprint(flag,*args):
 
 ConnISY = None
 
-isDim = False
 screen = None
 backlight = None
 

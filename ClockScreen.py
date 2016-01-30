@@ -28,10 +28,8 @@ class ClockScreenDesc(Screen.ScreenDesc):
         # stop any watching for device stream
         config.toDaemon.put([])
          
-        isDim = False
         config.screen.screen.fill(wc(self.backcolor))
 
-        
         def repaintClock(cycle):
             # param ignored for clock
             usefulheight = config.screenheight - config.topborder - config.botborder
@@ -54,18 +52,13 @@ class ClockScreenDesc(Screen.ScreenDesc):
         DisplayScreen.draw_cmd_buttons(config.screen,self)
         
         while 1:
-            choice = config.screen.NewWaitPress(self, config.DimTO, callbackproc=repaintClock, callbackint=.5)
-            if not DisplayScreen.dim_change(choice):
-                if choice[0] == WAITCONTROLBUTTON:
-                    resetH = True
-                    # Cmd But
-                    #print "Clock exit", choice
-                    break
-                elif choice[0] == WAITISYCHANGE:
-                    #print "ISY Note: ", choice
-                    pass # random touch
-                elif choice[0] == WAITGOHOME:
-                    return  config.HomeScreen
+            choice = config.screen.NewWaitPress(self, callbackproc=repaintClock, callbackint=.5)
+            if choice[0] == WAITCONTROLBUTTON:
+                break
+            elif choice[0] == WAITISYCHANGE:
+                pass # random touch
+            elif choice[0] == WAITGOHOME:
+                return  config.HomeScreen
         return choice[1]
 
         

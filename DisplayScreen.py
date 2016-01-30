@@ -10,7 +10,7 @@ from config import debugprint, WAITNORMALBUTTON, WAITTIMEOUT, WAITCONTROLBUTTON,
 wc = webcolors.name_to_rgb
 
 
-
+"""
 def dim_change(c):
     if config.isDim and ((c[0] == WAITNORMALBUTTON) or (c[0] == WAITRANDOMTOUCH) or(c[0] == WAITCONTROLBUTTON)):
         config.backlight.ChangeDutyCycle(config.BrightLevel)
@@ -23,7 +23,7 @@ def dim_change(c):
         return True
     else:
         return False
-
+"""
 def draw_cmd_buttons(scr,AS):
     draw_button(scr,AS.PrevScreen.label,AS.CmdKeyColor,True,AS.PrevScreenButCtr,AS.CmdButSize)
     draw_button(scr,AS.NextScreen.label,AS.CmdKeyColor,True,AS.NextScreenButCtr,AS.CmdButSize)
@@ -97,10 +97,11 @@ class DisplayScreen:
         self.MAXTIMEHIT = pygame.event.Event(pygame.USEREVENT)
         self.INTERVALHIT = pygame.event.Event(pygame.USEREVENT+1)
         self.GOHOMEHIT = pygame.event.Event(pygame.USEREVENT+2)
+        self.isDim = False
   
    
 
-    def NewWaitPress(self,ActiveScreen,maxwait=0,callbackint=0,callbackproc=None,callbackcount=0):
+    def NewWaitPress(self,ActiveScreen,callbackint=0,callbackproc=None,callbackcount=0):
         """
         wait for a mouse click a maximum of maxwait seconds
         if callbackint <> 0 call the callbackproc every callbackint time
@@ -112,8 +113,9 @@ class DisplayScreen:
         if callbackint <> 0:
             pygame.time.set_timer(self.INTERVALHIT.type, int(callbackint*1000))
         cycle = callbackcount if callbackcount <> 0 else 100000000  # essentially infinite
-        if maxwait <> 0:
-            pygame.time.set_timer(self.MAXTIMEHIT.type, maxwait*1000)
+        pygame.time.set_timer(self.MAXTIMEHIT.type, config.DimTO*1000)
+        self.isDim = False
+        config.backlight.ChangeDutyCycle(config.BrightLevel)
         
         while True:
             if not config.fromDaemon.empty():
@@ -131,6 +133,12 @@ class DisplayScreen:
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 # on any touch reset return to home screen
                 pygame.time.set_timer(self.GOHOMEHIT.type, int(config.HomeScreenTO)*1000)
+                # on any touch restart dim timer and reset to bright if dim
+                pygame.time.set_timer(self.MAXTIMEHIT.type, config.DimTO*1000)
+                if self.isDim:
+                    config.backlight.ChangeDutyCycle(config.BrightLevel)
+                    self.isDim = False
+                    continue  # touch that ends dim screen is otherwise ignored
                 found = False
                 pos = (pygame.mouse.get_pos()[0],pygame.mouse.get_pos()[1])
                 
@@ -156,8 +164,9 @@ class DisplayScreen:
                 break
             
             elif event.type == self.MAXTIMEHIT.type:
-                rtn = (WAITTIMEOUT,0)
-                break
+                self.isDim = True
+                config.backlight.ChangeDutyCycle(config.DimLevel)
+                pass
             elif event.type == self.INTERVALHIT.type:
                 if (callbackproc <> None) and (cycle > 0):
                     callbackproc(cycle)
