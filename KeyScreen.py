@@ -3,7 +3,7 @@ import ISYSetup
 import DisplayScreen
 import webcolors
 import config
-from config import debugprint, WAITNORMALBUTTON, WAITTIMEOUT, WAITCONTROLBUTTON, WAITRANDOMTOUCH, WAITISYCHANGE, WAITEXTRACONTROLBUTTON, WAITGOHOME
+from config import debugprint, WAITNORMALBUTTON, WAITTIMEOUT, WAITCONTROLBUTTON, WAITISYCHANGE, WAITEXTRACONTROLBUTTON, WAITGOHOME
 import functools
 from configobj import Section
 wc = webcolors.name_to_rgb
@@ -85,9 +85,7 @@ class KeyDesc:
 
 
 class KeyScreenDesc(Screen.ScreenDesc):
-    # Describes a Key Screen: name, background, dimtimeout, keys(dict:keyname->ord),keysbyord(array of keynames),
-    
-    
+
     def __init__(self, screensection, screenname):
         debugprint(config.dbgscreenbuild, "New KeyScreenDesc ",screenname)
         Screen.ScreenDesc.__init__(self, screensection, screenname, 0) # no extra cmd keys
@@ -135,8 +133,7 @@ class KeyScreenDesc(Screen.ScreenDesc):
             DisplayScreen.draw_button(screen,lab,back,finalstate if cycle % 2 <> 0 else not finalstate,center,size)
 
         NumKeys = self.NumKeys
-        isDim = False
-        
+
         if newscr:
             # key screen change actually occurred
             config.screen.screen.fill(wc(self.backcolor))
@@ -206,8 +203,6 @@ class KeyScreenDesc(Screen.ScreenDesc):
                     pass
             elif choice[0] == WAITCONTROLBUTTON:
                 return choice[1]
-            elif choice[0] == WAITRANDOMTOUCH:
-                pass
             elif choice[0] == WAITGOHOME:
                 return config.HomeScreen
                     

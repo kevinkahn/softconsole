@@ -4,26 +4,12 @@ import pygame
 import webcolors
 import ButLayout
 import time
-from config import debugprint, WAITNORMALBUTTON, WAITTIMEOUT, WAITCONTROLBUTTON, WAITRANDOMTOUCH, WAITISYCHANGE, WAITEXTRACONTROLBUTTON, WAITGOHOME
+from config import debugprint, WAITNORMALBUTTON, WAITTIMEOUT, WAITCONTROLBUTTON, WAITISYCHANGE, WAITEXTRACONTROLBUTTON, WAITGOHOME, WAITMAINTTAP
 
 
 wc = webcolors.name_to_rgb
 
 
-"""
-def dim_change(c):
-    if config.isDim and ((c[0] == WAITNORMALBUTTON) or (c[0] == WAITRANDOMTOUCH) or(c[0] == WAITCONTROLBUTTON)):
-        config.backlight.ChangeDutyCycle(config.BrightLevel)
-        config.isDim = False
-        return True
-    elif c[0] == WAITTIMEOUT:
-        # Time out - dim
-        config.isDim = True
-        config.backlight.ChangeDutyCycle(config.DimLevel)
-        return True
-    else:
-        return False
-"""
 def draw_cmd_buttons(scr,AS):
     draw_button(scr,AS.PrevScreen.label,AS.CmdKeyColor,True,AS.PrevScreenButCtr,AS.CmdButSize)
     draw_button(scr,AS.NextScreen.label,AS.CmdKeyColor,True,AS.NextScreenButCtr,AS.CmdButSize)
@@ -98,6 +84,7 @@ class DisplayScreen:
         self.INTERVALHIT = pygame.event.Event(pygame.USEREVENT+1)
         self.GOHOMEHIT = pygame.event.Event(pygame.USEREVENT+2)
         self.isDim = False
+
   
    
 
@@ -113,11 +100,12 @@ class DisplayScreen:
         if callbackint <> 0:
             pygame.time.set_timer(self.INTERVALHIT.type, int(callbackint*1000))
         cycle = callbackcount if callbackcount <> 0 else 100000000  # essentially infinite
-        pygame.time.set_timer(self.MAXTIMEHIT.type, config.DimTO*1000)
-        self.isDim = False
-        config.backlight.ChangeDutyCycle(config.BrightLevel)
+        pygame.time.set_timer(self.MAXTIMEHIT.type, config.DimTO*1000)  # make sure dim timer is running on entry no harm if already dim
+
+        
         
         while True:
+            rtn = (0, 0)
             if not config.fromDaemon.empty():
                 alert = config.fromDaemon.get()
                 debugprint(config.dbgMain, time.time(),"ISY reports change: ","Key: ", alert)
@@ -128,9 +116,23 @@ class DisplayScreen:
             if event.type == pygame.NOEVENT:
                 time.sleep(.2)
 
-            #print "Waitloop: ",time.time()
-            #print "Event",event
             elif event.type == pygame.MOUSEBUTTONDOWN:
+                pos = (pygame.mouse.get_pos()[0],pygame.mouse.get_pos()[1])
+                tapcount = 1
+                pygame.time.delay(config.multitaptime)
+                while True:
+                    eventx = pygame.fastevent.poll()
+                    if eventx.type == pygame.NOEVENT:
+                        break
+                    elif eventx.type == pygame.MOUSEBUTTONDOWN:
+                        tapcount += 1
+                        pygame.time.delay(config.multitaptime)
+                    else:
+                        continue
+                if tapcount > 3:
+                    print "maint return", tapcount
+                    rtn = (WAITMAINTTAP, tapcount)
+                    break
                 # on any touch reset return to home screen
                 pygame.time.set_timer(self.GOHOMEHIT.type, int(config.HomeScreenTO)*1000)
                 # on any touch restart dim timer and reset to bright if dim
@@ -139,30 +141,23 @@ class DisplayScreen:
                     config.backlight.ChangeDutyCycle(config.BrightLevel)
                     self.isDim = False
                     continue  # touch that ends dim screen is otherwise ignored
-                found = False
-                pos = (pygame.mouse.get_pos()[0],pygame.mouse.get_pos()[1])
+                
                 
                 for i in range(ActiveScreen.NumKeys):
                     K = ActiveScreen.keys[ActiveScreen.keysbyord[i]]
                     if ButLayout.InBut(pos, K.Center, K.Size):
                         rtn = (WAITNORMALBUTTON, i)
-                        found = True
-           
                 if ButLayout.InBut(pos,ActiveScreen.PrevScreenButCtr,ActiveScreen.CmdButSize):
                     rtn = (WAITCONTROLBUTTON, ActiveScreen.PrevScreen)
-                    found = True
                 elif ButLayout.InBut(pos,ActiveScreen.NextScreenButCtr,ActiveScreen.CmdButSize):
                     rtn = (WAITCONTROLBUTTON, ActiveScreen.NextScreen)
-                    found = True
                 else:
                     for i in range(ActiveScreen.ExtraCmdKeys):
                         if ButLayout.InBut(pos, ActiveScreen.ExtraCmdKeysCtr[i], ActiveScreen.CmdButSize):
                             rtn = (WAITEXTRACONTROLBUTTON, i)
-                            found = True
-                if not found:
-                    rtn = (WAITRANDOMTOUCH, 0)
-                break
-            
+                if rtn[0] <> 0:
+                    break
+
             elif event.type == self.MAXTIMEHIT.type:
                 self.isDim = True
                 config.backlight.ChangeDutyCycle(config.DimLevel)

@@ -82,13 +82,17 @@ ButLayout.InitButtonFonts()
 Loop here using screen type to choose renderer and names to fill in cmdtxt - return value should be cmdbutindex
 """
 
-config.currentscreen = CurrentScreenInfo.screenlist[config.HomeScreenName]
-
+config.backlight.ChangeDutyCycle(config.BrightLevel)
+config.currentscreen = config.HomeScreen
+nextscreen = None
+prevscreen = None
 while 1:
-    if config.previousscreen <> config.currentscreen:
-        config.previousscreen = config.currentscreen
-        config.currentscreen = config.currentscreen.HandleScreen(True)
-    else:
-        config.currentscreen = config.currentscreen.HandleScreen(False)
+    nextscreen = config.currentscreen.HandleScreen(prevscreen <> config.currentscreen)
+    if nextscreen == None:
+        print "Maint req"
+        nextscreen = config.HomeScreen
+    prevscreen = config.currentscreen
+    config.currentscreen = nextscreen
+    
         
 

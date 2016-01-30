@@ -5,13 +5,12 @@ import config
 import functools
 import time
 import pygame
-from config import debugprint, WAITNORMALBUTTON, WAITTIMEOUT, WAITCONTROLBUTTON, WAITRANDOMTOUCH, WAITISYCHANGE, WAITEXTRACONTROLBUTTON, WAITGOHOME
+from config import debugprint, WAITNORMALBUTTON, WAITTIMEOUT, WAITCONTROLBUTTON, WAITISYCHANGE, WAITEXTRACONTROLBUTTON, WAITGOHOME, WAITMAINTTAP
 wc = webcolors.name_to_rgb
 import Screen
 
 class ClockScreenDesc(Screen.ScreenDesc):
-    # Describes a Clock Screen: name, background, dimtimeout, charcolor, (lineformat 3 tuple), fontsize)
-    
+
     def __init__(self, screensection, screenname):
         debugprint(config.dbgscreenbuild, "Build Clock Screen")
         Screen.ScreenDesc.__init__(self, screensection, screenname, 0) # no extra cmd keys
@@ -52,13 +51,15 @@ class ClockScreenDesc(Screen.ScreenDesc):
         DisplayScreen.draw_cmd_buttons(config.screen,self)
         
         while 1:
-            choice = config.screen.NewWaitPress(self, callbackproc=repaintClock, callbackint=.5)
+            choice = config.screen.NewWaitPress(self, callbackproc=repaintClock, callbackint=1)
             if choice[0] == WAITCONTROLBUTTON:
                 break
             elif choice[0] == WAITISYCHANGE:
                 pass # random touch
             elif choice[0] == WAITGOHOME:
                 return  config.HomeScreen
+            elif choice[0] == WAITMAINTTAP:
+                return  None
         return choice[1]
 
         

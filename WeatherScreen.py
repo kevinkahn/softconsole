@@ -2,7 +2,7 @@ import DisplayScreen
 import pygame
 import webcolors
 import config
-from config import debugprint, WAITNORMALBUTTON, WAITTIMEOUT, WAITCONTROLBUTTON, WAITRANDOMTOUCH, WAITISYCHANGE, WAITEXTRACONTROLBUTTON, WAITGOHOME
+from config import debugprint, WAITNORMALBUTTON, WAITTIMEOUT, WAITCONTROLBUTTON, WAITISYCHANGE, WAITEXTRACONTROLBUTTON, WAITGOHOME,WAITMAINTTAP
 import time
 wc = webcolors.name_to_rgb
 import Screen
@@ -127,7 +127,6 @@ class WeatherScreenDesc(Screen.ScreenDesc):
         # stop any watching for device stream
         config.toDaemon.put([])
         
-        isDim = False
         currentconditions = True
 
         if time.time() > self.lastwebreq + 5*60:
@@ -144,7 +143,7 @@ class WeatherScreenDesc(Screen.ScreenDesc):
         self.ShowScreen(currentconditions)        
         
         while 1:
-            choice = config.screen.NewWaitPress(self, config.DimTO)
+            choice = config.screen.NewWaitPress(self)
             if choice[0] == WAITCONTROLBUTTON:
                 break
             elif choice[0] == WAITISYCHANGE:

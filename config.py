@@ -1,14 +1,14 @@
 import pygame
 
-WAITNORMALBUTTON = 0
-WAITTIMEOUT = 1
-WAITCONTROLBUTTON = 2
-WAITRANDOMTOUCH = 3 
+WAITNORMALBUTTON = 1
+WAITTIMEOUT = 2
+WAITCONTROLBUTTON = 3
 WAITISYCHANGE = 4
 WAITEXTRACONTROLBUTTON = 5
 WAITGOHOME = 6
 WAITDBLTAP = 7
 WAITQUADTAP = 8
+WAITMAINTTAP = 9
 
 
 toDaemon = None
@@ -48,7 +48,7 @@ ISYuser = ""
 ISYpassword = ""
 
 currentscreen = None
-previousscreen = None
+#previousscreen = None
 HomeScreenName = ""
 HomeScreen = None
 DimLevel = 10
@@ -57,6 +57,7 @@ HomeScreenTO = 60
 DimTO = 20
 CmdKeyCol = "red"
 CmdCharCol = "white"
+multitaptime = 200
 
 # General Screen Defaults
 BColor = "maroon"
