@@ -2,7 +2,7 @@ import DisplayScreen
 import pygame
 import webcolors
 import config
-from config import debugprint, WAITNORMALBUTTON, WAITTIMEOUT, WAITCONTROLBUTTON, WAITISYCHANGE, WAITEXTRACONTROLBUTTON, WAITGOHOME,WAITMAINTTAP
+from config import debugprint, WAITCONTROLBUTTON, WAITISYCHANGE, WAITEXTRACONTROLBUTTON, WAITGOHOME,WAITMAINTTAP
 import time
 wc = webcolors.name_to_rgb
 import Screen
@@ -153,6 +153,8 @@ class WeatherScreenDesc(Screen.ScreenDesc):
                 self.ShowScreen(currentconditions)
             elif choice[0] == WAITGOHOME:
                 return  config.HomeScreen
+            elif choice[0] == WAITMAINTTAP:
+                return  None
         return choice[1]
 
 

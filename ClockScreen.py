@@ -5,7 +5,7 @@ import config
 import functools
 import time
 import pygame
-from config import debugprint, WAITNORMALBUTTON, WAITTIMEOUT, WAITCONTROLBUTTON, WAITISYCHANGE, WAITEXTRACONTROLBUTTON, WAITGOHOME, WAITMAINTTAP
+from config import debugprint, WAITCONTROLBUTTON, WAITISYCHANGE, WAITGOHOME, WAITMAINTTAP
 wc = webcolors.name_to_rgb
 import Screen
 
@@ -53,13 +53,11 @@ class ClockScreenDesc(Screen.ScreenDesc):
         while 1:
             choice = config.screen.NewWaitPress(self, callbackproc=repaintClock, callbackint=1)
             if choice[0] == WAITCONTROLBUTTON:
-                break
+                return choice[1]
             elif choice[0] == WAITISYCHANGE:
                 pass # random touch
             elif choice[0] == WAITGOHOME:
                 return  config.HomeScreen
             elif choice[0] == WAITMAINTTAP:
                 return  None
-        return choice[1]
-
         
