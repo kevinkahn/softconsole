@@ -77,8 +77,7 @@ class DisplayScreen:
         # Render the screen
         pygame.display.update()
         pygame.mouse.set_visible(False)
-        pygame.font.init()
-        
+
         # define user events
         self.MAXTIMEHIT = pygame.event.Event(pygame.USEREVENT)
         self.INTERVALHIT = pygame.event.Event(pygame.USEREVENT+1)

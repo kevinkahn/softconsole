@@ -51,8 +51,7 @@ class KeyDesc:
         self.Center       = (0,0)
         self.Size         = (10,10)
 
-        if self.typ == "ONBLINKRUNTHEN" and self.Krunthen <> None:
-            print self.name, " bound to run then of program ", self.Krunthen.name
+
         
         # map the key to a scene or device - prefer to map to a scene so check that first
         # Obj is the representation of the ISY Object itself, addr is the address of the ISY device/scene
@@ -65,7 +64,18 @@ class KeyDesc:
         else:
             self.addr = ""
             self.Obj = None
-            print "Key not Node or Scene: ", keyname, " in Screen Creation"                        
+
+        if self.typ in ("ONOFF"):
+            if self.addr == "":
+                print "Unbound on/off key: ", self.label
+                config.ErrorItems.append("Key binding: " + self.label)
+        elif self.typ in ("ONBLINKRUNTHEN"):
+            if self.Krunthen == None:
+                print "Unbound program key: ", self.label
+                config.ErrorItems.append("Prog binding: " + self.label)
+        else:
+            print "Unknown key type: ", self.label
+            config.ErrorItems.append("Bad keytype: " + self.label)
 
         if isinstance(self.Obj,ISYSetup.SceneItem):
             # if key is for scene and explicit proxy, push down the explicit over the default
@@ -206,7 +216,7 @@ class KeyScreenDesc(Screen.ScreenDesc):
             elif choice[0] == WAITGOHOME:
                 return config.HomeScreen
             elif choice[0] == WAITMAINTTAP:
-                return  None        
+                return  choice[1]        
             elif choice[0] == WAITISYCHANGE:
                 K = self.keys[self.subscriptionlist[choice[1][0]].name]
                 ActState = int(choice[1][1]) <> 0

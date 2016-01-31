@@ -29,6 +29,8 @@ def debugprint(flag,*args):
         print
 
 
+ErrorItems = []
+
 ConnISY = None
 
 screen = None
@@ -69,7 +71,7 @@ BColor = "maroon"
 Kcolor = "aqua"
 KOnColor = "white"
 KOffColor = "black"
-Ktype = "ONOFF"
+Ktype = "ONOFF" # ONOFF ONBLINKRUNTHEN
 Krunthen = ""
 
 # Clock Screen Defaults

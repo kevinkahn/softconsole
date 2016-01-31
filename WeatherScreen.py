@@ -154,7 +154,7 @@ class WeatherScreenDesc(Screen.ScreenDesc):
             elif choice[0] == WAITGOHOME:
                 return  config.HomeScreen
             elif choice[0] == WAITMAINTTAP:
-                return  None
+                return  choice[1]
         return choice[1]
 
 
