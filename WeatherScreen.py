@@ -2,21 +2,31 @@ import DisplayScreen
 import pygame
 import webcolors
 import config
-from config import debugprint, WAITCONTROLBUTTON, WAITISYCHANGE, WAITEXTRACONTROLBUTTON, WAITGOHOME,WAITMAINTTAP
+from config import debugprint, WAITEXTRACONTROLBUTTON, WAITEXIT
 import time
 wc = webcolors.name_to_rgb
 import Screen
 import urllib2
 import json
 import functools
+from datetime import timedelta
 from configobj import Section
 
 WeathFont = [None,None,None]
 
+def hms_string(sec_elapsed):
+    h = int(sec_elapsed / (60 * 60))
+    m = int((sec_elapsed % (60 * 60)) / 60)
+    s = int(sec_elapsed % 60)
+    return "{}:{:>02d}:{:>02d}".format(h, m, s)
+
 def TreeDict(d,*args):
     # Allow a nest of dictionaries to be accessed by a tuple of keys for easier code
     if len(args) == 1:
-        return d[args[0]]
+        temp = d[args[0]]
+        if isinstance(temp, basestring) and temp.isdigit():
+            temp = int(temp)
+        return temp
     else:
         return TreeDict(d[args[0]],*args[1:])
 
@@ -29,12 +39,19 @@ def RenderScreenLines(recipe,extracter,color):
             linestr = line[2].format(d=line[3])
         else:
             args = []
+            #print line, format
             for item in line[3]:
-                args.append(str(extracter(*item)))
+                args.append(extracter(*item))
+                #print args, type(args[-1]).__name__
             if len(args) == 1 and isinstance(args[0], basestring):
+                #print "One arg: ",type(args[0]).__name__,args
                 linestr = line[2].format(d=args[0])
+                #print line[2].format(d=args[0])
             else:
+                #for x in args:
+                #   print "Mult arg: ",type(x).__name__,x,args
                 linestr = line[2].format(d=args)
+                #print line[2].format(d=args)
         r = WeathFont[line[0]].render(linestr,0,wc(color))
         renderedlines.append(r)
         centered.append(line[1])
@@ -42,7 +59,6 @@ def RenderScreenLines(recipe,extracter,color):
     return (renderedlines,centered,h)
 
     
-
 class WeatherScreenDesc(Screen.ScreenDesc):
 
     def __init__(self, screensection, screenname):
@@ -68,13 +84,13 @@ class WeatherScreenDesc(Screen.ScreenDesc):
         self.conditions = [(2,True,"{d}",self.scrlabel),
                            (1,True,"{d}",(('location','city'),)),
                            (1,False,u"Currently: {d[0]} {d[1]}\u00B0F",(('current_observation','weather'),('current_observation','temp_f'))),
-                           (0,False,u"  Feels like: {d}\u00B0",(('current_observation','feelslike_f'),)),
+                           (0,False,u"  Feels like: {d[0]:02d}\u00B0",(('current_observation','feelslike_f'),)),
                            (1,False,"Wind {d[0]} at {d[1]} gusts {d[2]}",(('current_observation','wind_dir'),('current_observation','wind_mph'),('current_observation','wind_gust_mph'))),
-                           (1,False,"Sunrise: {d[0]}:{d[1]}",(('sun_phase','sunrise','hour'),('sun_phase','sunrise','minute'))),
-                           (1,False,"Sunset: {d[0]}:{d[1]}",(('sun_phase','sunset','hour'),('sun_phase','sunset','minute'))),
-                           (0,False,"Moon rise: {d[0]}:{d[1]}  set: {d[2]}:{d[3]}",(('moon_phase','moonrise','hour'),('moon_phase','moonrise','minute'),
+                           (1,False,"Sunrise: {d[0]:02d}:{d[1]:02d}",(('sun_phase','sunrise','hour'),('sun_phase','sunrise','minute'))),
+                           (1,False,"Sunset:  {d[0]:02d}:{d[1]:02d}",(('sun_phase','sunset','hour'),('sun_phase','sunset','minute'))),
+                           (0,False,"Moon rise: {d[0]:02d}:{d[1]:02d}  set: {d[2]:02d}:{d[3]:02d}",(('moon_phase','moonrise','hour'),('moon_phase','moonrise','minute'),
                                                                                    ('moon_phase','moonset','hour'),('moon_phase','moonset','minute'))),
-                           (0,False,"     {d}% illuminated",(('moon_phase','percentIlluminated'),)),
+                           (0,False,"     {d[0]}% illuminated",(('moon_phase','percentIlluminated'),)),
                            (0,False,"will be replaced","")]
         self.forecast    = [(1,False,u"{d[0]}   {d[1]}\u00B0/{d[2]}\u00B0 {d[3]}",(('date','weekday_short'),('high','fahrenheit'),('low','fahrenheit'),('conditions',))),
                             (1,False,"Wind: {d[0]} at {d[1]}",(('avewind','dir'),('avewind','mph')))]
@@ -95,6 +111,8 @@ class WeatherScreenDesc(Screen.ScreenDesc):
         centered = []
         
         if conditions:
+            age = hms_string(time.time() - int(self.js('current_observation','observation_epoch')))
+            self.conditions[-1] = (0,False,"Readings as of {d} ago", age)
             self.SetExtraCmdTitles([('Forecast',)])
             renderedlines, centered, h = RenderScreenLines(self.conditions,self.js,self.charcolor)
         else:
@@ -137,25 +155,15 @@ class WeatherScreenDesc(Screen.ScreenDesc):
 
             self.js = functools.partial(TreeDict,self.parsed_json)
             self.fcsts = TreeDict(self.parsed_json,'forecast','simpleforecast','forecastday')
-            self.local = time.strftime(" %c %Z",time.localtime(int(self.js('current_observation','observation_epoch'))))
-            self.conditions[-1] = (0,False,"Readings as of {d}", self.local)
             f.close()
         self.ShowScreen(currentconditions)        
         
         while 1:
             choice = config.screen.NewWaitPress(self)
-            if choice[0] == WAITCONTROLBUTTON:
-                break
-            elif choice[0] == WAITISYCHANGE:
-                pass
+            if choice[0] == WAITEXIT:
+                return choice[1]
             elif choice[0] == WAITEXTRACONTROLBUTTON:
                 currentconditions = not currentconditions
                 self.ShowScreen(currentconditions)
-            elif choice[0] == WAITGOHOME:
-                return  config.HomeScreen
-            elif choice[0] == WAITMAINTTAP:
-                return  choice[1]
-        return choice[1]
-
 
 

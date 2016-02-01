@@ -3,7 +3,7 @@ import ISYSetup
 import DisplayScreen
 import webcolors
 import config
-from config import debugprint, WAITNORMALBUTTON, WAITNORMALBUTTONFAST, WAITCONTROLBUTTON, WAITISYCHANGE, WAITGOHOME, WAITMAINTTAP
+from config import debugprint, WAITNORMALBUTTON, WAITNORMALBUTTONFAST, WAITISYCHANGE, WAITEXIT
 import functools
 from configobj import Section
 wc = webcolors.name_to_rgb
@@ -211,12 +211,8 @@ class KeyScreenDesc(Screen.ScreenDesc):
                     # leave K.State as is - key will return to off at end
                 elif K.typ == "ONOFFRUN":
                     pass
-            elif choice[0] == WAITCONTROLBUTTON:
+            elif choice[0] == WAITEXIT:
                 return choice[1]
-            elif choice[0] == WAITGOHOME:
-                return config.HomeScreen
-            elif choice[0] == WAITMAINTTAP:
-                return  choice[1]        
             elif choice[0] == WAITISYCHANGE:
                 K = self.keys[self.subscriptionlist[choice[1][0]].name]
                 ActState = int(choice[1][1]) <> 0

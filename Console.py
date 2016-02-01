@@ -65,6 +65,7 @@ scrnpos = 10
 config.screen.screen.fill(wc('royalblue'))
 display_line(u"Soft ISY Console")
 display_line(u"  \u00A9 Kevin Kahn 2016")
+display_line("Software under Apache 2.0 License")
 display_line("Console Starting")
 
 

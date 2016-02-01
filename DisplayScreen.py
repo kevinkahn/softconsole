@@ -4,7 +4,7 @@ import pygame
 import webcolors
 import ButLayout
 import time
-from config import debugprint, WAITNORMALBUTTON, WAITNORMALBUTTONFAST, WAITCONTROLBUTTON, WAITISYCHANGE, WAITEXTRACONTROLBUTTON, WAITGOHOME, WAITMAINTTAP
+from config import debugprint, WAITNORMALBUTTON, WAITNORMALBUTTONFAST, WAITEXIT, WAITISYCHANGE, WAITEXTRACONTROLBUTTON
 
 
 wc = webcolors.name_to_rgb
@@ -130,7 +130,7 @@ class DisplayScreen:
                         continue
                 if tapcount > 3:
                     print "maint return", tapcount
-                    rtn = (WAITMAINTTAP, tapcount)
+                    rtn = (WAITEXIT, tapcount)
                     break
                 # on any touch reset return to home screen
                 pygame.time.set_timer(self.GOHOMEHIT.type, int(config.HomeScreenTO)*1000)
@@ -147,9 +147,9 @@ class DisplayScreen:
                     if ButLayout.InBut(pos, K.Center, K.Size):
                         rtn = (WAITNORMALBUTTON, i)
                 if ButLayout.InBut(pos,ActiveScreen.PrevScreenButCtr,ActiveScreen.CmdButSize):
-                    rtn = (WAITCONTROLBUTTON, ActiveScreen.PrevScreen)
+                    rtn = (WAITEXIT, ActiveScreen.PrevScreen)
                 elif ButLayout.InBut(pos,ActiveScreen.NextScreenButCtr,ActiveScreen.CmdButSize):
-                    rtn = (WAITCONTROLBUTTON, ActiveScreen.NextScreen)
+                    rtn = (WAITEXIT, ActiveScreen.NextScreen)
                 else:
                     for i in range(ActiveScreen.ExtraCmdKeys):
                         if ButLayout.InBut(pos, ActiveScreen.ExtraCmdKeysCtr[i], ActiveScreen.CmdButSize):
@@ -166,7 +166,7 @@ class DisplayScreen:
                     callbackproc(cycle)
                     cycle -= 1
             elif event.type == self.GOHOMEHIT.type:
-                rtn = (WAITGOHOME,0)
+                rtn = (WAITEXIT,config.HomeScreen)
                 break
             else:
                 pass # ignore and flush other events
