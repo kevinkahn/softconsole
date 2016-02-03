@@ -29,11 +29,26 @@ def ButLayout(butcount):
 def ButSize(bpr,bpc):
     return ((config.screenwidth - 2*config.horizborder)/bpr, (config.screenheight - config.topborder - config.botborder)/bpc)
 
+class TouchPoint:
+    def __init__(self,c,s):
+        self.Center       = c
+        self.Size         = s
 
-class KeyDesc:
+class ManualKeyDesc(TouchPoint):
+    def __init__(self, keyname, center, size, bcolor, charcolor):
+        TouchPoint.__init__(self,center,size)
+        self.name = keyname
+        self.backcolor = bcolor
+        self.charcoloron = charcolor
+        self.charcoloroff = charcolor
+        self.label = keyname
+        
+        
+class KeyDesc(TouchPoint):
     # Describe a Key: name, background, keycharon, keycharoff, label(string tuple), type (ONOFF,ONBlink,OnOffRun,?),addr,OnU,OffU 
     
     def __init__(self, keysection, keyname):
+        TouchPoint.__init__(self,(0,0),(10,10))
         debugprint(config.dbgscreenbuild, "             New Key Desc ", keyname)
         
         self.name = keyname
@@ -48,8 +63,7 @@ class KeyDesc:
         self.sceneproxy   = keysection.get("sceneproxy","")
         # dummy values
         self.State        = False
-        self.Center       = (0,0)
-        self.Size         = (10,10)
+
 
 
         
@@ -221,4 +235,4 @@ class KeyScreenDesc(Screen.ScreenDesc):
                     K.State =  ActState
                     DisplayScreen.draw_button(config.screen,K.label,K.backcolor,K.State,K.Center,K.Size)
 
-
+config.screentypes["Keys"] = KeyScreenDesc

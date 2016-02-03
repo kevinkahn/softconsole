@@ -39,20 +39,19 @@ def signal_handler(signal, frame):
     print "Console Exiting"
     sys.exit(0)
 
-"""
-Actual Code to Drive Console
-"""
-
-print "Console Starting pid:", os.getpid()
-
-def display_line(ln):
+def display_line(ln, err=True):
     global ls
     global scrnpos
     global UtilFont
-    l = UtilFont.render(ln, False, wc('white'))
+    c = wc("red") if err else wc('white')
+    l = UtilFont.render(ln, False, c)
     config.screen.screen.blit(l,(10,scrnpos))
     pygame.display.update()
     scrnpos = scrnpos + ls
+
+"""
+Actual Code to Drive Console
+"""
 
 signal.signal(signal.SIGTERM, signal_handler)
 signal.signal(signal.SIGINT, signal_handler)
@@ -63,13 +62,10 @@ UtilFont = pygame.font.SysFont(None,25,False,False)
 ls = UtilFont.get_linesize()
 scrnpos = 10
 config.screen.screen.fill(wc('royalblue'))
-display_line(u"Soft ISY Console")
-display_line(u"  \u00A9 Kevin Kahn 2016")
-display_line("Software under Apache 2.0 License")
-display_line("Console Starting")
-
-
-
+display_line(u"Soft ISY Console", err=False)
+display_line(u"  \u00A9 Kevin Kahn 2016", err=False)
+display_line("Software under Apache 2.0 License", err=False)
+display_line("Console Starting  pid:" + str(os.getpid()), err=False)
 
 
 if len(sys.argv) == 2:
@@ -100,7 +96,7 @@ config.ConnISY = ISYSetup.ISYsetup()
 nodemgr = config.ConnISY.myisy.nodes
 programs = config.ConnISY.myisy.programs
 if config.ConnISY.myisy.connected:
-    display_line("Connected to ISY")
+    display_line("Connected to ISY", err=False)
 else:
     display_line("Failed to connect to ISY")
     config.ErrorItems.append("Connection to ISY failed")
@@ -108,7 +104,7 @@ else:
 
 config.ConnISY.WalkFolder(nodemgr)
 config.ConnISY.EnumeratePrograms(programs)
-display_line("Enumerated ISY")
+display_line("Enumerated ISY", err=False)
 
 pygame.fastevent.init()
 CurrentScreenInfo = ConfigObjects.MyScreens()
@@ -120,11 +116,16 @@ p.daemon = True
 
 p.start()
 debugprint(config.dbgMain, "Spawned watcher as: ", p.pid)
-
+config.InfoItems.append("Watcher pid: " + str(p.pid))
 ButLayout.InitButtonFonts()
 
+for l in config.InfoItems:
+    display_line(l, err=False)
+for l in config.ErrorItems:
+    display_line(l)
 
 time.sleep(5)
+
 """
 Loop here using screen type to choose renderer and names to fill in cmdtxt - return value should be cmdbutindex
 """

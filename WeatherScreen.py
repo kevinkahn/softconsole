@@ -70,11 +70,10 @@ class WeatherScreenDesc(Screen.ScreenDesc):
             WeathFont[1] = pygame.font.SysFont(None,30,True,False)
             WeathFont[2] = pygame.font.SysFont(None,45,True,True)
 
-        self.lineheight  = [x.get_linesize() for x in WeathFont]
         self.wunderkey = screensection.get("wunderkey","NoKeySupplied")
         self.location = screensection.get("location","")
         Screen.ScreenDesc.__init__(self, screensection, screenname, 1)
-        self.charcolor    = screensection.get("CharCol",config.CharCol)
+        self.charcolor    = screensection.get("CharCol",config.CharColor)
         self.lastwebreq = 0 # time of last call out to wunderground
         self.url = 'http://api.wunderground.com/api/' + self.wunderkey + '/geolookup/conditions/forecast/astronomy/q/' + self.location + '.json'
         self.parsed_json = {}
@@ -166,4 +165,4 @@ class WeatherScreenDesc(Screen.ScreenDesc):
                 currentconditions = not currentconditions
                 self.ShowScreen(currentconditions)
 
-
+config.screentypes["Weather"] = WeatherScreenDesc

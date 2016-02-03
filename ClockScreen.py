@@ -9,12 +9,13 @@ from config import debugprint, WAITEXIT
 wc = webcolors.name_to_rgb
 import Screen
 
+
 class ClockScreenDesc(Screen.ScreenDesc):
 
     def __init__(self, screensection, screenname):
         debugprint(config.dbgscreenbuild, "Build Clock Screen")
         Screen.ScreenDesc.__init__(self, screensection, screenname, 0) # no extra cmd keys
-        self.charcolor    = screensection.get("CharCol",config.CharCol)
+        self.charcolor    = screensection.get("CharColor",config.CharColor)
         self.lineformat   = screensection.get("OutFormat","")
         self.fontsize     = int(screensection.get("CharSize",config.CharSize))
         self.ClkFont      = pygame.font.SysFont(None,self.fontsize,True,True)
@@ -55,3 +56,4 @@ class ClockScreenDesc(Screen.ScreenDesc):
             if choice[0] ==  WAITEXIT:
                 return  choice[1]
         
+config.screentypes["Clock"] = ClockScreenDesc

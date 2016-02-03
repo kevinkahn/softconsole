@@ -4,9 +4,7 @@ import DisplayScreen
 import ButLayout
 import config
 from config import debugprint
-import Screen, ClockScreen, KeyScreen, WeatherScreen
-
-
+import ClockScreen, KeyScreen, WeatherScreen, ThermostatScreen
 
 
 class MyScreens:
@@ -35,23 +33,11 @@ class MyScreens:
                 tempscreentype = thisScreen.get("typ","unspec")
                 debugprint(config.dbgscreenbuild, "Screen of type ", tempscreentype)
                 
-                if tempscreentype == "Keys":
-                    NewScreen = KeyScreen.KeyScreenDesc(thisScreen, screenitem)
-
-                elif tempscreentype == "Clock":
-                    NewScreen = ClockScreen.ClockScreenDesc(thisScreen, screenitem)
-                    
-                elif tempscreentype == "Weather":
-                    NewScreen = WeatherScreen.WeatherScreenDesc(thisScreen, screenitem)
-
-                elif tempscreentype == "deviceall":
-                    debugprint(config.dbgscreenbuild, "Build Deviceall Screen")
-                    # all devices screen(s)
-                    pass
-                    
+                if tempscreentype in config.screentypes:
+                    NewScreen = config.screentypes[tempscreentype](thisScreen, screenitem)
+                    config.InfoItems.append(tempscreentype + " screen " + screenitem)
                 else:
-                    print "Unknown screen type in config file: ",tempscreentype
-                    # unknown - skip
+                    config.ErrorItems.append("Screentype error" + screenitem + " type " + tempscreentype)
                     pass
             
             if NewScreen <> None:
@@ -67,7 +53,10 @@ class MyScreens:
                 prevscreen = NewScreen
                 firstscreen.PrevScreen = NewScreen
          
-        #print "Finished linking first screen ",firstscreen.label," Prev: ", firstscreen.PrevScreen.label
-        config.HomeScreen = self.screenlist[config.HomeScreenName]
+        
+        if config.HomeScreenName in self.screenlist:
+            config.HomeScreen = self.screenlist[config.HomeScreenName]
+        else:
+            config.HomeScreen = firstscreen
 
         

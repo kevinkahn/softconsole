@@ -68,6 +68,7 @@ class DisplayScreen:
 
         pygame.display.init()
         config.screenwidth, config.screenheight = (pygame.display.Info().current_w, pygame.display.Info().current_h)
+        print "Screensize: ",config.screenwidth, config.screenheight
         self.screen = pygame.display.set_mode((config.screenwidth,config.screenheight), pygame.FULLSCREEN)
         # Clear the screen to start
         self.screen.fill((0, 0, 0))  
@@ -83,6 +84,8 @@ class DisplayScreen:
         self.INTERVALHIT = pygame.event.Event(pygame.USEREVENT+1)
         self.GOHOMEHIT = pygame.event.Event(pygame.USEREVENT+2)
         self.isDim = False
+        
+        self.presscount = 0
 
   
    
@@ -113,10 +116,13 @@ class DisplayScreen:
             event = pygame.fastevent.poll()
             
             if event.type == pygame.NOEVENT:
-                time.sleep(.2)
+                time.sleep(.01)
 
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 pos = (pygame.mouse.get_pos()[0],pygame.mouse.get_pos()[1])
+                if self.presscount < 10:
+                    print pos
+                    self.presscount += 1
                 tapcount = 1
                 pygame.time.delay(config.multitaptime)
                 while True:
@@ -141,9 +147,10 @@ class DisplayScreen:
                     self.isDim = False
                     continue  # touch that ends dim screen is otherwise ignored
                 
-                
+                print "Pos: ",pos
                 for i in range(ActiveScreen.NumKeys):
                     K = ActiveScreen.keys[ActiveScreen.keysbyord[i]]
+                    print K.Center, K.Size
                     if ButLayout.InBut(pos, K.Center, K.Size):
                         rtn = (WAITNORMALBUTTON, i)
                 if ButLayout.InBut(pos,ActiveScreen.PrevScreenButCtr,ActiveScreen.CmdButSize):

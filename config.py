@@ -1,12 +1,14 @@
 import pygame
 
+screentypes = {}
+
 WAITNORMALBUTTON = 1
 WAITEXIT = 2
 WAITISYCHANGE = 4
 WAITEXTRACONTROLBUTTON = 5
 WAITDBLTAP = 7
 WAITQUADTAP = 8
-WAITMAINTTAP = 9
+#WAITMAINTTAP = 9
 WAITNORMALBUTTONFAST = 10
 
 
@@ -27,7 +29,7 @@ def debugprint(flag,*args):
             print arg,
         print
 
-
+InfoItems = []
 ErrorItems = []
 
 ConnISY = None
@@ -49,7 +51,7 @@ ISYuser = ""
 ISYpassword = ""
 
 currentscreen = None
-#previousscreen = None
+
 HomeScreenName = ""
 HomeScreen = None
 DimLevel = 10
@@ -74,7 +76,7 @@ Ktype = "ONOFF" # ONOFF ONBLINKRUNTHEN
 Krunthen = ""
 
 # Clock Screen Defaults
-CharCol = "white"
+CharColor = "white"
 CharSize = 35
 
 
