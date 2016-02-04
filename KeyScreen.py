@@ -1,14 +1,13 @@
-import PyISY
 import ISYSetup
 import DisplayScreen
 import TouchArea
-import webcolors
 import config
 from config import debugprint, WAITNORMALBUTTON, WAITNORMALBUTTONFAST, WAITISYCHANGE, WAITEXIT
 import functools
 from configobj import Section
-wc = webcolors.name_to_rgb
 import Screen
+import webcolors
+wc = webcolors.name_to_rgb
 
 
 def ButLayout(butcount):

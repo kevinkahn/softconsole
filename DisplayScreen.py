@@ -1,16 +1,14 @@
 import os
 import config
 import pygame
-import webcolors
 import TouchArea
 import time
 from config import debugprint, WAITNORMALBUTTON, WAITNORMALBUTTONFAST, WAITEXIT, WAITISYCHANGE, WAITEXTRACONTROLBUTTON
 import LogSupport
 from LogSupport import Info, Warning, Error
-
-
-
+import webcolors
 wc = webcolors.name_to_rgb
+
 
 
 def draw_cmd_buttons(scr,AS):

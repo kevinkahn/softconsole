@@ -1,12 +1,12 @@
 import ISYSetup
 import DisplayScreen
 import webcolors
+wc = webcolors.name_to_rgb
 import config
 import functools
 import time
 import pygame
 from config import debugprint, WAITEXIT
-wc = webcolors.name_to_rgb
 import Screen
 
 

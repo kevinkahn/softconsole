@@ -17,7 +17,6 @@ Copyright 2016 Kevin Kahn
 import config
 from config import debugprint
 from configobj import ConfigObj
-import PyISY
 import TouchArea
 import ConfigObjects
 import DisplayScreen
@@ -28,10 +27,15 @@ import multiprocessing
 from  multiprocessing import Process, Queue
 import WatchDaemon
 import sys, signal, time, os
-import webcolors
-wc = webcolors.name_to_rgb
 import LogSupport
 from LogSupport import Logs
+import webcolors
+wc = webcolors.name_to_rgb
+
+"""
+The next import is functional in that it is what causes the screen types to be registered with the Console
+"""
+import ClockScreen, KeyScreen, ThermostatScreen,WeatherScreen 
 
 def signal_handler(signal, frame):
     print "Signal: {}".format(signal)
@@ -135,7 +139,6 @@ Loop here using screen type to choose renderer and names to fill in cmdtxt - ret
 
 config.backlight.ChangeDutyCycle(config.BrightLevel)
 config.currentscreen = config.HomeScreen
-nextscreen = None
 prevscreen = None
 while 1:
     nextscreen = config.currentscreen.HandleScreen(prevscreen <> config.currentscreen)

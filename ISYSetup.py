@@ -1,9 +1,7 @@
 import PyISY
-import pygame
 import config
 from config import isytreewalkdbgprt as dbgprt
-from config import debugprint as debugprint
-import time
+from config import debugprint
 from xml.dom import minidom
 
 def get_real_time_status(nodeaddr):

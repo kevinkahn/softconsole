@@ -1,20 +1,14 @@
 import DisplayScreen
-from DisplayScreen import draw_button
+from DisplayScreen import draw_button, draw_cmd_buttons
 import pygame
 from pygame import gfxdraw
 import webcolors
+wc = webcolors.name_to_rgb
 import config
 from config import debugprint, WAITEXTRACONTROLBUTTON, WAITEXIT, WAITNORMALBUTTON, WAITISYCHANGE, dispratio
-import time
-wc = webcolors.name_to_rgb
 import Screen
-import urllib2
 import xmltodict
-import json
-import functools
 import TouchArea
-from datetime import timedelta
-from configobj import Section
 
 ThermoFont = [None,None,None,None]
 
@@ -103,7 +97,7 @@ class ThermostatScreenDesc(Screen.ScreenDesc):
         config.screen.blit(r1,(self.keysbyord[4].Center[0]-r1.get_width()/2,self.ModesPos))
         config.screen.blit(r2,(self.keysbyord[5].Center[0]-r2.get_width()/2,self.ModesPos))
 
-        DisplayScreen.draw_cmd_buttons(config.screen,self)
+        draw_cmd_buttons(config.screen,self)
         pygame.display.update()
     
     def HandleScreen(self,newscr=True):

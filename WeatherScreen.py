@@ -10,7 +10,6 @@ import urllib2
 import json
 import functools
 from datetime import timedelta
-from configobj import Section
 
 WeathFont = [None,None,None]
 
