@@ -2,54 +2,54 @@ import os
 import config
 import pygame
 import webcolors
-import ButLayout
+import TouchArea
 import time
 from config import debugprint, WAITNORMALBUTTON, WAITNORMALBUTTONFAST, WAITEXIT, WAITISYCHANGE, WAITEXTRACONTROLBUTTON
+import LogSupport
+from LogSupport import Info, Warning, Error
+
 
 
 wc = webcolors.name_to_rgb
 
 
 def draw_cmd_buttons(scr,AS):
-    draw_button(scr,AS.PrevScreen.label,AS.CmdKeyColor,True,AS.PrevScreenButCtr,AS.CmdButSize)
-    draw_button(scr,AS.NextScreen.label,AS.CmdKeyColor,True,AS.NextScreenButCtr,AS.CmdButSize)
-    for i in range(AS.ExtraCmdKeys):
-        draw_button(scr,AS.ExtraCmdTitles[i],AS.CmdKeyColor,True,AS.ExtraCmdKeysCtr[i],AS.CmdButSize)
+    draw_button(scr,AS.PrevScreenKey)
+    draw_button(scr,AS.NextScreenKey)
+    for K in AS.ExtraCmdKeys:
+        draw_button(scr,K)
 
-def draw_button(dispscreen, txt, color, on, Center, size, shrink=True, firstfont=0):
+def draw_button(screen, Key, shrink=True, firstfont=0):
 
-    screen = dispscreen.screen
-    lines = len(txt)
-    buttonsmaller = (size[0] - 6, size[1] - 6)
-    x = Center[0] - size[0]/2
-    y = Center[1] - size[1]/2
-    if on :
-        HiColor = wc("white")
-    else :
-        HiColor = wc("black")
-    pygame.draw.rect(screen, wc(color), ((x,y), size), 0)
-    pygame.draw.rect(screen, HiColor, ((x+3,y+3), buttonsmaller), 3)
-    s = pygame.Surface(size)
+    lines = len(Key.label)
+    buttonsmaller = (Key.Size[0] - 6, Key.Size[1] - 6)
+    x = Key.Center[0] - Key.Size[0]/2
+    y = Key.Center[1] - Key.Size[1]/2
+
+    HiColor = Key.KOnColor if Key.State else Key.KOffColor
+    pygame.draw.rect(screen, wc(Key.backcolor), ((x,y), Key.Size), 0)
+    pygame.draw.rect(screen, wc(HiColor), ((x+3,y+3), buttonsmaller), 3)
+    s = pygame.Surface(Key.Size)
     s.set_alpha(150)
     s.fill(wc("white"))
     
-    if on == False :
+    if not Key.State:
         screen.blit(s, (x,y))
     # compute writeable area for text
     textarea = (buttonsmaller[0]-6,buttonsmaller[1]-1)
     fontchoice = firstfont
     if shrink:
         for l in range(lines):
-            for i in range(fontchoice,len(ButLayout.ButtonFonts)):
-                txtsize = ButLayout.ButtonFonts[fontchoice].size(txt[l])
+            for i in range(fontchoice,len(TouchArea.ButtonFonts)):
+                txtsize = TouchArea.ButtonFonts[fontchoice].size(Key.label[l])
                 if lines*txtsize[1] >= textarea[1] or txtsize[0] >= textarea[0]:
                     fontchoice = i
                     
     for i in range(lines) :
         #ren = pygame.transform.rotate(dispscreen.MyFont.render(txt[i], 0, HiColor), 0)
-        ren = ButLayout.ButtonFonts[fontchoice].render(txt[i], 0, HiColor)
-        vert_off = ((i+1)*size[1]/(1+lines)) - ren.get_height()/2
-        horiz_off = (size[0] - ren.get_width())/2
+        ren = TouchArea.ButtonFonts[fontchoice].render(Key.label[i], 0, wc(HiColor))
+        vert_off = ((i+1)*Key.Size[1]/(1+lines)) - ren.get_height()/2
+        horiz_off = (Key.Size[0] - ren.get_width())/2
         screen.blit(ren,(x+horiz_off, y+vert_off))
         
     pygame.display.update()
@@ -60,24 +60,11 @@ class DisplayScreen:
 
     
     def __init__(self):
-        "Ininitializes a new pygame screen using the framebuffer"
-        os.environ['SDL_FBDEV'] = '/dev/fb1'
-        os.environ['SDL_MOUSEDEV'] = '/dev/input/touchscreen'
-        os.environ['SDL_MOUSEDRV'] = 'TSLIB'
-        os.environ['SDL_VIDEODRIVER'] = 'fbcon'
 
-        pygame.display.init()
-        config.screenwidth, config.screenheight = (pygame.display.Info().current_w, pygame.display.Info().current_h)
+        #self.screen = config.screen
+
         print "Screensize: ",config.screenwidth, config.screenheight
-        self.screen = pygame.display.set_mode((config.screenwidth,config.screenheight), pygame.FULLSCREEN)
-        # Clear the screen to start
-        self.screen.fill((0, 0, 0))  
-
-        # Initialise font support
-        pygame.font.init()
-        # Render the screen
-        pygame.display.update()
-        pygame.mouse.set_visible(False)
+        config.Logs.Log("Screensize: " + str(config.screenwidth) + " x " + str(config.screenheight))
 
         # define user events
         self.MAXTIMEHIT = pygame.event.Event(pygame.USEREVENT)
@@ -148,19 +135,19 @@ class DisplayScreen:
                     continue  # touch that ends dim screen is otherwise ignored
                 
                 print "Pos: ",pos
-                for i in range(ActiveScreen.NumKeys):
-                    K = ActiveScreen.keys[ActiveScreen.keysbyord[i]]
+                for i in range(len(ActiveScreen.keysbyord)):
+                    K = ActiveScreen.keysbyord[i]
                     print K.Center, K.Size
-                    if ButLayout.InBut(pos, K.Center, K.Size):
+                    if TouchArea.InBut(pos, K):
                         rtn = (WAITNORMALBUTTON, i)
-                if ButLayout.InBut(pos,ActiveScreen.PrevScreenButCtr,ActiveScreen.CmdButSize):
+                if TouchArea.InBut(pos,ActiveScreen.PrevScreenKey):
                     rtn = (WAITEXIT, ActiveScreen.PrevScreen)
-                elif ButLayout.InBut(pos,ActiveScreen.NextScreenButCtr,ActiveScreen.CmdButSize):
+                elif TouchArea.InBut(pos,ActiveScreen.NextScreenKey):
                     rtn = (WAITEXIT, ActiveScreen.NextScreen)
                 else:
-                    for i in range(ActiveScreen.ExtraCmdKeys):
-                        if ButLayout.InBut(pos, ActiveScreen.ExtraCmdKeysCtr[i], ActiveScreen.CmdButSize):
-                            rtn = (WAITEXTRACONTROLBUTTON, i)
+                    for K in ActiveScreen.ExtraCmdKeys:
+                        if TouchArea.InBut(pos, K):
+                            rtn = (WAITEXTRACONTROLBUTTON, K.name)
                 if rtn[0] <> 0:
                     break
 

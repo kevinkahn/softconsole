@@ -1,3 +1,4 @@
+import LogSupport
 import pygame
 
 screentypes = {}
@@ -29,17 +30,19 @@ def debugprint(flag,*args):
             print arg,
         print
 
-InfoItems = []
-ErrorItems = []
+Logs = None
 
 ConnISY = None
 
 screen = None
 backlight = None
+DS = None
 
 ParsedConfigFile = None
 screenwidth = 320
 screenheight = 480
+dispratio = 1
+
 horizborder = 20
 topborder = 20
 botborder = 80
@@ -60,7 +63,7 @@ HomeScreenTO = 60
 DimTO = 20
 CmdKeyCol = "red"
 CmdCharCol = "white"
-multitaptime = 200
+multitaptime = 300
 
 # General Screen Defaults
 BColor = "maroon"

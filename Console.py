@@ -18,7 +18,7 @@ import config
 from config import debugprint
 from configobj import ConfigObj
 import PyISY
-import ButLayout
+import TouchArea
 import ConfigObjects
 import DisplayScreen
 import pygame
@@ -30,6 +30,8 @@ import WatchDaemon
 import sys, signal, time, os
 import webcolors
 wc = webcolors.name_to_rgb
+import LogSupport
+from LogSupport import Logs
 
 def signal_handler(signal, frame):
     print "Signal: {}".format(signal)
@@ -39,33 +41,38 @@ def signal_handler(signal, frame):
     print "Console Exiting"
     sys.exit(0)
 
-def display_line(ln, err=True):
-    global ls
-    global scrnpos
-    global UtilFont
-    c = wc("red") if err else wc('white')
-    l = UtilFont.render(ln, False, c)
-    config.screen.screen.blit(l,(10,scrnpos))
-    pygame.display.update()
-    scrnpos = scrnpos + ls
-
 """
 Actual Code to Drive Console
 """
 
+os.environ['SDL_FBDEV'] = '/dev/fb1'
+os.environ['SDL_MOUSEDEV'] = '/dev/input/touchscreen'
+os.environ['SDL_MOUSEDRV'] = 'TSLIB'
+os.environ['SDL_VIDEODRIVER'] = 'fbcon'
+
+pygame.display.init()
+pygame.font.init()
+config.screenwidth, config.screenheight = (pygame.display.Info().current_w, pygame.display.Info().current_h)
+config.screen = pygame.display.set_mode((config.screenwidth,config.screenheight), pygame.FULLSCREEN)
+config.screen.fill((0, 0, 0)) # clear screen  
+pygame.display.update()
+pygame.mouse.set_visible(False)
+
+        
+config.Logs = LogSupport.Logs(config.screen)
+Logs = config.Logs
+
 signal.signal(signal.SIGTERM, signal_handler)
 signal.signal(signal.SIGINT, signal_handler)
 
-config.screen = DisplayScreen.DisplayScreen()
+config.screen.fill(wc('royalblue'))
+Logs.Log(u"Soft ISY Console")
+Logs.Log(u"  \u00A9 Kevin Kahn 2016")
+Logs.Log("Software under Apache 2.0 License")
+Logs.Log("Console Starting  pid:" + str(os.getpid()))
 
-UtilFont = pygame.font.SysFont(None,25,False,False)
-ls = UtilFont.get_linesize()
-scrnpos = 10
-config.screen.screen.fill(wc('royalblue'))
-display_line(u"Soft ISY Console", err=False)
-display_line(u"  \u00A9 Kevin Kahn 2016", err=False)
-display_line("Software under Apache 2.0 License", err=False)
-display_line("Console Starting  pid:" + str(os.getpid()), err=False)
+config.DS = DisplayScreen.DisplayScreen()
+
 
 
 if len(sys.argv) == 2:
@@ -96,15 +103,14 @@ config.ConnISY = ISYSetup.ISYsetup()
 nodemgr = config.ConnISY.myisy.nodes
 programs = config.ConnISY.myisy.programs
 if config.ConnISY.myisy.connected:
-    display_line("Connected to ISY", err=False)
+    Logs.Log("Connected to ISY: "+config.ISYaddr)
 else:
-    display_line("Failed to connect to ISY")
-    config.ErrorItems.append("Connection to ISY failed")
-    
+    Logs.Log("Failed to connect to ISY",Logger.Error)
 
 config.ConnISY.WalkFolder(nodemgr)
+Logs.Log("Enumerated ISY Devices/Scenes")
 config.ConnISY.EnumeratePrograms(programs)
-display_line("Enumerated ISY", err=False)
+Logs.Log("Enumerated ISY Programs")
 
 pygame.fastevent.init()
 CurrentScreenInfo = ConfigObjects.MyScreens()
@@ -116,15 +122,12 @@ p.daemon = True
 
 p.start()
 debugprint(config.dbgMain, "Spawned watcher as: ", p.pid)
-config.InfoItems.append("Watcher pid: " + str(p.pid))
-ButLayout.InitButtonFonts()
+Logs.Log("Watcher pid: " + str(p.pid))
 
-for l in config.InfoItems:
-    display_line(l, err=False)
-for l in config.ErrorItems:
-    display_line(l)
+TouchArea.InitButtonFonts()
 
-time.sleep(5)
+Logs.livelog = False
+time.sleep(2)
 
 """
 Loop here using screen type to choose renderer and names to fill in cmdtxt - return value should be cmdbutindex

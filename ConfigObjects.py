@@ -5,6 +5,9 @@ import ButLayout
 import config
 from config import debugprint
 import ClockScreen, KeyScreen, WeatherScreen, ThermostatScreen
+import LogSupport
+from LogSupport import Info, Warning, Error
+
 
 
 class MyScreens:
@@ -18,6 +21,7 @@ class MyScreens:
 
     def __init__(self):
         
+        Logs = config.Logs
         thisconfig = config.ParsedConfigFile   
         
         debugprint(config.dbgscreenbuild, "Process Configuration File")
@@ -35,9 +39,9 @@ class MyScreens:
                 
                 if tempscreentype in config.screentypes:
                     NewScreen = config.screentypes[tempscreentype](thisScreen, screenitem)
-                    config.InfoItems.append(tempscreentype + " screen " + screenitem)
+                    Logs.Log(tempscreentype + " screen " + screenitem)
                 else:
-                    config.ErrorItems.append("Screentype error" + screenitem + " type " + tempscreentype)
+                    Logs.Log("Screentype error" + screenitem + " type " + tempscreentype,Warning)
                     pass
             
             if NewScreen <> None:
@@ -46,14 +50,15 @@ class MyScreens:
                 firstscreen = NewScreen if firstscreen == None else firstscreen
                 prevscreen = NewScreen if prevscreen == None else prevscreen
                 self.screenlist[screenitem] = NewScreen
-                prevscreen.NextScreen = NewScreen 
+                prevscreen.NextScreen = NewScreen
                 NewScreen.PrevScreen = prevscreen
                 NewScreen.NextScreen = firstscreen
-                #print "Linking: ", NewScreen.label, " Prev: ", NewScreen.PrevScreen.label, " Next: ", NewScreen.NextScreen.label
                 prevscreen = NewScreen
                 firstscreen.PrevScreen = NewScreen
          
-        
+        for S in self.screenlist.itervalues():
+            S.FinishScreen()
+            
         if config.HomeScreenName in self.screenlist:
             config.HomeScreen = self.screenlist[config.HomeScreenName]
         else:

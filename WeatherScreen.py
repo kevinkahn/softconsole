@@ -72,7 +72,7 @@ class WeatherScreenDesc(Screen.ScreenDesc):
 
         self.wunderkey = screensection.get("wunderkey","NoKeySupplied")
         self.location = screensection.get("location","")
-        Screen.ScreenDesc.__init__(self, screensection, screenname, 1)
+        Screen.ScreenDesc.__init__(self, screensection, screenname, ('which',))
         self.charcolor    = screensection.get("CharCol",config.CharColor)
         self.lastwebreq = 0 # time of last call out to wunderground
         self.url = 'http://api.wunderground.com/api/' + self.wunderkey + '/geolookup/conditions/forecast/astronomy/q/' + self.location + '.json'
@@ -93,6 +93,7 @@ class WeatherScreenDesc(Screen.ScreenDesc):
                            (0,False,"will be replaced","")]
         self.forecast    = [(1,False,u"{d[0]}   {d[1]}\u00B0/{d[2]}\u00B0 {d[3]}",(('date','weekday_short'),('high','fahrenheit'),('low','fahrenheit'),('conditions',))),
                             (1,False,"Wind: {d[0]} at {d[1]}",(('avewind','dir'),('avewind','mph')))]
+
                            
         
         
@@ -103,7 +104,7 @@ class WeatherScreenDesc(Screen.ScreenDesc):
     
 
     def ShowScreen(self,conditions):
-        config.screen.screen.fill(wc(self.backcolor))
+        config.screen.fill(wc(self.backcolor))
         usefulheight = config.screenheight - config.topborder - config.botborder
         renderedlines = []
         h = 0
@@ -134,7 +135,7 @@ class WeatherScreenDesc(Screen.ScreenDesc):
                 horiz_off = (config.screenwidth - renderedlines[i].get_width())/2
             else:
                 horiz_off = config.horizborder
-            config.screen.screen.blit(renderedlines[i],(horiz_off, vert_off))
+            config.screen.blit(renderedlines[i],(horiz_off, vert_off))
             vert_off = vert_off + renderedlines[i].get_height() + s
         DisplayScreen.draw_cmd_buttons(config.screen,self)    
         pygame.display.update()
@@ -158,7 +159,7 @@ class WeatherScreenDesc(Screen.ScreenDesc):
         self.ShowScreen(currentconditions)        
         
         while 1:
-            choice = config.screen.NewWaitPress(self)
+            choice = config.DS.NewWaitPress(self)
             if choice[0] == WAITEXIT:
                 return choice[1]
             elif choice[0] == WAITEXTRACONTROLBUTTON:
