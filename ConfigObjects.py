@@ -59,5 +59,6 @@ class MyScreens:
             config.HomeScreen = self.screenlist[config.HomeScreenName]
         else:
             config.HomeScreen = firstscreen
+        Logs.Log("Home Screen: " + config.HomeScreen.name)
 
         

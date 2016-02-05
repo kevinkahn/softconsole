@@ -35,19 +35,32 @@ wc = webcolors.name_to_rgb
 """
 The next import is functional in that it is what causes the screen types to be registered with the Console
 """
-import ClockScreen, KeyScreen, ThermostatScreen,WeatherScreen 
+import ClockScreen, KeyScreen, ThermostatScreen, WeatherScreen, MaintScreen
 
 def signal_handler(signal, frame):
     print "Signal: {}".format(signal)
     print "pid: ", os.getpid()
     time.sleep(1)
     pygame.quit()
-    print "Console Exiting"
+    print time.time(),"Console Exiting"
     sys.exit(0)
+    
+def daemon_died(signal, frame):
+    print "CSignal: {}".format(signal)
+    if config.DaemonProcess == None:
+        return
+    if config.DaemonProcess.is_alive():
+        print "Child ok"
+    else:
+        print time.time(),"Daemon died!"
+        pygame.quit()
+        sys.exit()
 
 """
 Actual Code to Drive Console
 """
+config.starttime = time.time()
+
 
 os.environ['SDL_FBDEV'] = '/dev/fb1'
 os.environ['SDL_MOUSEDEV'] = '/dev/input/touchscreen'
@@ -68,12 +81,15 @@ Logs = config.Logs
 
 signal.signal(signal.SIGTERM, signal_handler)
 signal.signal(signal.SIGINT, signal_handler)
+signal.signal(signal.SIGCHLD, daemon_died)
 
 config.screen.fill(wc('royalblue'))
 Logs.Log(u"Soft ISY Console")
 Logs.Log(u"  \u00A9 Kevin Kahn 2016")
 Logs.Log("Software under Apache 2.0 License")
+Logs.Log("Start time: "+time.strftime('%c'))
 Logs.Log("Console Starting  pid:" + str(os.getpid()))
+print "My pid: ", str(os.getpid())
 
 config.DS = DisplayScreen.DisplayScreen()
 
@@ -119,14 +135,26 @@ Logs.Log("Enumerated ISY Programs")
 pygame.fastevent.init()
 CurrentScreenInfo = ConfigObjects.MyScreens()
 
+"""
+Set up the Maintenance Screen
+"""
+Logs.Log("Built Maintenance Screen")
+config.HomeScreen2 = MaintScreen.MaintScreenDesc()  # temp use of HS2
+
+"""
+Set up the watcher daemon and its communitcations
+"""
 config.toDaemon = Queue()
 config.fromDaemon = Queue()
-p = Process(target=WatchDaemon.Watcher)
+p = Process(target=WatchDaemon.Watcher, name="Watcher")
+
 p.daemon = True
 
 p.start()
+config.DaemonProcess = p
 debugprint(config.dbgMain, "Spawned watcher as: ", p.pid)
 Logs.Log("Watcher pid: " + str(p.pid))
+print "Daemon pid: ",str(p.pid)
 
 TouchArea.InitButtonFonts()
 
@@ -143,10 +171,11 @@ prevscreen = None
 while 1:
     nextscreen = config.currentscreen.HandleScreen(prevscreen <> config.currentscreen)
     if isinstance(nextscreen, int):
-        print "Maint req", nextscreen
-        if nextscreen > 7:
+        if nextscreen < 6:
+            nextscreen = config.HomeScreen2
+        else:
+            nextscreen = config.MaintScreen
             break
-        nextscreen = config.HomeScreen
     prevscreen = config.currentscreen
     config.currentscreen = nextscreen
     

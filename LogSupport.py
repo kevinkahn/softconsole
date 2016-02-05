@@ -1,6 +1,9 @@
 import webcolors
 import pygame
+import config
 wc = webcolors.name_to_rgb
+import time
+import os
 
 Info = 0
 Warning = 1
@@ -17,14 +20,30 @@ class Logs():
     
     def __init__(self, screen):
         self.screen = screen
-        self.LogFont = pygame.font.SysFont(None,20,False,False)
+        self.LogFont = pygame.font.SysFont(None,23,False,False)
+        self.logfilename =  time.strftime("%Y-%b-%d-%H-%M-%S-Log.txt")  #,int(config.starttime))
+        self.disklogfile = open(self.logfilename, "w")
         
     def Log(self, entry, severity=Info):
         self.log.append((severity, entry))
+        self.disklogfile.write(time.strftime('%H:%M:%S') + ' Sev: ' + str(severity) + entry.encode('ascii',errors='backslashreplace') + '\n')
+        self.disklogfile.flush()
+        os.fsync(self.disklogfile)
         if self.livelog:
             l = self.LogFont.render(entry,False,wc(self.LogColors[severity]))
             self.screen.blit(l,(10,self.livelogpos))
             pygame.display.update()
             self.livelogpos += self.LogFont.get_linesize()
             pygame.display.update()
+            
+    def RenderLog(self, start=0):
+        pos = 0
+        for i in range(start,len(self.log)-1):
+            l = self.LogFont.render(self.log[i][1],False,wc(self.LogColors[self.log[i][0]]))
+            self.screen.blit(l,(10,pos))
+            pos += self.LogFont.get_linesize()
+            if pos > config.screenheight - config.botborder:
+                return i+1
+        return -1
+            
         

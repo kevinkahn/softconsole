@@ -67,11 +67,21 @@ class ThermostatScreenDesc(Screen.ScreenDesc):
 
     
     def BumpTemp(self,setpoint,degrees):
+        
         print "Bump temp: ",setpoint,degrees
+        print "New: ",self.info[setpoint][0] + degrees
+        config.ConnISY.myisy.conn.request(config.ConnISY.myisy.conn.compileURL(
+                ["nodes/",self.addr,"/set/",setpoint,str(self.info[setpoint][0]+degrees)]))
         
-    def BumpMode(self,mode):
-        print "Bump mode: ",mode
-        
+    def BumpMode(self,mode, vals):
+        print "Bump mode: ",mode, vals
+        cv = vals.index(self.info[mode][0])
+        print cv, vals[cv]
+        cv = (cv+1)%len(vals)
+        print "new cv: ",cv
+        config.ConnISY.myisy.conn.request(config.ConnISY.myisy.conn.compileURL(
+                ["nodes/",self.addr,"/set/",mode,str(vals[cv])]))
+
     def ShowScreen(self):  
 
         tstatdict = xmltodict.parse(config.ConnISY.myisy.conn.request(config.ConnISY.myisy.conn.compileURL(["nodes/",self.addr])))
@@ -92,7 +102,7 @@ class ThermostatScreenDesc(Screen.ScreenDesc):
         config.screen.blit(self.AdjButSurf,(0,self.AdjButTops))
         draw_button(config.screen, self.keysbyord[4], shrink=True, firstfont=0)
         draw_button(config.screen, self.keysbyord[5], shrink=True, firstfont=0)
-        r1 = ThermoFont[1].render(('Off','Heat','Cool','Auto','Prog Auto','Prog Heat','Prog Cool')[self.info["CLIMD"][0]],0,wc(self.charcolor))
+        r1 = ThermoFont[1].render(('Off','Heat','Cool','Auto','Fan','Prog Auto','Prog Heat','Prog Cool')[self.info["CLIMD"][0]],0,wc(self.charcolor))
         r2 = ThermoFont[1].render(('On','Auto')[self.info["CLIFS"][0]-7],0,wc(self.charcolor))
         config.screen.blit(r1,(self.keysbyord[4].Center[0]-r1.get_width()/2,self.ModesPos))
         config.screen.blit(r2,(self.keysbyord[5].Center[0]-r2.get_width()/2,self.ModesPos))
@@ -113,14 +123,12 @@ class ThermostatScreenDesc(Screen.ScreenDesc):
                 return choice[1]
             elif choice[0] == WAITNORMALBUTTON:
                 if choice[1] < 4:
-                    sp = ('CLIHSP', 'CLIHSP', 'CLICSP', 'CLICSP')
-                    updown = (1, -1, 1, -1)
-                    self.BumpTemp(sp[choice[1]], updown[choice[1]])
+                    self.BumpTemp(('CLISPH', 'CLISPH', 'CLISPC', 'CLISPC')[choice[1]], (2, -2, 2, -2)[choice[1]])
                 else:
-                    mode = ('CLIMD','CLIFS')
-                    self.BumpMode(mode[choice[1]-4])
+                    self.BumpMode(('CLIMD','CLIFS')[choice[1]-4], (range(8),(7,8))[choice[1]-4])
             elif choice[0] == WAITISYCHANGE:
-               self.ShowScreen()
+                print "Thermo change", choice
+                self.ShowScreen()
 
 
 

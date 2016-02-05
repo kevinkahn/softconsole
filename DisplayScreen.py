@@ -76,18 +76,11 @@ class DisplayScreen:
    
 
     def NewWaitPress(self,ActiveScreen,callbackint=0,callbackproc=None,callbackcount=0):
-        """
-        wait for a mouse click a maximum of maxwait seconds
-        if callbackint <> 0 call the callbackproc every callbackint time
-        return tuple (reason, keynum) with (0, keynum) reg press, (1,0) timeout, (2,keynum) ctl press (3,0) random press
-        (4,keyname) ISY event on device associated with keyname  
-        (5,keyname) blink need on device associated with keyname???
-        """
-
+        
         if callbackint <> 0:
             pygame.time.set_timer(self.INTERVALHIT.type, int(callbackint*1000))
         cycle = callbackcount if callbackcount <> 0 else 100000000  # essentially infinite
-        pygame.time.set_timer(self.MAXTIMEHIT.type, config.DimTO*1000)  # make sure dim timer is running on entry no harm if already dim
+        pygame.time.set_timer(self.MAXTIMEHIT.type, ActiveScreen.dimtimeout*1000)  # make sure dim timer is running on entry no harm if already dim
 
         
         
@@ -120,13 +113,13 @@ class DisplayScreen:
                     else:
                         continue
                 if tapcount > 3:
-                    print "maint return", tapcount
+                    self.isDim = False
                     rtn = (WAITEXIT, tapcount)
                     break
                 # on any touch reset return to home screen
                 pygame.time.set_timer(self.GOHOMEHIT.type, int(config.HomeScreenTO)*1000)
                 # on any touch restart dim timer and reset to bright if dim
-                pygame.time.set_timer(self.MAXTIMEHIT.type, config.DimTO*1000)
+                pygame.time.set_timer(self.MAXTIMEHIT.type, ActiveScreen.dimtimeout*1000)
                 if self.isDim:
                     config.backlight.ChangeDutyCycle(config.BrightLevel)
                     self.isDim = False
@@ -138,10 +131,11 @@ class DisplayScreen:
                     print K.Center, K.Size
                     if TouchArea.InBut(pos, K):
                         rtn = (WAITNORMALBUTTON, i)
-                if TouchArea.InBut(pos,ActiveScreen.PrevScreenKey):
-                    rtn = (WAITEXIT, ActiveScreen.PrevScreen)
-                elif TouchArea.InBut(pos,ActiveScreen.NextScreenKey):
-                    rtn = (WAITEXIT, ActiveScreen.NextScreen)
+                if ActiveScreen.PrevScreenKey <> None:
+                    if TouchArea.InBut(pos,ActiveScreen.PrevScreenKey):
+                        rtn = (WAITEXIT, ActiveScreen.PrevScreen)
+                    elif TouchArea.InBut(pos,ActiveScreen.NextScreenKey):
+                        rtn = (WAITEXIT, ActiveScreen.NextScreen)
                 else:
                     for K in ActiveScreen.ExtraCmdKeys:
                         if TouchArea.InBut(pos, K):

@@ -72,11 +72,10 @@ class KeyScreenDesc(Screen.ScreenDesc):
 
     def HandleScreen(self,newscr=True):
         
-        def BlinkKey(screen,lab,back,center,size,finalstate,cycle):
+        def BlinkKey(screen,K,cycle):
             #thistime = finalstate if cycle % 2 <> 0 else not finalstate
-            DisplayScreen.draw_button(screen,lab,back,finalstate if cycle % 2 <> 0 else not finalstate,center,size)
-
-        NumKeys = len(self.keysbyord)
+            K.State = not K.State
+            DisplayScreen.draw_button(screen,K)
 
         if newscr:
             # key screen change actually occurred
@@ -137,9 +136,9 @@ class KeyScreenDesc(Screen.ScreenDesc):
                     DisplayScreen.draw_button(config.screen,K)
                 elif K.typ == "ONBLINKRUNTHEN":
                     K.Krunthen.runThen()
-                    blinkproc = functools.partial(BlinkKey,config.screen,K.label,K.backcolor,K.Center,K.Size,False)
+                    blinkproc = functools.partial(BlinkKey,config.screen,K)
                     blinktime = .5
-                    blinks = 7
+                    blinks = 8 # even number leaves final state of key same as initial state
                     DisplayScreen.draw_button(config.screen,K)
                     # leave K.State as is - key will return to off at end
                 elif K.typ == "ONOFFRUN":
@@ -152,6 +151,6 @@ class KeyScreenDesc(Screen.ScreenDesc):
 
                 if ActState <> K.State:
                     K.State =  ActState
-                    DisplayScreen.draw_button(config.screen,K.label,K.backcolor,K.State,K.Center,K.Size)
+                    DisplayScreen.draw_button(config.screen,K)
 
 config.screentypes["Keys"] = KeyScreenDesc

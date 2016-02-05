@@ -4,6 +4,7 @@ import time
 import config
 from config import debugprint
 import LogSupport
+from LogSupport import Info, Warning, Error
 
 from  ISY.IsyEvent import ISYEvent
 from  ISY.IsyEventData import EVENT_CTRL
@@ -11,7 +12,7 @@ from  ISY.IsyEventData import EVENT_CTRL
 
 def event_feed(*arg):
 
-    if time.time() < config.starttime+10:
+    if time.time() < config.watchstarttime+10:
         debugprint(config.dbgdaemon,time.time(),"Skipping")
         return None
     
@@ -20,7 +21,7 @@ def event_feed(*arg):
         if len(msg) == 0:
             config.watchlist = ["empty"]
         else:
-            config.watchlist = config.toDaemon.get()
+            config.watchlist = msg
         debugprint(config.dbgdaemon,time.time(), "New watchlist: ",config.watchlist)
 
     data = arg[0]
@@ -30,8 +31,7 @@ def event_feed(*arg):
         prcode = EVENT_CTRL[eventcode]
     else:
         prcode = "***"+eventcode+"***"
-
-    if (prcode == config.watchlist[0] or config.watchlist[0] == "") and data["node"] in config.watchlist:
+    if (prcode == "Status" or config.watchlist[0] == "") and data["node"] in config.watchlist:
         debugprint(config.dbgdaemon,time.time(),"Status update in stream: ",data["Event-seqnum"],":",eventcode," : ",data["node"]," : ",data["eventInfo"]," : ",data["action"]," : ",data["Event-sid"])
         config.fromDaemon.put((data["node"],data["action"]))
     else:
@@ -39,9 +39,9 @@ def event_feed(*arg):
 
 def Watcher():
     
-    config.starttime = time.time()
+    config.watchstarttime = time.time()
     config.watchlist = []
-    debugprint(config.dbgdaemon, "Watcher: ", config.starttime, os.getpid())
+    debugprint(config.dbgdaemon, "Watcher: ", config.watchstarttime, os.getpid())
     server = ISYEvent()
     server.subscribe(addr=config.ISYaddr, userl=config.ISYuser, userp=config.ISYpassword)
     server.set_process_func(event_feed, "")

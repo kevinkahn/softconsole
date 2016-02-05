@@ -53,6 +53,6 @@ class ScreenDesc:
         self.NextScreenKey.label = self.NextScreen.label
         
     def __repr__(self):
-        return "ScreenDesc:"+self.name+":"+self.backcolor+":"+str(self.dimtimeout)+":"+str(self.NumKeys)
+        return "ScreenDesc:"+self.name+":"+self.backcolor+":"+str(self.dimtimeout)+":"
         
 

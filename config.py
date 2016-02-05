@@ -3,6 +3,8 @@ import pygame
 
 screentypes = {}
 
+starttime = 0
+
 WAITNORMALBUTTON = 1
 WAITEXIT = 2
 WAITISYCHANGE = 4
@@ -16,7 +18,8 @@ WAITNORMALBUTTONFAST = 10
 toDaemon = None
 fromDaemon = None
 watchlist =[]
-starttime = 0
+watchstarttime = 0
+DaemonProcess = None
 
 # Debug flags
 isytreewalkdbgprt = False
@@ -57,6 +60,8 @@ currentscreen = None
 
 HomeScreenName = ""
 HomeScreen = None
+HomeScreen2 = None
+MaintScreen = None
 DimLevel = 10
 BrightLevel = 100
 HomeScreenTO = 60 
