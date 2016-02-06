@@ -65,32 +65,55 @@ class DisplayScreen:
         config.Logs.Log("Screensize: " + str(config.screenwidth) + " x " + str(config.screenheight))
 
         # define user events
-        self.MAXTIMEHIT = pygame.event.Event(pygame.USEREVENT)
+        self.MAXTIMEHIT  = pygame.event.Event(pygame.USEREVENT)
         self.INTERVALHIT = pygame.event.Event(pygame.USEREVENT+1)
-        self.GOHOMEHIT = pygame.event.Event(pygame.USEREVENT+2)
-        self.isDim = False
-        
-        self.presscount = 0
+        self.GOHOMEHIT   = pygame.event.Event(pygame.USEREVENT+2)
+        self.isDim       = False
+        self.presscount  = 0
+        self.AS          = None
+        self.BrightenToHome = False
 
-  
-   
+     
+    def GoDim(self,dim):
+        if dim:
+            config.backlight.ChangeDutyCycle(config.DimLevel)
+            self.isDim = True
+            if self.AS == config.HomeScreen:
+                self.BrightenToHome = True
+                return config.DimHomeScreenCover
+        else:
+            config.backlight.ChangeDutyCycle(config.BrightLevel)
+            self.isDim = False
+            if self.BrightenToHome:
+                self.BrightenToHome = False
+                return config.HomeScreen
 
     def NewWaitPress(self,ActiveScreen,callbackint=0,callbackproc=None,callbackcount=0):
         
+        self.AS = ActiveScreen
         if callbackint <> 0:
             pygame.time.set_timer(self.INTERVALHIT.type, int(callbackint*1000))
         cycle = callbackcount if callbackcount <> 0 else 100000000  # essentially infinite
-        pygame.time.set_timer(self.MAXTIMEHIT.type, ActiveScreen.dimtimeout*1000)  # make sure dim timer is running on entry no harm if already dim
+        if self.isDim and self.AS == config.DimHomeScreenCover:
+            pygame.time.set_timer(self.GOHOMEHIT.type, 0) # in final quiet state so cancel gohome until a touch
+        else:
+            pygame.time.set_timer(self.MAXTIMEHIT.type, self.AS.dimtimeout*1000)  # if not in final quiet state set dim timer
 
         
         
         while True:
             rtn = (0, 0)
             if not config.fromDaemon.empty():
-                alert = config.fromDaemon.get()
-                debugprint(config.dbgMain, time.time(),"ISY reports change: ","Key: ", alert)
-                rtn = (WAITISYCHANGE,alert)
-                break
+                item = config.fromDaemon.get()
+                debugprint(config.dbgMain, time.time(),"ISY reports change: ","Key: ", str(item))
+                if item[0] == "Log":
+                    config.Logs.Log(item[1],severity=item[2])
+                    continue
+                elif item[0] == "Node":
+                    rtn = (WAITISYCHANGE,(item[1],item[2]))
+                    break
+                else:
+                    config.Logs.Log("Bad msg from watcher: "+str(item),Severity=Warning)
             event = pygame.fastevent.poll()
             
             if event.type == pygame.NOEVENT:
@@ -113,40 +136,38 @@ class DisplayScreen:
                     else:
                         continue
                 if tapcount > 3:
-                    self.isDim = False
+                    self.GoDim(False)
                     rtn = (WAITEXIT, tapcount)
                     break
                 # on any touch reset return to home screen
                 pygame.time.set_timer(self.GOHOMEHIT.type, int(config.HomeScreenTO)*1000)
                 # on any touch restart dim timer and reset to bright if dim
-                pygame.time.set_timer(self.MAXTIMEHIT.type, ActiveScreen.dimtimeout*1000)
-                if self.isDim:
-                    config.backlight.ChangeDutyCycle(config.BrightLevel)
-                    self.isDim = False
-                    continue  # touch that ends dim screen is otherwise ignored
-                
-                print "Pos: ",pos
-                for i in range(len(ActiveScreen.keysbyord)):
-                    K = ActiveScreen.keysbyord[i]
-                    print K.Center, K.Size
+                pygame.time.set_timer(self.MAXTIMEHIT.type, self.AS.dimtimeout*1000)
+                dimscr = self.GoDim(False)
+                if dimscr <> None:
+                    rtn = (WAITEXIT, config.HomeScreen)
+                    break
+                    
+                for i in range(len(self.AS.keysbyord)):
+                    K = self.AS.keysbyord[i]
                     if TouchArea.InBut(pos, K):
                         rtn = (WAITNORMALBUTTON, i)
-                if ActiveScreen.PrevScreenKey <> None:
-                    if TouchArea.InBut(pos,ActiveScreen.PrevScreenKey):
-                        rtn = (WAITEXIT, ActiveScreen.PrevScreen)
-                    elif TouchArea.InBut(pos,ActiveScreen.NextScreenKey):
-                        rtn = (WAITEXIT, ActiveScreen.NextScreen)
-                else:
-                    for K in ActiveScreen.ExtraCmdKeys:
-                        if TouchArea.InBut(pos, K):
-                            rtn = (WAITEXTRACONTROLBUTTON, K.name)
+                if self.AS.PrevScreenKey <> None:
+                    if TouchArea.InBut(pos,self.AS.PrevScreenKey):
+                        rtn = (WAITEXIT, self.AS.PrevScreen)
+                    elif TouchArea.InBut(pos,self.AS.NextScreenKey):
+                        rtn = (WAITEXIT, self.AS.NextScreen)
+                for K in self.AS.ExtraCmdKeys:
+                    if TouchArea.InBut(pos, K):
+                        rtn = (WAITEXTRACONTROLBUTTON, K.name)
                 if rtn[0] <> 0:
                     break
 
             elif event.type == self.MAXTIMEHIT.type:
-                self.isDim = True
-                config.backlight.ChangeDutyCycle(config.DimLevel)
-                pass
+                dimscr = self.GoDim(True)
+                if dimscr <> None:
+                    rtn = (WAITEXIT, dimscr)
+                    break
             elif event.type == self.INTERVALHIT.type:
                 if (callbackproc <> None) and (cycle > 0):
                     callbackproc(cycle)

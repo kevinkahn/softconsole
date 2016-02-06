@@ -21,7 +21,6 @@ class ScreenDesc:
         self.backcolor = screensection.get("Bcolor",config.BColor)
         
         self.dimtimeout       = config.DimTO
-        
         self.NextScreen       = None # for navigation buttons
         self.PrevScreen       = None
         
@@ -47,7 +46,7 @@ class ScreenDesc:
             self.ExtraCmdKeys.append(TouchArea.ManualKeyDesc(ExtraCmdButs[i],ExtraCmdButs[i],
                                                              (hcenter,cvertcenter),(cbutwidth, cbutheight),
                                                              CmdKeyColor,CmdCharColor,CmdCharColor))
- 
+
     def FinishScreen(self):
         self.PrevScreenKey.label = self.PrevScreen.label
         self.NextScreenKey.label = self.NextScreen.label

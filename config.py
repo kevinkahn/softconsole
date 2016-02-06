@@ -14,12 +14,14 @@ WAITQUADTAP = 8
 #WAITMAINTTAP = 9
 WAITNORMALBUTTONFAST = 10
 
-
+""" Daemon related stuff"""
 toDaemon = None
 fromDaemon = None
 watchlist =[]
 watchstarttime = 0
 DaemonProcess = None
+seq = 0
+streamid = ""
 
 # Debug flags
 isytreewalkdbgprt = False
@@ -62,6 +64,8 @@ HomeScreenName = ""
 HomeScreen = None
 HomeScreen2 = None
 MaintScreen = None
+DimHomeScreenCoverName = ""
+DimHomeScreenCover = None
 DimLevel = 10
 BrightLevel = 100
 HomeScreenTO = 60 

@@ -26,7 +26,7 @@ class Logs():
         
     def Log(self, entry, severity=Info):
         self.log.append((severity, entry))
-        self.disklogfile.write(time.strftime('%H:%M:%S') + ' Sev: ' + str(severity) + entry.encode('ascii',errors='backslashreplace') + '\n')
+        self.disklogfile.write(time.strftime('%H:%M:%S') + ' Sev: ' + str(severity) +" "+ entry.encode('ascii',errors='backslashreplace') + '\n')
         self.disklogfile.flush()
         os.fsync(self.disklogfile)
         if self.livelog:
@@ -36,14 +36,17 @@ class Logs():
             self.livelogpos += self.LogFont.get_linesize()
             pygame.display.update()
             
-    def RenderLog(self, start=0):
+    def RenderLog(self, backcolor, start=0):
         pos = 0
-        for i in range(start,len(self.log)-1):
+        config.screen.fill(wc(backcolor))
+        for i in range(start,len(self.log)):
             l = self.LogFont.render(self.log[i][1],False,wc(self.LogColors[self.log[i][0]]))
             self.screen.blit(l,(10,pos))
             pos += self.LogFont.get_linesize()
             if pos > config.screenheight - config.botborder:
+                pygame.display.update()
                 return i+1
+        pygame.display.update()
         return -1
             
         

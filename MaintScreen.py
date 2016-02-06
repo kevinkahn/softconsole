@@ -68,9 +68,9 @@ class MaintScreenDesc():
         # stop any watching for device stream
         self.keysbyord = self.menukeysbyord
         Logs = config.Logs
+        Logs.Log("Entering Maint Screen")
         self.ShowScreen()
 
-        print "Entered maint"
         while 1:
             choice = config.DS.NewWaitPress(self)
             if choice[0] == WAITNORMALBUTTON:
@@ -78,24 +78,25 @@ class MaintScreenDesc():
                 if K.name == 'exit':
                     return config.HomeScreen
                 elif K.name == 'log':
-                    config.screen.fill(wc(self.backcolor))
                     item = 0
-                    self.keysbyord = self.pagekeysbyord
+                    self.keysbyord = self.pagekeysbyord # make whole screen single invisible key
                     while item >= 0:
-                        item = Logs.RenderLog(start = item)
-                        pygame.display.update()
+                        item = Logs.RenderLog(self.backcolor, start = item)
                         temp = config.DS.NewWaitPress(self)
                     self.keysbyord = self.menukeysbyord
                     self.ShowScreen()
                 elif K.name == 'shut':
-                    print "Shutdown Requested"
                     Logs.Log("Manual Shutdown Requested")
+                    config.screen.fill(wc("red"))
+                    r = self.MaintFont.render("Shutting Down",0,wc("white"))
+                    config.screen.blit(r, ((config.screenwidth-r.get_width())/2, config.screenheight*.4))
+                    pygame.display.update()
+                    time.sleep(3)
                     os.kill(config.DaemonProcess.pid,signal.SIGTERM)
                 else:
                     print "No match in maint"
                     
             else:
-                print "Leave maint"
                 return choice[1]
            
         

@@ -89,7 +89,6 @@ Logs.Log(u"  \u00A9 Kevin Kahn 2016")
 Logs.Log("Software under Apache 2.0 License")
 Logs.Log("Start time: "+time.strftime('%c'))
 Logs.Log("Console Starting  pid:" + str(os.getpid()))
-print "My pid: ", str(os.getpid())
 
 config.DS = DisplayScreen.DisplayScreen()
 
@@ -111,6 +110,7 @@ config.BrightLevel    = int(config.ParsedConfigFile.get("BrightLevel",config.Bri
 config.DimTO          = int(config.ParsedConfigFile.get("DimTO",config.DimTO))
 config.CmdKeyCol      = str(config.ParsedConfigFile.get("CmKeyColor",config.CmdKeyCol))
 config.CmdCharCol     = str(config.ParsedConfigFile.get("CmdCharCol",config.CmdCharCol))
+config.DimHomeScreenCoverName = str(config.ParsedConfigFile.get("DimHomeScreenCoverName",""))
 
 
 GPIO.setwarnings(False)
@@ -154,7 +154,6 @@ p.start()
 config.DaemonProcess = p
 debugprint(config.dbgMain, "Spawned watcher as: ", p.pid)
 Logs.Log("Watcher pid: " + str(p.pid))
-print "Daemon pid: ",str(p.pid)
 
 TouchArea.InitButtonFonts()
 

@@ -59,6 +59,13 @@ class MyScreens:
             config.HomeScreen = self.screenlist[config.HomeScreenName]
         else:
             config.HomeScreen = firstscreen
+        if config.DimHomeScreenCoverName in self.screenlist:
+            config.DimHomeScreenCover = self.screenlist[config.DimHomeScreenCoverName]
+            Logs.Log("Dim Home Screen: " + config.DimHomeScreenCover.name)
+        else:
+            config.DimHomeScreenCover = self.HomeScreen
+            Logs.Log("No Dim Home Screen Cover Set")
         Logs.Log("Home Screen: " + config.HomeScreen.name)
+
 
         
