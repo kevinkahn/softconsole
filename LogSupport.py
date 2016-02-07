@@ -17,11 +17,11 @@ class Logs():
     log = []
 
     LogColors = ("white","yellow","red")
-    
-    def __init__(self, screen):
+
+    def __init__(self, screen, dirnm):
         self.screen = screen
         self.LogFont = pygame.font.SysFont(None,23,False,False)
-        self.logfilename =  time.strftime("%Y-%b-%d-%H-%M-%S-Log.txt")  #,int(config.starttime))
+        self.logfilename = dirnm + '/' + time.strftime("%Y-%b-%d-%H-%M-%S-Log.txt")
         self.disklogfile = open(self.logfilename, "w")
         
     def Log(self, entry, severity=Info):

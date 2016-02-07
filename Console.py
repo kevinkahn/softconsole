@@ -30,6 +30,7 @@ import sys, signal, time, os
 import LogSupport
 from LogSupport import Logs
 import webcolors
+
 wc = webcolors.name_to_rgb
 
 """
@@ -37,14 +38,16 @@ The next import is functional in that it is what causes the screen types to be r
 """
 import ClockScreen, KeyScreen, ThermostatScreen, WeatherScreen, MaintScreen
 
+
 def signal_handler(signal, frame):
     print "Signal: {}".format(signal)
     print "pid: ", os.getpid()
     time.sleep(1)
     pygame.quit()
-    print time.time(),"Console Exiting"
+    print time.time(), "Console Exiting"
     sys.exit(0)
-    
+
+
 def daemon_died(signal, frame):
     print "CSignal: {}".format(signal)
     if config.DaemonProcess == None:
@@ -52,15 +55,15 @@ def daemon_died(signal, frame):
     if config.DaemonProcess.is_alive():
         print "Child ok"
     else:
-        print time.time(),"Daemon died!"
+        print time.time(), "Daemon died!"
         pygame.quit()
         sys.exit()
+
 
 """
 Actual Code to Drive Console
 """
 config.starttime = time.time()
-
 
 os.environ['SDL_FBDEV'] = '/dev/fb1'
 os.environ['SDL_MOUSEDEV'] = '/dev/input/touchscreen'
@@ -70,62 +73,62 @@ os.environ['SDL_VIDEODRIVER'] = 'fbcon'
 pygame.display.init()
 pygame.font.init()
 config.screenwidth, config.screenheight = (pygame.display.Info().current_w, pygame.display.Info().current_h)
-config.screen = pygame.display.set_mode((config.screenwidth,config.screenheight), pygame.FULLSCREEN)
-config.screen.fill((0, 0, 0)) # clear screen  
+config.screen = pygame.display.set_mode((config.screenwidth, config.screenheight), pygame.FULLSCREEN)
+config.screen.fill((0, 0, 0))  # clear screen
 pygame.display.update()
 pygame.mouse.set_visible(False)
 
-        
-config.Logs = LogSupport.Logs(config.screen)
+if len(sys.argv) == 2:
+    fn = sys.argv[1]
+else:
+    fn = "/home/pi/Console/config.txt"
+
+config.Logs = LogSupport.Logs(config.screen, os.path.dirname(fn))
 Logs = config.Logs
 
 signal.signal(signal.SIGTERM, signal_handler)
 signal.signal(signal.SIGINT, signal_handler)
 signal.signal(signal.SIGCHLD, daemon_died)
 
+config.ParsedConfigFile = ConfigObj(fn)
+
 config.screen.fill(wc('royalblue'))
 Logs.Log(u"Soft ISY Console")
 Logs.Log(u"  \u00A9 Kevin Kahn 2016")
 Logs.Log("Software under Apache 2.0 License")
-Logs.Log("Start time: "+time.strftime('%c'))
+Logs.Log("Start time: " + time.strftime('%c'))
 Logs.Log("Console Starting  pid:" + str(os.getpid()))
+Logs.Log("Config file: " + fn)
+Logs.Log("Disk logfile:" + Logs.logfilename)
 
 config.DS = DisplayScreen.DisplayScreen()
 
-
-
-if len(sys.argv) == 2:
-    config.ParsedConfigFile = ConfigObj(infile=sys.argv[1])
-else:
-    config.ParsedConfigFile = ConfigObj(infile="/home/pi/Console/config.txt")
-
 # Global settings from config file
-config.ISYaddr        = str(config.ParsedConfigFile.get("ISYaddr",""))
-config.ISYuser        = str(config.ParsedConfigFile.get("ISYuser",""))
-config.ISYpassword    = str(config.ParsedConfigFile.get("ISYpassword",""))
-config.HomeScreenName = str(config.ParsedConfigFile.get("HomeScreenName",""))
-config.HomeScreenTO   = int(config.ParsedConfigFile.get("HomeScreenTO",config.HomeScreenTO))
-config.DimLevel       = int(config.ParsedConfigFile.get("DimLevel",config.DimLevel))
-config.BrightLevel    = int(config.ParsedConfigFile.get("BrightLevel",config.BrightLevel))
-config.DimTO          = int(config.ParsedConfigFile.get("DimTO",config.DimTO))
-config.CmdKeyCol      = str(config.ParsedConfigFile.get("CmKeyColor",config.CmdKeyCol))
-config.CmdCharCol     = str(config.ParsedConfigFile.get("CmdCharCol",config.CmdCharCol))
-config.DimHomeScreenCoverName = str(config.ParsedConfigFile.get("DimHomeScreenCoverName",""))
-
+config.ISYaddr = str(config.ParsedConfigFile.get("ISYaddr", ""))
+config.ISYuser = str(config.ParsedConfigFile.get("ISYuser", ""))
+config.ISYpassword = str(config.ParsedConfigFile.get("ISYpassword", ""))
+config.HomeScreenName = str(config.ParsedConfigFile.get("HomeScreenName", ""))
+config.HomeScreenTO = int(config.ParsedConfigFile.get("HomeScreenTO", config.HomeScreenTO))
+config.DimLevel = int(config.ParsedConfigFile.get("DimLevel", config.DimLevel))
+config.BrightLevel = int(config.ParsedConfigFile.get("BrightLevel", config.BrightLevel))
+config.DimTO = int(config.ParsedConfigFile.get("DimTO", config.DimTO))
+config.CmdKeyCol = str(config.ParsedConfigFile.get("CmKeyColor", config.CmdKeyCol))
+config.CmdCharCol = str(config.ParsedConfigFile.get("CmdCharCol", config.CmdCharCol))
+config.DimHomeScreenCoverName = str(config.ParsedConfigFile.get("DimHomeScreenCoverName", ""))
 
 GPIO.setwarnings(False)
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(18, GPIO.OUT)
-config.backlight = GPIO.PWM(18,1024)
+config.backlight = GPIO.PWM(18, 1024)
 config.backlight.start(100)
 
 config.ConnISY = ISYSetup.ISYsetup()
 nodemgr = config.ConnISY.myisy.nodes
 programs = config.ConnISY.myisy.programs
 if config.ConnISY.myisy.connected:
-    Logs.Log("Connected to ISY: "+config.ISYaddr)
+    Logs.Log("Connected to ISY: " + config.ISYaddr)
 else:
-    Logs.Log("Failed to connect to ISY",Logger.Error)
+    Logs.Log("Failed to connect to ISY", Logger.Error)
 
 config.ConnISY.WalkFolder(nodemgr)
 Logs.Log("Enumerated ISY Devices/Scenes")
@@ -177,6 +180,5 @@ while 1:
             break
     prevscreen = config.currentscreen
     config.currentscreen = nextscreen
-    
-        
+
 pygame.quit()

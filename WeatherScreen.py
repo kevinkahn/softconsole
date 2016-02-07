@@ -8,6 +8,7 @@ wc = webcolors.name_to_rgb
 import Screen
 import urllib2
 import json
+import LogSupport
 import functools
 from datetime import timedelta
 
@@ -25,6 +26,12 @@ def TreeDict(d,*args):
         temp = d[args[0]]
         if isinstance(temp, basestring) and temp.isdigit():
             temp = int(temp)
+        else:
+            try:
+                temp = float(temp)
+            except (ValueError, TypeError):
+                pass
+
         return temp
     else:
         return TreeDict(d[args[0]],*args[1:])
@@ -45,7 +52,6 @@ def RenderScreenLines(recipe,extracter,color):
             if len(args) == 1 and isinstance(args[0], basestring):
                 #print "One arg: ",type(args[0]).__name__,args
                 linestr = line[2].format(d=args[0])
-                #print line[2].format(d=args[0])
             else:
                 #for x in args:
                 #   print "Mult arg: ",type(x).__name__,x,args
@@ -82,7 +88,7 @@ class WeatherScreenDesc(Screen.ScreenDesc):
         self.conditions = [(2,True,"{d}",self.scrlabel),
                            (1,True,"{d}",(('location','city'),)),
                            (1,False,u"Currently: {d[0]} {d[1]}\u00B0F",(('current_observation','weather'),('current_observation','temp_f'))),
-                           (0,False,u"  Feels like: {d[0]:02d}\u00B0",(('current_observation','feelslike_f'),)),
+                           (0, False, u"  Feels like: {d[0]}\u00B0", (('current_observation', 'feelslike_f'),)),
                            (1,False,"Wind {d[0]} at {d[1]} gusts {d[2]}",(('current_observation','wind_dir'),('current_observation','wind_mph'),('current_observation','wind_gust_mph'))),
                            (1,False,"Sunrise: {d[0]:02d}:{d[1]:02d}",(('sun_phase','sunrise','hour'),('sun_phase','sunrise','minute'))),
                            (1,False,"Sunset:  {d[0]:02d}:{d[1]:02d}",(('sun_phase','sunset','hour'),('sun_phase','sunset','minute'))),
@@ -108,25 +114,25 @@ class WeatherScreenDesc(Screen.ScreenDesc):
         renderedlines = []
         h = 0
         centered = []
-        
+
         if conditions:
-            age = hms_string(time.time() - int(self.js('current_observation','observation_epoch')))
-            self.conditions[-1] = (0,False,"Readings as of {d} ago", age)
+            age = hms_string(time.time() - int(self.js('current_observation', 'observation_epoch')))
+            self.conditions[-1] = (0, False, "Readings as of {d} ago", age)
             self.SetExtraCmdTitles([('Forecast',)])
-            renderedlines, centered, h = RenderScreenLines(self.conditions,self.js,self.charcolor)
+            renderedlines, centered, h = RenderScreenLines(self.conditions, self.js, self.charcolor)
         else:
             self.SetExtraCmdTitles([('Conditions',)])
-            renderedlines.append(WeathFont[2].render(self.scrlabel,0,wc(self.charcolor)))
+            renderedlines.append(WeathFont[2].render(self.scrlabel, 0, wc(self.charcolor)))
             centered.append(True)
             h = h + renderedlines[0].get_height()
             for fcst in self.fcsts:
-                fs = functools.partial(TreeDict,fcst)
-                r, c, temph = RenderScreenLines(self.forecast,fs,self.charcolor)
+                fs = functools.partial(TreeDict, fcst)
+                r, c, temph = RenderScreenLines(self.forecast, fs, self.charcolor)
                 h = h + temph
                 renderedlines = renderedlines + r
                 centered = centered + c
-                
-        s = (usefulheight - h)/(len(renderedlines)-1)
+
+        s = (usefulheight - h)/(len(renderedlines) - 1)
         vert_off = config.topborder
 
         for i in range(len(renderedlines)):
@@ -149,8 +155,12 @@ class WeatherScreenDesc(Screen.ScreenDesc):
         if time.time() > self.lastwebreq + 5*60:
             # refresh the conditions - don't do more than once per 5 minutes
             f = urllib2.urlopen(self.url)
+            val = f.read()
+            if val.find("keynotfound") <> -1:
+                config.Logs.Log("Bad weatherunderground key:" + self.name, LogSupport.Error)
+                return config.HomeScreen
             self.lastwebreq = time.time()
-            self.parsed_json = json.loads(f.read())
+            self.parsed_json = json.loads(val)
 
             self.js = functools.partial(TreeDict,self.parsed_json)
             self.fcsts = TreeDict(self.parsed_json,'forecast','simpleforecast','forecastday')
