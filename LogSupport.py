@@ -1,5 +1,5 @@
-import webcolors
 import pygame
+import webcolors
 import config
 wc = webcolors.name_to_rgb
 import time

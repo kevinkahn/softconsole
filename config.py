@@ -25,8 +25,8 @@ streamid = ""
 
 # Debug flags
 isytreewalkdbgprt = False
-dbgscreenbuild = False
-dbgMain = False
+dbgscreenbuild = True
+dbgMain = True
 dbgdaemon = False
 
 def debugprint(flag,*args):

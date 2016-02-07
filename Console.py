@@ -14,22 +14,26 @@ Copyright 2016 Kevin Kahn
    limitations under the License.
 """
 
-import config
-from config import debugprint
+import os
+import pygame
+import signal
+import sys
+import time
+from  multiprocessing import Process, Queue
+
+import RPi.GPIO as GPIO
+import webcolors
 from configobj import ConfigObj
-import TouchArea
+
 import ConfigObjects
 import DisplayScreen
-import pygame
-import RPi.GPIO as GPIO
 import ISYSetup
-import multiprocessing
-from  multiprocessing import Process, Queue
-import WatchDaemon
-import sys, signal, time, os
 import LogSupport
+import TouchArea
+import WatchDaemon
+import config
 from LogSupport import Logs
-import webcolors
+from config import debugprint
 
 wc = webcolors.name_to_rgb
 
@@ -164,7 +168,7 @@ Logs.livelog = False
 time.sleep(2)
 
 """
-Loop here using screen type to choose renderer and names to fill in cmdtxt - return value should be cmdbutindex
+Loop here using screen type to choose renderer and names to fill in cmdtxt - return value is next screen or a tap count
 """
 
 config.backlight.ChangeDutyCycle(config.BrightLevel)

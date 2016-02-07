@@ -58,6 +58,7 @@ class KeyDesc(ManualKeyDesc):
         if keyname in ISYSetup.ISYsetup.SceneDict:
             self.addr = ISYSetup.ISYsetup.SceneDict[keyname].addr
             self.Obj = ISYSetup.ISYsetup.SceneDict[keyname]
+            debugprint(config.dbgscreenbuild, "Scene ", keyname, " using ", self.Obj.name, "/", self.Obj.addr)
         elif keyname in ISYSetup.ISYsetup.NodeDict:
             self.addr = ISYSetup.ISYsetup.NodeDict[keyname].addr
             self.Obj = ISYSetup.ISYsetup.NodeDict[keyname]
@@ -78,10 +79,10 @@ class KeyDesc(ManualKeyDesc):
             print "Unknown key type: ", self.label
             config.ErrorItems.append("Bad keytype: " + self.label)
 
-        if isinstance(self.Obj,ISYSetup.SceneItem):
+        if isinstance(self.Obj, ISYSetup.SceneItem) and self.sceneproxy <> "":
             # if key is for scene and explicit proxy, push down the explicit over the default
-            if self.sceneproxy <> "":
-                self.Obj.proxy = self.sceneproxy
+            debugprint(config.dbgscreenbuild, "Proxying key ", self.name, " with ", self.sceneproxy)
+            self.Obj.proxy = self.sceneproxy
 
         debugprint(config.dbgscreenbuild,repr(self))
         
