@@ -1,14 +1,14 @@
-import DisplayScreen
-from DisplayScreen import draw_button, draw_cmd_buttons
+import displayscreen
+from displayscreen import draw_button, draw_cmd_buttons
 import pygame
 from pygame import gfxdraw
 import webcolors
 wc = webcolors.name_to_rgb
 import config
 from config import debugprint, WAITEXTRACONTROLBUTTON, WAITEXIT, WAITNORMALBUTTON, WAITISYCHANGE, dispratio
-import Screen
+import screen
 import xmltodict
-import TouchArea
+import toucharea
 
 ThermoFont = [None,None,None,None]
 
@@ -20,11 +20,11 @@ def trifromtop(h,v,n,size,c,invert):
 
 
     
-class ThermostatScreenDesc(Screen.ScreenDesc):
+class ThermostatScreenDesc(screen.ScreenDesc):
 
     def __init__(self, screensection, screenname):
         debugprint(config.dbgscreenbuild, "New ThermostatScreenDesc ",screenname)
-        Screen.ScreenDesc.__init__(self, screensection, screenname, ())
+        screen.ScreenDesc.__init__(self, screensection, screenname, ())
         self.info = {}
 
         if ThermoFont[0] == None:
@@ -34,7 +34,7 @@ class ThermostatScreenDesc(Screen.ScreenDesc):
             ThermoFont[2] = pygame.font.SysFont(None,80,False,False)
             ThermoFont[3] = pygame.font.SysFont(None,160,True,False)
 
-        self.charcolor    = screensection.get("CharColor",config.CharColor)
+        self.charcolor    = screensection.get("CharColor", config.DefaultCharColor)
         self.KColor       = screensection.get("Kcolor",config.Kcolor)
         if screenname not in config.ConnISY.NodeDict:
             print "No such Thermostat: ",screenname
@@ -55,13 +55,13 @@ class ThermostatScreenDesc(Screen.ScreenDesc):
 
         for i in range(4):
             gfxdraw.filled_trigon(self.AdjButSurf,*trifromtop(centerspacing,arrowsize/2,i+1,arrowsize,wc(("red","blue","red","blue")[i]),i%2<>0))
-            self.keysbyord.append(TouchArea.TouchPoint((centerspacing*(i+1),self.AdjButTops+arrowsize/2),(arrowsize*1.2,arrowsize*1.2)))
+            self.keysbyord.append(toucharea.TouchPoint((centerspacing*(i+1),self.AdjButTops+arrowsize/2),(arrowsize*1.2,arrowsize*1.2)))
         self.ModeButPos = self.AdjButTops + 85 * dispratio 
         
         bsize = (100*dispratio, 50*dispratio)
-        self.keysbyord.append(TouchArea.ManualKeyDesc("Mode","Mode",(config.screenwidth/4, self.ModeButPos),
+        self.keysbyord.append(toucharea.ManualKeyDesc("Mode","Mode",(config.screenwidth/4, self.ModeButPos),
                               bsize,self.KColor,self.charcolor,self.charcolor,KOn=config.KOffColor))
-        self.keysbyord.append(TouchArea.ManualKeyDesc("Fan","Fan",(3*config.screenwidth/4, self.ModeButPos),
+        self.keysbyord.append(toucharea.ManualKeyDesc("Fan","Fan",(3*config.screenwidth/4, self.ModeButPos),
                               bsize,self.KColor,self.charcolor,self.charcolor,KOn=config.KOffColor))
         self.ModesPos = self.ModeButPos + bsize[1]/2 + 5* dispratio
 

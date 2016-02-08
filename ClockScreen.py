@@ -1,22 +1,24 @@
 import webcolors
 
-import DisplayScreen
+import displayscreen
 
 wc = webcolors.name_to_rgb
 import config
 import time
 import pygame
 from config import debugprint, WAITEXIT
-import Screen
+import screen
+
+DefaultCharSize = 20
 
 
-class ClockScreenDesc(Screen.ScreenDesc):
+class ClockScreenDesc(screen.ScreenDesc):
     def __init__(self, screensection, screenname):
         debugprint(config.dbgscreenbuild, "Build Clock Screen")
-        Screen.ScreenDesc.__init__(self, screensection, screenname, ())  # no extra cmd keys
-        self.charcolor = screensection.get("CharColor", config.CharColor)
+        screen.ScreenDesc.__init__(self, screensection, screenname, ())  # no extra cmd keys
+        self.charcolor = screensection.get("CharColor", config.DefaultCharColor)
         self.lineformat = screensection.get("OutFormat", "")
-        self.fontsize = int(screensection.get("CharSize", config.CharSize))
+        self.fontsize = int(screensection.get("CharSize", DefaultCharSize))
         self.ClkFont = pygame.font.SysFont('droidsansmono', self.fontsize, False, False)
 
     def __repr__(self):

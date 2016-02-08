@@ -1,11 +1,11 @@
 import os
 import config
 import pygame
-import TouchArea
+import toucharea
 import time
 from config import debugprint, WAITNORMALBUTTON, WAITNORMALBUTTONFAST, WAITEXIT, WAITISYCHANGE, WAITEXTRACONTROLBUTTON
-import LogSupport
-from LogSupport import Info, Warning, Error
+import logsupport
+from logsupport import Info, Warning, Error
 import webcolors
 wc = webcolors.name_to_rgb
 
@@ -125,14 +125,14 @@ class DisplayScreen:
                     print pos
                     self.presscount += 1
                 tapcount = 1
-                pygame.time.delay(config.multitaptime)
+                pygame.time.delay(config.MultiTapTime)
                 while True:
                     eventx = pygame.fastevent.poll()
                     if eventx.type == pygame.NOEVENT:
                         break
                     elif eventx.type == pygame.MOUSEBUTTONDOWN:
                         tapcount += 1
-                        pygame.time.delay(config.multitaptime)
+                        pygame.time.delay(config.MultiTapTime)
                     else:
                         continue
                 if tapcount > 3:
@@ -150,15 +150,15 @@ class DisplayScreen:
                     
                 for i in range(len(self.AS.keysbyord)):
                     K = self.AS.keysbyord[i]
-                    if TouchArea.InBut(pos, K):
+                    if toucharea.InBut(pos, K):
                         rtn = (WAITNORMALBUTTON, i)
                 if self.AS.PrevScreenKey <> None:
-                    if TouchArea.InBut(pos,self.AS.PrevScreenKey):
+                    if toucharea.InBut(pos,self.AS.PrevScreenKey):
                         rtn = (WAITEXIT, self.AS.PrevScreen)
-                    elif TouchArea.InBut(pos,self.AS.NextScreenKey):
+                    elif toucharea.InBut(pos,self.AS.NextScreenKey):
                         rtn = (WAITEXIT, self.AS.NextScreen)
                 for K in self.AS.ExtraCmdKeys:
-                    if TouchArea.InBut(pos, K):
+                    if toucharea.InBut(pos, K):
                         rtn = (WAITEXTRACONTROLBUTTON, K.name)
                 if rtn[0] <> 0:
                     break

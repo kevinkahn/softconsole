@@ -1,11 +1,11 @@
-import ISYSetup
-import DisplayScreen
-import TouchArea
+import isysetup
+import displayscreen
+import toucharea
 import config
 from config import debugprint, WAITNORMALBUTTON, WAITNORMALBUTTONFAST, WAITISYCHANGE, WAITEXIT
 import functools
 from configobj import Section
-import Screen
+import screen
 import webcolors
 
 wc = webcolors.name_to_rgb
@@ -38,10 +38,10 @@ def ButSize(bpr, bpc):
         (config.screenheight - config.topborder - config.botborder)/bpc)
 
 
-class KeyScreenDesc(Screen.ScreenDesc):
+class KeyScreenDesc(screen.ScreenDesc):
     def __init__(self, screensection, screenname):
         debugprint(config.dbgscreenbuild, "New KeyScreenDesc ", screenname)
-        Screen.ScreenDesc.__init__(self, screensection, screenname, ())  # no extra cmd keys
+        screen.ScreenDesc.__init__(self, screensection, screenname, ())  # no extra cmd keys
         self.buttonsperrow = -1
         self.buttonspercol = -1
         self.subscriptionlist = {}
@@ -49,7 +49,7 @@ class KeyScreenDesc(Screen.ScreenDesc):
         # Build the Key objects
         for keyname in screensection:
             if isinstance(screensection[keyname], Section):
-                NewKey = TouchArea.KeyDesc(screensection[keyname], keyname)
+                NewKey = toucharea.KeyDesc(screensection[keyname], keyname)
                 self.keysbyord.append(NewKey)
 
         # Compute the positions and sizes for the Keys and store in the Key objects
@@ -70,14 +70,14 @@ class KeyScreenDesc(Screen.ScreenDesc):
             K.Size = buttonsize
 
     def __repr__(self):
-        return Screen.ScreenDesc.__repr__(self) + "\r\n     KeyScreenDesc:" + ":<" + str(self.keysbyord) + ">"
+        return screen.ScreenDesc.__repr__(self) + "\r\n     KeyScreenDesc:" + ":<" + str(self.keysbyord) + ">"
 
     def HandleScreen(self, newscr=True):
 
         def BlinkKey(screen, K, cycle):
             # thistime = finalstate if cycle % 2 <> 0 else not finalstate
             K.State = not K.State
-            DisplayScreen.draw_button(screen, K)
+            displayscreen.draw_button(screen, K)
 
         if newscr:
             # key screen change actually occurred
@@ -87,14 +87,14 @@ class KeyScreenDesc(Screen.ScreenDesc):
             for j in range(len(self.keysbyord)):
                 K = self.keysbyord[j]
                 if K.addr <> "":  # Key is bound to some actual device/scene
-                    if isinstance(K.Obj, ISYSetup.SceneItem):
+                    if isinstance(K.Obj, isysetup.SceneItem):
                         # if its a scene then need to get the real time status of the proxy device via rest call
                         # which returns xml
-                        state = ISYSetup.get_real_time_status(K.Obj.proxy)
+                        state = isysetup.get_real_time_status(K.Obj.proxy)
                         debugprint(config.dbgMain, "Status from proxy: ", K.name, K.Obj.proxy, state)
                         subscribeas = K.Obj.proxy
                     else:
-                        state = ISYSetup.get_real_time_status(K.Obj.addr)
+                        state = isysetup.get_real_time_status(K.Obj.addr)
                         debugprint(config.dbgMain, "Status from node: ", K.name, state)
                         subscribeas = K.addr
 
@@ -103,9 +103,9 @@ class KeyScreenDesc(Screen.ScreenDesc):
             # this loop is separate from the above one only because doing so make the screen draw look more
             # instantaneous
             for K in self.keysbyord:
-                DisplayScreen.draw_button(config.screen, K)
+                displayscreen.draw_button(config.screen, K)
 
-            DisplayScreen.draw_cmd_buttons(config.screen, self)
+            displayscreen.draw_cmd_buttons(config.screen, self)
 
             debugprint(config.dbgMain, "Active Subscription List will be:")
             addressestoscanfor = ["Status"]
@@ -139,13 +139,13 @@ class KeyScreenDesc(Screen.ScreenDesc):
                     else:
                         # print "no on/off addr"
                         pass
-                    DisplayScreen.draw_button(config.screen, K)
+                    displayscreen.draw_button(config.screen, K)
                 elif K.typ == "ONBLINKRUNTHEN":
                     K.Krunthen.runThen()
                     blinkproc = functools.partial(BlinkKey, config.screen, K)
                     blinktime = .5
                     blinks = 8  # even number leaves final state of key same as initial state
-                    DisplayScreen.draw_button(config.screen, K)
+                    displayscreen.draw_button(config.screen, K)
                     # leave K.State as is - key will return to off at end
                 elif K.typ == "ONOFFRUN":
                     pass
@@ -157,7 +157,7 @@ class KeyScreenDesc(Screen.ScreenDesc):
 
                 if ActState <> K.State:
                     K.State = ActState
-                    DisplayScreen.draw_button(config.screen, K)
+                    displayscreen.draw_button(config.screen, K)
 
 
 config.screentypes["Keys"] = KeyScreenDesc

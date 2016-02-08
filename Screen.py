@@ -1,5 +1,5 @@
 import config
-import TouchArea
+import toucharea
 
 def FlatenScreenLabel(label):
     scrlabel = ""
@@ -18,7 +18,7 @@ class ScreenDesc:
         self.name = screenname
         l = screensection.get("label",screenname)
         self.label = l if not isinstance(l, basestring) else [l]
-        self.backcolor = screensection.get("Bcolor",config.BColor)
+        self.backcolor = screensection.get("Bcolor",config.DefaultBkgndColor)
         
         self.dimtimeout       = config.DimTO
         self.NextScreen       = None # for navigation buttons

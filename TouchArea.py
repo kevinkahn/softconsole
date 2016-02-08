@@ -1,8 +1,8 @@
-import ISYSetup
+import isysetup
 import config
 import pygame
 from config import debugprint
-import Screen
+import screen
 
 def InBut(pos,Key):
     return (pos[0] > Key.Center[0] - Key.Size[0]/2) and (pos[0] < Key.Center[0] + Key.Size[0]/2) and \
@@ -48,20 +48,20 @@ class KeyDesc(ManualKeyDesc):
 
         self.typ          = keysection.get("Ktype",config.Ktype)
         rt=keysection.get("Krunthen","")
-        self.Krunthen     = ISYSetup.ISYsetup.ProgramDict[rt] if rt<>"" else None
+        self.Krunthen     = isysetup.ISYsetup.ProgramDict[rt] if rt <> "" else None
         self.sceneproxy   = keysection.get("sceneproxy","")
         # dummy values
 
 
         # map the key to a scene or device - prefer to map to a scene so check that first
         # Obj is the representation of the ISY Object itself, addr is the address of the ISY device/scene
-        if keyname in ISYSetup.ISYsetup.SceneDict:
-            self.addr = ISYSetup.ISYsetup.SceneDict[keyname].addr
-            self.Obj = ISYSetup.ISYsetup.SceneDict[keyname]
+        if keyname in isysetup.ISYsetup.SceneDict:
+            self.addr = isysetup.ISYsetup.SceneDict[keyname].addr
+            self.Obj = isysetup.ISYsetup.SceneDict[keyname]
             debugprint(config.dbgscreenbuild, "Scene ", keyname, " using ", self.Obj.name, "/", self.Obj.addr)
-        elif keyname in ISYSetup.ISYsetup.NodeDict:
-            self.addr = ISYSetup.ISYsetup.NodeDict[keyname].addr
-            self.Obj = ISYSetup.ISYsetup.NodeDict[keyname]
+        elif keyname in isysetup.ISYsetup.NodeDict:
+            self.addr = isysetup.ISYsetup.NodeDict[keyname].addr
+            self.Obj = isysetup.ISYsetup.NodeDict[keyname]
         else:
             self.addr = ""
             self.Obj = None
@@ -79,7 +79,7 @@ class KeyDesc(ManualKeyDesc):
             print "Unknown key type: ", self.label
             config.ErrorItems.append("Bad keytype: " + self.label)
 
-        if isinstance(self.Obj, ISYSetup.SceneItem) and self.sceneproxy <> "":
+        if isinstance(self.Obj, isysetup.SceneItem) and self.sceneproxy <> "":
             # if key is for scene and explicit proxy, push down the explicit over the default
             debugprint(config.dbgscreenbuild, "Proxying key ", self.name, " with ", self.sceneproxy)
             self.Obj.proxy = self.sceneproxy

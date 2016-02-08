@@ -1,7 +1,7 @@
-import LogSupport
+import logsupport
 import pygame
 
-screentypes = {}
+screentypes = {} # set by each module for screens of the type that module creates (see last line in any XxxScreen module
 
 starttime = 0
 
@@ -37,48 +37,52 @@ def debugprint(flag,*args):
 
 Logs = None
 
-ConnISY = None
+# Global pointers
+ConnISY = None  # Root of structure representing the ISY from PyISY
+screen = None # pygame screen
+backlight = None # GPIO instance of pin 18
+DS = None # Global Display Screen (only on such object - is there a better python way than isntantiating just one?
+ParsedConfigFile = None # config.txt internal version
 
-screen = None
-backlight = None
-DS = None
-
-ParsedConfigFile = None
-screenwidth = 320
-screenheight = 480
+# Screen Display Info
+screenwidth = 0
+screenheight = 0
 dispratio = 1
-
+baseheight = 480
+basewidth  = 320
 horizborder = 20
 topborder = 20
 botborder = 80
 cmdvertspace = 10 # this is the space around the top/bot of  cmd button within the bot border
 
-# Global Defaults
-ISYaddr = ""
-ISYuser = ""
-ISYpassword = ""
-
-currentscreen = None
-
-HomeScreenName = ""
-HomeScreen = None
-HomeScreen2 = None
-MaintScreen = None
-DimHomeScreenCoverName = ""
-DimHomeScreenCover = None
+# Global Defaults Settable in config.txt in Console
+ISYaddr = ""        # from config globals
+ISYuser = ""        # from config globals
+ISYpassword = ""    # from config globals
+HomeScreenName = "" # from config globals
+HomeScreenTO = 60   # from config globals
 DimLevel = 10
 BrightLevel = 100
-HomeScreenTO = 60 
 DimTO = 20
 CmdKeyCol = "red"
 CmdCharCol = "white"
-multitaptime = 300
+MultiTapTime = 300
+DimHomeScreenCoverName = ""
+DefaultCharColor = "white"
+DefaultBkgndColor = 'maroon'
 
-# General Screen Defaults
-BColor = "maroon"
+# Names of screens in screen chains - set from config.txt and used to embed object references in screen objects
+MainChain = []      # defaults to order based on config file
+SecondaryChain = [] # defaults to empty
+
+# Operational golbal navigation roots
+CurrentScreen       = None
+HomeScreen          = None
+HomeScreen2         = None
+MaintScreen         = None
+DimHomeScreenCover  = None
 
 # Key Screen Defaults
-
 
 # Key Defaults
 Kcolor = "aqua"
@@ -86,9 +90,3 @@ KOnColor = "white"
 KOffColor = "black"
 Ktype = "ONOFF" # ONOFF ONBLINKRUNTHEN
 Krunthen = ""
-
-# Clock Screen Defaults
-CharColor = "white"
-CharSize = 35
-
-

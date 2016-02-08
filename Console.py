@@ -25,14 +25,14 @@ import RPi.GPIO as GPIO
 import webcolors
 from configobj import ConfigObj
 
-import ConfigObjects
-import DisplayScreen
-import ISYSetup
-import LogSupport
-import TouchArea
-import WatchDaemon
+import configobjects
+import displayscreen
+import isysetup
+import logsupport
+import toucharea
+import watchdaemon
 import config
-from LogSupport import Logs
+from logsupport import Logs
 from config import debugprint
 
 wc = webcolors.name_to_rgb
@@ -40,7 +40,7 @@ wc = webcolors.name_to_rgb
 """
 The next import is functional in that it is what causes the screen types to be registered with the Console
 """
-import ClockScreen, KeyScreen, ThermostatScreen, WeatherScreen, MaintScreen
+import clockscreen, keyscreen, thermostatscreen, weatherscreen, maintscreen
 
 
 def signal_handler(signal, frame):
@@ -87,7 +87,7 @@ if len(sys.argv) == 2:
 else:
     fn = "/home/pi/Console/config.txt"
 
-config.Logs = LogSupport.Logs(config.screen, os.path.dirname(fn))
+config.Logs = logsupport.Logs(config.screen, os.path.dirname(fn))
 Logs = config.Logs
 
 signal.signal(signal.SIGTERM, signal_handler)
@@ -105,20 +105,26 @@ Logs.Log("Console Starting  pid:" + str(os.getpid()))
 Logs.Log("Config file: " + fn)
 Logs.Log("Disk logfile:" + Logs.logfilename)
 
-config.DS = DisplayScreen.DisplayScreen()
+config.DS = displayscreen.DisplayScreen()
 
 # Global settings from config file
-config.ISYaddr = str(config.ParsedConfigFile.get("ISYaddr", ""))
-config.ISYuser = str(config.ParsedConfigFile.get("ISYuser", ""))
-config.ISYpassword = str(config.ParsedConfigFile.get("ISYpassword", ""))
-config.HomeScreenName = str(config.ParsedConfigFile.get("HomeScreenName", ""))
-config.HomeScreenTO = int(config.ParsedConfigFile.get("HomeScreenTO", config.HomeScreenTO))
-config.DimLevel = int(config.ParsedConfigFile.get("DimLevel", config.DimLevel))
-config.BrightLevel = int(config.ParsedConfigFile.get("BrightLevel", config.BrightLevel))
-config.DimTO = int(config.ParsedConfigFile.get("DimTO", config.DimTO))
-config.CmdKeyCol = str(config.ParsedConfigFile.get("CmKeyColor", config.CmdKeyCol))
-config.CmdCharCol = str(config.ParsedConfigFile.get("CmdCharCol", config.CmdCharCol))
-config.DimHomeScreenCoverName = str(config.ParsedConfigFile.get("DimHomeScreenCoverName", ""))
+config.ISYaddr          = str(config.ParsedConfigFile.get('ISYaddr', ""))
+config.ISYuser          = str(config.ParsedConfigFile.get('ISYuser', ""))
+config.ISYpassword      = str(config.ParsedConfigFile.get('ISYpassword', ""))
+config.HomeScreenName   = str(config.ParsedConfigFile.get('HomeScreenName', ""))
+config.HomeScreenTO     = int(config.ParsedConfigFile.get('HomeScreenTO', config.HomeScreenTO))
+config.DimLevel         = int(config.ParsedConfigFile.get('DimLevel', config.DimLevel))
+config.BrightLevel      = int(config.ParsedConfigFile.get('BrightLevel', config.BrightLevel))
+config.DimTO            = int(config.ParsedConfigFile.get('DimTO', config.DimTO))
+config.CmdKeyCol        = str(config.ParsedConfigFile.get('CmKeyColor', config.CmdKeyCol))
+config.CmdCharCol       = str(config.ParsedConfigFile.get('CmdCharCol', config.CmdCharCol))
+config.MultiTapTime     = int(config.ParsedConfigFile.get('MultiTapTime', config.MultitapTime))
+config.DimHomeScreenCoverName = str(config.ParsedConfigFile.get('DimHomeScreenCoverName', ""))
+config.DefaultCharColor = str(config.ParsedConfigFile.get('DefaultCharColor', config.DefaultCharColor))
+config.DefaultBkgndColor = str(config.ParsedConfigFile.get('DefaultBkgndColor', config.DefaultBkgndColor))
+
+config.MainChain = config.ParsedConfigFile.get('MainChain', [])
+config.SecondaryChain = config.ParsedConfigFile.get('SecondaryChain',[])
 
 GPIO.setwarnings(False)
 GPIO.setmode(GPIO.BCM)
@@ -126,13 +132,13 @@ GPIO.setup(18, GPIO.OUT)
 config.backlight = GPIO.PWM(18, 1024)
 config.backlight.start(100)
 
-config.ConnISY = ISYSetup.ISYsetup()
+config.ConnISY = isysetup.ISYsetup()
 nodemgr = config.ConnISY.myisy.nodes
 programs = config.ConnISY.myisy.programs
 if config.ConnISY.myisy.connected:
     Logs.Log("Connected to ISY: " + config.ISYaddr)
 else:
-    Logs.Log("Failed to connect to ISY", Logger.Error)
+    Logs.Log("Failed to connect to ISY", LogSupport.Error)
 
 config.ConnISY.WalkFolder(nodemgr)
 Logs.Log("Enumerated ISY Devices/Scenes")
@@ -172,17 +178,17 @@ Loop here using screen type to choose renderer and names to fill in cmdtxt - ret
 """
 
 config.backlight.ChangeDutyCycle(config.BrightLevel)
-config.currentscreen = config.HomeScreen
+config.CurrentScreen = config.HomeScreen
 prevscreen = None
 while 1:
-    nextscreen = config.currentscreen.HandleScreen(prevscreen <> config.currentscreen)
+    nextscreen = config.CurrentScreen.HandleScreen(prevscreen <> config.CurrentScreen)
     if isinstance(nextscreen, int):
         if nextscreen < 6:
             nextscreen = config.HomeScreen2
         else:
             nextscreen = config.MaintScreen
             break
-    prevscreen = config.currentscreen
-    config.currentscreen = nextscreen
+    prevscreen = config.CurrentScreen
+    config.CurrentScreen = nextscreen
 
 pygame.quit()

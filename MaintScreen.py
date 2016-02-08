@@ -1,13 +1,13 @@
 import config
 import pygame
 from config import debugprint, WAITNORMALBUTTON
-import TouchArea
-import DisplayScreen
-from DisplayScreen import draw_button
+import toucharea
+import displayscreen
+from displayscreen import draw_button
 import webcolors
 wc = webcolors.name_to_rgb
-import LogSupport
-from LogSupport import Logs
+import logsupport
+from logsupport import Logs
 import time
 import os, signal
 
@@ -43,11 +43,11 @@ class MaintScreenDesc():
         self.keysbyord = []
         t = config.topborder + 130
         for key in maintkeys:
-            self.menukeysbyord.append(TouchArea.ManualKeyDesc(key, maintkeys[key],(config.screenwidth/2,t),
-                                                         (config.screenwidth-2*config.horizborder,70),'gold','black','black','black','black'))
+            self.menukeysbyord.append(toucharea.ManualKeyDesc(key, maintkeys[key], (config.screenwidth/2, t),
+                                                              (config.screenwidth-2*config.horizborder,70),'gold','black','black','black','black'))
             t += 80
         
-        self.pagekeysbyord = [TouchArea.TouchPoint((config.screenwidth/2,config.screenheight/2),(config.screenwidth,config.screenheight))]
+        self.pagekeysbyord = [toucharea.TouchPoint((config.screenwidth/2, config.screenheight/2), (config.screenwidth, config.screenheight))]
 
 
     def ShowScreen(self):

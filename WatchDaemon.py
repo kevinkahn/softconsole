@@ -3,8 +3,8 @@ import os
 import time
 import config
 from config import debugprint
-import LogSupport
-from LogSupport import Info, Warning, Error
+import logsupport
+from logsupport import Info, Warning, Error
 
 from  ISY.IsyEvent import ISYEvent
 from  ISY.IsyEventData import EVENT_CTRL

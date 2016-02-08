@@ -1,14 +1,14 @@
-import DisplayScreen
+import displayscreen
 import pygame
 import webcolors
 import config
 from config import debugprint, WAITEXTRACONTROLBUTTON, WAITEXIT
 import time
 wc = webcolors.name_to_rgb
-import Screen
+import screen
 import urllib2
 import json
-import LogSupport
+import logsupport
 import functools
 from datetime import timedelta
 
@@ -64,7 +64,7 @@ def RenderScreenLines(recipe,extracter,color):
     return (renderedlines,centered,h)
 
     
-class WeatherScreenDesc(Screen.ScreenDesc):
+class WeatherScreenDesc(screen.ScreenDesc):
 
     def __init__(self, screensection, screenname):
         debugprint(config.dbgscreenbuild, "New WeatherScreenDesc ",screenname)
@@ -77,8 +77,8 @@ class WeatherScreenDesc(Screen.ScreenDesc):
 
         self.wunderkey = screensection.get("wunderkey","NoKeySupplied")
         self.location = screensection.get("location","")
-        Screen.ScreenDesc.__init__(self, screensection, screenname, ('which',))
-        self.charcolor    = screensection.get("CharCol",config.CharColor)
+        screen.ScreenDesc.__init__(self, screensection, screenname, ('which',))
+        self.charcolor    = screensection.get("CharCol", config.DefaultCharColor)
         self.lastwebreq = 0 # time of last call out to wunderground
         self.url = 'http://api.wunderground.com/api/' + self.wunderkey + '/geolookup/conditions/forecast/astronomy/q/' + self.location + '.json'
         self.parsed_json = {}
@@ -104,7 +104,7 @@ class WeatherScreenDesc(Screen.ScreenDesc):
         
 
     def __repr__(self):
-        return Screen.ScreenDesc.__repr__(self)+"\r\n     WeatherScreenDesc:"+str(self.charcolor)+":"+str(self.lineformat)+":"+str(self.fontsize)
+        return screen.ScreenDesc.__repr__(self) + "\r\n     WeatherScreenDesc:" + str(self.charcolor) + ":" + str(self.lineformat) + ":" + str(self.fontsize)
 
     
 
@@ -142,7 +142,7 @@ class WeatherScreenDesc(Screen.ScreenDesc):
                 horiz_off = config.horizborder
             config.screen.blit(renderedlines[i],(horiz_off, vert_off))
             vert_off = vert_off + renderedlines[i].get_height() + s
-        DisplayScreen.draw_cmd_buttons(config.screen,self)    
+        displayscreen.draw_cmd_buttons(config.screen, self)
         pygame.display.update()
     
     def HandleScreen(self,newscr=True):
@@ -157,7 +157,7 @@ class WeatherScreenDesc(Screen.ScreenDesc):
             f = urllib2.urlopen(self.url)
             val = f.read()
             if val.find("keynotfound") <> -1:
-                config.Logs.Log("Bad weatherunderground key:" + self.name, LogSupport.Error)
+                config.Logs.Log("Bad weatherunderground key:" + self.name, logsupport.Error)
                 return config.HomeScreen
             self.lastwebreq = time.time()
             self.parsed_json = json.loads(val)
