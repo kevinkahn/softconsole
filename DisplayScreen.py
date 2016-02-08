@@ -38,14 +38,14 @@ def draw_button(screen, Key, shrink=True, firstfont=0):
     fontchoice = firstfont
     if shrink:
         for l in range(lines):
-            for i in range(fontchoice,len(TouchArea.ButtonFonts)):
-                txtsize = TouchArea.ButtonFonts[fontchoice].size(Key.label[l])
+            for i in range(fontchoice,len(toucharea.ButtonFonts)):
+                txtsize =toucharea.ButtonFonts[fontchoice].size(Key.label[l])
                 if lines*txtsize[1] >= textarea[1] or txtsize[0] >= textarea[0]:
                     fontchoice = i
                     
     for i in range(lines) :
         #ren = pygame.transform.rotate(dispscreen.MyFont.render(txt[i], 0, HiColor), 0)
-        ren = TouchArea.ButtonFonts[fontchoice].render(Key.label[i], 0, wc(HiColor))
+        ren = toucharea.ButtonFonts[fontchoice].render(Key.label[i], 0, wc(HiColor))
         vert_off = ((i+1)*Key.Size[1]/(1+lines)) - ren.get_height()/2
         horiz_off = (Key.Size[0] - ren.get_width())/2
         screen.blit(ren,(x+horiz_off, y+vert_off))

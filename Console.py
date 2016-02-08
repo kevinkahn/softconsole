@@ -118,7 +118,7 @@ config.BrightLevel      = int(config.ParsedConfigFile.get('BrightLevel', config.
 config.DimTO            = int(config.ParsedConfigFile.get('DimTO', config.DimTO))
 config.CmdKeyCol        = str(config.ParsedConfigFile.get('CmKeyColor', config.CmdKeyCol))
 config.CmdCharCol       = str(config.ParsedConfigFile.get('CmdCharCol', config.CmdCharCol))
-config.MultiTapTime     = int(config.ParsedConfigFile.get('MultiTapTime', config.MultitapTime))
+config.MultiTapTime     = int(config.ParsedConfigFile.get('MultiTapTime', config.MultiTapTime))
 config.DimHomeScreenCoverName = str(config.ParsedConfigFile.get('DimHomeScreenCoverName', ""))
 config.DefaultCharColor = str(config.ParsedConfigFile.get('DefaultCharColor', config.DefaultCharColor))
 config.DefaultBkgndColor = str(config.ParsedConfigFile.get('DefaultBkgndColor', config.DefaultBkgndColor))
@@ -138,7 +138,7 @@ programs = config.ConnISY.myisy.programs
 if config.ConnISY.myisy.connected:
     Logs.Log("Connected to ISY: " + config.ISYaddr)
 else:
-    Logs.Log("Failed to connect to ISY", LogSupport.Error)
+    Logs.Log("Failed to connect to ISY", logsupport.Error)
 
 config.ConnISY.WalkFolder(nodemgr)
 Logs.Log("Enumerated ISY Devices/Scenes")
@@ -146,20 +146,20 @@ config.ConnISY.EnumeratePrograms(programs)
 Logs.Log("Enumerated ISY Programs")
 
 pygame.fastevent.init()
-CurrentScreenInfo = ConfigObjects.MyScreens()
+CurrentScreenInfo = configobjects.MyScreens()
 
 """
 Set up the Maintenance Screen
 """
 Logs.Log("Built Maintenance Screen")
-config.HomeScreen2 = MaintScreen.MaintScreenDesc()  # temp use of HS2
+config.HomeScreen2 = maintscreen.MaintScreenDesc()  # temp use of HS2
 
 """
 Set up the watcher daemon and its communitcations
 """
 config.toDaemon = Queue()
 config.fromDaemon = Queue()
-p = Process(target=WatchDaemon.Watcher, name="Watcher")
+p = Process(target=watchdaemon.Watcher, name="Watcher")
 
 p.daemon = True
 
@@ -168,7 +168,7 @@ config.DaemonProcess = p
 debugprint(config.dbgMain, "Spawned watcher as: ", p.pid)
 Logs.Log("Watcher pid: " + str(p.pid))
 
-TouchArea.InitButtonFonts()
+toucharea.InitButtonFonts()
 
 Logs.livelog = False
 time.sleep(2)

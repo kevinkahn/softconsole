@@ -22,7 +22,7 @@ class ClockScreenDesc(screen.ScreenDesc):
         self.ClkFont = pygame.font.SysFont('droidsansmono', self.fontsize, False, False)
 
     def __repr__(self):
-        return Screen.ScreenDesc.__repr__(self) + "\r\n     ClockScreenDesc:" + str(self.charcolor) + ":" + str(
+        return screen.ScreenDesc.__repr__(self) + "\r\n     ClockScreenDesc:" + str(self.charcolor) + ":" + str(
                 self.lineformat) + ":" + str(self.fontsize)
 
     def HandleScreen(self, newscr=True):
@@ -53,7 +53,7 @@ class ClockScreenDesc(screen.ScreenDesc):
             pygame.display.update()
 
         repaintClock(0)
-        DisplayScreen.draw_cmd_buttons(config.screen, self)
+        displayscreen.draw_cmd_buttons(config.screen, self)
 
         while 1:
             choice = config.DS.NewWaitPress(self, callbackproc=repaintClock, callbackint=1)

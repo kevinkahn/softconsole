@@ -33,17 +33,17 @@ class ScreenDesc:
         cvertcenter = config.screenheight - config.botborder/2 
         cbutheight = config.botborder - config.cmdvertspace*2
         
-        self.PrevScreenKey = TouchArea.ManualKeyDesc('**prev**','**prev**',
+        self.PrevScreenKey = toucharea.ManualKeyDesc('**prev**','**prev**',
                                                      (config.horizborder+.5*cbutwidth,cvertcenter),(cbutwidth,cbutheight),
                                                      CmdKeyColor,CmdCharColor,CmdCharColor)
-        self.NextScreenKey = TouchArea.ManualKeyDesc('**next**','**next**',
+        self.NextScreenKey = toucharea.ManualKeyDesc('**next**','**next**',
                                                      (config.horizborder+(1 + len(ExtraCmdButs)+.5)*cbutwidth,cvertcenter),(cbutwidth,cbutheight),
                                                      CmdKeyColor,CmdCharColor,CmdCharColor)
 
         self.ExtraCmdKeys   = []
         for i in range(len(ExtraCmdButs)):
             hcenter = config.horizborder + (i+1.5)*cbutwidth
-            self.ExtraCmdKeys.append(TouchArea.ManualKeyDesc(ExtraCmdButs[i],ExtraCmdButs[i],
+            self.ExtraCmdKeys.append(toucharea.ManualKeyDesc(ExtraCmdButs[i],ExtraCmdButs[i],
                                                              (hcenter,cvertcenter),(cbutwidth, cbutheight),
                                                              CmdKeyColor,CmdCharColor,CmdCharColor))
 

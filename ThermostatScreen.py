@@ -42,7 +42,7 @@ class ThermostatScreenDesc(screen.ScreenDesc):
         else:
             self.addr = config.ConnISY.NodeDict[screenname].addr
         
-        self.TitleRen = ThermoFont[1].render(Screen.FlatenScreenLabel(self.label), 0 , wc(self.charcolor))
+        self.TitleRen = ThermoFont[1].render(screen.FlatenScreenLabel(self.label), 0 , wc(self.charcolor))
         self.TitlePos = ((config.screenwidth - self.TitleRen.get_width())/2, config.topborder)
         self.TempPos  = config.topborder + self.TitleRen.get_height()
         self.StatePos = self.TempPos + ThermoFont[3].get_linesize() - 20
