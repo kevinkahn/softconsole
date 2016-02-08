@@ -73,7 +73,8 @@ DefaultBkgndColor = 'maroon'
 
 # Names of screens in screen chains - set from config.txt and used to embed object references in screen objects
 MainChain = []      # defaults to order based on config file
-SecondaryChain = [] # defaults to empty
+SecondaryChain = [] # if spec'd used for secondary screens else random order
+ExtraChain = []     # defaults to empty, unused screens
 
 # Operational golbal navigation roots
 CurrentScreen       = None

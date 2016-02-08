@@ -2,14 +2,13 @@ import config
 import pygame
 from config import debugprint, WAITNORMALBUTTON
 import toucharea
-import displayscreen
+import subprocess
 from displayscreen import draw_button
 import webcolors
 wc = webcolors.name_to_rgb
-import logsupport
-from logsupport import Logs
+from logsupport import Logs, Info, Warning, Error
 import time
-import os, signal
+import sys
 
 def interval_str(sec_elapsed):
     d = int(sec_elapsed / (60 * 60 * 24))
@@ -38,14 +37,15 @@ class MaintScreenDesc():
         self.name           = "Maint"
         self.label          = ["Maintenance"]
         
-        maintkeys           = {'log':'Show Log','exit':'Exit Maintenance','shut':'Shutdown Console'}
+        maintkeys           = ('log','exit','shut','shutpi','reboot')
+        mainttitles         = ('Show Log','Exit Maintenance','Shutdown Console','Shutdown Pi','Reboot Pi')
         self.menukeysbyord      = []
         self.keysbyord = []
-        t = config.topborder + 130
-        for key in maintkeys:
-            self.menukeysbyord.append(toucharea.ManualKeyDesc(key, maintkeys[key], (config.screenwidth/2, t),
-                                                              (config.screenwidth-2*config.horizborder,70),'gold','black','black','black','black'))
-            t += 80
+        t = config.topborder + 100
+        for i in range(len(maintkeys)):
+            self.menukeysbyord.append(toucharea.ManualKeyDesc(maintkeys[i], mainttitles[i], (config.screenwidth/2, t),
+                                                              (config.screenwidth-2*config.horizborder,65),'gold','black','black','black','black'))
+            t += 70
         
         self.pagekeysbyord = [toucharea.TouchPoint((config.screenwidth/2, config.screenheight/2), (config.screenwidth, config.screenheight))]
 
@@ -86,18 +86,29 @@ class MaintScreenDesc():
                     self.keysbyord = self.menukeysbyord
                     self.ShowScreen()
                 elif K.name == 'shut':
-                    Logs.Log("Manual Shutdown Requested")
-                    config.screen.fill(wc("red"))
-                    r = self.MaintFont.render("Shutting Down",0,wc("white"))
-                    config.screen.blit(r, ((config.screenwidth-r.get_width())/2, config.screenheight*.4))
-                    pygame.display.update()
-                    time.sleep(3)
-                    os.kill(config.DaemonProcess.pid,signal.SIGTERM)
+                    self.Exit_Options("Manual Shutdown Requested", "Shutting Down")
+                    sys.exit()
+                elif K.name == 'shutpi':
+                    self.Exit_Options("Shutdown Pi Requested","Shutting Down Pi")
+                    subprocess.Popen('sudo shutdown -P now', shell=True)
+                    sys.exit()
+                elif K.name == 'reboot':
+                    self.Exit_Options("Reboot Pi Requested","Rebooting Pi")
+                    subprocess.Popen('sudo reboot', shell=True)
+                    sys.exit()
                 else:
-                    print "No match in maint"
+                    Logs.Log("Internal Error",Error)
                     
             else:
                 return choice[1]
+
+    def Exit_Options(self, msg,scrnmsg):
+        config.Logs.Log(msg)
+        config.screen.fill(wc("red"))
+        r = self.MaintFont.render(scrnmsg, 0, wc("white"))
+        config.screen.blit(r, ((config.screenwidth - r.get_width())/2, config.screenheight*.4))
+        pygame.display.update()
+        time.sleep(2)
            
         
         
