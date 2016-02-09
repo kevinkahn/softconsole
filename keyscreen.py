@@ -138,12 +138,12 @@ class KeyScreenDesc(screen.ScreenDesc):
                             if choice[0] == WAITNORMALBUTTON:
                                 config.ConnISY.myisy.nodes[K.addr].on()
                             else:
-                                config.ConnISY.myisy.nodes[K.addr].faston()
+                                config.ConnISY.myisy.nodes[K.addr].on()  # should be faston but PyISY doesn't support
                         else:
                             if choice[0] == WAITNORMALBUTTONFAST:
                                 config.ConnISY.myisy.nodes[K.addr].off()
                             else:
-                                config.ConnISY.myisy.nodes[K.addr].fastoff()
+                                config.ConnISY.myisy.nodes[K.addr].off()  # should be fastoff per above
                     else:
                         config.Logs.Log("Screen: " + self.name + " press unbound key: " + K.name)
                     displayscreen.draw_button(config.screen, K)
