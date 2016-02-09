@@ -1,12 +1,14 @@
-import isysetup
-import displayscreen
-import toucharea
-import config
-from config import debugprint, WAITNORMALBUTTON, WAITNORMALBUTTONFAST, WAITISYCHANGE, WAITEXIT
 import functools
-from configobj import Section
-import screen
+
 import webcolors
+from configobj import Section
+
+import config
+import displayscreen
+import isysetup
+import screen
+import toucharea
+from config import debugprint, WAITNORMALBUTTON, WAITNORMALBUTTONFAST, WAITISYCHANGE, WAITEXIT
 
 wc = webcolors.name_to_rgb
 
@@ -143,7 +145,7 @@ class KeyScreenDesc(screen.ScreenDesc):
                             else:
                                 config.ConnISY.myisy.nodes[K.addr].fastoff()
                     else:
-                        config.Logs.Log("Screen: "+self.name+" press unbound key: "+K.name)
+                        config.Logs.Log("Screen: " + self.name + " press unbound key: " + K.name)
                     displayscreen.draw_button(config.screen, K)
                 elif K.typ == "ONBLINKRUNTHEN":
                     # force double tap for programs for safety - too easy to accidentally single tap with touchscreen
@@ -155,7 +157,7 @@ class KeyScreenDesc(screen.ScreenDesc):
                         displayscreen.draw_button(config.screen, K)
                         # leave K.State as is - key will return to off at end
                 elif K.typ == "ONOFFRUN":
-                       pass
+                    pass
             elif choice[0] == WAITEXIT:
                 return choice[1]
             elif choice[0] == WAITISYCHANGE:

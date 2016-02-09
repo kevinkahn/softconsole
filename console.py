@@ -22,7 +22,6 @@ import time
 from  multiprocessing import Process, Queue
 
 import RPi.GPIO as GPIO
-import webcolors
 from configobj import ConfigObj
 
 import configobjects
@@ -34,8 +33,6 @@ import watchdaemon
 import config
 from logsupport import Logs
 from config import debugprint
-
-wc = webcolors.name_to_rgb
 
 """
 The next import is functional in that it is what causes the screen types to be registered with the Console
@@ -63,10 +60,12 @@ def daemon_died(signal, frame):
         pygame.quit()
         sys.exit()
 
+
 def ParseAndLog(pname, default):
     val = config.ParsedConfigFile.get(pname, default)
-    config.Logs.Log(pname+": "+str(val))
+    config.Logs.Log(pname + ": " + str(val))
     return val
+
 
 """
 Actual Code to Drive Console
@@ -111,23 +110,23 @@ Logs.Log("Disk logfile:" + Logs.logfilename)
 config.DS = displayscreen.DisplayScreen()
 
 # Global settings from config file
-config.ISYaddr          = str(config.ParsedConfigFile.get('ISYaddr', ""))
-config.ISYuser          = str(config.ParsedConfigFile.get('ISYuser', ""))
-config.ISYpassword      = str(config.ParsedConfigFile.get('ISYpassword', ""))
-config.HomeScreenName   = str(ParseAndLog('HomeScreenName', ""))
-config.HomeScreenTO     = int(ParseAndLog('HomeScreenTO', config.HomeScreenTO))
-config.DimLevel         = int(ParseAndLog('DimLevel', config.DimLevel))
-config.BrightLevel      = int(ParseAndLog('BrightLevel', config.BrightLevel))
-config.DimTO            = int(ParseAndLog('DimTO', config.DimTO))
-config.CmdKeyCol        = str(ParseAndLog('CmKeyColor', config.CmdKeyCol))
-config.CmdCharCol       = str(ParseAndLog('CmdCharCol', config.CmdCharCol))
-config.MultiTapTime     = int(ParseAndLog('MultiTapTime', config.MultiTapTime))
+config.ISYaddr = str(config.ParsedConfigFile.get('ISYaddr', ""))
+config.ISYuser = str(config.ParsedConfigFile.get('ISYuser', ""))
+config.ISYpassword = str(config.ParsedConfigFile.get('ISYpassword', ""))
+config.HomeScreenName = str(ParseAndLog('HomeScreenName', ""))
+config.HomeScreenTO = int(ParseAndLog('HomeScreenTO', config.HomeScreenTO))
+config.DimLevel = int(ParseAndLog('DimLevel', config.DimLevel))
+config.BrightLevel = int(ParseAndLog('BrightLevel', config.BrightLevel))
+config.DimTO = int(ParseAndLog('DimTO', config.DimTO))
+config.CmdKeyCol = str(ParseAndLog('CmKeyColor', config.CmdKeyCol))
+config.CmdCharCol = str(ParseAndLog('CmdCharCol', config.CmdCharCol))
+config.MultiTapTime = int(ParseAndLog('MultiTapTime', config.MultiTapTime))
 config.DimHomeScreenCoverName = str(ParseAndLog('DimHomeScreenCoverName', ""))
 config.DefaultCharColor = str(ParseAndLog('DefaultCharColor', config.DefaultCharColor))
 config.DefaultBkgndColor = str(ParseAndLog('DefaultBkgndColor', config.DefaultBkgndColor))
 
 config.MainChain = config.ParsedConfigFile.get('MainChain', [])
-config.SecondaryChain = config.ParsedConfigFile.get('SecondaryChain',[])
+config.SecondaryChain = config.ParsedConfigFile.get('SecondaryChain', [])
 
 GPIO.setwarnings(False)
 GPIO.setmode(GPIO.BCM)

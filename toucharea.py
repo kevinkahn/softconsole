@@ -1,55 +1,61 @@
-import isysetup
-import config
 import pygame
-from config import debugprint
-import screen
 
-def InBut(pos,Key):
+import config
+import isysetup
+from config import debugprint
+
+
+def InBut(pos, Key):
     return (pos[0] > Key.Center[0] - Key.Size[0]/2) and (pos[0] < Key.Center[0] + Key.Size[0]/2) and \
            (pos[1] > Key.Center[1] - Key.Size[1]/2) and (pos[1] < Key.Center[1] + Key.Size[1]/2)
 
-ButtonFontSizes = (30,25,23,21,19)
+
+ButtonFontSizes = (30, 25, 23, 21, 19)
 ButtonFonts = []
+
 
 def InitButtonFonts():
     for i in ButtonFontSizes:
-        ButtonFonts.append(pygame.font.SysFont("",i))
-        
+        ButtonFonts.append(pygame.font.SysFont("", i))
+
 
 class TouchPoint:
-    def __init__(self,c,s):
-        self.Center       = c
-        self.Size         = s
+    def __init__(self, c, s):
+        self.Center = c
+        self.Size = s
+
 
 class ManualKeyDesc(TouchPoint):
-    def __init__(self, keyname, label, center, size, bcolor, charcoloron, charcoloroff, KOn=config.DefaultKeyOnOutlineColor, KOff=config.DefaultKeyOffOutlineColor):
-        TouchPoint.__init__(self,center,size)
+    def __init__(self, keyname, label, center, size, bcolor, charcoloron, charcoloroff,
+                 KOn=config.DefaultKeyOnOutlineColor, KOff=config.DefaultKeyOffOutlineColor):
+        TouchPoint.__init__(self, center, size)
         self.name = keyname
         self.backcolor = bcolor
         self.charcoloron = charcoloron
         self.charcoloroff = charcoloroff
-        self.State        = True
-        self.label =  label if not isinstance(label, basestring) else [label]
+        self.State = True
+        self.label = label if not isinstance(label, basestring) else [label]
         self.KOnColor = KOn
-        self.KOffColor = KOff        
-        
+        self.KOffColor = KOff
+
+
 class KeyDesc(ManualKeyDesc):
     # Describe a Key: name, background, keycharon, keycharoff, label(string tuple), type (ONOFF,ONBlink,OnOffRun,?),addr,OnU,OffU 
-    
+
     def __init__(self, keysection, keyname):
         debugprint(config.dbgscreenbuild, "             New Key Desc ", keyname)
 
         ManualKeyDesc.__init__(self, keyname,
-                               keysection.get("label",keyname),
-                               (0,0), (0,0),
+                               keysection.get("label", keyname),
+                               (0, 0), (0, 0),
                                keysection.get("Kcolor", config.DefaultKeyColor),
                                keysection.get("KOnColor", config.DefaultKeyOnOutlineColor),
                                keysection.get("KOffColor", config.DefaultKeyOffOutlineColor))
 
-        self.typ          = keysection.get("Ktype","ONOFF")
-        rt                = keysection.get("Krunthen","")
-        self.Krunthen     = isysetup.ISYsetup.ProgramDict[rt] if rt <> "" else None
-        self.sceneproxy   = keysection.get("sceneproxy","")
+        self.typ = keysection.get("Ktype", "ONOFF")
+        rt = keysection.get("Krunthen", "")
+        self.Krunthen = isysetup.ISYsetup.ProgramDict[rt] if rt <> "" else None
+        self.sceneproxy = keysection.get("sceneproxy", "")
         # dummy values
 
 
@@ -84,12 +90,11 @@ class KeyDesc(ManualKeyDesc):
             debugprint(config.dbgscreenbuild, "Proxying key ", self.name, " with ", self.sceneproxy)
             self.Obj.proxy = self.sceneproxy
 
-        debugprint(config.dbgscreenbuild,repr(self))
-        
-        
-        
+        debugprint(config.dbgscreenbuild, repr(self))
+
     def __repr__(self):
-        return "KeyDesc:"+self.name+"|ST:"+str(self.State)+"|Clr:"+str(self.backcolor)+"|OnC:"+str(self.charcoloron)+"|OffC:"\
-        +str(self.charcoloroff)+"\n\r        |Lab:"+str(self.label)+"|Typ:"+self.typ+"|Adr:"+self.addr+"|Px:"+str(self.sceneproxy)+\
-        "\n\r        |Ctr:"+str(self.Center)+"|Sz:"+str(self.Size)
-    
+        return "KeyDesc:" + self.name + "|ST:" + str(self.State) + "|Clr:" + str(self.backcolor) + "|OnC:" + str(
+            self.charcoloron) + "|OffC:" \
+               + str(self.charcoloroff) + "\n\r        |Lab:" + str(
+            self.label) + "|Typ:" + self.typ + "|Adr:" + self.addr + "|Px:" + str(self.sceneproxy) + \
+               "\n\r        |Ctr:" + str(self.Center) + "|Sz:" + str(self.Size)

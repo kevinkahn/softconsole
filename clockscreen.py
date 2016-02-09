@@ -23,7 +23,7 @@ class ClockScreenDesc(screen.ScreenDesc):
 
     def __repr__(self):
         return screen.ScreenDesc.__repr__(self) + "\r\n     ClockScreenDesc:" + str(self.charcolor) + ":" + str(
-                self.lineformat) + ":" + str(self.fontsize)
+            self.lineformat) + ":" + str(self.fontsize)
 
     def HandleScreen(self, newscr=True):
 
