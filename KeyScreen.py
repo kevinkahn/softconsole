@@ -126,29 +126,36 @@ class KeyScreenDesc(screen.ScreenDesc):
             blinkproc = None
             blinktime = 0
             blinks = 0
-            if choice[0] == WAITNORMALBUTTON:
+            if (choice[0] == WAITNORMALBUTTON) or (choice[0] == WAITNORMALBUTTONFAST):
                 # handle various keytype cases
                 K = self.keysbyord[choice[1]]
                 if K.typ == "ONOFF":
                     K.State = not K.State
                     if K.addr <> "":
                         if K.State:
-                            config.ConnISY.myisy.nodes[K.addr].on()
+                            if choice[0] == WAITNORMALBUTTON:
+                                config.ConnISY.myisy.nodes[K.addr].on()
+                            else:
+                                config.ConnISY.myisy.nodes[K.addr].faston()
                         else:
-                            config.ConnISY.myisy.nodes[K.addr].off()
+                            if choice[0] == WAITNORMALBUTTONFAST:
+                                config.ConnISY.myisy.nodes[K.addr].off()
+                            else:
+                                config.ConnISY.myisy.nodes[K.addr].fastoff()
                     else:
-                        # print "no on/off addr"
-                        pass
+                        config.Logs.Log("Screen: "+self.name+" press unbound key: "+K.name)
                     displayscreen.draw_button(config.screen, K)
                 elif K.typ == "ONBLINKRUNTHEN":
-                    K.Krunthen.runThen()
-                    blinkproc = functools.partial(BlinkKey, config.screen, K)
-                    blinktime = .5
-                    blinks = 8  # even number leaves final state of key same as initial state
-                    displayscreen.draw_button(config.screen, K)
-                    # leave K.State as is - key will return to off at end
+                    # force double tap for programs for safety - too easy to accidentally single tap with touchscreen
+                    if choice[0] == WAITNORMALBUTTONFAST:
+                        K.Krunthen.runThen()
+                        blinkproc = functools.partial(BlinkKey, config.screen, K)
+                        blinktime = .5
+                        blinks = 8  # even number leaves final state of key same as initial state
+                        displayscreen.draw_button(config.screen, K)
+                        # leave K.State as is - key will return to off at end
                 elif K.typ == "ONOFFRUN":
-                    pass
+                       pass
             elif choice[0] == WAITEXIT:
                 return choice[1]
             elif choice[0] == WAITISYCHANGE:

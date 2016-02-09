@@ -5,7 +5,7 @@ from pygame import gfxdraw
 import webcolors
 wc = webcolors.name_to_rgb
 import config
-from config import debugprint, WAITEXTRACONTROLBUTTON, WAITEXIT, WAITNORMALBUTTON, WAITISYCHANGE, dispratio
+from config import debugprint, WAITEXTRACONTROLBUTTON, WAITEXIT, WAITNORMALBUTTON, WAITNORMALBUTTONFAST, WAITISYCHANGE, dispratio
 import screen
 import xmltodict
 import toucharea
@@ -35,7 +35,7 @@ class ThermostatScreenDesc(screen.ScreenDesc):
             ThermoFont[3] = pygame.font.SysFont(None,160,True,False)
 
         self.charcolor    = screensection.get("CharColor", config.DefaultCharColor)
-        self.KColor       = screensection.get("Kcolor",config.Kcolor)
+        self.KColor       = screensection.get("Kcolor", config.DefaultKeyColor)
         if screenname not in config.ConnISY.NodeDict:
             print "No such Thermostat: ",screenname
             config.ErrorItems.append("No Thermostat: " + screenname)
@@ -59,10 +59,10 @@ class ThermostatScreenDesc(screen.ScreenDesc):
         self.ModeButPos = self.AdjButTops + 85 * dispratio 
         
         bsize = (100*dispratio, 50*dispratio)
-        self.keysbyord.append(toucharea.ManualKeyDesc("Mode","Mode",(config.screenwidth/4, self.ModeButPos),
-                              bsize,self.KColor,self.charcolor,self.charcolor,KOn=config.KOffColor))
-        self.keysbyord.append(toucharea.ManualKeyDesc("Fan","Fan",(3*config.screenwidth/4, self.ModeButPos),
-                              bsize,self.KColor,self.charcolor,self.charcolor,KOn=config.KOffColor))
+        self.keysbyord.append(toucharea.ManualKeyDesc("Mode","Mode", (config.screenwidth/4, self.ModeButPos),
+                                                      bsize, self.KColor, self.charcolor, self.charcolor, KOn=config.DefaultKeyOffOutlineColor))
+        self.keysbyord.append(toucharea.ManualKeyDesc("Fan","Fan", (3*config.screenwidth/4, self.ModeButPos),
+                                                      bsize, self.KColor, self.charcolor, self.charcolor, KOn=config.DefaultKeyOffOutlineColor))
         self.ModesPos = self.ModeButPos + bsize[1]/2 + 5* dispratio
 
     
@@ -121,7 +121,7 @@ class ThermostatScreenDesc(screen.ScreenDesc):
             choice = config.DS.NewWaitPress(self)
             if choice[0] == WAITEXIT:
                 return choice[1]
-            elif choice[0] == WAITNORMALBUTTON:
+            elif (choice[0] == WAITNORMALBUTTON) or (choice[0] == WAITNORMALBUTTONFAST):
                 if choice[1] < 4:
                     self.BumpTemp(('CLISPH', 'CLISPH', 'CLISPC', 'CLISPC')[choice[1]], (2, -2, 2, -2)[choice[1]])
                 else:

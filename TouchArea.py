@@ -22,7 +22,7 @@ class TouchPoint:
         self.Size         = s
 
 class ManualKeyDesc(TouchPoint):
-    def __init__(self, keyname, label, center, size, bcolor, charcoloron, charcoloroff,KOn=config.KOnColor,KOff=config.KOffColor):
+    def __init__(self, keyname, label, center, size, bcolor, charcoloron, charcoloroff, KOn=config.DefaultKeyOnOutlineColor, KOff=config.DefaultKeyOffOutlineColor):
         TouchPoint.__init__(self,center,size)
         self.name = keyname
         self.backcolor = bcolor
@@ -42,12 +42,12 @@ class KeyDesc(ManualKeyDesc):
         ManualKeyDesc.__init__(self, keyname,
                                keysection.get("label",keyname),
                                (0,0), (0,0),
-                               keysection.get("Kcolor",config.Kcolor), 
-                               keysection.get("KOnColor",config.KOnColor),
-                               keysection.get("KOffColor",config.KOffColor))
+                               keysection.get("Kcolor", config.DefaultKeyColor),
+                               keysection.get("KOnColor", config.DefaultKeyOnOutlineColor),
+                               keysection.get("KOffColor", config.DefaultKeyOffOutlineColor))
 
-        self.typ          = keysection.get("Ktype",config.Ktype)
-        rt=keysection.get("Krunthen","")
+        self.typ          = keysection.get("Ktype","ONOFF")
+        rt                = keysection.get("Krunthen","")
         self.Krunthen     = isysetup.ISYsetup.ProgramDict[rt] if rt <> "" else None
         self.sceneproxy   = keysection.get("sceneproxy","")
         # dummy values

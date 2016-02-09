@@ -121,7 +121,7 @@ class DisplayScreen:
 
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 pos = (pygame.mouse.get_pos()[0],pygame.mouse.get_pos()[1])
-                if self.presscount < 10:
+                if self.presscount < 10:  # this is debug code for a weird/unreproducible RPi behavior where touch is off
                     print pos
                     self.presscount += 1
                 tapcount = 1
@@ -151,7 +151,10 @@ class DisplayScreen:
                 for i in range(len(self.AS.keysbyord)):
                     K = self.AS.keysbyord[i]
                     if toucharea.InBut(pos, K):
-                        rtn = (WAITNORMALBUTTON, i)
+                        if tapcount == 1:
+                            rtn = (WAITNORMALBUTTON, i)
+                        else:
+                            rtn = (WAITNORMALBUTTONFAST, i)
                 if self.AS.PrevScreenKey <> None:
                     if toucharea.InBut(pos,self.AS.PrevScreenKey):
                         rtn = (WAITEXIT, self.AS.PrevScreen)

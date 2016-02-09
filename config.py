@@ -83,11 +83,7 @@ HomeScreen2         = None
 MaintScreen         = None
 DimHomeScreenCover  = None
 
-# Key Screen Defaults
-
-# Key Defaults
-Kcolor = "aqua"
-KOnColor = "white"
-KOffColor = "black"
-Ktype = "ONOFF" # ONOFF ONBLINKRUNTHEN
-Krunthen = ""
+# Normal key Defaults across all screens
+DefaultKeyColor = "aqua"
+DefaultKeyOnOutlineColor = "white"
+DefaultKeyOffOutlineColor = "black"
