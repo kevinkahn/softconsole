@@ -22,8 +22,8 @@ streamid = ""
 
 # Debug flags
 isytreewalkdbgprt = False
-dbgscreenbuild = True
-dbgMain = True
+dbgscreenbuild = False
+dbgMain = False
 dbgdaemon = False
 
 
