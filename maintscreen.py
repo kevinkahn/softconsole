@@ -89,7 +89,8 @@ class MaintScreenDesc:
                 elif K.name == 'restart':
                     self.Exit_Options("Console Restart Requested", "Restarting")
                     z = 'nohup /bin/bash -c \" echo c1 > /home/pi/c1 && sleep 3 && echo c2 > /home/pi/c2 && python -u ' + \
-                        sys.argv[0] + '\"'
+                        sys.argv[0] + ' ' + config.configfile + '\"'
+                    print z
                     subprocess.Popen(z, shell=True)
                     sys.exit()
                 elif K.name == 'shutpi':

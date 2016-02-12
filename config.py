@@ -34,7 +34,7 @@ def debugprint(flag, *args):
         print
 
 
-Logs = None
+maxlog = 5
 
 # Global pointers
 ISYrequestsession = None
@@ -43,6 +43,7 @@ screen = None  # pygame screen
 backlight = None  # GPIO instance of pin 18
 DS = None  # Global Display Screen (only one such object
 ParsedConfigFile = None  # config.txt internal version
+configfile = "/home/pi/Console/config.txt"  # default location of configfile
 
 # Screen Display Info
 screenwidth = 0

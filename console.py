@@ -49,25 +49,22 @@ config.starttime = time.time()
 utilities.InitializeEnvironment()
 
 if len(sys.argv) == 2:
-    fn = sys.argv[1]
-else:
-    fn = "/home/pi/Console/config.txt"
+    config.configfile = sys.argv[1]
 
-config.Logs = logsupport.Logs(config.screen, os.path.dirname(fn))
+config.Logs = logsupport.Logs(config.screen, os.path.dirname(config.configfile))
 
 signal.signal(signal.SIGTERM, utilities.signal_handler)
 signal.signal(signal.SIGINT, utilities.signal_handler)
 signal.signal(signal.SIGCHLD, utilities.daemon_died)
 
-config.ParsedConfigFile = ConfigObj(fn)
+config.ParsedConfigFile = ConfigObj(config.configfile)
 
 config.Logs.Log(u"Soft ISY Console")
 config.Logs.Log(u"  \u00A9 Kevin Kahn 2016")
 config.Logs.Log("Software under Apache 2.0 License")
 config.Logs.Log("Start time: " + time.strftime('%c'))
 config.Logs.Log("Console Starting  pid:" + str(os.getpid()))
-config.Logs.Log("Config file: " + fn)
-config.Logs.Log("Disk logfile:" + config.Logs.logfilename)
+config.Logs.Log("Config file: " + config.configfile)
 
 config.DS = displayscreen.DisplayScreen()
 
@@ -108,12 +105,10 @@ config.Logs.Log("Watcher pid: " + str(p.pid))
 
 config.Logs.livelog = False  # turn off logging to the screen and give user a moment to scan
 time.sleep(2)
-
+config.backlight.ChangeDutyCycle(config.BrightLevel)
 """
 Loop here using screen type to choose renderer and names to fill in cmdtxt - return value is next screen or a tap count
 """
-
-config.backlight.ChangeDutyCycle(config.BrightLevel)
 config.CurrentScreen = config.HomeScreen
 prevscreen = None
 mainchainactive = True
@@ -131,5 +126,3 @@ while 1:
             nextscreen = config.MaintScreen
     prevscreen = config.CurrentScreen
     config.CurrentScreen = nextscreen
-
-pygame.quit()

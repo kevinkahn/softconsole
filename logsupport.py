@@ -22,8 +22,18 @@ class Logs:
     def __init__(self, screen, dirnm):
         self.screen = screen
         self.LogFont = pygame.font.SysFont(None, 23, False, False)
-        self.logfilename = dirnm + '/' + time.strftime("%Y-%b-%d-%H-%M-%S-Log.txt")
-        self.disklogfile = open(self.logfilename, "w")
+        os.chdir(dirnm)
+        q = [k for k in os.listdir('.') if 'Console.log' in k]
+        if "Console.log." + str(config.maxlog) in q:
+            os.remove('Console.log.' + str(config.maxlog))
+        for i in range(config.maxlog - 1, 0, -1):
+            print i, q
+            if "Console.log." + str(i) in q:
+                print 'rename'
+                os.rename('Console.log.' + str(i), "Console.log." + str(i + 1))
+        os.rename('Console.log', 'Console.log.1')
+        self.disklogfile = open('Console.log', 'w')
+        os.chmod('Console.log', 0o555)
 
     def Log(self, entry, severity=Info):
         """
