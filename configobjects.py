@@ -31,7 +31,7 @@ class MyScreens:
                 else:
                     Logs.Log("Screentype error" + screenitem + " type " + tempscreentype, Warning)
                     pass
-            if NewScreen <> None:
+            if NewScreen is not None:
                 # set the standard navigation keys and navigation linkages
                 if NewScreen.name in config.MainChain:
                     mainlist[NewScreen.name] = NewScreen

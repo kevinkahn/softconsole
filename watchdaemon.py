@@ -47,7 +47,6 @@ def event_feed(*arg):
     else:
         prcode = "**" + eventcode + "**"
         # print "Ugly EC", eventcode, prcode
-
     if (prcode == "Status" or config.watchlist[0] == "") and data["node"] in config.watchlist:
         debugprint(config.dbgdaemon, time.time(), "Status update in stream: ", data["Event-seqnum"], ":", prcode, " : ",
                    data["node"], " : ", data["eventInfo"], " : ", data["action"])
@@ -59,7 +58,7 @@ def event_feed(*arg):
 
 def Watcher():
     config.watchstarttime = time.time()
-    config.watchlist = []
+    config.watchlist = ['init']
     debugprint(config.dbgdaemon, "Watcher: ", config.watchstarttime, os.getpid())
     server = ISYEvent()
     server.subscribe(addr=config.ISYaddr, userl=config.ISYuser, userp=config.ISYpassword)

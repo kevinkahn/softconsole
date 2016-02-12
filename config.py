@@ -14,14 +14,14 @@ WAITNORMALBUTTONFAST = 10
 """ Daemon related stuff"""
 toDaemon = None
 fromDaemon = None
-watchlist = []
+watchlist = ["init"]
 watchstarttime = 0
 DaemonProcess = None
 seq = 0
 streamid = ""
 
 # Debug flags
-isytreewalkdbgprt = False
+ISYdebug = False
 dbgscreenbuild = False
 dbgMain = False
 dbgdaemon = False
@@ -37,7 +37,8 @@ def debugprint(flag, *args):
 Logs = None
 
 # Global pointers
-ConnISY = None  # Root of structure representing the ISY from PyISY
+ISYrequestsession = None
+ISY = None  # Root of structure representing the ISY
 screen = None  # pygame screen
 backlight = None  # GPIO instance of pin 18
 DS = None  # Global Display Screen (only on such object - is there a better python way than isntantiating just one?
@@ -56,6 +57,7 @@ cmdvertspace = 10  # this is the space around the top/bot of  cmd button within 
 
 # Global Defaults Settable in config.txt in Console
 ISYaddr = ""  # from config globals
+ISYprefix = ''
 ISYuser = ""  # from config globals
 ISYpassword = ""  # from config globals
 HomeScreenName = ""  # from config globals

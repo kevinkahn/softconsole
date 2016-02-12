@@ -23,15 +23,15 @@ from  multiprocessing import Process, Queue
 
 import RPi.GPIO as GPIO
 from configobj import ConfigObj
+import requests
 
 import configobjects
 import displayscreen
-import isysetup
+import isy
 import logsupport
 import toucharea
 import watchdaemon
 import config
-from logsupport import Logs
 from config import debugprint
 
 """
@@ -40,8 +40,8 @@ The next import is functional in that it is what causes the screen types to be r
 import clockscreen, keyscreen, thermostatscreen, weatherscreen, maintscreen
 
 
-def signal_handler(signal, frame):
-    print "Signal: {}".format(signal)
+def signal_handler(sig, frame):
+    print "Signal: {}".format(sig)
     print "pid: ", os.getpid()
     time.sleep(1)
     pygame.quit()
@@ -49,9 +49,9 @@ def signal_handler(signal, frame):
     sys.exit(0)
 
 
-def daemon_died(signal, frame):
-    print "CSignal: {}".format(signal)
-    if config.DaemonProcess == None:
+def daemon_died(sig, frame):
+    print "CSignal: {}".format(sig)
+    if config.DaemonProcess is None:
         return
     if config.DaemonProcess.is_alive():
         print "Child ok"
@@ -91,7 +91,6 @@ else:
     fn = "/home/pi/Console/config.txt"
 
 config.Logs = logsupport.Logs(config.screen, os.path.dirname(fn))
-Logs = config.Logs
 
 signal.signal(signal.SIGTERM, signal_handler)
 signal.signal(signal.SIGINT, signal_handler)
@@ -99,13 +98,13 @@ signal.signal(signal.SIGCHLD, daemon_died)
 
 config.ParsedConfigFile = ConfigObj(fn)
 
-Logs.Log(u"Soft ISY Console")
-Logs.Log(u"  \u00A9 Kevin Kahn 2016")
-Logs.Log("Software under Apache 2.0 License")
-Logs.Log("Start time: " + time.strftime('%c'))
-Logs.Log("Console Starting  pid:" + str(os.getpid()))
-Logs.Log("Config file: " + fn)
-Logs.Log("Disk logfile:" + Logs.logfilename)
+config.Logs.Log(u"Soft ISY Console")
+config.Logs.Log(u"  \u00A9 Kevin Kahn 2016")
+config.Logs.Log("Software under Apache 2.0 License")
+config.Logs.Log("Start time: " + time.strftime('%c'))
+config.Logs.Log("Console Starting  pid:" + str(os.getpid()))
+config.Logs.Log("Config file: " + fn)
+config.Logs.Log("Disk logfile:" + config.Logs.logfilename)
 
 config.DS = displayscreen.DisplayScreen()
 
@@ -127,6 +126,7 @@ config.DefaultBkgndColor = str(ParseAndLog('DefaultBkgndColor', config.DefaultBk
 
 config.MainChain = config.ParsedConfigFile.get('MainChain', [])
 config.SecondaryChain = config.ParsedConfigFile.get('SecondaryChain', [])
+config.ISYprefix = 'http://' + config.ISYaddr + '/rest/'
 
 GPIO.setwarnings(False)
 GPIO.setmode(GPIO.BCM)
@@ -134,18 +134,22 @@ GPIO.setup(18, GPIO.OUT)
 config.backlight = GPIO.PWM(18, 1024)
 config.backlight.start(100)
 
-config.ConnISY = isysetup.ISYsetup()
-nodemgr = config.ConnISY.myisy.nodes
-programs = config.ConnISY.myisy.programs
-if config.ConnISY.myisy.connected:
-    Logs.Log("Connected to ISY: " + config.ISYaddr)
-else:
-    Logs.Log("Failed to connect to ISY", logsupport.Error)
+config.ISYrequestsession = requests.session()
+config.ISYrequestsession.auth = (config.ISYuser, config.ISYpassword)
 
-config.ConnISY.WalkFolder(nodemgr)
-Logs.Log("Enumerated ISY Devices/Scenes")
-config.ConnISY.EnumeratePrograms(programs)
-Logs.Log("Enumerated ISY Programs")
+config.ISY = isy.ISY(config.ISYrequestsession, config.ISYaddr)
+
+# nodemgr = config.ISY.myisy.nodes
+# programs = config.ISY.myisy.programs
+# if config.ISY.myisy.connected:
+#    Logs.Log("Connected to ISY: " + config.ISYaddr)
+# else:
+#    Logs.Log("Failed to connect to ISY", logsupport.Error)
+
+# config.ISY.WalkFolder(nodemgr)
+config.Logs.Log("Enumerated ISY Devices/Scenes")
+# config.ISY.EnumeratePrograms(programs)
+config.Logs.Log("Enumerated ISY Programs")
 
 pygame.fastevent.init()
 CurrentScreenInfo = configobjects.MyScreens()
@@ -153,7 +157,7 @@ CurrentScreenInfo = configobjects.MyScreens()
 """
 Set up the Maintenance Screen
 """
-Logs.Log("Built Maintenance Screen")
+config.Logs.Log("Built Maintenance Screen")
 config.MaintScreen = maintscreen.MaintScreenDesc()  # temp use of HS2
 
 """
@@ -168,11 +172,11 @@ p.daemon = True
 p.start()
 config.DaemonProcess = p
 debugprint(config.dbgMain, "Spawned watcher as: ", p.pid)
-Logs.Log("Watcher pid: " + str(p.pid))
+config.Logs.Log("Watcher pid: " + str(p.pid))
 
 toucharea.InitButtonFonts()
 
-Logs.livelog = False
+config.Logs.livelog = False
 time.sleep(2)
 
 """

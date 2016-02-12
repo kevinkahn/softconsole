@@ -66,14 +66,14 @@ def RenderScreenLines(recipe, extracter, color):
         renderedlines.append(r)
         centered.append(line[1])
         h = h + r.get_height()
-    return (renderedlines, centered, h)
+    return renderedlines, centered, h
 
 
 class WeatherScreenDesc(screen.ScreenDesc):
     def __init__(self, screensection, screenname):
         debugprint(config.dbgscreenbuild, "New WeatherScreenDesc ", screenname)
 
-        if WeathFont[0] == None:
+        if WeathFont[0] is None:
             # initialize on first entry
             WeathFont[0] = pygame.font.SysFont(None, 20, False, False)
             WeathFont[1] = pygame.font.SysFont(None, 30, True, False)
@@ -89,6 +89,8 @@ class WeatherScreenDesc(screen.ScreenDesc):
         self.scrlabel = ""
         for s in self.label:
             self.scrlabel = self.scrlabel + " " + s
+        self.js = None  # partial function for dict access
+        self.fcsts = None  # partial function for dict access
         self.conditions = [(2, True, "{d}", self.scrlabel),
                            (1, True, "{d}", (('location', 'city'),)),
                            (1, False, u"Currently: {d[0]} {d[1]}\u00B0F",
@@ -111,8 +113,7 @@ class WeatherScreenDesc(screen.ScreenDesc):
                          (1, False, "Wind: {d[0]} at {d[1]}", (('avewind', 'dir'), ('avewind', 'mph')))]
 
     def __repr__(self):
-        return screen.ScreenDesc.__repr__(self) + "\r\n     WeatherScreenDesc:" + str(self.charcolor) + ":" + str(
-            self.lineformat) + ":" + str(self.fontsize)
+        return screen.ScreenDesc.__repr__(self) + "\r\n     WeatherScreenDesc:" + str(self.charcolor)
 
     def ShowScreen(self, conditions):
         config.screen.fill(wc(self.backcolor))
@@ -134,7 +135,7 @@ class WeatherScreenDesc(screen.ScreenDesc):
             for fcst in self.fcsts:
                 fs = functools.partial(TreeDict, fcst)
                 r, c, temph = RenderScreenLines(self.forecast, fs, self.charcolor)
-                h = h + temph
+                h += temph
                 renderedlines = renderedlines + r
                 centered = centered + c
 

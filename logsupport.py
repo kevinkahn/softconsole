@@ -12,7 +12,7 @@ Warning = 1
 Error = 2
 
 
-class Logs():
+class Logs:
     livelog = True
     livelogpos = 0
     log = []
@@ -26,6 +26,11 @@ class Logs():
         self.disklogfile = open(self.logfilename, "w")
 
     def Log(self, entry, severity=Info):
+        """
+
+        :param severity:
+        :param entry:
+        """
         self.log.append((severity, entry))
         self.disklogfile.write(time.strftime('%H:%M:%S')
                                + ' Sev: ' + str(severity) + " " + entry.encode('ascii',

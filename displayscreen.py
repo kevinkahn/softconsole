@@ -141,7 +141,7 @@ class DisplayScreen:
                 # on any touch restart dim timer and reset to bright if dim
                 pygame.time.set_timer(self.MAXTIMEHIT.type, self.AS.dimtimeout*1000)
                 dimscr = self.GoDim(False)
-                if dimscr <> None:
+                if dimscr is not None:
                     rtn = (WAITEXIT, config.HomeScreen)
                     break
 
@@ -152,7 +152,7 @@ class DisplayScreen:
                             rtn = (WAITNORMALBUTTON, i)
                         else:
                             rtn = (WAITNORMALBUTTONFAST, i)
-                if self.AS.PrevScreenKey <> None:
+                if self.AS.PrevScreenKey is not None:
                     if toucharea.InBut(pos, self.AS.PrevScreenKey):
                         rtn = (WAITEXIT, self.AS.PrevScreen)
                     elif toucharea.InBut(pos, self.AS.NextScreenKey):
@@ -165,11 +165,11 @@ class DisplayScreen:
 
             elif event.type == self.MAXTIMEHIT.type:
                 dimscr = self.GoDim(True)
-                if dimscr <> None:
+                if dimscr is not None:
                     rtn = (WAITEXIT, dimscr)
                     break
             elif event.type == self.INTERVALHIT.type:
-                if (callbackproc <> None) and (cycle > 0):
+                if (callbackproc is not None) and (cycle > 0):
                     callbackproc(cycle)
                     cycle -= 1
             elif event.type == self.GOHOMEHIT.type:

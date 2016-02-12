@@ -16,9 +16,9 @@ ThermoFont = [None, None, None, None]
 
 def trifromtop(h, v, n, size, c, invert):
     if invert:
-        return (h*n, v + size/2, h*n - size/2, v - size/2, h*n + size/2, v - size/2, c)
+        return h*n, v + size/2, h*n - size/2, v - size/2, h*n + size/2, v - size/2, c
     else:
-        return (h*n, v - size/2, h*n - size/2, v + size/2, h*n + size/2, v + size/2, c)
+        return h*n, v - size/2, h*n - size/2, v + size/2, h*n + size/2, v + size/2, c
 
 
 class ThermostatScreenDesc(screen.ScreenDesc):
@@ -27,7 +27,7 @@ class ThermostatScreenDesc(screen.ScreenDesc):
         screen.ScreenDesc.__init__(self, screensection, screenname, ())
         self.info = {}
 
-        if ThermoFont[0] == None:
+        if ThermoFont[0] is None:
             # initialize on first entry
             ThermoFont[0] = pygame.font.SysFont(None, 30, False, False)
             ThermoFont[1] = pygame.font.SysFont(None, 50, False, False)
@@ -36,10 +36,11 @@ class ThermostatScreenDesc(screen.ScreenDesc):
 
         self.charcolor = screensection.get("CharColor", config.DefaultCharColor)
         self.KColor = screensection.get("Kcolor", config.DefaultKeyColor)
-        if screenname not in config.ConnISY.NodeDict:
-            config.Logs.Log("No Thermostat: " + screenname)
+        if screenname in config.ISY.NodesByName:
+            self.RealObj = config.ISY.NodesByName[screenname]
         else:
-            self.addr = config.ConnISY.NodeDict[screenname].addr
+            self.RealObj = None
+            config.Logs.Log("No Thermostat: " + screenname)
 
         self.TitleRen = ThermoFont[1].render(screen.FlatenScreenLabel(self.label), 0, wc(self.charcolor))
         self.TitlePos = ((config.screenwidth - self.TitleRen.get_width())/2, config.topborder)
@@ -72,8 +73,9 @@ class ThermostatScreenDesc(screen.ScreenDesc):
 
         print "Bump temp: ", setpoint, degrees
         print "New: ", self.info[setpoint][0] + degrees
-        config.ConnISY.myisy.conn.request(config.ConnISY.myisy.conn.compileURL(
-            ["nodes/", self.addr, "/set/", setpoint, str(self.info[setpoint][0] + degrees)]))
+        r = config.ISYrequestsession.get(
+            config.ISYprefix + 'nodes/' + self.RealObj.address + '/set/' + setpoint + '/' + str(
+                self.info[setpoint][0] + degrees))
 
     def BumpMode(self, mode, vals):
         print "Bump mode: ", mode, vals
@@ -81,13 +83,16 @@ class ThermostatScreenDesc(screen.ScreenDesc):
         print cv, vals[cv]
         cv = (cv + 1)%len(vals)
         print "new cv: ", cv
-        config.ConnISY.myisy.conn.request(config.ConnISY.myisy.conn.compileURL(
-            ["nodes/", self.addr, "/set/", mode, str(vals[cv])]))
+        r = config.ISYrequestsession.get(
+            config.ISYprefix + 'nodes/' + self.RealObj.address + '/set/' + mode + '/' + str(vals[cv]))
+
 
     def ShowScreen(self):
 
-        tstatdict = xmltodict.parse(
-            config.ConnISY.myisy.conn.request(config.ConnISY.myisy.conn.compileURL(["nodes/", self.addr])))
+        r = config.ISYrequestsession.get('http://' + config.ISYaddr + '/rest/nodes/' + self.RealObj.address,
+                                         verify=False)
+        tstatdict = xmltodict.parse(r.text)
+
         props = tstatdict["nodeInfo"]["properties"]["property"]
         self.info = {}
         for item in props:
@@ -119,7 +124,7 @@ class ThermostatScreenDesc(screen.ScreenDesc):
     def HandleScreen(self, newscr=True):
 
         # stop any watching for device stream
-        config.toDaemon.put(["", self.addr])
+        config.toDaemon.put(["", self.RealObj.address])
 
         self.ShowScreen()
 

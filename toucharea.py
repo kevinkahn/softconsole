@@ -1,8 +1,8 @@
 import pygame
 
 import config
-import isysetup
 from config import debugprint
+from logsupport import Info, Warning, Error
 
 
 def InBut(pos, Key):
@@ -44,7 +44,6 @@ class KeyDesc(ManualKeyDesc):
 
     def __init__(self, keysection, keyname):
         debugprint(config.dbgscreenbuild, "             New Key Desc ", keyname)
-
         ManualKeyDesc.__init__(self, keyname,
                                keysection.get("label", keyname),
                                (0, 0), (0, 0),
@@ -54,47 +53,49 @@ class KeyDesc(ManualKeyDesc):
 
         self.typ = keysection.get("Ktype", "ONOFF")
         rt = keysection.get("Krunthen", "")
-        self.Krunthen = isysetup.ISYsetup.ProgramDict[rt] if rt <> "" else None
+        self.Krunthen = config.ISY.ProgramsByName[rt] if rt <> "" else None
         self.sceneproxy = keysection.get("sceneproxy", "")
-        # dummy values
+        self.RealObj = None  # ISY Object corresponding to this key
+        self.MonitorObj = None  # ISY Object monitored to reflect state in the key (generally a device within a Scene)
 
-
+        # for ONOFF keys (and others later) map the real and monitored nodes in the ISY
         # map the key to a scene or device - prefer to map to a scene so check that first
         # Obj is the representation of the ISY Object itself, addr is the address of the ISY device/scene
-        if keyname in isysetup.ISYsetup.SceneDict:
-            self.addr = isysetup.ISYsetup.SceneDict[keyname].addr
-            self.Obj = isysetup.ISYsetup.SceneDict[keyname]
-            debugprint(config.dbgscreenbuild, "Scene ", keyname, " using ", self.Obj.name, "/", self.Obj.addr)
-        elif keyname in isysetup.ISYsetup.NodeDict:
-            self.addr = isysetup.ISYsetup.NodeDict[keyname].addr
-            self.Obj = isysetup.ISYsetup.NodeDict[keyname]
-        else:
-            self.addr = ""
-            self.Obj = None
-
-        if self.typ in ("ONOFF"):
-            if self.addr == "":
-                print "Unbound on/off key: ", self.label
-                config.ErrorItems.append("Key binding: " + self.label)
+        if self.typ in ('ONOFF'):
+            if keyname in config.ISY.ScenesByName:
+                self.RealObj = config.ISY.ScenesByName[keyname]
+                if self.sceneproxy <> '':
+                    # explicit proxy assigned
+                    if self.sceneproxy in config.ISY.NodesByAddr:
+                        # address given
+                        self.MonitorObj = config.ISY.NodesByAddr[self.sceneproxy]
+                    elif self.sceneproxy in config.ISY.NodesByName:
+                        self.MonitorObj = config.ISY.NodesByName[self.sceneproxy]
+                    else:
+                        config.Logs.Log('Bad explicit scene proxy:' + self.name, Warning)
+                else:
+                    self.MonitorObj = self.RealObj.members[0][1]
+                    debugprint(config.dbgscreenbuild, "Scene ", keyname, " default proxying with ",
+                               self.MonitorObj.name)
+            elif keyname in config.ISY.NodesByName:
+                self.RealObj = config.ISY.NodesByName[keyname]
+                self.MonitorObj = self.RealObj
+            else:
+                debugprint(config.dbgscreenbuild, "Screen", keyname, "unbound")
+                config.Logs.Log('Key Binding missing: ' + self.name, Warning)
         elif self.typ in ("ONBLINKRUNTHEN"):
             self.State = False
-            if self.Krunthen == None:
-                print "Unbound program key: ", self.label
-                config.ErrorItems.append("Prog binding: " + self.label)
+            if self.Krunthen is None:
+                debugprint(config.dbgscreenbuild, "Unbound program key: ", self.label)
+                config.Logs.Log("Missing Prog binding: " + self.name, Warning)
         else:
-            print "Unknown key type: ", self.label
-            config.ErrorItems.append("Bad keytype: " + self.label)
-
-        if isinstance(self.Obj, isysetup.SceneItem) and self.sceneproxy <> "":
-            # if key is for scene and explicit proxy, push down the explicit over the default
-            debugprint(config.dbgscreenbuild, "Proxying key ", self.name, " with ", self.sceneproxy)
-            self.Obj.proxy = self.sceneproxy
-
+            debugprint(config.dbgscreenbuild, "Unknown key type: ", self.label)
+            config.Logs.Log("Bad keytype: " + self.name, Warning)
         debugprint(config.dbgscreenbuild, repr(self))
 
     def __repr__(self):
         return "KeyDesc:" + self.name + "|ST:" + str(self.State) + "|Clr:" + str(self.backcolor) + "|OnC:" + str(
             self.charcoloron) + "|OffC:" \
                + str(self.charcoloroff) + "\n\r        |Lab:" + str(
-            self.label) + "|Typ:" + self.typ + "|Adr:" + self.addr + "|Px:" + str(self.sceneproxy) + \
+            self.label) + "|Typ:" + self.typ + "|Px:" + str(self.sceneproxy) + \
                "\n\r        |Ctr:" + str(self.Center) + "|Sz:" + str(self.Size)

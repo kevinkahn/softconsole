@@ -2,10 +2,10 @@ import functools
 
 import webcolors
 from configobj import Section
-
+import time
 import config
 import displayscreen
-import isysetup
+import isy
 import screen
 import toucharea
 from config import debugprint, WAITNORMALBUTTON, WAITNORMALBUTTONFAST, WAITISYCHANGE, WAITEXIT
@@ -16,22 +16,23 @@ wc = webcolors.name_to_rgb
 def ButLayout(butcount):
     """
 
+    :param butcount:
     :rtype: tuple
     """
     if butcount == 0:
-        return (1, 1)
-    if butcount > 0 and butcount < 5:
-        return (1, butcount)
-    elif butcount > 4 and butcount < 9:
-        return (2, 4)
-    elif butcount > 8 and butcount < 13:
-        return (3, 4)
-    elif butcount > 12 and butcount < 17:
-        return (4, 4)
-    elif butcount > 16 and butcount < 21:
-        return (4, 5)
+        return 1, 1
+    if 0 < butcount < 5:
+        return 1, butcount
+    elif 4 < butcount < 9:
+        return 2, 4
+    elif 8 < butcount < 13:
+        return 3, 4
+    elif 12 < butcount < 17:
+        return 4, 4
+    elif 16 < butcount < 21:
+        return 4, 5
     else:
-        return (-1, -1)
+        return -1, -1
 
 
 def ButSize(bpr, bpc):
@@ -76,44 +77,38 @@ class KeyScreenDesc(screen.ScreenDesc):
 
     def HandleScreen(self, newscr=True):
 
-        def BlinkKey(screen, K, cycle):
+        def BlinkKey(scr, key, cycle):
             # thistime = finalstate if cycle % 2 <> 0 else not finalstate
-            K.State = not K.State
-            displayscreen.draw_button(screen, K)
+            key.State = not key.State
+            displayscreen.draw_button(scr, key)
 
         if newscr:
             # key screen change actually occurred
             config.screen.fill(wc(self.backcolor))
+            tt = time.time()
             self.subscriptionlist = {}
             debugprint(config.dbgMain, "Switching to screen: ", self.name)
-            for j in range(len(self.keysbyord)):
-                K = self.keysbyord[j]
-                if K.addr <> "":  # Key is bound to some actual device/scene
-                    if isinstance(K.Obj, isysetup.SceneItem):
-                        # if its a scene then need to get the real time status of the proxy device via rest call
-                        # which returns xml
-                        state = isysetup.get_real_time_status(K.Obj.proxy)
-                        debugprint(config.dbgMain, "Status from proxy: ", K.name, K.Obj.proxy, state)
-                        subscribeas = K.Obj.proxy
-                    else:
-                        state = isysetup.get_real_time_status(K.Obj.addr)
-                        debugprint(config.dbgMain, "Status from node: ", K.name, state)
-                        subscribeas = K.addr
-
-                    K.State = not (state == 0)  # K is off (false) only if state is 0
-                    self.subscriptionlist[subscribeas] = K
-            # this loop is separate from the above one only because doing so make the screen draw look more
-            # instantaneous
             for K in self.keysbyord:
+                if K.MonitorObj is not None:
+                    # skip program buttons
+                    self.subscriptionlist[K.MonitorObj.address] = K
+            print time.time() - tt
+            states = isy.get_real_time_status(self.subscriptionlist.keys())
+            print time.time() - tt
+            for K in self.keysbyord:
+                if K.MonitorObj is not None:
+                    K.State = not (states[K.MonitorObj.address] == 0)  # K is off (false) only if state is 0
                 displayscreen.draw_button(config.screen, K)
 
             displayscreen.draw_cmd_buttons(config.screen, self)
+
+            print time.time() - tt
 
             debugprint(config.dbgMain, "Active Subscription List will be:")
             addressestoscanfor = ["Status"]
             for i in self.subscriptionlist:
                 debugprint(config.dbgMain, "  Subscribe: ", i, self.subscriptionlist[i].name, " : ",
-                           self.subscriptionlist[i].addr)
+                           self.subscriptionlist[i].RealObj.name, ' via ', self.subscriptionlist[i].MonitorObj.name)
                 addressestoscanfor.append(i)
             config.toDaemon.put(addressestoscanfor)
         else:
@@ -133,17 +128,9 @@ class KeyScreenDesc(screen.ScreenDesc):
                 K = self.keysbyord[choice[1]]
                 if K.typ == "ONOFF":
                     K.State = not K.State
-                    if K.addr <> "":
-                        if K.State:
-                            if choice[0] == WAITNORMALBUTTON:
-                                config.ConnISY.myisy.nodes[K.addr].on()
-                            else:
-                                config.ConnISY.myisy.nodes[K.addr].on()  # should be faston but PyISY doesn't support
-                        else:
-                            if choice[0] == WAITNORMALBUTTONFAST:
-                                config.ConnISY.myisy.nodes[K.addr].off()
-                            else:
-                                config.ConnISY.myisy.nodes[K.addr].off()  # should be fastoff per above
+                    if K.RealObj is not None:
+                        K.RealObj.SendCommand(K.State, choice[0] <> WAITNORMALBUTTON)
+                        # config.Logs.Log("Sent command to " + K.RealObj.name)
                     else:
                         config.Logs.Log("Screen: " + self.name + " press unbound key: " + K.name)
                     displayscreen.draw_button(config.screen, K)

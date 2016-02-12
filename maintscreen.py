@@ -22,7 +22,7 @@ def interval_str(sec_elapsed):
     return "{} days {:>02d}hrs {:>02d}mn {:>02d}sec".format(d, h, m, s)
 
 
-class MaintScreenDesc():
+class MaintScreenDesc:
     def __init__(self):
         debugprint(config.dbgscreenbuild, "Build Maintenance Screen")
 
