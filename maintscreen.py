@@ -6,20 +6,12 @@ import webcolors
 import config
 import toucharea
 from config import debugprint, WAITNORMALBUTTON
-from displayscreen import draw_button
+from utilities import interval_str
 
 wc = webcolors.name_to_rgb
 from logsupport import Error
 import time
 import sys
-
-
-def interval_str(sec_elapsed):
-    d = int(sec_elapsed/(60*60*24))
-    h = int((sec_elapsed%(60*60*24))/3600)
-    m = int((sec_elapsed%(60*60))/60)
-    s = int(sec_elapsed%60)
-    return "{} days {:>02d}hrs {:>02d}mn {:>02d}sec".format(d, h, m, s)
 
 
 class MaintScreenDesc:
@@ -41,16 +33,17 @@ class MaintScreenDesc:
         self.name = "Maint"
         self.label = ["Maintenance"]
 
-        maintkeys = ('log', 'exit', 'shut', 'shutpi', 'reboot')
-        mainttitles = ('Show Log', 'Exit Maintenance', 'Shutdown Console', 'Shutdown Pi', 'Reboot Pi')
+        maintkeys = ('log', 'exit', 'shut', 'restart', 'shutpi', 'reboot')
+        mainttitles = (
+        'Show Log', 'Exit Maintenance', 'Shutdown Console', 'Restart Console', 'Shutdown Pi', 'Reboot Pi')
         self.menukeysbyord = []
         self.keysbyord = []
         t = config.topborder + 100
         for i in range(len(maintkeys)):
             self.menukeysbyord.append(toucharea.ManualKeyDesc(maintkeys[i], mainttitles[i], (config.screenwidth/2, t),
-                                                              (config.screenwidth - 2*config.horizborder, 65), 'gold',
+                                                              (config.screenwidth - 2*config.horizborder, 60), 'gold',
                                                               'black', 'black', 'black', 'black'))
-            t += 70
+            t += 65
 
         self.pagekeysbyord = [toucharea.TouchPoint((config.screenwidth/2, config.screenheight/2),
                                                    (config.screenwidth, config.screenheight))]
@@ -65,7 +58,7 @@ class MaintScreenDesc:
         rl = (config.screenwidth - r.get_width())/2
         config.screen.blit(r, (rl, config.topborder + 30))
         for K in self.keysbyord:
-            draw_button(config.screen, K)
+            config.DS.draw_button(config.screen, K)
         pygame.display.update()
 
     def HandleScreen(self, newscr=True):
@@ -92,6 +85,12 @@ class MaintScreenDesc:
                     self.ShowScreen()
                 elif K.name == 'shut':
                     self.Exit_Options("Manual Shutdown Requested", "Shutting Down")
+                    sys.exit()
+                elif K.name == 'restart':
+                    self.Exit_Options("Console Restart Requested", "Restarting")
+                    z = 'nohup /bin/bash -c \" echo c1 > /home/pi/c1 && sleep 3 && echo c2 > /home/pi/c2 && python -u ' + \
+                        sys.argv[0] + '\"'
+                    subprocess.Popen(z, shell=True)
                     sys.exit()
                 elif K.name == 'shutpi':
                     self.Exit_Options("Shutdown Pi Requested", "Shutting Down Pi")

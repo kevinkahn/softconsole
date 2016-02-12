@@ -53,7 +53,7 @@ class ClockScreenDesc(screen.ScreenDesc):
             pygame.display.update()
 
         repaintClock(0)
-        displayscreen.draw_cmd_buttons(config.screen, self)
+        config.DS.draw_cmd_buttons(config.screen, self)
 
         while 1:
             choice = config.DS.NewWaitPress(self, callbackproc=repaintClock, callbackint=1)

@@ -11,50 +11,10 @@ from logsupport import Warning
 wc = webcolors.name_to_rgb
 
 
-def draw_cmd_buttons(scr, AS):
-    draw_button(scr, AS.PrevScreenKey)
-    draw_button(scr, AS.NextScreenKey)
-    for K in AS.ExtraCmdKeys:
-        draw_button(scr, K)
 
-
-def draw_button(screen, Key, shrink=True, firstfont=0):
-    lines = len(Key.label)
-    buttonsmaller = (Key.Size[0] - 6, Key.Size[1] - 6)
-    x = Key.Center[0] - Key.Size[0]/2
-    y = Key.Center[1] - Key.Size[1]/2
-
-    HiColor = Key.KOnColor if Key.State else Key.KOffColor
-    pygame.draw.rect(screen, wc(Key.backcolor), ((x, y), Key.Size), 0)
-    pygame.draw.rect(screen, wc(HiColor), ((x + 3, y + 3), buttonsmaller), 3)
-    s = pygame.Surface(Key.Size)
-    s.set_alpha(150)
-    s.fill(wc("white"))
-
-    if not Key.State:
-        screen.blit(s, (x, y))
-    # compute writeable area for text
-    textarea = (buttonsmaller[0] - 6, buttonsmaller[1] - 1)
-    fontchoice = firstfont
-    if shrink:
-        for l in range(lines):
-            for i in range(fontchoice, len(toucharea.ButtonFonts)):
-                txtsize = toucharea.ButtonFonts[fontchoice].size(Key.label[l])
-                if lines*txtsize[1] >= textarea[1] or txtsize[0] >= textarea[0]:
-                    fontchoice = i
-
-    for i in range(lines):
-        # ren = pygame.transform.rotate(dispscreen.MyFont.render(txt[i], 0, HiColor), 0)
-        ren = toucharea.ButtonFonts[fontchoice].render(Key.label[i], 0, wc(HiColor))
-        vert_off = ((i + 1)*Key.Size[1]/(1 + lines)) - ren.get_height()/2
-        horiz_off = (Key.Size[0] - ren.get_width())/2
-        screen.blit(ren, (x + horiz_off, y + vert_off))
-
-    pygame.display.update()
 
 
 class DisplayScreen:
-    screen = None
 
     def __init__(self):
 
@@ -71,6 +31,51 @@ class DisplayScreen:
         self.presscount = 0
         self.AS = None
         self.BrightenToHome = False
+        ButtonFontSizes = (30, 25, 23, 21, 19)  # Scale?
+        self.ButtonFonts = []
+        for i in ButtonFontSizes:
+            self.ButtonFonts.append(pygame.font.SysFont("", i))
+
+    def draw_button(self, screen, Key, shrink=True, firstfont=0):
+        lines = len(Key.label)
+        buttonsmaller = (Key.Size[0] - 6, Key.Size[1] - 6)
+        x = Key.Center[0] - Key.Size[0]/2
+        y = Key.Center[1] - Key.Size[1]/2
+
+        HiColor = Key.KOnColor if Key.State else Key.KOffColor
+        pygame.draw.rect(screen, wc(Key.backcolor), ((x, y), Key.Size), 0)
+        pygame.draw.rect(screen, wc(HiColor), ((x + 3, y + 3), buttonsmaller), 3)
+        s = pygame.Surface(Key.Size)
+        s.set_alpha(150)
+        s.fill(wc("white"))
+
+        if not Key.State:
+            screen.blit(s, (x, y))
+        # compute writeable area for text
+        textarea = (buttonsmaller[0] - 6, buttonsmaller[1] - 1)
+        fontchoice = firstfont
+        if shrink:
+            for l in range(lines):
+                for i in range(fontchoice, len(self.ButtonFonts)):
+                    txtsize = self.ButtonFonts[fontchoice].size(Key.label[l])
+                    if lines*txtsize[1] >= textarea[1] or txtsize[0] >= textarea[0]:
+                        fontchoice = i
+
+        for i in range(lines):
+            # ren = pygame.transform.rotate(dispscreen.MyFont.render(txt[i], 0, HiColor), 0)
+            ren = self.ButtonFonts[fontchoice].render(Key.label[i], 0, wc(HiColor))
+            vert_off = ((i + 1)*Key.Size[1]/(1 + lines)) - ren.get_height()/2
+            horiz_off = (Key.Size[0] - ren.get_width())/2
+            screen.blit(ren, (x + horiz_off, y + vert_off))
+
+        pygame.display.update()
+
+    def draw_cmd_buttons(self, scr, AS):
+        if not self.BrightenToHome:  # suppress command buttons on sleep screen when any touch witll brighten/gohome
+            self.draw_button(scr, AS.PrevScreenKey)
+            self.draw_button(scr, AS.NextScreenKey)
+            for K in AS.ExtraCmdKeys:
+                self.draw_button(scr, K)
 
     def GoDim(self, dim):
         if dim:

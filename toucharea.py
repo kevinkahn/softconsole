@@ -1,6 +1,7 @@
 import pygame
 
 import config
+import utilities
 from config import debugprint
 from logsupport import Info, Warning, Error
 
@@ -10,14 +11,6 @@ def InBut(pos, Key):
            (pos[1] > Key.Center[1] - Key.Size[1]/2) and (pos[1] < Key.Center[1] + Key.Size[1]/2)
 
 
-ButtonFontSizes = (30, 25, 23, 21, 19)
-ButtonFonts = []
-
-
-def InitButtonFonts():
-    for i in ButtonFontSizes:
-        ButtonFonts.append(pygame.font.SysFont("", i))
-
 
 class TouchPoint:
     def __init__(self, c, s):
@@ -26,17 +19,17 @@ class TouchPoint:
 
 
 class ManualKeyDesc(TouchPoint):
-    def __init__(self, keyname, label, center, size, bcolor, charcoloron, charcoloroff,
-                 KOn=config.DefaultKeyOnOutlineColor, KOff=config.DefaultKeyOffOutlineColor):
+    def __init__(self, keyname, label, center, size, bcolor, charcoloron, charcoloroff, KOn='', KOff=''):
+        # NOTE: do not put defaults for KOn/KOff in signature - imports and arg parsing subtleties will cause error
         TouchPoint.__init__(self, center, size)
         self.name = keyname
         self.backcolor = bcolor
         self.charcoloron = charcoloron
         self.charcoloroff = charcoloroff
         self.State = True
-        self.label = label if not isinstance(label, basestring) else [label]
-        self.KOnColor = KOn
-        self.KOffColor = KOff
+        self.label = utilities.normalize_label(label)
+        self.KOnColor = config.DefaultKeyOnOutlineColor if KOn == '' else KOn
+        self.KOffColor = config.DefaultKeyOffOutlineColor if KOff == '' else KOff
 
 
 class KeyDesc(ManualKeyDesc):

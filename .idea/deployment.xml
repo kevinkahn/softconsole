@@ -6,6 +6,7 @@
         <serverdata>
           <mappings>
             <mapping deploy="/home/pi/consolerem" local="$PROJECT_DIR$" web="/" />
+            <mapping deploy="/home/pi/Console/config.txt" local="$PROJECT_DIR$/config.txt" web="/" />
           </mappings>
         </serverdata>
       </paths>

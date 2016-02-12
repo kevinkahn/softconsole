@@ -2,9 +2,7 @@ import functools
 
 import webcolors
 from configobj import Section
-import time
 import config
-import displayscreen
 import isy
 import screen
 import toucharea
@@ -80,29 +78,24 @@ class KeyScreenDesc(screen.ScreenDesc):
         def BlinkKey(scr, key, cycle):
             # thistime = finalstate if cycle % 2 <> 0 else not finalstate
             key.State = not key.State
-            displayscreen.draw_button(scr, key)
+            config.DS.draw_button(scr, key)
 
         if newscr:
             # key screen change actually occurred
             config.screen.fill(wc(self.backcolor))
-            tt = time.time()
             self.subscriptionlist = {}
             debugprint(config.dbgMain, "Switching to screen: ", self.name)
             for K in self.keysbyord:
                 if K.MonitorObj is not None:
                     # skip program buttons
                     self.subscriptionlist[K.MonitorObj.address] = K
-            print time.time() - tt
             states = isy.get_real_time_status(self.subscriptionlist.keys())
-            print time.time() - tt
             for K in self.keysbyord:
                 if K.MonitorObj is not None:
                     K.State = not (states[K.MonitorObj.address] == 0)  # K is off (false) only if state is 0
-                displayscreen.draw_button(config.screen, K)
+                config.DS.draw_button(config.screen, K)
 
-            displayscreen.draw_cmd_buttons(config.screen, self)
-
-            print time.time() - tt
+            config.DS.draw_cmd_buttons(config.screen, self)
 
             debugprint(config.dbgMain, "Active Subscription List will be:")
             addressestoscanfor = ["Status"]
@@ -133,7 +126,7 @@ class KeyScreenDesc(screen.ScreenDesc):
                         # config.Logs.Log("Sent command to " + K.RealObj.name)
                     else:
                         config.Logs.Log("Screen: " + self.name + " press unbound key: " + K.name)
-                    displayscreen.draw_button(config.screen, K)
+                    config.DS.draw_button(config.screen, K)
                 elif K.typ == "ONBLINKRUNTHEN":
                     # force double tap for programs for safety - too easy to accidentally single tap with touchscreen
                     if choice[0] == WAITNORMALBUTTONFAST:
@@ -141,7 +134,7 @@ class KeyScreenDesc(screen.ScreenDesc):
                         blinkproc = functools.partial(BlinkKey, config.screen, K)
                         blinktime = .5
                         blinks = 8  # even number leaves final state of key same as initial state
-                        displayscreen.draw_button(config.screen, K)
+                        config.DS.draw_button(config.screen, K)
                         # leave K.State as is - key will return to off at end
                 elif K.typ == "ONOFFRUN":
                     pass
@@ -153,7 +146,7 @@ class KeyScreenDesc(screen.ScreenDesc):
 
                 if ActState <> K.State:
                     K.State = ActState
-                    displayscreen.draw_button(config.screen, K)
+                    config.DS.draw_button(config.screen, K)
 
 
 config.screentypes["Keys"] = KeyScreenDesc

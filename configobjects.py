@@ -8,7 +8,7 @@ from logsupport import Warning
 class MyScreens:
     def __init__(self):
 
-        Logs = config.Logs
+
         thisconfig = config.ParsedConfigFile
 
         debugprint(config.dbgscreenbuild, "Process Configuration File")
@@ -27,9 +27,9 @@ class MyScreens:
 
                 if tempscreentype in config.screentypes:
                     NewScreen = config.screentypes[tempscreentype](thisScreen, screenitem)
-                    Logs.Log(tempscreentype + " screen " + screenitem)
+                    config.Logs.Log(tempscreentype + " screen " + screenitem)
                 else:
-                    Logs.Log("Screentype error" + screenitem + " type " + tempscreentype, Warning)
+                    config.Logs.Log("Screentype error" + screenitem + " type " + tempscreentype, Warning)
                     pass
             if NewScreen is not None:
                 # set the standard navigation keys and navigation linkages
@@ -45,24 +45,26 @@ class MyScreens:
             secondlist = extralist
             config.SecondaryChain = config.ExtraChain
             config.ExtraChain = []
-        Logs.Log("Main Screen List:")
+        config.Logs.Log("Main Screen List:")
         for scr in config.MainChain:
-            S = mainlist[scr]
-            S.PrevScreen = mainlist[config.MainChain[config.MainChain.index(scr) - 1]]
-            S.NextScreen = mainlist[config.MainChain[(config.MainChain.index(scr) + 1)%len(config.MainChain)]]
-            Logs.Log("   " + scr)
+            if scr in mainlist:
+                S = mainlist[scr]
+                S.PrevScreen = mainlist[config.MainChain[config.MainChain.index(scr) - 1]]
+                S.NextScreen = mainlist[config.MainChain[(config.MainChain.index(scr) + 1)%len(config.MainChain)]]
+                config.Logs.Log("   " + scr)
 
-        Logs.Log("Secondary Screen List:")
+        config.Logs.Log("Secondary Screen List:")
         for scr in config.SecondaryChain:
-            S = secondlist[scr]
-            S.PrevScreen = secondlist[config.SecondaryChain[config.SecondaryChain.index(scr) - 1]]
-            S.NextScreen = secondlist[
-                config.SecondaryChain[(config.SecondaryChain.index(scr) + 1)%len(config.SecondaryChain)]]
-            Logs.Log("   " + scr)
+            if scr in secondlist:
+                S = secondlist[scr]
+                S.PrevScreen = secondlist[config.SecondaryChain[config.SecondaryChain.index(scr) - 1]]
+                S.NextScreen = secondlist[
+                    config.SecondaryChain[(config.SecondaryChain.index(scr) + 1)%len(config.SecondaryChain)]]
+                config.Logs.Log("   " + scr)
 
-        Logs.Log("Not on a screen list (unavailable)", Warning)
+        config.Logs.Log("Not on a screen list (unavailable)", Warning)
         for scr in config.ExtraChain:
-            Logs.Log("   " + scr, Warning)
+            config.Logs.Log("   " + scr, Warning)
 
         for S in mainlist.itervalues():
             S.FinishScreen()
@@ -76,11 +78,11 @@ class MyScreens:
 
         config.HomeScreen2 = secondlist[config.SecondaryChain[0]]
 
-        Logs.Log("Home Screen: " + config.HomeScreen.name)
+        config.Logs.Log("Home Screen: " + config.HomeScreen.name)
         if config.DimHomeScreenCoverName in config.MainChain:
             config.DimHomeScreenCover = mainlist[config.DimHomeScreenCoverName]
-            Logs.Log("Dim Home Screen: " + config.DimHomeScreenCover.name)
+            config.Logs.Log("Dim Home Screen: " + config.DimHomeScreenCover.name)
         else:
             config.DimHomeScreenCover = config.HomeScreen
-            Logs.Log("No Dim Home Screen Cover Set")
-        Logs.Log("First Secondary Screen: " + config.HomeScreen2.name)
+            config.Logs.Log("No Dim Home Screen Cover Set")
+        config.Logs.Log("First Secondary Screen: " + config.HomeScreen2.name)

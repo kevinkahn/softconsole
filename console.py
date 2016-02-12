@@ -15,75 +15,38 @@ Copyright 2016 Kevin Kahn
 """
 
 import os
-import pygame
 import signal
 import sys
 import time
 from  multiprocessing import Process, Queue
 
-import RPi.GPIO as GPIO
-from configobj import ConfigObj
+import pygame
 import requests
+from configobj import ConfigObj
 
+import config
 import configobjects
 import displayscreen
+import globalparams
 import isy
 import logsupport
-import toucharea
+import utilities
 import watchdaemon
-import config
 from config import debugprint
+
 
 """
 The next import is functional in that it is what causes the screen types to be registered with the Console
+import maintscreen, keyscreen, thermostatscreen, clockscreen, weatherscreen
 """
-import clockscreen, keyscreen, thermostatscreen, weatherscreen, maintscreen
-
-
-def signal_handler(sig, frame):
-    print "Signal: {}".format(sig)
-    print "pid: ", os.getpid()
-    time.sleep(1)
-    pygame.quit()
-    print time.time(), "Console Exiting"
-    sys.exit(0)
-
-
-def daemon_died(sig, frame):
-    print "CSignal: {}".format(sig)
-    if config.DaemonProcess is None:
-        return
-    if config.DaemonProcess.is_alive():
-        print "Child ok"
-    else:
-        print time.time(), "Daemon died!"
-        pygame.quit()
-        sys.exit()
-
-
-def ParseAndLog(pname, default):
-    val = config.ParsedConfigFile.get(pname, default)
-    config.Logs.Log(pname + ": " + str(val))
-    return val
-
+import maintscreen, keyscreen, thermostatscreen, clockscreen, weatherscreen
 
 """
 Actual Code to Drive Console
 """
 config.starttime = time.time()
 
-os.environ['SDL_FBDEV'] = '/dev/fb1'
-os.environ['SDL_MOUSEDEV'] = '/dev/input/touchscreen'
-os.environ['SDL_MOUSEDRV'] = 'TSLIB'
-os.environ['SDL_VIDEODRIVER'] = 'fbcon'
-
-pygame.display.init()
-pygame.font.init()
-config.screenwidth, config.screenheight = (pygame.display.Info().current_w, pygame.display.Info().current_h)
-config.screen = pygame.display.set_mode((config.screenwidth, config.screenheight), pygame.FULLSCREEN)
-config.screen.fill((0, 0, 0))  # clear screen
-pygame.display.update()
-pygame.mouse.set_visible(False)
+utilities.InitializeEnvironment()
 
 if len(sys.argv) == 2:
     fn = sys.argv[1]
@@ -92,9 +55,9 @@ else:
 
 config.Logs = logsupport.Logs(config.screen, os.path.dirname(fn))
 
-signal.signal(signal.SIGTERM, signal_handler)
-signal.signal(signal.SIGINT, signal_handler)
-signal.signal(signal.SIGCHLD, daemon_died)
+signal.signal(signal.SIGTERM, utilities.signal_handler)
+signal.signal(signal.SIGINT, utilities.signal_handler)
+signal.signal(signal.SIGCHLD, utilities.daemon_died)
 
 config.ParsedConfigFile = ConfigObj(fn)
 
@@ -108,57 +71,28 @@ config.Logs.Log("Disk logfile:" + config.Logs.logfilename)
 
 config.DS = displayscreen.DisplayScreen()
 
-# Global settings from config file
-config.ISYaddr = str(config.ParsedConfigFile.get('ISYaddr', ""))
-config.ISYuser = str(config.ParsedConfigFile.get('ISYuser', ""))
-config.ISYpassword = str(config.ParsedConfigFile.get('ISYpassword', ""))
-config.HomeScreenName = str(ParseAndLog('HomeScreenName', ""))
-config.HomeScreenTO = int(ParseAndLog('HomeScreenTO', config.HomeScreenTO))
-config.DimLevel = int(ParseAndLog('DimLevel', config.DimLevel))
-config.BrightLevel = int(ParseAndLog('BrightLevel', config.BrightLevel))
-config.DimTO = int(ParseAndLog('DimTO', config.DimTO))
-config.CmdKeyCol = str(ParseAndLog('CmKeyColor', config.CmdKeyCol))
-config.CmdCharCol = str(ParseAndLog('CmdCharCol', config.CmdCharCol))
-config.MultiTapTime = int(ParseAndLog('MultiTapTime', config.MultiTapTime))
-config.DimHomeScreenCoverName = str(ParseAndLog('DimHomeScreenCoverName', ""))
-config.DefaultCharColor = str(ParseAndLog('DefaultCharColor', config.DefaultCharColor))
-config.DefaultBkgndColor = str(ParseAndLog('DefaultBkgndColor', config.DefaultBkgndColor))
+utilities.ParseParam(globalparams)  # add global parameters to config file
 
-config.MainChain = config.ParsedConfigFile.get('MainChain', [])
-config.SecondaryChain = config.ParsedConfigFile.get('SecondaryChain', [])
+# config.MainChain = config.ParsedConfigFile.get('MainChain', [])
+# config.SecondaryChain = config.ParsedConfigFile.get('SecondaryChain', [])
+
+# Set up for ISY access
 config.ISYprefix = 'http://' + config.ISYaddr + '/rest/'
-
-GPIO.setwarnings(False)
-GPIO.setmode(GPIO.BCM)
-GPIO.setup(18, GPIO.OUT)
-config.backlight = GPIO.PWM(18, 1024)
-config.backlight.start(100)
-
 config.ISYrequestsession = requests.session()
 config.ISYrequestsession.auth = (config.ISYuser, config.ISYpassword)
 
-config.ISY = isy.ISY(config.ISYrequestsession, config.ISYaddr)
+# Build the ISY object structure
+config.ISY = isy.ISY(config.ISYrequestsession)
 
-# nodemgr = config.ISY.myisy.nodes
-# programs = config.ISY.myisy.programs
-# if config.ISY.myisy.connected:
-#    Logs.Log("Connected to ISY: " + config.ISYaddr)
-# else:
-#    Logs.Log("Failed to connect to ISY", logsupport.Error)
+config.Logs.Log("Enumerated ISY Structure")
 
-# config.ISY.WalkFolder(nodemgr)
-config.Logs.Log("Enumerated ISY Devices/Scenes")
-# config.ISY.EnumeratePrograms(programs)
-config.Logs.Log("Enumerated ISY Programs")
-
-pygame.fastevent.init()
-CurrentScreenInfo = configobjects.MyScreens()
+configobjects.MyScreens()
 
 """
 Set up the Maintenance Screen
 """
 config.Logs.Log("Built Maintenance Screen")
-config.MaintScreen = maintscreen.MaintScreenDesc()  # temp use of HS2
+config.MaintScreen = maintscreen.MaintScreenDesc()
 
 """
 Set up the watcher daemon and its communitcations
@@ -166,17 +100,13 @@ Set up the watcher daemon and its communitcations
 config.toDaemon = Queue()
 config.fromDaemon = Queue()
 p = Process(target=watchdaemon.Watcher, name="Watcher")
-
 p.daemon = True
-
 p.start()
 config.DaemonProcess = p
 debugprint(config.dbgMain, "Spawned watcher as: ", p.pid)
 config.Logs.Log("Watcher pid: " + str(p.pid))
 
-toucharea.InitButtonFonts()
-
-config.Logs.livelog = False
+config.Logs.livelog = False  # turn off logging to the screen and give user a moment to scan
 time.sleep(2)
 
 """

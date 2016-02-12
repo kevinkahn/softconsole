@@ -1,5 +1,6 @@
 import config
 import toucharea
+import utilities
 
 
 def FlatenScreenLabel(label):
@@ -16,8 +17,7 @@ class ScreenDesc:
 
     def __init__(self, screensection, screenname, ExtraCmdButs):
         self.name = screenname
-        l = screensection.get("label", screenname)
-        self.label = l if not isinstance(l, basestring) else [l]
+        self.label = utilities.normalize_label(screensection.get("label", screenname))
         self.backcolor = screensection.get("Bcolor", config.DefaultBkgndColor)
 
         self.dimtimeout = config.DimTO

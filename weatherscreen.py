@@ -4,7 +4,6 @@ import pygame
 import webcolors
 
 import config
-import displayscreen
 from config import debugprint, WAITEXTRACONTROLBUTTON, WAITEXIT
 
 wc = webcolors.name_to_rgb
@@ -13,15 +12,9 @@ import urllib2
 import json
 import logsupport
 import functools
+import utilities
 
 WeathFont = [None, None, None]
-
-
-def hms_string(sec_elapsed):
-    h = int(sec_elapsed/(60*60))
-    m = int((sec_elapsed%(60*60))/60)
-    s = int(sec_elapsed%60)
-    return "{}:{:>02d}:{:>02d}".format(h, m, s)
 
 
 def TreeDict(d, *args):
@@ -97,8 +90,8 @@ class WeatherScreenDesc(screen.ScreenDesc):
                             (('current_observation', 'weather'), ('current_observation', 'temp_f'))),
                            (0, False, u"  Feels like: {d[0]}\u00B0", (('current_observation', 'feelslike_f'),)),
                            (1, False, "Wind {d[0]} at {d[1]} gusts {d[2]}", (
-                           ('current_observation', 'wind_dir'), ('current_observation', 'wind_mph'),
-                           ('current_observation', 'wind_gust_mph'))),
+                               ('current_observation', 'wind_dir'), ('current_observation', 'wind_mph'),
+                               ('current_observation', 'wind_gust_mph'))),
                            (1, False, "Sunrise: {d[0]:02d}:{d[1]:02d}",
                             (('sun_phase', 'sunrise', 'hour'), ('sun_phase', 'sunrise', 'minute'))),
                            (1, False, "Sunset:  {d[0]:02d}:{d[1]:02d}",
@@ -123,7 +116,7 @@ class WeatherScreenDesc(screen.ScreenDesc):
         centered = []
 
         if conditions:
-            age = hms_string(time.time() - int(self.js('current_observation', 'observation_epoch')))
+            age = utilities.interval_str(time.time() - int(self.js('current_observation', 'observation_epoch')))
             self.conditions[-1] = (0, False, "Readings as of {d} ago", age)
             self.SetExtraCmdTitles([('Forecast',)])
             renderedlines, centered, h = RenderScreenLines(self.conditions, self.js, self.charcolor)
@@ -149,7 +142,7 @@ class WeatherScreenDesc(screen.ScreenDesc):
                 horiz_off = config.horizborder
             config.screen.blit(renderedlines[i], (horiz_off, vert_off))
             vert_off = vert_off + renderedlines[i].get_height() + s
-        displayscreen.draw_cmd_buttons(config.screen, self)
+        config.DS.draw_cmd_buttons(config.screen, self)
         pygame.display.update()
 
     def HandleScreen(self, newscr=True):

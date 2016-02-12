@@ -2,8 +2,6 @@ import pygame
 import webcolors
 from pygame import gfxdraw
 
-from displayscreen import draw_button, draw_cmd_buttons
-
 wc = webcolors.name_to_rgb
 import config
 from config import debugprint, WAITEXIT, WAITNORMALBUTTON, WAITNORMALBUTTONFAST, WAITISYCHANGE, dispratio
@@ -109,8 +107,8 @@ class ThermostatScreenDesc(screen.ScreenDesc):
                                  wc(self.charcolor))
         config.screen.blit(r, ((config.screenwidth - r.get_width())/2, self.SPPos))
         config.screen.blit(self.AdjButSurf, (0, self.AdjButTops))
-        draw_button(config.screen, self.keysbyord[4], shrink=True, firstfont=0)
-        draw_button(config.screen, self.keysbyord[5], shrink=True, firstfont=0)
+        config.DS.draw_button(config.screen, self.keysbyord[4], shrink=True, firstfont=0)
+        config.DS.draw_button(config.screen, self.keysbyord[5], shrink=True, firstfont=0)
         r1 = ThermoFont[1].render(
             ('Off', 'Heat', 'Cool', 'Auto', 'Fan', 'Prog Auto', 'Prog Heat', 'Prog Cool')[self.info["CLIMD"][0]], 0,
             wc(self.charcolor))
@@ -118,7 +116,7 @@ class ThermostatScreenDesc(screen.ScreenDesc):
         config.screen.blit(r1, (self.keysbyord[4].Center[0] - r1.get_width()/2, self.ModesPos))
         config.screen.blit(r2, (self.keysbyord[5].Center[0] - r2.get_width()/2, self.ModesPos))
 
-        draw_cmd_buttons(config.screen, self)
+        config.DS.draw_cmd_buttons(config.screen, self)
         pygame.display.update()
 
     def HandleScreen(self, newscr=True):

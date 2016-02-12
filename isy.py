@@ -41,7 +41,7 @@ class Folder(TreeItem):
         self.parenttype = parenttyp
 
     def __repr__(self):
-        return "Folder: " + self.name + '/' + self.address + ' ' + str(len(self.children)) + ' children: '
+        return "Folder: " + TreeItem.__repr__(self) + ' flag ' + self.flag + ' parenttyp ' + self.parenttype
 
 
 class Node(Folder, OnOffItem):
@@ -54,7 +54,7 @@ class Node(Folder, OnOffItem):
         # wattage, dcPeriod, status dict (property - so a list of statuses
 
     def __repr__(self):
-        return "Node: " + self.name + '/' + self.address + ' ' + str(len(self.children)) + ' children: '
+        return 'Node: ' + Folder._repr__(self) + 'primary: ' + self.pnode
 
 
 class Scene(TreeItem, OnOffItem):
@@ -72,7 +72,7 @@ class Scene(TreeItem, OnOffItem):
         self.obj = None
 
     def __repr__(self):
-        return "Scene: " + self.name + '/' + self.address + ' ' + str(
+        return "Scene: " + TreeItem.__repr__(self) + ' ' + str(
             len(self.members)) + ' members: ' + self.members.__repr__()
 
 
@@ -83,7 +83,7 @@ class ProgramFolder(TreeItem):
         # not using lastRunTime, lastFinishTime
 
     def __repr__(self):
-        return 'ProgFolder' + self.name + '/' + self.address + ' ' + str(len(self.children)) + ' children'
+        return 'ProgFolder: ' + TreeItem.__repr__(self) + ' status ' + self.status
 
 
 class Program(ProgramFolder):
@@ -98,7 +98,7 @@ class Program(ProgramFolder):
         return r
 
     def __repr__(self):
-        return 'Program' + self.name + '/' + self.address + ' ' + str(len(self.children)) + ' children'
+        return 'Program: ' + TreeItem.__repr__(self) + ' '
 
 
 class ISY:
@@ -117,11 +117,10 @@ class ISY:
             if node.parent <> node:  # avoid root
                 node.parent.children.append(node)
 
-    def __init__(self, ISYsession, ISYaddr):
+    def __init__(self, ISYsession):
         """
         Get and parse the ISY configuration to set up an internal analog of its structure
         :param ISYsession:
-        :param ISYaddr:
         :return:
         """
 
@@ -192,7 +191,7 @@ class ISY:
         Build the Program tree
         """
 
-        r = ISYsession.get('http://' + ISYaddr + '/rest/programs?subfolders=true', verify=False)
+        r = ISYsession.get(config.ISYprefix + 'programs?subfolders=true', verify=False)
         configdict = xmltodict.parse(r.text)['programs']['program']
         for item in configdict:
             if item['@id'] == '0001':
