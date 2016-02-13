@@ -26,7 +26,6 @@ dbgscreenbuild = False
 dbgMain = False
 dbgdaemon = False
 
-
 def debugprint(flag, *args):
     if flag:
         for arg in args:
@@ -34,35 +33,31 @@ def debugprint(flag, *args):
         print
 
 
-maxlog = 5
+maxlog = 5  # maximum number of logfiles kept # todo should be moved to global params
 
 # Global pointers
-ISYrequestsession = None
+ISYrequestsession = None  # handle for requests to ISY via the request interface
 ISY = None  # Root of structure representing the ISY - filled in from ISY
-screen = None  # pygame screen
+screen = None  # pygame screen to blit on etc
 backlight = None  # GPIO instance of pin 18
-DS = None  # Global Display Screen (only one such object
+DS = None  # Global Display Screen handles running the button presses and touch recognition
 ParsedConfigFile = None  # config.txt internal version
-configfile = "/home/pi/Console/config.txt"  # default location of configfile
+configfile = "/home/pi/Console/config.txt"  # default location of configfile, can be overridden by arg1
+ISYprefix = ''  # holds the url prefix for rest interface
 
 # Screen Display Info
 screenwidth = 0
 screenheight = 0
+# todo scale all the pixels for different screen sizes using dispratio
 dispratio = 1
 baseheight = 480  # program design height
 basewidth = 320  # program design width
+# todo should any of these be settable in global params?
 horizborder = 20
 topborder = 20
 botborder = 80
 cmdvertspace = 10  # this is the space around the top/bot of  cmd button within the bot border
 
-ISYprefix = ''
-"""
-# Names of screens in screen chains - set from config.txt and used to embed object references in screen objects
-MainChain       = []  # defaults to order based on config file
-SecondaryChain  = []  # if spec'd used for secondary screens else random order
-ExtraChain      = []  # defaults to empty, unused screens
-"""
 # Operational global navigation roots
 CurrentScreen = None
 HomeScreen = None

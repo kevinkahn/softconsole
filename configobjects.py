@@ -8,7 +8,6 @@ from logsupport import Warning
 class MyScreens:
     def __init__(self):
 
-
         thisconfig = config.ParsedConfigFile
 
         debugprint(config.dbgscreenbuild, "Process Configuration File")

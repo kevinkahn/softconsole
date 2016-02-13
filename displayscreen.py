@@ -10,10 +10,6 @@ from logsupport import Warning
 
 wc = webcolors.name_to_rgb
 
-
-
-
-
 class DisplayScreen:
 
     def __init__(self):

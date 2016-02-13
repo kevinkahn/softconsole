@@ -40,15 +40,14 @@ import maintscreen
 """
 Dynamically load class definitions for all defined screen types and link them to how configuration happens
 """
-screenslist = os.listdir(os.path.dirname(sys.argv[0]) + '/screens')
-for screentype in screenslist:
+for screentype in os.listdir(os.path.dirname(sys.argv[0]) + '/screens'):
     if '__' not in screentype:
         splitname = os.path.splitext(screentype)
         if splitname[1] == '.py':
             importlib.import_module('screens.' + splitname[0])
 
 """
-Actual Code to Drive Console
+Initialize the Console
 """
 config.starttime = time.time()
 
@@ -63,7 +62,7 @@ signal.signal(signal.SIGTERM, utilities.signal_handler)
 signal.signal(signal.SIGINT, utilities.signal_handler)
 signal.signal(signal.SIGCHLD, utilities.daemon_died)
 
-config.ParsedConfigFile = ConfigObj(config.configfile)
+config.ParsedConfigFile = ConfigObj(config.configfile)  # read the config.txt file
 
 config.Logs.Log(u"Soft ISY Console")
 config.Logs.Log(u"  \u00A9 Kevin Kahn 2016")
@@ -72,12 +71,9 @@ config.Logs.Log("Start time: " + time.strftime('%c'))
 config.Logs.Log("Console Starting  pid:" + str(os.getpid()))
 config.Logs.Log("Config file: " + config.configfile)
 
-config.DS = displayscreen.DisplayScreen()
+config.DS = displayscreen.DisplayScreen()  # create the screens and touch manager
 
 utilities.ParseParam(globalparams)  # add global parameters to config file
-
-# config.MainChain = config.ParsedConfigFile.get('MainChain', [])
-# config.SecondaryChain = config.ParsedConfigFile.get('SecondaryChain', [])
 
 # Set up for ISY access
 config.ISYprefix = 'http://' + config.ISYaddr + '/rest/'
@@ -89,7 +85,7 @@ config.ISY = isy.ISY(config.ISYrequestsession)
 
 config.Logs.Log("Enumerated ISY Structure")
 
-configobjects.MyScreens()
+configobjects.MyScreens()  # connect the screen structure with the ISY structure
 
 """
 Set up the Maintenance Screen
