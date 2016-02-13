@@ -27,9 +27,7 @@ class Logs:
         if "Console.log." + str(config.maxlog) in q:
             os.remove('Console.log.' + str(config.maxlog))
         for i in range(config.maxlog - 1, 0, -1):
-            print i, q
             if "Console.log." + str(i) in q:
-                print 'rename'
                 os.rename('Console.log.' + str(i), "Console.log." + str(i + 1))
         os.rename('Console.log', 'Console.log.1')
         self.disklogfile = open('Console.log', 'w')

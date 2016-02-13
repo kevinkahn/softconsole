@@ -18,9 +18,9 @@ import os
 import signal
 import sys
 import time
+import importlib
 from  multiprocessing import Process, Queue
 
-import pygame
 import requests
 from configobj import ConfigObj
 
@@ -34,12 +34,18 @@ import utilities
 import watchdaemon
 from config import debugprint
 
+import maintscreen
+
 
 """
-The next import is functional in that it is what causes the screen types to be registered with the Console
-import maintscreen, keyscreen, thermostatscreen, clockscreen, weatherscreen
+Dynamically load class definitions for all defined screen types and link them to how configuration happens
 """
-import maintscreen, keyscreen, thermostatscreen, clockscreen, weatherscreen
+screenslist = os.listdir(os.path.dirname(sys.argv[0]) + '/screens')
+for screentype in screenslist:
+    if '__' not in screentype:
+        splitname = os.path.splitext(screentype)
+        if splitname[1] == '.py':
+            importlib.import_module('screens.' + splitname[0])
 
 """
 Actual Code to Drive Console
