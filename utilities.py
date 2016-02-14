@@ -68,3 +68,22 @@ def InitializeEnvironment():
     GPIO.setup(18, GPIO.OUT)
     config.backlight = GPIO.PWM(18, 1024)
     config.backlight.start(100)
+
+
+def LocalizeParams(inst, g, *args):
+    print g
+    print inst.__dict__
+    print inst.__class__.__dict__
+    print config.__dict__
+    for p in args:
+        if p in config.__dict__:
+            v = config.__dict__[p]
+            t = type(config._dict__[p])
+            print ' in', p, v, t
+        elif p in g:
+            v = g[p]
+            t = type(g[p])
+            print 'out', p, v, t
+        else:
+            print "CODE ERROR"
+        inst.__dict__[p] = t(config.ParsedConfigFile.get(p, v))

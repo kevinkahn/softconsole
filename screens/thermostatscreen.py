@@ -24,8 +24,7 @@ class ThermostatScreenDesc(screen.ScreenDesc):
         screen.ScreenDesc.__init__(self, screensection, screenname, ())
         self.info = {}
 
-
-        self.charcolor = screensection.get("CharColor", config.DefaultCharColor)
+        self.charcolor = screensection.get("CharColor", config.CharColor)
         self.KColor = screensection.get("Kcolor", config.DefaultKeyColor)
         if screenname in config.ISY.NodesByName:
             self.RealObj = config.ISY.NodesByName[screenname]

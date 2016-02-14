@@ -21,7 +21,6 @@ class ClockScreenDesc(screen.ScreenDesc):
         self.lineformat = screensection.get("OutFormat", "")
         self.clockfont = screensection.get("Font", Font)
         self.fontsize = screensection.get("CharSize", CharSize)
-        self.backcolor = screensection.get("BkgndColor", config.BkgndColor)
         print self.fontsize
         for i in range(len(self.fontsize), len(self.lineformat)):
             print i

@@ -12,7 +12,7 @@ CmdCharCol = "white"
 MultiTapTime = 300
 DimHomeScreenCoverName = ""
 CharColor = "white"
-BkgndColor = 'maroon'
+BackgroundColor = 'maroon'
 
 _MainChain = []  # defaults to order based on config file
 _SecondaryChain = []  # if spec'd used for secondary screens else random order

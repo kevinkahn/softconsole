@@ -33,19 +33,20 @@ class Logs:
         self.disklogfile = open('Console.log', 'w')
         os.chmod('Console.log', 0o555)
 
-    def Log(self, entry, severity=Info):
+    def Log(self, entry, severity=Info, diskonly=False):
         """
 
         :param severity:
         :param entry:
         """
-        self.log.append((severity, entry))
+        if not diskonly:
+            self.log.append((severity, entry))
         self.disklogfile.write(time.strftime('%H:%M:%S')
                                + ' Sev: ' + str(severity) + " " + entry.encode('ascii',
                                                                                errors='backslashreplace') + '\n')
         self.disklogfile.flush()
         os.fsync(self.disklogfile.fileno())
-        if self.livelog:
+        if self.livelog and not diskonly:
             if self.livelogpos == 0:
                 config.screen.fill(wc('royalblue'))
             l = config.fonts.Font(self.logfontsize).render(entry, False, wc(self.LogColors[severity]))

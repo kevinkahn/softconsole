@@ -58,7 +58,7 @@ def RenderScreenLines(recipe, extracter, color):
                     linestr = line[2].format(d=args)
                     # print line[2].format(d=args)
         except:
-            config.Logs.Log("Weather format error: " + str(line[3]), logsupport.Error)
+            config.Logs.Log("Weather format error: " + str(line[3]), logsupport.Warning)
             if len(line) == 5:
                 linestr = line[4]
         if line[1] == 2:
@@ -80,7 +80,7 @@ class WeatherScreenDesc(screen.ScreenDesc):
         self.wunderkey = screensection.get("wunderkey", "NoKeySupplied")
         self.location = screensection.get("location", "")
         screen.ScreenDesc.__init__(self, screensection, screenname, ('which',))
-        self.charcolor = screensection.get("CharCol", config.DefaultCharColor)
+        self.charcolor = screensection.get("CharCol", config.CharColor)
         self.lastwebreq = 0  # time of last call out to wunderground
         self.url = 'http://api.wunderground.com/api/' + self.wunderkey + '/geolookup/conditions/forecast/astronomy/q/' + self.location + '.json'
         self.parsed_json = {}

@@ -18,7 +18,7 @@ class ScreenDesc:
     def __init__(self, screensection, screenname, ExtraCmdButs):
         self.name = screenname
         self.label = utilities.normalize_label(screensection.get("label", screenname))
-        self.backcolor = screensection.get("Bcolor", config.DefaultBkgndColor)
+        self.backcolor = screensection.get("BackgroundColor", config.BackgroundColor)
 
         self.dimtimeout = config.DimTO
         self.NextScreen = None  # for navigation buttons

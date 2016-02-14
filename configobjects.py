@@ -21,7 +21,7 @@ class MyScreens:
             if isinstance(thisconfig[screenitem], Section):
                 thisScreen = thisconfig[screenitem]
                 # its a screen
-                tempscreentype = thisScreen.get("typ", "unspec")
+                tempscreentype = thisScreen.get("type", "unspec")
                 debugprint(config.dbgscreenbuild, "Screen of type ", tempscreentype)
 
                 if tempscreentype in config.screentypes:

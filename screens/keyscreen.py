@@ -149,4 +149,4 @@ class KeyScreenDesc(screen.ScreenDesc):
                     config.DS.draw_button(config.screen, K)
 
 
-config.screentypes["Keys"] = KeyScreenDesc
+config.screentypes["Keypad"] = KeyScreenDesc
