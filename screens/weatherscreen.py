@@ -14,8 +14,7 @@ import logsupport
 import functools
 import utilities
 
-WeathFont = [None, None, None]
-
+fsizes = ((20, False, False), (30, True, False), (45, True, True))
 
 def TreeDict(d, *args):
     # Allow a nest of dictionaries to be accessed by a tuple of keys for easier code
@@ -38,39 +37,45 @@ def RenderScreenLines(recipe, extracter, color):
     h = 0
     renderedlines = []
     centered = []
+    linetorender = ""
     for line in recipe:
-        if isinstance(line[3], basestring):
-            linestr = line[2].format(d=line[3])
-        else:
-            args = []
-            # print line, format
-            for item in line[3]:
-                args.append(extracter(*item))
-                # print args, type(args[-1]).__name__
-            if len(args) == 1 and isinstance(args[0], basestring):
-                # print "One arg: ",type(args[0]).__name__,args
-                linestr = line[2].format(d=args[0])
+        linestr = ""
+        try:
+            if isinstance(line[3], basestring):
+                linestr = line[2].format(d=line[3])
             else:
-                # for x in args:
-                #   print "Mult arg: ",type(x).__name__,x,args
-                linestr = line[2].format(d=args)
-                # print line[2].format(d=args)
-        r = WeathFont[line[0]].render(linestr, 0, wc(color))
-        renderedlines.append(r)
-        centered.append(line[1])
-        h = h + r.get_height()
+                args = []
+                # print line, format
+                for item in line[3]:
+                    args.append(extracter(*item))
+                    # print args, type(args[-1]).__name__
+                if len(args) == 1 and isinstance(args[0], basestring):
+                    # print "One arg: ",type(args[0]).__name__,args
+                    linestr = line[2].format(d=args[0])
+                else:
+                    # for x in args:
+                    #   print "Mult arg: ",type(x).__name__,x,args
+                    linestr = line[2].format(d=args)
+                    # print line[2].format(d=args)
+        except:
+            config.Logs.Log("Weather format error: " + str(line[3]), logsupport.Error)
+            if len(line) == 5:
+                linestr = line[4]
+        if line[1] == 2:
+            linetorender = linetorender + linestr
+        else:
+            r = config.fonts.Font(fsizes[line[0]][0], '', fsizes[line[0]][1], fsizes[line[0]][2]).render(
+                linetorender + linestr, 0, wc(color))
+            linetorender = ""
+            renderedlines.append(r)
+            centered.append(line[1])
+            h = h + r.get_height()
     return renderedlines, centered, h
 
 
 class WeatherScreenDesc(screen.ScreenDesc):
     def __init__(self, screensection, screenname):
         debugprint(config.dbgscreenbuild, "New WeatherScreenDesc ", screenname)
-
-        if WeathFont[0] is None:
-            # initialize on first entry
-            WeathFont[0] = pygame.font.SysFont(None, 20, False, False)
-            WeathFont[1] = pygame.font.SysFont(None, 30, True, False)
-            WeathFont[2] = pygame.font.SysFont(None, 45, True, True)
 
         self.wunderkey = screensection.get("wunderkey", "NoKeySupplied")
         self.location = screensection.get("location", "")
@@ -84,6 +89,7 @@ class WeatherScreenDesc(screen.ScreenDesc):
             self.scrlabel = self.scrlabel + " " + s
         self.js = None  # partial function for dict access
         self.fcsts = None  # partial function for dict access
+        # entries are (fontsize, centered, formatstring, jsonextractstring,altstring(optional))
         self.conditions = [(2, True, "{d}", self.scrlabel),
                            (1, True, "{d}", (('location', 'city'),)),
                            (1, False, u"Currently: {d[0]} {d[1]}\u00B0F",
@@ -96,9 +102,10 @@ class WeatherScreenDesc(screen.ScreenDesc):
                             (('sun_phase', 'sunrise', 'hour'), ('sun_phase', 'sunrise', 'minute'))),
                            (1, False, "Sunset:  {d[0]:02d}:{d[1]:02d}",
                             (('sun_phase', 'sunset', 'hour'), ('sun_phase', 'sunset', 'minute'))),
-                           (0, False, "Moon rise: {d[0]:02d}:{d[1]:02d}  set: {d[2]:02d}:{d[3]:02d}",
-                            (('moon_phase', 'moonrise', 'hour'), ('moon_phase', 'moonrise', 'minute'),
-                             ('moon_phase', 'moonset', 'hour'), ('moon_phase', 'moonset', 'minute'))),
+                           (0, 2, "Moon rise: {d[0]:02d}:{d[1]:02d}",
+                            (('moon_phase', 'moonrise', 'hour'), ('moon_phase', 'moonrise', 'minute')), 'No moonrise'),
+                           (0, False, "   set: {d[2]:02d}:{d[3]:02d}",
+                            (('moon_phase', 'moonset', 'hour'), ('moon_phase', 'moonset', 'minute')), '   No moonset'),
                            (0, False, "     {d[0]}% illuminated", (('moon_phase', 'percentIlluminated'),)),
                            (0, False, "will be replaced", "")]
         self.forecast = [(1, False, u"{d[0]}   {d[1]}\u00B0/{d[2]}\u00B0 {d[3]}",
@@ -122,7 +129,9 @@ class WeatherScreenDesc(screen.ScreenDesc):
             renderedlines, centered, h = RenderScreenLines(self.conditions, self.js, self.charcolor)
         else:
             self.SetExtraCmdTitles([('Conditions',)])
-            renderedlines.append(WeathFont[2].render(self.scrlabel, 0, wc(self.charcolor)))
+            renderedlines.append(
+                config.fonts.Font(fsizes[2][0], '', fsizes[2][1], fsizes[2][2]).render(self.scrlabel, 0,
+                                                                                       wc(self.charcolor)))
             centered.append(True)
             h = h + renderedlines[0].get_height()
             for fcst in self.fcsts:

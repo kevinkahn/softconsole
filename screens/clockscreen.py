@@ -9,17 +9,24 @@ import pygame
 from config import debugprint, WAITEXIT
 import screen
 
-DefaultCharSize = 20
+CharSize = [20]
+Font = 'droidsansmono'
 
 
 class ClockScreenDesc(screen.ScreenDesc):
     def __init__(self, screensection, screenname):
         debugprint(config.dbgscreenbuild, "Build Clock Screen")
         screen.ScreenDesc.__init__(self, screensection, screenname, ())  # no extra cmd keys
-        self.charcolor = screensection.get("CharColor", config.DefaultCharColor)
+        self.charcolor = screensection.get("CharColor", config.CharColor)
         self.lineformat = screensection.get("OutFormat", "")
-        self.fontsize = int(screensection.get("CharSize", DefaultCharSize))
-        self.ClkFont = pygame.font.SysFont('droidsansmono', self.fontsize, False, False)
+        self.clockfont = screensection.get("Font", Font)
+        self.fontsize = screensection.get("CharSize", CharSize)
+        self.backcolor = screensection.get("BkgndColor", config.BkgndColor)
+        print self.fontsize
+        for i in range(len(self.fontsize), len(self.lineformat)):
+            print i
+            self.fontsize.append(self.fontsize[-1])
+            print self.fontsize
 
     def __repr__(self):
         return screen.ScreenDesc.__repr__(self) + "\r\n     ClockScreenDesc:" + str(self.charcolor) + ":" + str(
@@ -39,7 +46,9 @@ class ClockScreenDesc(screen.ScreenDesc):
             l = []
 
             for i in range(len(self.lineformat)):
-                l.append(self.ClkFont.render(time.strftime(self.lineformat[i]), 0, wc(self.charcolor)))
+                l.append(
+                    config.fonts.Font(int(self.fontsize[i]), self.clockfont).render(time.strftime(self.lineformat[i]),
+                                                                                    0, wc(self.charcolor)))
                 h = h + l[i].get_height()
             s = (usefulheight - h)/(len(l) - 1)
 

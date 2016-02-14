@@ -27,9 +27,6 @@ class MaintScreenDesc:
         self.NextScreenKay = None
         self.ExtraCmdKeys = []
 
-        self.MaintFont = pygame.font.SysFont(None, 40, True, True)
-        self.MaintFont2 = pygame.font.SysFont(None, 25, True, True)
-
         self.name = "Maint"
         self.label = ["Maintenance"]
 
@@ -51,10 +48,11 @@ class MaintScreenDesc:
     def ShowScreen(self):
 
         config.screen.fill(wc(self.backcolor))
-        r = self.MaintFont.render("Console Maintenance", 0, wc(self.charcolor))
+        r = config.fonts.Font(40, '', True, True).render("Console Maintenance", 0, wc(self.charcolor))
         rl = (config.screenwidth - r.get_width())/2
         config.screen.blit(r, (rl, config.topborder))
-        r = self.MaintFont2.render("Up: " + interval_str(time.time() - config.starttime), 0, wc(self.charcolor))
+        r = config.fonts.Font(25, '', True, True).render("Up: " + interval_str(time.time() - config.starttime), 0,
+                                                         wc(self.charcolor))
         rl = (config.screenwidth - r.get_width())/2
         config.screen.blit(r, (rl, config.topborder + 30))
         for K in self.keysbyord:
@@ -108,9 +106,9 @@ class MaintScreenDesc:
                 return choice[1]
 
     def Exit_Options(self, msg, scrnmsg):
-        config.Logs.Log(msg)
         config.screen.fill(wc("red"))
-        r = self.MaintFont.render(scrnmsg, 0, wc("white"))
+        r = config.fonts.Font(40, '', True, True).render(scrnmsg, 0, wc("white"))
         config.screen.blit(r, ((config.screenwidth - r.get_width())/2, config.screenheight*.4))
+        config.Logs.Log(msg)
         pygame.display.update()
         time.sleep(2)

@@ -21,7 +21,7 @@ class Logs:
 
     def __init__(self, screen, dirnm):
         self.screen = screen
-        self.LogFont = pygame.font.SysFont(None, 23, False, False)
+        self.logfontsize = 23
         os.chdir(dirnm)
         q = [k for k in os.listdir('.') if 'Console.log' in k]
         if "Console.log." + str(config.maxlog) in q:
@@ -44,14 +44,14 @@ class Logs:
                                + ' Sev: ' + str(severity) + " " + entry.encode('ascii',
                                                                                errors='backslashreplace') + '\n')
         self.disklogfile.flush()
-        os.fsync(self.disklogfile)
+        os.fsync(self.disklogfile.fileno())
         if self.livelog:
             if self.livelogpos == 0:
                 config.screen.fill(wc('royalblue'))
-            l = self.LogFont.render(entry, False, wc(self.LogColors[severity]))
+            l = config.fonts.Font(self.logfontsize).render(entry, False, wc(self.LogColors[severity]))
             self.screen.blit(l, (10, self.livelogpos))
             pygame.display.update()
-            self.livelogpos += self.LogFont.get_linesize()
+            self.livelogpos += config.fonts.Font(self.logfontsize).get_linesize()
             if self.livelogpos > config.screenheight - config.botborder:
                 time.sleep(2)
                 self.livelogpos = 0
@@ -61,9 +61,9 @@ class Logs:
         pos = 0
         config.screen.fill(wc(backcolor))
         for i in range(start, len(self.log)):
-            l = self.LogFont.render(self.log[i][1], False, wc(self.LogColors[self.log[i][0]]))
+            l = config.fonts.Font(self.logfontsize).render(self.log[i][1], False, wc(self.LogColors[self.log[i][0]]))
             self.screen.blit(l, (10, pos))
-            pos += self.LogFont.get_linesize()
+            pos += config.fonts.Font(self.logfontsize).get_linesize()
             if pos > config.screenheight - config.botborder:
                 pygame.display.update()
                 return i + 1

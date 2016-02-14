@@ -27,10 +27,7 @@ class DisplayScreen:
         self.presscount = 0
         self.AS = None
         self.BrightenToHome = False
-        ButtonFontSizes = (30, 25, 23, 21, 19)  # Scale?
-        self.ButtonFonts = []
-        for i in ButtonFontSizes:
-            self.ButtonFonts.append(pygame.font.SysFont("", i))
+        self.ButtonFontSizes = (31, 28, 25, 22, 20, 18, 16)  # Scale?
 
     def draw_button(self, screen, Key, shrink=True, firstfont=0):
         lines = len(Key.label)
@@ -48,18 +45,18 @@ class DisplayScreen:
         if not Key.State:
             screen.blit(s, (x, y))
         # compute writeable area for text
-        textarea = (buttonsmaller[0] - 6, buttonsmaller[1] - 1)
-        fontchoice = firstfont
+        textarea = (buttonsmaller[0] - 2, buttonsmaller[1] - 2)
+        fontchoice = self.ButtonFontSizes[firstfont]
         if shrink:
             for l in range(lines):
-                for i in range(fontchoice, len(self.ButtonFonts)):
-                    txtsize = self.ButtonFonts[fontchoice].size(Key.label[l])
+                for i in range(firstfont, len(self.ButtonFontSizes) - 1):
+                    txtsize = config.fonts.Font(self.ButtonFontSizes[i]).size(Key.label[l])
                     if lines*txtsize[1] >= textarea[1] or txtsize[0] >= textarea[0]:
-                        fontchoice = i
+                        fontchoice = self.ButtonFontSizes[i + 1]
 
         for i in range(lines):
             # ren = pygame.transform.rotate(dispscreen.MyFont.render(txt[i], 0, HiColor), 0)
-            ren = self.ButtonFonts[fontchoice].render(Key.label[i], 0, wc(HiColor))
+            ren = config.fonts.Font(fontchoice).render(Key.label[i], 0, wc(HiColor))
             vert_off = ((i + 1)*Key.Size[1]/(1 + lines)) - ren.get_height()/2
             horiz_off = (Key.Size[0] - ren.get_width())/2
             screen.blit(ren, (x + horiz_off, y + vert_off))

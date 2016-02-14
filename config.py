@@ -44,6 +44,8 @@ DS = None  # Global Display Screen handles running the button presses and touch 
 ParsedConfigFile = None  # config.txt internal version
 configfile = "/home/pi/Console/config.txt"  # default location of configfile, can be overridden by arg1
 ISYprefix = ''  # holds the url prefix for rest interface
+fonts = None
+Logs = None
 
 # Screen Display Info
 screenwidth = 0

@@ -9,8 +9,7 @@ import screen
 import xmltodict
 import toucharea
 
-ThermoFont = [None, None, None, None]
-
+fsize = (30, 50, 80, 160)
 
 def trifromtop(h, v, n, size, c, invert):
     if invert:
@@ -25,12 +24,6 @@ class ThermostatScreenDesc(screen.ScreenDesc):
         screen.ScreenDesc.__init__(self, screensection, screenname, ())
         self.info = {}
 
-        if ThermoFont[0] is None:
-            # initialize on first entry
-            ThermoFont[0] = pygame.font.SysFont(None, 30, False, False)
-            ThermoFont[1] = pygame.font.SysFont(None, 50, False, False)
-            ThermoFont[2] = pygame.font.SysFont(None, 80, False, False)
-            ThermoFont[3] = pygame.font.SysFont(None, 160, True, False)
 
         self.charcolor = screensection.get("CharColor", config.DefaultCharColor)
         self.KColor = screensection.get("Kcolor", config.DefaultKeyColor)
@@ -40,13 +33,13 @@ class ThermostatScreenDesc(screen.ScreenDesc):
             self.RealObj = None
             config.Logs.Log("No Thermostat: " + screenname)
 
-        self.TitleRen = ThermoFont[1].render(screen.FlatenScreenLabel(self.label), 0, wc(self.charcolor))
+        self.TitleRen = config.fonts.Font(fsize[1]).render(screen.FlatenScreenLabel(self.label), 0, wc(self.charcolor))
         self.TitlePos = ((config.screenwidth - self.TitleRen.get_width())/2, config.topborder)
         self.TempPos = config.topborder + self.TitleRen.get_height()
-        self.StatePos = self.TempPos + ThermoFont[3].get_linesize() - 20
+        self.StatePos = self.TempPos + config.fonts.Font(fsize[3]).get_linesize() - 20
         self.SPPos = self.StatePos + 25
         self.AdjButSurf = pygame.Surface((320, 40))
-        self.AdjButTops = self.SPPos + ThermoFont[2].get_linesize() - 5
+        self.AdjButTops = self.SPPos + config.fonts.Font(fsize[2]).get_linesize() - 5
         centerspacing = config.screenwidth/5
         self.AdjButSurf.fill(wc(self.backcolor))
         arrowsize = 40*dispratio
@@ -99,20 +92,23 @@ class ThermostatScreenDesc(screen.ScreenDesc):
 
         config.screen.fill(wc(self.backcolor))
         config.screen.blit(self.TitleRen, self.TitlePos)
-        r = ThermoFont[3].render(u"{:4.1f}".format(self.info["ST"][0]/2), 0, wc(self.charcolor))
+        r = config.fonts.Font(fsize[3], bold=True).render(u"{:4.1f}".format(self.info["ST"][0]/2), 0,
+                                                          wc(self.charcolor))
         config.screen.blit(r, ((config.screenwidth - r.get_width())/2, self.TempPos))
-        r = ThermoFont[0].render(("Idle", "Heating", "Cooling")[self.info["CLIHCS"][0]], 0, wc(self.charcolor))
+        r = config.fonts.Font(fsize[0]).render(("Idle", "Heating", "Cooling")[self.info["CLIHCS"][0]], 0,
+                                               wc(self.charcolor))
         config.screen.blit(r, ((config.screenwidth - r.get_width())/2, self.StatePos))
-        r = ThermoFont[2].render("{:2d}    {:2d}".format(self.info["CLISPH"][0]/2, self.info["CLISPC"][0]/2), 0,
-                                 wc(self.charcolor))
+        r = config.fonts.Font(fsize[2]).render(
+            "{:2d}    {:2d}".format(self.info["CLISPH"][0]/2, self.info["CLISPC"][0]/2), 0,
+            wc(self.charcolor))
         config.screen.blit(r, ((config.screenwidth - r.get_width())/2, self.SPPos))
         config.screen.blit(self.AdjButSurf, (0, self.AdjButTops))
         config.DS.draw_button(config.screen, self.keysbyord[4], shrink=True, firstfont=0)
         config.DS.draw_button(config.screen, self.keysbyord[5], shrink=True, firstfont=0)
-        r1 = ThermoFont[1].render(
+        r1 = config.fonts.Font(fsize[1]).render(
             ('Off', 'Heat', 'Cool', 'Auto', 'Fan', 'Prog Auto', 'Prog Heat', 'Prog Cool')[self.info["CLIMD"][0]], 0,
             wc(self.charcolor))
-        r2 = ThermoFont[1].render(('On', 'Auto')[self.info["CLIFS"][0] - 7], 0, wc(self.charcolor))
+        r2 = config.fonts.Font(fsize[1]).render(('On', 'Auto')[self.info["CLIFS"][0] - 7], 0, wc(self.charcolor))
         config.screen.blit(r1, (self.keysbyord[4].Center[0] - r1.get_width()/2, self.ModesPos))
         config.screen.blit(r2, (self.keysbyord[5].Center[0] - r2.get_width()/2, self.ModesPos))
 

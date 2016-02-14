@@ -3,6 +3,7 @@ import sys
 import time
 import RPi.GPIO as GPIO
 import pygame
+import fonts
 
 import config
 
@@ -55,7 +56,7 @@ def InitializeEnvironment():
     os.environ['SDL_MOUSEDRV'] = 'TSLIB'
     os.environ['SDL_VIDEODRIVER'] = 'fbcon'
     pygame.display.init()
-    pygame.font.init()
+    config.fonts = fonts.Fonts()
     config.screenwidth, config.screenheight = (pygame.display.Info().current_w, pygame.display.Info().current_h)
     config.screen = pygame.display.set_mode((config.screenwidth, config.screenheight), pygame.FULLSCREEN)
     config.screen.fill((0, 0, 0))  # clear screen

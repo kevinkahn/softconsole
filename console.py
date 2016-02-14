@@ -40,7 +40,7 @@ import maintscreen
 """
 Dynamically load class definitions for all defined screen types and link them to how configuration happens
 """
-for screentype in os.listdir(os.path.dirname(sys.argv[0]) + '/screens'):
+for screentype in os.listdir(os.path.dirname(os.path.abspath(sys.argv[0])) + '/screens'):
     if '__' not in screentype:
         splitname = os.path.splitext(screentype)
         if splitname[1] == '.py':
