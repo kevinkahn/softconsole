@@ -6,6 +6,7 @@ import config
 wc = webcolors.name_to_rgb
 import time
 import os
+import re
 
 Info = 0
 Warning = 1
@@ -51,24 +52,40 @@ class Logs:
         if self.livelog and not diskonly:
             if self.livelogpos == 0:
                 config.screen.fill(wc('royalblue'))
-            l = config.fonts.Font(self.logfontsize).render(entry, False, wc(self.LogColors[severity]))
-            self.screen.blit(l, (10, self.livelogpos))
-            pygame.display.update()
-            self.livelogpos += config.fonts.Font(self.logfontsize).get_linesize()
+            self.livelogpos = self.RenderLogLine(entry, self.LogColors[severity], self.livelogpos)
             if self.livelogpos > config.screenheight - config.botborder:
                 time.sleep(2)
                 self.livelogpos = 0
             pygame.display.update()
 
+    def RenderLogLine(self, text, clr, pos):
+        text = re.sub('\s\s+', ' ', text)
+        ltext = re.split('([ :,])', text)
+        ltext.append('')
+        while len(ltext) > 1:
+            rtext = []
+            while 1:
+                if config.fonts.Font(self.logfontsize).size(''.join(ltext))[0] < config.screenwidth - 10:
+                    break
+                else:
+                    rtext.insert(0, ltext[-1])
+                    del ltext[-1]
+            l = config.fonts.Font(self.logfontsize).render(''.join(ltext), False, wc(clr))
+            self.screen.blit(l, (10, pos))
+            ltext = rtext
+            ltext.insert(0, "    ")
+            pos = pos + config.fonts.Font(self.logfontsize).get_linesize()
+        pygame.display.update()
+        return pos
+
+
     def RenderLog(self, backcolor, start=0):
         pos = 0
         config.screen.fill(wc(backcolor))
         for i in range(start, len(self.log)):
-            l = config.fonts.Font(self.logfontsize).render(self.log[i][1], False, wc(self.LogColors[self.log[i][0]]))
-            self.screen.blit(l, (10, pos))
-            pos += config.fonts.Font(self.logfontsize).get_linesize()
+            pos = self.RenderLogLine(self.log[i][1], self.LogColors[self.log[i][0]], pos)
             if pos > config.screenheight - config.botborder:
                 pygame.display.update()
                 return i + 1
-        pygame.display.update()
+
         return -1

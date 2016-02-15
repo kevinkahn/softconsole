@@ -50,7 +50,7 @@ class MyScreens:
                 S = mainlist[scr]
                 S.PrevScreen = mainlist[config.MainChain[config.MainChain.index(scr) - 1]]
                 S.NextScreen = mainlist[config.MainChain[(config.MainChain.index(scr) + 1)%len(config.MainChain)]]
-                config.Logs.Log("   " + scr)
+                config.Logs.Log("---" + scr)
 
         config.Logs.Log("Secondary Screen List:")
         for scr in config.SecondaryChain:
@@ -59,11 +59,11 @@ class MyScreens:
                 S.PrevScreen = secondlist[config.SecondaryChain[config.SecondaryChain.index(scr) - 1]]
                 S.NextScreen = secondlist[
                     config.SecondaryChain[(config.SecondaryChain.index(scr) + 1)%len(config.SecondaryChain)]]
-                config.Logs.Log("   " + scr)
+                config.Logs.Log("---" + scr)
 
         config.Logs.Log("Not on a screen list (unavailable)", Warning)
         for scr in config.ExtraChain:
-            config.Logs.Log("   " + scr, Warning)
+            config.Logs.Log("---" + scr, Warning)
 
         for S in mainlist.itervalues():
             S.FinishScreen()

@@ -31,7 +31,6 @@ class ManualKeyDesc(TouchPoint):
         self.KOnColor = config.KeyOnOutlineColor if KOn == '' else KOn
         self.KOffColor = config.KeyOffOutlineColor if KOff == '' else KOff
 
-
 _p_SceneProxy = ''
 _p_KeyRunThenName = ''
 _p_type = 'ONOFF'

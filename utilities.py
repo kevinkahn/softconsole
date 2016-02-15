@@ -23,7 +23,6 @@ def normalize_label(l):
 
 
 def ParseParam(param):
-    print 'Global Parameters:'
     for p in param.__dict__:
         if '__' not in p:
             p2 = p.replace('_', '', 1) if p.startswith('_') else p

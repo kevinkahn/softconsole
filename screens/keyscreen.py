@@ -119,7 +119,7 @@ class KeyScreenDesc(screen.ScreenDesc):
             if (choice[0] == WAITNORMALBUTTON) or (choice[0] == WAITNORMALBUTTONFAST):
                 # handle various keytype cases
                 K = self.keysbyord[choice[1]]
-                if K.typ == "ONOFF":
+                if K.type == "ONOFF":
                     K.State = not K.State
                     if K.RealObj is not None:
                         K.RealObj.SendCommand(K.State, choice[0] <> WAITNORMALBUTTON)
@@ -127,7 +127,7 @@ class KeyScreenDesc(screen.ScreenDesc):
                     else:
                         config.Logs.Log("Screen: " + self.name + " press unbound key: " + K.name)
                     config.DS.draw_button(config.screen, K)
-                elif K.typ == "ONBLINKRUNTHEN":
+                elif K.type == "ONBLINKRUNTHEN":
                     # force double tap for programs for safety - too easy to accidentally single tap with touchscreen
                     if choice[0] == WAITNORMALBUTTONFAST:
                         K.Krunthen.runThen()
@@ -136,7 +136,7 @@ class KeyScreenDesc(screen.ScreenDesc):
                         blinks = 8  # even number leaves final state of key same as initial state
                         config.DS.draw_button(config.screen, K)
                         # leave K.State as is - key will return to off at end
-                elif K.typ == "ONOFFRUN":
+                elif K.type == "ONOFFRUN":
                     pass
             elif choice[0] == WAITEXIT:
                 return choice[1]
