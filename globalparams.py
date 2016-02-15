@@ -19,6 +19,6 @@ _SecondaryChain = []  # if spec'd used for secondary screens else random order
 _ExtraChain = []  # defaults to empty, unused screens
 
 # Defaults for Keys
-DefaultKeyColor = "aqua"
-DefaultKeyOnOutlineColor = "white"
-DefaultKeyOffOutlineColor = "black"
+KeyColor = "aqua"
+KeyOnOutlineColor = "white"
+KeyOffOutlineColor = "black"

@@ -18,9 +18,9 @@ class MaintScreenDesc:
     def __init__(self):
         debugprint(config.dbgscreenbuild, "Build Maintenance Screen")
 
-        self.charcolor = "white"
-        self.backcolor = "royalblue"
-        self.dimtimeout = 100000  # infinite
+        self.CharColor = "white"
+        self.BackgroundColor = "royalblue"
+        self.DimTO = 100000  # infinite
         self.ExtraCmdKeys = []
 
         self.PrevScreenKey = None
@@ -47,12 +47,12 @@ class MaintScreenDesc:
 
     def ShowScreen(self):
 
-        config.screen.fill(wc(self.backcolor))
-        r = config.fonts.Font(40, '', True, True).render("Console Maintenance", 0, wc(self.charcolor))
+        config.screen.fill(wc(self.BackgroundColor))
+        r = config.fonts.Font(40, '', True, True).render("Console Maintenance", 0, wc(self.CharColor))
         rl = (config.screenwidth - r.get_width())/2
         config.screen.blit(r, (rl, config.topborder))
         r = config.fonts.Font(25, '', True, True).render("Up: " + interval_str(time.time() - config.starttime), 0,
-                                                         wc(self.charcolor))
+                                                         wc(self.CharColor))
         rl = (config.screenwidth - r.get_width())/2
         config.screen.blit(r, (rl, config.topborder + 30))
         for K in self.keysbyord:
@@ -77,7 +77,7 @@ class MaintScreenDesc:
                     item = 0
                     self.keysbyord = self.pagekeysbyord  # make whole screen single invisible key
                     while item >= 0:
-                        item = Logs.RenderLog(self.backcolor, start=item)
+                        item = Logs.RenderLog(self.BackgroundColor, start=item)
                         temp = config.DS.NewWaitPress(self)
                     self.keysbyord = self.menukeysbyord
                     self.ShowScreen()

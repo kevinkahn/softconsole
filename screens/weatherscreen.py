@@ -14,6 +14,9 @@ import logsupport
 import functools
 import utilities
 
+_p_WunderKey = ''
+_p_location = ''
+
 fsizes = ((20, False, False), (30, True, False), (45, True, True))
 
 def TreeDict(d, *args):
@@ -77,12 +80,10 @@ class WeatherScreenDesc(screen.ScreenDesc):
     def __init__(self, screensection, screenname):
         debugprint(config.dbgscreenbuild, "New WeatherScreenDesc ", screenname)
 
-        self.wunderkey = screensection.get("wunderkey", "NoKeySupplied")
-        self.location = screensection.get("location", "")
         screen.ScreenDesc.__init__(self, screensection, screenname, ('which',))
-        self.charcolor = screensection.get("CharCol", config.CharColor)
+        utilities.LocalizeParams(self, screensection)
         self.lastwebreq = 0  # time of last call out to wunderground
-        self.url = 'http://api.wunderground.com/api/' + self.wunderkey + '/geolookup/conditions/forecast/astronomy/q/' + self.location + '.json'
+        self.url = 'http://api.wunderground.com/api/' + self.WunderKey + '/geolookup/conditions/forecast/astronomy/q/' + self.location + '.json'
         self.parsed_json = {}
         self.scrlabel = ""
         for s in self.label:
@@ -104,7 +105,7 @@ class WeatherScreenDesc(screen.ScreenDesc):
                             (('sun_phase', 'sunset', 'hour'), ('sun_phase', 'sunset', 'minute'))),
                            (0, 2, "Moon rise: {d[0]:02d}:{d[1]:02d}",
                             (('moon_phase', 'moonrise', 'hour'), ('moon_phase', 'moonrise', 'minute')), 'No moonrise'),
-                           (0, False, "   set: {d[2]:02d}:{d[3]:02d}",
+                           (0, False, "   set: {d[0]:02d}:{d[1]:02d}",
                             (('moon_phase', 'moonset', 'hour'), ('moon_phase', 'moonset', 'minute')), '   No moonset'),
                            (0, False, "     {d[0]}% illuminated", (('moon_phase', 'percentIlluminated'),)),
                            (0, False, "will be replaced", "")]
@@ -113,10 +114,10 @@ class WeatherScreenDesc(screen.ScreenDesc):
                          (1, False, "Wind: {d[0]} at {d[1]}", (('avewind', 'dir'), ('avewind', 'mph')))]
 
     def __repr__(self):
-        return screen.ScreenDesc.__repr__(self) + "\r\n     WeatherScreenDesc:" + str(self.charcolor)
+        return screen.ScreenDesc.__repr__(self) + "\r\n     WeatherScreenDesc:" + str(self.CharColor)
 
     def ShowScreen(self, conditions):
-        config.screen.fill(wc(self.backcolor))
+        config.screen.fill(wc(self.BackgroundColor))
         usefulheight = config.screenheight - config.topborder - config.botborder
         renderedlines = []
         h = 0
@@ -126,17 +127,17 @@ class WeatherScreenDesc(screen.ScreenDesc):
             age = utilities.interval_str(time.time() - int(self.js('current_observation', 'observation_epoch')))
             self.conditions[-1] = (0, False, "Readings as of {d} ago", age)
             self.SetExtraCmdTitles([('Forecast',)])
-            renderedlines, centered, h = RenderScreenLines(self.conditions, self.js, self.charcolor)
+            renderedlines, centered, h = RenderScreenLines(self.conditions, self.js, self.CharColor)
         else:
             self.SetExtraCmdTitles([('Conditions',)])
             renderedlines.append(
                 config.fonts.Font(fsizes[2][0], '', fsizes[2][1], fsizes[2][2]).render(self.scrlabel, 0,
-                                                                                       wc(self.charcolor)))
+                                                                                       wc(self.CharColor)))
             centered.append(True)
             h = h + renderedlines[0].get_height()
             for fcst in self.fcsts:
                 fs = functools.partial(TreeDict, fcst)
-                r, c, temph = RenderScreenLines(self.forecast, fs, self.charcolor)
+                r, c, temph = RenderScreenLines(self.forecast, fs, self.CharColor)
                 h += temph
                 renderedlines = renderedlines + r
                 centered = centered + c

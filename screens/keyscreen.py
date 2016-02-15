@@ -82,7 +82,7 @@ class KeyScreenDesc(screen.ScreenDesc):
 
         if newscr:
             # key screen change actually occurred
-            config.screen.fill(wc(self.backcolor))
+            config.screen.fill(wc(self.BackgroundColor))
             self.subscriptionlist = {}
             debugprint(config.dbgMain, "Switching to screen: ", self.name)
             for K in self.keysbyord:

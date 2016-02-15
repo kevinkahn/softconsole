@@ -8,6 +8,7 @@ from config import debugprint, WAITEXIT, WAITNORMALBUTTON, WAITNORMALBUTTONFAST,
 import screen
 import xmltodict
 import toucharea
+import utilities
 
 fsize = (30, 50, 80, 160)
 
@@ -22,17 +23,16 @@ class ThermostatScreenDesc(screen.ScreenDesc):
     def __init__(self, screensection, screenname):
         debugprint(config.dbgscreenbuild, "New ThermostatScreenDesc ", screenname)
         screen.ScreenDesc.__init__(self, screensection, screenname, ())
+        utilities.LocalizeParams(self, screensection, 'KeyColor', 'KeyOffOutlineColor', 'KeyOnOutlineColor')
         self.info = {}
 
-        self.charcolor = screensection.get("CharColor", config.CharColor)
-        self.KColor = screensection.get("Kcolor", config.DefaultKeyColor)
         if screenname in config.ISY.NodesByName:
             self.RealObj = config.ISY.NodesByName[screenname]
         else:
             self.RealObj = None
             config.Logs.Log("No Thermostat: " + screenname)
 
-        self.TitleRen = config.fonts.Font(fsize[1]).render(screen.FlatenScreenLabel(self.label), 0, wc(self.charcolor))
+        self.TitleRen = config.fonts.Font(fsize[1]).render(screen.FlatenScreenLabel(self.label), 0, wc(self.CharColor))
         self.TitlePos = ((config.screenwidth - self.TitleRen.get_width())/2, config.topborder)
         self.TempPos = config.topborder + self.TitleRen.get_height()
         self.StatePos = self.TempPos + config.fonts.Font(fsize[3]).get_linesize() - 20
@@ -40,7 +40,7 @@ class ThermostatScreenDesc(screen.ScreenDesc):
         self.AdjButSurf = pygame.Surface((320, 40))
         self.AdjButTops = self.SPPos + config.fonts.Font(fsize[2]).get_linesize() - 5
         centerspacing = config.screenwidth/5
-        self.AdjButSurf.fill(wc(self.backcolor))
+        self.AdjButSurf.fill(wc(self.BackgroundColor))
         arrowsize = 40*dispratio
 
         for i in range(4):
@@ -52,27 +52,27 @@ class ThermostatScreenDesc(screen.ScreenDesc):
 
         bsize = (100*dispratio, 50*dispratio)
         self.keysbyord.append(toucharea.ManualKeyDesc("Mode", "Mode", (config.screenwidth/4, self.ModeButPos),
-                                                      bsize, self.KColor, self.charcolor, self.charcolor,
-                                                      KOn=config.DefaultKeyOffOutlineColor))
+                                                      bsize, self.KeyColor, self.CharColor, self.CharColor,
+                                                      KOn=config.KeyOffOutlineColor))
         self.keysbyord.append(toucharea.ManualKeyDesc("Fan", "Fan", (3*config.screenwidth/4, self.ModeButPos),
-                                                      bsize, self.KColor, self.charcolor, self.charcolor,
-                                                      KOn=config.DefaultKeyOffOutlineColor))
+                                                      bsize, self.KeyColor, self.CharColor, self.CharColor,
+                                                      KOn=config.KeyOffOutlineColor))
         self.ModesPos = self.ModeButPos + bsize[1]/2 + 5*dispratio
 
     def BumpTemp(self, setpoint, degrees):
 
-        print "Bump temp: ", setpoint, degrees
-        print "New: ", self.info[setpoint][0] + degrees
+        debugprint(config.dbgscreenbuild, "Bump temp: ", setpoint, degrees)
+        debugprint(config.dbgscreenbuild, "New: ", self.info[setpoint][0] + degrees)
         r = config.ISYrequestsession.get(
             config.ISYprefix + 'nodes/' + self.RealObj.address + '/set/' + setpoint + '/' + str(
                 self.info[setpoint][0] + degrees))
 
     def BumpMode(self, mode, vals):
-        print "Bump mode: ", mode, vals
+        debugprint(config.dbgscreenbuild, "Bump mode: ", mode, vals)
         cv = vals.index(self.info[mode][0])
-        print cv, vals[cv]
+        debugprint(config.dbgscreenbuild, cv, vals[cv])
         cv = (cv + 1)%len(vals)
-        print "new cv: ", cv
+        debugprint(config.dbgscreenbuild, "new cv: ", cv)
         r = config.ISYrequestsession.get(
             config.ISYprefix + 'nodes/' + self.RealObj.address + '/set/' + mode + '/' + str(vals[cv]))
 
@@ -86,28 +86,28 @@ class ThermostatScreenDesc(screen.ScreenDesc):
         props = tstatdict["nodeInfo"]["properties"]["property"]
         self.info = {}
         for item in props:
-            print item["@id"], ":", item["@value"], ":", item["@formatted"]
+            debugprint(config.dbgscreenbuild, item["@id"], ":", item["@value"], ":", item["@formatted"])
             self.info[item["@id"]] = (int(item['@value']), item['@formatted'])
 
-        config.screen.fill(wc(self.backcolor))
+        config.screen.fill(wc(self.BackgroundColor))
         config.screen.blit(self.TitleRen, self.TitlePos)
         r = config.fonts.Font(fsize[3], bold=True).render(u"{:4.1f}".format(self.info["ST"][0]/2), 0,
-                                                          wc(self.charcolor))
+                                                          wc(self.CharColor))
         config.screen.blit(r, ((config.screenwidth - r.get_width())/2, self.TempPos))
         r = config.fonts.Font(fsize[0]).render(("Idle", "Heating", "Cooling")[self.info["CLIHCS"][0]], 0,
-                                               wc(self.charcolor))
+                                               wc(self.CharColor))
         config.screen.blit(r, ((config.screenwidth - r.get_width())/2, self.StatePos))
         r = config.fonts.Font(fsize[2]).render(
             "{:2d}    {:2d}".format(self.info["CLISPH"][0]/2, self.info["CLISPC"][0]/2), 0,
-            wc(self.charcolor))
+            wc(self.CharColor))
         config.screen.blit(r, ((config.screenwidth - r.get_width())/2, self.SPPos))
         config.screen.blit(self.AdjButSurf, (0, self.AdjButTops))
         config.DS.draw_button(config.screen, self.keysbyord[4], shrink=True, firstfont=0)
         config.DS.draw_button(config.screen, self.keysbyord[5], shrink=True, firstfont=0)
         r1 = config.fonts.Font(fsize[1]).render(
             ('Off', 'Heat', 'Cool', 'Auto', 'Fan', 'Prog Auto', 'Prog Heat', 'Prog Cool')[self.info["CLIMD"][0]], 0,
-            wc(self.charcolor))
-        r2 = config.fonts.Font(fsize[1]).render(('On', 'Auto')[self.info["CLIFS"][0] - 7], 0, wc(self.charcolor))
+            wc(self.CharColor))
+        r2 = config.fonts.Font(fsize[1]).render(('On', 'Auto')[self.info["CLIFS"][0] - 7], 0, wc(self.CharColor))
         config.screen.blit(r1, (self.keysbyord[4].Center[0] - r1.get_width()/2, self.ModesPos))
         config.screen.blit(r2, (self.keysbyord[5].Center[0] - r2.get_width()/2, self.ModesPos))
 
@@ -131,7 +131,7 @@ class ThermostatScreenDesc(screen.ScreenDesc):
                 else:
                     self.BumpMode(('CLIMD', 'CLIFS')[choice[1] - 4], (range(8), (7, 8))[choice[1] - 4])
             elif choice[0] == WAITISYCHANGE:
-                print "Thermo change", choice
+                debugprint(config.dbgscreenbuild, "Thermo change", choice)
                 self.ShowScreen()
 
 

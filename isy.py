@@ -45,11 +45,11 @@ class Folder(TreeItem):
 
 
 class Node(Folder, OnOffItem):
-    def __init__(self, flag, name, addr, parenttyp, parentaddr):
+    def __init__(self, flag, name, addr, parenttyp, parentaddr, enabled):
         Folder.__init__(self, flag, name, addr, parenttyp, parentaddr)
         self.pnode = None  # for things like KPLs
+        self.enabled = enabled == "true"
         # no use for nodetype now
-        # enabled?]
         # device class -energy management
         # wattage, dcPeriod, status dict (property - so a list of statuses
 
@@ -157,7 +157,7 @@ class ISY:
         fixlist = []
         for node in configdict['node']:
             n = Node(node['@flag'], node['name'], node['address'], int(node['parent']['@type']),
-                     node['parent']['#text'])
+                     node['parent']['#text'], node['enabled'])
             fixlist.append((n, node['pnode']))
             self.NodesByAddr[n.address] = n
         self.LinkChildrenParents(self.NodesByAddr, self.NodesByName, self.FoldersByAddr, self.NodesByAddr)

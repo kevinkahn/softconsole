@@ -8,35 +8,31 @@ import time
 import pygame
 from config import debugprint, WAITEXIT
 import screen
+import utilities
 
-CharSize = [20]
-Font = 'droidsansmono'
+_p_CharSize = [20]
+_p_Font = 'droidsansmono'
+_p_OutFormat = []
 
 
 class ClockScreenDesc(screen.ScreenDesc):
     def __init__(self, screensection, screenname):
         debugprint(config.dbgscreenbuild, "Build Clock Screen")
         screen.ScreenDesc.__init__(self, screensection, screenname, ())  # no extra cmd keys
-        self.charcolor = screensection.get("CharColor", config.CharColor)
-        self.lineformat = screensection.get("OutFormat", "")
-        self.clockfont = screensection.get("Font", Font)
-        self.fontsize = screensection.get("CharSize", CharSize)
-        print self.fontsize
-        for i in range(len(self.fontsize), len(self.lineformat)):
-            print i
-            self.fontsize.append(self.fontsize[-1])
-            print self.fontsize
+        utilities.LocalizeParams(self, screensection)
+        for i in range(len(self.CharSize), len(self.OutFormat)):
+            self.CharSize.append(self.CharSize[-1])
 
     def __repr__(self):
-        return screen.ScreenDesc.__repr__(self) + "\r\n     ClockScreenDesc:" + str(self.charcolor) + ":" + str(
-            self.lineformat) + ":" + str(self.fontsize)
+        return screen.ScreenDesc.__repr__(self) + "\r\n     ClockScreenDesc:" + str(self.CharColor) + ":" + str(
+            self.OutFormat) + ":" + str(self.CharSize)
 
     def HandleScreen(self, newscr=True):
 
         # stop any watching for device stream
         config.toDaemon.put([])
 
-        config.screen.fill(wc(self.backcolor))
+        config.screen.fill(wc(self.BackgroundColor))
 
         def repaintClock(cycle):
             # param ignored for clock
@@ -44,14 +40,14 @@ class ClockScreenDesc(screen.ScreenDesc):
             h = 0
             l = []
 
-            for i in range(len(self.lineformat)):
+            for i in range(len(self.OutFormat)):
                 l.append(
-                    config.fonts.Font(int(self.fontsize[i]), self.clockfont).render(time.strftime(self.lineformat[i]),
-                                                                                    0, wc(self.charcolor)))
+                    config.fonts.Font(int(self.CharSize[i]), self.Font).render(time.strftime(self.OutFormat[i]),
+                                                                               0, wc(self.CharColor)))
                 h = h + l[i].get_height()
             s = (usefulheight - h)/(len(l) - 1)
 
-            config.screen.fill(wc(self.backcolor),
+            config.screen.fill(wc(self.BackgroundColor),
                                pygame.Rect(0, 0, config.screenwidth, config.screenheight - config.botborder))
             vert_off = config.topborder + s
             for i in range(len(l)):

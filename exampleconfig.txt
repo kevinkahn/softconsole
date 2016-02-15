@@ -1,4 +1,4 @@
-ISYaddr = "xxx.xxx.xxx.xxx"
+ISYaddr = "ip address"
 ISYuser = admin
 ISYpassword = admin
 HomeScreenName = BR
@@ -11,110 +11,109 @@ MainChain = BR, Pumpkin, Local, "Thermostat - Main", MyClock
 SecondaryChain = Portland, "Upper Level", "Bathroom"
 
 [Thermostat - Main]
-    typ = Thermostat
+    type = Thermostat
     label = "House", "Climate"
-    Bcolor = "orchid"
+    BackgroundColor = "orchid"
     CharColor = "black"
 
 [Pumpkin]
     label="Pumpkin","Ridge"
-    typ=Weather
+    type=Weather
     location=pws:KORNORTH18
-    wunderkey=<key>
+    WunderKey=47dc922e667b69a1
 
 [Local]
-    typ=Weather
+    type=Weather
     label="Council","Crest"
     location=pws:KORPORTL244
-    wunderkey=<key>
+    WunderKey=47dc922e667b69a1
 
 [Portland]
-    typ=Weather
+    type=Weather
     location=KPDX
-    wunderkey=<key>
+    WunderKey=47dc922e667b69a1
 
 [MyClock]
-    typ=Clock
+    type=Clock
     label="Time","and","Date"
-    Bcolor = maroon
+    BackgroundColor = black
     CharColor = white
-    CharSize = 43
+    CharSize = 50,38,38,30
     CmdKeyCol = blue
-    OutFormat = "%A","%b %d %Y","%I:%M:%S %p","Day:  %j","Week: %U"
+    OutFormat = "%-l:%M:%S%P","%A","%b %-d %Y","Day:  %-j","Week: %-U"
 
 [BR]
-    typ=Keys
+    type=Keypad
     label="Bedroom"
     [[Window Sconce]]
-        Kcolor=blue
+        KeyColor=blue
         label="Window","Bed"
-        OnUrl="test of special On"
     [[Inside Sconce]]
-        Kcolor=red
+        KeyColor=red
         label="Inside","Bed","Light"
     [[Bath Prep]]
-        Ktype=ONBLINKRUNTHEN
-        Kcolor=green
+        type=ONBLINKRUNTHEN
+        KeyColor=green
         label="Setup","Bathroom"
-        Krunthen="Prep Bath"
+        KeyRunThenName ="Prep Bath"
     [[BR Ambient]]
-        Kcolor=blue
+        KeyColor=blue
     [[Pucks]]
     [[Art Wall]]
     [[Night Light]]
     [[Light Up]]
         label="Emergency","Lights"
-        Ktype=ONBLINKRUNTHEN
-        Kcolor=red
-        Krunthen="LightUp"
+        type=ONBLINKRUNTHEN
+        KeyColor=red
+        KeyRunThenName="LightUp"
 
 [Upper Level]
-    typ=Keys
+    type=Keypad
     label="Other","Upper","Level"
     [[Office Ceiling]]
-        Kcolor=purple
+        KeyColor=purple
         label="Office"
         screentype=keys
     [[Changing Room]]
-        Kcolor=khaki
+        KeyColor=khaki
         label="Closet"
     [[Back Closet]]
-        Kcolor=khaki
+        KeyColor=khaki
         label="Back Closet"
     [[Upper Hall]]
-        Kcolor=grey
+        KeyColor=grey
     [[Kitchen Path]]
-        sceneproxy="3B 92 51 3"
-        Kcolor=violet
+        SceneProxy="3B 92 51 3"
+        KeyColor=violet
         label="Kitchen","Path"
     [[Laundry Path]]
-        Kcolor=violet
+        KeyColor=violet
         label="Laundry","Path"
-        sceneproxy="3B 92 51 4"
+        SceneProxy="3B 92 51 4"
     [[Garage Door (Relay)]]
-        sceneproxy="3B 92 51 6"
+        SceneProxy="3B 92 51 6"
         label="Garage","Door"
-        Kcolor=red
+        KeyColor=red
 
 [Bathroom]
-    typ=Keys
+    type=Keypad
     [[Vanity]]
-        Kcolor=magenta
+        KeyColor=magenta
         label="Mirror Lights"
     [[Floor Heat]]
-        Kcolor=firebrick
+        KeyColor=firebrick
     [[Hall Downlight]]
         label="Linen","Closet"
-        Kcolor=coral
+        KeyColor=coral
     [[Shower Downlights]]
         label="Shower"
-        Kcolor=aqua
+        KeyColor=aqua
     [[Toe Kick]]
-        Kcolor=darkgoldenrod
+        KeyColor=darkgoldenrod
     [[Towel Heat]]
-        Kcolor=firebrick
+        KeyColor=firebrick
     [[Tub Downlight]]
         label="Tub"
-        Kcolor=azure
+        KeyColor=azure
     [[Toilet]]
-        Kcolor=brown
+        KeyColor=brown

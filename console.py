@@ -114,6 +114,23 @@ Loop here using screen type to choose renderer and names to fill in cmdtxt - ret
 config.CurrentScreen = config.HomeScreen
 prevscreen = None
 mainchainactive = True
+paramsdoc = open('params.txt', 'w')
+os.chmod('params.txt', 0o555)
+paramsdoc.write('Global Parameters:\n')
+for p in utilities.globdoc:
+    paramsdoc.write('    ' + p + ' type: ' + utilities.globdoc[p].__name__ + '\n')
+paramsdoc.write('Module Parameters:\n')
+for p in utilities.moddoc:
+    paramsdoc.write('    ' + p + '\n')
+    paramsdoc.write('        Local Parameters:\n')
+    for q in utilities.moddoc[p]['loc']:
+        paramsdoc.write('            ' + q + ' type: ' + utilities.moddoc[p]['loc'][q].__name__ + '\n')
+    paramsdoc.write('        Overrideable Globals:\n')
+    for q in utilities.moddoc[p]['ovrd']:
+        paramsdoc.write('            ' + q + '\n')
+paramsdoc.close()
+
+
 while 1:
     nextscreen = config.CurrentScreen.HandleScreen(prevscreen <> config.CurrentScreen)
     if isinstance(nextscreen, int):

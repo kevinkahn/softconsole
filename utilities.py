@@ -7,6 +7,8 @@ import fonts
 
 import config
 
+globdoc = {}
+moddoc = {}
 
 def interval_str(sec_elapsed):
     d = int(sec_elapsed/(60*60*24))
@@ -21,10 +23,12 @@ def normalize_label(l):
 
 
 def ParseParam(param):
+    print 'Global Parameters:'
     for p in param.__dict__:
         if '__' not in p:
             p2 = p.replace('_', '', 1) if p.startswith('_') else p
             config.__dict__[p2] = type(param.__dict__[p])(config.ParsedConfigFile.get(p2, param.__dict__[p]))
+            globdoc[p2] = type(param.__dict__[p])
             if not p.startswith('_'):
                 config.Logs.Log('Param: ' + p + ": " + str(config.__dict__[p2]))
 
@@ -70,20 +74,35 @@ def InitializeEnvironment():
     config.backlight.start(100)
 
 
-def LocalizeParams(inst, g, *args):
-    print g
-    print inst.__dict__
-    print inst.__class__.__dict__
-    print config.__dict__
+def LocalizeParams(inst, screensection, *args):
+    """
+    Merge screen specific parameter values into self.<var> entries for the screen
+    inst is the screen object (self), screensection is the Section of the config.txt file for this screen,
+        args are any global parameters (see globalparams.py) for which local overrides make sense and are used
+    after the call there will be self.xxx variables for all relevant paramters
+    by convention to create a local parameter with a default value define a variable of name _p_xxx to get an actual
+        variable self.xxx
+    :param inst:
+    :param screensection:
+    :param args:
+    :return:
+    """
+    moddict = sys.modules[inst.__class__.__module__].__dict__
+    moddoc[inst.__class__.__module__] = {'loc': {}, 'ovrd': []}
+    #    print 'Inst:',inst.__dict__
+    #    print 'Class:',inst.__class__.__dict__
+    #    print 'Module:',moddict
+    #    print 'config:',config.__dict__
+    lcllist = []
+    lclval = []
+    for p in moddict:
+        if p.startswith('_p_'):
+            lcllist.append(p.replace('_p_', '', 1))
+            lclval.append(moddict[p])
+            moddoc[inst.__class__.__module__]['loc'][lcllist[-1]] = (type(lclval[-1]))
     for p in args:
-        if p in config.__dict__:
-            v = config.__dict__[p]
-            t = type(config._dict__[p])
-            print ' in', p, v, t
-        elif p in g:
-            v = g[p]
-            t = type(g[p])
-            print 'out', p, v, t
-        else:
-            print "CODE ERROR"
-        inst.__dict__[p] = t(config.ParsedConfigFile.get(p, v))
+        lcllist.append(p)
+        lclval.append(config.__dict__[p])
+        moddoc[inst.__class__.__module__]['ovrd'].append(lcllist[-1])
+    for i in range(len(lcllist)):
+        inst.__dict__[lcllist[i]] = type(lclval[i])(screensection.get(lcllist[i], lclval[i]))

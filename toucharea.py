@@ -28,9 +28,13 @@ class ManualKeyDesc(TouchPoint):
         self.charcoloroff = charcoloroff
         self.State = True
         self.label = utilities.normalize_label(label)
-        self.KOnColor = config.DefaultKeyOnOutlineColor if KOn == '' else KOn
-        self.KOffColor = config.DefaultKeyOffOutlineColor if KOff == '' else KOff
+        self.KOnColor = config.KeyOnOutlineColor if KOn == '' else KOn
+        self.KOffColor = config.KeyOffOutlineColor if KOff == '' else KOff
 
+
+_p_SceneProxy = ''
+_p_KeyRunThenName = ''
+_p_type = 'ONOFF'
 
 class KeyDesc(ManualKeyDesc):
     # Describe a Key: name, background, keycharon, keycharoff, label(string tuple), type (ONOFF,ONBlink,OnOffRun,?),addr,OnU,OffU 
@@ -40,34 +44,39 @@ class KeyDesc(ManualKeyDesc):
         ManualKeyDesc.__init__(self, keyname,
                                keysection.get("label", keyname),
                                (0, 0), (0, 0),
-                               keysection.get("Kcolor", config.DefaultKeyColor),
-                               keysection.get("KOnColor", config.DefaultKeyOnOutlineColor),
-                               keysection.get("KOffColor", config.DefaultKeyOffOutlineColor))
-
-        self.typ = keysection.get("Ktype", "ONOFF")
-        rt = keysection.get("Krunthen", "")
-        self.Krunthen = config.ISY.ProgramsByName[rt] if rt <> "" else None
-        self.sceneproxy = keysection.get("sceneproxy", "")
+                               keysection.get("KeyColor", config.KeyColor),
+                               keysection.get("KOnColor", config.KeyOnOutlineColor),
+                               keysection.get("KOffColor", config.KeyOffOutlineColor))
+        utilities.LocalizeParams(self, keysection)
+        self.KeyRunThen = config.ISY.ProgramsByName[self.KeyRunThenName] if self.KeyRunThenName <> "" else None
         self.RealObj = None  # ISY Object corresponding to this key
         self.MonitorObj = None  # ISY Object monitored to reflect state in the key (generally a device within a Scene)
 
         # for ONOFF keys (and others later) map the real and monitored nodes in the ISY
         # map the key to a scene or device - prefer to map to a scene so check that first
         # Obj is the representation of the ISY Object itself, addr is the address of the ISY device/scene
-        if self.typ in ('ONOFF'):
+        if self.type in ('ONOFF'):
             if keyname in config.ISY.ScenesByName:
                 self.RealObj = config.ISY.ScenesByName[keyname]
-                if self.sceneproxy <> '':
+                if self.SceneProxy <> '':
                     # explicit proxy assigned
-                    if self.sceneproxy in config.ISY.NodesByAddr:
+                    if self.SceneProxy in config.ISY.NodesByAddr:
                         # address given
-                        self.MonitorObj = config.ISY.NodesByAddr[self.sceneproxy]
-                    elif self.sceneproxy in config.ISY.NodesByName:
-                        self.MonitorObj = config.ISY.NodesByName[self.sceneproxy]
+                        self.MonitorObj = config.ISY.NodesByAddr[self.SceneProxy]
+                    elif self.SceneProxy in config.ISY.NodesByName:
+                        self.MonitorObj = config.ISY.NodesByName[self.SceneProxy]
                     else:
                         config.Logs.Log('Bad explicit scene proxy:' + self.name, Warning)
                 else:
-                    self.MonitorObj = self.RealObj.members[0][1]
+                    for i in self.RealObj.members:
+                        device = i[1]
+                        if device.enabled:
+                            self.MonitorObj = device
+                            break
+                        else:
+                            config.Logs.Log('Skipping disabled device: ' + device.name, Warning)
+                    if self.MonitorObj is None:
+                        config.Logs.Log("No proxy for scene: " + keyname, Error)
                     debugprint(config.dbgscreenbuild, "Scene ", keyname, " default proxying with ",
                                self.MonitorObj.name)
             elif keyname in config.ISY.NodesByName:
@@ -76,9 +85,9 @@ class KeyDesc(ManualKeyDesc):
             else:
                 debugprint(config.dbgscreenbuild, "Screen", keyname, "unbound")
                 config.Logs.Log('Key Binding missing: ' + self.name, Warning)
-        elif self.typ in ("ONBLINKRUNTHEN"):
+        elif self.type in ("ONBLINKRUNTHEN"):
             self.State = False
-            if self.Krunthen is None:
+            if self.KeyRunThen is None:
                 debugprint(config.dbgscreenbuild, "Unbound program key: ", self.label)
                 config.Logs.Log("Missing Prog binding: " + self.name, Warning)
         else:
@@ -90,5 +99,5 @@ class KeyDesc(ManualKeyDesc):
         return "KeyDesc:" + self.name + "|ST:" + str(self.State) + "|Clr:" + str(self.backcolor) + "|OnC:" + str(
             self.charcoloron) + "|OffC:" \
                + str(self.charcoloroff) + "\n\r        |Lab:" + str(
-            self.label) + "|Typ:" + self.typ + "|Px:" + str(self.sceneproxy) + \
+            self.label) + "|Typ:" + self.type + "|Px:" + str(self.SceneProxy) + \
                "\n\r        |Ctr:" + str(self.Center) + "|Sz:" + str(self.Size)

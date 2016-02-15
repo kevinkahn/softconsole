@@ -1,0 +1,53 @@
+Global Parameters:
+    KeyOffOutlineColor type: str
+    MainChain type: list
+    ISYpassword type: str
+    CmdCharCol type: str
+    CmdKeyCol type: str
+    MultiTapTime type: int
+    HomeScreenName type: str
+    DimHomeScreenCoverName type: str
+    KeyOnOutlineColor type: str
+    KeyColor type: str
+    ISYaddr type: str
+    DimLevel type: int
+    HomeScreenTO type: int
+    BackgroundColor type: str
+    ISYuser type: str
+    CharColor type: str
+    SecondaryChain type: list
+    DimTO type: int
+    BrightLevel type: int
+    ExtraChain type: list
+Module Parameters:
+    screens.weatherscreen
+        Local Parameters:
+            location type: str
+            WunderKey type: str
+        Overrideable Globals:
+    toucharea
+        Local Parameters:
+            SceneProxy type: str
+            type type: str
+            KeyRunThenName type: str
+        Overrideable Globals:
+    screens.thermostatscreen
+        Local Parameters:
+        Overrideable Globals:
+            KeyColor
+            KeyOffOutlineColor
+            KeyOnOutlineColor
+    screens.keyscreen
+        Local Parameters:
+        Overrideable Globals:
+            CharColor
+            DimTO
+            BackgroundColor
+            CmdKeyCol
+            CmdCharCol
+    screens.clockscreen
+        Local Parameters:
+            Font type: str
+            OutFormat type: list
+            CharSize type: list
+        Overrideable Globals:

@@ -94,7 +94,7 @@ class DisplayScreen:
             pygame.time.set_timer(self.GOHOMEHIT.type, 0)  # in final quiet state so cancel gohome until a touch
         else:
             pygame.time.set_timer(self.MAXTIMEHIT.type,
-                                  self.AS.dimtimeout*1000)  # if not in final quiet state set dim timer
+                                  self.AS.DimTO*1000)  # if not in final quiet state set dim timer
 
         while True:
             rtn = (0, 0)
@@ -137,7 +137,7 @@ class DisplayScreen:
                 # on any touch reset return to home screen
                 pygame.time.set_timer(self.GOHOMEHIT.type, int(config.HomeScreenTO)*1000)
                 # on any touch restart dim timer and reset to bright if dim
-                pygame.time.set_timer(self.MAXTIMEHIT.type, self.AS.dimtimeout*1000)
+                pygame.time.set_timer(self.MAXTIMEHIT.type, self.AS.DimTO*1000)
                 dimscr = self.GoDim(False)
                 if dimscr is not None:
                     rtn = (WAITEXIT, config.HomeScreen)

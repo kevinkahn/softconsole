@@ -22,6 +22,7 @@ class Logs:
     def __init__(self, screen, dirnm):
         self.screen = screen
         self.logfontsize = 23
+        cwd = os.getcwd()
         os.chdir(dirnm)
         q = [k for k in os.listdir('.') if 'Console.log' in k]
         if "Console.log." + str(config.maxlog) in q:
@@ -32,6 +33,7 @@ class Logs:
         os.rename('Console.log', 'Console.log.1')
         self.disklogfile = open('Console.log', 'w')
         os.chmod('Console.log', 0o555)
+        os.chdir(cwd)
 
     def Log(self, entry, severity=Info, diskonly=False):
         """

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="PublishConfigData" autoUpload="Always" serverName="RPi1" promptOnLocalOverwrite="false">
+  <component name="PublishConfigData" autoUpload="Always" serverName="RPi1" promptOnLocalOverwrite="false" exclude=".svn;.cvs;.idea;.DS_Store;.git;.hg;*.pyc" autoUploadExternalChanges="true">
     <serverData>
       <paths name="RPi1">
         <serverdata>
@@ -8,6 +8,10 @@
             <mapping deploy="/home/pi/consolerem" local="$PROJECT_DIR$" web="/" />
             <mapping deploy="/home/pi/Console/config.txt" local="$PROJECT_DIR$/config.txt" web="/" />
           </mappings>
+          <excludedPaths>
+            <excludedPath path="*.pyc" />
+            <excludedPath local="true" path="*.pyc" />
+          </excludedPaths>
         </serverdata>
       </paths>
     </serverData>
