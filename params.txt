@@ -1,0 +1,76 @@
+Global Parameters:
+    CmdCharCol type: str
+    CmdKeyCol type: str
+    DimHomeScreenCoverName type: str
+    KeyColor type: str
+    KeyCharColorOff type: str
+    SecondaryChain type: list
+    ISYpassword type: str
+    MultiTapTime type: int
+    BrightLevel type: int
+    DimLevel type: int
+    MainChain type: list
+    KeyOnOutlineColor type: str
+    KeyOffOutlineColor type: str
+    HomeScreenName type: str
+    ISYaddr type: str
+    BackgroundColor type: str
+    KeyCharColorOn type: str
+    HomeScreenTO type: int
+    ISYuser type: str
+    CharColor type: str
+    ExtraChain type: list
+    DimTO type: int
+Module Parameters:
+    screens.weatherscreen
+        Local Parameters:
+            location type: str
+            WunderKey type: str
+        Overrideable Globals:
+            CharColor
+            CmdKeyCol
+            CmdCharCol
+            DimTO
+            BackgroundColor
+    keydesc
+        Local Parameters:
+            KeyRunThenName type: str
+            type type: str
+            SceneProxy type: str
+            label type: list
+        Overrideable Globals:
+            KeyOnOutlineColor
+            KeyColor
+            KeyCharColorOn
+            KeyOffOutlineColor
+            KeyCharColorOff
+    screens.thermostatscreen
+        Local Parameters:
+        Overrideable Globals:
+            CmdCharCol
+            CmdKeyCol
+            KeyOffOutlineColor
+            KeyOnOutlineColor
+            KeyColor
+            BackgroundColor
+            CharColor
+            DimTO
+    screens.keyscreen
+        Local Parameters:
+        Overrideable Globals:
+            CharColor
+            CmdKeyCol
+            CmdCharCol
+            DimTO
+            BackgroundColor
+    screens.clockscreen
+        Local Parameters:
+            Font type: str
+            OutFormat type: list
+            CharSize type: list
+        Overrideable Globals:
+            CharColor
+            CmdKeyCol
+            CmdCharCol
+            DimTO
+            BackgroundColor

@@ -86,8 +86,10 @@ def LocalizeParams(inst, screensection, *args):
     :param args:
     :return:
     """
+    global moddoc
     moddict = sys.modules[inst.__class__.__module__].__dict__
-    moddoc[inst.__class__.__module__] = {'loc': {}, 'ovrd': []}
+    if not inst.__class__.__module__ in moddoc:
+        moddoc[inst.__class__.__module__] = {'loc': {}, 'ovrd': set()}
     #    print 'Inst:',inst.__dict__
     #    print 'Class:',inst.__class__.__dict__
     #    print 'Module:',moddict
@@ -104,7 +106,7 @@ def LocalizeParams(inst, screensection, *args):
     for p in args:
         lcllist.append(p)
         lclval.append(config.__dict__[p])
-        moddoc[inst.__class__.__module__]['ovrd'].append(lcllist[-1])
+        moddoc[inst.__class__.__module__]['ovrd'].add(lcllist[-1])
     for i in range(len(lcllist)):
         if lcllist[i] == 'label':  # todo fix this hack
             t = screensection.get(lcllist[i], lclval[i])
