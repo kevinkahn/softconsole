@@ -96,12 +96,20 @@ def LocalizeParams(inst, screensection, *args):
     lclval = []
     for p in moddict:
         if p.startswith('_p_'):
-            lcllist.append(p.replace('_p_', '', 1))
-            lclval.append(moddict[p])
-            moddoc[inst.__class__.__module__]['loc'][lcllist[-1]] = (type(lclval[-1]))
+            nametoadd = p.replace('_p_', '', 1)
+            if nametoadd not in inst.__dict__:
+                lcllist.append(nametoadd)
+                lclval.append(moddict[p])
+                moddoc[inst.__class__.__module__]['loc'][lcllist[-1]] = (type(lclval[-1]))
     for p in args:
         lcllist.append(p)
         lclval.append(config.__dict__[p])
         moddoc[inst.__class__.__module__]['ovrd'].append(lcllist[-1])
     for i in range(len(lcllist)):
-        inst.__dict__[lcllist[i]] = type(lclval[i])(screensection.get(lcllist[i], lclval[i]))
+        if lcllist[i] == 'label':  # todo fix this hack
+            t = screensection.get(lcllist[i], lclval[i])
+            if isinstance(t, basestring):
+                t = [t, ]
+            inst.__dict__[lcllist[i]] = t
+        else:
+            inst.__dict__[lcllist[i]] = type(lclval[i])(screensection.get(lcllist[i], lclval[i]))

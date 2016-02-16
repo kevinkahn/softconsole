@@ -5,7 +5,7 @@ from configobj import Section
 import config
 import isy
 import screen
-import toucharea
+import keydesc
 from config import debugprint, WAITNORMALBUTTON, WAITNORMALBUTTONFAST, WAITISYCHANGE, WAITEXIT
 
 wc = webcolors.name_to_rgb
@@ -50,7 +50,7 @@ class KeyScreenDesc(screen.ScreenDesc):
         # Build the Key objects
         for keyname in screensection:
             if isinstance(screensection[keyname], Section):
-                NewKey = toucharea.KeyDesc(screensection[keyname], keyname)
+                NewKey = keydesc.KeyDesc(screensection[keyname], keyname)
                 self.keysbyord.append(NewKey)
 
         # Compute the positions and sizes for the Keys and store in the Key objects

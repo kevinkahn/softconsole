@@ -17,7 +17,8 @@ class ScreenDesc:
 
     def __init__(self, screensection, screenname, ExtraCmdButs):
         self.name = screenname
-        self.label = utilities.normalize_label(screensection.get("label", screenname))
+        self.label = utilities.normalize_label(
+            screensection.get("label", screenname))  # todo remove somehow? likely same inherited pkg issue _p_
         utilities.LocalizeParams(self, screensection, 'CharColor', 'DimTO', 'BackgroundColor', 'CmdKeyCol',
                                  'CmdCharCol')
 

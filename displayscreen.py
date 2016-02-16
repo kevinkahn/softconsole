@@ -35,8 +35,8 @@ class DisplayScreen:
         x = Key.Center[0] - Key.Size[0]/2
         y = Key.Center[1] - Key.Size[1]/2
 
-        HiColor = Key.KOnColor if Key.State else Key.KOffColor
-        pygame.draw.rect(screen, wc(Key.backcolor), ((x, y), Key.Size), 0)
+        HiColor = Key.KeyOnOutlineColor if Key.State else Key.KeyOffOutlineColor
+        pygame.draw.rect(screen, wc(Key.KeyColor), ((x, y), Key.Size), 0)
         pygame.draw.rect(screen, wc(HiColor), ((x + 3, y + 3), buttonsmaller), 3)
         s = pygame.Surface(Key.Size)
         s.set_alpha(150)
@@ -130,7 +130,7 @@ class DisplayScreen:
                         pygame.time.delay(config.MultiTapTime)
                     else:
                         continue
-                if tapcount > 3:
+                if tapcount > 2:
                     self.GoDim(False)
                     rtn = (WAITEXIT, tapcount)
                     break

@@ -20,5 +20,7 @@ _ExtraChain = []  # defaults to empty, unused screens
 
 # Defaults for Keys
 KeyColor = "aqua"
+KeyCharColorOn = "white"
+KeyCharColorOff = "black"
 KeyOnOutlineColor = "white"
 KeyOffOutlineColor = "black"

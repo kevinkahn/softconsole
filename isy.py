@@ -1,4 +1,5 @@
 import xmltodict
+import collections
 import config
 from config import ISYdebug
 from logsupport import Info, Warning, Error
@@ -45,13 +46,22 @@ class Folder(TreeItem):
 
 
 class Node(Folder, OnOffItem):
-    def __init__(self, flag, name, addr, parenttyp, parentaddr, enabled):
+    def __init__(self, flag, name, addr, parenttyp, parentaddr, enabled, props):
         Folder.__init__(self, flag, name, addr, parenttyp, parentaddr)
         self.pnode = None  # for things like KPLs
         self.enabled = enabled == "true"
+        self.hasstatus = False
+        # props is either an OrderedDict(@id:ST,@value:val, . . .) or a list of such
+        if isinstance(props, collections.OrderedDict):
+            props = [props]  # make it a list so below always works
+        for item in props:
+            # print item['@id'],':'+item['@value']+':', type(item['@value']) todo remove
+            if item['@id'] == 'ST':
+                if item['@value'] <> ' ':
+                    self.hasstatus = True
         # no use for nodetype now
         # device class -energy management
-        # wattage, dcPeriod, status dict (property - so a list of statuses
+                    # wattage, dcPeriod
 
     def __repr__(self):
         return 'Node: ' + Folder._repr__(self) + 'primary: ' + self.pnode
@@ -157,7 +167,7 @@ class ISY:
         fixlist = []
         for node in configdict['node']:
             n = Node(node['@flag'], node['name'], node['address'], int(node['parent']['@type']),
-                     node['parent']['#text'], node['enabled'])
+                     node['parent']['#text'], node['enabled'], node['property'])
             fixlist.append((n, node['pnode']))
             self.NodesByAddr[n.address] = n
         self.LinkChildrenParents(self.NodesByAddr, self.NodesByName, self.FoldersByAddr, self.NodesByAddr)
