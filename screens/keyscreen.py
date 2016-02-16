@@ -130,7 +130,7 @@ class KeyScreenDesc(screen.ScreenDesc):
                 elif K.type == "ONBLINKRUNTHEN":
                     # force double tap for programs for safety - too easy to accidentally single tap with touchscreen
                     if choice[0] == WAITNORMALBUTTONFAST:
-                        K.Krunthen.runThen()
+                        K.KeyRunThen.runThen()
                         blinkproc = functools.partial(BlinkKey, config.screen, K)
                         blinktime = .5
                         blinks = 8  # even number leaves final state of key same as initial state
