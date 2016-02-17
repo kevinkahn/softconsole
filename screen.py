@@ -17,21 +17,18 @@ class ScreenDesc:
 
     def __init__(self, screensection, screenname, ExtraCmdButs):
         self.name = screenname
-        self.label = utilities.normalize_label(
-            screensection.get("label", screenname))  # todo remove somehow? likely same inherited pkg issue _p_
         utilities.LocalizeParams(self, screensection, 'CharColor', 'DimTO', 'BackgroundColor', 'CmdKeyCol',
-                                 'CmdCharCol')
-
+                                 'CmdCharCol', label=[screenname])
         self.keysbyord = []
 
         cbutwidth = (config.screenwidth - 2*config.horizborder)/(2 + len(ExtraCmdButs))
         cvertcenter = config.screenheight - config.botborder/2
         cbutheight = config.botborder - config.cmdvertspace*2
-        self.PrevScreenKey = toucharea.ManualKeyDesc('**prev**', '**prev**',
+        self.PrevScreenKey = toucharea.ManualKeyDesc('**prev**', ['**prev**'],
                                                      (config.horizborder + .5*cbutwidth, cvertcenter),
                                                      (cbutwidth, cbutheight),
                                                      self.CmdKeyCol, self.CmdCharCol, self.CmdCharCol)
-        self.NextScreenKey = toucharea.ManualKeyDesc('**next**', '**next**',
+        self.NextScreenKey = toucharea.ManualKeyDesc('**next**', ['**next**'],
                                                      (config.horizborder + (1 + len(ExtraCmdButs) + .5)*cbutwidth,
                                                       cvertcenter), (cbutwidth, cbutheight),
                                                      self.CmdKeyCol, self.CmdCharCol, self.CmdCharCol)

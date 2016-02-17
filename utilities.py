@@ -18,10 +18,6 @@ def interval_str(sec_elapsed):
     return "{} days {:>02d}hrs {:>02d}mn {:>02d}sec".format(d, h, m, s)
 
 
-def normalize_label(l):
-    return l if not isinstance(l, basestring) else [l]
-
-
 def ParseParam(param):
     for p in param.__dict__:
         if '__' not in p:
@@ -73,45 +69,33 @@ def InitializeEnvironment():
     config.backlight.start(100)
 
 
-def LocalizeParams(inst, screensection, *args):
+def LocalizeParams(inst, configsection, *args, **kwargs):
     """
-    Merge screen specific parameter values into self.<var> entries for the screen
-    inst is the screen object (self), screensection is the Section of the config.txt file for this screen,
+    Merge screen specific parameter values into self.<var> entries for the class
+    inst is the class object (self), configsection is the Section of the config.txt file for this object,
         args are any global parameters (see globalparams.py) for which local overrides make sense and are used
     after the call there will be self.xxx variables for all relevant paramters
-    by convention to create a local parameter with a default value define a variable of name _p_xxx to get an actual
-        variable self.xxx
+    kwargs are locally defined parameters for this object and a default value which also gets added as self.xxx and
+        a value is taken from the config section if present
     :param inst:
     :param screensection:
     :param args:
+    :param kwargs:
     :return:
     """
     global moddoc
-    moddict = sys.modules[inst.__class__.__module__].__dict__
-    if not inst.__class__.__module__ in moddoc:
-        moddoc[inst.__class__.__module__] = {'loc': {}, 'ovrd': set()}
-    #    print 'Inst:',inst.__dict__
-    #    print 'Class:',inst.__class__.__dict__
-    #    print 'Module:',moddict
-    #    print 'config:',config.__dict__
+    if not inst.__class__.__name__ in moddoc:
+        moddoc[inst.__class__.__name__] = {'loc': {}, 'ovrd': set()}
     lcllist = []
     lclval = []
-    for p in moddict:
-        if p.startswith('_p_'):
-            nametoadd = p.replace('_p_', '', 1)
-            if nametoadd not in inst.__dict__:
-                lcllist.append(nametoadd)
-                lclval.append(moddict[p])
-                moddoc[inst.__class__.__module__]['loc'][lcllist[-1]] = (type(lclval[-1]))
-    for p in args:
-        lcllist.append(p)
-        lclval.append(config.__dict__[p])
-        moddoc[inst.__class__.__module__]['ovrd'].add(lcllist[-1])
+    for nametoadd in kwargs:
+        if nametoadd not in inst.__dict__:
+            lcllist.append(nametoadd)
+            lclval.append(kwargs[nametoadd])
+            moddoc[inst.__class__.__name__]['loc'][lcllist[-1]] = (type(lclval[-1]))
+    for nametoadd in args:
+        lcllist.append(nametoadd)
+        lclval.append(config.__dict__[nametoadd])
+        moddoc[inst.__class__.__name__]['ovrd'].add(lcllist[-1])
     for i in range(len(lcllist)):
-        if lcllist[i] == 'label':  # todo fix this hack
-            t = screensection.get(lcllist[i], lclval[i])
-            if isinstance(t, basestring):
-                t = [t, ]
-            inst.__dict__[lcllist[i]] = t
-        else:
-            inst.__dict__[lcllist[i]] = type(lclval[i])(screensection.get(lcllist[i], lclval[i]))
+        inst.__dict__[lcllist[i]] = type(lclval[i])(configsection.get(lcllist[i], lclval[i]))

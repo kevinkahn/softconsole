@@ -22,16 +22,6 @@ Global Parameters:
     ExtraChain type: list
     DimTO type: int
 Module Parameters:
-    screens.weatherscreen
-        Local Parameters:
-            location type: str
-            WunderKey type: str
-        Overrideable Globals:
-            CharColor
-            CmdKeyCol
-            CmdCharCol
-            DimTO
-            BackgroundColor
     keydesc
         Local Parameters:
             KeyRunThenName type: str
@@ -68,6 +58,16 @@ Module Parameters:
             Font type: str
             OutFormat type: list
             CharSize type: list
+        Overrideable Globals:
+            CharColor
+            CmdKeyCol
+            CmdCharCol
+            DimTO
+            BackgroundColor
+    screens.weatherscreen
+        Local Parameters:
+            location type: str
+            WunderKey type: str
         Overrideable Globals:
             CharColor
             CmdKeyCol

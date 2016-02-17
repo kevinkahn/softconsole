@@ -27,21 +27,23 @@ class ManualKeyDesc(TouchPoint):
         self.KeyCharColorOn = charcoloron
         self.KeyCharColorOff = charcoloroff
         self.State = True
-        self.label = utilities.normalize_label(label)
+        self.label = label
         self.KeyOnOutlineColor = config.KeyOnOutlineColor if KOn == '' else KOn
         self.KeyOffOutlineColor = config.KeyOffOutlineColor if KOff == '' else KOff
 
     def dosectioninit(self, keysection, keyname):
         TouchPoint.__init__(self, (0, 0), (0, 0))
         utilities.LocalizeParams(self, keysection, 'KeyColor', 'KeyOffOutlineColor', 'KeyOnOutlineColor',
-                                 'KeyCharColorOn', 'KeyCharColorOff')
+                                 'KeyCharColorOn', 'KeyCharColorOff', label=[keyname])
         self.name = keyname
         self.State = True
-        self.label = utilities.normalize_label(self.label if self.label <> [] else keyname)
+
 
     def __init__(self, *args, **kwargs):
 
         if len(args) == 2:
+            # signature: ManualKeyDesc(keysection, keyname)
+            # initialize by reading config file
             self.dosectioninit(*args)
         else:
             # signature: ManualKeyDesc(keyname, label, center, size, bcolor, charcoloron, charcoloroff, KOn='', KOff='')

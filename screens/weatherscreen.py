@@ -14,8 +14,6 @@ import logsupport
 import functools
 import utilities
 
-_p_WunderKey = ''
-_p_location = ''
 
 fsizes = ((20, False, False), (30, True, False), (45, True, True))
 
@@ -81,7 +79,7 @@ class WeatherScreenDesc(screen.ScreenDesc):
         debugprint(config.dbgscreenbuild, "New WeatherScreenDesc ", screenname)
 
         screen.ScreenDesc.__init__(self, screensection, screenname, ('which',))
-        utilities.LocalizeParams(self, screensection)
+        utilities.LocalizeParams(self, screensection, WunderKey='', location='')
         self.lastwebreq = 0  # time of last call out to wunderground
         self.url = 'http://api.wunderground.com/api/' + self.WunderKey + '/geolookup/conditions/forecast/astronomy/q/' + self.location + '.json'
         self.parsed_json = {}

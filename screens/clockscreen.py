@@ -10,16 +10,12 @@ from config import debugprint, WAITEXIT
 import screen
 import utilities
 
-_p_CharSize = [20]
-_p_Font = 'droidsansmono'
-_p_OutFormat = []
-
 
 class ClockScreenDesc(screen.ScreenDesc):
     def __init__(self, screensection, screenname):
         debugprint(config.dbgscreenbuild, "Build Clock Screen")
         screen.ScreenDesc.__init__(self, screensection, screenname, ())  # no extra cmd keys
-        utilities.LocalizeParams(self, screensection)
+        utilities.LocalizeParams(self, screensection, CharSize=[20], Font='droidsansmono', OutFormat=[])
         for i in range(len(self.CharSize), len(self.OutFormat)):
             self.CharSize.append(self.CharSize[-1])
 

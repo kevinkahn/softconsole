@@ -4,12 +4,6 @@ import toucharea
 from config import debugprint
 from logsupport import Info, Warning, Error
 
-_p_SceneProxy = ''
-_p_KeyRunThenName = ''
-_p_type = 'ONOFF'
-
-_p_label = []  # actually used in ManualKeyDesc todo anyway to localize this down a level?
-
 
 class KeyDesc(toucharea.ManualKeyDesc):
     # Describe a Key: name, background, keycharon, keycharoff, label(string tuple), type (ONOFF,ONBlink,OnOffRun,?),addr,OnU,OffU
@@ -17,7 +11,7 @@ class KeyDesc(toucharea.ManualKeyDesc):
     def __init__(self, keysection, keyname):
         debugprint(config.dbgscreenbuild, "             New Key Desc ", keyname)
         toucharea.ManualKeyDesc.__init__(self, keysection, keyname)
-        utilities.LocalizeParams(self, keysection)
+        utilities.LocalizeParams(self, keysection, SceneProxy='', KeyRunThenName='', type='ONOFF')
         self.KeyRunThen = config.ISY.ProgramsByName[self.KeyRunThenName] if self.KeyRunThenName <> "" else None
         self.RealObj = None  # ISY Object corresponding to this key
         self.MonitorObj = None  # ISY Object monitored to reflect state in the key (generally a device within a Scene)

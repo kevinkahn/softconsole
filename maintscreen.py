@@ -37,7 +37,7 @@ class MaintScreenDesc:
         self.keysbyord = []
         t = config.topborder + 100
         for i in range(len(maintkeys)):
-            self.menukeysbyord.append(toucharea.ManualKeyDesc(maintkeys[i], mainttitles[i], (config.screenwidth/2, t),
+            self.menukeysbyord.append(toucharea.ManualKeyDesc(maintkeys[i], [mainttitles[i]], (config.screenwidth/2, t),
                                                               (config.screenwidth - 2*config.horizborder, 60), 'gold',
                                                               'black', 'black', 'black', 'black'))
             t += 65

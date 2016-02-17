@@ -14,6 +14,13 @@
           </excludedPaths>
         </serverdata>
       </paths>
+      <paths name="RPiStable">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/consolestable" local="$PROJECT_DIR$" web="/" />
+          </mappings>
+        </serverdata>
+      </paths>
     </serverData>
     <option name="myAutoUpload" value="ALWAYS" />
   </component>

@@ -51,10 +51,10 @@ class ThermostatScreenDesc(screen.ScreenDesc):
         self.ModeButPos = self.AdjButTops + 85*dispratio
 
         bsize = (100*dispratio, 50*dispratio)
-        self.keysbyord.append(toucharea.ManualKeyDesc("Mode", "Mode", (config.screenwidth/4, self.ModeButPos),
+        self.keysbyord.append(toucharea.ManualKeyDesc("Mode", ["Mode"], (config.screenwidth/4, self.ModeButPos),
                                                       bsize, self.KeyColor, self.CharColor, self.CharColor,
                                                       KOn=config.KeyOffOutlineColor))
-        self.keysbyord.append(toucharea.ManualKeyDesc("Fan", "Fan", (3*config.screenwidth/4, self.ModeButPos),
+        self.keysbyord.append(toucharea.ManualKeyDesc("Fan", ["Fan"], (3*config.screenwidth/4, self.ModeButPos),
                                                       bsize, self.KeyColor, self.CharColor, self.CharColor,
                                                       KOn=config.KeyOffOutlineColor))
         self.ModesPos = self.ModeButPos + bsize[1]/2 + 5*dispratio
