@@ -12,6 +12,7 @@ wc = webcolors.name_to_rgb
 from logsupport import Error
 import time
 import sys
+from utilities import scale
 
 
 class MaintScreenDesc:
@@ -35,12 +36,13 @@ class MaintScreenDesc:
         'Show Log', 'Exit Maintenance', 'Shutdown Console', 'Restart Console', 'Shutdown Pi', 'Reboot Pi')
         self.menukeysbyord = []
         self.keysbyord = []
-        t = config.topborder + 100
+        t = config.topborder + scale(100)  # todo pixel
         for i in range(len(maintkeys)):
             self.menukeysbyord.append(toucharea.ManualKeyDesc(maintkeys[i], [mainttitles[i]], (config.screenwidth/2, t),
-                                                              (config.screenwidth - 2*config.horizborder, 60), 'gold',
-                                                              'black', 'black', 'black', 'black'))
-            t += 65
+                                                              (config.screenwidth - 2*config.horizborder, scale(60)),
+                                                              'gold',
+                                                              'black', 'black', 'black', 'black'))  # todo pixel
+            t += scale(65)  # todo pixel
 
         self.pagekeysbyord = [toucharea.TouchPoint((config.screenwidth/2, config.screenheight/2),
                                                    (config.screenwidth, config.screenheight))]
@@ -51,10 +53,11 @@ class MaintScreenDesc:
         r = config.fonts.Font(40, '', True, True).render("Console Maintenance", 0, wc(self.CharColor))
         rl = (config.screenwidth - r.get_width())/2
         config.screen.blit(r, (rl, config.topborder))
-        r = config.fonts.Font(25, '', True, True).render("Up: " + interval_str(time.time() - config.starttime), 0,
-                                                         wc(self.CharColor))
+        r = config.fonts.Font(scale(25), '', True, True).render("Up: " + interval_str(time.time() - config.starttime),
+                                                                0,
+                                                                wc(self.CharColor))  # todo pixel
         rl = (config.screenwidth - r.get_width())/2
-        config.screen.blit(r, (rl, config.topborder + 30))
+        config.screen.blit(r, (rl, config.topborder + scale(30)))  # todo pixel
         for K in self.keysbyord:
             config.DS.draw_button(config.screen, K)
         pygame.display.update()

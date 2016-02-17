@@ -25,7 +25,6 @@ ISYdebug = False
 dbgscreenbuild = False
 dbgMain = False
 dbgdaemon = False
-
 def debugprint(flag, *args):
     if flag:
         for arg in args:

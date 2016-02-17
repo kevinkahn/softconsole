@@ -22,7 +22,7 @@ class Logs:
 
     def __init__(self, screen, dirnm):
         self.screen = screen
-        self.logfontsize = 23
+        self.logfontsize = 23  # todo pixel
         cwd = os.getcwd()
         os.chdir(dirnm)
         q = [k for k in os.listdir('.') if 'Console.log' in k]
@@ -65,13 +65,14 @@ class Logs:
         while len(ltext) > 1:
             rtext = []
             while 1:
-                if config.fonts.Font(self.logfontsize).size(''.join(ltext))[0] < config.screenwidth - 10:
+                if config.fonts.Font(self.logfontsize).size(''.join(ltext))[
+                    0] < config.screenwidth - 10:  #todo pixels literal
                     break
                 else:
                     rtext.insert(0, ltext[-1])
                     del ltext[-1]
             l = config.fonts.Font(self.logfontsize).render(''.join(ltext), False, wc(clr))
-            self.screen.blit(l, (10, pos))
+            self.screen.blit(l, (10, pos))  #todo pixel
             ltext = rtext
             ltext.insert(0, "    ")
             pos = pos + config.fonts.Font(self.logfontsize).get_linesize()

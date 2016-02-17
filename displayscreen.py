@@ -7,6 +7,7 @@ import config
 import toucharea
 from config import debugprint, WAITNORMALBUTTON, WAITNORMALBUTTONFAST, WAITEXIT, WAITISYCHANGE, WAITEXTRACONTROLBUTTON
 from logsupport import Warning
+from utilities import scale
 
 wc = webcolors.name_to_rgb
 
@@ -18,6 +19,7 @@ class DisplayScreen:
 
         print "Screensize: ", config.screenwidth, config.screenheight
         config.Logs.Log("Screensize: " + str(config.screenwidth) + " x " + str(config.screenheight))
+        config.Logs.Log("Scaling ratio: " + str(config.dispratio))
 
         # define user events
         self.MAXTIMEHIT = pygame.event.Event(pygame.USEREVENT)
@@ -27,17 +29,18 @@ class DisplayScreen:
         self.presscount = 0
         self.AS = None
         self.BrightenToHome = False
-        self.ButtonFontSizes = (31, 28, 25, 22, 20, 18, 16)  # Scale?
+        self.ButtonFontSizes = tuple(scale(i) for i in (31, 28, 25, 22, 20, 18, 16))  # todo pixel
 
     def draw_button(self, screen, Key, shrink=True, firstfont=0):
         lines = len(Key.label)
-        buttonsmaller = (Key.Size[0] - 6, Key.Size[1] - 6)
+        buttonsmaller = (Key.Size[0] - scale(6), Key.Size[1] - scale(6))  # todo pixel
         x = Key.Center[0] - Key.Size[0]/2
         y = Key.Center[1] - Key.Size[1]/2
 
         HiColor = Key.KeyOnOutlineColor if Key.State else Key.KeyOffOutlineColor
         pygame.draw.rect(screen, wc(Key.KeyColor), ((x, y), Key.Size), 0)
-        pygame.draw.rect(screen, wc(HiColor), ((x + 3, y + 3), buttonsmaller), 3)
+        bord = scale(3)  # todo pixel
+        pygame.draw.rect(screen, wc(HiColor), ((x + bord, y + bord), buttonsmaller), bord)
         s = pygame.Surface(Key.Size)
         s.set_alpha(150)
         s.fill(wc("white"))
@@ -45,7 +48,7 @@ class DisplayScreen:
         if not Key.State:
             screen.blit(s, (x, y))
         # compute writeable area for text
-        textarea = (buttonsmaller[0] - 2, buttonsmaller[1] - 2)
+        textarea = (buttonsmaller[0] - 2, buttonsmaller[1] - 2)  #todo pixel not scaled
         fontchoice = self.ButtonFontSizes[firstfont]
         if shrink:
             for l in range(lines):
@@ -55,7 +58,6 @@ class DisplayScreen:
                         fontchoice = self.ButtonFontSizes[i + 1]
 
         for i in range(lines):
-            # ren = pygame.transform.rotate(dispscreen.MyFont.render(txt[i], 0, HiColor), 0)
             ren = config.fonts.Font(fontchoice).render(Key.label[i], 0, wc(HiColor))
             vert_off = ((i + 1)*Key.Size[1]/(1 + lines)) - ren.get_height()/2
             horiz_off = (Key.Size[0] - ren.get_width())/2

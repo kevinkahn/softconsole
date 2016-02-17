@@ -4,6 +4,7 @@ import time
 import RPi.GPIO as GPIO
 import pygame
 import fonts
+from logsupport import Info, Warning, Error
 
 import config
 
@@ -16,6 +17,10 @@ def interval_str(sec_elapsed):
     m = int((sec_elapsed%(60*60))/60)
     s = int(sec_elapsed%60)
     return "{} days {:>02d}hrs {:>02d}mn {:>02d}sec".format(d, h, m, s)
+
+
+def scale(p):
+    return int(round(float(p)*float(config.dispratio)))
 
 
 def ParseParam(param):
@@ -57,6 +62,25 @@ def InitializeEnvironment():
     pygame.display.init()
     config.fonts = fonts.Fonts()
     config.screenwidth, config.screenheight = (pygame.display.Info().current_w, pygame.display.Info().current_h)
+
+    # config.screenwidth =280 #todo 2 lines for test only
+    # config.screenheight = 320
+
+    """
+    Scale screen constants
+    """
+    config.dispratio = float(config.screenwidth)/float(config.basewidth)
+    config.horizborder = scale(config.horizborder)
+    config.topborder = scale(config.topborder)
+    config.botborder = scale(config.botborder)
+    config.cmdvertspace = scale(config.cmdvertspace)
+
+    print config.dispratio
+    print config.horizborder
+    print config.topborder
+    print config.botborder
+    print config.cmdvertspace
+
     config.screen = pygame.display.set_mode((config.screenwidth, config.screenheight), pygame.FULLSCREEN)
     config.screen.fill((0, 0, 0))  # clear screen
     pygame.display.update()
@@ -93,9 +117,15 @@ def LocalizeParams(inst, configsection, *args, **kwargs):
             lcllist.append(nametoadd)
             lclval.append(kwargs[nametoadd])
             moddoc[inst.__class__.__name__]['loc'][lcllist[-1]] = (type(lclval[-1]))
+        else:
+            print 'why dup', nametoadd
     for nametoadd in args:
-        lcllist.append(nametoadd)
-        lclval.append(config.__dict__[nametoadd])
-        moddoc[inst.__class__.__name__]['ovrd'].add(lcllist[-1])
+        if nametoadd in config.__dict__:
+            lcllist.append(nametoadd)
+            lclval.append(config.__dict__[nametoadd])
+            moddoc[inst.__class__.__name__]['ovrd'].add(lcllist[-1])
+        else:
+            config.Logs.Log("Obj " + inst.__class__.__name__ + ' attempted import of non-existent global ' + nametoadd,
+                            Error)
     for i in range(len(lcllist)):
         inst.__dict__[lcllist[i]] = type(lclval[i])(configsection.get(lcllist[i], lclval[i]))
