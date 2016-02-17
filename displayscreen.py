@@ -7,7 +7,7 @@ import config
 import toucharea
 from config import debugprint, WAITNORMALBUTTON, WAITNORMALBUTTONFAST, WAITEXIT, WAITISYCHANGE, WAITEXTRACONTROLBUTTON
 from logsupport import Warning
-from utilities import scale
+from utilities import scaleW, scaleH
 
 wc = webcolors.name_to_rgb
 
@@ -19,7 +19,8 @@ class DisplayScreen:
 
         print "Screensize: ", config.screenwidth, config.screenheight
         config.Logs.Log("Screensize: " + str(config.screenwidth) + " x " + str(config.screenheight))
-        config.Logs.Log("Scaling ratio: " + str(config.dispratio))
+        config.Logs.Log(
+            "Scaling ratio: " + "{0:.2f}".format(config.dispratioW) + ':' + "{0:.2f}".format(config.dispratioH))
 
         # define user events
         self.MAXTIMEHIT = pygame.event.Event(pygame.USEREVENT)
@@ -29,18 +30,18 @@ class DisplayScreen:
         self.presscount = 0
         self.AS = None
         self.BrightenToHome = False
-        self.ButtonFontSizes = tuple(scale(i) for i in (31, 28, 25, 22, 20, 18, 16))  # todo pixel
+        self.ButtonFontSizes = tuple(scaleH(i) for i in (31, 28, 25, 22, 20, 18, 16))  # todo pixel
 
     def draw_button(self, screen, Key, shrink=True, firstfont=0):
         lines = len(Key.label)
-        buttonsmaller = (Key.Size[0] - scale(6), Key.Size[1] - scale(6))  # todo pixel
+        buttonsmaller = (Key.Size[0] - scaleW(6), Key.Size[1] - scaleH(6))  # todo pixel
         x = Key.Center[0] - Key.Size[0]/2
         y = Key.Center[1] - Key.Size[1]/2
 
         HiColor = Key.KeyOnOutlineColor if Key.State else Key.KeyOffOutlineColor
         pygame.draw.rect(screen, wc(Key.KeyColor), ((x, y), Key.Size), 0)
-        bord = scale(3)  # todo pixel
-        pygame.draw.rect(screen, wc(HiColor), ((x + bord, y + bord), buttonsmaller), bord)
+        bord = 3  # todo pixel - probably should use same scaling in both dimensions since this is a line width
+        pygame.draw.rect(screen, wc(HiColor), ((x + scaleW(bord), y + scaleH(bord)), buttonsmaller), bord)
         s = pygame.Surface(Key.Size)
         s.set_alpha(150)
         s.fill(wc("white"))

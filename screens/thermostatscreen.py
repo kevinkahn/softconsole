@@ -4,12 +4,12 @@ from pygame import gfxdraw
 
 wc = webcolors.name_to_rgb
 import config
-from config import debugprint, WAITEXIT, WAITNORMALBUTTON, WAITNORMALBUTTONFAST, WAITISYCHANGE, dispratio
+from config import debugprint, WAITEXIT, WAITNORMALBUTTON, WAITNORMALBUTTONFAST, WAITISYCHANGE, dispratioH, dispratioW
 import screen
 import xmltodict
 import toucharea
 import utilities
-from utilities import scale
+from utilities import scaleW, scaleH
 
 
 def trifromtop(h, v, n, size, c, invert):
@@ -25,7 +25,7 @@ class ThermostatScreenDesc(screen.ScreenDesc):  # todo not scaling well
         screen.ScreenDesc.__init__(self, screensection, screenname, ())
         utilities.LocalizeParams(self, screensection, 'KeyColor', 'KeyOffOutlineColor', 'KeyOnOutlineColor')
         self.info = {}
-        self.fsize = [scale(i) for i in (30, 50, 80, 160)]  # todo pixel
+        self.fsize = [scaleH(i) for i in (30, 50, 80, 160)]  # todo pixel
 
         if screenname in config.ISY.NodesByName:
             self.RealObj = config.ISY.NodesByName[screenname]
@@ -37,29 +37,29 @@ class ThermostatScreenDesc(screen.ScreenDesc):  # todo not scaling well
                                                                 wc(self.CharColor))
         self.TitlePos = ((config.screenwidth - self.TitleRen.get_width())/2, config.topborder)
         self.TempPos = config.topborder + self.TitleRen.get_height()
-        self.StatePos = self.TempPos + config.fonts.Font(self.fsize[3]).get_linesize() - 20
-        self.SPPos = self.StatePos + 25
-        self.AdjButSurf = pygame.Surface((320, 40))
-        self.AdjButTops = self.SPPos + config.fonts.Font(self.fsize[2]).get_linesize() - 5
+        self.StatePos = self.TempPos + config.fonts.Font(self.fsize[3]).get_linesize() - scaleH(20)  # todo pixel
+        self.SPPos = self.StatePos + scaleH(25)
+        self.AdjButSurf = pygame.Surface((config.screenwidth, scaleH(40)))
+        self.AdjButTops = self.SPPos + config.fonts.Font(self.fsize[2]).get_linesize() - scaleH(5)
         centerspacing = config.screenwidth/5
         self.AdjButSurf.fill(wc(self.BackgroundColor))
-        arrowsize = 40*dispratio
+        arrowsize = scaleH(40)  # pixel
 
         for i in range(4):
             gfxdraw.filled_trigon(self.AdjButSurf, *trifromtop(centerspacing, arrowsize/2, i + 1, arrowsize,
                                                                wc(("red", "blue", "red", "blue")[i]), i%2 <> 0))
             self.keysbyord.append(toucharea.TouchPoint((centerspacing*(i + 1), self.AdjButTops + arrowsize/2),
                                                        (arrowsize*1.2, arrowsize*1.2)))
-        self.ModeButPos = self.AdjButTops + 85*dispratio
+        self.ModeButPos = self.AdjButTops + scaleH(85)  # pixel
 
-        bsize = (100*dispratio, 50*dispratio)
+        bsize = (scaleW(100), scaleH(50))  # pixel
         self.keysbyord.append(toucharea.ManualKeyDesc("Mode", ["Mode"], (config.screenwidth/4, self.ModeButPos),
                                                       bsize, self.KeyColor, self.CharColor, self.CharColor,
                                                       KOn=config.KeyOffOutlineColor))
         self.keysbyord.append(toucharea.ManualKeyDesc("Fan", ["Fan"], (3*config.screenwidth/4, self.ModeButPos),
                                                       bsize, self.KeyColor, self.CharColor, self.CharColor,
                                                       KOn=config.KeyOffOutlineColor))
-        self.ModesPos = self.ModeButPos + bsize[1]/2 + 5*dispratio
+        self.ModesPos = self.ModeButPos + bsize[1]/2 + scaleH(5)
 
     def BumpTemp(self, setpoint, degrees):
 

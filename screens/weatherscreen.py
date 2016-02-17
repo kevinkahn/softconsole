@@ -13,9 +13,9 @@ import json
 import logsupport
 import functools
 import utilities
+from utilities import scaleW, scaleH
 
-
-fsizes = ((20, False, False), (30, True, False), (45, True, True))
+fsizes = ((scaleH(20), False, False), (scaleH(30), True, False), (scaleH(45), True, True))  # todo pixel
 
 def TreeDict(d, *args):
     # Allow a nest of dictionaries to be accessed by a tuple of keys for easier code
@@ -46,18 +46,12 @@ def RenderScreenLines(recipe, extracter, color):
                 linestr = line[2].format(d=line[3])
             else:
                 args = []
-                # print line, format
                 for item in line[3]:
                     args.append(extracter(*item))
-                    # print args, type(args[-1]).__name__
                 if len(args) == 1 and isinstance(args[0], basestring):
-                    # print "One arg: ",type(args[0]).__name__,args
                     linestr = line[2].format(d=args[0])
                 else:
-                    # for x in args:
-                    #   print "Mult arg: ",type(x).__name__,x,args
                     linestr = line[2].format(d=args)
-                    # print line[2].format(d=args)
         except:
             config.Logs.Log("Weather format error: " + str(line[3]), logsupport.Warning)
             if len(line) == 5:

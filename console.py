@@ -80,12 +80,13 @@ config.ISYprefix = 'http://' + config.ISYaddr + '/rest/'
 config.ISYrequestsession = requests.session()
 config.ISYrequestsession.auth = (config.ISYuser, config.ISYpassword)
 
-# Build the ISY object structure
+"""
+Build the ISY object structure and connect the configured screens to it
+"""
 config.ISY = isy.ISY(config.ISYrequestsession)
-
 config.Logs.Log("Enumerated ISY Structure")
-
 configobjects.MyScreens()  # connect the screen structure with the ISY structure
+config.Logs.Log("Linked config to ISY")
 
 """
 Set up the Maintenance Screen

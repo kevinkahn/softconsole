@@ -22,11 +22,23 @@ Global Parameters:
     ExtraChain type: list
     DimTO type: int
 Module Parameters:
-    keydesc
+    ThermostatScreenDesc
         Local Parameters:
-            KeyRunThenName type: str
-            type type: str
+            label type: list
+        Overrideable Globals:
+            CmdCharCol
+            CmdKeyCol
+            KeyOffOutlineColor
+            KeyOnOutlineColor
+            KeyColor
+            BackgroundColor
+            CharColor
+            DimTO
+    KeyDesc
+        Local Parameters:
             SceneProxy type: str
+            type type: str
+            KeyRunThenName type: str
             label type: list
         Overrideable Globals:
             KeyOnOutlineColor
@@ -34,40 +46,32 @@ Module Parameters:
             KeyCharColorOn
             KeyOffOutlineColor
             KeyCharColorOff
-    screens.thermostatscreen
+    WeatherScreenDesc
         Local Parameters:
-        Overrideable Globals:
-            CmdCharCol
-            CmdKeyCol
-            KeyOffOutlineColor
-            KeyOnOutlineColor
-            KeyColor
-            BackgroundColor
-            CharColor
-            DimTO
-    screens.keyscreen
-        Local Parameters:
+            location type: str
+            WunderKey type: str
+            label type: list
         Overrideable Globals:
             CharColor
             CmdKeyCol
             CmdCharCol
             DimTO
             BackgroundColor
-    screens.clockscreen
+    ClockScreenDesc
         Local Parameters:
             Font type: str
             OutFormat type: list
             CharSize type: list
+            label type: list
         Overrideable Globals:
             CharColor
             CmdKeyCol
             CmdCharCol
             DimTO
             BackgroundColor
-    screens.weatherscreen
+    KeyScreenDesc
         Local Parameters:
-            location type: str
-            WunderKey type: str
+            label type: list
         Overrideable Globals:
             CharColor
             CmdKeyCol

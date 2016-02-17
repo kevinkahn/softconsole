@@ -19,8 +19,12 @@ def interval_str(sec_elapsed):
     return "{} days {:>02d}hrs {:>02d}mn {:>02d}sec".format(d, h, m, s)
 
 
-def scale(p):
-    return int(round(float(p)*float(config.dispratio)))
+def scaleW(p):
+    return int(round(float(p)*float(config.dispratioW)))
+
+
+def scaleH(p):
+    return int(round(float(p)*float(config.dispratioH)))
 
 
 def ParseParam(param):
@@ -63,19 +67,21 @@ def InitializeEnvironment():
     config.fonts = fonts.Fonts()
     config.screenwidth, config.screenheight = (pygame.display.Info().current_w, pygame.display.Info().current_h)
 
-    # config.screenwidth =280 #todo 2 lines for test only
-    # config.screenheight = 320
+    config.screenwidth = 240  # todo 2 lines for test only
+    config.screenheight = 320
 
     """
     Scale screen constants
     """
-    config.dispratio = float(config.screenwidth)/float(config.basewidth)
-    config.horizborder = scale(config.horizborder)
-    config.topborder = scale(config.topborder)
-    config.botborder = scale(config.botborder)
-    config.cmdvertspace = scale(config.cmdvertspace)
+    config.dispratioW = float(config.screenwidth)/float(config.basewidth)
+    config.dispratioH = float(config.screenheight)/float(config.baseheight)
+    config.horizborder = scaleW(config.horizborder)
+    config.topborder = scaleH(config.topborder)
+    config.botborder = scaleH(config.botborder)
+    config.cmdvertspace = scaleH(config.cmdvertspace)
 
-    print config.dispratio
+    print config.dispratioW
+    print config.dispratioH
     print config.horizborder
     print config.topborder
     print config.botborder

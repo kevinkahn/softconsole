@@ -50,7 +50,8 @@ Logs = None
 screenwidth = 0
 screenheight = 0
 # todo scale all the pixels for different screen sizes using dispratio
-dispratio = 1
+dispratioW = 1
+dispratioH = 1
 baseheight = 480  # program design height
 basewidth = 320  # program design width
 # todo should any of these be settable in global params?
