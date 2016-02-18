@@ -1,0 +1,82 @@
+Global Parameters:
+    BackgroundColor                 :  str       maroon
+    BrightLevel                     :  int       100
+    CharColor                       :  str       white
+    CmdCharCol                      :  str       white
+    CmdKeyCol                       :  str       red
+    DimHomeScreenCoverName          :  str       
+    DimLevel                        :  int       10
+    DimTO                           :  int       20
+    ExtraChain                      :  list      []
+    HomeScreenName                  :  str       
+    HomeScreenTO                    :  int       60
+    ISYaddr                         :  str       
+    ISYpassword                     :  str       
+    ISYuser                         :  str       
+    KeyCharColorOff                 :  str       black
+    KeyCharColorOn                  :  str       white
+    KeyColor                        :  str       aqua
+    KeyOffOutlineColor              :  str       black
+    KeyOnOutlineColor               :  str       white
+    LogFontSize                     :  int       23
+    MainChain                       :  list      []
+    MaxLogFiles                     :  int       5
+    MultiTapTime                    :  int       300
+    SecondaryChain                  :  list      []
+Module Parameters:
+    ClockScreenDesc
+        Local Parameters:
+            CharSize                :  list    
+            Font                    :  str     
+            OutFormat               :  list    
+            label                   :  list    
+        Overrideable Globals:
+            BackgroundColor
+            CharColor
+            CmdCharCol
+            CmdKeyCol
+            DimTO
+    KeyDesc
+        Local Parameters:
+            KeyRunThenName          :  str     
+            SceneProxy              :  str     
+            label                   :  list    
+            type                    :  str     
+        Overrideable Globals:
+            KeyCharColorOff
+            KeyCharColorOn
+            KeyColor
+            KeyOffOutlineColor
+            KeyOnOutlineColor
+    KeyScreenDesc
+        Local Parameters:
+            label                   :  list    
+        Overrideable Globals:
+            BackgroundColor
+            CharColor
+            CmdCharCol
+            CmdKeyCol
+            DimTO
+    ThermostatScreenDesc
+        Local Parameters:
+            label                   :  list    
+        Overrideable Globals:
+            BackgroundColor
+            CharColor
+            CmdCharCol
+            CmdKeyCol
+            DimTO
+            KeyColor
+            KeyOffOutlineColor
+            KeyOnOutlineColor
+    WeatherScreenDesc
+        Local Parameters:
+            WunderKey               :  str     
+            label                   :  list    
+            location                :  str     
+        Overrideable Globals:
+            BackgroundColor
+            CharColor
+            CmdCharCol
+            CmdKeyCol
+            DimTO
