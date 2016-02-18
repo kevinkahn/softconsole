@@ -1,10 +1,10 @@
 import os
 import sys
 import time
-import RPi.GPIO as GPIO
 import pygame
 import fonts
 from logsupport import Info, Warning, Error
+import hw
 
 import config
 
@@ -59,16 +59,20 @@ def daemon_died(sig, frame):
 
 
 def InitializeEnvironment():
+    """
     os.environ['SDL_FBDEV'] = '/dev/fb1'
     os.environ['SDL_MOUSEDEV'] = '/dev/input/touchscreen'
     os.environ['SDL_MOUSEDRV'] = 'TSLIB'
     os.environ['SDL_VIDEODRIVER'] = 'fbcon'
+    """
+    print 'test'
+    hw.initOS()
     pygame.display.init()
     config.fonts = fonts.Fonts()
     config.screenwidth, config.screenheight = (pygame.display.Info().current_w, pygame.display.Info().current_h)
 
-    config.screenwidth = 240  # todo 2 lines for test only
-    config.screenheight = 320
+    #    config.screenwidth = 240  # todo 2 lines for test only
+    #    config.screenheight = 320
 
     """
     Scale screen constants
@@ -90,14 +94,15 @@ def InitializeEnvironment():
     config.screen = pygame.display.set_mode((config.screenwidth, config.screenheight), pygame.FULLSCREEN)
     config.screen.fill((0, 0, 0))  # clear screen
     pygame.display.update()
-    pygame.mouse.set_visible(False)
+    pygame.mouse.set_visible(False)  # todo only on touch devices
     pygame.fastevent.init()
+    """
     GPIO.setwarnings(False)
     GPIO.setmode(GPIO.BCM)
     GPIO.setup(18, GPIO.OUT)
     config.backlight = GPIO.PWM(18, 1024)
     config.backlight.start(100)
-
+    """
 
 def LocalizeParams(inst, configsection, *args, **kwargs):
     """

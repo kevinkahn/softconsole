@@ -2,6 +2,7 @@ import time
 
 import pygame
 import webcolors
+import hw
 
 import config
 import toucharea
@@ -14,8 +15,6 @@ wc = webcolors.name_to_rgb
 class DisplayScreen:
 
     def __init__(self):
-
-        # self.screen = config.screen
 
         print "Screensize: ", config.screenwidth, config.screenheight
         config.Logs.Log("Screensize: " + str(config.screenwidth) + " x " + str(config.screenheight))
@@ -75,13 +74,13 @@ class DisplayScreen:
 
     def GoDim(self, dim):
         if dim:
-            config.backlight.ChangeDutyCycle(config.DimLevel)
+            hw.GoDim()
             self.isDim = True
             if self.AS == config.HomeScreen:
                 self.BrightenToHome = True
                 return config.DimHomeScreenCover
         else:
-            config.backlight.ChangeDutyCycle(config.BrightLevel)
+            hw.GoBright()
             self.isDim = False
             if self.BrightenToHome:
                 self.BrightenToHome = False

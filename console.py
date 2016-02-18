@@ -60,7 +60,7 @@ config.Logs = logsupport.Logs(config.screen, os.path.dirname(config.configfile))
 
 signal.signal(signal.SIGTERM, utilities.signal_handler)
 signal.signal(signal.SIGINT, utilities.signal_handler)
-signal.signal(signal.SIGCHLD, utilities.daemon_died)
+signal.signal(signal.SIGCHLD, utilities.daemon_died)  # todo win alternative?
 
 config.ParsedConfigFile = ConfigObj(config.configfile)  # read the config.txt file
 
@@ -108,7 +108,7 @@ config.Logs.Log("Watcher pid: " + str(p.pid))
 
 config.Logs.livelog = False  # turn off logging to the screen and give user a moment to scan
 time.sleep(2)
-config.backlight.ChangeDutyCycle(config.BrightLevel)
+# config.backlight.ChangeDutyCycle(config.BrightLevel)
 """
 Loop here using screen type to choose renderer and names to fill in cmdtxt - return value is next screen or a tap count
 """
@@ -117,6 +117,7 @@ prevscreen = None
 mainchainactive = True
 paramsdoc = open('params.txt', 'w')
 os.chmod('params.txt', 0o555)
+# todo make this a command line option since only need to do for development purposes
 paramsdoc.write('Global Parameters:\n')
 for p in utilities.globdoc:
     paramsdoc.write('    ' + p + ' type: ' + utilities.globdoc[p].__name__ + '\n')
