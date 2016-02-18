@@ -1,15 +1,18 @@
 import os
 import sys
 import time
+
 import pygame
-import fonts
-from logsupport import Info, Warning, Error
-import hw
 
 import config
+import fonts
+import hw
+from logsupport import Error
 
 globdoc = {}
 moddoc = {}
+paramlog = []
+
 
 def interval_str(sec_elapsed):
     d = int(sec_elapsed/(60*60*24))
@@ -28,13 +31,21 @@ def scaleH(p):
 
 
 def ParseParam(param):
+    global paramlog
     for p in param.__dict__:
         if '__' not in p:
             p2 = p.replace('_', '', 1) if p.startswith('_') else p
             config.__dict__[p2] = type(param.__dict__[p])(config.ParsedConfigFile.get(p2, param.__dict__[p]))
-            globdoc[p2] = type(param.__dict__[p])
+            globdoc[p2] = (type(param.__dict__[p]), param.__dict__[p])
             if not p.startswith('_'):
-                config.Logs.Log('Param: ' + p + ": " + str(config.__dict__[p2]))
+                # can't log directly because logger isn't initialized yet at the point this is called
+                paramlog.append('Param: ' + p + ": " + str(config.__dict__[p2]))
+
+
+def LogParams():
+    global paramlog
+    for p in paramlog:
+        config.Logs.Log(p)
 
 
 def signal_handler(sig, frame):
@@ -122,7 +133,7 @@ def LocalizeParams(inst, configsection, *args, **kwargs):
         if nametoadd not in inst.__dict__:
             lcllist.append(nametoadd)
             lclval.append(kwargs[nametoadd])
-            moddoc[inst.__class__.__name__]['loc'][lcllist[-1]] = (type(lclval[-1]))
+            moddoc[inst.__class__.__name__]['loc'][lcllist[-1]] = type(lclval[-1])
         else:
             print 'why dup', nametoadd
     for nametoadd in args:

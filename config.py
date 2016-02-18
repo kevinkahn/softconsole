@@ -43,8 +43,6 @@ configfile = "/home/pi/Console/config.txt"  # default location of configfile, ca
 ISYprefix = ''  # holds the url prefix for rest interface
 fonts = None
 Logs = None
-MaxLogFiles = 5  # would be nice to get these in globalparams but right now there is an ordering issue since logging starts before global sucking
-LogFontSize = 23
 
 # Screen Display Info
 screenwidth = 0

@@ -14,6 +14,9 @@ DimHomeScreenCoverName = ""
 CharColor = "white"
 BackgroundColor = 'maroon'
 
+MaxLogFiles = 5  # would be nice to get these in globalparams but right now there is an ordering issue since logging starts before global sucking
+LogFontSize = 23
+
 _MainChain = []  # defaults to order based on config file
 _SecondaryChain = []  # if spec'd used for secondary screens else random order
 _ExtraChain = []  # defaults to empty, unused screens

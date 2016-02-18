@@ -56,14 +56,16 @@ utilities.InitializeEnvironment()
 if len(sys.argv) == 2:
     config.configfile = sys.argv[1]
 
-config.Logs = logsupport.Logs(config.screen, os.path.dirname(config.configfile))
+
 
 signal.signal(signal.SIGTERM, utilities.signal_handler)
 signal.signal(signal.SIGINT, utilities.signal_handler)
 signal.signal(signal.SIGCHLD, utilities.daemon_died)  # todo win alternative?
 
 config.ParsedConfigFile = ConfigObj(config.configfile)  # read the config.txt file
+utilities.ParseParam(globalparams)  # add global parameters to config file
 
+config.Logs = logsupport.Logs(config.screen, os.path.dirname(config.configfile))
 config.Logs.Log(u"Soft ISY Console")
 config.Logs.Log(u"  \u00A9 Kevin Kahn 2016")
 config.Logs.Log("Software under Apache 2.0 License")
@@ -73,7 +75,7 @@ config.Logs.Log("Config file: " + config.configfile)
 
 config.DS = displayscreen.DisplayScreen()  # create the screens and touch manager
 
-utilities.ParseParam(globalparams)  # add global parameters to config file
+utilities.LogParams()
 
 # Set up for ISY access
 config.ISYprefix = 'http://' + config.ISYaddr + '/rest/'
@@ -115,20 +117,21 @@ Loop here using screen type to choose renderer and names to fill in cmdtxt - ret
 config.CurrentScreen = config.HomeScreen
 prevscreen = None
 mainchainactive = True
-paramsdoc = open('params.txt', 'w')
+paramsdoc = open('docs/params.txt', 'w')
 os.chmod('params.txt', 0o555)
 # todo make this a command line option since only need to do for development purposes
 paramsdoc.write('Global Parameters:\n')
-for p in utilities.globdoc:
-    paramsdoc.write('    ' + p + ' type: ' + utilities.globdoc[p].__name__ + '\n')
+for p in sorted(utilities.globdoc):
+    paramsdoc.write(
+        '    {:32s}:  {:8s}  {}\n'.format(p, utilities.globdoc[p][0].__name__, str(utilities.globdoc[p][1])))
 paramsdoc.write('Module Parameters:\n')
-for p in utilities.moddoc:
+for p in sorted(utilities.moddoc):
     paramsdoc.write('    ' + p + '\n')
     paramsdoc.write('        Local Parameters:\n')
-    for q in utilities.moddoc[p]['loc']:
-        paramsdoc.write('            ' + q + ' type: ' + utilities.moddoc[p]['loc'][q].__name__ + '\n')
+    for q in sorted(utilities.moddoc[p]['loc']):
+        paramsdoc.write('            {:24s}:  {:8s}\n'.format(q, utilities.moddoc[p]['loc'][q].__name__))
     paramsdoc.write('        Overrideable Globals:\n')
-    for q in utilities.moddoc[p]['ovrd']:
+    for q in sorted(utilities.moddoc[p]['ovrd']):
         paramsdoc.write('            ' + q + '\n')
 paramsdoc.close()
 
