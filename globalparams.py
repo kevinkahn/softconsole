@@ -1,9 +1,9 @@
 # Global Defaults Settable in config.txt in Console
-ISYaddr = ""  # from config globals
-ISYuser = ""  # from config globals
-_ISYpassword = ""  # from config globals
-HomeScreenName = ""  # from config globals
-HomeScreenTO = 60  # from config globals
+ISYaddr = ""
+ISYuser = ""
+_ISYpassword = ""
+HomeScreenName = ""
+HomeScreenTO = 60
 DimLevel = 10
 BrightLevel = 100
 DimTO = 20

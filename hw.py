@@ -4,6 +4,7 @@ import RPi.GPIO as GPIO
 
 backlight = None
 disklogging = True
+touchdevice = True
 
 
 def initOS():
@@ -22,11 +23,9 @@ def initOS():
 
 def GoDim():
     global backlight
-    print 'dim', config.DimLevel
     backlight.ChangeDutyCycle(config.DimLevel)
 
 
 def GoBright():
     global backlight
-    print 'brt', config.BrightLevel
     backlight.ChangeDutyCycle(config.BrightLevel)

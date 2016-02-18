@@ -55,7 +55,6 @@ class Node(Folder, OnOffItem):
         if isinstance(props, collections.OrderedDict):
             props = [props]  # make it a list so below always works
         for item in props:
-            # print item['@id'],':'+item['@value']+':', type(item['@value']) todo remove
             if item['@id'] == 'ST':
                 if item['@value'] <> ' ':
                     self.hasstatus = True

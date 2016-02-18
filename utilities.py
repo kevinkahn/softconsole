@@ -94,15 +94,10 @@ def InitializeEnvironment():
     config.screen = pygame.display.set_mode((config.screenwidth, config.screenheight), pygame.FULLSCREEN)
     config.screen.fill((0, 0, 0))  # clear screen
     pygame.display.update()
-    pygame.mouse.set_visible(False)  # todo only on touch devices
+    if hw.touchdevice:
+        pygame.mouse.set_visible(False)  # no cursor
     pygame.fastevent.init()
-    """
-    GPIO.setwarnings(False)
-    GPIO.setmode(GPIO.BCM)
-    GPIO.setup(18, GPIO.OUT)
-    config.backlight = GPIO.PWM(18, 1024)
-    config.backlight.start(100)
-    """
+
 
 def LocalizeParams(inst, configsection, *args, **kwargs):
     """

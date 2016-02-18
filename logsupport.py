@@ -1,8 +1,6 @@
 import pygame
 import webcolors
-
 import config
-
 wc = webcolors.name_to_rgb
 import time
 import os
@@ -25,14 +23,13 @@ class Logs:
 
     def __init__(self, screen, dirnm):
         self.screen = screen
-        self.logfontsize = 23  # todo pixel
         if disklogging:
             cwd = os.getcwd()
             os.chdir(dirnm)
             q = [k for k in os.listdir('.') if 'Console.log' in k]
-            if "Console.log." + str(config.maxlog) in q:
-                os.remove('Console.log.' + str(config.maxlog))
-            for i in range(config.maxlog - 1, 0, -1):
+            if "Console.log." + str(config.MaxLogFiles) in q:
+                os.remove('Console.log.' + str(config.MaxLogFiles))
+            for i in range(config.MaxLogFiles - 1, 0, -1):
                 if "Console.log." + str(i) in q:
                     os.rename('Console.log.' + str(i), "Console.log." + str(i + 1))
             os.rename('Console.log', 'Console.log.1')
@@ -70,17 +67,17 @@ class Logs:
         while len(ltext) > 1:
             rtext = []
             while 1:
-                if config.fonts.Font(self.logfontsize).size(''.join(ltext))[
+                if config.fonts.Font(config.LogFontSize).size(''.join(ltext))[
                     0] < config.screenwidth - 10:  #todo pixels literal
                     break
                 else:
                     rtext.insert(0, ltext[-1])
                     del ltext[-1]
-            l = config.fonts.Font(self.logfontsize).render(''.join(ltext), False, wc(clr))
+            l = config.fonts.Font(config.LogFontSize).render(''.join(ltext), False, wc(clr))
             self.screen.blit(l, (10, pos))  #todo pixel
             ltext = rtext
             ltext.insert(0, "    ")
-            pos = pos + config.fonts.Font(self.logfontsize).get_linesize()
+            pos = pos + config.fonts.Font(config.LogFontSize).get_linesize()
         pygame.display.update()
         return pos
 

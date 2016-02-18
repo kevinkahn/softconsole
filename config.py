@@ -32,8 +32,6 @@ def debugprint(flag, *args):
         print
 
 
-maxlog = 5  # maximum number of logfiles kept # todo should be moved to global params
-
 # Global pointers
 ISYrequestsession = None  # handle for requests to ISY via the request interface
 ISY = None  # Root of structure representing the ISY - filled in from ISY
@@ -45,11 +43,13 @@ configfile = "/home/pi/Console/config.txt"  # default location of configfile, ca
 ISYprefix = ''  # holds the url prefix for rest interface
 fonts = None
 Logs = None
+MaxLogFiles = 5  # would be nice to get these in globalparams but right now there is an ordering issue since logging starts before global sucking
+LogFontSize = 23
 
 # Screen Display Info
 screenwidth = 0
 screenheight = 0
-# todo scale all the pixels for different screen sizes using dispratio
+
 dispratioW = 1
 dispratioH = 1
 baseheight = 480  # program design height
