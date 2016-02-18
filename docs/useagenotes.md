@@ -2,8 +2,8 @@
 * Clone to a directory on the RPi
 * Create a directory to hold the config.txt file and logs (defaults to ~pi/Console)
 * Create a config.txt file, see the exampleconfig.txt file for help.  The basic structure of the file
-is a sequence of sections started with [section name] where the outermost part of the file is implicitly a section.  Subsections which
-are currently only used to describe keys are started within a section with [[subsection]].  Within any section are parameter assignments
+is a sequence of sections started with \[section name] where the outermost part of the file is implicitly a section.  Subsections which
+are currently only used to describe keys are started within a section with \[\[subsection]].  Within any section are parameter assignments
 of the form name = value.  A complete list of current parameters is found in the params.txt file in this directory.  It lists the
 global parameters with their type and default value if no assignment is supplied.  It also lists for each module the local parameters of that 
 module as well as any global parameters that can be overridden in that module.  Strings may be written without quotes.  

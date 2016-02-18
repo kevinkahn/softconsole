@@ -118,7 +118,7 @@ config.CurrentScreen = config.HomeScreen
 prevscreen = None
 mainchainactive = True
 paramsdoc = open('docs/params.txt', 'w')
-os.chmod('params.txt', 0o555)
+os.chmod('docs/params.txt', 0o555)
 # todo make this a command line option since only need to do for development purposes
 paramsdoc.write('Global Parameters:\n')
 for p in sorted(utilities.globdoc):
