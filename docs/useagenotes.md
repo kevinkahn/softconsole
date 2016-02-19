@@ -29,6 +29,10 @@ repeated.
 site for codes.  To use this screen you must have a WU key which can be gotten for free for low volume use.
 * Thermostat: mimics the front panel of the Insteon thermostat and provides full function equivalency.
 
+# Connecting Console Names with ISY Names
+* Some names in the config file are used to link console objects to ISY nodes/scenes.  Specifically the section name of a thermostat sceen is used to connect that screen to an ISY thermostat and the subsection names of ONOFF keys are used to link those keys to an ISY device or scene.
+* When a name is looked up in the ISY for linking preference it always given to finding the name as a scene first.  Thus if a device and a scene have the same name the console will link to the scene.
+* A current limitation of the console is that names of scenes or devices in the ISY are assumed to be unique.  I.e. names qualified with folder paths are not used.  This limit may be removed in the future.
 
 # Operating Softconsole
 * Single tap on an On/Off key to actuate it
