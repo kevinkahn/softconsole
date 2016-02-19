@@ -20,18 +20,18 @@ SecondaryChain = Portland, "Upper Level", "Bathroom"
     label="Pumpkin","Ridge"
     type=Weather
     location=pws:KORNORTH18
-    WunderKey=47dc922e667b69a1
+    WunderKey=KEY
 
 [Local]
     type=Weather
     label="Council","Crest"
     location=pws:KORPORTL244
-    WunderKey=47dc922e667b69a1
+    WunderKey=KEY
 
 [Portland]
     type=Weather
     location=KPDX
-    WunderKey=47dc922e667b69a1
+    WunderKey=KEY
 
 [MyClock]
     type=Clock
