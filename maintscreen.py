@@ -5,117 +5,126 @@ import webcolors
 
 import config
 import toucharea
-from config import debugprint, WAITNORMALBUTTON
+from config import debugprint, WAITNORMALBUTTON, WAITNORMALBUTTONFAST, WAITEXIT
 from utilities import interval_str
+from collections import OrderedDict
 
 wc = webcolors.name_to_rgb
 from logsupport import Error
 import time
 import sys
-from utilities import scaleW, scaleH
+import utilities
+from utilities import scaleH
+import screen
+
+fixedoverrides = {'CharColor': 'white', 'BackgroundColor': 'royalblue', 'label': ['Maintenance'], 'DimTO': 100000}
 
 
-class MaintScreenDesc:
+def SetUpMaintScreens():
+    Exits = MaintScreenDesc(
+        OrderedDict([('shut', ('Shutdown Console', doexit)), ('restart', ('Restart Console', doexit)),
+                     ('shutpi', (('Shutdown Pi'), doexit)), ('reboot', (('Reboot Pi'), doexit)),
+                     ('return', ('Return', None))]))
+    LogDisp = LogDisplayScreen()
+    config.MaintScreen = MaintScreenDesc(
+        OrderedDict([('return', ('Exit Maintenance', None)), ('log', ('Show Log', LogDisp.showlog)),
+                     ('exit', ('Exit/Restart', Exits.HandleScreen))]))
+
+
+def doexit(K):
+    if K.name == 'shut':
+        Exit_Options("Manual Shutdown Requested", "Shutting Down")
+        sys.exit()
+    elif K.name == 'restart':
+        Exit_Options("Console Restart Requested", "Restarting")
+        z = 'nohup /bin/bash -c \" echo c1 > /home/pi/c1 && sleep 3 && echo c2 > /home/pi/c2 && python -u ' + \
+            sys.argv[0] + ' ' + config.configfile + '\"'
+        print z
+        subprocess.Popen(z, shell=True)
+        sys.exit()
+    elif K.name == 'shutpi':
+        Exit_Options("Shutdown Pi Requested", "Shutting Down Pi")
+        subprocess.Popen('sudo shutdown -P now', shell=True)
+        sys.exit()
+    elif K.name == 'reboot':
+        Exit_Options("Reboot Pi Requested", "Rebooting Pi")
+        subprocess.Popen('sudo reboot', shell=True)
+        sys.exit()
+
+
+def Exit_Options(msg, scrnmsg):
+    config.screen.fill(wc("red"))
+    r = config.fonts.Font(40, '', True, True).render(scrnmsg, 0, wc("white"))
+    config.screen.blit(r, ((config.screenwidth - r.get_width())/2, config.screenheight*.4))
+    config.Logs.Log(msg)
+    pygame.display.update()
+    time.sleep(2)
+
+
+def gotoscreen(K):
+    pass
+
+
+class LogDisplayScreen(screen.BaseKeyScreenDesc):
     def __init__(self):
+        screen.BaseKeyScreenDesc.__init__(self, None, 'LOG', withnav=False)
+        self.keysbyord = [toucharea.TouchPoint((config.screenwidth/2, config.screenheight/2),
+                                               (config.screenwidth, config.screenheight))]
+
+    def showlog(self, K):
+        item = 0
+        while item >= 0:
+            item = config.Logs.RenderLog(self.BackgroundColor, start=item)
+            temp = config.DS.NewWaitPress(self)
+
+
+class MaintScreenDesc(screen.BaseKeyScreenDesc):
+    def __init__(self, keys):
         debugprint(config.dbgscreenbuild, "Build Maintenance Screen")
-
-        self.CharColor = "white"
-        self.BackgroundColor = "royalblue"
-        self.DimTO = 100000  # infinite
-        self.ExtraCmdKeys = []
-
-        self.PrevScreenKey = None
-        self.NextScreenKay = None
-        self.ExtraCmdKeys = []
-
-        self.name = "Maint"
-        self.label = ["Maintenance"]
-
-        maintkeys = ('log', 'exit', 'shut', 'restart', 'shutpi', 'reboot')
-        mainttitles = (
-        'Show Log', 'Exit Maintenance', 'Shutdown Console', 'Restart Console', 'Shutdown Pi', 'Reboot Pi')
-        self.menukeysbyord = []
+        screen.BaseKeyScreenDesc.__init__(self, fixedoverrides, 'Maint', withnav=False)
+        utilities.LocalizeParams(self, None, TitleFontSize=scaleH(40), SubFontSize=scaleH(25))
         self.keysbyord = []
-        t = config.topborder + scaleH(100)  # todo pixel
-        keyheight = (config.screenheight - t - config.topborder)/len(
-            maintkeys)  # todo move to better layout solution if more keys needed
-        # note: using topborder in above line rather than bottomborder because we don't have to leave space for cmd keys
-        for i in range(len(maintkeys)):
-            self.menukeysbyord.append(toucharea.ManualKeyDesc(maintkeys[i], [mainttitles[i]], (config.screenwidth/2, t),
-                                                              (config.screenwidth - 2*config.horizborder, keyheight),
-                                                              'gold',
-                                                              'black', 'black', 'black', 'black'))
-            t += keyheight
-
-        self.pagekeysbyord = [toucharea.TouchPoint((config.screenwidth/2, config.screenheight/2),
-                                                   (config.screenwidth, config.screenheight))]
+        for k, kt in keys.iteritems():
+            self.keysbyord.append(
+                toucharea.ManualKeyDesc(k, [kt[0]], 'gold', 'black', 'black', KOn='black', KOff='black', proc=kt[1]))
+        topoff = self.TitleFontSize + self.SubFontSize
+        self.LayoutKeys(topoff, config.screenheight - config.topborder - topoff)
 
     def ShowScreen(self):
-
-        config.screen.fill(wc(self.BackgroundColor))
-        r = config.fonts.Font(scaleH(40), '', True, True).render("Console Maintenance", 0,
-                                                                 wc(self.CharColor))  # todo pixel
+        self.PaintBase()
+        r = config.fonts.Font(self.TitleFontSize, '', True, True).render("Console Maintenance", 0, wc(self.CharColor))
         rl = (config.screenwidth - r.get_width())/2
         config.screen.blit(r, (rl, config.topborder))
-        r = config.fonts.Font(scaleH(25), '', True, True).render("Up: " + interval_str(time.time() - config.starttime),
-                                                                 0,
-                                                                 wc(self.CharColor))  # todo pixel
+        r = config.fonts.Font(scaleH(self.SubFontSize), '', True, True).render(
+            "Up: " + interval_str(time.time() - config.starttime),
+            0, wc(self.CharColor))
         rl = (config.screenwidth - r.get_width())/2
-        config.screen.blit(r, (rl, config.topborder + scaleH(30)))  # todo pixel
-        for K in self.keysbyord:
-            config.DS.draw_button(config.screen, K)
+        config.screen.blit(r, (rl, config.topborder + self.TitleFontSize))
+        self.PaintKeys()
         pygame.display.update()
+
 
     def HandleScreen(self, newscr=True):
         config.toDaemon.put([])
         # stop any watching for device stream
-        self.keysbyord = self.menukeysbyord
         Logs = config.Logs
         Logs.Log("Entering Maint Screen")
-        self.ShowScreen()
+
 
         while 1:
+            self.ShowScreen()
             choice = config.DS.NewWaitPress(self)
-            if choice[0] == WAITNORMALBUTTON:
+            if choice[0] in (WAITNORMALBUTTON, WAITNORMALBUTTONFAST):
                 K = self.keysbyord[choice[1]]
-                if K.name == 'exit':
+                if callable(K.RealObj):
+                    K.RealObj(K)
+                elif K.RealObj == None:
                     return config.HomeScreen
-                elif K.name == 'log':
-                    item = 0
-                    self.keysbyord = self.pagekeysbyord  # make whole screen single invisible key
-                    while item >= 0:
-                        item = Logs.RenderLog(self.BackgroundColor, start=item)
-                        temp = config.DS.NewWaitPress(self)
-                    self.keysbyord = self.menukeysbyord
-                    self.ShowScreen()
-                elif K.name == 'shut':
-                    self.Exit_Options("Manual Shutdown Requested", "Shutting Down")
-                    sys.exit()
-                elif K.name == 'restart':
-                    self.Exit_Options("Console Restart Requested", "Restarting")
-                    z = 'nohup /bin/bash -c \" echo c1 > /home/pi/c1 && sleep 3 && echo c2 > /home/pi/c2 && python -u ' + \
-                        sys.argv[0] + ' ' + config.configfile + '\"'
-                    print z
-                    subprocess.Popen(z, shell=True)
-                    sys.exit()
-                elif K.name == 'shutpi':
-                    self.Exit_Options("Shutdown Pi Requested", "Shutting Down Pi")
-                    subprocess.Popen('sudo shutdown -P now', shell=True)
-                    sys.exit()
-                elif K.name == 'reboot':
-                    self.Exit_Options("Reboot Pi Requested", "Rebooting Pi")
-                    subprocess.Popen('sudo reboot', shell=True)
-                    sys.exit()
                 else:
-                    Logs.Log("Internal Error", Error)
-
+                    pass  # todo error?  what if multitap or 5 tap here
+                    Logs.Log("Internal Error", severity=Error)
+            elif choice[0] == WAITEXIT:
+                return None
             else:
-                return choice[1]
-
-    def Exit_Options(self, msg, scrnmsg):
-        config.screen.fill(wc("red"))
-        r = config.fonts.Font(40, '', True, True).render(scrnmsg, 0, wc("white"))
-        config.screen.blit(r, ((config.screenwidth - r.get_width())/2, config.screenheight*.4))
-        config.Logs.Log(msg)
-        pygame.display.update()
-        time.sleep(2)
+                Logs.Log("Internal Error Maint from Press", choice[0], severity=Error)
+                return choice[1]  #todo what is this

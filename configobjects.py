@@ -4,6 +4,7 @@ import config
 from config import debugprint
 from logsupport import Warning
 
+exemplarscreens = {}
 
 class MyScreens:
     def __init__(self):
@@ -26,9 +27,10 @@ class MyScreens:
 
                 if tempscreentype in config.screentypes:
                     NewScreen = config.screentypes[tempscreentype](thisScreen, screenitem)
+                    exemplarscreens[tempscreentype] = NewScreen  # save one of each type to generate documentation
                     config.Logs.Log(tempscreentype + " screen " + screenitem)
                 else:
-                    config.Logs.Log("Screentype error" + screenitem + " type " + tempscreentype, Warning)
+                    config.Logs.Log("Screentype error" + screenitem + " type " + tempscreentype, severity=Warning)
                     pass
             if NewScreen is not None:
                 # set the standard navigation keys and navigation linkages
@@ -61,9 +63,9 @@ class MyScreens:
                     config.SecondaryChain[(config.SecondaryChain.index(scr) + 1)%len(config.SecondaryChain)]]
                 config.Logs.Log("---" + scr)
 
-        config.Logs.Log("Not on a screen list (unavailable)", Warning)
+        config.Logs.Log("Not on a screen list (unavailable)", severity=Warning)
         for scr in config.ExtraChain:
-            config.Logs.Log("---" + scr, Warning)
+            config.Logs.Log("---" + scr, severity=Warning)
 
         for S in mainlist.itervalues():
             S.FinishScreen()

@@ -12,8 +12,6 @@ class KeyDesc(toucharea.ManualKeyDesc):
         debugprint(config.dbgscreenbuild, "             New Key Desc ", keyname)
         toucharea.ManualKeyDesc.__init__(self, keysection, keyname)
         utilities.LocalizeParams(self, keysection, SceneProxy='', KeyRunThenName='', type='ONOFF')
-        self.KeyRunThen = config.ISY.ProgramsByName[self.KeyRunThenName] if self.KeyRunThenName <> "" else None
-        self.RealObj = None  # ISY Object corresponding to this key
         self.MonitorObj = None  # ISY Object monitored to reflect state in the key (generally a device within a Scene)
 
         # for ONOFF keys (and others later) map the real and monitored nodes in the ISY
@@ -30,7 +28,7 @@ class KeyDesc(toucharea.ManualKeyDesc):
                     elif self.SceneProxy in config.ISY.NodesByName:
                         self.MonitorObj = config.ISY.NodesByName[self.SceneProxy]
                     else:
-                        config.Logs.Log('Bad explicit scene proxy:' + self.name, Warning)
+                        config.Logs.Log('Bad explicit scene proxy:' + self.name, severity=Warning)
                 else:
                     for i in self.RealObj.members:
                         device = i[1]
@@ -38,9 +36,9 @@ class KeyDesc(toucharea.ManualKeyDesc):
                             self.MonitorObj = device
                             break
                         else:
-                            config.Logs.Log('Skipping disabled/nonstatus device: ' + device.name, Warning)
+                            config.Logs.Log('Skipping disabled/nonstatus device: ' + device.name, severity=Warning)
                     if self.MonitorObj is None:
-                        config.Logs.Log("No proxy for scene: " + keyname, Error)
+                        config.Logs.Log("No proxy for scene: " + keyname, severity=Error)
                     debugprint(config.dbgscreenbuild, "Scene ", keyname, " default proxying with ",
                                self.MonitorObj.name)
             elif keyname in config.ISY.NodesByName:
@@ -48,15 +46,16 @@ class KeyDesc(toucharea.ManualKeyDesc):
                 self.MonitorObj = self.RealObj
             else:
                 debugprint(config.dbgscreenbuild, "Screen", keyname, "unbound")
-                config.Logs.Log('Key Binding missing: ' + self.name, Warning)
+                config.Logs.Log('Key Binding missing: ' + self.name, severity=Warning)
         elif self.type in ("ONBLINKRUNTHEN"):
             self.State = False
-            if self.KeyRunThen is None:
+            self.RealObj = config.ISY.ProgramsByName[self.KeyRunThenName] if self.KeyRunThenName <> "" else None
+            if self.RealObj is None:
                 debugprint(config.dbgscreenbuild, "Unbound program key: ", self.label)
-                config.Logs.Log("Missing Prog binding: " + self.name, Warning)
+                config.Logs.Log("Missing Prog binding: " + self.name, severity=Warning)
         else:
             debugprint(config.dbgscreenbuild, "Unknown key type: ", self.label)
-            config.Logs.Log("Bad keytype: " + self.name, Warning)
+            config.Logs.Log("Bad keytype: " + self.name, severity=Warning)
         debugprint(config.dbgscreenbuild, repr(self))
 
     def __repr__(self):

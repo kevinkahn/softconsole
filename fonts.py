@@ -28,6 +28,7 @@ class Fonts:
                             self.fontcache[face][size][italic][bold] = gennewfont()
                         else:
                             pass  # log this - should never get here
-            config.Logs.Log('New font: ' + face + ':' + str(size) + (' b', ' B')[bold] + (' i', ' I')[italic],
+            config.Logs.Log('New font: ', face if face <> "" else '-Sys-', ' :', size, (' b', ' B')[bold],
+                            (' i', ' I')[italic],
                             diskonly=True)
             return self.fontcache[face][size][italic][bold]

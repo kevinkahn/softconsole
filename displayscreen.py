@@ -31,22 +31,22 @@ class DisplayScreen:
         self.BrightenToHome = False
         self.ButtonFontSizes = tuple(scaleH(i) for i in (31, 28, 25, 22, 20, 18, 16))  # todo pixel
 
-    def draw_button(self, screen, Key, shrink=True, firstfont=0):
+    def draw_button(self, Key, shrink=True, firstfont=0):
         lines = len(Key.label)
         buttonsmaller = (Key.Size[0] - scaleW(6), Key.Size[1] - scaleH(6))  # todo pixel
         x = Key.Center[0] - Key.Size[0]/2
         y = Key.Center[1] - Key.Size[1]/2
 
         HiColor = Key.KeyOnOutlineColor if Key.State else Key.KeyOffOutlineColor
-        pygame.draw.rect(screen, wc(Key.KeyColor), ((x, y), Key.Size), 0)
+        pygame.draw.rect(config.screen, wc(Key.KeyColor), ((x, y), Key.Size), 0)
         bord = 3  # todo pixel - probably should use same scaling in both dimensions since this is a line width
-        pygame.draw.rect(screen, wc(HiColor), ((x + scaleW(bord), y + scaleH(bord)), buttonsmaller), bord)
+        pygame.draw.rect(config.screen, wc(HiColor), ((x + scaleW(bord), y + scaleH(bord)), buttonsmaller), bord)
         s = pygame.Surface(Key.Size)
         s.set_alpha(150)
         s.fill(wc("white"))
 
         if not Key.State:
-            screen.blit(s, (x, y))
+            config.screen.blit(s, (x, y))
         # compute writeable area for text
         textarea = (buttonsmaller[0] - 2, buttonsmaller[1] - 2)  #todo pixel not scaled
         fontchoice = self.ButtonFontSizes[firstfont]
@@ -61,16 +61,16 @@ class DisplayScreen:
             ren = config.fonts.Font(fontchoice).render(Key.label[i], 0, wc(HiColor))
             vert_off = ((i + 1)*Key.Size[1]/(1 + lines)) - ren.get_height()/2
             horiz_off = (Key.Size[0] - ren.get_width())/2
-            screen.blit(ren, (x + horiz_off, y + vert_off))
+            config.screen.blit(ren, (x + horiz_off, y + vert_off))
 
         pygame.display.update()
 
-    def draw_cmd_buttons(self, scr, AS):
+    def draw_cmd_buttons(self, AS):
         if not self.BrightenToHome:  # suppress command buttons on sleep screen when any touch witll brighten/gohome
-            self.draw_button(scr, AS.PrevScreenKey)
-            self.draw_button(scr, AS.NextScreenKey)
+            self.draw_button(AS.PrevScreenKey)
+            self.draw_button(AS.NextScreenKey)
             for K in AS.ExtraCmdKeys:
-                self.draw_button(scr, K)
+                self.draw_button(K)
 
     def GoDim(self, dim):
         if dim:

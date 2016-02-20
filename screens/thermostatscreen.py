@@ -19,10 +19,10 @@ def trifromtop(h, v, n, size, c, invert):
         return h*n, v - size/2, h*n - size/2, v + size/2, h*n + size/2, v + size/2, c
 
 
-class ThermostatScreenDesc(screen.ScreenDesc):  # todo not scaling well
+class ThermostatScreenDesc(screen.BaseKeyScreenDesc):
     def __init__(self, screensection, screenname):
         debugprint(config.dbgscreenbuild, "New ThermostatScreenDesc ", screenname)
-        screen.ScreenDesc.__init__(self, screensection, screenname, ())
+        screen.BaseKeyScreenDesc.__init__(self, screensection, screenname)
         utilities.LocalizeParams(self, screensection, 'KeyColor', 'KeyOffOutlineColor', 'KeyOnOutlineColor')
         self.info = {}
         self.fsize = [scaleH(i) for i in (30, 50, 80, 160)]  # todo pixel
@@ -31,7 +31,7 @@ class ThermostatScreenDesc(screen.ScreenDesc):  # todo not scaling well
             self.RealObj = config.ISY.NodesByName[screenname]
         else:
             self.RealObj = None
-            config.Logs.Log("No Thermostat: " + screenname)
+            config.Logs.Log("No Thermostat: " + screenname, severity=Warning)
 
         self.TitleRen = config.fonts.Font(self.fsize[1]).render(screen.FlatenScreenLabel(self.label), 0,
                                                                 wc(self.CharColor))
@@ -53,11 +53,13 @@ class ThermostatScreenDesc(screen.ScreenDesc):  # todo not scaling well
         self.ModeButPos = self.AdjButTops + scaleH(85)  # pixel
 
         bsize = (scaleW(100), scaleH(50))  # pixel
-        self.keysbyord.append(toucharea.ManualKeyDesc("Mode", ["Mode"], (config.screenwidth/4, self.ModeButPos),
-                                                      bsize, self.KeyColor, self.CharColor, self.CharColor,
-                                                      KOn=config.KeyOffOutlineColor))
-        self.keysbyord.append(toucharea.ManualKeyDesc("Fan", ["Fan"], (3*config.screenwidth/4, self.ModeButPos),
-                                                      bsize, self.KeyColor, self.CharColor, self.CharColor,
+        self.keysbyord.append(toucharea.ManualKeyDesc("Mode", ["Mode"],
+                                                      self.KeyColor, self.CharColor, self.CharColor,
+                                                      center=(config.screenwidth/4, self.ModeButPos), size=bsize,
+                                                      KOn=config.KeyOffOutlineColor))  # todo clean up
+        self.keysbyord.append(toucharea.ManualKeyDesc("Fan", ["Fan"],
+                                                      self.KeyColor, self.CharColor, self.CharColor,
+                                                      center=(3*config.screenwidth/4, self.ModeButPos), size=bsize,
                                                       KOn=config.KeyOffOutlineColor))
         self.ModesPos = self.ModeButPos + bsize[1]/2 + scaleH(5)
 
@@ -80,18 +82,16 @@ class ThermostatScreenDesc(screen.ScreenDesc):  # todo not scaling well
 
 
     def ShowScreen(self):
-
+        self.PaintBase()
         r = config.ISYrequestsession.get('http://' + config.ISYaddr + '/rest/nodes/' + self.RealObj.address,
                                          verify=False)
         tstatdict = xmltodict.parse(r.text)
-
         props = tstatdict["nodeInfo"]["properties"]["property"]
+
         self.info = {}
         for item in props:
             debugprint(config.dbgscreenbuild, item["@id"], ":", item["@value"], ":", item["@formatted"])
             self.info[item["@id"]] = (int(item['@value']), item['@formatted'])
-
-        config.screen.fill(wc(self.BackgroundColor))
         config.screen.blit(self.TitleRen, self.TitlePos)
         r = config.fonts.Font(self.fsize[3], bold=True).render(u"{:4.1f}".format(self.info["ST"][0]/2), 0,
                                                           wc(self.CharColor))
@@ -104,8 +104,8 @@ class ThermostatScreenDesc(screen.ScreenDesc):  # todo not scaling well
             wc(self.CharColor))
         config.screen.blit(r, ((config.screenwidth - r.get_width())/2, self.SPPos))
         config.screen.blit(self.AdjButSurf, (0, self.AdjButTops))
-        config.DS.draw_button(config.screen, self.keysbyord[4], shrink=True, firstfont=0)
-        config.DS.draw_button(config.screen, self.keysbyord[5], shrink=True, firstfont=0)
+        config.DS.draw_button(self.keysbyord[4], shrink=True, firstfont=0)
+        config.DS.draw_button(self.keysbyord[5], shrink=True, firstfont=0)
         r1 = config.fonts.Font(self.fsize[1]).render(
             ('Off', 'Heat', 'Cool', 'Auto', 'Fan', 'Prog Auto', 'Prog Heat', 'Prog Cool')[self.info["CLIMD"][0]], 0,
             wc(self.CharColor))
@@ -113,7 +113,6 @@ class ThermostatScreenDesc(screen.ScreenDesc):  # todo not scaling well
         config.screen.blit(r1, (self.keysbyord[4].Center[0] - r1.get_width()/2, self.ModesPos))
         config.screen.blit(r2, (self.keysbyord[5].Center[0] - r2.get_width()/2, self.ModesPos))
 
-        config.DS.draw_cmd_buttons(config.screen, self)
         pygame.display.update()
 
     def HandleScreen(self, newscr=True):

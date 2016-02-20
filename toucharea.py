@@ -14,15 +14,25 @@ class TouchPoint:
         self.Center = c
         self.Size = s
 
-
-
 class ManualKeyDesc(TouchPoint):
-    #   def __init__(self, keyname, label, center, size, bcolor, charcoloron, charcoloroff, KOn='', KOff=''):
-    def docodeinit(self, keyname, label, center, size, bcolor, charcoloron, charcoloroff, KOn='', KOff=''):
+    def __init__(self, *args, **kwargs):
+        # alternate creation signatures
+        if len(args) == 2:
+            # signature: ManualKeyDesc(keysection, keyname)
+            # initialize by reading config file
+            self.dosectioninit(*args)
+        else:
+            # signature: ManualKeyDesc(keyname, label, bcolor, charcoloron, charcoloroff, center=, size=, KOn=, KOff=, proc=)
+            # initializing from program code case
+            self.docodeinit(*args, **kwargs)
+
+    def docodeinit(self, keyname, label, bcolor, charcoloron, charcoloroff, center=(0, 0), size=(0, 0), KOn='', KOff='',
+                   proc=None):
         # NOTE: do not put defaults for KOn/KOff in signature - imports and arg parsing subtleties will cause error
         # because of when config is imported and what walues are at that time versus at call time
         TouchPoint.__init__(self, center, size)
         self.name = keyname
+        self.RealObj = proc
         self.KeyColor = bcolor
         self.KeyCharColorOn = charcoloron
         self.KeyCharColorOff = charcoloroff
@@ -37,15 +47,4 @@ class ManualKeyDesc(TouchPoint):
                                  'KeyCharColorOn', 'KeyCharColorOff', label=[keyname])
         self.name = keyname
         self.State = True
-
-
-    def __init__(self, *args, **kwargs):
-
-        if len(args) == 2:
-            # signature: ManualKeyDesc(keysection, keyname)
-            # initialize by reading config file
-            self.dosectioninit(*args)
-        else:
-            # signature: ManualKeyDesc(keyname, label, center, size, bcolor, charcoloron, charcoloroff, KOn='', KOff='')
-            # initializing from program code case
-            self.docodeinit(*args, **kwargs)
+        self.RealObj = None  # this will get filled in by creator later - could be ISY node, ISY program, proc to call

@@ -76,7 +76,6 @@ def InitializeEnvironment():
     os.environ['SDL_MOUSEDRV'] = 'TSLIB'
     os.environ['SDL_VIDEODRIVER'] = 'fbcon'
     """
-    print 'test'
     hw.initOS()
     pygame.display.init()
     config.fonts = fonts.Fonts()
@@ -94,13 +93,6 @@ def InitializeEnvironment():
     config.topborder = scaleH(config.topborder)
     config.botborder = scaleH(config.botborder)
     config.cmdvertspace = scaleH(config.cmdvertspace)
-
-    print config.dispratioW
-    print config.dispratioH
-    print config.horizborder
-    print config.topborder
-    print config.botborder
-    print config.cmdvertspace
 
     config.screen = pygame.display.set_mode((config.screenwidth, config.screenheight), pygame.FULLSCREEN)
     config.screen.fill((0, 0, 0))  # clear screen
@@ -127,6 +119,8 @@ def LocalizeParams(inst, configsection, *args, **kwargs):
     global moddoc
     if not inst.__class__.__name__ in moddoc:
         moddoc[inst.__class__.__name__] = {'loc': {}, 'ovrd': set()}
+    if configsection is None:
+        configsection = {}
     lcllist = []
     lclval = []
     for nametoadd in kwargs:
@@ -143,6 +137,6 @@ def LocalizeParams(inst, configsection, *args, **kwargs):
             moddoc[inst.__class__.__name__]['ovrd'].add(lcllist[-1])
         else:
             config.Logs.Log("Obj " + inst.__class__.__name__ + ' attempted import of non-existent global ' + nametoadd,
-                            Error)
+                            severity=Error)
     for i in range(len(lcllist)):
         inst.__dict__[lcllist[i]] = type(lclval[i])(configsection.get(lcllist[i], lclval[i]))

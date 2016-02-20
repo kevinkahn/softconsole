@@ -15,7 +15,7 @@ from utilities import scaleW, scaleH
 class ClockScreenDesc(screen.ScreenDesc):
     def __init__(self, screensection, screenname):
         debugprint(config.dbgscreenbuild, "Build Clock Screen")
-        screen.ScreenDesc.__init__(self, screensection, screenname, ())  # no extra cmd keys
+        screen.ScreenDesc.__init__(self, screensection, screenname)
         utilities.LocalizeParams(self, screensection, CharSize=[20], Font='droidsansmono', OutFormat=[])
         for i in range(len(self.CharSize), len(self.OutFormat)):
             self.CharSize.append(self.CharSize[-1])
@@ -29,7 +29,8 @@ class ClockScreenDesc(screen.ScreenDesc):
         # stop any watching for device stream
         config.toDaemon.put([])
 
-        config.screen.fill(wc(self.BackgroundColor))
+        # config.screen.fill(wc(self.BackgroundColor))
+        self.PaintBase()
 
         def repaintClock(cycle):
             # param ignored for clock
@@ -55,7 +56,7 @@ class ClockScreenDesc(screen.ScreenDesc):
             pygame.display.update()
 
         repaintClock(0)
-        config.DS.draw_cmd_buttons(config.screen, self)
+        #config.DS.draw_cmd_buttons(config.screen, self)
 
         while 1:
             choice = config.DS.NewWaitPress(self, callbackproc=repaintClock, callbackint=1)

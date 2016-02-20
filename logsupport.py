@@ -37,12 +37,14 @@ class Logs:
             os.chmod('Console.log', 0o555)
             os.chdir(cwd)
 
-    def Log(self, entry, severity=Info, diskonly=False):
+    def Log(self, *args, **kwargs):
         """
-
         :param severity:
         :param entry:
         """
+        severity = kwargs.pop('severity', Info)
+        diskonly = kwargs.pop('diskonly', False)
+        entry = "".join([unicode(i) for i in args])
         if not diskonly:
             self.log.append((severity, entry))
         if disklogging:

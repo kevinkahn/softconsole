@@ -109,7 +109,8 @@ class WeatherScreenDesc(screen.ScreenDesc):
         return screen.ScreenDesc.__repr__(self) + "\r\n     WeatherScreenDesc:" + str(self.CharColor)
 
     def ShowScreen(self, conditions):
-        config.screen.fill(wc(self.BackgroundColor))
+        self.SetExtraCmdTitles(([('Conditions',)], [('Forecast',)])[conditions])
+        self.PaintBase()
         usefulheight = config.screenheight - config.topborder - config.botborder
         renderedlines = []
         h = 0
@@ -118,10 +119,8 @@ class WeatherScreenDesc(screen.ScreenDesc):
         if conditions:
             age = utilities.interval_str(time.time() - int(self.js('current_observation', 'observation_epoch')))
             self.conditions[-1] = (0, False, "Readings as of {d} ago", age)
-            self.SetExtraCmdTitles([('Forecast',)])
             renderedlines, centered, h = RenderScreenLines(self.conditions, self.js, self.CharColor)
         else:
-            self.SetExtraCmdTitles([('Conditions',)])
             renderedlines.append(
                 config.fonts.Font(fsizes[2][0], '', fsizes[2][1], fsizes[2][2]).render(self.scrlabel, 0,
                                                                                        wc(self.CharColor)))
@@ -144,7 +143,6 @@ class WeatherScreenDesc(screen.ScreenDesc):
                 horiz_off = config.horizborder
             config.screen.blit(renderedlines[i], (horiz_off, vert_off))
             vert_off = vert_off + renderedlines[i].get_height() + s
-        config.DS.draw_cmd_buttons(config.screen, self)
         pygame.display.update()
 
     def HandleScreen(self, newscr=True):
@@ -159,7 +157,7 @@ class WeatherScreenDesc(screen.ScreenDesc):
             f = urllib2.urlopen(self.url)
             val = f.read()
             if val.find("keynotfound") <> -1:
-                config.Logs.Log("Bad weatherunderground key:" + self.name, logsupport.Error)
+                config.Logs.Log("Bad weatherunderground key:" + self.name, severity=logsupport.Error)
                 return config.HomeScreen
             self.lastwebreq = time.time()
             self.parsed_json = json.loads(val)

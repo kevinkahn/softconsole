@@ -11,7 +11,15 @@ def get_real_time_status(addrlist):
     statusdict = {}
     for addr in addrlist:
         r = config.ISYrequestsession.get('http://' + config.ISYaddr + '/rest/status/' + addr, verify=False)
-        statusdict[addr] = int(xmltodict.parse(r.text)['properties']['property']['@value'])
+        props = xmltodict.parse(r.text)['properties']['property']
+        if isinstance(props, dict):
+            props = [props]
+        devstate = 0
+        for item in props:
+            if item['@id'] == "ST":
+                devstate = item['@value']
+                break
+        statusdict[addr] = int(devstate if devstate.isdigit() else 0)
     return statusdict
 
 
@@ -122,7 +130,7 @@ class ISY:
                 node.parent = looklist2[node.parent]
             else:
                 node.parent = None
-                config.Logs.Log("Missing parent: " + node.name, Error)
+                config.Logs.Log("Missing parent: " + node.name, severity=Error)
             if node.parent <> node:  # avoid root
                 node.parent.children.append(node)
 

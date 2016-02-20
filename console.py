@@ -35,6 +35,7 @@ import watchdaemon
 from config import debugprint
 
 import maintscreen
+import screen
 
 
 """
@@ -69,35 +70,31 @@ config.Logs = logsupport.Logs(config.screen, os.path.dirname(config.configfile))
 config.Logs.Log(u"Soft ISY Console")
 config.Logs.Log(u"  \u00A9 Kevin Kahn 2016")
 config.Logs.Log("Software under Apache 2.0 License")
-config.Logs.Log("Start time: " + time.strftime('%c'))
-config.Logs.Log("Console Starting  pid:" + str(os.getpid()))
-config.Logs.Log("Config file: " + config.configfile)
+config.Logs.Log("Start time: ", time.strftime('%c'))
+config.Logs.Log("Console Starting  pid: ", os.getpid())
+config.Logs.Log("Config file: ", config.configfile)
 
-config.DS = displayscreen.DisplayScreen()  # create the screens and touch manager
+config.DS = displayscreen.DisplayScreen()  # create the actual device screen and touch manager
 
 utilities.LogParams()
 
-# Set up for ISY access
+"""
+Set up for ISY access
+"""
 config.ISYprefix = 'http://' + config.ISYaddr + '/rest/'
 config.ISYrequestsession = requests.session()
 config.ISYrequestsession.auth = (config.ISYuser, config.ISYpassword)
+config.ISY = isy.ISY(config.ISYrequestsession)
+config.Logs.Log("Enumerated ISY Structure")
 
 """
 Build the ISY object structure and connect the configured screens to it
 """
-config.ISY = isy.ISY(config.ISYrequestsession)
-config.Logs.Log("Enumerated ISY Structure")
-configobjects.MyScreens()  # connect the screen structure with the ISY structure
+configobjects.MyScreens()
 config.Logs.Log("Linked config to ISY")
 
 """
-Set up the Maintenance Screen
-"""
-config.Logs.Log("Built Maintenance Screen")
-config.MaintScreen = maintscreen.MaintScreenDesc()
-
-"""
-Set up the watcher daemon and its communitcations
+Set up the watcher daemon and its communications
 """
 config.toDaemon = Queue()
 config.fromDaemon = Queue()
@@ -111,12 +108,16 @@ config.Logs.Log("Watcher pid: " + str(p.pid))
 config.Logs.livelog = False  # turn off logging to the screen and give user a moment to scan
 time.sleep(2)
 # config.backlight.ChangeDutyCycle(config.BrightLevel)
+
 """
-Loop here using screen type to choose renderer and names to fill in cmdtxt - return value is next screen or a tap count
+Set up the Maintenance Screen
 """
-config.CurrentScreen = config.HomeScreen
-prevscreen = None
-mainchainactive = True
+config.Logs.Log("Built Maintenance Screen")
+maintscreen.SetUpMaintScreens()
+
+"""
+Dump documentation
+"""
 paramsdoc = open('docs/params.txt', 'w')
 os.chmod('docs/params.txt', 0o555)
 # todo make this a command line option since only need to do for development purposes
@@ -133,8 +134,19 @@ for p in sorted(utilities.moddoc):
     paramsdoc.write('        Overrideable Globals:\n')
     for q in sorted(utilities.moddoc[p]['ovrd']):
         paramsdoc.write('            ' + q + '\n')
+
+for i, scr in configobjects.exemplarscreens.iteritems():
+    print i, [x for x in dir(scr) if not x.startswith('_')]
+print "Maint", [x for x in dir(config.MaintScreen) if not x.startswith('_')]
 paramsdoc.close()
 
+
+"""
+Loop here using screen type to choose renderer and names to fill in cmdtxt - return value is next screen or a tap count
+"""
+config.CurrentScreen = config.HomeScreen
+prevscreen = None
+mainchainactive = True
 
 while 1:
     nextscreen = config.CurrentScreen.HandleScreen(prevscreen <> config.CurrentScreen)
@@ -148,5 +160,9 @@ while 1:
                 mainchainactive = True
         else:
             nextscreen = config.MaintScreen
+    elif nextscreen is None:
+        nextscreen = config.HomeScreen
+    elif not isinstance(nextscreen, screen.ScreenDesc):
+        config.Logs.Log("Internal error unknown nextscreen", severity=logsupport.Error)
     prevscreen = config.CurrentScreen
     config.CurrentScreen = nextscreen
