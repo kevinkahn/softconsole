@@ -62,6 +62,7 @@ class ThermostatScreenDesc(screen.BaseKeyScreenDesc):
                                                       center=(3*config.screenwidth/4, self.ModeButPos), size=bsize,
                                                       KOn=config.KeyOffOutlineColor))
         self.ModesPos = self.ModeButPos + bsize[1]/2 + scaleH(5)
+        utilities.register_example("ThermostatScreenDesc", self)
 
     def BumpTemp(self, setpoint, degrees):
 

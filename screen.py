@@ -1,8 +1,11 @@
+import math
+
+import webcolors
+
 import config
+import logsupport
 import toucharea
 import utilities
-import displayscreen
-import webcolors
 
 wc = webcolors.name_to_rgb
 
@@ -15,10 +18,18 @@ def FlatenScreenLabel(label):
 
 
 def ButLayout(butcount):
-    """
-    :param butcount:
-    :rtype: tuple
-    """
+    butbreaks = (5, 8, 12, 16)
+    try:
+        q = next(t[0] for t in enumerate([float(y)/butcount for y in butbreaks]) if t[1] >= 1)
+        return q + 1, int(math.ceil(float(butcount)/(q + 1)))
+    except (ZeroDivisionError, StopIteration):
+        config.Logs.Log("Button layout error - too many or no buttons", logsupport.Error)
+        return 5, 5
+
+
+"""
+def ButLayout(butcount):
+
     if butcount == 0:
         return 1, 1
     if 0 < butcount < 5:
@@ -35,6 +46,7 @@ def ButLayout(butcount):
         return 4, 5
     else:
         return -1, -1
+"""
 
 
 def ButSize(bpr, bpc, height):
@@ -43,7 +55,11 @@ def ButSize(bpr, bpc, height):
         (config.screenwidth - 2*config.horizborder)/bpr, h/bpc)
 
 
-class ScreenDesc:
+class ScreenDesc(object):
+    """
+    Basic information about a screen, subclassed by all other screens to handle this information
+    """
+
     def SetExtraCmdTitles(self, titles):
         for i in range(len(titles)):
             self.ExtraCmdKeys[i].label = titles[i]
@@ -65,8 +81,8 @@ class ScreenDesc:
         self.NextScreenKey = toucharea.ManualKeyDesc('**next**', ['**next**'],
                                                      self.CmdKeyCol, self.CmdCharCol, self.CmdCharCol,
                                                      center=(
-                                                     config.horizborder + (1 + len(ExtraCmdButs) + .5)*cbutwidth,
-                                                     cvertcenter), size=(cbutwidth, cbutheight))
+                                                         config.horizborder + (1 + len(ExtraCmdButs) + .5)*cbutwidth,
+                                                         cvertcenter), size=(cbutwidth, cbutheight))
         self.ExtraCmdKeys = []
         for i in range(len(ExtraCmdButs)):
             hcenter = config.horizborder + (i + 1.5)*cbutwidth
@@ -74,6 +90,7 @@ class ScreenDesc:
                                                              self.CmdKeyCol, self.CmdCharCol, self.CmdCharCol,
                                                              center=(hcenter, cvertcenter),
                                                              size=(cbutwidth, cbutheight)))
+        self.example = utilities.register_example('ScreenDesc', self)
 
     def FinishScreen(self):
         if self.PrevScreen is None:
@@ -87,7 +104,6 @@ class ScreenDesc:
         if self.WithNav:
             config.DS.draw_cmd_buttons(self)
 
-
     def __repr__(self):
         return "ScreenDesc:" + self.name + ":" + self.BackgroundColor + ":" + str(self.DimTO) + ":"
 
@@ -98,6 +114,7 @@ class BaseKeyScreenDesc(ScreenDesc):
         utilities.LocalizeParams(self, None)
         self.buttonsperrow = -1
         self.buttonspercol = -1
+        utilities.register_example('BaseKeyScreenDesc', self)
 
     def LayoutKeys(self, extraOffset=0, height=0):
         # Compute the positions and sizes for the Keys and store in the Key objects

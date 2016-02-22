@@ -118,28 +118,10 @@ maintscreen.SetUpMaintScreens()
 """
 Dump documentation
 """
-paramsdoc = open('docs/params.txt', 'w')
-os.chmod('docs/params.txt', 0o555)
-# todo make this a command line option since only need to do for development purposes
-paramsdoc.write('Global Parameters:\n')
-for p in sorted(utilities.globdoc):
-    paramsdoc.write(
-        '    {:32s}:  {:8s}  {}\n'.format(p, utilities.globdoc[p][0].__name__, str(utilities.globdoc[p][1])))
-paramsdoc.write('Module Parameters:\n')
-for p in sorted(utilities.moddoc):
-    paramsdoc.write('    ' + p + '\n')
-    paramsdoc.write('        Local Parameters:\n')
-    for q in sorted(utilities.moddoc[p]['loc']):
-        paramsdoc.write('            {:24s}:  {:8s}\n'.format(q, utilities.moddoc[p]['loc'][q].__name__))
-    paramsdoc.write('        Overrideable Globals:\n')
-    for q in sorted(utilities.moddoc[p]['ovrd']):
-        paramsdoc.write('            ' + q + '\n')
+utilities.DumpDocumentation()
 
-for i, scr in configobjects.exemplarscreens.iteritems():
-    print i, [x for x in dir(scr) if not x.startswith('_')]
-print "Maint", [x for x in dir(config.MaintScreen) if not x.startswith('_')]
-paramsdoc.close()
-
+docfile = open('confignew.txt', 'w')
+config.ParsedConfigFile.write(docfile)
 
 """
 Loop here using screen type to choose renderer and names to fill in cmdtxt - return value is next screen or a tap count

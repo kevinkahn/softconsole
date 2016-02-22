@@ -104,6 +104,7 @@ class WeatherScreenDesc(screen.ScreenDesc):
         self.forecast = [(1, False, u"{d[0]}   {d[1]}\u00B0/{d[2]}\u00B0 {d[3]}",
                           (('date', 'weekday_short'), ('high', 'fahrenheit'), ('low', 'fahrenheit'), ('conditions',))),
                          (1, False, "Wind: {d[0]} at {d[1]}", (('avewind', 'dir'), ('avewind', 'mph')))]
+        utilities.register_example("WeatherScreenDesc", self)
 
     def __repr__(self):
         return screen.ScreenDesc.__repr__(self) + "\r\n     WeatherScreenDesc:" + str(self.CharColor)

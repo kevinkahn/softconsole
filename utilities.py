@@ -8,10 +8,38 @@ import config
 import fonts
 import hw
 from logsupport import Error
+import collections
+from sets import Set
 
 globdoc = {}
 moddoc = {}
 paramlog = []
+exemplarobjs = collections.OrderedDict()
+
+
+class clsstruct:
+    def __init__(self, nm):
+        self.name = nm
+        self.members = []
+        self.membernms = Set()
+
+    def addmem(self, nm):
+        self.membernms.add(nm)
+
+
+clslst = {}
+
+
+def register_example(str, obj):
+    exemplarobjs[str] = list(dir(obj))
+    mro = list(obj.__class__.__mro__)
+    mro.reverse()
+    for i in range(len(mro)):
+        t = mro[i]
+        if t.__name__ not in clslst:
+            clslst[t.__name__] = clsstruct(t.__name__)
+        for e in mro[i + 1:]:
+            clslst[t.__name__].addmem(e.__name__)
 
 
 def interval_str(sec_elapsed):
@@ -140,3 +168,56 @@ def LocalizeParams(inst, configsection, *args, **kwargs):
                             severity=Error)
     for i in range(len(lcllist)):
         inst.__dict__[lcllist[i]] = type(lclval[i])(configsection.get(lcllist[i], lclval[i]))
+
+
+def DumpDocumentation():
+    docfile = open('docs/params.txt', 'w')
+    os.chmod('docs/params.txt', 0o555)
+    # todo make this a command line option since only need to do for development purposes
+    docfile.write('Global Parameters:\n')
+    for p in sorted(globdoc):
+        docfile.write(
+            '    {:32s}:  {:8s}  {}\n'.format(p, globdoc[p][0].__name__, str(globdoc[p][1])))
+    docfile.write('Module Parameters:\n')
+    for p in sorted(moddoc):
+        docfile.write('    ' + p + '\n')
+        docfile.write('        Local Parameters:\n')
+        for q in sorted(moddoc[p]['loc']):
+            docfile.write('            {:24s}:  {:8s}\n'.format(q, moddoc[p]['loc'][q].__name__))
+        docfile.write('        Overrideable Globals:\n')
+        for q in sorted(moddoc[p]['ovrd']):
+            docfile.write('            ' + q + '\n')
+    docfile.close()
+    docfile = open('docs/classstruct.txt', 'w')
+    docfile.write('Class/Attribute Structure:\n')
+    docfile.write('\n')
+
+    varsinuse = {}
+    olditems = []
+    for i, scr in exemplarobjs.iteritems():
+        varsinuse[i] = [x for x in scr if not x.startswith('_') and x not in olditems]
+        olditems = olditems + [x for x in scr if not x.startswith('_')]
+
+    def scrublowers(r):
+        lower = []
+        rtn = list(r.members)
+        for i in r.members:
+            lower = lower + scrublowers(i)
+        r.members = [x for x in r.members if x not in lower]
+        return rtn
+
+    def docwrite(r, ind):
+        docfile.write(ind + r.name + ': [' + ', '.join([n.name for n in r.members]) + ']\n')
+        if r.name in varsinuse:
+            for v in varsinuse[r.name]:
+                docfile.write(ind + '  ' + v + '\n')
+        for i in r.members:
+            docwrite(i, ind + '    ')
+
+    for c in clslst.itervalues():
+        for n in c.membernms:
+            c.members.append(clslst[n])
+    r = clslst['object']
+    scrublowers(r)
+    docwrite(r, '')
+    docfile.close()

@@ -2,6 +2,7 @@ import xmltodict
 import collections
 import config
 from config import ISYdebug
+import utilities
 from logsupport import Info, Warning, Error
 
 
@@ -23,18 +24,19 @@ def get_real_time_status(addrlist):
     return statusdict
 
 
-class TreeItem:
+class TreeItem(object):
     def __init__(self, name, addr, parentaddr):
         self.name = name
         self.address = addr
         self.parent = parentaddr  # replaced by actual obj reference at end of tree build
         self.children = []
+        utilities.register_example("TreeItem", self)
 
     def __repr__(self):
         return 'Tree Iten: ' + self.name + '/' + self.address + ' ' + str(len(self.children)) + ' children'
 
 
-class OnOffItem:
+class OnOffItem(object):
     def SendCommand(self, state, fast):
         selcmd = (('DOF', 'DFOF'), ('DON', 'DFON'))
         config.debugprint(ISYdebug, "OnOff sent: ", selcmd[state][fast], ' to ', self.name)
@@ -48,6 +50,7 @@ class Folder(TreeItem):
         TreeItem.__init__(self, name, addr, parentaddr)
         self.flag = flag
         self.parenttype = parenttyp
+        utilities.register_example("Folder", self)
 
     def __repr__(self):
         return "Folder: " + TreeItem.__repr__(self) + ' flag ' + self.flag + ' parenttyp ' + self.parenttype
@@ -69,6 +72,7 @@ class Node(Folder, OnOffItem):
         # no use for nodetype now
         # device class -energy management
                     # wattage, dcPeriod
+        utilities.register_example("Node", self)
 
     def __repr__(self):
         return 'Node: ' + Folder._repr__(self) + 'primary: ' + self.pnode
@@ -87,6 +91,7 @@ class Scene(TreeItem, OnOffItem):
         self.members = members
         self.proxy = ""
         self.obj = None
+        utilities.register_example("Scene", self)
 
     def __repr__(self):
         return "Scene: " + TreeItem.__repr__(self) + ' ' + str(
@@ -98,6 +103,7 @@ class ProgramFolder(TreeItem):
         TreeItem.__init__(self, nm, itemid, pid)
         self.status = False
         # not using lastRunTime, lastFinishTime
+        utilities.register_example("ProgramFolder", self)
 
     def __repr__(self):
         return 'ProgFolder: ' + TreeItem.__repr__(self) + ' status ' + self.status
@@ -107,6 +113,7 @@ class Program(ProgramFolder):
     def __init__(self, nm, itemid, pid):
         ProgramFolder.__init__(self, nm, itemid, pid)
         # not using enabled, runAtStartup,running
+        utilities.register_example("Program", self)
 
     def runThen(self):
         config.debugprint(ISYdebug, "runThen sent to ", self.name)
@@ -118,7 +125,7 @@ class Program(ProgramFolder):
         return 'Program: ' + TreeItem.__repr__(self) + ' '
 
 
-class ISY:
+class ISY(object):
     @staticmethod
     def LinkChildrenParents(nodelist, listbyname, looklist1, looklist2):
 
@@ -225,6 +232,7 @@ class ISY:
         self.LinkChildrenParents(self.ProgramsByAddr, self.ProgramsByName, self.ProgramFoldersByAddr,
                                  self.ProgramsByAddr)
 
+        utilities.register_example("ISY", self)
         if ISYdebug:
             self.PrintTree(self.ProgRoot, "    ")
 

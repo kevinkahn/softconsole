@@ -1,0 +1,119 @@
+Class/Attribute Structure:
+
+object: [ISY, TouchPoint, OnOffItem, ScreenDesc]
+    ISY: []
+      FoldersByAddr
+      FoldersByName
+      LinkChildrenParents
+      NodeRoot
+      NodesByAddr
+      NodesByName
+      PrintTree
+      ProgRoot
+      ProgramFoldersByAddr
+      ProgramFoldersByName
+      ProgramsByAddr
+      ProgramsByName
+      ScenesByAddr
+      ScenesByName
+    TouchPoint: [ManualKeyDesc]
+      Center
+      KeyCharColorOff
+      KeyCharColorOn
+      KeyColor
+      KeyOffOutlineColor
+      KeyOnOutlineColor
+      RealObj
+      Size
+      State
+      docodeinit
+      dosectioninit
+      label
+        ManualKeyDesc: [KeyDesc]
+            KeyDesc: []
+              KeyRunThenName
+              MonitorObj
+              SceneProxy
+              type
+    OnOffItem: [TreeItem]
+        TreeItem: [Folder, Scene, ProgramFolder]
+          address
+          children
+          name
+          parent
+          runThen
+            Folder: [Node]
+              SendCommand
+              flag
+              parenttype
+                Node: []
+                  enabled
+                  hasstatus
+                  pnode
+            Scene: []
+              members
+              obj
+              proxy
+            ProgramFolder: [Program]
+              status
+                Program: []
+    ScreenDesc: [HouseStatusScreenDesc, WeatherScreenDesc, BaseKeyScreenDesc, ClockScreenDesc]
+      BackgroundColor
+      CharColor
+      CmdCharCol
+      CmdKeyCol
+      DimTO
+      ExtraCmdKeys
+      FinishScreen
+      HandleScreen
+      LayoutKeys
+      NextScreen
+      NextScreenKey
+      PaintBase
+      PaintKeys
+      PrevScreen
+      PrevScreenKey
+      SetExtraCmdTitles
+      ShowScreen
+      WithNav
+      keysbyord
+        HouseStatusScreenDesc: []
+          NormalOff
+          NormalOn
+          example
+        WeatherScreenDesc: []
+          WunderKey
+          conditions
+          fcsts
+          forecast
+          js
+          lastwebreq
+          location
+          parsed_json
+          scrlabel
+          url
+        BaseKeyScreenDesc: [ThermostatScreenDesc, MaintScreenDesc, LogDisplayScreen, KeyScreenDesc]
+          buttonspercol
+          buttonsperrow
+            ThermostatScreenDesc: []
+              AdjButSurf
+              AdjButTops
+              BumpMode
+              BumpTemp
+              ModeButPos
+              ModesPos
+              SPPos
+              StatePos
+              TempPos
+              TitlePos
+              TitleRen
+              fsize
+              info
+            MaintScreenDesc: []
+              SubFontSize
+              TitleFontSize
+            LogDisplayScreen: []
+              showlog
+            KeyScreenDesc: []
+              subscriptionlist
+        ClockScreenDesc: []

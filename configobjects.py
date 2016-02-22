@@ -4,9 +4,8 @@ import config
 from config import debugprint
 from logsupport import Warning
 
-exemplarscreens = {}
 
-class MyScreens:
+class MyScreens(object):
     def __init__(self):
 
         thisconfig = config.ParsedConfigFile
@@ -27,7 +26,6 @@ class MyScreens:
 
                 if tempscreentype in config.screentypes:
                     NewScreen = config.screentypes[tempscreentype](thisScreen, screenitem)
-                    exemplarscreens[tempscreentype] = NewScreen  # save one of each type to generate documentation
                     config.Logs.Log(tempscreentype + " screen " + screenitem)
                 else:
                     config.Logs.Log("Screentype error" + screenitem + " type " + tempscreentype, severity=Warning)

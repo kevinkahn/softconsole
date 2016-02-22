@@ -6,6 +6,7 @@ import config
 import isy
 import screen
 import keydesc
+import utilities
 from config import debugprint, WAITNORMALBUTTON, WAITNORMALBUTTONFAST, WAITISYCHANGE, WAITEXIT
 
 wc = webcolors.name_to_rgb
@@ -24,6 +25,7 @@ class KeyScreenDesc(screen.BaseKeyScreenDesc):
                 self.keysbyord.append(NewKey)
 
         self.LayoutKeys()
+        utilities.register_example("KeyScreenDesc", self)
 
 
     def __repr__(self):

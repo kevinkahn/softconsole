@@ -14,7 +14,7 @@ Error = 2
 
 # disklogging = True
 
-class Logs:
+class Logs(object):
     livelog = True
     livelogpos = 0
     log = []

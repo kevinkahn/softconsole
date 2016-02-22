@@ -56,6 +56,9 @@ class KeyDesc(toucharea.ManualKeyDesc):
         else:
             debugprint(config.dbgscreenbuild, "Unknown key type: ", self.label)
             config.Logs.Log("Bad keytype: " + self.name, severity=Warning)
+
+        utilities.register_example("KeyDesc", self)
+
         debugprint(config.dbgscreenbuild, repr(self))
 
     def __repr__(self):

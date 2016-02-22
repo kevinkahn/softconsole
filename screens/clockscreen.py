@@ -19,6 +19,7 @@ class ClockScreenDesc(screen.ScreenDesc):
         utilities.LocalizeParams(self, screensection, CharSize=[20], Font='droidsansmono', OutFormat=[])
         for i in range(len(self.CharSize), len(self.OutFormat)):
             self.CharSize.append(self.CharSize[-1])
+        utilities.register_example("ClockScreen", self)
 
     def __repr__(self):
         return screen.ScreenDesc.__repr__(self) + "\r\n     ClockScreenDesc:" + str(self.CharColor) + ":" + str(

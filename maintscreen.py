@@ -70,6 +70,7 @@ class LogDisplayScreen(screen.BaseKeyScreenDesc):
         screen.BaseKeyScreenDesc.__init__(self, None, 'LOG', withnav=False)
         self.keysbyord = [toucharea.TouchPoint((config.screenwidth/2, config.screenheight/2),
                                                (config.screenwidth, config.screenheight))]
+        utilities.register_example("LogDisplayScreen", self)
 
     def showlog(self, K):
         item = 0
@@ -89,6 +90,7 @@ class MaintScreenDesc(screen.BaseKeyScreenDesc):
                 toucharea.ManualKeyDesc(k, [kt[0]], 'gold', 'black', 'black', KOn='black', KOff='black', proc=kt[1]))
         topoff = self.TitleFontSize + self.SubFontSize
         self.LayoutKeys(topoff, config.screenheight - config.topborder - topoff)
+        utilities.register_example("MaintScreenDesc", self)
 
     def ShowScreen(self):
         self.PaintBase()

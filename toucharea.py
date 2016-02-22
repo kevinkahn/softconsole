@@ -9,10 +9,12 @@ def InBut(pos, Key):
            (pos[1] > Key.Center[1] - Key.Size[1]/2) and (pos[1] < Key.Center[1] + Key.Size[1]/2)
 
 
-class TouchPoint:
+class TouchPoint(object):
     def __init__(self, c, s):
         self.Center = c
         self.Size = s
+        utilities.register_example("TouchPoint", self)
+
 
 class ManualKeyDesc(TouchPoint):
     def __init__(self, *args, **kwargs):
@@ -25,6 +27,7 @@ class ManualKeyDesc(TouchPoint):
             # signature: ManualKeyDesc(keyname, label, bcolor, charcoloron, charcoloroff, center=, size=, KOn=, KOff=, proc=)
             # initializing from program code case
             self.docodeinit(*args, **kwargs)
+        utilities.register_example("TouchPoint", self)
 
     def docodeinit(self, keyname, label, bcolor, charcoloron, charcoloroff, center=(0, 0), size=(0, 0), KOn='', KOff='',
                    proc=None):

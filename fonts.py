@@ -2,7 +2,7 @@ import pygame
 import config
 
 
-class Fonts:
+class Fonts(object):
     def __init__(self):
         pygame.font.init()
         self.fontcache = {}  # cache is tree dir with first key as name, second as size, third as ital, fourth as bold

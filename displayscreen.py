@@ -12,7 +12,8 @@ from utilities import scaleW, scaleH
 
 wc = webcolors.name_to_rgb
 
-class DisplayScreen:
+
+class DisplayScreen(object):
 
     def __init__(self):
 

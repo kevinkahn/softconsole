@@ -20,6 +20,7 @@ class HouseStatusScreenDesc(screen.ScreenDesc):
         utilities.LocalizeParams(self, screensection, NormalOn=[], NormalOff=[])
         checklist = [nm for nm in config.ISY.NodesByName if
                      ((nm in self.NormalOn) or (nm in self.NormalOff))]  # addr -> name
+        utilities.register_example("HouseStatusScreenDesc", self)
 
     def __repr__(self):
         return screen.ScreenDesc.__repr__(self) + "\r\n     StatusScreenDesc:"
