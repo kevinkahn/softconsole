@@ -36,6 +36,17 @@ Module Parameters:
             CmdCharCol
             CmdKeyCol
             DimTO
+    HouseStatusScreenDesc
+        Local Parameters:
+            NormalOff               :  list    
+            NormalOn                :  list    
+            label                   :  list    
+        Overrideable Globals:
+            BackgroundColor
+            CharColor
+            CmdCharCol
+            CmdKeyCol
+            DimTO
     KeyDesc
         Local Parameters:
             KeyRunThenName          :  str     
@@ -50,6 +61,26 @@ Module Parameters:
             KeyOnOutlineColor
     KeyScreenDesc
         Local Parameters:
+            label                   :  list    
+        Overrideable Globals:
+            BackgroundColor
+            CharColor
+            CmdCharCol
+            CmdKeyCol
+            DimTO
+    LogDisplayScreen
+        Local Parameters:
+            label                   :  list    
+        Overrideable Globals:
+            BackgroundColor
+            CharColor
+            CmdCharCol
+            CmdKeyCol
+            DimTO
+    MaintScreenDesc
+        Local Parameters:
+            SubFontSize             :  int     
+            TitleFontSize           :  int     
             label                   :  list    
         Overrideable Globals:
             BackgroundColor

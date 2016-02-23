@@ -25,11 +25,13 @@ ISYdebug = False
 dbgscreenbuild = False
 dbgMain = False
 dbgdaemon = False
+
+
 def debugprint(flag, *args):
-    if flag:
-        for arg in args:
-            print arg,
-        print
+	if flag:
+		for arg in args:
+			print arg,
+		print
 
 
 # Global pointers

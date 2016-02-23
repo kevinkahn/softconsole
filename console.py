@@ -14,11 +14,11 @@ Copyright 2016 Kevin Kahn
    limitations under the License.
 """
 
+import importlib
 import os
 import signal
 import sys
 import time
-import importlib
 from  multiprocessing import Process, Queue
 
 import requests
@@ -30,22 +30,20 @@ import displayscreen
 import globalparams
 import isy
 import logsupport
+import maintscreen
+import screen
 import utilities
 import watchdaemon
 from config import debugprint
-
-import maintscreen
-import screen
-
 
 """
 Dynamically load class definitions for all defined screen types and link them to how configuration happens
 """
 for screentype in os.listdir(os.path.dirname(os.path.abspath(sys.argv[0])) + '/screens'):
-    if '__' not in screentype:
-        splitname = os.path.splitext(screentype)
-        if splitname[1] == '.py':
-            importlib.import_module('screens.' + splitname[0])
+	if '__' not in screentype:
+		splitname = os.path.splitext(screentype)
+		if splitname[1] == '.py':
+			importlib.import_module('screens.' + splitname[0])
 
 """
 Initialize the Console
@@ -55,9 +53,7 @@ config.starttime = time.time()
 utilities.InitializeEnvironment()
 
 if len(sys.argv) == 2:
-    config.configfile = sys.argv[1]
-
-
+	config.configfile = sys.argv[1]
 
 signal.signal(signal.SIGTERM, utilities.signal_handler)
 signal.signal(signal.SIGINT, utilities.signal_handler)
@@ -122,6 +118,7 @@ utilities.DumpDocumentation()
 
 docfile = open('confignew.txt', 'w')
 config.ParsedConfigFile.write(docfile)
+docfile.close()
 
 """
 Loop here using screen type to choose renderer and names to fill in cmdtxt - return value is next screen or a tap count
@@ -131,20 +128,20 @@ prevscreen = None
 mainchainactive = True
 
 while 1:
-    nextscreen = config.CurrentScreen.HandleScreen(prevscreen <> config.CurrentScreen)
-    if isinstance(nextscreen, int):
-        if nextscreen < 5:
-            if mainchainactive:
-                nextscreen = config.HomeScreen2
-                mainchainactive = False
-            else:
-                nextscreen = config.HomeScreen
-                mainchainactive = True
-        else:
-            nextscreen = config.MaintScreen
-    elif nextscreen is None:
-        nextscreen = config.HomeScreen
-    elif not isinstance(nextscreen, screen.ScreenDesc):
-        config.Logs.Log("Internal error unknown nextscreen", severity=logsupport.Error)
-    prevscreen = config.CurrentScreen
-    config.CurrentScreen = nextscreen
+	nextscreen = config.CurrentScreen.HandleScreen(prevscreen <> config.CurrentScreen)
+	if isinstance(nextscreen, int):
+		if nextscreen < 5:
+			if mainchainactive:
+				nextscreen = config.HomeScreen2
+				mainchainactive = False
+			else:
+				nextscreen = config.HomeScreen
+				mainchainactive = True
+		else:
+			nextscreen = config.MaintScreen
+	elif nextscreen is None:
+		nextscreen = config.HomeScreen
+	elif not isinstance(nextscreen, screen.ScreenDesc):
+		config.Logs.Log("Internal error unknown nextscreen", severity=logsupport.Error)
+	prevscreen = config.CurrentScreen
+	config.CurrentScreen = nextscreen

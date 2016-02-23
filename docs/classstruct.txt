@@ -1,7 +1,9 @@
 Class/Attribute Structure:
 
 object: [ISY, TouchPoint, OnOffItem, ScreenDesc]
+The most base type
     ISY: []
+    ***missing***
       FoldersByAddr
       FoldersByName
       LinkChildrenParents
@@ -17,6 +19,7 @@ object: [ISY, TouchPoint, OnOffItem, ScreenDesc]
       ScenesByAddr
       ScenesByName
     TouchPoint: [ManualKeyDesc]
+    ***missing***
       Center
       KeyCharColorOff
       KeyCharColorOn
@@ -30,34 +33,46 @@ object: [ISY, TouchPoint, OnOffItem, ScreenDesc]
       dosectioninit
       label
         ManualKeyDesc: [KeyDesc]
+        ***missing***
             KeyDesc: []
+            ***missing***
               KeyRunThenName
               MonitorObj
               SceneProxy
               type
     OnOffItem: [TreeItem]
+    ***missing***
         TreeItem: [Folder, Scene, ProgramFolder]
+        ***missing***
           address
           children
           name
           parent
           runThen
             Folder: [Node]
+            ***missing***
               SendCommand
               flag
               parenttype
                 Node: []
+                ***missing***
                   enabled
                   hasstatus
                   pnode
             Scene: []
+            ***missing***
               members
               obj
               proxy
             ProgramFolder: [Program]
+            ***missing***
               status
                 Program: []
+                ***missing***
     ScreenDesc: [HouseStatusScreenDesc, WeatherScreenDesc, BaseKeyScreenDesc, ClockScreenDesc]
+    
+    Basic information about a screen, subclassed by all other screens to handle this information
+    
       BackgroundColor
       CharColor
       CmdCharCol
@@ -78,10 +93,11 @@ object: [ISY, TouchPoint, OnOffItem, ScreenDesc]
       WithNav
       keysbyord
         HouseStatusScreenDesc: []
+        ***missing***
           NormalOff
           NormalOn
-          example
         WeatherScreenDesc: []
+        ***missing***
           WunderKey
           conditions
           fcsts
@@ -93,9 +109,11 @@ object: [ISY, TouchPoint, OnOffItem, ScreenDesc]
           scrlabel
           url
         BaseKeyScreenDesc: [ThermostatScreenDesc, MaintScreenDesc, LogDisplayScreen, KeyScreenDesc]
+        ***missing***
           buttonspercol
           buttonsperrow
             ThermostatScreenDesc: []
+            ***missing***
               AdjButSurf
               AdjButTops
               BumpMode
@@ -110,10 +128,14 @@ object: [ISY, TouchPoint, OnOffItem, ScreenDesc]
               fsize
               info
             MaintScreenDesc: []
+            ***missing***
               SubFontSize
               TitleFontSize
             LogDisplayScreen: []
+            ***missing***
               showlog
             KeyScreenDesc: []
+            ***missing***
               subscriptionlist
         ClockScreenDesc: []
+        ***missing***
