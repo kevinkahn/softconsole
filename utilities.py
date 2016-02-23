@@ -194,7 +194,7 @@ def DumpDocumentation():
 	docfile.write('Class/Attribute Structure:\n')
 	docfile.write('\n')
 	mdfile = open('docs/classstruct.md', 'w')
-	mdfile.write('\# Class/Attribute Structure):\n')
+	mdfile.write('# Class/Attribute Structure):\n')
 	mdfile.write('\n')
 
 	varsinuse = {}
@@ -213,9 +213,9 @@ def DumpDocumentation():
 
 	def docwrite(r, ind, md):
 		docfile.write(ind + r.name + ': [' + ', '.join([n.name for n in r.members]) + ']\n')
-		mdfile.write(md + r.name + ': [' + ', '.join([n.name for n in r.members]) + ']\n')
+		mdfile.write('\n' + md + r.name + ': [' + ', '.join([n.name for n in r.members]) + ']\n')
 		docfile.write(ind + (doclst[r.name] if not doclst[r.name] is None else "***missing***") + '\n')
-		mdfile.write((doclst[r.name] if not doclst[r.name] is None else "***missing***") + '\n')
+		mdfile.write((doclst[r.name] if not doclst[r.name] is None else "\n***missing***\n") + '\n')
 		if r.name in varsinuse:
 			for v in varsinuse[r.name]:
 				docfile.write(ind + '  ' + v + '\n')

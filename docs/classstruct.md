@@ -1,7 +1,9 @@
-\# Class/Attribute Structure):
+# Class/Attribute Structure):
+
 
 #object: [ISY, TouchPoint, OnOffItem, ScreenDesc]
 The most base type
+
 ##ISY: []
 
 	Singleton object (1 per console) that represents the ISY system as a whole and provides roots to its structures
@@ -22,6 +24,7 @@ The most base type
 *  ProgramsByName
 *  ScenesByAddr
 *  ScenesByName
+
 ##TouchPoint: [ManualKeyDesc]
 
 	Represents a touchable rectangle on the screen.
@@ -30,6 +33,7 @@ The most base type
 *  Size
 *  docodeinit
 *  dosectioninit
+
 ##ManualKeyDesc: [KeyDesc]
 
 	Defines a drawn touchable rectangle on the screen that represents a key (button).  May be called with one of 2
@@ -46,16 +50,21 @@ The most base type
 *  RealObj
 *  State
 *  label
+
 ##KeyDesc: []
+
 ***missing***
+
 *  KeyRunThenName
 *  MonitorObj
 *  SceneProxy
 *  type
+
 ##OnOffItem: [TreeItem]
 
 	Provides command handling for nodes that can be sent on/off faston/fastoff commands.
 	
+
 ##TreeItem: [Folder, Scene, ProgramFolder]
 
 	Provides the graph structure for the ISY representation.  Any ISY node can have a parent and children managed by
@@ -66,6 +75,7 @@ The most base type
 *  name
 *  parent
 *  runThen
+
 ##Folder: [Node]
 
 	Represents and ISY node/scene folder.
@@ -73,6 +83,7 @@ The most base type
 *  SendCommand
 *  flag
 *  parenttype
+
 ##Node: []
 
 	Represents and ISY device node.
@@ -80,6 +91,7 @@ The most base type
 *  enabled
 *  hasstatus
 *  pnode
+
 ##Scene: []
 
 	Represents an ISY scene.
@@ -87,15 +99,18 @@ The most base type
 *  members
 *  obj
 *  proxy
+
 ##ProgramFolder: [Program]
 
 	Represents an ISY program folder (ISY keeps the node and program folders separately)
 	
 *  status
+
 ##Program: []
 
 	Represents an ISY program and provides command support to issue run commands to it.
 	
+
 ##ScreenDesc: [HouseStatusScreenDesc, WeatherScreenDesc, BaseKeyScreenDesc, ClockScreenDesc]
 
 	Basic information about a screen, subclassed by all other screens to handle this information
@@ -119,12 +134,18 @@ The most base type
 *  ShowScreen
 *  WithNav
 *  keysbyord
+
 ##HouseStatusScreenDesc: []
+
 ***missing***
+
 *  NormalOff
 *  NormalOn
+
 ##WeatherScreenDesc: []
+
 ***missing***
+
 *  WunderKey
 *  conditions
 *  fcsts
@@ -135,12 +156,18 @@ The most base type
 *  parsed_json
 *  scrlabel
 *  url
+
 ##BaseKeyScreenDesc: [ThermostatScreenDesc, MaintScreenDesc, LogDisplayScreen, KeyScreenDesc]
+
 ***missing***
+
 *  buttonspercol
 *  buttonsperrow
+
 ##ThermostatScreenDesc: []
+
 ***missing***
+
 *  AdjButSurf
 *  AdjButTops
 *  BumpMode
@@ -154,15 +181,27 @@ The most base type
 *  TitleRen
 *  fsize
 *  info
+
 ##MaintScreenDesc: []
+
 ***missing***
+
 *  SubFontSize
 *  TitleFontSize
+
 ##LogDisplayScreen: []
+
 ***missing***
+
 *  showlog
+
 ##KeyScreenDesc: []
+
 ***missing***
+
 *  subscriptionlist
+
 ##ClockScreenDesc: []
+
 ***missing***
+
