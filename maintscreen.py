@@ -31,7 +31,7 @@ def SetUpMaintScreens():
 	LogDisp = LogDisplayScreen()
 	config.MaintScreen = MaintScreenDesc(
 		OrderedDict([('return', ('Exit Maintenance', None)), ('log', ('Show Log', LogDisp.showlog)),
-					 ('exit', ('Exit/Restart', Exits.HandleScreen)), ('beta', ('Select Version', Beta.HandleScreen))]))
+					 ('beta', ('Select Version', Beta.HandleScreen)), ('exit', ('Exit/Restart', Exits.HandleScreen))]))
 
 
 def doexit(K):
