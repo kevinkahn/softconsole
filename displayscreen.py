@@ -152,7 +152,7 @@ class DisplayScreen(object):
 							rtn = (WAITNORMALBUTTON, i)
 						else:
 							rtn = (WAITNORMALBUTTONFAST, i)
-				if self.AS.PrevScreenKey is not None:
+				if self.AS.PrevScreen is not None:
 					if toucharea.InBut(pos, self.AS.PrevScreenKey):
 						rtn = (WAITEXIT, self.AS.PrevScreen)
 					elif toucharea.InBut(pos, self.AS.NextScreenKey):

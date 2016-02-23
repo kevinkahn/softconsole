@@ -25,32 +25,46 @@ def SetUpMaintScreens():
 		OrderedDict([('shut', ('Shutdown Console', doexit)), ('restart', ('Restart Console', doexit)),
 					 ('shutpi', (('Shutdown Pi'), doexit)), ('reboot', (('Reboot Pi'), doexit)),
 					 ('return', ('Return', None))]))
+	Beta = MaintScreenDesc(
+		OrderedDict([('stable', (('Use Stable Release'), dobeta)), ('beta', (('Use Beta Release'), dobeta)),
+					 ('fetch', (('Download Beta'), dobeta))]))
 	LogDisp = LogDisplayScreen()
 	config.MaintScreen = MaintScreenDesc(
 		OrderedDict([('return', ('Exit Maintenance', None)), ('log', ('Show Log', LogDisp.showlog)),
-					 ('exit', ('Exit/Restart', Exits.HandleScreen))]))
+					 ('exit', ('Exit/Restart', Exits.HandleScreen)), ('beta', ('Select Version', Beta.HandleScreen))]))
 
 
 def doexit(K):
 	if K.name == 'shut':
 		Exit_Options("Manual Shutdown Requested", "Shutting Down")
-		sys.exit()
+	#		sys.exit()
 	elif K.name == 'restart':
 		Exit_Options("Console Restart Requested", "Restarting")
-		z = 'nohup /bin/bash -c \" echo c1 > /home/pi/c1 && sleep 3 && echo c2 > /home/pi/c2 && python -u ' + \
-			sys.argv[0] + ' ' + config.configfile + '\"'
-		print z
-		subprocess.Popen(z, shell=True)
-		sys.exit()
+	#		z = 'nohup /bin/bash -c \" echo c1 > /home/pi/c1 && sleep 3 && echo c2 > /home/pi/c2 && python -u ' + \
+	#			sys.argv[0] + ' ' + config.configfile + '\"'
+	#		print z
+	#		subprocess.Popen(z, shell=True)
+	#		sys.exit()
 	elif K.name == 'shutpi':
 		Exit_Options("Shutdown Pi Requested", "Shutting Down Pi")
-		subprocess.Popen('sudo shutdown -P now', shell=True)
-		sys.exit()
+	#		subprocess.Popen('sudo shutdown -P now', shell=True)
+	#		sys.exit()
 	elif K.name == 'reboot':
 		Exit_Options("Reboot Pi Requested", "Rebooting Pi")
-		subprocess.Popen('sudo reboot', shell=True)
-		sys.exit()
+	#		subprocess.Popen('sudo reboot', shell=True)
+	#		sys.exit()
 
+	subprocess.Popen('nohup /bin/bash -e /home/pi/Console/consoleexit ' + K.name + ' ' + config.configfile, shell=True)
+	sys.exit()
+
+
+def dobeta(K):
+	if K.name == 'stable':
+		subprocess.Popen('sudo rm /home/pi/usebeta', shell=True)
+	elif K.name == 'beta':
+		subprocess.Popen('sudo touch /home/pi/usebeta', shell=True)
+	elif K.name == 'fetch':
+		subprocess.Popen('/home/pi/AutoUpdate/getcurrentbeta', shell=True)
 
 def Exit_Options(msg, scrnmsg):
 	config.screen.fill(wc("red"))
@@ -89,7 +103,7 @@ class MaintScreenDesc(screen.BaseKeyScreenDesc):
 			self.keysbyord.append(
 				toucharea.ManualKeyDesc(k, [kt[0]], 'gold', 'black', 'black', KOn='black', KOff='black', proc=kt[1]))
 		topoff = self.TitleFontSize + self.SubFontSize
-		self.LayoutKeys(topoff, config.screenheight - config.topborder - topoff)
+		self.LayoutKeys(topoff, config.screenheight - 2*config.topborder - topoff)
 		utilities.register_example("MaintScreenDesc", self)
 
 	def ShowScreen(self):
@@ -118,6 +132,7 @@ class MaintScreenDesc(screen.BaseKeyScreenDesc):
 				K = self.keysbyord[choice[1]]
 				if callable(K.RealObj):
 					K.RealObj(K)
+					return config.MaintScreen
 				elif K.RealObj == None:
 					return config.HomeScreen
 				else:
