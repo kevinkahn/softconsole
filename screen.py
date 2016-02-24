@@ -27,27 +27,6 @@ def ButLayout(butcount):
 		return 5, 5
 
 
-"""
-def ButLayout(butcount):
-
-    if butcount == 0:
-        return 1, 1
-    if 0 < butcount < 5:
-        return 1, butcount
-    elif 4 < butcount < 7:
-        return 2, 3
-    elif 6 < butcount < 9:
-        return 2, 4
-    elif 8 < butcount < 13:
-        return 3, 4
-    elif 12 < butcount < 17:
-        return 4, 4
-    elif 16 < butcount < 21:
-        return 4, 5
-    else:
-        return -1, -1
-"""
-
 
 def ButSize(bpr, bpc, height):
 	h = config.screenheight - config.topborder - config.botborder if height == 0 else height
@@ -74,6 +53,7 @@ class ScreenDesc(object):
 		cbutwidth = (config.screenwidth - 2*config.horizborder)/(2 + len(ExtraCmdButs))
 		cvertcenter = config.screenheight - config.botborder/2
 		cbutheight = config.botborder - config.cmdvertspace*2
+		# todo condition on withnav?  if False then None?
 		self.PrevScreenKey = toucharea.ManualKeyDesc('**prev**', ['**prev**'],
 													 self.CmdKeyCol, self.CmdCharCol, self.CmdCharCol,
 													 center=(config.horizborder + .5*cbutwidth, cvertcenter),
@@ -92,7 +72,7 @@ class ScreenDesc(object):
 															 size=(cbutwidth, cbutheight)))
 		utilities.register_example('ScreenDesc', self)
 
-	def FinishScreen(self):
+	def FinishScreen(self):  # todo this makes no sense since I set PrevScreen in init above
 		if self.PrevScreen is None:
 			self.PrevScreenKey = None
 		else:

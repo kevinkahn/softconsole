@@ -92,6 +92,6 @@ class Logs(object):
 			pos = self.RenderLogLine(self.log[i][1], self.LogColors[self.log[i][0]], pos)
 			if pos > config.screenheight - config.botborder:
 				pygame.display.update()
-				return i + 1
+				return (i + 1) if (i + 1) < len(self.log) else -1
 
 		return -1

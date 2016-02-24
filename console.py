@@ -92,8 +92,8 @@ config.Logs.Log("Linked config to ISY")
 """
 Set up the watcher daemon and its communications
 """
-config.toDaemon = Queue()
-config.fromDaemon = Queue()
+config.toDaemon = Queue(300)
+config.fromDaemon = Queue(300)
 p = Process(target=watchdaemon.Watcher, name="Watcher")
 p.daemon = True
 p.start()

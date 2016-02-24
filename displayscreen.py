@@ -89,9 +89,10 @@ class DisplayScreen(object):
 	def NewWaitPress(self, ActiveScreen, callbackint=0, callbackproc=None, callbackcount=0):
 
 		self.AS = ActiveScreen
-		if callbackint <> 0:
+		cycle = 0
+		if callbackint <> 0:  # todo needs a better structural fix for posted actions that persist across Waitpress calls
 			pygame.time.set_timer(self.INTERVALHIT.type, int(callbackint*1000))
-		cycle = callbackcount if callbackcount <> 0 else 100000000  # essentially infinite
+			cycle = callbackcount if callbackcount <> 0 else 100000000  # essentially infinite
 		if self.isDim and self.AS == config.DimHomeScreenCover:
 			pygame.time.set_timer(self.GOHOMEHIT.type, 0)  # in final quiet state so cancel gohome until a touch
 		else:
@@ -100,22 +101,12 @@ class DisplayScreen(object):
 
 		while True:
 			rtn = (0, 0)
-			if not config.fromDaemon.empty():
-				item = config.fromDaemon.get()
-				debugprint(config.dbgMain, time.time(), "ISY reports change: ", "Key: ", str(item))
-				if item[0] == "Log":
-					config.Logs.Log(item[1], severity=item[2])
-					continue
-				elif item[0] == "Node":
-					rtn = (WAITISYCHANGE, (item[1], item[2]))
-					break
-				else:
-					config.Logs.Log("Bad msg from watcher: " + str(item), Severity=Warning)
+
 			event = pygame.fastevent.poll()
 
 			if event.type == pygame.NOEVENT:
 				time.sleep(.01)
-
+				pass
 			elif event.type == pygame.MOUSEBUTTONDOWN:
 				pos = (pygame.mouse.get_pos()[0], pygame.mouse.get_pos()[1])
 				if self.presscount < 10:  # this is debug code for a weird/unreproducible RPi behavior where touch is off
@@ -162,21 +153,38 @@ class DisplayScreen(object):
 						rtn = (WAITEXTRACONTROLBUTTON, K.name)
 				if rtn[0] <> 0:
 					break
+				continue
 
 			elif event.type == self.MAXTIMEHIT.type:
 				dimscr = self.GoDim(True)
 				if dimscr is not None:
 					rtn = (WAITEXIT, dimscr)
 					break
+				continue
 			elif event.type == self.INTERVALHIT.type:
 				if (callbackproc is not None) and (cycle > 0):
 					callbackproc(cycle)
 					cycle -= 1
+				continue
 			elif event.type == self.GOHOMEHIT.type:
 				rtn = (WAITEXIT, config.HomeScreen)
 				break
 			else:
 				pass  # ignore and flush other events
+
+			if (not config.fromDaemon.empty()) and (cycle == 0):  # don't process daemon reports while cycling
+				debugprint(config.dbgMain, "Q size at main loop ", config.fromDaemon.qsize())
+				item = config.fromDaemon.get()
+				debugprint(config.dbgMain, time.time(), "ISY reports change: ", "Key: ", str(item))
+				if item[0] == "Log":
+					config.Logs.Log(item[1], severity=item[2])
+					continue
+				elif item[0] == "Node":
+					rtn = (WAITISYCHANGE, (item[1], item[2]))
+					break
+				else:
+					config.Logs.Log("Bad msg from watcher: " + str(item), Severity=Warning)
+
 
 		pygame.time.set_timer(self.INTERVALHIT.type, 0)
 		pygame.time.set_timer(self.MAXTIMEHIT.type, 0)

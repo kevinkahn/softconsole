@@ -51,6 +51,7 @@ def event_feed(*arg):
 		debugprint(config.dbgdaemon, time.time(), "Status update in stream: ", data["Event-seqnum"], ":", prcode, " : ",
 				   data["node"], " : ", data["eventInfo"], " : ", data["action"])
 		config.fromDaemon.put(("Node", data["node"], data["action"]))
+		debugprint(config.dbgdaemon, "Qsize at daemon ", config.fromDaemon.qsize())
 	else:
 		debugprint(config.dbgdaemon, time.time(), "Other  update in stream: ", data["Event-seqnum"], ":", prcode, " : ",
 				   data["node"], " : ", data["eventInfo"], " : ", data["action"])
