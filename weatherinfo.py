@@ -60,22 +60,29 @@ class WeatherInfo:
 
 	def FetchWeather(self):
 		if time.time() > self.lastwebreq + 5*60:
-			# refresh the conditions - don't do more than once per 5 minutes
-			f = urllib2.urlopen(self.url)
-			val = f.read()
-			if val.find("keynotfound") <> -1:
-				config.Logs.Log("Bad weatherunderground key:" + self.name, severity=logsupport.Error)
-				return config.HomeScreen
-			self.lastwebreq = time.time()
-			parsed_json = json.loads(val)
-			js = functools.partial(TreeDict, parsed_json)
-			fcsts = TreeDict(parsed_json, 'forecast', 'simpleforecast', 'forecastday')
-			f.close()
-			for cond, desc in WeatherInfo.ConditionMap.iteritems():
-				self.ConditionVals[cond] = desc[0](js(*desc[1]))
-			for i, fcst in enumerate(fcsts):
-				self.ForecastVals.append({})
-				fs = functools.partial(TreeDict, fcst)
-				for fc, desc in WeatherInfo.ForecastDay.iteritems():
-					self.ForecastVals[i][fc] = desc[0](fs(*desc[1]))
+			try:
+				# refresh the conditions - don't do more than once per 5 minutes
+				f = urllib2.urlopen(self.url)
+				val = f.read()
+				if val.find("keynotfound") <> -1:
+					config.Logs.Log("Bad weatherunderground key:" + self.name, severity=logsupport.Error)
+					return config.HomeScreen  # todo fix this
+				self.lastwebreq = time.time()
+				parsed_json = json.loads(val)
+				js = functools.partial(TreeDict, parsed_json)
+				fcsts = TreeDict(parsed_json, 'forecast', 'simpleforecast', 'forecastday')
+				f.close()
+				self.ConditionVals = {}
+				self.ForecastVals = []
+				for cond, desc in WeatherInfo.ConditionMap.iteritems():
+					self.ConditionVals[cond] = desc[0](js(*desc[1]))
+				for i, fcst in enumerate(fcsts):
+					self.ForecastVals.append({})
+					fs = functools.partial(TreeDict, fcst)
+					for fc, desc in WeatherInfo.ForecastDay.iteritems():
+						self.ForecastVals[i][fc] = desc[0](fs(*desc[1]))
+			except:
+				config.Logs.Log("Error retrieving weather", logsupport.Error)
+				print "Get fresh weather failed ", time.time()
+				print self.url
 		return self.lastwebreq

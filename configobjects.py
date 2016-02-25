@@ -78,7 +78,7 @@ class MyScreens(object):
 		config.HomeScreen2 = secondlist[config.SecondaryChain[0]]
 
 		config.Logs.Log("Home Screen: " + config.HomeScreen.name)
-		if config.DimHomeScreenCoverName in config.MainChain:
+		if config.DimHomeScreenCoverName in config.MainChain:  # todo why must it be on MainChain?
 			config.DimHomeScreenCover = mainlist[config.DimHomeScreenCoverName]
 			config.Logs.Log("Dim Home Screen: " + config.DimHomeScreenCover.name)
 		else:
