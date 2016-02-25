@@ -169,7 +169,13 @@ def LocalizeParams(inst, configsection, *args, **kwargs):
 			config.Logs.Log("Obj " + inst.__class__.__name__ + ' attempted import of non-existent global ' + nametoadd,
 							severity=Error)
 	for i in range(len(lcllist)):
-		inst.__dict__[lcllist[i]] = type(lclval[i])(configsection.get(lcllist[i], lclval[i]))
+		val = type(lclval[i])(configsection.get(lcllist[i], lclval[i]))
+		if isinstance(val, list):
+			for j, v in enumerate(val):
+				if isinstance(v, str):
+					val[j] = unicode(v)
+		inst.__dict__[lcllist[i]] = val
+
 
 
 def DumpDocumentation():
