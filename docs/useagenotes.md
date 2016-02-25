@@ -14,6 +14,7 @@
 * Clock: displays a clock formatted according to the OutFormat parameter using any of the underlying OS time formatting codes.  The character size for each line can be set individually.  If there are more lines in the format than character sizes the last size is repeated. Python standard formatting is at https://docs.python.org/2/library/time.html.  Linux (RPi) supports a somewhat richer set of codes e.g. http://linux.die.net/man/3/strftime
 * Weather: uses Weather Underground to display current conditions and forecast.  The location parameter is a WU location code - see their site for codes.  To use this screen you must have a WU key which can be gotten for free for low volume use.  
 * Thermostat: mimics the front panel of the Insteon thermostat and provides full function equivalency.
+* Time/Temp: combined screen, nice as a sleep screen that gives current time and the weather at a single location.  Format of the screen is largely controlled by the config.txt file.
 
 # Connecting Console Names with ISY Names
 * Some names in the config file are used to link console objects to ISY nodes/scenes.  Specifically the section name of a thermostat sceen is used to connect that screen to an ISY thermostat and the subsection names of ONOFF keys are used to link those keys to an ISY device or scene.

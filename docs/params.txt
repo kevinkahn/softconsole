@@ -21,7 +21,7 @@ Global Parameters:
     LogFontSize                     :  int       23
     MainChain                       :  list      []
     MaxLogFiles                     :  int       5
-    MultiTapTime                    :  int       300
+    MultiTapTime                    :  int       400
     SecondaryChain                  :  list      []
 Module Parameters:
     ClockScreenDesc
@@ -29,17 +29,6 @@ Module Parameters:
             CharSize                :  list    
             Font                    :  str     
             OutFormat               :  list    
-            label                   :  list    
-        Overrideable Globals:
-            BackgroundColor
-            CharColor
-            CmdCharCol
-            CmdKeyCol
-            DimTO
-    HouseStatusScreenDesc
-        Local Parameters:
-            NormalOff               :  list    
-            NormalOn                :  list    
             label                   :  list    
         Overrideable Globals:
             BackgroundColor
@@ -100,6 +89,25 @@ Module Parameters:
             KeyColor
             KeyOffOutlineColor
             KeyOnOutlineColor
+    TimeTempScreenDesc
+        Local Parameters:
+            CharSize                :  list    
+            ConditionFields         :  list    
+            ConditionFormat         :  list    
+            Font                    :  str     
+            ForecastDays            :  int     
+            ForecastFields          :  list    
+            ForecastFormat          :  list    
+            TimeFormat              :  list    
+            WunderKey               :  str     
+            label                   :  list    
+            location                :  str     
+        Overrideable Globals:
+            BackgroundColor
+            CharColor
+            CmdCharCol
+            CmdKeyCol
+            DimTO
     WeatherScreenDesc
         Local Parameters:
             WunderKey               :  str     

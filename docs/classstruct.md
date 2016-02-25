@@ -111,7 +111,7 @@ The most base type
 	Represents an ISY program and provides command support to issue run commands to it.
 	
 
-##ScreenDesc: [HouseStatusScreenDesc, WeatherScreenDesc, BaseKeyScreenDesc, ClockScreenDesc]
+##ScreenDesc: [TimeTempScreenDesc, WeatherScreenDesc, BaseKeyScreenDesc, ClockScreenDesc]
 
 	Basic information about a screen, subclassed by all other screens to handle this information
 	
@@ -135,27 +135,22 @@ The most base type
 *  WithNav
 *  keysbyord
 
-##HouseStatusScreenDesc: []
+##TimeTempScreenDesc: []
 
 ***missing***
 
-*  NormalOff
-*  NormalOn
 
 ##WeatherScreenDesc: []
 
 ***missing***
 
+*  Info
+*  RenderScreenLines
 *  WunderKey
 *  conditions
-*  fcsts
 *  forecast
-*  js
-*  lastwebreq
 *  location
-*  parsed_json
 *  scrlabel
-*  url
 
 ##BaseKeyScreenDesc: [ThermostatScreenDesc, MaintScreenDesc, LogDisplayScreen, KeyScreenDesc]
 
