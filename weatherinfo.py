@@ -79,7 +79,7 @@ class WeatherInfo:
 						self.ConditionVals[cond] = desc[0](js(*desc[1]))
 					except:
 						print "W1",cond
-						config.Logs.log("Weather error: ",cond,(js(*desc[1])),logsupport.Error)
+						config.Logs.Log("Weather error: ",cond,(js(*desc[1])),logsupport.Error)
 						self.ConditionVals[cond] = desc[0]('0')
 				for i, fcst in enumerate(fcsts):
 					self.ForecastVals.append({})
