@@ -75,12 +75,20 @@ class WeatherInfo:
 				self.ConditionVals = {}
 				self.ForecastVals = []
 				for cond, desc in WeatherInfo.ConditionMap.iteritems():
-					self.ConditionVals[cond] = desc[0](js(*desc[1]))
+					try:
+						self.ConditionVals[cond] = desc[0](js(*desc[1]))
+					except:
+						config.Logs.log("Weather error: ",cond,(js(*desc[1])),logsupport.Error)
+						self.ConditionVals[cond] = desc[0]('0')
 				for i, fcst in enumerate(fcsts):
 					self.ForecastVals.append({})
 					fs = functools.partial(TreeDict, fcst)
 					for fc, desc in WeatherInfo.ForecastDay.iteritems():
-						self.ForecastVals[i][fc] = desc[0](fs(*desc[1]))
+						try:
+							self.ForecastVals[i][fc] = desc[0](fs(*desc[1]))
+						except:
+							config.Logs.Log("Forecast error: ",i,fc,fs(*desc[1]),logsupport.Error)
+							self.ForecastVals[i][fc] = desc[0]('0')
 			except:
 				config.Logs.Log("Error retrieving weather", logsupport.Error)
 				print "Get fresh weather failed ", time.time()
