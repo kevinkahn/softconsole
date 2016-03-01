@@ -78,6 +78,7 @@ class WeatherInfo:
 					try:
 						self.ConditionVals[cond] = desc[0](js(*desc[1]))
 					except:
+						print "W1",cond
 						config.Logs.log("Weather error: ",cond,(js(*desc[1])),logsupport.Error)
 						self.ConditionVals[cond] = desc[0]('0')
 				for i, fcst in enumerate(fcsts):
@@ -87,10 +88,13 @@ class WeatherInfo:
 						try:
 							self.ForecastVals[i][fc] = desc[0](fs(*desc[1]))
 						except:
+							print "W2",i,fc
 							config.Logs.Log("Forecast error: ",i,fc,fs(*desc[1]),logsupport.Error)
 							self.ForecastVals[i][fc] = desc[0]('0')
 			except:
 				config.Logs.Log("Error retrieving weather", logsupport.Error)
-				print "Get fresh weather failed ", time.time()
+				print "Getting fresh weather failed ", time.time()
+				print self.ConditionVals
+				print self.ForecastVals
 				print self.url
 		return self.lastwebreq
