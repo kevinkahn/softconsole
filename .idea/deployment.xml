@@ -7,6 +7,7 @@
           <mappings>
             <mapping deploy="/consolerem" local="$PROJECT_DIR$" web="/" />
             <mapping deploy="/Console/config.txt" local="$PROJECT_DIR$/config.txt" web="/" />
+            <mapping deploy="/python-sudo.sh" local="$PROJECT_DIR$/scripts/python-sudo.sh" web="/" />
           </mappings>
           <excludedPaths>
             <excludedPath path="*.pyc" />
