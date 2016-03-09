@@ -54,7 +54,7 @@ def doexit(K):
 	#		subprocess.Popen('sudo reboot', shell=True)
 	#		sys.exit()
 
-	subprocess.Popen('nohup /bin/bash -e /home/pi/Console/consoleexit ' + K.name + ' ' + config.configfile, shell=True)
+	subprocess.Popen('nohup /bin/bash -e scripts/consoleexit ' + K.name + ' ' + config.configfile, shell=True)
 	sys.exit()
 
 
@@ -64,7 +64,7 @@ def dobeta(K):
 	elif K.name == 'beta':
 		subprocess.Popen('sudo touch /home/pi/usebeta', shell=True)
 	elif K.name == 'fetch':
-		subprocess.Popen('/home/pi/AutoUpdate/getcurrentbeta', shell=True)
+		subprocess.Popen('scripts/getcurrentbeta', shell=True)
 
 def Exit_Options(msg, scrnmsg):
 	config.screen.fill(wc("red"))

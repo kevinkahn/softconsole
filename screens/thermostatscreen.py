@@ -57,6 +57,7 @@ class ThermostatScreenDesc(screen.BaseKeyScreenDesc):
 													  self.KeyColor, self.CharColor, self.CharColor,
 													  center=(config.screenwidth/4, self.ModeButPos), size=bsize,
 													  KOn=config.KeyOffOutlineColor))  # todo clean up
+		# todo call FinishKey twice
 		self.keysbyord.append(toucharea.ManualKeyDesc("Fan", ["Fan"],
 													  self.KeyColor, self.CharColor, self.CharColor,
 													  center=(3*config.screenwidth/4, self.ModeButPos), size=bsize,
@@ -104,7 +105,7 @@ class ThermostatScreenDesc(screen.BaseKeyScreenDesc):
 			wc(self.CharColor))
 		config.screen.blit(r, ((config.screenwidth - r.get_width())/2, self.SPPos))
 		config.screen.blit(self.AdjButSurf, (0, self.AdjButTops))
-		config.DS.draw_button(self.keysbyord[4], shrink=True, firstfont=0)
+		config.DS.draw_button(self.keysbyord[4], shrink=True, firstfont=0) # todo this should be PaintKey twice
 		config.DS.draw_button(self.keysbyord[5], shrink=True, firstfont=0)
 		r1 = config.fonts.Font(self.fsize[1]).render(
 			('Off', 'Heat', 'Cool', 'Auto', 'Fan', 'Prog Auto', 'Prog Heat', 'Prog Cool')[self.info["CLIMD"][0]], 0,

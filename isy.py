@@ -13,7 +13,7 @@ def get_real_time_status(addrlist):
 	# this proc assumes a device that returns a simple ST value for status
 	statusdict = {}
 	for addr in addrlist:
-		r = config.ISYrequestsession.get('http://' + config.ISYaddr + '/rest/status/' + addr, verify=False)
+		r = config.ISYrequestsession.get('https://' + config.ISYaddr + '/rest/status/' + addr, verify=False)
 		props = xmltodict.parse(r.text)['properties']['property']
 		if isinstance(props, dict):
 			props = [props]

@@ -34,7 +34,10 @@ class Logs(object):
 			for i in range(config.MaxLogFiles - 1, 0, -1):
 				if "Console.log." + str(i) in q:
 					os.rename('Console.log.' + str(i), "Console.log." + str(i + 1))
-			os.rename('Console.log', 'Console.log.1')
+			try:
+				os.rename('Console.log', 'Console.log.1')
+			except:
+				pass
 			self.disklogfile = open('Console.log', 'w')
 			os.chmod('Console.log', 0o555)
 			os.chdir(cwd)

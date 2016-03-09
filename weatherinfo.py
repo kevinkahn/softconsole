@@ -59,6 +59,7 @@ class WeatherInfo:
 		self.ForecastVals = []
 
 	def FetchWeather(self):
+		progress = 0
 		if time.time() > self.lastwebreq + 5*60:
 			try:
 				# refresh the conditions - don't do more than once per 5 minutes
@@ -67,23 +68,31 @@ class WeatherInfo:
 				if val.find("keynotfound") <> -1:
 					config.Logs.Log("Bad weatherunderground key:" + self.name, severity=logsupport.Error)
 					return config.HomeScreen  # todo fix this
+				progress= 1
 				self.lastwebreq = time.time()
 				parsed_json = json.loads(val)
 				js = functools.partial(TreeDict, parsed_json)
 				fcsts = TreeDict(parsed_json, 'forecast', 'simpleforecast', 'forecastday')
 				f.close()
+				progress = 2
 				self.ConditionVals = {}
 				self.ForecastVals = []
+				self.ConditionErr = []
+				self.ForecastErr = []
 				for cond, desc in WeatherInfo.ConditionMap.iteritems():
 					try:
 						self.ConditionVals[cond] = desc[0](js(*desc[1]))
+						progress = (4,cond)
 					except:
 						print "W1",cond
 						config.Logs.Log("Weather error: ",cond,(js(*desc[1])),logsupport.Error)
 						self.ConditionVals[cond] = desc[0]('0')
+						self.ConditionErr.append(cond)
 				for i, fcst in enumerate(fcsts):
 					self.ForecastVals.append({})
+					self.ForecastErr.append([])
 					fs = functools.partial(TreeDict, fcst)
+					progress = (5,i)
 					for fc, desc in WeatherInfo.ForecastDay.iteritems():
 						try:
 							self.ForecastVals[i][fc] = desc[0](fs(*desc[1]))
@@ -91,9 +100,11 @@ class WeatherInfo:
 							print "W2",i,fc
 							config.Logs.Log("Forecast error: ",i,fc,fs(*desc[1]),logsupport.Error)
 							self.ForecastVals[i][fc] = desc[0]('0')
+							self.ForecastErr[i].append(fc)
 			except:
 				config.Logs.Log("Error retrieving weather", logsupport.Error)
 				print "Getting fresh weather failed ", time.time()
+				print "Progress: ", progress
 				print self.ConditionVals
 				print self.ForecastVals
 				print self.url

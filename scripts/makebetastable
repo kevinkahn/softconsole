@@ -1,0 +1,13 @@
+#!/bin/bash
+cd ~
+sudo rm -rf consolestable.old
+sudo mv consolestable consolestable.old
+sudo mv consolebeta consolestable
+echo "beta to stable: " >> log.txt
+date >> log.txt
+sudo rm -rf log.txt.old
+sudo mv log.txt log.txt.old
+echo "Beta to Stable" > log.txt
+date >> log.txt
+echo "==================" >> log.txt
+

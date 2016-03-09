@@ -61,3 +61,10 @@ class ManualKeyDesc(TouchPoint):
 		self.name = keyname
 		self.State = True
 		self.RealObj = None  # this will get filled in by creator later - could be ISY node, ISY program, proc to call
+
+	def FinishKey(self,center,size):
+		pass
+		#if center/size not 0 then set them
+		#create a surface that is the key "on" and one that is the key "off"
+		#need to deal with late bound labels like conditions/forecast
+		#need a paint key that blits to surface

@@ -110,11 +110,11 @@ class BaseKeyScreenDesc(ScreenDesc):
 		for i in range(bpc):
 			vpos.append(config.topborder + extraOffset + (.5 + i)*buttonsize[1])
 
-		for i in range(len(self.keysbyord)):
+		for i in range(len(self.keysbyord)): #todo this should call finish key
 			K = self.keysbyord[i]
 			K.Center = (hpos[i%bpr], vpos[i//bpr])
 			K.Size = buttonsize
 
 	def PaintKeys(self):
 		for key in self.keysbyord:
-			config.DS.draw_button(key)
+			config.DS.draw_button(key) # todo this should call paint key

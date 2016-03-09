@@ -1,0 +1,37 @@
+#!/bin/bash
+cd /home/pi
+touch cleanexit 
+echo "Consoleexit script: " $1 $2 >> log.txt
+date >> log.txt
+case $1 in
+	shut)
+		echo Shutdown >> log.txt
+		;;
+	restart)
+		echo Restart >> log.txt
+		if [ -e usebeta ]
+		then
+			cd consolebeta
+			echo "restart to beta" >> /home/pi/log.txt
+		else
+			cd consolestable
+			echo "restart to stable" >> /home/pi/log.txt
+		fi
+		pwd >> /home/pi/log.txt
+		sudo python -u console.py $2
+		;;
+	shutpi)
+		echo ShutPi >> log.txt
+		date >> log.txt
+		sudo shutdown -P now >> log.txt
+		;;
+	reboot)
+		echo Reboot >> log.txt
+		date >> log.txt
+		sudo reboot >> log.txt
+		;;
+	*)
+		echo "Unknown exit" >> log.txt
+		rm cleanexit
+		;;	
+esac

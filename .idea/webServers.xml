@@ -2,8 +2,8 @@
 <project version="4">
   <component name="WebServers">
     <option name="servers">
-      <webServer id="2bed0b02-4008-4ddc-9eb4-a516af68f460" name="RPi1" url="http://192.168.1.23">
-        <fileTransfer host="192.168.1.23" port="22" accessType="SFTP" password="dfd8dfcbdfd9dfdadfc8dfcfdfd8dfd8dfd3" username="pi">
+      <webServer id="2bed0b02-4008-4ddc-9eb4-a516af68f460" name="RPi2" url="http://192.168.0.20">
+        <fileTransfer host="192.168.0.20" port="22" rootFolder="/home/pi" accessType="SFTP" password="dfd8dfcbdfd9dfdadfc8dfcfdfd8dfd8dfd3" username="pi">
           <advancedOptions>
             <advancedOptions dataProtectionLevel="Private" />
           </advancedOptions>
