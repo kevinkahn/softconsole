@@ -5,8 +5,12 @@
 # It also installs needed python packages and downgrades the sdllib to the stable Wheezy version for the
 # touchscreen to work since sdllib 2 breaks pygame.
 
+# get this script with:
+# wget https://raw.githubusercontent.com/kevinkahn/softconsole/master/docs/consoleprep.sh
+# chmod +x this script
+
 # Before running this script you should load a current Jessie on the SD card and boot; connect WiFi as appropriate if necessary;
-# run rasp-config and expand the file system and update things as needed under the adv settings and REBOOT
+# run raspi-config and expand the file system and update things as needed under the adv settings and REBOOT
 
 sudo dpkg-reconfigure tzdata
 
@@ -50,11 +54,11 @@ sudo apt-get install adafruit-pitft-helper
 
 sudo adafruit-pitft-helper -t 35r
 
-
+sudo pip install --upgrade pip
 sudo pip install configobj
 sudo pip install webcolors
 sudo pip install xmltodict
-sudo pip install https://github.com/evilpete/ISYlib-python/archive/0.1.20150912.tar.gz
+sudo pip install ISYlib
 
 #enable wheezy package sources
 sudo echo "deb http://archive.raspbian.org/raspbian wheezy main
@@ -83,7 +87,7 @@ echo "-----Get Current Release-----" >> /home/pi/log.txt
 date >> /home/pi/log.txt
 wget https://github.com/kevinkahn/softconsole/archive/v1.0.tar.gz >> /home/pi/log.txt
 tar -zx < v1.0.tar.gz >> /home/pi/log.txt
-mv softconsole-v1.0 consolestable
+mv softconsole-1.0 consolestable
 rm -f v1.0.tar.gz
 wget https://github.com/kevinkahn/softconsole/archive/currentbeta.tar.gz >>  /home/pi/log.txt
 tar -zx < currentbeta.tar.gz >> /home/pi/log.txt
