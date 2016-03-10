@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# MUST BE RUN as root:  sudo consoleprep.sh
 
 # This script should take a current Jessie release and install the adafruit stuff for the 3.5" PiTFT
 # It also installs needed python packages and downgrades the sdllib to the stable Wheezy version for the
@@ -12,20 +13,21 @@
 # Before running this script you should load a current Jessie on the SD card and boot; connect WiFi as appropriate if necessary;
 # run raspi-config and expand the file system and update things as needed under the adv settings and REBOOT
 
-sudo dpkg-reconfigure tzdata
+dpkg-reconfigure tzdata
 
 # for later convenience install tightvncserver to the system to make it easy to get into the Pi since it is otherwise headless
 mkdir Console
 mkdir consolerem
 mkdir consolestable
 mkdir consolebeta
+chown pi Console consolerem consolestable consolebeta
 
 
-sudo apt-get install tightvncserver
+apt-get install tightvncserver
 tightvncserver
-sudo apt-get install autocutsel
+apt-get install autocutsel
 
-sudo echo "
+echo "
 [Unit]
 Description=TightVNC remote desktop server
 After=sshd.service
@@ -40,36 +42,36 @@ Type=forking
 WantedBy=multi-user.target
 " > /etc/systemd/system/tightvncserver.service
 
-sudo systemctl daemon-reload && sudo systemctl enable tightvncserver.service
+systemctl daemon-reload && sudo systemctl enable tightvncserver.service
 
 
-sudo apt-get update
-sudo apt-get upgrade
+apt-get update
+apt-get upgrade
 
 
 
 curl -SLs https://apt.adafruit.com/add-pin | sudo bash
-sudo apt-get install raspberrypi-bootloader
-sudo apt-get install adafruit-pitft-helper
+apt-get install raspberrypi-bootloader
+apt-get install adafruit-pitft-helper
 
-sudo adafruit-pitft-helper -t 35r
+adafruit-pitft-helper -t 35r
 
-sudo pip install --upgrade pip
-sudo pip install configobj
-sudo pip install webcolors
-sudo pip install xmltodict
-sudo pip install ISYlib
+pip install --upgrade pip
+pip install configobj
+pip install webcolors
+pip install xmltodict
+pip install ISYlib
 
 #enable wheezy package sources
-sudo echo "deb http://archive.raspbian.org/raspbian wheezy main
+echo "deb http://archive.raspbian.org/raspbian wheezy main
 " > /etc/apt/sources.list.d/wheezy.list
 
 #set stable as default package source (currently jessie)
-sudo echo "APT::Default-release \"stable\";
+echo "APT::Default-release \"stable\";
 " > /etc/apt/apt.conf.d/10defaultRelease
 
 #set the priority for libsdl from wheezy higher then the jessie package
-sudo echo "Package: libsdl1.2debian
+echo "Package: libsdl1.2debian
 Pin: release n=jessie
 Pin-Priority: -10
 Package: libsdl1.2debian
@@ -77,8 +79,8 @@ Pin: release n=wheezy
 Pin-Priority: 900
 " > /etc/apt/preferences.d/libsdl
 #install
-sudo apt-get update
-sudo apt-get -y --force-yes install libsdl1.2debian/wheezy
+apt-get update
+apt-get -y --force-yes install libsdl1.2debian/wheezy
 
 
 
@@ -95,3 +97,5 @@ rm -fr consolebeta
 mv softconsole-currentbeta consolebeta
 rm -f currentbeta.tar.gz
 echo "-----Done with Fetch -----" /home/pi/log.txt
+chown pi /home/pi/log.txt
+
