@@ -7,12 +7,29 @@
 # It also installs needed python packages and downgrades the sdllib to the stable Wheezy version for the
 # touchscreen to work since sdllib 2 breaks pygame.
 
+# Before running this script you should load a current Jessie on the SD card and boot; connect WiFi as appropriate if necessary;
+# run raspi-config and expand the file system and update things as needed under the adv settings and REBOOT
+
 # get this script with:
 # wget https://raw.githubusercontent.com/kevinkahn/softconsole/master/docs/consoleprep.sh
 # chmod +x this script
+# script will prompt for Timezone info
+# script installs tightvncserver as a convenience - this installation will prompt for a vnc password
+# script prompts at various points for approval to use file system space - answer y to any such prompts
 
-# Before running this script you should load a current Jessie on the SD card and boot; connect WiFi as appropriate if necessary;
-# run raspi-config and expand the file system and update things as needed under the adv settings and REBOOT
+case $1 in
+  "35r")
+    echo "3.5 inch resistive touch screen" ;;
+  "28c")
+    echo "2.8 inch capacitive touch screen" ;;
+  "28r")
+    echo "2.8 inch resistive touch screen";;
+  *)
+    echo "unknown or missing display parameter"
+    exit 1 ;;
+esac
+
+
 
 dpkg-reconfigure tzdata
 
@@ -24,9 +41,9 @@ mkdir consolebeta
 chown pi Console consolerem consolestable consolebeta
 
 
-apt-get install tightvncserver
+apt-get -y install tightvncserver
 sudo -u pi tightvncserver
-apt-get install autocutsel
+apt-get -y install autocutsel
 
 echo "
 [Unit]
@@ -46,14 +63,14 @@ WantedBy=multi-user.target
 systemctl daemon-reload && sudo systemctl enable tightvncserver.service
 
 
-apt-get update
-apt-get upgrade
+apt-get -y update
+apt-get -y upgrade
 
 
 
 curl -SLs https://apt.adafruit.com/add-pin | sudo bash
-apt-get install raspberrypi-bootloader
-apt-get install adafruit-pitft-helper
+apt-get -y install raspberrypi-bootloader
+apt-get -y install adafruit-pitft-helper
 
 adafruit-pitft-helper -t $1
 
@@ -80,7 +97,7 @@ Pin: release n=wheezy
 Pin-Priority: 900
 " > /etc/apt/preferences.d/libsdl
 #install
-apt-get update
+apt-get -y update
 apt-get -y --force-yes install libsdl1.2debian/wheezy
 
 
