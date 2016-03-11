@@ -63,13 +63,13 @@ class WeatherInfo:
 		if time.time() > self.lastwebreq + 5*60:
 			try:
 				# refresh the conditions - don't do more than once per 5 minutes
+				self.lastwebreq = time.time() # do this first so that even in error case we wait a while to try again
 				f = urllib2.urlopen(self.url)
 				val = f.read()
 				if val.find("keynotfound") <> -1:
 					config.Logs.Log("Bad weatherunderground key:" + self.name, severity=logsupport.Error)
 					return config.HomeScreen  # todo fix this
 				progress= 1
-				self.lastwebreq = time.time()
 				parsed_json = json.loads(val)
 				js = functools.partial(TreeDict, parsed_json)
 				fcsts = TreeDict(parsed_json, 'forecast', 'simpleforecast', 'forecastday')
@@ -84,7 +84,6 @@ class WeatherInfo:
 						self.ConditionVals[cond] = desc[0](js(*desc[1]))
 						progress = (4,cond)
 					except:
-						print "W1",cond
 						config.Logs.Log("Weather error: ",cond,(js(*desc[1])),logsupport.Error)
 						self.ConditionVals[cond] = desc[0]('0')
 						self.ConditionErr.append(cond)

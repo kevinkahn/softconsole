@@ -1,6 +1,7 @@
 #!/bin/bash
 
 # MUST BE RUN as root:  sudo consoleprep.sh
+# parameter is the type of display: 35r (tested), 28c (not tested), 28c (not tested)
 
 # This script should take a current Jessie release and install the adafruit stuff for the 3.5" PiTFT
 # It also installs needed python packages and downgrades the sdllib to the stable Wheezy version for the
@@ -24,7 +25,7 @@ chown pi Console consolerem consolestable consolebeta
 
 
 apt-get install tightvncserver
-tightvncserver
+sudo -u pi tightvncserver
 apt-get install autocutsel
 
 echo "
@@ -34,7 +35,7 @@ After=sshd.service
 
 [Service]
 Type=dbus
-ExecStart=/usr/bin/tightvncserver :0 -geometry 1280x1024 -name \"RPi2-LQ\" -rfbport 8723
+ExecStart=/usr/bin/tightvncserver :0 -geometry 1280x1024 -name \"RPi2LQ\" -rfbport 8723
 User=pi
 Type=forking
 
@@ -54,7 +55,7 @@ curl -SLs https://apt.adafruit.com/add-pin | sudo bash
 apt-get install raspberrypi-bootloader
 apt-get install adafruit-pitft-helper
 
-adafruit-pitft-helper -t 35r
+adafruit-pitft-helper -t $1
 
 pip install --upgrade pip
 pip install configobj
@@ -91,6 +92,7 @@ wget https://github.com/kevinkahn/softconsole/archive/v1.0.tar.gz >> /home/pi/lo
 tar -zx < v1.0.tar.gz >> /home/pi/log.txt
 mv softconsole-1.0 consolestable
 rm -f v1.0.tar.gz
+echo "-------Get Beta Release------"
 wget https://github.com/kevinkahn/softconsole/archive/currentbeta.tar.gz >>  /home/pi/log.txt
 tar -zx < currentbeta.tar.gz >> /home/pi/log.txt
 rm -fr consolebeta

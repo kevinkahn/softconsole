@@ -39,13 +39,13 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 			l = []
 			sizeindex = 0
 			self.WInfo.FetchWeather()
+			# todo add error field handling to below code (self.ConditionErr[cond] and self.ForecastErr[dy][cond]
 
 			for i in range(len(self.TimeFormat)):
 				l.append(
 					config.fonts.Font(int(scaleH(self.CharSize[sizeindex])), self.Font).render(
 						time.strftime(self.TimeFormat[i]),
 						0, wc(self.CharColor)))
-				# todo pixel - as a spec'd screen should it scale?
 				h = h + l[i].get_height()
 				sizeindex += 1
 			for i in range(len(self.ConditionFormat)):

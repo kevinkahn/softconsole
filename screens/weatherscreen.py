@@ -62,16 +62,15 @@ class WeatherScreenDesc(screen.ScreenDesc):
 					linestr = line[2].format(d=args)
 			except:
 				config.Logs.Log("Weather format error: " + str(line[3]), logsupport.Warning)
-				linestr = 'error in feed'
-			if line[
-				1] == 2:  # todo this can go away if I'n not going to provide an alternate value display (no moonrise e.g.)
+				linestr = ''
+			if line[1] == 2:
 				linetorender = linetorender + linestr
 			else:
 				r = config.fonts.Font(fsizes[line[0]][0], '', fsizes[line[0]][1], fsizes[line[0]][2]).render(
 					linetorender + linestr, 0, wc(color))
 				linetorender = ""
 				renderedlines.append(r)
-				centered.append(line[1])  # todo this needed only because of the concatenate option (2) above
+				centered.append(line[1])
 				h = h + r.get_height()
 		return renderedlines, centered, h
 
