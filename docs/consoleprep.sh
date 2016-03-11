@@ -15,7 +15,8 @@
 # chmod +x this script
 # script will prompt for Timezone info
 # script installs tightvncserver as a convenience - this installation will prompt for a vnc password
-# script prompts at various points for approval to use file system space - answer y to any such prompts
+# script may ask for permission to use more file system space - always say y
+#
 
 case $1 in
   "35r")
@@ -69,8 +70,8 @@ apt-get -y upgrade
 
 
 curl -SLs https://apt.adafruit.com/add-pin | sudo bash
-apt-get -y install raspberrypi-bootloader
-apt-get -y install adafruit-pitft-helper
+apt-get install raspberrypi-bootloader
+apt-get install adafruit-pitft-helper
 
 adafruit-pitft-helper -t $1
 
@@ -100,6 +101,9 @@ Pin-Priority: 900
 apt-get -y update
 apt-get -y --force-yes install libsdl1.2debian/wheezy
 
+# set vertical orientation
+adafruit-pitft-touch-cal -r 180 -f
+
 
 
 cd /home/pi/
@@ -107,6 +111,7 @@ echo "-----Get Current Release-----" >> /home/pi/log.txt
 date >> /home/pi/log.txt
 wget https://github.com/kevinkahn/softconsole/archive/v1.0.tar.gz >> /home/pi/log.txt
 tar -zx < v1.0.tar.gz >> /home/pi/log.txt
+rm -fr consolestable
 mv softconsole-1.0 consolestable
 rm -f v1.0.tar.gz
 echo "-------Get Beta Release------"

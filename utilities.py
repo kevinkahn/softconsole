@@ -100,12 +100,7 @@ def daemon_died(sig, frame):
 
 
 def InitializeEnvironment():
-	"""
-	os.environ['SDL_FBDEV'] = '/dev/fb1'
-	os.environ['SDL_MOUSEDEV'] = '/dev/input/touchscreen'
-	os.environ['SDL_MOUSEDRV'] = 'TSLIB'
-	os.environ['SDL_VIDEODRIVER'] = 'fbcon'
-	"""
+
 	hw.initOS()
 	pygame.display.init()
 	config.fonts = fonts.Fonts()

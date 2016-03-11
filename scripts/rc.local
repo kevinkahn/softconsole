@@ -1,0 +1,79 @@
+#!/bin/bash -e
+
+echo "Start - - -" > /home/pi/startlog
+date >> /home/pi/startlog
+
+PIDS=""
+DEBUG_FLAGS=""
+#DEBUG_FLAGS=${DEBUG_FLAGS}" -Dtrace.upnp=true "
+#DEBUG_FLAGS=${DEBUG_FLAGS}" -Dorg.slf4j.simpleLogger.defaultLogLevel=DEBUG "
+ISY_IP=192.168.1.15
+NUMBER_OF_BRIDGES=2
+BASE_PATH=/home/pi/echobridge
+JAR_FILE=${BASE_PATH}/ha-bridge-latest.jar
+STARTING_PORT=8081
+STARTING_UPNP_PORT=50001
+
+echo "Debug: "${DEBUG_FLAGS}":" >> /home/pi/startlog
+
+DATA_PATH=${BASE_PATH}/data
+LOG_PATH=${BASE_PATH}/logs
+
+echo "Running RC.local -- getting my IP" >> /home/pi/startlog
+
+IP=$(ip route get 8.8.8.8 | awk 'NR==1 {print $NF}')
+echo "Immediate . . . "${IP} >> /home/pi/startlog
+
+while [[ ${IP} != 192.168.* ]]
+do
+  echo "Waiting . . . "${IP} >> /home/pi/startlog
+  sleep 1
+  IP=$(ip route get 8.8.8.8 | awk 'NR==1 {print $NF}')
+done
+
+echo "My IP address is "${IP} >> /home/pi/startlog
+
+# Make directories if needed
+[ ! -d ${DATA_PATH} ] && mkdir -p ${DATA_PATH}
+[ ! -d ${LOG_PATH} ] && mkdir -p ${LOG_PATH}
+
+echo "Starting "${NUMBER_OF_BRIDGES}" bridges" >> /home/pi/startlog
+
+for i in $(seq 1 ${NUMBER_OF_BRIDGES})
+do
+  echo "Starting "${STARTING_PORT}"::"${STARTING_UPNP_PORT} >> /home/pi/startlog
+  nohup java -jar ${DEBUG_FLAGS} -Dvera.address=${ISY_IP} \
+                  -Dupnp.strict=false \
+                  -Dupnp.config.address=${IP} \
+                  -Dserver.port=${STARTING_PORT} \
+                  -Dupnp.response.port=${STARTING_UPNP_PORT} \
+                  -Dupnp.device.db=${DATA_PATH}/device_${STARTING_PORT}.db \
+                  ${JAR_FILE} > ${LOG_PATH}/log_${STARTING_PORT}.txt 2>&1 &
+  echo "PID "$! >> /home/pi/startlog
+  PIDS=${PIDS}" "$!
+  echo $! > /${LOG_PATH}/${STARTING_PORT}.pid
+  let STARTING_PORT=STARTING_PORT+1
+  let STARTING_UPNP_PORT=STARTING_UPNP_PORT+1
+done
+
+cd /home/pi
+echo "----------------" >>  log.txt
+date >> log.txt
+echo "---Pi Restart---" >>  log.txt
+if [ -e usebeta ] && [ -e cleanexit ]
+then
+ rm cleanexit
+ echo "******beta******" >>  log.txt
+ cd /home/pi/consolebeta
+else
+ rm -f usebeta cleanexit >> log.txt
+ echo "*****stable*****" >>   log.txt
+ cd /home/pi/consolestable
+fi
+nohup python -u console.py >> /home/pi/log.txt 2>&1 &
+echo "Starting console as process "$! >> /home/pi/startlog
+
+echo ${PIDS} > ${LOG_PATH}/PIDS
+echo "RC.local completed" >> /home/pi/startlog
+
+exit 0
