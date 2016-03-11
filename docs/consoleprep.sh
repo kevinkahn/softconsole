@@ -21,9 +21,9 @@ case $1 in
   "35r")
     echo "3.5 inch resistive touch screen" ;;
   "28c")
-    echo "2.8 inch capacitive touch screen" ;;
+    echo "2.8 inch capacitive touch screen - currently untested" ;;
   "28r")
-    echo "2.8 inch resistive touch screen";;
+    echo "2.8 inch resistive touch screen currently untested";;
   *)
     echo "unknown or missing display parameter"
     exit 1 ;;
@@ -78,7 +78,7 @@ pip install --upgrade pip
 pip install configobj
 pip install webcolors
 pip install xmltodict
-pip install ISYlib
+/usr/local/bin/pip install ISYlib
 
 #enable wheezy package sources
 echo "deb http://archive.raspbian.org/raspbian wheezy main
