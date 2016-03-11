@@ -111,11 +111,11 @@ adafruit-pitft-touch-cal -f -t $1 -r 180
 cd /home/pi/
 echo "-----Get Current Release-----" >> /home/pi/log.txt
 date >> /home/pi/log.txt
-wget https://github.com/kevinkahn/softconsole/archive/v1.0.tar.gz >> /home/pi/log.txt
-tar -zx < v1.0.tar.gz >> /home/pi/log.txt
+wget https://github.com/kevinkahn/softconsole/archive/v1.1.tar.gz >> /home/pi/log.txt
+tar -zx < v1.1.tar.gz >> /home/pi/log.txt
 rm -fr consolestable
-mv softconsole-1.0 consolestable
-rm -f v1.0.tar.gz
+mv softconsole-1.1 consolestable
+rm -f v1.1.tar.gz
 echo "-------Get Beta Release------"
 wget https://github.com/kevinkahn/softconsole/archive/currentbeta.tar.gz >>  /home/pi/log.txt
 tar -zx < currentbeta.tar.gz >> /home/pi/log.txt
