@@ -102,7 +102,9 @@ apt-get -y update
 apt-get -y --force-yes install libsdl1.2debian/wheezy
 
 # set vertical orientation
-adafruit-pitft-touch-cal -r 180 -f
+mv /boot/config.txt /boot/config.sav
+sed s/rotate=90/rotate=180/ /boot/config.sav > /boot/config.txt
+adafruit-pitft-touch-cal -f -t $1
 
 
 
