@@ -217,10 +217,17 @@ class ISY(object):
 
 		fixlist = []
 		for node in configdict['node']:
-			n = Node(node['@flag'], node['name'], node['address'], int(node['parent']['@type']),
-					 node['parent']['#text'], node['enabled'], node['property'])
-			fixlist.append((n, node['pnode']))
-			self.NodesByAddr[n.address] = n
+			parentaddr = str(0)
+			ptyp = 3
+			if 'parent' in folder:
+				ptyp = int(folder['parent']['@type'])
+				parentaddr = folder['parent']['#text']
+			try:
+				n = Node(node['@flag'], node['name'], node['address'], ptyp, parentaddr, node['enabled'], node['property'])
+				fixlist.append((n, node['pnode']))
+				self.NodesByAddr[n.address] = n
+			except:
+				pass # for now at least try to avoid nodes without properties which apparently Zwave devices may have
 		self.LinkChildrenParents(self.NodesByAddr, self.NodesByName, self.FoldersByAddr, self.NodesByAddr)
 		for fixitem in fixlist:
 			fixitem[0].pnode = self.NodesByAddr[fixitem[1]]
