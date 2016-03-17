@@ -68,7 +68,7 @@ class Folder(TreeItem):
 		utilities.register_example("Folder", self)
 
 	def __repr__(self):
-		return "Folder: " + TreeItem.__repr__(self) + ' flag ' + self.flag + ' parenttyp ' + self.parenttype
+		return "Folder: " + TreeItem.__repr__(self) + ' flag ' + str(self.flag) + ' parenttyp ' + str(self.parenttype)
 
 
 class Node(Folder, OnOffItem):
@@ -94,7 +94,7 @@ class Node(Folder, OnOffItem):
 		utilities.register_example("Node", self)
 
 	def __repr__(self):
-		return 'Node: ' + Folder._repr__(self) + 'primary: ' + self.pnode
+		return 'Node: ' + Folder.__repr__(self) + 'primary: ' + self.pnode.name
 
 
 class Scene(TreeItem, OnOffItem):
@@ -133,7 +133,7 @@ class ProgramFolder(TreeItem):
 		utilities.register_example("ProgramFolder", self)
 
 	def __repr__(self):
-		return 'ProgFolder: ' + TreeItem.__repr__(self) + ' status ' + self.status
+		return 'ProgFolder: ' + TreeItem.__repr__(self) + ' status ' + str(self.status)
 
 
 class Program(ProgramFolder):
@@ -219,9 +219,9 @@ class ISY(object):
 		for node in configdict['node']:
 			parentaddr = str(0)
 			ptyp = 3
-			if 'parent' in folder:
-				ptyp = int(folder['parent']['@type'])
-				parentaddr = folder['parent']['#text']
+			if 'parent' in node:
+				ptyp = int(node['parent']['@type'])
+				parentaddr = node['parent']['#text']
 			try:
 				n = Node(node['@flag'], node['name'], node['address'], ptyp, parentaddr, node['enabled'], node['property'])
 				fixlist.append((n, node['pnode']))
