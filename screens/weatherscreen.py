@@ -23,7 +23,7 @@ class WeatherScreenDesc(screen.ScreenDesc):
 	def __init__(self, screensection, screenname):
 		debugprint(config.dbgscreenbuild, "New WeatherScreenDesc ", screenname)
 
-		screen.ScreenDesc.__init__(self, screensection, screenname, ('which',))
+		screen.ScreenDesc.__init__(self, screensection, screenname, (('which',('',)),))
 		utilities.LocalizeParams(self, screensection, WunderKey='', location='')
 		self.scrlabel = screen.FlatenScreenLabel(self.label)
 		# entries are (fontsize, centered, formatstring, values)
@@ -61,7 +61,7 @@ class WeatherScreenDesc(screen.ScreenDesc):
 						args.append(values[item])
 					linestr = line[2].format(d=args)
 			except:
-				config.Logs.Log("Weather format error: " + str(line[3]), logsupport.Warning)
+				config.Logs.Log("Weather format error: " + str(line[3]), logsupport.ConsoleWarning)
 				linestr = ''
 			if line[1] == 2:
 				linetorender = linetorender + linestr
@@ -77,8 +77,7 @@ class WeatherScreenDesc(screen.ScreenDesc):
 
 
 	def ShowScreen(self, conditions):
-		self.SetExtraCmdTitles(([('Conditions',)], [('Forecast',)])[conditions])
-		self.PaintBase()
+		self.PaintBase([[('Conditions',)], [('Forecast',)]][conditions])
 		usefulheight = config.screenheight - config.topborder - config.botborder
 		h = 0
 		centered = []

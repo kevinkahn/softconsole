@@ -6,20 +6,20 @@ from  ISY.IsyEventData import EVENT_CTRL
 
 import config
 from config import debugprint
-from logsupport import Warning
+from logsupport import ConsoleWarning
 
 
 def event_feed(*arg):
 	data = arg[0]
 	if config.seq <> int(data["Event-seqnum"]):
 		config.fromDaemon.put(
-			("Log", "Event mismatch - Expected: " + str(config.seq) + " Got: " + str(data["Event-seqnum"]), Warning))
+			("Log", "Event mismatch - Expected: " + str(config.seq) + " Got: " + str(data["Event-seqnum"]), ConsoleWarning))
 		config.seq = int(data["Event-seqnum"]) + 1
 	else:
 		config.seq += 1
 
 	if config.streamid <> data["Event-sid"]:
-		config.fromDaemon.put(("Log", "Now using event stream: " + str(data["Event-sid"]), Warning))
+		config.fromDaemon.put(("Log", "Now using event stream: " + str(data["Event-sid"]), ConsoleWarning))
 		config.streamid = data["Event-sid"]
 
 	if time.time() < config.watchstarttime + 10:

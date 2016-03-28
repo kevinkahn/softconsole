@@ -5,7 +5,7 @@ import xmltodict
 import config
 import utilities
 from config import ISYdebug
-from logsupport import Info, Warning, Error
+from logsupport import ConsoleInfo, ConsoleWarning, ConsoleError
 
 
 def get_real_time_status(addrlist):
@@ -174,7 +174,7 @@ class ISY(object):
 				node.parent = looklist2[node.parent]
 			else:
 				node.parent = None
-				config.Logs.Log("Missing parent: " + node.name, severity=Error)
+				config.Logs.Log("Missing parent: " + node.name, severity=ConsoleError)
 			if node.parent <> node:  # avoid root
 				node.parent.children.append(node)
 

@@ -8,6 +8,7 @@ import isy
 import keydesc
 import screen
 import utilities
+import logsupport
 from config import debugprint, WAITNORMALBUTTON, WAITNORMALBUTTONFAST, WAITISYCHANGE, WAITEXIT
 
 wc = webcolors.name_to_rgb
@@ -36,7 +37,7 @@ class KeyScreenDesc(screen.BaseKeyScreenDesc):
 		def BlinkKey(scr, key, cycle):
 			# thistime = finalstate if cycle % 2 <> 0 else not finalstate
 			key.State = not key.State
-			config.DS.draw_button(key)
+			key.PaintKey()
 
 		if newscr:
 			# key screen change actually occurred
@@ -81,8 +82,8 @@ class KeyScreenDesc(screen.BaseKeyScreenDesc):
 						K.RealObj.SendCommand(K.State, choice[0] <> WAITNORMALBUTTON)
 					# config.Logs.Log("Sent command to " + K.RealObj.name)
 					else:
-						config.Logs.Log("Screen: " + self.name + " press unbound key: " + K.name, severity=Warning)
-					config.DS.draw_button(K)
+						config.Logs.Log("Screen: " + self.name + " press unbound key: " + K.name, severity=logsupport.ConsoleWarning)
+					K.PaintKey()
 				elif K.type == "ONBLINKRUNTHEN":
 					# force double tap for programs for safety - too easy to accidentally single tap with touchscreen
 					if choice[0] == WAITNORMALBUTTONFAST:
@@ -90,7 +91,7 @@ class KeyScreenDesc(screen.BaseKeyScreenDesc):
 						blinkproc = functools.partial(BlinkKey, config.screen, K)
 						blinktime = .5
 						blinks = 8  # even number leaves final state of key same as initial state
-						config.DS.draw_button(K)
+						K.PaintKey()
 					# leave K.State as is - key will return to off at end
 				elif K.type == "ONOFFRUN":
 					pass
@@ -102,7 +103,7 @@ class KeyScreenDesc(screen.BaseKeyScreenDesc):
 
 				if ActState <> K.State:
 					K.State = ActState
-					config.DS.draw_button(K)
+					K.PaintKey()
 
 
 config.screentypes["Keypad"] = KeyScreenDesc

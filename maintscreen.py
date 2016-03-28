@@ -10,7 +10,7 @@ from config import debugprint, WAITNORMALBUTTON, WAITNORMALBUTTONFAST, WAITEXIT
 from utilities import interval_str
 
 wc = webcolors.name_to_rgb
-from logsupport import Error
+from logsupport import ConsoleError
 import time
 import sys
 import utilities
@@ -32,6 +32,9 @@ def SetUpMaintScreens():
 	config.MaintScreen = MaintScreenDesc(
 		OrderedDict([('return', ('Exit Maintenance', None)), ('log', ('Show Log', LogDisp.showlog)),
 					 ('beta', ('Select Version', Beta.HandleScreen)), ('exit', ('Exit/Restart', Exits.HandleScreen))]))
+	for screen in config.screentypes:
+		pass
+
 
 
 def doexit(K):
@@ -137,9 +140,9 @@ class MaintScreenDesc(screen.BaseKeyScreenDesc):
 					return config.HomeScreen
 				else:
 					pass  # todo error?  what if multitap or 5 tap here
-					Logs.Log("Internal Error", severity=Error)
+					Logs.Log("Internal Error", severity=ConsoleError)
 			elif choice[0] == WAITEXIT:
 				return None
 			else:
-				Logs.Log("Internal Error Maint from Press", choice[0], severity=Error)
+				Logs.Log("Internal Error Maint from Press", choice[0], severity=ConsoleError)
 				return choice[1]  # todo what is this

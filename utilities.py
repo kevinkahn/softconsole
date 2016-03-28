@@ -9,7 +9,7 @@ import pygame
 import config
 import fonts
 import hw
-from logsupport import Error
+from logsupport import ConsoleError
 
 globdoc = {}
 moddoc = {}
@@ -162,7 +162,7 @@ def LocalizeParams(inst, configsection, *args, **kwargs):
 			moddoc[inst.__class__.__name__]['ovrd'].add(lcllist[-1])
 		else:
 			config.Logs.Log("Obj " + inst.__class__.__name__ + ' attempted import of non-existent global ' + nametoadd,
-							severity=Error)
+			                severity=ConsoleError)
 	for i in range(len(lcllist)):
 		val = type(lclval[i])(configsection.get(lcllist[i], lclval[i]))
 		if isinstance(val, list):

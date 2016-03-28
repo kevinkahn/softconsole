@@ -2,7 +2,7 @@ import config
 import toucharea
 import utilities
 from config import debugprint
-from logsupport import Info, Warning, Error
+from logsupport import ConsoleInfo, ConsoleWarning, ConsoleError
 
 
 class KeyDesc(toucharea.ManualKeyDesc):
@@ -28,7 +28,7 @@ class KeyDesc(toucharea.ManualKeyDesc):
 					elif self.SceneProxy in config.ISY.NodesByName:
 						self.MonitorObj = config.ISY.NodesByName[self.SceneProxy]
 					else:
-						config.Logs.Log('Bad explicit scene proxy:' + self.name, severity=Warning)
+						config.Logs.Log('Bad explicit scene proxy:' + self.name, severity=ConsoleWarning)
 				else:
 					for i in self.RealObj.members:
 						device = i[1]
@@ -36,26 +36,26 @@ class KeyDesc(toucharea.ManualKeyDesc):
 							self.MonitorObj = device
 							break
 						else:
-							config.Logs.Log('Skipping disabled/nonstatus device: ' + device.name, severity=Warning)
+							config.Logs.Log('Skipping disabled/nonstatus device: ' + device.name, severity=ConsoleWarning)
 					if self.MonitorObj is None:
-						config.Logs.Log("No proxy for scene: " + keyname, severity=Error)
-					debugprint(config.dbgscreenbuild, "Scene ", keyname, " default proxying with ",
-							   self.MonitorObj.name)
+						config.Logs.Log("No proxy for scene: " + keyname, severity=ConsoleError)
+					#debugprint(config.dbgscreenbuild, "Scene ", keyname, " default proxying with ",
+					#		   self.MonitorObj.name)
 			elif keyname in config.ISY.NodesByName:
 				self.RealObj = config.ISY.NodesByName[keyname]
 				self.MonitorObj = self.RealObj
 			else:
 				debugprint(config.dbgscreenbuild, "Screen", keyname, "unbound")
-				config.Logs.Log('Key Binding missing: ' + self.name, severity=Warning)
+				config.Logs.Log('Key Binding missing: ' + self.name, severity=ConsoleWarning)
 		elif self.type in ("ONBLINKRUNTHEN"):
 			self.State = False
 			self.RealObj = config.ISY.ProgramsByName[self.KeyRunThenName] if self.KeyRunThenName <> "" else None
 			if self.RealObj is None:
 				debugprint(config.dbgscreenbuild, "Unbound program key: ", self.label)
-				config.Logs.Log("Missing Prog binding: " + self.name, severity=Warning)
+				config.Logs.Log("Missing Prog binding: " + self.name, severity=ConsoleWarning)
 		else:
 			debugprint(config.dbgscreenbuild, "Unknown key type: ", self.label)
-			config.Logs.Log("Bad keytype: " + self.name, severity=Warning)
+			config.Logs.Log("Bad keytype: " + self.name, severity=ConsoleWarning)
 
 		utilities.register_example("KeyDesc", self)
 

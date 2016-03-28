@@ -38,11 +38,12 @@ class WeatherInfo:
 					'SunriseM': (int, ('sun_phase', 'sunrise', 'minute')),
 					'SunsetH': (int, ('sun_phase', 'sunset', 'hour')),
 					'SunsetM': (int, ('sun_phase', 'sunset', 'minute')),
-					'MoonriseH': (int, ('moon_phase', 'moonrise', 'hour')),  # intstr
+					'MoonriseH': (int, ('moon_phase', 'moonrise', 'hour')),  #  todo intstr
 					'MoonriseM': (int, ('moon_phase', 'moonrise', 'minute')),
 					'MoonsetH': (int, ('moon_phase', 'moonset', 'hour')),
 					'MoonsetM': (int, ('moon_phase', 'moonset', 'minute')),
 					'MoonPct': (int, ('moon_phase', 'percentIlluminated')),
+	                'Humidity': (str, ('current_observation', 'relative_humidity'))
 					}
 	ForecastDay = {'Day': (str, ('date', 'weekday_short')),
 				   'High': (int, ('high', 'fahrenheit')),
@@ -67,7 +68,7 @@ class WeatherInfo:
 				f = urllib2.urlopen(self.url)
 				val = f.read()
 				if val.find("keynotfound") <> -1:
-					config.Logs.Log("Bad weatherunderground key:" + self.name, severity=logsupport.Error)
+					config.Logs.Log("Bad weatherunderground key:" + self.name, severity=logsupport.ConsoleError)
 					return config.HomeScreen  # todo fix this
 				progress= 1
 				parsed_json = json.loads(val)
@@ -84,7 +85,7 @@ class WeatherInfo:
 						self.ConditionVals[cond] = desc[0](js(*desc[1]))
 						progress = (4,cond)
 					except:
-						config.Logs.Log("Weather error: ",cond,(js(*desc[1])),logsupport.Error)
+						config.Logs.Log("Weather error: ", cond, (js(*desc[1])), logsupport.ConsoleError)
 						self.ConditionVals[cond] = desc[0]('0')
 						self.ConditionErr.append(cond)
 				for i, fcst in enumerate(fcsts):
@@ -97,11 +98,11 @@ class WeatherInfo:
 							self.ForecastVals[i][fc] = desc[0](fs(*desc[1]))
 						except:
 							print "W2",i,fc
-							config.Logs.Log("Forecast error: ",i,fc,fs(*desc[1]),logsupport.Error)
+							config.Logs.Log("Forecast error: ", i, fc, fs(*desc[1]), logsupport.ConsoleError)
 							self.ForecastVals[i][fc] = desc[0]('0')
 							self.ForecastErr[i].append(fc)
 			except:
-				config.Logs.Log("Error retrieving weather", logsupport.Error)
+				config.Logs.Log("Error retrieving weather", logsupport.ConsoleError)
 				print "Getting fresh weather failed ", time.time()
 				print "Progress: ", progress
 				print self.ConditionVals

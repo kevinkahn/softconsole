@@ -1,5 +1,9 @@
 import config
 import utilities
+import pygame
+import webcolors
+from utilities import scaleW, scaleH
+wc = webcolors.name_to_rgb
 
 
 def InBut(pos, Key):
@@ -29,6 +33,8 @@ class ManualKeyDesc(TouchPoint):
 
 	def __init__(self, *args, **kwargs):
 		# alternate creation signatures
+		self.ButtonFontSizes = tuple(scaleH(i) for i in (31, 28, 25, 22, 20, 18, 16))  # todo pixel - also is this the right place for this
+		self.DynamicLabel = False
 		if len(args) == 2:
 			# signature: ManualKeyDesc(keysection, keyname)
 			# initialize by reading config file
@@ -39,7 +45,7 @@ class ManualKeyDesc(TouchPoint):
 			self.docodeinit(*args, **kwargs)
 		utilities.register_example("ManualKeyDesc", self)
 
-	def docodeinit(self, keyname, label, bcolor, charcoloron, charcoloroff, center=(0, 0), size=(0, 0), KOn='', KOff='',
+	def docodeinit(self, keyname, label, bcolor, charcoloron, charcoloroff, DynamicLabel = False, center=(0, 0), size=(0, 0), KOn='', KOff='',
 				   proc=None):
 		# NOTE: do not put defaults for KOn/KOff in signature - imports and arg parsing subtleties will cause error
 		# because of when config is imported and what walues are at that time versus at call time
@@ -51,6 +57,8 @@ class ManualKeyDesc(TouchPoint):
 		self.KeyCharColorOff = charcoloroff
 		self.State = True
 		self.label = label
+		if label[0] == '':
+			self.DynamicLabel = True
 		self.KeyOnOutlineColor = config.KeyOnOutlineColor if KOn == '' else KOn
 		self.KeyOffOutlineColor = config.KeyOffOutlineColor if KOff == '' else KOff
 
@@ -62,9 +70,74 @@ class ManualKeyDesc(TouchPoint):
 		self.State = True
 		self.RealObj = None  # this will get filled in by creator later - could be ISY node, ISY program, proc to call
 
-	def FinishKey(self,center,size):
-		pass
-		#if center/size not 0 then set them
-		#create a surface that is the key "on" and one that is the key "off"
-		#need to deal with late bound labels like conditions/forecast
-		#need a paint key that blits to surface
+	def PaintKey(self,latetitle=None):
+		x = self.Center[0] - self.Size[0]/2
+		y = self.Center[1] - self.Size[1]/2
+		if self.State:
+			if self.DynamicLabel:
+				temp = self.KeyOnImage.copy()
+				self.AddTitle(temp,latetitle,self.FindFontSize(latetitle,0,True),self.KeyCharColorOn)
+				config.screen.blit(temp,(x,y))
+			else:
+				config.screen.blit(self.KeyOnImage,(x,y))
+		else:
+			if self.DynamicLabel:
+				temp = self.KeyOffImage.copy()
+				self.AddTitle(temp,latetitle,self.FindFontSize(latetitle,0,True),self.KeyCharColorOff)
+				config.screen.blit(temp,(x,y))
+			else:
+				config.screen.blit(self.KeyOffImage,(x,y))
+		pygame.display.update()
+
+	def FindFontSize(self,lab,firstfont,shrink):
+		lines = len(lab)
+		buttonsmaller = (self.Size[0] - scaleW(6), self.Size[1] - scaleH(6))  # todo pixel
+		# compute writeable area for text
+		textarea = (buttonsmaller[0] - 2, buttonsmaller[1] - 2)  # todo pixel not scaled
+		fontchoice = self.ButtonFontSizes[firstfont]
+		if shrink:
+			for l in range(lines):
+				for i in range(firstfont, len(self.ButtonFontSizes) - 1):
+					txtsize = config.fonts.Font(self.ButtonFontSizes[i]).size(lab[l])
+					if lines*txtsize[1] >= textarea[1] or txtsize[0] >= textarea[0]:
+						fontchoice = self.ButtonFontSizes[i + 1]
+		return fontchoice
+
+	def AddTitle(self,surface,label,fontchoice,color):
+		lines = len(label)
+		for i in range(lines):
+			ren = config.fonts.Font(fontchoice).render(label[i], 0, wc(color))
+			vert_off = ((i + 1)*self.Size[1]/(1 + lines)) - ren.get_height()/2
+			horiz_off = (self.Size[0] - ren.get_width())/2
+			surface.blit(ren, (horiz_off,vert_off))
+
+	def FinishKey(self,center,size,firstfont=0,shrink=True):
+		if size[0] <> 0: # if size is not zero then set the pos/size of the key; otherwise it was previously set in manual creation
+			self.Center = center
+			self.Size = size
+
+		buttonsmaller = (self.Size[0] - scaleW(6), self.Size[1] - scaleH(6))  # todo pixel
+
+		# create image of ON key
+		self.KeyOnImage = pygame.Surface(self.Size)
+		pygame.draw.rect(self.KeyOnImage, wc(self.KeyColor), ((0, 0), self.Size), 0)
+		bord = 3  # todo pixel - probably should use same scaling in both dimensions since this is a line width
+		pygame.draw.rect(self.KeyOnImage, wc(self.KeyOnOutlineColor), ((scaleW(bord),scaleH(bord)), buttonsmaller), bord)
+
+		# create image of OFF key
+		self.KeyOffImage = pygame.Surface(self.Size)
+		pygame.draw.rect(self.KeyOffImage, wc(self.KeyColor), ((0, 0), self.Size), 0)
+		bord = 3  # todo pixel - probably should use same scaling in both dimensions since this is a line width
+		pygame.draw.rect(self.KeyOffImage, wc(self.KeyOffOutlineColor), ((scaleW(bord),scaleH(bord)), buttonsmaller), bord)
+		s = pygame.Surface(self.Size)
+		s.set_alpha(150)
+		s.fill(wc("white"))
+		self.KeyOffImage.blit(s, (0,0))
+
+		# if a non-blank label then add in the label - otherwise it is a late bound label that will get set at paint time
+		if not self.DynamicLabel:
+			fontchoice = self.FindFontSize(self.label,firstfont,shrink)
+			self.AddTitle(self.KeyOnImage,self.label,fontchoice,self.KeyCharColorOn)
+			self.AddTitle(self.KeyOffImage,self.label,fontchoice,self.KeyCharColorOff)
+
+

@@ -2,7 +2,7 @@ from configobj import Section
 
 import config
 from config import debugprint
-from logsupport import Warning
+from logsupport import ConsoleWarning
 
 
 class MyScreens(object):
@@ -28,7 +28,7 @@ class MyScreens(object):
 					NewScreen = config.screentypes[tempscreentype](thisScreen, screenitem)
 					config.Logs.Log(tempscreentype + " screen " + screenitem)
 				else:
-					config.Logs.Log("Screentype error" + screenitem + " type " + tempscreentype, severity=Warning)
+					config.Logs.Log("Screentype error" + screenitem + " type " + tempscreentype, severity=ConsoleWarning)
 					pass
 			if NewScreen is not None:
 				# set the standard navigation keys and navigation linkages
@@ -61,9 +61,9 @@ class MyScreens(object):
 					config.SecondaryChain[(config.SecondaryChain.index(scr) + 1)%len(config.SecondaryChain)]]
 				config.Logs.Log("---" + scr)
 
-		config.Logs.Log("Not on a screen list (unavailable)", severity=Warning)
+		config.Logs.Log("Not on a screen list (unavailable)", severity=ConsoleWarning)
 		for scr in config.ExtraChain:
-			config.Logs.Log("---" + scr, severity=Warning)
+			config.Logs.Log("---" + scr, severity=ConsoleWarning)
 
 		for S in mainlist.itervalues():
 			S.FinishScreen()

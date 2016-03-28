@@ -21,6 +21,9 @@ class HouseStatusScreenDesc(screen.ScreenDesc):
 	def __repr__(self):
 		return screen.ScreenDesc.__repr__(self) + "\r\n     StatusScreenDesc:"
 
+	def SetUp(self):
+		pass
+
 	def HandleScreen(self, newscr=True):
 
 		# stop any watching for device stream

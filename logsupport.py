@@ -9,9 +9,9 @@ import os
 import re
 from hw import disklogging
 
-Info = 0
-Warning = 1
-Error = 2
+ConsoleInfo = 0
+ConsoleWarning = 1
+ConsoleError = 2
 
 
 # disklogging = True
@@ -47,7 +47,7 @@ class Logs(object):
 		:param severity:
 		:param entry:
 		"""
-		severity = kwargs.pop('severity', Info)
+		severity = kwargs.pop('severity', ConsoleInfo)
 		diskonly = kwargs.pop('diskonly', False)
 		entry = "".join([unicode(i) for i in args])
 		if not diskonly:

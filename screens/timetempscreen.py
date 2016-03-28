@@ -46,14 +46,14 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 					config.fonts.Font(int(scaleH(self.CharSize[sizeindex])), self.Font).render(
 						time.strftime(self.TimeFormat[i]),
 						0, wc(self.CharColor)))
-				h = h + l[i].get_height()
+				h = h + l[-1].get_height()
 				sizeindex += 1
 			for i in range(len(self.ConditionFormat)):
 				vals = [self.WInfo.ConditionVals[fld] for fld in self.ConditionFields]
 				l.append(
 					config.fonts.Font(int(scaleH(self.CharSize[sizeindex])), self.Font).render(
 						self.ConditionFormat[i].format(d=vals), 0, wc(self.CharColor)))
-				h = h + l[i].get_height()
+				h = h + l[-1].get_height()
 				sizeindex += 1
 			for dy in range(self.ForecastDays):
 				for i in range(len(self.ForecastFormat)):
@@ -61,7 +61,7 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 					l.append(
 						config.fonts.Font(int(scaleH(self.CharSize[sizeindex + i])), self.Font).render(
 							self.ForecastFormat[i].format(d=vals), 0, wc(self.CharColor)))
-					h = h + l[i].get_height()
+					h = h + l[-1].get_height()
 
 			s = (usefulheight - h)/(len(l) - 1)
 

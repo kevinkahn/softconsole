@@ -142,6 +142,6 @@ while 1:
 	elif nextscreen is None:
 		nextscreen = config.HomeScreen
 	elif not isinstance(nextscreen, screen.ScreenDesc):
-		config.Logs.Log("Internal error unknown nextscreen", severity=logsupport.Error)
+		config.Logs.Log("Internal error unknown nextscreen", severity=logsupport.ConsoleError)
 	prevscreen = config.CurrentScreen
 	config.CurrentScreen = nextscreen

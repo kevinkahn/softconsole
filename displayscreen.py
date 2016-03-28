@@ -7,7 +7,7 @@ import config
 import hw
 import toucharea
 from config import debugprint, WAITNORMALBUTTON, WAITNORMALBUTTONFAST, WAITEXIT, WAITISYCHANGE, WAITEXTRACONTROLBUTTON
-from logsupport import Warning
+from logsupport import ConsoleWarning
 from utilities import scaleW, scaleH
 
 wc = webcolors.name_to_rgb
@@ -29,48 +29,6 @@ class DisplayScreen(object):
 		self.presscount = 0
 		self.AS = None
 		self.BrightenToHome = False
-		self.ButtonFontSizes = tuple(scaleH(i) for i in (31, 28, 25, 22, 20, 18, 16))  # todo pixel
-
-	def draw_button(self, Key, shrink=True, firstfont=0):
-		lines = len(Key.label)
-		buttonsmaller = (Key.Size[0] - scaleW(6), Key.Size[1] - scaleH(6))  # todo pixel
-		x = Key.Center[0] - Key.Size[0]/2
-		y = Key.Center[1] - Key.Size[1]/2
-
-		HiColor = Key.KeyOnOutlineColor if Key.State else Key.KeyOffOutlineColor
-		pygame.draw.rect(config.screen, wc(Key.KeyColor), ((x, y), Key.Size), 0)
-		bord = 3  # todo pixel - probably should use same scaling in both dimensions since this is a line width
-		pygame.draw.rect(config.screen, wc(HiColor), ((x + scaleW(bord), y + scaleH(bord)), buttonsmaller), bord)
-		s = pygame.Surface(Key.Size)
-		s.set_alpha(150)
-		s.fill(wc("white"))
-
-		if not Key.State:
-			config.screen.blit(s, (x, y))
-		# compute writeable area for text
-		textarea = (buttonsmaller[0] - 2, buttonsmaller[1] - 2)  # todo pixel not scaled
-		fontchoice = self.ButtonFontSizes[firstfont]
-		if shrink:
-			for l in range(lines):
-				for i in range(firstfont, len(self.ButtonFontSizes) - 1):
-					txtsize = config.fonts.Font(self.ButtonFontSizes[i]).size(Key.label[l])
-					if lines*txtsize[1] >= textarea[1] or txtsize[0] >= textarea[0]:
-						fontchoice = self.ButtonFontSizes[i + 1]
-
-		for i in range(lines):
-			ren = config.fonts.Font(fontchoice).render(Key.label[i], 0, wc(HiColor))
-			vert_off = ((i + 1)*Key.Size[1]/(1 + lines)) - ren.get_height()/2
-			horiz_off = (Key.Size[0] - ren.get_width())/2
-			config.screen.blit(ren, (x + horiz_off, y + vert_off))
-
-		pygame.display.update()
-
-	def draw_cmd_buttons(self, AS):
-		if not self.BrightenToHome:  # suppress command buttons on sleep screen when any touch witll brighten/gohome
-			self.draw_button(AS.PrevScreenKey)
-			self.draw_button(AS.NextScreenKey)
-			for K in AS.ExtraCmdKeys:
-				self.draw_button(K)
 
 	def GoDim(self, dim):
 		if dim:
@@ -183,7 +141,7 @@ class DisplayScreen(object):
 					rtn = (WAITISYCHANGE, (item[1], item[2]))
 					break
 				else:
-					config.Logs.Log("Bad msg from watcher: " + str(item), Severity=Warning)
+					config.Logs.Log("Bad msg from watcher: " + str(item), Severity=ConsoleWarning)
 
 
 		pygame.time.set_timer(self.INTERVALHIT.type, 0)

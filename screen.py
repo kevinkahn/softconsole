@@ -23,7 +23,7 @@ def ButLayout(butcount):
 		q = next(t[0] for t in enumerate([float(y)/butcount for y in butbreaks]) if t[1] >= 1)
 		return q + 1, int(math.ceil(float(butcount)/(q + 1)))
 	except (ZeroDivisionError, StopIteration):
-		config.Logs.Log("Button layout error - too many or no buttons", logsupport.Error)
+		config.Logs.Log("Button layout error - too many or no buttons", logsupport.ConsoleError)
 		return 5, 5
 
 
@@ -39,10 +39,6 @@ class ScreenDesc(object):
 	Basic information about a screen, subclassed by all other screens to handle this information
 	"""
 
-	def SetExtraCmdTitles(self, titles):
-		for i in range(len(titles)):
-			self.ExtraCmdKeys[i].label = titles[i]
-
 	def __init__(self, screensection, screenname, ExtraCmdButs=(), withnav=True):
 		self.name = screenname
 		self.keysbyord = []
@@ -53,7 +49,7 @@ class ScreenDesc(object):
 		cbutwidth = (config.screenwidth - 2*config.horizborder)/(2 + len(ExtraCmdButs))
 		cvertcenter = config.screenheight - config.botborder/2
 		cbutheight = config.botborder - config.cmdvertspace*2
-		# todo condition on withnav?  if False then None?
+		# todo condition on withnav?  if False then None? if change then also fix FinishScreen not to fail on none
 		self.PrevScreenKey = toucharea.ManualKeyDesc('**prev**', ['**prev**'],
 													 self.CmdKeyCol, self.CmdCharCol, self.CmdCharCol,
 													 center=(config.horizborder + .5*cbutwidth, cvertcenter),
@@ -66,23 +62,28 @@ class ScreenDesc(object):
 		self.ExtraCmdKeys = []
 		for i in range(len(ExtraCmdButs)):
 			hcenter = config.horizborder + (i + 1.5)*cbutwidth
-			self.ExtraCmdKeys.append(toucharea.ManualKeyDesc(ExtraCmdButs[i], ExtraCmdButs[i],
+			self.ExtraCmdKeys.append(toucharea.ManualKeyDesc(ExtraCmdButs[i][0], ExtraCmdButs[i][1],
 															 self.CmdKeyCol, self.CmdCharCol, self.CmdCharCol,
 															 center=(hcenter, cvertcenter),
 															 size=(cbutwidth, cbutheight)))
+			self.ExtraCmdKeys[-1].FinishKey((0,0),(0,0))
 		utilities.register_example('ScreenDesc', self)
 
-	def FinishScreen(self):  # todo this makes no sense since I set PrevScreen in init above
-		if self.PrevScreen is None:
-			self.PrevScreenKey = None
-		else:
-			self.PrevScreenKey.label = self.PrevScreen.label
-			self.NextScreenKey.label = self.NextScreen.label
+	def FinishScreen(self):
+		self.PrevScreenKey.label = self.PrevScreen.label
+		self.NextScreenKey.label = self.NextScreen.label
+		self.PrevScreenKey.FinishKey((0,0),(0,0))
+		self.NextScreenKey.FinishKey((0,0),(0,0))
 
-	def PaintBase(self):
+	def PaintBase(self, latetitles=None):
 		config.screen.fill(wc(self.BackgroundColor))
 		if self.WithNav:
-			config.DS.draw_cmd_buttons(self)
+			if not config.DS.BrightenToHome:  # suppress command buttons on sleep screen when any touch witll brighten/gohome
+				self.PrevScreenKey.PaintKey()
+				self.NextScreenKey.PaintKey()
+				i = 0
+				for K in self.ExtraCmdKeys:
+					K.PaintKey(latetitles[i] if not latetitles is None else None) # todo how to get the new title here?
 
 	def __repr__(self):
 		return "ScreenDesc:" + self.name + ":" + self.BackgroundColor + ":" + str(self.DimTO) + ":"
@@ -110,11 +111,9 @@ class BaseKeyScreenDesc(ScreenDesc):
 		for i in range(bpc):
 			vpos.append(config.topborder + extraOffset + (.5 + i)*buttonsize[1])
 
-		for i in range(len(self.keysbyord)): #todo this should call finish key
-			K = self.keysbyord[i]
-			K.Center = (hpos[i%bpr], vpos[i//bpr])
-			K.Size = buttonsize
+		for i in range(len(self.keysbyord)):
+			self.keysbyord[i].FinishKey((hpos[i%bpr], vpos[i//bpr]),buttonsize)
 
 	def PaintKeys(self):
 		for key in self.keysbyord:
-			config.DS.draw_button(key) # todo this should call paint key
+			key.PaintKey()
