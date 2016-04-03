@@ -1,18 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="PublishConfigData" autoUpload="Always" serverName="RPi2" promptOnLocalOverwrite="false" exclude=".svn;.cvs;.idea;.DS_Store;.git;.hg;*.pyc" autoUploadExternalChanges="true" showNewOnTargetInSync="false">
+  <component name="PublishConfigData" autoUpload="Always" promptOnLocalOverwrite="false" exclude=".svn;.cvs;.idea;.DS_Store;.git;.hg;*.pyc" autoUploadExternalChanges="true" showNewOnTargetInSync="false">
     <serverData>
       <paths name="RPi2">
         <serverdata>
           <mappings>
             <mapping deploy="/consolerem" local="$PROJECT_DIR$" web="/" />
-            <mapping deploy="/Console/config.txt" local="$PROJECT_DIR$/scripts/config.txt" web="/" />
-            <mapping deploy="/python-sudo.sh" local="$PROJECT_DIR$/scripts/python-sudo.sh" web="/" />
           </mappings>
-          <excludedPaths>
-            <excludedPath path="*.pyc" />
-            <excludedPath local="true" path="*.pyc" />
-          </excludedPaths>
         </serverdata>
       </paths>
       <paths name="RPiStable">
