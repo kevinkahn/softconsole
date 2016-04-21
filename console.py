@@ -33,6 +33,9 @@ import logsupport
 import maintscreen
 import screen
 import utilities
+import requests
+from requests.packages.urllib3.exceptions import InsecureRequestWarning
+
 import watchdaemon
 from config import debugprint
 
@@ -48,7 +51,11 @@ for screentype in os.listdir(os.path.dirname(os.path.abspath(sys.argv[0])) + '/s
 """
 Initialize the Console
 """
+
 config.starttime = time.time()
+
+requests.packages.urllib3.disable_warnings(
+	InsecureRequestWarning)  # probably should fix certificates at some point todo
 
 utilities.InitializeEnvironment()
 
