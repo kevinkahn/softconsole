@@ -49,8 +49,10 @@ class KeyDesc(toucharea.ManualKeyDesc):
 				config.Logs.Log('Key Binding missing: ' + self.name, severity=ConsoleWarning)
 		elif self.type in ("ONBLINKRUNTHEN"):
 			self.State = False
-			self.RealObj = config.ISY.ProgramsByName[self.KeyRunThenName] if self.KeyRunThenName <> "" else None
-			if self.RealObj is None:
+			try:
+				self.RealObj = config.ISY.ProgramsByName[self.KeyRunThenName]
+			except:
+				self.RealObj = None
 				debugprint(config.dbgscreenbuild, "Unbound program key: ", self.label)
 				config.Logs.Log("Missing Prog binding: " + self.name, severity=ConsoleWarning)
 		else:

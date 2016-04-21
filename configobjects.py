@@ -46,6 +46,10 @@ class MyScreens(object):
 			config.ExtraChain = []
 		config.Logs.Log("Main Screen List:")
 		for scr in config.MainChain:
+			if not scr in mainlist:
+				config.Logs.Log("-- Undefined Screen:", scr, severity=ConsoleWarning)
+				config.MainChain.remove(scr)
+		for scr in config.MainChain:
 			if scr in mainlist:
 				S = mainlist[scr]
 				S.PrevScreen = mainlist[config.MainChain[config.MainChain.index(scr) - 1]]
@@ -53,6 +57,10 @@ class MyScreens(object):
 				config.Logs.Log("---" + scr)
 
 		config.Logs.Log("Secondary Screen List:")
+		for scr in config.SecondaryChain:
+			if not scr in secondlist:
+				config.Logs.Log("-- Undefined Screen:", scr, severity=ConsoleWarning)
+				config.SecondaryChain.remove(scr)
 		for scr in config.SecondaryChain:
 			if scr in secondlist:
 				S = secondlist[scr]

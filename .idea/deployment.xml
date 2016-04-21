@@ -1,7 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="PublishConfigData" autoUpload="Always" promptOnLocalOverwrite="false" exclude=".svn;.cvs;.idea;.DS_Store;.git;.hg;*.pyc" autoUploadExternalChanges="true" showNewOnTargetInSync="false">
+  <component name="PublishConfigData" autoUpload="Always" serverName="RPi2" promptOnLocalOverwrite="false" exclude=".svn;.cvs;.idea;.DS_Store;.git;.hg;*.pyc" autoUploadExternalChanges="true" showNewOnTargetInSync="false">
     <serverData>
+      <paths name="Copy of project-level server 'RPi2'">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/consolerem" local="$PROJECT_DIR$" web="/" />
+          </mappings>
+        </serverdata>
+      </paths>
       <paths name="RPi2">
         <serverdata>
           <mappings>
