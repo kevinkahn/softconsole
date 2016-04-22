@@ -31,11 +31,10 @@ class WeatherScreenDesc(screen.ScreenDesc):
 						   (1, True, "{d[0]}", ('Location',)),
 						   (1, False, u"Now: {d[0]} {d[1]}\u00B0F", ('Sky', 'Temp')),
 						   (0, False, u"  Feels like: {d[0]}\u00B0", ('Feels',)),
-						   (1, False, "Wind {d[0]} at {d[1]} gusts {d[2]}", ('WindDir', 'WindMPH', 'WindGust')),
+						   (1, False, "Wind {d[0]}", ('WindStr',)),
 						   (1, False, "Sunrise: {d[0]:02d}:{d[1]:02d}", ('SunriseH', 'SunriseM')),
 						   (1, False, "Sunset:  {d[0]:02d}:{d[1]:02d}", ('SunsetH', 'SunsetM')),
-						   (0, 2, "Moon rise: {d[0]:02d}:{d[1]:02d}", ('MoonriseH', 'MoonriseM')),
-						   (0, False, "   set: {d[0]:02d}:{d[1]:02d}", ('MoonsetH', 'MoonsetM')),
+						   (0, False, "Moon rise: {d[0]} set: {d[1]}", ('Moonrise', 'Moonset')),
 						   (0, False, "     {d[0]}% illuminated", ('MoonPct',)),
 						   (0, False, "will be replaced", "")]
 		self.forecast = [(1, False, u"{d[0]}   {d[1]}\u00B0/{d[2]}\u00B0 {d[3]}", ('Day', 'High', 'Low', 'Sky')),
@@ -63,15 +62,12 @@ class WeatherScreenDesc(screen.ScreenDesc):
 			except:
 				config.Logs.Log("Weather format error: " + str(line[3]), logsupport.ConsoleWarning)
 				linestr = ''
-			if line[1] == 2:
-				linetorender = linetorender + linestr
-			else:
-				r = config.fonts.Font(fsizes[line[0]][0], '', fsizes[line[0]][1], fsizes[line[0]][2]).render(
-					linetorender + linestr, 0, wc(color))
-				linetorender = ""
-				renderedlines.append(r)
-				centered.append(line[1])
-				h = h + r.get_height()
+			r = config.fonts.Font(fsizes[line[0]][0], '', fsizes[line[0]][1], fsizes[line[0]][2]).render(
+				linetorender + linestr, 0, wc(color))
+			linetorender = ""
+			renderedlines.append(r)
+			centered.append(line[1])
+			h = h + r.get_height()
 		return renderedlines, centered, h
 
 

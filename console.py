@@ -13,7 +13,7 @@ Copyright 2016 Kevin Kahn
    See the License for the specific language governing permissions and
    limitations under the License.
 """
-
+# import Adafruit_DHT
 import importlib
 import os
 import signal
@@ -135,6 +135,10 @@ prevscreen = None
 mainchainactive = True
 
 while 1:
+	# humidity, temperature = Adafruit_DHT.read_retry(22,4)
+	# tempF = temperature*9/5.0 +32
+	# if humidity is not None and temperature is not None:
+	#	print 'Temp={0:0.1f}*  Humidity={1:0.1f}%'.format(tempF, humidity)
 	nextscreen = config.CurrentScreen.HandleScreen(prevscreen <> config.CurrentScreen)
 	if isinstance(nextscreen, int):
 		if nextscreen < 5:

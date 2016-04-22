@@ -101,6 +101,30 @@ class WeatherInfo:
 							config.Logs.Log("Forecast error: ", i, fc, fs(*desc[1]), logsupport.ConsoleError)
 							self.ForecastVals[i][fc] = desc[0]('0')
 							self.ForecastErr[i].append(fc)
+				"""
+				Create synthetic fields and fix error cases
+				"""
+				# Moonrise/set
+				if 'MoonriseH' not in self.ConditionErr and 'MoonriseM' not in self.ConditionErr:
+					# t1 = [self.ConditionVals[x] for x in ('MoonriseH','MoonriseM')]
+					self.ConditionVals['Moonrise'] = "{d[0]:02d}:{d[1]:02d}".format(
+						d=[self.ConditionVals[x] for x in ('MoonriseH', 'MoonriseM')])
+				# self.ConditionVals['Moonrise'] = "{d[0]:02d}:{d[1]:02d}".format(
+				# [self.ConditionVals[x] for x in ('MoonriseH', 'MoonriseM')])
+				else:
+					self.ConditionVals['Moonrise'] = 'n/a'
+				if 'MoonsetH' not in self.ConditionErr and 'MoonsetM' not in self.ConditionErr:
+					self.ConditionVals['Moonset'] = "{d[0]:02d}:{d[1]:02d}".format(
+						d=[self.ConditionVals[x] for x in ('MoonsetH', 'MoonsetM')])
+				else:
+					self.ConditionVals['Moonrise'] = 'n/a'
+				# Wind not reported at station
+				if self.ConditionVals['WindMPH'] < 0:
+					self.ConditionVals['WindStr'] = 'n/a'
+				else:
+					self.ConditionVals['WindStr'] = "{d[0]} at {d[1]} gusts {d[2]}".format(
+						d=[self.ConditionVals[x] for x in ('WindDir', 'WindMPH', 'WindGust')])
+
 			except:
 				config.Logs.Log("Error retrieving weather", logsupport.ConsoleError)
 				print "Getting fresh weather failed ", time.time()
