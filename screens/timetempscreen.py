@@ -38,7 +38,8 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 			h = 0
 			l = []
 			sizeindex = 0
-			self.WInfo.FetchWeather()
+			if self.WInfo.FetchWeather() == -1:
+				return (WAITEXIT, config.HomeScreen)
 			# todo add error field handling to below code (self.ConditionErr[cond] and self.ForecastErr[dy][cond]
 
 			for i in range(len(self.TimeFormat)):

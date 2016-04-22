@@ -60,7 +60,7 @@ class WeatherScreenDesc(screen.ScreenDesc):
 						args.append(values[item])
 					linestr = line[2].format(d=args)
 			except:
-				config.Logs.Log("Weather format error: " + str(line[3]), logsupport.ConsoleWarning)
+				config.Logs.Log("Weather format error: " + str(line[3]), severity=logsupport.ConsoleWarning)
 				linestr = ''
 			r = config.fonts.Font(fsizes[line[0]][0], '', fsizes[line[0]][1], fsizes[line[0]][2]).render(
 				linetorender + linestr, 0, wc(color))
@@ -77,10 +77,10 @@ class WeatherScreenDesc(screen.ScreenDesc):
 		usefulheight = config.screenheight - config.topborder - config.botborder
 		h = 0
 		centered = []
-		self.Info.FetchWeather()
+		if self.Info.FetchWeather() == -1:
+			return -1
 		if conditions:
-			age = utilities.interval_str(time.time() - self.Info.ConditionVals['Time'])
-			self.conditions[-1] = (0, False, "Readings as of {d} ago", age)
+			self.conditions[-1] = (0, False, "Readings as of {d} ago", self.Info.ConditionVals['Age'])
 			renderedlines, centered, h = self.RenderScreenLines(self.conditions, self.Info.ConditionVals,
 																self.CharColor)
 		else:
@@ -94,7 +94,7 @@ class WeatherScreenDesc(screen.ScreenDesc):
 				renderedlines = renderedlines + r
 				centered = centered + c
 
-		s = (usefulheight - h)/(len(renderedlines) - 1)
+		s = (usefulheight - h)/(len(renderedlines) - 1) if len(renderedlines) > 1 else 0
 		vert_off = config.topborder
 
 		for i in range(len(renderedlines)):
@@ -111,7 +111,8 @@ class WeatherScreenDesc(screen.ScreenDesc):
 		# stop any watching for device stream
 		config.toDaemon.put([])
 		currentconditions = True
-		self.ShowScreen(currentconditions)
+		if self.ShowScreen(currentconditions) == -1:
+			return config.HomeScreen
 		while 1:
 			choice = config.DS.NewWaitPress(self)
 			if choice[0] == WAITEXIT:

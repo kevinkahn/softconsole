@@ -99,8 +99,11 @@ class ThermostatScreenDesc(screen.BaseKeyScreenDesc):
 		r = config.fonts.Font(self.fsize[3], bold=True).render(u"{:4.1f}".format(self.info["ST"][0]/2), 0,
 															   wc(self.CharColor))
 		config.screen.blit(r, ((config.screenwidth - r.get_width())/2, self.TempPos))
-		r = config.fonts.Font(self.fsize[0]).render(("Idle", "Heating", "Cooling")[self.info["CLIHCS"][0]], 0,
+		if isinstance(self.info["CLIHCS"][0], int):
+			r = config.fonts.Font(self.fsize[0]).render(("Idle", "Heating", "Cooling")[self.info["CLIHCS"][0]], 0,
 													wc(self.CharColor))
+		else:
+			r = config.fonts.Font(self.fsize[0]).render("n/a", 0, wc(self.CharColor))
 		config.screen.blit(r, ((config.screenwidth - r.get_width())/2, self.StatePos))
 		r = config.fonts.Font(self.fsize[2]).render(
 			"{:2d}    {:2d}".format(self.info["CLISPH"][0]/2, self.info["CLISPC"][0]/2), 0,

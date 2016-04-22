@@ -2,6 +2,7 @@ import functools
 import json
 import time
 import urllib2
+import utilities
 
 import config
 import logsupport
@@ -58,6 +59,7 @@ class WeatherInfo:
 				   + location + '.json'
 		self.ConditionVals = {}
 		self.ForecastVals = []
+		self.location = location
 
 	def FetchWeather(self):
 		progress = 0
@@ -68,8 +70,12 @@ class WeatherInfo:
 				f = urllib2.urlopen(self.url)
 				val = f.read()
 				if val.find("keynotfound") <> -1:
-					config.Logs.Log("Bad weatherunderground key:" + self.name, severity=logsupport.ConsoleError)
-					return config.HomeScreen  # todo fix this
+					if self.location <> "":
+						# only report once in log
+						config.Logs.Log("Bad weatherunderground key:" + self.location, severity=logsupport.ConsoleError)
+					self.location = ""
+					self.lastwebreq = 0
+					return -1
 				progress= 1
 				parsed_json = json.loads(val)
 				js = functools.partial(TreeDict, parsed_json)
@@ -98,7 +104,7 @@ class WeatherInfo:
 							self.ForecastVals[i][fc] = desc[0](fs(*desc[1]))
 						except:
 							print "W2",i,fc
-							config.Logs.Log("Forecast error: ", i, fc, fs(*desc[1]), logsupport.ConsoleError)
+							config.Logs.Log("Forecast error: ", i, fc, fs(*desc[1]), severity=logsupport.ConsoleError)
 							self.ForecastVals[i][fc] = desc[0]('0')
 							self.ForecastErr[i].append(fc)
 				"""
@@ -126,10 +132,13 @@ class WeatherInfo:
 						d=[self.ConditionVals[x] for x in ('WindDir', 'WindMPH', 'WindGust')])
 
 			except:
-				config.Logs.Log("Error retrieving weather", logsupport.ConsoleError)
-				print "Getting fresh weather failed ", time.time()
-				print "Progress: ", progress
-				print self.ConditionVals
-				print self.ForecastVals
-				print self.url
+				config.Logs.Log("Error retrieving weather", severity=logsupport.ConsoleError)
+				# print "Getting fresh weather failed ", time.time()
+				# print "Progress: ", progress
+				# print self.ConditionVals
+				# print self.ForecastVals
+				# print self.url
+				self.lastwebreq = 0
+				return -1
+		self.ConditionVals['Age'] = utilities.interval_str(time.time() - self.ConditionVals['Time'])
 		return self.lastwebreq
