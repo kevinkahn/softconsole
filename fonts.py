@@ -1,4 +1,5 @@
 import pygame
+import utilities
 
 import config
 
@@ -10,7 +11,7 @@ class Fonts(object):
 
 	def Font(self, size, face="", bold=False, italic=False):
 		def gennewfont():
-			return pygame.font.SysFont(name, size, bold, italic)
+			return pygame.font.SysFont(name, utilities.scaleH(size), bold, italic)
 
 		try:
 			return self.fontcache[face][size][italic][bold]

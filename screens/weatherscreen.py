@@ -8,15 +8,11 @@ from config import debugprint, WAITEXTRACONTROLBUTTON, WAITEXIT
 
 wc = webcolors.name_to_rgb
 import screen
-import urllib2
-import json
 import logsupport
-import functools
 import weatherinfo
 import utilities
-from utilities import scaleW, scaleH
 
-fsizes = ((scaleH(20), False, False), (scaleH(30), True, False), (scaleH(45), True, True))  # todo pixel
+fsizes = ((20, False, False), (30, True, False), (45, True, True))
 
 
 class WeatherScreenDesc(screen.ScreenDesc):

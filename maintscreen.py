@@ -14,7 +14,6 @@ from logsupport import ConsoleError
 import time
 import sys
 import utilities
-from utilities import scaleH
 import screen
 
 fixedoverrides = {'CharColor': 'white', 'BackgroundColor': 'royalblue', 'label': ['Maintenance'], 'DimTO': 100000}
@@ -100,7 +99,7 @@ class MaintScreenDesc(screen.BaseKeyScreenDesc):
 	def __init__(self, keys):
 		debugprint(config.dbgscreenbuild, "Build Maintenance Screen")
 		screen.BaseKeyScreenDesc.__init__(self, fixedoverrides, 'Maint', withnav=False)
-		utilities.LocalizeParams(self, None, TitleFontSize=scaleH(40), SubFontSize=scaleH(25))
+		utilities.LocalizeParams(self, None, TitleFontSize=40, SubFontSize=25)
 		self.keysbyord = []
 		for k, kt in keys.iteritems():
 			self.keysbyord.append(
@@ -114,7 +113,7 @@ class MaintScreenDesc(screen.BaseKeyScreenDesc):
 		r = config.fonts.Font(self.TitleFontSize, '', True, True).render("Console Maintenance", 0, wc(self.CharColor))
 		rl = (config.screenwidth - r.get_width())/2
 		config.screen.blit(r, (rl, config.topborder))
-		r = config.fonts.Font(scaleH(self.SubFontSize), '', True, True).render(
+		r = config.fonts.Font(self.SubFontSize, '', True, True).render(
 			"Up: " + interval_str(time.time() - config.starttime),
 			0, wc(self.CharColor))
 		rl = (config.screenwidth - r.get_width())/2

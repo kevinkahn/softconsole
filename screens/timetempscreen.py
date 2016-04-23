@@ -6,7 +6,6 @@ import config
 import screen
 import utilities
 from config import debugprint, WAITEXIT
-from utilities import scaleH
 
 wc = webcolors.name_to_rgb
 import weatherinfo
@@ -44,7 +43,7 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 
 			for i in range(len(self.TimeFormat)):
 				l.append(
-					config.fonts.Font(int(scaleH(self.CharSize[sizeindex])), self.Font).render(
+					config.fonts.Font(self.CharSize[sizeindex], self.Font).render(
 						time.strftime(self.TimeFormat[i]),
 						0, wc(self.CharColor)))
 				h = h + l[-1].get_height()
@@ -52,7 +51,7 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 			for i in range(len(self.ConditionFormat)):
 				vals = [self.WInfo.ConditionVals[fld] for fld in self.ConditionFields]
 				l.append(
-					config.fonts.Font(int(scaleH(self.CharSize[sizeindex])), self.Font).render(
+					config.fonts.Font(self.CharSize[sizeindex], self.Font).render(
 						self.ConditionFormat[i].format(d=vals), 0, wc(self.CharColor)))
 				h = h + l[-1].get_height()
 				sizeindex += 1
@@ -60,7 +59,7 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 				for i in range(len(self.ForecastFormat)):
 					vals = [self.WInfo.ForecastVals[dy][fld] for fld in self.ForecastFields]
 					l.append(
-						config.fonts.Font(int(scaleH(self.CharSize[sizeindex + i])), self.Font).render(
+						config.fonts.Font(self.CharSize[sizeindex + i], self.Font).render(
 							self.ForecastFormat[i].format(d=vals), 0, wc(self.CharColor)))
 					h = h + l[-1].get_height()
 

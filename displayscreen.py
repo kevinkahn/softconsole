@@ -8,7 +8,6 @@ import hw
 import toucharea
 from config import debugprint, WAITNORMALBUTTON, WAITNORMALBUTTONFAST, WAITEXIT, WAITISYCHANGE, WAITEXTRACONTROLBUTTON
 from logsupport import ConsoleWarning
-from utilities import scaleW, scaleH
 
 wc = webcolors.name_to_rgb
 
@@ -130,7 +129,7 @@ class DisplayScreen(object):
 			else:
 				pass  # ignore and flush other events
 
-			if (not config.fromDaemon.empty()) and (cycle == 0):  # don't process daemon reports while cycling
+			if (not config.fromDaemon.empty()) and (cycle == 0):  # todo don't process daemon reports while cycling
 				debugprint(config.dbgMain, "Q size at main loop ", config.fromDaemon.qsize())
 				item = config.fromDaemon.get()
 				debugprint(config.dbgMain, time.time(), "ISY reports change: ", "Key: ", str(item))

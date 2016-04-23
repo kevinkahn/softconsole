@@ -33,7 +33,7 @@ class ManualKeyDesc(TouchPoint):
 
 	def __init__(self, *args, **kwargs):
 		# alternate creation signatures
-		self.ButtonFontSizes = tuple(scaleH(i) for i in (31, 28, 25, 22, 20, 18, 16))  # todo pixel - also is this the right place for this
+		self.ButtonFontSizes = (31, 28, 25, 22, 20, 18, 16)
 		self.DynamicLabel = False
 		if len(args) == 2:
 			# signature: ManualKeyDesc(keysection, keyname)
@@ -91,9 +91,9 @@ class ManualKeyDesc(TouchPoint):
 
 	def FindFontSize(self,lab,firstfont,shrink):
 		lines = len(lab)
-		buttonsmaller = (self.Size[0] - scaleW(6), self.Size[1] - scaleH(6))  # todo pixel
+		buttonsmaller = (self.Size[0] - scaleW(6), self.Size[1] - scaleH(6))
 		# compute writeable area for text
-		textarea = (buttonsmaller[0] - 2, buttonsmaller[1] - 2)  # todo pixel not scaled
+		textarea = (buttonsmaller[0] - 2, buttonsmaller[1] - 2)
 		fontchoice = self.ButtonFontSizes[firstfont]
 		if shrink:
 			for l in range(lines):
@@ -116,7 +116,7 @@ class ManualKeyDesc(TouchPoint):
 			self.Center = center
 			self.Size = size
 
-		buttonsmaller = (self.Size[0] - scaleW(6), self.Size[1] - scaleH(6))  # todo pixel
+		buttonsmaller = (self.Size[0] - scaleW(6), self.Size[1] - scaleH(6))
 
 		# create image of ON key
 		self.KeyOnImage = pygame.Surface(self.Size)

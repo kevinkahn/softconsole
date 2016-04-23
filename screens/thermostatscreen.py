@@ -26,7 +26,7 @@ class ThermostatScreenDesc(screen.BaseKeyScreenDesc):
 		screen.BaseKeyScreenDesc.__init__(self, screensection, screenname)
 		utilities.LocalizeParams(self, screensection, 'KeyColor', 'KeyOffOutlineColor', 'KeyOnOutlineColor')
 		self.info = {}
-		self.fsize = [scaleH(i) for i in (30, 50, 80, 160)]  # todo pixel
+		self.fsize = (30, 50, 80, 160)
 
 		if screenname in config.ISY.NodesByName:
 			self.RealObj = config.ISY.NodesByName[screenname]
@@ -38,7 +38,7 @@ class ThermostatScreenDesc(screen.BaseKeyScreenDesc):
 																wc(self.CharColor))
 		self.TitlePos = ((config.screenwidth - self.TitleRen.get_width())/2, config.topborder)
 		self.TempPos = config.topborder + self.TitleRen.get_height()
-		self.StatePos = self.TempPos + config.fonts.Font(self.fsize[3]).get_linesize() - scaleH(20)  # todo pixel
+		self.StatePos = self.TempPos + config.fonts.Font(self.fsize[3]).get_linesize() - scaleH(20)
 		self.SPPos = self.StatePos + scaleH(25)
 		self.AdjButSurf = pygame.Surface((config.screenwidth, scaleH(40)))
 		self.AdjButTops = self.SPPos + config.fonts.Font(self.fsize[2]).get_linesize() - scaleH(5)

@@ -7,7 +7,6 @@ import pygame
 from config import debugprint, WAITEXIT
 import screen
 import utilities
-from utilities import scaleH
 
 
 class ClockScreenDesc(screen.ScreenDesc):
@@ -39,9 +38,9 @@ class ClockScreenDesc(screen.ScreenDesc):
 
 			for i in range(len(self.OutFormat)):
 				l.append(
-					config.fonts.Font(int(scaleH(self.CharSize[i])), self.Font).render(time.strftime(self.OutFormat[i]),
-																					   0, wc(
-							self.CharColor)))  # todo pixel - as a spec'd screen should it scale?
+					config.fonts.Font(self.CharSize[i], self.Font).render(time.strftime(self.OutFormat[i]),
+																		  0, wc(
+							self.CharColor)))
 				h = h + l[i].get_height()
 			s = (usefulheight - h)/(len(l) - 1)
 
