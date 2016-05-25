@@ -35,17 +35,19 @@ esac
 dpkg-reconfigure tzdata
 
 # for later convenience install tightvncserver to the system to make it easy to get into the Pi since it is otherwise headless
+echo "Set Up Console Directories"
 mkdir Console
 mkdir consolerem
 mkdir consolestable
 mkdir consolebeta
 chown pi Console consolerem consolestable consolebeta
 
-
+echo "Install tightvncserver"
 apt-get -y install tightvncserver
 sudo -u pi tightvncserver
 apt-get -y install autocutsel
 
+echo "Create tightvnc service files"
 echo "
 [Unit]
 Description=TightVNC remote desktop server
@@ -61,26 +63,33 @@ Type=forking
 WantedBy=multi-user.target
 " > /etc/systemd/system/tightvncserver.service
 
+echo "Start tightvncserver service"
 systemctl daemon-reload && sudo systemctl enable tightvncserver.service
 
-
+echo "Update system"
 apt-get -y update
+echo "Upgrade system"
 apt-get -y upgrade
 
 
-
+echo "Add adafruit"
 curl -SLs https://apt.adafruit.com/add-pin | sudo bash
+echo "Install bootloader"
 apt-get install raspberrypi-bootloader
+echo "Install pitft helper"
 apt-get install adafruit-pitft-helper
 
+echo "Run helper"
 adafruit-pitft-helper -t $1
 
+echo "Install stuff for console"
 pip install --upgrade pip
 pip install configobj
 pip install webcolors
 pip install xmltodict
 /usr/local/bin/pip install ISYlib
 
+echo "Setup to downgrade touch stuff to wheezy"
 #enable wheezy package sources
 echo "deb http://archive.raspbian.org/raspbian wheezy main
 " > /etc/apt/sources.list.d/wheezy.list
@@ -98,9 +107,13 @@ Pin: release n=wheezy
 Pin-Priority: 900
 " > /etc/apt/preferences.d/libsdl
 #install
+
+echo "Update to downgrade"
 apt-get -y update
+echo "Install the downgrade"
 apt-get -y --force-yes install libsdl1.2debian/wheezy
 
+echo "Configure the screen and calibrate"
 # set vertical orientation
 mv /boot/config.txt /boot/config.sav
 sed s/rotate=90/rotate=180/ /boot/config.sav > /boot/config.txt
