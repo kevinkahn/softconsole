@@ -67,9 +67,9 @@ echo "Start tightvncserver service"
 systemctl daemon-reload && sudo systemctl enable tightvncserver.service
 
 echo "Update system"
-apt-get -y update
+apt-get update
 echo "Upgrade system"
-apt-get -y upgrade
+apt-get upgrade
 
 
 echo "Add adafruit"
@@ -109,7 +109,7 @@ Pin-Priority: 900
 #install
 
 echo "Update to downgrade"
-apt-get -y update
+apt-get -y --force-yes update
 echo "Install the downgrade"
 apt-get -y --force-yes install libsdl1.2debian/wheezy
 
