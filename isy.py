@@ -4,6 +4,7 @@ import xmltodict
 
 import config
 import utilities
+import maintscreen
 from config import ISYdebug
 from logsupport import ConsoleInfo, ConsoleWarning, ConsoleError
 
@@ -13,7 +14,11 @@ def get_real_time_status(addrlist):
 	# this proc assumes a device that returns a simple ST value for status
 	statusdict = {}
 	for addr in addrlist:
-		r = config.ISYrequestsession.get('https://' + config.ISYaddr + '/rest/status/' + addr, verify=False)
+		try:
+			r = config.ISYrequestsession.get('https://' + config.ISYaddr + '/rest/status/' + addr, verify=False)
+		except:
+			config.Logs.Log("ISY Comm Error (realtime status)" + addr, severity=ConsoleError)
+			maintscreen.doexit('restart')
 		props = xmltodict.parse(r.text)['properties']['property']
 		if isinstance(props, dict):
 			props = [props]
@@ -250,7 +255,8 @@ class ISY(object):
 				self.ScenesByAddr[scene['address']] = Scene(scene['@flag'], scene['name'], str(scene['address']), ptyp,
 															p, memberlist)
 			else:
-				print 'Scene with no members', scene['name']
+				if scene['name'] <> '~Auto DR':
+					print 'Scene with no members', scene['name']
 		self.LinkChildrenParents(self.ScenesByAddr, self.ScenesByName, self.FoldersByAddr, self.NodesByAddr)
 		if ISYdebug:
 			self.PrintTree(self.NodeRoot, "    ")

@@ -29,7 +29,13 @@ The most base type
 
 	Represents a touchable rectangle on the screen.
 	
+*  AddTitle
+*  ButtonFontSizes
 *  Center
+*  DynamicLabel
+*  FindFontSize
+*  FinishKey
+*  PaintKey
 *  Size
 *  docodeinit
 *  dosectioninit
@@ -111,7 +117,7 @@ The most base type
 	Represents an ISY program and provides command support to issue run commands to it.
 	
 
-##ScreenDesc: [TimeTempScreenDesc, WeatherScreenDesc, BaseKeyScreenDesc, ClockScreenDesc]
+##ScreenDesc: [HouseStatusScreenDesc, WeatherScreenDesc, BaseKeyScreenDesc, ClockScreenDesc]
 
 	Basic information about a screen, subclassed by all other screens to handle this information
 	
@@ -130,15 +136,17 @@ The most base type
 *  PaintKeys
 *  PrevScreen
 *  PrevScreenKey
-*  SetExtraCmdTitles
 *  ShowScreen
 *  WithNav
 *  keysbyord
 
-##TimeTempScreenDesc: []
+##HouseStatusScreenDesc: []
 
 ***missing***
 
+*  NormalOff
+*  NormalOn
+*  SetUp
 
 ##WeatherScreenDesc: []
 

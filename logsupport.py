@@ -53,7 +53,7 @@ class Logs(object):
 		if not diskonly:
 			self.log.append((severity, entry))
 		if disklogging:
-			self.disklogfile.write(time.strftime('%H:%M:%S')
+			self.disklogfile.write(time.strftime('%m-%d-%y %H:%M:%S')
 								   + ' Sev: ' + str(severity) + " " + entry.encode('ascii',
 																				   errors='backslashreplace') + '\n')
 			self.disklogfile.flush()

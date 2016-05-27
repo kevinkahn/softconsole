@@ -66,9 +66,9 @@ class DisplayScreen(object):
 				pass
 			elif event.type == pygame.MOUSEBUTTONDOWN:
 				pos = (pygame.mouse.get_pos()[0], pygame.mouse.get_pos()[1])
-				if self.presscount < 10:  # this is debug code for a weird/unreproducible RPi behavior where touch is off
-					print pos
-					self.presscount += 1
+				# if self.presscount < 10:  # this is debug code for a weird/unreproducible RPi behavior where touch is off
+				#	print pos
+				#	self.presscount += 1
 				tapcount = 1
 				pygame.time.delay(config.MultiTapTime)
 				while True:

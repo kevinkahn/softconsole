@@ -34,7 +34,9 @@ import maintscreen
 import screen
 import utilities
 import requests
-from requests.packages.urllib3.exceptions import InsecureRequestWarning
+import urllib3
+
+urllib3.disable_warnings()
 
 import watchdaemon
 from config import debugprint
@@ -54,8 +56,8 @@ Initialize the Console
 
 config.starttime = time.time()
 
-requests.packages.urllib3.disable_warnings(
-	InsecureRequestWarning)  # probably should fix certificates at some point todo
+# requests.packages.urllib3.disable_warnings(
+#	InsecureRequestWarning)  # probably should fix certificates at some point todo
 
 utilities.InitializeEnvironment()
 

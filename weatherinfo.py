@@ -91,7 +91,6 @@ class WeatherInfo:
 						self.ConditionVals[cond] = desc[0](js(*desc[1]))
 						progress = (4,cond)
 					except:
-						config.Logs.Log("Weather error: ", cond, (js(*desc[1])), logsupport.ConsoleError)
 						self.ConditionVals[cond] = desc[0]('0')
 						self.ConditionErr.append(cond)
 				for i, fcst in enumerate(fcsts):
@@ -115,21 +114,31 @@ class WeatherInfo:
 					# t1 = [self.ConditionVals[x] for x in ('MoonriseH','MoonriseM')]
 					self.ConditionVals['Moonrise'] = "{d[0]:02d}:{d[1]:02d}".format(
 						d=[self.ConditionVals[x] for x in ('MoonriseH', 'MoonriseM')])
-				# self.ConditionVals['Moonrise'] = "{d[0]:02d}:{d[1]:02d}".format(
-				# [self.ConditionVals[x] for x in ('MoonriseH', 'MoonriseM')])
 				else:
 					self.ConditionVals['Moonrise'] = 'n/a'
+					if 'MoonriseH' in self.ConditionErr:
+						self.ConditionErr.remove('MoonriseH')
+					if 'MoonriseM' in self.ConditionErr:
+						self.ConditionErr.remove('MoonriseM')
 				if 'MoonsetH' not in self.ConditionErr and 'MoonsetM' not in self.ConditionErr:
 					self.ConditionVals['Moonset'] = "{d[0]:02d}:{d[1]:02d}".format(
 						d=[self.ConditionVals[x] for x in ('MoonsetH', 'MoonsetM')])
 				else:
-					self.ConditionVals['Moonrise'] = 'n/a'
+					self.ConditionVals['Moonset'] = 'n/a'
+					if 'MoonsetH' in self.ConditionErr:
+						self.ConditionErr.remove('MoonsetH')
+					if 'MoonsetM' in self.ConditionErr:
+						self.ConditionErr.remove('MoonsetM')
+
 				# Wind not reported at station
 				if self.ConditionVals['WindMPH'] < 0:
 					self.ConditionVals['WindStr'] = 'n/a'
 				else:
-					self.ConditionVals['WindStr'] = "{d[0]} at {d[1]} gusts {d[2]}".format(
+					self.ConditionVals['WindStr'] = "{d[0]}@{d[1]} gusts {d[2]}".format(
 						d=[self.ConditionVals[x] for x in ('WindDir', 'WindMPH', 'WindGust')])
+
+				if self.ConditionErr:
+					config.Logs.Log("Weather error: ", self.ConditionErr, logsupport.ConsoleError)
 
 			except:
 				config.Logs.Log("Error retrieving weather", severity=logsupport.ConsoleError)

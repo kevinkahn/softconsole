@@ -66,7 +66,7 @@ def dobeta(K):
 	elif K.name == 'beta':
 		subprocess.Popen('sudo touch /home/pi/usebeta', shell=True)
 	elif K.name == 'fetch':
-		subprocess.Popen('scripts/getcurrentbeta', shell=True)
+		subprocess.Popen('/bin/bash -e scripts/getcurrentbeta', shell=True)
 
 def Exit_Options(msg, scrnmsg):
 	config.screen.fill(wc("red"))
