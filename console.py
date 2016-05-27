@@ -38,6 +38,19 @@ import urllib3
 
 urllib3.disable_warnings()
 
+exdir = os.path.dirname(os.path.abspath(__file__))
+print exdir
+lastfn = ""
+lastmod = 0
+for root, dirs, files in os.walk(exdir):
+	for file in files:
+		if file.endswith(".py"):
+			fn = os.path.join(root, file)
+			if os.path.getmtime(fn) > lastmod:
+				lastmod = os.path.getmtime(fn)
+				lastfn = fn
+print 'Version', lastfn, time.ctime(lastmod)
+
 import watchdaemon
 from config import debugprint
 
@@ -75,6 +88,9 @@ config.Logs = logsupport.Logs(config.screen, os.path.dirname(config.configfile))
 config.Logs.Log(u"Soft ISY Console")
 config.Logs.Log(u"  \u00A9 Kevin Kahn 2016")
 config.Logs.Log("Software under Apache 2.0 License")
+config.Logs.Log("Run from: ", exdir)
+config.Logs.Log("Last mod: ", lastfn)
+config.Logs.Log("Mod at: ", time.ctime(lastmod))
 config.Logs.Log("Start time: ", time.strftime('%c'))
 config.Logs.Log("Console Starting  pid: ", os.getpid())
 config.Logs.Log("Config file: ", config.configfile)
