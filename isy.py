@@ -18,7 +18,7 @@ def get_real_time_status(addrlist):
 			r = config.ISYrequestsession.get('https://' + config.ISYaddr + '/rest/status/' + addr, verify=False)
 		except:
 			config.Logs.Log("ISY Comm Error (realtime status)" + addr, severity=ConsoleError)
-			maintscreen.doexit('restart')
+			maintscreen.errorexit('restart')
 		props = xmltodict.parse(r.text)['properties']['property']
 		if isinstance(props, dict):
 			props = [props]

@@ -60,6 +60,15 @@ def doexit(K):
 	sys.exit()
 
 
+def errorexit(opt):
+	if opt == 'restart':
+		Exit_Options('Error restart', 'Error - Restarting')
+	elif opt == 'reboot':
+		Exit_Options('Error reboot', 'Error - Rebooting Pi')
+
+	subprocess.Popen('nohup /bin/bash -e scripts/consoleexit ' + opt + ' ' + config.configfile, shell=True)
+	sys.exit()
+
 def dobeta(K):
 	if K.name == 'stable':
 		subprocess.Popen('sudo rm /home/pi/usebeta', shell=True)
