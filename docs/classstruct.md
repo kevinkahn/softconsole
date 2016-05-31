@@ -53,6 +53,7 @@ The most base type
 *  KeyColor
 *  KeyOffOutlineColor
 *  KeyOnOutlineColor
+*  KeyOutlineOffset
 *  RealObj
 *  State
 *  label
