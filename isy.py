@@ -15,7 +15,7 @@ def get_real_time_status(addrlist):
 	statusdict = {}
 	for addr in addrlist:
 		try:
-			r = config.ISYrequestsession.get('https://' + config.ISYaddr + '/rest/status/' + addr, verify=False)
+			r = config.ISYrequestsession.get('http://' + config.ISYaddr + '/rest/status/' + addr, verify=False)
 		except:
 			config.Logs.Log("ISY Comm Error (realtime status)" + addr, severity=ConsoleError)
 			maintscreen.errorexit('restart')

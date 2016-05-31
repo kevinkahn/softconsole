@@ -13,7 +13,6 @@ Copyright 2016 Kevin Kahn
    See the License for the specific language governing permissions and
    limitations under the License.
 """
-# import Adafruit_DHT
 import importlib
 import os
 import signal
@@ -37,6 +36,10 @@ import requests
 import urllib3
 
 urllib3.disable_warnings()
+import urllib3.contrib.pyopenssl
+
+urllib3.contrib.pyopenssl.inject_into_urllib3()
+
 
 exdir = os.path.dirname(os.path.abspath(__file__))
 print exdir
@@ -102,7 +105,7 @@ utilities.LogParams()
 """
 Set up for ISY access
 """
-config.ISYprefix = 'https://' + config.ISYaddr + '/rest/'
+config.ISYprefix = 'http://' + config.ISYaddr + '/rest/'
 config.ISYrequestsession = requests.session()
 config.ISYrequestsession.auth = (config.ISYuser, config.ISYpassword)
 config.ISY = isy.ISY(config.ISYrequestsession)

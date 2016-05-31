@@ -2,7 +2,7 @@
 <project version="4">
   <component name="WebServers">
     <option name="servers">
-      <webServer id="2bed0b02-4008-4ddc-9eb4-a516af68f460" name="RPi2" url="http://192.168.1.22">
+      <webServer id="2bed0b02-4008-4ddc-9eb4-a516af68f460" name="RPi-LRWall" url="http://192.168.1.22">
         <fileTransfer host="192.168.1.22" port="22" rootFolder="/home/pi" accessType="SFTP" password="dfd8dfcbdfd9dfdadfc8dfcfdfd8dfd8dfd3" username="pi">
           <advancedOptions>
             <advancedOptions dataProtectionLevel="Private" />
@@ -12,6 +12,14 @@
       </webServer>
       <webServer id="e137c83b-a241-48e6-b64b-f6c6426e3ca1" name="RPiStable" url="http://192.168.1.23">
         <fileTransfer host="192.168.1.23" port="22" rootFolder="/home/pi" accessType="SFTP" password="dfc1dfc9dfc0dfc9dfc1df98df99df9d" username="pi">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" />
+          </advancedOptions>
+          <option name="port" value="22" />
+        </fileTransfer>
+      </webServer>
+      <webServer id="aee9f6a4-a04a-4da6-a984-131e3a593725" name="RPi-Suzi" url="http://192.168.1.23">
+        <fileTransfer host="192.168.1.23" port="22" rootFolder="/home/pi" accessType="SFTP" password="dfd8dfcbdfd9dfdadfc8dfcfdfd8dfd8dfd3" username="pi">
           <advancedOptions>
             <advancedOptions dataProtectionLevel="Private" />
           </advancedOptions>
