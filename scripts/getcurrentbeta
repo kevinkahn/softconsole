@@ -5,7 +5,8 @@ date >> /home/pi/log.txt
 wget https://github.com/kevinkahn/softconsole/archive/currentbeta.tar.gz >>  /home/pi/log.txt
 
 tar -zx < currentbeta.tar.gz >> /home/pi/log.txt
-rm -fr consolebeta
+rm -fr consolebeta.old
+mv consolebeta consolebeta.old
 mv softconsole-currentbeta consolebeta
 rm -f currentbeta.tar.*
 echo "-----Done with Fetch -----" /home/pi/log.txt
