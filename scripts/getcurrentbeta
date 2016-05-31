@@ -9,5 +9,6 @@ rm -fr consolebeta.old
 mv consolebeta consolebeta.old
 mv softconsole-currentbeta consolebeta
 rm -f currentbeta.tar.*
+chmod a+x consolebeta/scripts/*
 echo "-----Done with Fetch -----" /home/pi/log.txt
 

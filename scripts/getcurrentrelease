@@ -1,0 +1,25 @@
+#!/bin/bash
+
+cd /home/pi
+echo "Installing new release to stable: " >> log.txt
+date >> log.txt
+rm -rf log.txt.old
+mv log.txt log.txt.old
+
+echo "New release installation" > log.txt
+chown pi log.txt
+date >> log.txt
+echo "==================" >> log.txt
+
+echo "-----Get Current Release-----" >> /home/pi/log.txt
+date >> /home/pi/log.txt
+wget https://github.com/kevinkahn/softconsole/archive/currentrelease.tar.gz >>  /home/pi/log.txt
+
+tar -zx < currentrelease.tar.gz >> /home/pi/log.txt
+rm -fr consolestable.old
+mv consolestable consolestable.old
+mv softconsole-currentrelease consolestable
+rm -f currentrelease.tar.*
+chmod a+x consolestable/scripts/*
+echo "-----Done with Fetch -----" /home/pi/log.txt
+

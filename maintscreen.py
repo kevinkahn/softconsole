@@ -26,7 +26,7 @@ def SetUpMaintScreens():
 					 ('return', ('Return', None))]))
 	Beta = MaintScreenDesc(
 		OrderedDict([('stable', (('Use Stable Release'), dobeta)), ('beta', (('Use Beta Release'), dobeta)),
-					 ('fetch', (('Download Beta'), dobeta))]))
+					 ('release', (('Download release'), dobeta)), ('fetch', (('Download Beta'), dobeta))]))
 	LogDisp = LogDisplayScreen()
 	config.MaintScreen = MaintScreenDesc(
 		OrderedDict([('return', ('Exit Maintenance', None)), ('log', ('Show Log', LogDisp.showlog)),
@@ -76,6 +76,8 @@ def dobeta(K):
 		subprocess.Popen('sudo touch /home/pi/usebeta', shell=True)
 	elif K.name == 'fetch':
 		subprocess.Popen('sudo /bin/bash -e scripts/getcurrentbeta', shell=True)
+	elif K.name == 'release':
+		subprocess.Popen('sudo /bin/bash -e scripts/getcurrentrelease', shell=True)
 
 def Exit_Options(msg, scrnmsg):
 	config.screen.fill(wc("red"))
