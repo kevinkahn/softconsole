@@ -16,10 +16,10 @@ date >> /home/pi/log.txt
 wget https://github.com/kevinkahn/softconsole/archive/currentrelease.tar.gz >>  /home/pi/log.txt
 
 tar -zx < currentrelease.tar.gz >> /home/pi/log.txt
-rm -fr consolestable.old
-mv consolestable consolestable.old
-mv softconsole-currentrelease consolestable
-rm -f currentrelease.tar.*
+rm -fr consolestable.old >> /home/pi/log.txt
+mv consolestable consolestable.old >> /home/pi/log.txt
+mv softconsole-currentrelease consolestable >> /home/pi/log.txt
+rm -f currentrelease.tar.* >> /home/pi/log.txt
 chmod a+x consolestable/scripts/*
 echo "-----Done with Fetch -----" /home/pi/log.txt
 
