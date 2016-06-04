@@ -81,7 +81,8 @@ class MyScreens(object):
 		if config.HomeScreenName in config.MainChain:
 			config.HomeScreen = mainlist[config.HomeScreenName]
 		else:
-			config.HomeScreen = mainlist[0]
+			config.Logs.Log("Error in Home Screen Name", severity=ConsoleWarning)
+			config.HomeScreen = mainlist[config.MainChain[0]]
 
 		config.HomeScreen2 = secondlist[config.SecondaryChain[0]]
 
