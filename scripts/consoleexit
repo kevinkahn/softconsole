@@ -1,5 +1,6 @@
 #!/bin/bash
 cd /home/pi
+# Note that we exited to this script from console cleanly
 touch cleanexit 
 echo "Consoleexit script: " $1 $2 >> log.txt
 date >> log.txt
@@ -18,6 +19,7 @@ case $1 in
 			echo "restart to stable" >> /home/pi/log.txt
 		fi
 		pwd >> /home/pi/log.txt
+		rm -f /home/pi/cleanexit
 		sudo python -u console.py $2
 		;;
 	shutpi)

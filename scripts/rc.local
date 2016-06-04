@@ -66,6 +66,9 @@ then
  echo "******beta******" >>  log.txt
  cd /home/pi/consolebeta
 else
+ if [ -e usebeta ]
+ then
+  echo "**FALLING BACK TO STABLE**" >> log.txt
  rm -f usebeta cleanexit >> log.txt
  echo "*****stable*****" >>   log.txt
  cd /home/pi/consolestable

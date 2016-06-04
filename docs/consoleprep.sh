@@ -1,7 +1,10 @@
 #!/bin/bash
 
 # MUST BE RUN as root:  sudo consoleprep.sh
-# parameter is the type of display: 35r (tested), 28c (not tested), 28c (not tested)
+# parameter is the type of display: 35r (tested), 28c, 28c (not tested)
+# second parameter is the hostname for this rpi - this will be used to name this node and as the title in the vnc server
+#  if left blank default "raspberrypi" will be used
+# third parameter uses a nonstandard VNC port non blank
 
 # This script should take a current Jessie release and install the adafruit stuff for the 3.5" PiTFT
 # It also installs needed python packages and downgrades the sdllib to the stable Wheezy version for the
@@ -17,6 +20,13 @@
 # script installs tightvncserver as a convenience - this installation will prompt for a vnc password
 # script may ask for permission to use more file system space - always say y
 #
+if [[ "$EUID" -ne 0 ]]
+then
+  echo "Must be run as root"
+  exit
+fi
+
+NodeName="raspberrypi"
 
 case $1 in
   "35r")
@@ -30,7 +40,24 @@ case $1 in
     exit 1 ;;
 esac
 
+if [ -n $2 ]
+then
+  NodeName=$2
+  echo "Changing Node Name to: $NodeName"
+  mv -n /etc/hosts /etc/hosts.orig
+  sed s/raspberrypi/$NodeName/ /etc/hosts.orig > /etc/hosts
+  echo $NodeName > /etc/hostname
+  hostname $NodeName
+fi
 
+if [ -z $3 ]
+then
+  echo "VNC will be set up on its normal port"
+  VNCport=""
+else
+  echo "VNC will be set up on port 8723"
+  VNCport="-rfbport 8723"
+fi
 
 dpkg-reconfigure tzdata
 
@@ -55,7 +82,7 @@ After=sshd.service
 
 [Service]
 Type=dbus
-ExecStart=/usr/bin/tightvncserver :0 -geometry 1280x1024 -name \"RPi2LQ\" -rfbport 8723
+ExecStart=/usr/bin/tightvncserver :0 -geometry 1280x1024 -name $NodeName $VNCport
 User=pi
 Type=forking
 

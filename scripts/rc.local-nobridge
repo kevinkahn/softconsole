@@ -1,0 +1,43 @@
+#!/bin/bash -e
+
+echo "Start - - -" > /home/pi/startlog
+date >> /home/pi/startlog
+
+echo "Running RC.local -- getting my IP" >> /home/pi/startlog
+
+IP=$(ip route get 8.8.8.8 | awk 'NR==1 {print $NF}')
+echo "Immediate . . . "${IP} >> /home/pi/startlog
+
+while [[ ${IP} != 192.168.* ]]
+do
+  echo "Waiting . . . "${IP} >> /home/pi/startlog
+  sleep 1
+  IP=$(ip route get 8.8.8.8 | awk 'NR==1 {print $NF}')
+done
+
+echo "My IP address is "${IP} >> /home/pi/startlog
+
+
+cd /home/pi
+echo "----------------" >>  log.txt
+date >> log.txt
+echo "---Pi Restart---" >>  log.txt
+if [ -e usebeta ] && [ -e cleanexit ]
+then
+ rm cleanexit
+ echo "******beta******" >>  log.txt
+ cd /home/pi/consolebeta
+else
+ if [ -e usebeta ]
+ then
+  echo "**FALLING BACK TO STABLE**" >> log.txt
+ rm -f usebeta cleanexit >> log.txt
+ echo "*****stable*****" >>   log.txt
+ cd /home/pi/consolestable
+fi
+nohup python -u console.py >> /home/pi/log.txt 2>&1 &
+echo "Starting console as process "$! >> /home/pi/startlog
+
+echo "RC.local completed" >> /home/pi/startlog
+
+exit 0
