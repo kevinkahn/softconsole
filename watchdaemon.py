@@ -50,12 +50,13 @@ def event_feed(*arg):
 	if (prcode == "Status" or config.watchlist[0] == "") and data["node"] in config.watchlist:
 		debugprint(config.dbgdaemon, time.time(), "Status update in stream: ", data["Event-seqnum"], ":", prcode, " : ",
 				   data["node"], " : ", data["eventInfo"], " : ", data["action"])
+		debugprint(config.dbgdaemon, time.time(), "Raw stream item: ", data)
 		config.fromDaemon.put(("Node", data["node"], data["action"]))
 		debugprint(config.dbgdaemon, "Qsize at daemon ", config.fromDaemon.qsize())
 	else:
 		debugprint(config.dbgdaemon, time.time(), "Other  update in stream: ", data["Event-seqnum"], ":", prcode, " : ",
 				   data["node"], " : ", data["eventInfo"], " : ", data["action"])
-
+		debugprint(config.dbgdaemon, time.time(), "Raw stream item: ", data)
 
 def Watcher():
 	config.watchstarttime = time.time()

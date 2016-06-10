@@ -24,7 +24,7 @@ factory = WebSocketClientFactory()
 factory.protocol = MyClientProtocol
 
 loop = asyncio.get_event_loop()
-coro = loop.create_connection(factory, 'house.coral-zone.com', 80)
+coro = loop.create_connection(factory, '192.168.1.15', 80)
 loop.run_until_complete(coro)
 loop.run_forever()
 loop.close()

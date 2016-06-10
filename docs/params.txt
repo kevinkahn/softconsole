@@ -37,6 +37,17 @@ Module Parameters:
             CmdCharCol
             CmdKeyCol
             DimTO
+    HouseStatusScreenDesc
+        Local Parameters:
+            NormalOff               :  list    
+            NormalOn                :  list    
+            label                   :  list    
+        Overrideable Globals:
+            BackgroundColor
+            CharColor
+            CmdCharCol
+            CmdKeyCol
+            DimTO
     KeyDesc
         Local Parameters:
             KeyRunThenName          :  str     
@@ -91,3 +102,14 @@ Module Parameters:
             KeyColor
             KeyOffOutlineColor
             KeyOnOutlineColor
+    WeatherScreenDesc
+        Local Parameters:
+            WunderKey               :  str     
+            label                   :  list    
+            location                :  str     
+        Overrideable Globals:
+            BackgroundColor
+            CharColor
+            CmdCharCol
+            CmdKeyCol
+            DimTO

@@ -24,7 +24,7 @@ streamid = ""
 ISYdebug = False
 dbgscreenbuild = False
 dbgMain = False
-dbgdaemon = False
+dbgdaemon = True
 
 
 def debugprint(flag, *args):
