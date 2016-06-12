@@ -13,9 +13,6 @@ ConsoleInfo = 0
 ConsoleWarning = 1
 ConsoleError = 2
 
-
-# disklogging = True
-
 class Logs(object):
 	livelog = True
 	livelogpos = 0
