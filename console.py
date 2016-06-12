@@ -85,6 +85,15 @@ signal.signal(signal.SIGINT, utilities.signal_handler)
 signal.signal(signal.SIGCHLD, utilities.daemon_died)  # todo win alternative?
 
 config.ParsedConfigFile = ConfigObj(config.configfile)  # read the config.txt file
+configdir = os.path.dirname(config.configfile)
+
+if "include" in config.ParsedConfigFile:
+	for f in config.ParsedConfigFile['include']:
+		if f[0] == '/':
+			tmpconf = ConfigObj(f)
+		else:
+			tmpconf = ConfigObj(configdir + "/" + f)
+		config.ParsedConfigFile.merge(tmpconf)
 utilities.ParseParam(globalparams)  # add global parameters to config file
 
 config.Logs = logsupport.Logs(config.screen, os.path.dirname(config.configfile))
