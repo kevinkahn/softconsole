@@ -2,14 +2,14 @@
 cd /home/pi
 # Note that we exited to this script from console cleanly
 touch cleanexit 
-echo "Consoleexit script: " $1 $2 >> log.txt
+echo "Consoleexit script: " $1 $2 $3 >> log.txt
 date >> log.txt
 case $1 in
 	shut)
 		echo Shutdown >> log.txt
 		;;
 	restart)
-		echo Restart >> log.txt
+		echo Restart $3 >> log.txt
 		if [ -e usebeta ]
 		then
 			cd consolebeta
@@ -28,8 +28,23 @@ case $1 in
 		sudo shutdown -P now >> log.txt
 		;;
 	reboot)
-		echo Reboot >> log.txt
-		date >> log.txt
+	    echo REBOOT >> log.txt
+	    date >> log.txt
+	    case $3 in
+	        user)
+	            echo "User requested reboot" >> log.txt
+	            ;;
+            error)
+                echo "Error caused rebooot" >> log.txt
+                netstat -v -t -u >> log.txt
+                ping -c 3 192.168.1.1 >> log.txt
+                ifconfig >> log.txt
+                ;;
+            *)
+                echo "Unknown reboot" $3 >> log.txt
+                ;;
+        esac
+        echo "+++++++++++++++++++++++++++++++++++++++++++++" >> log.txt
 		sudo reboot >> log.txt
 		;;
 	*)
