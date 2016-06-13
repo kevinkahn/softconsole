@@ -5,7 +5,7 @@ from pygame import gfxdraw
 
 wc = webcolors.name_to_rgb
 import config
-from config import debugprint, WAITEXIT, WAITNORMALBUTTON, WAITNORMALBUTTONFAST, WAITISYCHANGE, dispratioH, dispratioW
+from config import debugPrint, WAITEXIT, WAITNORMALBUTTON, WAITNORMALBUTTONFAST, WAITISYCHANGE, dispratioH, dispratioW
 import screen
 import xmltodict
 import toucharea
@@ -22,7 +22,7 @@ def trifromtop(h, v, n, size, c, invert):
 
 class ThermostatScreenDesc(screen.BaseKeyScreenDesc):
 	def __init__(self, screensection, screenname):
-		debugprint(config.dbgscreenbuild, "New ThermostatScreenDesc ", screenname)
+		debugPrint('BuildScreen', "New ThermostatScreenDesc ", screenname)
 		screen.BaseKeyScreenDesc.__init__(self, screensection, screenname)
 		utilities.LocalizeParams(self, screensection, 'KeyColor', 'KeyOffOutlineColor', 'KeyOnOutlineColor')
 		self.info = {}
@@ -69,18 +69,18 @@ class ThermostatScreenDesc(screen.BaseKeyScreenDesc):
 
 	def BumpTemp(self, setpoint, degrees):
 
-		debugprint(config.dbgscreenbuild, "Bump temp: ", setpoint, degrees)
-		debugprint(config.dbgscreenbuild, "New: ", self.info[setpoint][0] + degrees)
+		debugPrint('Main', "Bump temp: ", setpoint, degrees)
+		debugPrint('Main', "New: ", self.info[setpoint][0] + degrees)
 		r = config.ISYrequestsession.get(
 			config.ISYprefix + 'nodes/' + self.RealObj.address + '/set/' + setpoint + '/' + str(
 				self.info[setpoint][0] + degrees))
 
 	def BumpMode(self, mode, vals):
-		debugprint(config.dbgscreenbuild, "Bump mode: ", mode, vals)
+		debugPrint('Main', "Bump mode: ", mode, vals)
 		cv = vals.index(self.info[mode][0])
-		debugprint(config.dbgscreenbuild, cv, vals[cv])
+		debugPrint('Main', cv, vals[cv])
 		cv = (cv + 1)%len(vals)
-		debugprint(config.dbgscreenbuild, "new cv: ", cv)
+		debugPrint('Main', "new cv: ", cv)
 		r = config.ISYrequestsession.get(
 			config.ISYprefix + 'nodes/' + self.RealObj.address + '/set/' + mode + '/' + str(vals[cv]))
 
@@ -93,7 +93,7 @@ class ThermostatScreenDesc(screen.BaseKeyScreenDesc):
 
 		self.info = {}
 		for item in props:
-			debugprint(config.dbgscreenbuild, item["@id"], ":", item["@value"], ":", item["@formatted"])
+			debugPrint('Main', item["@id"], ":", item["@value"], ":", item["@formatted"])
 			self.info[item["@id"]] = (int(item['@value']), item['@formatted'])
 		config.screen.blit(self.TitleRen, self.TitlePos)
 		r = config.fonts.Font(self.fsize[3], bold=True).render(u"{:4.1f}".format(self.info["ST"][0]/2), 0,
@@ -138,7 +138,7 @@ class ThermostatScreenDesc(screen.BaseKeyScreenDesc):
 				else:
 					self.BumpMode(('CLIMD', 'CLIFS')[choice[1] - 4], (range(8), (7, 8))[choice[1] - 4])
 			elif choice[0] == WAITISYCHANGE:
-				debugprint(config.dbgscreenbuild, "Thermo change", choice)
+				debugPrint('Main', "Thermo change", choice)
 				self.ShowScreen()
 
 

@@ -6,11 +6,11 @@ import webcolors
 
 import config
 import toucharea
-from config import debugprint, WAITNORMALBUTTON, WAITNORMALBUTTONFAST, WAITEXIT
+from config import debugPrint, WAITNORMALBUTTON, WAITNORMALBUTTONFAST, WAITEXIT
 from utilities import interval_str
 
 wc = webcolors.name_to_rgb
-from logsupport import ConsoleError
+from logsupport import ConsoleError, ConsoleWarning
 import time
 import sys
 import utilities
@@ -26,35 +26,44 @@ def SetUpMaintScreens():
 					 ('return', ('Return', None))]))
 	Beta = MaintScreenDesc(
 		OrderedDict([('stable', (('Use Stable Release'), dobeta)), ('beta', (('Use Beta Release'), dobeta)),
-					 ('release', (('Download release'), dobeta)), ('fetch', (('Download Beta'), dobeta))]))
+					 ('release', (('Download release'), dobeta)), ('fetch', (('Download Beta'), dobeta)),
+					 ('return', ('Return', None))]))
+	tmp = OrderedDict()
+	for flg in config.DbgFlags:
+		tmp[flg] = (flg, setdbg)
+	tmp['return'] = (('Return'), None)
+	DebugFlags = MaintScreenDesc(tmp)
+	for k in DebugFlags.keysbyord:
+		if k.name in config.Flags:
+			k.State = config.Flags[k.name]
+
 	LogDisp = LogDisplayScreen()
 	config.MaintScreen = MaintScreenDesc(
 		OrderedDict([('return', ('Exit Maintenance', None)), ('log', ('Show Log', LogDisp.showlog)),
-					 ('beta', ('Select Version', Beta.HandleScreen)), ('exit', ('Exit/Restart', Exits.HandleScreen))]))
+					 ('beta', ('Select Version', Beta.HandleScreen)), ('flags', ('Set Flags', DebugFlags.HandleScreen)),
+					 ('exit', ('Exit/Restart', Exits.HandleScreen))]))
 	for screen in config.screentypes:
 		pass
+
+
+def setdbg(K):
+	config.Flags[K.name] = not config.Flags[K.name]
+	K.State = config.Flags[K.name]
+	config.Logs.Log("Debug flag ", K.name, ' = ', K.State, severity=ConsoleWarning)
+	# Let the daemon know about flags change
+	config.toDaemon.put(('flagchange', K.name, config.Flags[K.name]))
 
 
 
 def doexit(K):
 	if K.name == 'shut':
 		Exit_Options("Manual Shutdown Requested", "Shutting Down")
-	#		sys.exit()
 	elif K.name == 'restart':
 		Exit_Options("Console Restart Requested", "Restarting")
-	#		z = 'nohup /bin/bash -c \" echo c1 > /home/pi/c1 && sleep 3 && echo c2 > /home/pi/c2 && python -u ' + \
-	#			sys.argv[0] + ' ' + config.configfile + '\"'
-	#		print z
-	#		subprocess.Popen(z, shell=True)
-	#		sys.exit()
 	elif K.name == 'shutpi':
 		Exit_Options("Shutdown Pi Requested", "Shutting Down Pi")
-	#		subprocess.Popen('sudo shutdown -P now', shell=True)
-	#		sys.exit()
 	elif K.name == 'reboot':
 		Exit_Options("Reboot Pi Requested", "Rebooting Pi")
-	#		subprocess.Popen('sudo reboot', shell=True)
-	#		sys.exit()
 
 	subprocess.Popen('nohup sudo /bin/bash -e scripts/consoleexit ' + K.name + ' ' + config.configfile + 'user',
 					 shell=True)
@@ -110,13 +119,13 @@ class LogDisplayScreen(screen.BaseKeyScreenDesc):
 
 class MaintScreenDesc(screen.BaseKeyScreenDesc):
 	def __init__(self, keys):
-		debugprint(config.dbgscreenbuild, "Build Maintenance Screen")
+		debugPrint('BuildScreen', "Build Maintenance Screen")
 		screen.BaseKeyScreenDesc.__init__(self, fixedoverrides, 'Maint', withnav=False)
 		utilities.LocalizeParams(self, None, TitleFontSize=40, SubFontSize=25)
 		self.keysbyord = []
 		for k, kt in keys.iteritems():
 			self.keysbyord.append(
-				toucharea.ManualKeyDesc(k, [kt[0]], 'gold', 'black', 'black', KOn='black', KOff='black', proc=kt[1]))
+				toucharea.ManualKeyDesc(k, [kt[0]], 'gold', 'black', 'white', KOn='black', KOff='white', proc=kt[1]))
 		topoff = self.TitleFontSize + self.SubFontSize
 		self.LayoutKeys(topoff, config.screenheight - 2*config.topborder - topoff)
 		utilities.register_example("MaintScreenDesc", self)
@@ -147,7 +156,8 @@ class MaintScreenDesc(screen.BaseKeyScreenDesc):
 				K = self.keysbyord[choice[1]]
 				if callable(K.RealObj):
 					K.RealObj(K)
-					return config.MaintScreen
+					continue
+				# return config.MaintScreen
 				elif K.RealObj == None:
 					return config.HomeScreen
 				else:

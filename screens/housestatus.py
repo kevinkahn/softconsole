@@ -3,7 +3,7 @@ import webcolors
 wc = webcolors.name_to_rgb
 import config
 import pygame
-from config import debugprint, WAITEXIT
+from config import debugPrint, WAITEXIT
 import screen
 import utilities
 import isy
@@ -11,7 +11,7 @@ import isy
 
 class HouseStatusScreenDesc(screen.ScreenDesc):
 	def __init__(self, screensection, screenname):
-		debugprint(config.dbgscreenbuild, "Build House Status Screen")
+		debugPrint('BuildScreen', "Build House Status Screen")
 		screen.ScreenDesc.__init__(self, screensection, screenname, ())  # no extra cmd keys
 		utilities.LocalizeParams(self, screensection, NormalOn=[], NormalOff=[])
 		checklist = [nm for nm in config.ISY.NodesByName if

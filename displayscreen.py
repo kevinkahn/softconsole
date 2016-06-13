@@ -6,7 +6,7 @@ import webcolors
 import config
 import hw
 import toucharea
-from config import debugprint, WAITNORMALBUTTON, WAITNORMALBUTTONFAST, WAITEXIT, WAITISYCHANGE, WAITEXTRACONTROLBUTTON
+from config import debugPrint, WAITNORMALBUTTON, WAITNORMALBUTTONFAST, WAITEXIT, WAITISYCHANGE, WAITEXTRACONTROLBUTTON
 from logsupport import ConsoleWarning
 
 wc = webcolors.name_to_rgb
@@ -130,9 +130,9 @@ class DisplayScreen(object):
 				pass  # ignore and flush other events
 
 			if (not config.fromDaemon.empty()) and (cycle == 0):  # todo don't process daemon reports while cycling
-				debugprint(config.dbgMain, "Q size at main loop ", config.fromDaemon.qsize())
+				debugPrint('Main', "Q size at main loop ", config.fromDaemon.qsize())
 				item = config.fromDaemon.get()
-				debugprint(config.dbgMain, time.time(), "ISY reports change: ", "Key: ", str(item))
+				debugPrint('Main', time.time(), "ISY reports change: ", "Key: ", str(item))
 				if item[0] == "Log":
 					config.Logs.Log(item[1], severity=item[2])
 					continue

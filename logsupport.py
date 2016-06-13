@@ -13,6 +13,14 @@ ConsoleInfo = 0
 ConsoleWarning = 1
 ConsoleError = 2
 
+
+def Flags():
+	dbg = {}
+	for flg in config.DbgFlags:
+		dbg[flg] = config.ParsedConfigFile.get(flg, False)
+	return dbg
+
+
 class Logs(object):
 	livelog = True
 	livelogpos = 0
@@ -65,22 +73,28 @@ class Logs(object):
 			pygame.display.update()
 
 	def RenderLogLine(self, text, clr, pos):
+		# odd logic below is to make sure that if an unbroken item would by itself exceed line length it gets forced out
+		# thus avoiding an infinite loop
 		text = re.sub('\s\s+', ' ', text)
 		ltext = re.split('([ :,])', text)
 		ltext.append('')
+		ptext = []
 		while len(ltext) > 1:
-			rtext = []
+			ptext.append(ltext[0])
+			del ltext[0]
 			while 1:
-				if config.fonts.Font(config.LogFontSize).size(''.join(ltext))[
-					0] < config.screenwidth - 10:  # todo pixels literal
+				if len(ltext) == 0:
+					break
+				t = config.fonts.Font(config.LogFontSize).size(''.join(ptext) + ltext[0])[
+					0]
+				if t > config.screenwidth - 10:  # todo pixels literal
 					break
 				else:
-					rtext.insert(0, ltext[-1])
-					del ltext[-1]
-			l = config.fonts.Font(config.LogFontSize).render(''.join(ltext), False, wc(clr))
+					ptext.append(ltext[0])
+					del ltext[0]
+			l = config.fonts.Font(config.LogFontSize).render(''.join(ptext), False, wc(clr))
 			self.screen.blit(l, (10, pos))  # todo pixel
-			ltext = rtext
-			ltext.insert(0, "    ")
+			ptext = ["    "]
 			pos = pos + config.fonts.Font(config.LogFontSize).get_linesize()
 		pygame.display.update()
 		return pos

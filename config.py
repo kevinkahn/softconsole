@@ -21,17 +21,22 @@ seq = 0
 streamid = ""
 
 # Debug flags
+Flags = {}
+DbgFlags = ['Main', 'Daemon', 'BuildScreen', 'ISY']
 ISYdebug = False
 dbgscreenbuild = False
 dbgMain = False
 dbgdaemon = True
 
 
-def debugprint(flag, *args):
-	if flag:
-		for arg in args:
-			print arg,
-		print
+def debugPrint(flag, *args):
+	if flag in DbgFlags:
+		if Flags[flag]:
+			for arg in args:
+				print arg,
+			print
+	else:
+		print "DEBUG FLAG NAME ERROR", flag
 
 
 # Global pointers

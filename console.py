@@ -55,7 +55,7 @@ for root, dirs, files in os.walk(exdir):
 print 'Version', lastfn, time.ctime(lastmod)
 
 import watchdaemon
-from config import debugprint
+from config import debugPrint
 
 """
 Dynamically load class definitions for all defined screen types and link them to how configuration happens
@@ -87,13 +87,17 @@ signal.signal(signal.SIGCHLD, utilities.daemon_died)  # todo win alternative?
 config.ParsedConfigFile = ConfigObj(config.configfile)  # read the config.txt file
 configdir = os.path.dirname(config.configfile)
 
+cfiles = []
 if "include" in config.ParsedConfigFile:
 	for f in config.ParsedConfigFile['include']:
 		if f[0] == '/':
 			tmpconf = ConfigObj(f)
+			cfiles.append(f)
 		else:
 			tmpconf = ConfigObj(configdir + "/" + f)
+			cfiles.append(configdir + "/" + f)
 		config.ParsedConfigFile.merge(tmpconf)
+config.Flags = logsupport.Flags()
 utilities.ParseParam(globalparams)  # add global parameters to config file
 
 config.Logs = logsupport.Logs(config.screen, os.path.dirname(config.configfile))
@@ -105,7 +109,13 @@ config.Logs.Log("Last mod: ", lastfn)
 config.Logs.Log("Mod at: ", time.ctime(lastmod))
 config.Logs.Log("Start time: ", time.strftime('%c'))
 config.Logs.Log("Console Starting  pid: ", os.getpid())
-config.Logs.Log("Config file: ", config.configfile)
+config.Logs.Log("Main config file: ", config.configfile)
+config.Logs.Log("Including config files:")
+for f in cfiles:
+	config.Logs.Log("  ", f)
+for flg, fval in config.Flags.iteritems():
+	if fval:
+		config.Logs.Log('Debug flag ', flg, '=', fval, severity=logsupport.ConsoleWarning)
 
 config.DS = displayscreen.DisplayScreen()  # create the actual device screen and touch manager
 
@@ -135,7 +145,7 @@ p = Process(target=watchdaemon.Watcher, name="Watcher")
 p.daemon = True
 p.start()
 config.DaemonProcess = p
-debugprint(config.dbgMain, "Spawned watcher as: ", p.pid)
+debugPrint('Main', "Spawned watcher as: ", p.pid)
 config.Logs.Log("Watcher pid: " + str(p.pid))
 
 config.Logs.livelog = False  # turn off logging to the screen and give user a moment to scan

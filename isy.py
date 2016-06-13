@@ -55,7 +55,7 @@ class OnOffItem(object):
 
 	def SendCommand(self, state, fast):
 		selcmd = (('DOF', 'DFOF'), ('DON', 'DFON'))
-		config.debugprint(ISYdebug, "OnOff sent: ", selcmd[state][fast], ' to ', self.name)
+		config.debugPrint('ISY', "OnOff sent: ", selcmd[state][fast], ' to ', self.name)
 		url = 'http://' + config.ISYaddr + '/rest/nodes/' + self.address + '/cmd/' + selcmd[state][fast]
 		r = config.ISYrequestsession.get(url)
 		return r
@@ -152,7 +152,7 @@ class Program(ProgramFolder):
 		utilities.register_example("Program", self)
 
 	def runThen(self):
-		config.debugprint(ISYdebug, "runThen sent to ", self.name)
+		config.debugPrint('ISY', "runThen sent to ", self.name)
 		url = config.ISYprefix + 'programs/' + self.address + '/runThen'
 		r = config.ISYrequestsession.get(url)
 		return r

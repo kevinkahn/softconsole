@@ -1,7 +1,7 @@
 from configobj import Section
 
 import config
-from config import debugprint
+from config import debugPrint
 from logsupport import ConsoleWarning
 
 
@@ -10,7 +10,7 @@ class MyScreens(object):
 
 		thisconfig = config.ParsedConfigFile
 
-		debugprint(config.dbgscreenbuild, "Process Configuration File")
+		debugPrint('BuildScreen', "Process Configuration File")
 
 		mainlist = {}
 		secondlist = {}
@@ -22,7 +22,7 @@ class MyScreens(object):
 				thisScreen = thisconfig[screenitem]
 				# its a screen
 				tempscreentype = thisScreen.get("type", "unspec")
-				debugprint(config.dbgscreenbuild, "Screen of type ", tempscreentype)
+				debugPrint('BuildScreen', "Screen of type ", tempscreentype)
 
 				if tempscreentype in config.screentypes:
 					NewScreen = config.screentypes[tempscreentype](thisScreen, screenitem)

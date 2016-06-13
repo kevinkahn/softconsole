@@ -4,7 +4,7 @@ import pygame
 import webcolors
 
 import config
-from config import debugprint, WAITEXTRACONTROLBUTTON, WAITEXIT
+from config import debugPrint, WAITEXTRACONTROLBUTTON, WAITEXIT
 
 wc = webcolors.name_to_rgb
 import screen
@@ -17,7 +17,7 @@ fsizes = ((20, False, False), (30, True, False), (45, True, True))
 
 class WeatherScreenDesc(screen.ScreenDesc):
 	def __init__(self, screensection, screenname):
-		debugprint(config.dbgscreenbuild, "New WeatherScreenDesc ", screenname)
+		debugPrint('BuildScreen', "New WeatherScreenDesc ", screenname)
 
 		screen.ScreenDesc.__init__(self, screensection, screenname, (('which',('',)),))
 		utilities.LocalizeParams(self, screensection, WunderKey='', location='')

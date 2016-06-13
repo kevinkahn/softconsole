@@ -5,7 +5,7 @@ import webcolors
 import config
 import screen
 import utilities
-from config import debugprint, WAITEXIT
+from config import debugPrint, WAITEXIT
 
 wc = webcolors.name_to_rgb
 import weatherinfo
@@ -14,7 +14,7 @@ import pygame
 
 class TimeTempScreenDesc(screen.ScreenDesc):
 	def __init__(self, screensection, screenname):
-		debugprint(config.dbgscreenbuild, "New TimeTempDesc ", screenname)
+		debugPrint('BuildScreen', "New TimeTempDesc ", screenname)
 
 		screen.ScreenDesc.__init__(self, screensection, screenname)
 		utilities.LocalizeParams(self, screensection, WunderKey='', location='', CharSize=[20], Font='droidsansmono',

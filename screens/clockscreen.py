@@ -4,14 +4,14 @@ wc = webcolors.name_to_rgb
 import config
 import time
 import pygame
-from config import debugprint, WAITEXIT
+from config import debugPrint, WAITEXIT
 import screen
 import utilities
 
 
 class ClockScreenDesc(screen.ScreenDesc):
 	def __init__(self, screensection, screenname):
-		debugprint(config.dbgscreenbuild, "Build Clock Screen")
+		debugPrint('BuildScreen', "Build Clock Screen")
 		screen.ScreenDesc.__init__(self, screensection, screenname)
 		utilities.LocalizeParams(self, screensection, CharSize=[20], Font='droidsansmono', OutFormat=[])
 		for i in range(len(self.CharSize), len(self.OutFormat)):

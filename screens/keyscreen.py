@@ -9,14 +9,14 @@ import keydesc
 import screen
 import utilities
 import logsupport
-from config import debugprint, WAITNORMALBUTTON, WAITNORMALBUTTONFAST, WAITISYCHANGE, WAITEXIT
+from config import debugPrint, WAITNORMALBUTTON, WAITNORMALBUTTONFAST, WAITISYCHANGE, WAITEXIT
 
 wc = webcolors.name_to_rgb
 
 
 class KeyScreenDesc(screen.BaseKeyScreenDesc):
 	def __init__(self, screensection, screenname):
-		debugprint(config.dbgscreenbuild, "New KeyScreenDesc ", screenname)
+		debugPrint('BuildScreen', "New KeyScreenDesc ", screenname)
 		screen.BaseKeyScreenDesc.__init__(self, screensection, screenname)
 		self.subscriptionlist = {}
 
@@ -43,7 +43,7 @@ class KeyScreenDesc(screen.BaseKeyScreenDesc):
 			# key screen change actually occurred
 			self.PaintBase()
 			self.subscriptionlist = {}
-			debugprint(config.dbgMain, "Switching to screen: ", self.name)
+			debugPrint('Main', "Switching to screen: ", self.name)
 			for K in self.keysbyord:
 				if K.MonitorObj is not None:
 					# skip program buttons
@@ -53,16 +53,16 @@ class KeyScreenDesc(screen.BaseKeyScreenDesc):
 				if K.MonitorObj is not None:
 					K.State = not (states[K.MonitorObj.address] == 0)  # K is off (false) only if state is 0
 
-			debugprint(config.dbgMain, "Active Subscription List will be:")
+			debugPrint('Main', "Active Subscription List will be:")
 			addressestoscanfor = ["Status"]
 			for i in self.subscriptionlist:
-				debugprint(config.dbgMain, "  Subscribe: ", i, self.subscriptionlist[i].name, " : ",
+				debugPrint('Main', "  Subscribe: ", i, self.subscriptionlist[i].name, " : ",
 						   self.subscriptionlist[i].RealObj.name, ' via ', self.subscriptionlist[i].MonitorObj.name)
 				addressestoscanfor.append(i)
 			config.toDaemon.put(addressestoscanfor)
 			self.PaintKeys()
 		else:
-			debugprint(config.dbgMain, "Skipping screen recreation: ", self.name)
+			debugPrint('Main', "Skipping screen recreation: ", self.name)
 
 		blinkproc = None
 		blinktime = 0
