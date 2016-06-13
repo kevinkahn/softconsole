@@ -1,7 +1,9 @@
 import os
 import time
 
-from  ISY.IsyEvent import ISYEvent
+# For now import private bug fixed version
+# from  ISY.IsyEvent import ISYEvent
+from IsyEvent import ISYEvent
 from  ISY.IsyEventData import EVENT_CTRL
 
 import config
@@ -53,6 +55,9 @@ def event_feed(*arg):
 		debugPrint('Daemon', time.time(), "Status update in stream: ", data["Event-seqnum"], ":", prcode, " : ",
 				   data["node"], " : ", data["eventInfo"], " : ", data["action"])
 		debugPrint('Daemon', time.time(), "Raw stream item: ", data)
+		if data["action"] is dict:
+			data["action"] = data["action"]["action"]
+			debugPrint('Daemon', "V5 stream - pull up action value: ", data["action"])
 		config.fromDaemon.put(("Node", data["node"], data["action"]))
 		debugPrint('Daemon', "Qsize at daemon ", config.fromDaemon.qsize())
 	else:
