@@ -1,5 +1,4 @@
 #!/bin/bash
-
 cd /home/pi
 echo "Installing new release to stable: " >> log.txt
 date >> log.txt
