@@ -88,15 +88,18 @@ config.ParsedConfigFile = ConfigObj(config.configfile)  # read the config.txt fi
 configdir = os.path.dirname(config.configfile)
 
 cfiles = []
-if "include" in config.ParsedConfigFile:
-	for f in config.ParsedConfigFile['include']:
-		if f[0] == '/':
-			tmpconf = ConfigObj(f)
-			cfiles.append(f)
-		else:
-			tmpconf = ConfigObj(configdir + "/" + f)
-			cfiles.append(configdir + "/" + f)
-		config.ParsedConfigFile.merge(tmpconf)
+includes = config.ParsedConfigFile.get('include', [])
+while includes <> []:
+	f = includes.pop(0)
+	if f[0] == '/':
+		tmpconf = ConfigObj(f)
+		cfiles.append(f)
+	else:
+		tmpconf = ConfigObj(configdir + "/" + f)
+		cfiles.append(configdir + "/" + f)
+	includes = includes + tmpconf.get('include', [])
+	config.ParsedConfigFile.merge(tmpconf)
+
 config.Flags = logsupport.Flags()
 utilities.ParseParam(globalparams)  # add global parameters to config file
 
