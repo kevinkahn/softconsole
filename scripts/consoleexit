@@ -2,7 +2,10 @@
 cd /home/pi
 # Note that we exited to this script from console cleanly
 touch cleanexit 
-echo "Consoleexit script: " $1 " " $2 " " $3 >> log.txt
+echo "Consoleexit script: " $1 " - " $2 " - " $3 >> log.txt
+echo  "Option: " $1 >> log.txt
+echo  "Config: " $2 >> log.txt
+echo  "Reason: " $3 >> log.txt
 date >> log.txt
 case $1 in
 	shut)
@@ -42,11 +45,11 @@ case $1 in
                 ;;
             *)
                 echo "Unknown reboot" $3 >> log.txt
-                netstat -v -t -u >> log.txt
-                ping -c 3 192.168.1.1 >> log.txt
+		        netstat -v -t -u >> log.txt
+		        ping -c 3 192.168.1.1 >> log.txt
                 ifconfig >> log.txt
                 ;;
-        esac
+            esac
         echo "+++++++++++++++++++++++++++++++++++++++++++++" >> log.txt
 		sudo reboot >> log.txt
 		;;

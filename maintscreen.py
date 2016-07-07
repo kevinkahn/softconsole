@@ -65,7 +65,7 @@ def doexit(K):
 	elif K.name == 'reboot':
 		Exit_Options("Reboot Pi Requested", "Rebooting Pi")
 
-	subprocess.Popen('nohup sudo /bin/bash -e scripts/consoleexit ' + K.name + ' ' + config.configfile + 'user',
+	subprocess.Popen('nohup sudo /bin/bash -e scripts/consoleexit ' + K.name + ' ' + config.configfile + ' user',
 					 shell=True)
 	sys.exit()
 
@@ -76,7 +76,7 @@ def errorexit(opt):
 	elif opt == 'reboot':
 		Exit_Options('Error reboot', 'Error - Rebooting Pi')
 
-	subprocess.Popen('nohup sudo /bin/bash -e scripts/consoleexit ' + opt + ' ' + config.configfile + ' ' + 'error',
+	subprocess.Popen('nohup sudo /bin/bash -e scripts/consoleexit ' + opt + ' ' + config.configfile + ' ' + ' error',
 					 shell=True)
 	sys.exit()
 
