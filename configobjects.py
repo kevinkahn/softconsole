@@ -98,9 +98,9 @@ class MyScreens(object):
 		# handle deprecated DimHomeScreenCoverName
 		if config.DimHomeScreenCoverName <> "" and len(config.DimIdleList) == 0:
 			if config.DimHomeScreenCoverName in config.MainChain:
-				config.DimIdleList[0] = mainlist[config.DimHomeScreenCoverName]
-				config.DimIdleTimes[0] = 1000
-				config.Logs.Log("DimHS(deprecated): " + config.DimHomeScreenCover.name)
+				config.DimIdleList.append(mainlist[config.DimHomeScreenCoverName])
+				config.DimIdleTimes.append(1000)
+				config.Logs.Log("DimHS(deprecated): " + config.DimHomeScreenCoverName)
 
 		if len(config.DimIdleList) == 0:
 			config.DimIdleList[0] = config.HomeScreen
