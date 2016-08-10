@@ -48,6 +48,12 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 						0, wc(self.CharColor)))
 				h = h + l[-1].get_height()
 				sizeindex += 1
+			l.append(
+				config.fonts.Font(self.CharSize[sizeindex], self.Font).render(
+					"{d}".format(d=self.scrlabel), 0, wc(self.CharColor)
+				)
+			)
+			h = h + l[-1].get_height()
 			for i in range(len(self.ConditionFormat)):
 				vals = [self.WInfo.ConditionVals[fld] for fld in self.ConditionFields]
 				l.append(
