@@ -24,6 +24,8 @@ class DisplayScreen(object):
 		self.MAXTIMEHIT = pygame.event.Event(pygame.USEREVENT)
 		self.INTERVALHIT = pygame.event.Event(pygame.USEREVENT + 1)
 		self.GOHOMEHIT = pygame.event.Event(pygame.USEREVENT + 2)
+		self.DIMCYCLE = pygame.event.Event(pygame.USEREVENT + 3)
+		self.dimscreenindex = 0
 		self.isDim = False
 		self.presscount = 0
 		self.AS = None
@@ -35,10 +37,13 @@ class DisplayScreen(object):
 			self.isDim = True
 			if self.AS == config.HomeScreen:
 				self.BrightenToHome = True
-				return config.DimHomeScreenCover
+				self.dimscreenindex = 0
+				pygame.time.set_timer(self.DIMCYCLE.type, config.DimIdleTimes[0])
+				return config.DimIdleList[0]
 		else:
 			hw.GoBright()
 			self.isDim = False
+			pygame.time.set_timer(self.DIMCYCLE.type, 0)
 			if self.BrightenToHome:
 				self.BrightenToHome = False
 				return config.HomeScreen
@@ -118,6 +123,11 @@ class DisplayScreen(object):
 					rtn = (WAITEXIT, dimscr)
 					break
 				continue
+			elif event.type == self.DIMCYCLE.type:
+				self.dimscreenindex = (self.dimscreenindex + 1)%len(config.DimIdleList)
+				pygame.time.set_timer(self.DIMCYCLE.type, config.DimIdleTimes[self.dimscreenindex])
+				rtn = (WAITEXIT, config.DimIdleList[self.dimscreenindex])
+				break
 			elif event.type == self.INTERVALHIT.type:
 				if (callbackproc is not None) and (cycle > 0):
 					callbackproc(cycle)

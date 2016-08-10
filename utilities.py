@@ -2,6 +2,7 @@ import collections
 import os
 import sys
 import time
+import signal
 from sets import Set
 
 import pygame
@@ -76,6 +77,13 @@ def LogParams():
 	global paramlog
 	for p in paramlog:
 		config.Logs.Log(p)
+
+
+def restart_console_handler(sig, frame):
+	if sig == signal.SIGUSR1:
+		print "Restart Console signal"
+	if sig == signal.SIGUSR2:
+		print "Reload home release and restart"
 
 
 def signal_handler(sig, frame):

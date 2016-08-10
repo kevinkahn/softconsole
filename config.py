@@ -71,3 +71,5 @@ HomeScreen = None
 HomeScreen2 = None
 MaintScreen = None
 DimHomeScreenCover = None
+DimIdleList = []
+DimIdleTimes = []

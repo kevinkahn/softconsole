@@ -2,10 +2,19 @@
 <project version="4">
   <component name="PublishConfigData" autoUpload="Always" serverName="RPi-KCK" promptOnLocalOverwrite="false" exclude=".svn;.cvs;.idea;.DS_Store;.git;.hg;*.pyc" autoUploadExternalChanges="true" showNewOnTargetInSync="false">
     <serverData>
+      <paths name="PDX-PI">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/consolerem" local="$PROJECT_DIR$" web="/" />
+            <mapping deploy="/watchdog" local="$PROJECT_DIR$/../watchdoghandler" web="/" />
+          </mappings>
+        </serverdata>
+      </paths>
       <paths name="RPi-KCK">
         <serverdata>
           <mappings>
             <mapping deploy="/consolerem" local="$PROJECT_DIR$" web="/" />
+            <mapping deploy="/watchdog" local="$PROJECT_DIR$/../watchdoghandler" web="/" />
           </mappings>
         </serverdata>
       </paths>

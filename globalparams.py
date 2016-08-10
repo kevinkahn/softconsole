@@ -11,6 +11,8 @@ CmdKeyCol = "red"
 CmdCharCol = "white"
 MultiTapTime = 400
 DimHomeScreenCoverName = ""
+DimIdleListNames = []
+DimIdleListTimes = []
 CharColor = "white"
 BackgroundColor = 'maroon'
 

@@ -87,10 +87,24 @@ class MyScreens(object):
 		config.HomeScreen2 = secondlist[config.SecondaryChain[0]]
 
 		config.Logs.Log("Home Screen: " + config.HomeScreen.name)
-		if config.DimHomeScreenCoverName in config.MainChain:  # todo why must it be on MainChain?
-			config.DimHomeScreenCover = mainlist[config.DimHomeScreenCoverName]
-			config.Logs.Log("Dim Home Screen: " + config.DimHomeScreenCover.name)
-		else:
-			config.DimHomeScreenCover = config.HomeScreen
+		for sn, st in zip(config.DimIdleListNames, config.DimIdleListTimes):
+			for l, d in zip((config.MainChain, config.SecondaryChain, config.ExtraChain),
+							(mainlist, secondlist, extralist)):
+				if sn in l:
+					config.Logs.Log('Dim Screen: ' + sn + '/' + st)
+					config.DimIdleList.append(d[sn])
+					config.DimIdleTimes.append(int(st)*1000)
+
+		# handle deprecated DimHomeScreenCoverName
+		if config.DimHomeScreenCoverName <> "" and len(config.DimIdleList) == 0:
+			if config.DimHomeScreenCoverName in config.MainChain:
+				config.DimIdleList[0] = mainlist[config.DimHomeScreenCoverName]
+				config.DimIdleTimes[0] = 1000
+				config.Logs.Log("DimHS(deprecated): " + config.DimHomeScreenCover.name)
+
+		if len(config.DimIdleList) == 0:
+			config.DimIdleList[0] = config.HomeScreen
+			config.DimIdleTimes[0] = 1000
 			config.Logs.Log("No Dim Home Screen Cover Set")
+
 		config.Logs.Log("First Secondary Screen: " + config.HomeScreen2.name)
