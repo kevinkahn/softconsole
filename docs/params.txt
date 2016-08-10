@@ -104,6 +104,26 @@ Module Parameters:
             KeyColor
             KeyOffOutlineColor
             KeyOnOutlineColor
+    TimeTempScreenDesc
+        Local Parameters:
+            CharSize                :  list    
+            ConditionFields         :  list    
+            ConditionFormat         :  list    
+            Font                    :  str     
+            ForecastDays            :  int     
+            ForecastFields          :  list    
+            ForecastFormat          :  list    
+            SkipDays                :  int     
+            TimeFormat              :  list    
+            WunderKey               :  str     
+            label                   :  list    
+            location                :  str     
+        Overrideable Globals:
+            BackgroundColor
+            CharColor
+            CmdCharCol
+            CmdKeyCol
+            DimTO
     WeatherScreenDesc
         Local Parameters:
             WunderKey               :  str     
