@@ -23,7 +23,7 @@ case $1 in
 		fi
 		pwd >> /home/pi/log.txt
 		rm -f /home/pi/cleanexit
-		sudo python -u console.py $2
+		nohup sudo python -u console.py $2&
 		;;
 	shutpi)
 		echo ShutPi >> log.txt
