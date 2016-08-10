@@ -6,6 +6,8 @@ HomeScreenTO = 90
 DimLevel = 5
 DimTO =25
 DimHomeScreenCoverName = MyClock
+DimIdleListNames = MyClock, Local, Pumpkin
+DimIdleListTimes = 10, 15, 5
 
 MainChain = BR, Pumpkin, Local, "Thermostat - Main", MyClock
 SecondaryChain = Portland, "Upper Level", "Bathroom"

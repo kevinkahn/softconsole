@@ -19,7 +19,7 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 		screen.ScreenDesc.__init__(self, screensection, screenname)
 		utilities.LocalizeParams(self, screensection, WunderKey='', location='', CharSize=[20], Font='droidsansmono',
 								 TimeFormat=[], ConditionFields=[], ConditionFormat=[], ForecastFields=[],
-								 ForecastFormat=[], ForecastDays=1)
+								 ForecastFormat=[], ForecastDays=1, SkipDays=0)
 		self.scrlabel = screen.FlatenScreenLabel(self.label)
 		self.WInfo = weatherinfo.WeatherInfo(self.WunderKey, self.location)
 		for i in range(len(self.CharSize), len(self.TimeFormat) + len(self.ConditionFormat) + len(self.ForecastFormat)):
@@ -57,7 +57,7 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 				sizeindex += 1
 			for dy in range(self.ForecastDays):
 				for i in range(len(self.ForecastFormat)):
-					vals = [self.WInfo.ForecastVals[dy][fld] for fld in self.ForecastFields]
+					vals = [self.WInfo.ForecastVals[dy + self.SkipDays][fld] for fld in self.ForecastFields]
 					l.append(
 						config.fonts.Font(self.CharSize[sizeindex + i], self.Font).render(
 							self.ForecastFormat[i].format(d=vals), 0, wc(self.CharColor)))

@@ -5,6 +5,8 @@ Global Parameters:
     CmdCharCol                      :  str       white
     CmdKeyCol                       :  str       red
     DimHomeScreenCoverName          :  str       
+    DimIdleListNames                :  list      []
+    DimIdleListTimes                :  list      []
     DimLevel                        :  int       10
     DimTO                           :  int       20
     ExtraChain                      :  list      []

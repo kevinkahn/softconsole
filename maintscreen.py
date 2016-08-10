@@ -89,6 +89,12 @@ def dobeta(K):
 		subprocess.Popen('sudo /bin/bash -e scripts/getcurrentbeta', shell=True)
 	elif K.name == 'release':
 		subprocess.Popen('sudo /bin/bash -e scripts/getcurrentrelease', shell=True)
+	K.State = not K.State
+	K.PaintKey()
+	time.sleep(4)
+	K.State = not K.State
+	K.PaintKey()
+
 
 def Exit_Options(msg, scrnmsg):
 	config.screen.fill(wc("red"))

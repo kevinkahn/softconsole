@@ -11,6 +11,7 @@
   * One note of importance: labels are lists of strings and should always be notated as "str1","str2".  A label with a single string must be made a list by appending a trailing comma.  Failure to do this will result in the string itself being viewed as a list of single characters which will result in strange output.
 * The parameter MainChain provides the names in order of the screens accessible normally.  The parameter SecondaryChain provides a list of screens that are accessible indirectly (see below).  Any number of screens can be defined.
 * Whenever a color needs to be specified you can use any color name from the W3C list at http://www.w3.org/TR/SVG11/types.html#ColorKeywords
+* The config.txt file supports an "include = filename" parameter to allow breaking it up conveniently.  This cam be useful if multiple consoles use some of the same screens and you want to have only one version of the description for those shared screens.
 
 # Currently supported screens
 * Keypad: mimics the KPL.  Can support any number of buttons from 1 to 25 and will autoplace/autosize buttons in this range.  Buttons may be colored as desired.  Key types are:
