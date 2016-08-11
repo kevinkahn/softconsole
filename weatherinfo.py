@@ -63,9 +63,12 @@ class WeatherInfo:
 
 	def FetchWeather(self):
 		progress = 0
-		if time.time() > self.lastwebreq + 5*60:
+		if time.time() > self.lastwebreq + 30*60:
 			try:
-				# refresh the conditions - don't do more than once per 5 minutes
+				# print 'WU call',time.time(),self.lastwebreq
+				# print self.url
+
+				# refresh the conditions - don't do more than once per 30 minutes
 				self.lastwebreq = time.time() # do this first so that even in error case we wait a while to try again
 				f = urllib2.urlopen(self.url)
 				val = f.read()
