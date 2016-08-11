@@ -11,8 +11,8 @@ wc = webcolors.name_to_rgb
 
 
 def FlatenScreenLabel(label):
-	scrlabel = ""
-	for s in label:
+	scrlabel = label[0]
+	for s in label[1:]:
 		scrlabel = scrlabel + " " + s
 	return scrlabel
 

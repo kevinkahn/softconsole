@@ -53,6 +53,17 @@ class WeatherInfo:
 				   'WindDir': (str, ('avewind', 'dir')),
 				   'WindSpd': (float, ('avewind', 'mph'))}
 
+	TermShortener = {'Scattered Clouds': 'Sct Clouds',
+					 'Partly Cloudy': 'Ptly Cldy'}
+
+	def TryShorten(self, term):
+		if term in self.TermShortener:
+			return self.TermShortener[term]
+		elif len(term) > 12:
+			config.Logs.Log("Long term: " + term, severity=logsupport.ConsoleWarning)
+			self.TermShortener[term] = term  # only report once
+		return term
+
 	def __init__(self, WunderKey, location):
 		self.lastwebreq = 0  # time of last call out to wunderground
 		self.url = 'http://api.wunderground.com/api/' + WunderKey + '/geolookup/conditions/forecast/astronomy/q/' \
@@ -92,6 +103,8 @@ class WeatherInfo:
 				for cond, desc in WeatherInfo.ConditionMap.iteritems():
 					try:
 						self.ConditionVals[cond] = desc[0](js(*desc[1]))
+						if desc[0] == str:
+							self.ConditionVals[cond] = self.TryShorten(self.ConditionVals[cond])
 						progress = (4,cond)
 					except:
 						self.ConditionVals[cond] = desc[0]('0')
@@ -104,6 +117,8 @@ class WeatherInfo:
 					for fc, desc in WeatherInfo.ForecastDay.iteritems():
 						try:
 							self.ForecastVals[i][fc] = desc[0](fs(*desc[1]))
+							if desc[0] == str:
+								self.ForecastVals[i][fc] = self.TryShorten(self.ForecastVals[i][fc])
 						except:
 							print "W2",i,fc
 							config.Logs.Log("Forecast error: ", i, fc, fs(*desc[1]), severity=logsupport.ConsoleError)
