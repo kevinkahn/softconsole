@@ -55,7 +55,7 @@ class DisplayScreen(object):
 		if callbackint <> 0:  # todo needs a better structural fix for posted actions that persist across Waitpress calls
 			pygame.time.set_timer(self.INTERVALHIT.type, int(callbackint*1000))
 			cycle = callbackcount if callbackcount <> 0 else 100000000  # essentially infinite
-		if self.isDim and self.AS == config.DimHomeScreenCover:
+		if self.isDim and self.BrightenToHome:
 			pygame.time.set_timer(self.GOHOMEHIT.type, 0)  # in final quiet state so cancel gohome until a touch
 		else:
 			pygame.time.set_timer(self.MAXTIMEHIT.type,
