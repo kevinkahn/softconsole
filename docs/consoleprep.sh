@@ -110,10 +110,13 @@ echo "Run helper"
 adafruit-pitft-helper -t $1
 
 echo "Install stuff for console"
+apt-get -y install python-dev
+
 pip install --upgrade pip
 pip install configobj
 pip install webcolors
 pip install xmltodict
+pip install wiringpi
 /usr/local/bin/pip install ISYlib
 
 echo "Setup to downgrade touch stuff to wheezy"
