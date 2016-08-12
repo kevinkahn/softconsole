@@ -34,6 +34,7 @@ import screen
 import utilities
 import requests
 import urllib3
+import json
 
 urllib3.disable_warnings()
 import urllib3.contrib.pyopenssl
@@ -71,6 +72,12 @@ Initialize the Console
 """
 
 config.starttime = time.time()
+
+with open(exdir + '/termshortenlist', 'r') as f:
+	try:
+		config.TermShortener = json.load(f)
+	except:
+		config.TermShortener = {}
 
 # requests.packages.urllib3.disable_warnings(
 #	InsecureRequestWarning)  # probably should fix certificates at some point todo

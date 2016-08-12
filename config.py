@@ -51,6 +51,8 @@ ISYprefix = ''  # holds the url prefix for rest interface
 fonts = None
 Logs = None
 
+TermShortener = {}
+
 # Screen Display Info
 screenwidth = 0
 screenheight = 0

@@ -1,33 +1,30 @@
 import os
 
-import RPi.GPIO as GPIO
+import wiringpi
 
 import config
 
-backlight = None
 disklogging = True
 touchdevice = True
 
 
+# This version of hw uses the real hw pwm for screen dimming - much better appearance
+
 def initOS():
-	global backlight
 	os.environ['SDL_FBDEV'] = '/dev/fb1'
 	os.environ['SDL_MOUSEDEV'] = '/dev/input/touchscreen'
 	os.environ['SDL_MOUSEDRV'] = 'TSLIB'
 	os.environ['SDL_VIDEODRIVER'] = 'fbcon'
 
-	GPIO.setwarnings(False)
-	GPIO.setmode(GPIO.BCM)
-	GPIO.setup(18, GPIO.OUT)
-	backlight = GPIO.PWM(18, 1024)
-	backlight.start(100)
+	wiringpi.wiringPiSetupGpio()
+	wiringpi.pinMode(18, 2)
+	wiringpi.pwmSetMode(wiringpi.PWM_MODE_MS)  # default balanced mode makes screen dark at about 853/1024
+	wiringpi.pwmWrite(18, 1024)
 
 
 def GoDim():
-	global backlight
-	backlight.ChangeDutyCycle(config.DimLevel)
+	wiringpi.pwmWrite(18, (config.DimLevel*1024)/100)
 
 
 def GoBright():
-	global backlight
-	backlight.ChangeDutyCycle(config.BrightLevel)
+	wiringpi.pwmWrite(18, (config.BrightLevel*1024)/100)
