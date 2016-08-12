@@ -2,7 +2,8 @@
 * The system has currently been tested on a Raspberry Pi 2 using an Adafruit 3.5" resistive PiTFT.  To set up a system load the current best version of the Jessie release of Raspbian.  Configure its networking and expand its file system.  Then download the script consoleprep.sh (wget https://raw.githubusercontent.com/kevinkahn/softconsole/master/docs/consoleprep.sh) and give it execution rights (chnmod +x consoleprep.sh).  Reboot to actually get the expanded file system and run the script as root specifying the type of display to be used (35r, 28r, 28c) (e.g., sudo consoleprep.sh -t 35r).  The script asks various questions to set timezone, provide a password for the tightvncserver installed as a convenience for headless operation, etc.  It may ask for permission to use more file space at various points - answer y to these.  I answer n to the use of the display as console.  After the script completes reboot.
 * The resultant system should have a consolestable and consolebeta directories populated and a Console directory created.  The config.txt goes in the Console directory.  Run the console as "sudo python -u console.py" from within the consolestable directory.  I also arrange to run the console automatically at boot.  An example of this is in the rc.local file in the scripts directory (which also shows running the echo emulator).  My script will run the stable version unless a "usebeta" file and a "cleanexit" file exist in the home directory.  From the maintenance screen in console you can ask to set the beta version and download the current beta.  If you set the beta version and you shutdown the console cleanly the beta will run else it will fall back to the stable version.
 * Current release notes:
-    * This has been tested at this point with the 3.5 resistive PiTFT on a Pi2.  While it should work with other combinations I haven't gotten to try those yet.
+    * This has been tested at this point with the 3.5 resistive PiTFT on a Pi2 and Pi3 and with a 2.8 capacitive PiTFT on a Pi Zero.  It should work with other combinations since this is a pretty broad sample but YMMV.
+    * The latest release moved to using the Pi hardware PWM to control screen brightness which gets rid of periodic brightness glitches.  This requires installing wiringpi and python-dev modules.  Consoleprep now does this but if you have an existing installation you can manually issue the commands (see the consoleprep script for them).  If for some reason you don't wish to use hw PWM the hwa.py has the soft PWM version and can be renamed to hw.py to use it rather than the hw.py that is there by default.
 
 # Running Softconsole
 * Clone to a directory on the RPi
@@ -12,6 +13,7 @@
 * The parameter MainChain provides the names in order of the screens accessible normally.  The parameter SecondaryChain provides a list of screens that are accessible indirectly (see below).  Any number of screens can be defined.
 * Whenever a color needs to be specified you can use any color name from the W3C list at http://www.w3.org/TR/SVG11/types.html#ColorKeywords
 * The config.txt file supports an "include = filename" parameter to allow breaking it up conveniently.  This cam be useful if multiple consoles use some of the same screens and you want to have only one version of the description for those shared screens.
+* Some responses from weatherunderground are fairly long phrases that don't display nicely on the weather screens.  There is a file termshorten list which is a json representation of a Python dictionary that maps phrases to shorter ones for display.  It is self explanatory if you look at the examples that are prepopulated.  You can edit this as you wish to add or change phrases to be shortened.
 
 # Currently supported screens
 * Keypad: mimics the KPL.  Can support any number of buttons from 1 to 25 and will autoplace/autosize buttons in this range.  Buttons may be colored as desired.  Key types are:
@@ -37,6 +39,7 @@
 * After the designated time screen will dim
 * After the designated time screen will automatically return to the home screen (except from the maintenance screen)
 * From the home screen after the dim time out the screen will go to a "sleep" screen if designated - any tap will awaken it
+    * The original version had only a single idle screen named by the DimHomeScreenCoverName parameter.  This parameter is deprecated but will still work if you don't opt for the new multi-idle screen ability.  You can designate a sequence of idle screens with DimIdleListNames and corresponding linger times per screen with DimIdleListTimes.  Once the console is idle it will cycle through these screens until tapped.  This got added to make a wall unit a nicer info display when not otherwise being used.
 * On the maintenance/log screen single tap to see the next page
 
 # Developers Notes
