@@ -20,6 +20,7 @@ fixedoverrides = {'CharColor': 'white', 'BackgroundColor': 'royalblue', 'label':
 
 
 def SetUpMaintScreens():
+
 	Exits = MaintScreenDesc(
 		OrderedDict([('shut', ('Shutdown Console', doexit)), ('restart', ('Restart Console', doexit)),
 					 ('shutpi', (('Shutdown Pi'), doexit)), ('reboot', (('Reboot Pi'), doexit)),
@@ -54,18 +55,35 @@ def setdbg(K):
 	config.toDaemon.put(('flagchange', K.name, config.Flags[K.name]))
 
 
+ExitKey = 'none'
 
 def doexit(K):
+	global ExitKey
+	ExitKey = K.name
 	if K.name == 'shut':
-		Exit_Options("Manual Shutdown Requested", "Shutting Down")
+		verifymsg = 'Do Console Shutdown'
 	elif K.name == 'restart':
-		Exit_Options("Console Restart Requested", "Restarting")
+		verifymsg = 'Do Console Restart'
 	elif K.name == 'shutpi':
+		verifymsg = 'Do Pi Shutdown'
+	else:
+		verifymsg = 'Do Pi Reboot'
+
+	MaintScreenDesc(
+		OrderedDict([('yes', (verifymsg, dorealexit)), ('no', ('Cancel', None))])).HandleScreen()
+
+
+def dorealexit(K):
+	if ExitKey == 'shut':
+		Exit_Options("Manual Shutdown Requested", "Shutting Down")
+	elif ExitKey == 'restart':
+		Exit_Options("Console Restart Requested", "Restarting")
+	elif ExitKey == 'shutpi':
 		Exit_Options("Shutdown Pi Requested", "Shutting Down Pi")
-	elif K.name == 'reboot':
+	elif ExitKey == 'reboot':
 		Exit_Options("Reboot Pi Requested", "Rebooting Pi")
 
-	subprocess.Popen('nohup sudo /bin/bash -e scripts/consoleexit ' + K.name + ' ' + config.configfile + ' user',
+	subprocess.Popen('nohup sudo /bin/bash -e scripts/consoleexit ' + ExitKey + ' ' + config.configfile + ' user',
 					 shell=True)
 	sys.exit()
 
