@@ -96,7 +96,7 @@ def signal_handler(sig, frame):
 
 
 def daemon_died(sig, frame):
-	print "CSignal: {}".format(sig)
+	# print "CSignal: {}".format(sig)
 	if config.DaemonProcess is None:
 		return
 	if config.DaemonProcess.is_alive():
@@ -104,7 +104,7 @@ def daemon_died(sig, frame):
 	else:
 		print time.time(), "Daemon died!"
 		pygame.quit()
-		sys.exit()
+		sys.exit(2)
 
 
 def InitializeEnvironment():

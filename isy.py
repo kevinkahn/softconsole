@@ -7,6 +7,7 @@ import utilities
 import maintscreen
 from config import ISYdebug
 from logsupport import ConsoleInfo, ConsoleWarning, ConsoleError
+import sys
 
 
 def get_real_time_status(addrlist):
@@ -208,6 +209,16 @@ class ISY(object):
 		"""
 
 		r = ISYsession.get(config.ISYprefix + 'nodes', verify=False)
+		if r.status_code <> 200:
+			print 'ISY text response:'
+			print '-----'
+			print r.text
+			print '-----'
+			print 'Cannot access ISY - check username and password.  Status code: ' + str(r.status_code)
+			config.Logs.Log('Cannot access ISY - check username/password')
+			config.Logs.Log('Status code: ' + str(r.status_code))
+			sys.exit(1)
+
 		configdict = xmltodict.parse(r.text)['nodes']
 
 		for folder in configdict['folder']:
