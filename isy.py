@@ -1,7 +1,7 @@
 import collections
 
 import xmltodict
-
+import requests, time
 import config
 import utilities
 import maintscreen
@@ -208,7 +208,25 @@ class ISY(object):
 		Build the Folder/Node/Scene tree
 		"""
 
-		r = ISYsession.get(config.ISYprefix + 'nodes', verify=False)
+		trycount = 100
+		while True:
+			try:
+				r = ISYsession.get(config.ISYprefix + 'nodes', verify=False, timeout=3)
+				break
+			except requests.exceptions.ConnectTimeout:
+				# after total power outage ISY is slower to come back than RPi so
+				# we wait testing periodically.  Eventually we try rebooting just in case our own network
+				# is what is hosed
+				trycount -= 1
+				if trycount > 0:
+					config.Logs.Log('ISY not responding')
+					config.Logs.Log('-ISY: ' + config.ISYprefix)
+					time.sleep(10)
+				else:
+					config.Logs.Log('No ISY response restart')
+					maintscreen.errorexit('reboot')
+					sys.exit(3)  # should never get here
+
 		if r.status_code <> 200:
 			print 'ISY text response:'
 			print '-----'

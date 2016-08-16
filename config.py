@@ -52,6 +52,7 @@ fonts = None
 Logs = None
 
 TermShortener = {}
+lastalertcheck = 0
 
 # Screen Display Info
 screenwidth = 0

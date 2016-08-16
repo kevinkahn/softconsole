@@ -137,6 +137,7 @@ Set up for ISY access
 config.ISYprefix = 'http://' + config.ISYaddr + '/rest/'
 config.ISYrequestsession = requests.session()
 config.ISYrequestsession.auth = (config.ISYuser, config.ISYpassword)
+
 config.ISY = isy.ISY(config.ISYrequestsession)
 config.Logs.Log("Enumerated ISY Structure")
 
