@@ -152,6 +152,9 @@ class DisplayScreen(object):
 				else:
 					config.Logs.Log("Bad msg from watcher: " + str(item), Severity=ConsoleWarning)
 
+				# check for periodic alert items todo
+
+
 
 		pygame.time.set_timer(self.INTERVALHIT.type, 0)
 		pygame.time.set_timer(self.MAXTIMEHIT.type, 0)

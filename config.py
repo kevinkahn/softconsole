@@ -52,6 +52,8 @@ fonts = None
 Logs = None
 
 TermShortener = {}
+versionname = ""
+versionsha = ""
 lastalertcheck = 0
 
 # Screen Display Info

@@ -3,6 +3,9 @@ import os
 import sys
 import time
 import signal
+import webcolors
+
+wc = webcolors.name_to_rgb
 from sets import Set
 
 import pygame
@@ -105,6 +108,17 @@ def daemon_died(sig, frame):
 		print time.time(), "Daemon died!"
 		pygame.quit()
 		sys.exit(2)
+
+
+def EarlyAbort(scrnmsg):
+	config.screen.fill(wc("red"))
+	# this font is manually loaded into the fontcache to avoid log message on early abort before log is up
+	# see fonts.py
+	r = config.fonts.Font(40, '', True, True).render(scrnmsg, 0, wc("white"))
+	config.screen.blit(r, ((config.screenwidth - r.get_width())/2, config.screenheight*.4))
+	pygame.display.update()
+	time.sleep(5)
+	sys.exit(9)
 
 
 def InitializeEnvironment():

@@ -41,6 +41,7 @@ import urllib3.contrib.pyopenssl
 
 urllib3.contrib.pyopenssl.inject_into_urllib3()
 
+utilities.InitializeEnvironment()
 
 exdir = os.path.dirname(os.path.abspath(__file__))
 print exdir
@@ -54,6 +55,14 @@ for root, dirs, files in os.walk(exdir):
 				lastmod = os.path.getmtime(fn)
 				lastfn = fn
 print 'Version', lastfn, time.ctime(lastmod)
+
+try:
+	with open(exdir + '/' + 'versioninfo') as f:
+		vn = f.readline()
+		vs = f.readline()
+		print vn, vs
+except:
+	print 'No version info'
 
 import watchdaemon
 from config import debugPrint
@@ -82,10 +91,12 @@ with open(exdir + '/termshortenlist', 'r') as f:
 # requests.packages.urllib3.disable_warnings(
 #	InsecureRequestWarning)  # probably should fix certificates at some point todo
 
-utilities.InitializeEnvironment()
-
 if len(sys.argv) == 2:
 	config.configfile = sys.argv[1]
+
+if not os.path.isfile(config.configfile):
+	utilities.EarlyAbort('No Configuration File')
+
 
 signal.signal(signal.SIGTERM, utilities.signal_handler)
 signal.signal(signal.SIGINT, utilities.signal_handler)

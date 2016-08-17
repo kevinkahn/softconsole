@@ -7,7 +7,10 @@ import config
 class Fonts(object):
 	def __init__(self):
 		pygame.font.init()
-		self.fontcache = {}  # cache is tree dir with first key as name, second as size, third as ital, fourth as bold
+		self.fontcache = {"": {40: {True: {True: pygame.font.SysFont("", utilities.scaleH(40), True, True)}}}}
+
+	# cache is tree dir with first key as name, second as size, third as ital, fourth as bold
+	# initialize with 1 font for use in early abort messages (40,"",True,True)
 
 	def Font(self, size, face="", bold=False, italic=False):
 		def gennewfont():

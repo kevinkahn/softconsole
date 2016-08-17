@@ -93,6 +93,8 @@ def errorexit(opt):
 		Exit_Options('Error restart', 'Error - Restarting')
 	elif opt == 'reboot':
 		Exit_Options('Error reboot', 'Error - Rebooting Pi')
+	elif opt == 'shut':
+		Exit_Options('Error Shutdown', 'Error Check Log')
 
 	subprocess.Popen('nohup sudo /bin/bash -e scripts/consoleexit ' + opt + ' ' + config.configfile + ' ' + ' error',
 					 shell=True)

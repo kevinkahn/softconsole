@@ -235,6 +235,8 @@ class ISY(object):
 			print 'Cannot access ISY - check username and password.  Status code: ' + str(r.status_code)
 			config.Logs.Log('Cannot access ISY - check username/password')
 			config.Logs.Log('Status code: ' + str(r.status_code))
+			time.sleep(10)
+			maintscreen.errorexit('shut')
 			sys.exit(1)
 
 		configdict = xmltodict.parse(r.text)['nodes']
