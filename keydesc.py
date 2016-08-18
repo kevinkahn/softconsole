@@ -64,7 +64,8 @@ class KeyDesc(toucharea.ManualKeyDesc):
 		debugPrint('BuildScreen', repr(self))
 
 	def __repr__(self):
-		return "KeyDesc:" + self.name + "|ST:" + str(self.State) + "|Clr:" + str(self.KeyColor) + "|OnC:" + str(
+		return "KeyDesc:" + self.name + "|ST:" + str(self.State) + "|Clr:" + str(self.KeyColorOn) + "/" + str(
+			self.KeyColorOff) + "|OnC:" + str(
 			self.KeyCharColorOn) + "|OffC:" \
 			   + str(self.KeyCharColorOff) + "\n\r        |Lab:" + str(
 			self.label) + "|Typ:" + self.type + "|Px:" + str(self.SceneProxy) + \

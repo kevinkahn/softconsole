@@ -43,16 +43,22 @@ class ManualKeyDesc(TouchPoint):
 			# signature: ManualKeyDesc(keyname, label, bcolor, charcoloron, charcoloroff, center=, size=, KOn=, KOff=, proc=)
 			# initializing from program code case
 			self.docodeinit(*args, **kwargs)
+		if self.KeyColorOff == '':
+			self.KeyColorOff = self.KeyColor
+		if self.KeyColorOn == '':
+			self.KeyColorOn = self.KeyColor
 		utilities.register_example("ManualKeyDesc", self)
 
 	def docodeinit(self, keyname, label, bcolor, charcoloron, charcoloroff, DynamicLabel = False, center=(0, 0), size=(0, 0), KOn='', KOff='',
-				   proc=None):
+				   proc=None, KCon='', KCoff=''):
 		# NOTE: do not put defaults for KOn/KOff in signature - imports and arg parsing subtleties will cause error
 		# because of when config is imported and what walues are at that time versus at call time
 		TouchPoint.__init__(self, center, size)
 		self.name = keyname
 		self.RealObj = proc
 		self.KeyColor = bcolor
+		self.KeyColorOn = KCon
+		self.KeyColorOff = KCoff
 		self.KeyCharColorOn = charcoloron
 		self.KeyCharColorOff = charcoloroff
 		self.KeyOutlineOffset = config.KeyOutlineOffset
@@ -66,7 +72,8 @@ class ManualKeyDesc(TouchPoint):
 	def dosectioninit(self, keysection, keyname):
 		TouchPoint.__init__(self, (0, 0), (0, 0))
 		utilities.LocalizeParams(self, keysection, 'KeyColor', 'KeyOffOutlineColor', 'KeyOnOutlineColor',
-								 'KeyCharColorOn', 'KeyCharColorOff', 'KeyOutlineOffset', label=[keyname])
+								 'KeyCharColorOn', 'KeyCharColorOff', 'KeyOutlineOffset', 'KeyColorOn', 'KeyColorOff',
+								 label=[keyname])
 		self.name = keyname
 		self.State = True
 		self.RealObj = None  # this will get filled in by creator later - could be ISY node, ISY program, proc to call
@@ -121,13 +128,13 @@ class ManualKeyDesc(TouchPoint):
 
 		# create image of ON key
 		self.KeyOnImage = pygame.Surface(self.Size)
-		pygame.draw.rect(self.KeyOnImage, wc(self.KeyColor), ((0, 0), self.Size), 0)
+		pygame.draw.rect(self.KeyOnImage, wc(self.KeyColorOn), ((0, 0), self.Size), 0)
 		bord = 3  # todo pixel - probably should use same scaling in both dimensions since this is a line width
 		pygame.draw.rect(self.KeyOnImage, wc(self.KeyOnOutlineColor), ((scaleW(bord),scaleH(bord)), buttonsmaller), bord)
 
 		# create image of OFF key
 		self.KeyOffImage = pygame.Surface(self.Size)
-		pygame.draw.rect(self.KeyOffImage, wc(self.KeyColor), ((0, 0), self.Size), 0)
+		pygame.draw.rect(self.KeyOffImage, wc(self.KeyColorOff), ((0, 0), self.Size), 0)
 		bord = self.KeyOutlineOffset
 		pygame.draw.rect(self.KeyOffImage, wc(self.KeyOffOutlineColor), ((scaleW(bord),scaleH(bord)), buttonsmaller), bord)
 		s = pygame.Surface(self.Size)
