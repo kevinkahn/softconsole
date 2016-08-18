@@ -26,7 +26,7 @@ DbgFlags = ['Main', 'Daemon', 'BuildScreen', 'ISY']
 ISYdebug = False
 dbgscreenbuild = False
 dbgMain = False
-dbgdaemon = True
+dbgdaemon = False
 
 
 def debugPrint(flag, *args):

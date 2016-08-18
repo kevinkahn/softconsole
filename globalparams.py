@@ -32,3 +32,5 @@ KeyCharColorOff = "black"
 KeyOnOutlineColor = "white"
 KeyOffOutlineColor = "black"
 KeyOutlineOffset = 3
+KeyLabelOn = ['', ]
+KeyLabelOff = ['', ]

@@ -34,7 +34,7 @@ class ManualKeyDesc(TouchPoint):
 	def __init__(self, *args, **kwargs):
 		# alternate creation signatures
 		self.ButtonFontSizes = (31, 28, 25, 22, 20, 18, 16)
-		self.DynamicLabel = False
+		# self.DynamicLabel = False
 		if len(args) == 2:
 			# signature: ManualKeyDesc(keysection, keyname)
 			# initialize by reading config file
@@ -43,14 +43,19 @@ class ManualKeyDesc(TouchPoint):
 			# signature: ManualKeyDesc(keyname, label, bcolor, charcoloron, charcoloroff, center=, size=, KOn=, KOff=, proc=)
 			# initializing from program code case
 			self.docodeinit(*args, **kwargs)
+
 		if self.KeyColorOff == '':
 			self.KeyColorOff = self.KeyColor
 		if self.KeyColorOn == '':
 			self.KeyColorOn = self.KeyColor
+		if self.KeyLabelOn == ['', ]:
+			self.KeyLabelOn = self.label
+		if self.KeyLabelOff == ['', ]:
+			self.KeyLabelOff = self.label
 		utilities.register_example("ManualKeyDesc", self)
 
-	def docodeinit(self, keyname, label, bcolor, charcoloron, charcoloroff, DynamicLabel = False, center=(0, 0), size=(0, 0), KOn='', KOff='',
-				   proc=None, KCon='', KCoff=''):
+	def docodeinit(self, keyname, label, bcolor, charcoloron, charcoloroff, center=(0, 0), size=(0, 0), KOn='', KOff='',
+				   proc=None, KCon='', KCoff='', KLon=['', ], KLoff=['', ]):
 		# NOTE: do not put defaults for KOn/KOff in signature - imports and arg parsing subtleties will cause error
 		# because of when config is imported and what walues are at that time versus at call time
 		TouchPoint.__init__(self, center, size)
@@ -59,13 +64,13 @@ class ManualKeyDesc(TouchPoint):
 		self.KeyColor = bcolor
 		self.KeyColorOn = KCon
 		self.KeyColorOff = KCoff
+		self.KeyLabelOn = KLon
+		self.KeyLabelOff = KLoff
 		self.KeyCharColorOn = charcoloron
 		self.KeyCharColorOff = charcoloroff
 		self.KeyOutlineOffset = config.KeyOutlineOffset
 		self.State = True
 		self.label = label
-		if label[0] == '':
-			self.DynamicLabel = True
 		self.KeyOnOutlineColor = config.KeyOnOutlineColor if KOn == '' else KOn
 		self.KeyOffOutlineColor = config.KeyOffOutlineColor if KOff == '' else KOff
 
@@ -73,7 +78,7 @@ class ManualKeyDesc(TouchPoint):
 		TouchPoint.__init__(self, (0, 0), (0, 0))
 		utilities.LocalizeParams(self, keysection, 'KeyColor', 'KeyOffOutlineColor', 'KeyOnOutlineColor',
 								 'KeyCharColorOn', 'KeyCharColorOff', 'KeyOutlineOffset', 'KeyColorOn', 'KeyColorOff',
-								 label=[keyname])
+								 'KeyLabelOn', 'KeyLabelOff', label=[keyname])
 		self.name = keyname
 		self.State = True
 		self.RealObj = None  # this will get filled in by creator later - could be ISY node, ISY program, proc to call
@@ -82,14 +87,14 @@ class ManualKeyDesc(TouchPoint):
 		x = self.Center[0] - self.Size[0]/2
 		y = self.Center[1] - self.Size[1]/2
 		if self.State:
-			if self.DynamicLabel:
+			if self.KeyLabelOn[0] == '':  # implied dynamic label
 				temp = self.KeyOnImage.copy()
 				self.AddTitle(temp,latetitle,self.FindFontSize(latetitle,0,True),self.KeyCharColorOn)
 				config.screen.blit(temp,(x,y))
 			else:
 				config.screen.blit(self.KeyOnImage,(x,y))
 		else:
-			if self.DynamicLabel:
+			if self.KeyLabelOff[0] == '':  # implied dynamic label
 				temp = self.KeyOffImage.copy()
 				self.AddTitle(temp,latetitle,self.FindFontSize(latetitle,0,True),self.KeyCharColorOff)
 				config.screen.blit(temp,(x,y))
@@ -143,9 +148,10 @@ class ManualKeyDesc(TouchPoint):
 		self.KeyOffImage.blit(s, (0,0))
 
 		# if a non-blank label then add in the label - otherwise it is a late bound label that will get set at paint time
-		if not self.DynamicLabel:
-			fontchoice = self.FindFontSize(self.label,firstfont,shrink)
-			self.AddTitle(self.KeyOnImage,self.label,fontchoice,self.KeyCharColorOn)
-			self.AddTitle(self.KeyOffImage,self.label,fontchoice,self.KeyCharColorOff)
-
-
+		if self.KeyLabelOn[0] <> '':  # static label supplied
+			fontchoice = self.FindFontSize(self.KeyLabelOn, firstfont, shrink)
+			self.AddTitle(self.KeyOnImage, self.KeyLabelOn, fontchoice, self.KeyCharColorOn)
+		if self.KeyLabelOff[0] <> '':
+			fontchoice = self.FindFontSize(self.KeyLabelOff, firstfont,
+										   shrink)  # todo add Onlabel and OffLabel - they will need separate fontchoiices default to label
+			self.AddTitle(self.KeyOffImage, self.KeyLabelOff, fontchoice, self.KeyCharColorOff)

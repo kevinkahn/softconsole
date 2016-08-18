@@ -70,8 +70,8 @@ class ScreenDesc(object):
 		utilities.register_example('ScreenDesc', self)
 
 	def FinishScreen(self):
-		self.PrevScreenKey.label = self.PrevScreen.label
-		self.NextScreenKey.label = self.NextScreen.label
+		self.PrevScreenKey.KeyLabelOn = self.PrevScreen.label
+		self.NextScreenKey.KeyLabelOn = self.NextScreen.label
 		self.PrevScreenKey.FinishKey((0,0),(0,0))
 		self.NextScreenKey.FinishKey((0,0),(0,0))
 

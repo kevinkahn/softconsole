@@ -39,8 +39,8 @@ class KeyDesc(toucharea.ManualKeyDesc):
 							config.Logs.Log('Skipping disabled/nonstatus device: ' + device.name, severity=ConsoleWarning)
 					if self.MonitorObj is None:
 						config.Logs.Log("No proxy for scene: " + keyname, severity=ConsoleError)
-					#debugprint(config.dbgscreenbuild, "Scene ", keyname, " default proxying with ",
-					#		   self.MonitorObj.name)
+					debugPrint('BuildScreen', "Scene ", keyname, " default proxying with ",
+							   self.MonitorObj.name)
 			elif keyname in config.ISY.NodesByName:
 				self.RealObj = config.ISY.NodesByName[keyname]
 				self.MonitorObj = self.RealObj
@@ -53,10 +53,10 @@ class KeyDesc(toucharea.ManualKeyDesc):
 				self.RealObj = config.ISY.ProgramsByName[self.KeyRunThenName]
 			except:
 				self.RealObj = None
-				debugPrint('BuildScreen', "Unbound program key: ", self.label)
+				debugPrint('BuildScreen', "Unbound program key: ", self.name)
 				config.Logs.Log("Missing Prog binding: " + self.name, severity=ConsoleWarning)
 		else:
-			debugPrint('BuildScreen', "Unknown key type: ", self.label)
+			debugPrint('BuildScreen', "Unknown key type: ", self.name)
 			config.Logs.Log("Bad keytype: " + self.name, severity=ConsoleWarning)
 
 		utilities.register_example("KeyDesc", self)
