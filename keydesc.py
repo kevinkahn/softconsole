@@ -34,6 +34,7 @@ class KeyDesc(toucharea.ManualKeyDesc):
 						device = i[1]
 						if device.enabled and device.hasstatus:
 							self.MonitorObj = device
+							# todo   try to status the device here to see if it will respond
 							break
 						else:
 							config.Logs.Log('Skipping disabled/nonstatus device: ' + device.name, severity=ConsoleWarning)
