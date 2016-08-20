@@ -25,8 +25,12 @@ class KeyDesc(toucharea.ManualKeyDesc):
 					if self.SceneProxy in config.ISY.NodesByAddr:
 						# address given
 						self.MonitorObj = config.ISY.NodesByAddr[self.SceneProxy]
+						debugPrint('BuildScreen', "Scene ", keyname, " explicit address proxying with ",
+								   self.MonitorObj.name, '(', self.SceneProxy, ')')
 					elif self.SceneProxy in config.ISY.NodesByName:
 						self.MonitorObj = config.ISY.NodesByName[self.SceneProxy]
+						debugPrint('BuildScreen', "Scene ", keyname, " explicit name proxying with ",
+								   self.MonitorObj.name, '(', self.MonitorObj.address, ')')
 					else:
 						config.Logs.Log('Bad explicit scene proxy:' + self.name, severity=ConsoleWarning)
 				else:
