@@ -17,19 +17,24 @@ def get_real_time_status(addrlist):
 	for addr in addrlist:
 		try:
 			r = config.ISYrequestsession.get('http://' + config.ISYaddr + '/rest/status/' + addr, verify=False)
-		except:
+		except requests.exceptions.ConnectTimeout:
 			config.Logs.Log("ISY Comm Error (RT status): " + str(r.status_code) + ' on ' + addr, severity=ConsoleError)
 			config.Logs.Log(r.text)
 			maintscreen.errorexit('reboot')
-		props = xmltodict.parse(r.text)['properties']['property']
-		if isinstance(props, dict):
-			props = [props]
-		devstate = 0
-		for item in props:
-			if item['@id'] == "ST":
-				devstate = item['@value']
-				break
-		statusdict[addr] = int(devstate if devstate.isdigit() else 0)
+		if r.status_code <> 200:
+			config.Logs.Log('ISY Bad status (RT status)' + str(r.status_code) + ' on ' + addr, severity=ConsoleError)
+			config.Logs.Log(r.text)
+			statusdict[addr] = 0  # couldn't get status so return Off - just something that works
+		else:
+			props = xmltodict.parse(r.text)['properties']['property']
+			if isinstance(props, dict):
+				props = [props]
+			devstate = 0
+			for item in props:
+				if item['@id'] == "ST":
+					devstate = item['@value']
+					break
+			statusdict[addr] = int(devstate if devstate.isdigit() else 0)
 	return statusdict
 
 
