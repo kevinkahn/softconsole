@@ -94,15 +94,16 @@ def errorexit(opt):
 	elif opt == 'reboot':
 		consoleup = time.time() - config.starttime
 		config.Logs.Log("Console was up: ", str(consoleup), severity=ConsoleWarning)
-		if consoleup < 60:
-			# never allow console to reboot the pi sooner than 60 seconds
-			Exit_Options('Error Reboot Loop', 'Error - Suppressed Reboot')
-			opt == 'shut'  # just close the console - we are in a reboot loop
+		print 'Up: ' + str(consoleup)
+		if consoleup < 120:
+			# never allow console to reboot the pi sooner than 120 seconds
+			Exit_Options('Error Reboot Loop', 'Suppressed Reboot')
+			opt = 'shut'  # just close the console - we are in a reboot loop
 		else:
 			Exit_Options('Error reboot', 'Error - Rebooting Pi')
 	elif opt == 'shut':
 		Exit_Options('Error Shutdown', 'Error Check Log')
-
+	print opt
 	subprocess.Popen('nohup sudo /bin/bash -e scripts/consoleexit ' + opt + ' ' + config.configfile + ' ' + ' error',
 					 shell=True)
 	sys.exit()
