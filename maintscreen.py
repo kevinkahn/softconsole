@@ -92,7 +92,14 @@ def errorexit(opt):
 	if opt == 'restart':
 		Exit_Options('Error restart', 'Error - Restarting')
 	elif opt == 'reboot':
-		Exit_Options('Error reboot', 'Error - Rebooting Pi')
+		consoleup = time.time() - config.starttime
+		config.Logs.Log("Console was up: ", str(consoleup), severity=ConsoleWarning)
+		if consoleup < 60:
+			# never allow console to reboot the pi sooner than 60 seconds
+			Exit_Options('Error Reboot Loop', 'Error - Suppressed Reboot')
+			opt == 'shut'  # just close the console - we are in a reboot loop
+		else:
+			Exit_Options('Error reboot', 'Error - Rebooting Pi')
 	elif opt == 'shut':
 		Exit_Options('Error Shutdown', 'Error Check Log')
 
@@ -108,7 +115,7 @@ def dobeta(K):
 	elif K.name == 'fetch':
 		subprocess.Popen('sudo /bin/bash -e scripts/getcurrentbeta', shell=True)
 	elif K.name == 'release':
-		subprocess.Popen('sudo /bin/bash -e scripts/getcurrentrelease', shell=True)
+		subprocess.Popen('sudo /bin/bash -e scripts/getcurrentrelease', shell=True)  # todo switch to use staging stuff
 	K.State = not K.State
 	K.PaintKey()
 	time.sleep(4)
