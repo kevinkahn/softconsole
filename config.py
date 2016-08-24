@@ -40,6 +40,7 @@ def debugPrint(flag, *args):
 
 
 # Global pointers
+exdir = ''
 ISYrequestsession = None  # handle for requests to ISY via the request interface
 ISY = None  # Root of structure representing the ISY - filled in from ISY
 screen = None  # pygame screen to blit on etc

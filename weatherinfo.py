@@ -7,10 +7,6 @@ import utilities
 import config
 import logsupport
 
-"""
-TermShortener = {'Scattered Clouds': 'Sct Clouds',
-				 'Partly Cloudy': 'Ptly Cldy'}
-"""
 
 def TreeDict(d, *args):
 	# Allow a nest of dictionaries to be accessed by a tuple of keys for easier code
@@ -64,6 +60,8 @@ class WeatherInfo:
 		elif len(term) > 12:
 			config.Logs.Log("Long term: " + term, severity=logsupport.ConsoleWarning)
 			config.TermShortener[term] = term  # only report once
+			with open(config.exdir + '/termshortenlist.new', 'w') as f:
+				json.dump(config.TermShortener, f)
 		return term
 
 	def __init__(self, WunderKey, location):

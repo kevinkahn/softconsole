@@ -10,31 +10,62 @@ from logsupport import ConsoleInfo, ConsoleWarning, ConsoleError
 import sys
 
 
+def try_status(addr):
+	# returns (code, respstatus, devicestatus)
+	try:
+		t = 'http://' + config.ISYaddr + '/rest/status/' + addr
+		config.debugPrint('ISY', t)
+		r = config.ISYrequestsession.get(t, verify=False)
+	except requests.exceptions.ConnectTimeout:
+		config.Logs.Log("ISY Comm Timeout (RT status): " + addr, severity=ConsoleError)
+		config.Logs.Log(sys.exc_info()[1], severity=ConsoleError)
+		return (1, 0, False)
+	except requests.exceptions.ConnectionError:
+		config.Logs.Log("ISY Comm ConnErr (RT status): " + addr, severity=ConsoleError)
+		config.Logs.Log(sys.exc_info()[1], severity=ConsoleError)
+		return (2, 0, False)
+	except:
+		config.Logs.Log("ISY Comm UnknownErr (RT status): " + addr, severity=ConsoleError)
+		config.Logs.Log(sys.exc_info()[1], severity=ConsoleError)
+		return (3, 0, False)
+	if r.status_code <> 200:
+		config.Logs.Log('ISY Bad status (RT status)' + str(r.status_code) + ' on ' + addr, severity=ConsoleError)
+		config.Logs.Log(r.text)
+		return (4, r.status_code, False)
+	else:
+		props = xmltodict.parse(r.text)['properties']['property']
+		if isinstance(props, dict):
+			props = [props]
+		devstate = 0
+		for item in props:
+			if item['@id'] == "ST":
+				devstate = item['@value']
+				break
+		return (0, 200, devstate)
+
+
+class GotIt(Exception): pass
+
 def get_real_time_status(addrlist):
 	# multiple calls here is substantially faster than one call for all status then selecting devices
 	# this proc assumes a device that returns a simple ST value for status
 	statusdict = {}
 	for addr in addrlist:
 		try:
-			r = config.ISYrequestsession.get('http://' + config.ISYaddr + '/rest/status/' + addr, verify=False)
-		except requests.exceptions.ConnectTimeout:
-			config.Logs.Log("ISY Comm Error (RT status): " + str(r.status_code) + ' on ' + addr, severity=ConsoleError)
-			config.Logs.Log(r.text)
+			for i in range(3):
+				error, status_code, devstate = try_status(addr)
+				if error == 0:  # good result
+					statusdict[addr] = int(devstate if devstate.isdigit() else 0)
+					raise GotIt()
+				else:
+					config.debugPrint('ISY', 'Get status failed: ', str(error), str(status_code), str(devstate))
+					time.sleep(.5)
+					config.Logs.Log("Attempting ISY retry" + str(i + 1), severity=ConsoleError)
+			config.Logs.Log("ISY Communications Failure", severity=ConsoleError)
 			maintscreen.errorexit('reboot')
-		if r.status_code <> 200:
-			config.Logs.Log('ISY Bad status (RT status)' + str(r.status_code) + ' on ' + addr, severity=ConsoleError)
-			config.Logs.Log(r.text)
-			statusdict[addr] = 0  # couldn't get status so return Off - just something that works
-		else:
-			props = xmltodict.parse(r.text)['properties']['property']
-			if isinstance(props, dict):
-				props = [props]
-			devstate = 0
-			for item in props:
-				if item['@id'] == "ST":
-					devstate = item['@value']
-					break
-			statusdict[addr] = int(devstate if devstate.isdigit() else 0)
+		except GotIt:
+			pass
+	config.debugPrint('ISY', statusdict)
 	return statusdict
 
 

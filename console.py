@@ -43,11 +43,11 @@ urllib3.contrib.pyopenssl.inject_into_urllib3()
 
 utilities.InitializeEnvironment()
 
-exdir = os.path.dirname(os.path.abspath(__file__))
-print exdir
+config.exdir = os.path.dirname(os.path.abspath(__file__))
+print config.exdir
 lastfn = ""
 lastmod = 0
-for root, dirs, files in os.walk(exdir):
+for root, dirs, files in os.walk(config.exdir):
 	for file in files:
 		if file.endswith(".py"):
 			fn = os.path.join(root, file)
@@ -56,8 +56,8 @@ for root, dirs, files in os.walk(exdir):
 				lastfn = fn
 print 'Version', lastfn, time.ctime(lastmod)
 
-try:
-	with open(exdir + '/' + 'versioninfo') as f:
+try:  # todo start to use this
+	with open(config.exdir + '/' + 'versioninfo') as f:
 		vn = f.readline()
 		vs = f.readline()
 		print vn, vs
@@ -82,7 +82,7 @@ Initialize the Console
 
 config.starttime = time.time()
 
-with open(exdir + '/termshortenlist', 'r') as f:
+with open(config.exdir + '/termshortenlist', 'r') as f:
 	try:
 		config.TermShortener = json.load(f)
 	except:
@@ -125,7 +125,7 @@ config.Logs = logsupport.Logs(config.screen, os.path.dirname(config.configfile))
 config.Logs.Log(u"Soft ISY Console")
 config.Logs.Log(u"  \u00A9 Kevin Kahn 2016")
 config.Logs.Log("Software under Apache 2.0 License")
-config.Logs.Log("Run from: ", exdir)
+config.Logs.Log("Run from: ", config.exdir)
 config.Logs.Log("Last mod: ", lastfn)
 config.Logs.Log("Mod at: ", time.ctime(lastmod))
 config.Logs.Log("Start time: ", time.strftime('%c'))
