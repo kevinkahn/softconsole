@@ -14,6 +14,7 @@ import config
 import fonts
 import hw
 from logsupport import ConsoleError
+import traceback
 
 globdoc = {}
 moddoc = {}
@@ -92,6 +93,9 @@ def restart_console_handler(sig, frame):
 def signal_handler(sig, frame):
 	print "Signal: {}".format(sig)
 	print "pid: ", os.getpid()
+	traceback.print_stack()
+	config.Logs.Log("Console Signalled to Quit", severity=ConsoleError)
+	traceback.print_stack(file=config.Logs.disklogfile)
 	time.sleep(1)
 	pygame.quit()
 	print time.time(), "Console Exiting"
