@@ -18,6 +18,10 @@ Global Parameters:
     KeyCharColorOff                 :  str       black
     KeyCharColorOn                  :  str       white
     KeyColor                        :  str       aqua
+    KeyColorOff                     :  str       
+    KeyColorOn                      :  str       
+    KeyLabelOff                     :  list      ['']
+    KeyLabelOn                      :  list      ['']
     KeyOffOutlineColor              :  str       black
     KeyOnOutlineColor               :  str       white
     KeyOutlineOffset                :  int       3
@@ -60,6 +64,10 @@ Module Parameters:
             KeyCharColorOff
             KeyCharColorOn
             KeyColor
+            KeyColorOff
+            KeyColorOn
+            KeyLabelOff
+            KeyLabelOn
             KeyOffOutlineColor
             KeyOnOutlineColor
             KeyOutlineOffset
