@@ -61,7 +61,7 @@ class WeatherInfo:
 			config.Logs.Log("Long term: " + term, severity=logsupport.ConsoleWarning)
 			config.TermShortener[term] = term  # only report once
 			with open(config.exdir + '/termshortenlist.new', 'w') as f:
-				json.dump(config.TermShortener, f)
+				json.dump(config.TermShortener, f, indent=4, separators=(',', ": "))
 		return term
 
 	def __init__(self, WunderKey, location):
