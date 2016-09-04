@@ -85,7 +85,8 @@ def dorealexit(K):
 
 	subprocess.Popen('nohup sudo /bin/bash -e scripts/consoleexit ' + ExitKey + ' ' + config.configfile + ' user',
 					 shell=True)
-	sys.exit()
+	config.Ending = True
+	sys.exit(0)
 
 
 def errorexit(opt):
@@ -106,7 +107,8 @@ def errorexit(opt):
 	print opt
 	subprocess.Popen('nohup sudo /bin/bash -e scripts/consoleexit ' + opt + ' ' + config.configfile + ' ' + ' error',
 					 shell=True)
-	sys.exit()
+	config.Ending = True
+	sys.exit(1)
 
 def dobeta(K):
 	if K.name == 'stable':

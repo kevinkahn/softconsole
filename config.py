@@ -1,6 +1,9 @@
 screentypes = {}  # set by each module for screens of the type that module creates (see last line in any XxxScreen module
 
 starttime = 0
+Console_pid = 0
+Daemon_pid = 0
+Ending = False
 
 WAITNORMALBUTTON = 1
 WAITEXIT = 2

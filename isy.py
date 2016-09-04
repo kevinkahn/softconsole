@@ -60,7 +60,7 @@ def get_real_time_status(addrlist):
 				else:
 					config.debugPrint('ISY', 'Get status failed: ', str(error), str(status_code), str(devstate))
 					time.sleep(.5)
-					config.Logs.Log("Attempting ISY retry" + str(i + 1), severity=ConsoleError)
+					config.Logs.Log("Attempting ISY retry " + str(i + 1), severity=ConsoleError)
 			config.Logs.Log("ISY Communications Failure", severity=ConsoleError)
 			maintscreen.errorexit('reboot')
 		except GotIt:
@@ -91,12 +91,50 @@ class OnOffItem(object):
 	Provides command handling for nodes that can be sent on/off faston/fastoff commands.
 	"""
 
-	def SendCommand(self, state, fast):
+	def TryCommand(self, state, fast):
 		selcmd = (('DOF', 'DFOF'), ('DON', 'DFON'))
 		config.debugPrint('ISY', "OnOff sent: ", selcmd[state][fast], ' to ', self.name)
 		url = 'http://' + config.ISYaddr + '/rest/nodes/' + self.address + '/cmd/' + selcmd[state][fast]
-		r = config.ISYrequestsession.get(url)
-		return r
+		try:
+			r = config.ISYrequestsession.get(url, verify=False)
+		except requests.exceptions.ConnectTimeout:
+			config.Logs.Log("ISY Comm Timeout (Send Cmd): " + self.address + 'Cmd: ' + selcmd[state][fast],
+							severity=ConsoleError)
+			config.Logs.Log(sys.exc_info()[1], severity=ConsoleError)
+			return (1, 0)
+		except requests.exceptions.ConnectionError:
+			config.Logs.Log("ISY Comm ConnErr (Send Cmd): " + self.address + 'Cmd: ' + selcmd[state][fast],
+							severity=ConsoleError)
+			config.Logs.Log(sys.exc_info()[1], severity=ConsoleError)
+			return (2, 0)
+		except:
+			config.Logs.Log("ISY Comm UnknownErr (Send Cmd): " + self.address + 'Cmd: ' + selcmd[state][fast],
+							severity=ConsoleError)
+			config.Logs.Log(sys.exc_info()[1], severity=ConsoleError)
+			return (3, 0)
+		if r.status_code <> 200:
+			config.Logs.Log(
+				'ISY Bad status (Send Cmd)' + str(r.status_code) + ' on ' + self.address + 'Cmd: ' + selcmd[state][
+					fast], severity=ConsoleError)
+			config.Logs.Log(r.text)
+			return (4, r.status_code)
+		else:
+			return (0, 200)
+
+	def SendCommand(self, state, fast):
+		try:
+			for i in range(3):
+				error, status_code = self.TryCommand(state, fast)
+				if error == 0:  # good result
+					raise GotIt()
+				else:
+					config.debugPrint('ISY', 'Send command failed', str(error), str(status_code))
+					time.sleep(.5)
+					config.Logs.Log("Attempting ISY retry (Send Cmd) " + str(i + 1), severity=ConsoleError)
+			config.Logs.Log("ISY Communications Failure (Send Cmd)", severity=ConsoleError)
+			maintscreen.errorexit('reboot')
+		except GotIt:
+			pass
 
 
 class Folder(TreeItem):
@@ -262,7 +300,7 @@ class ISY(object):
 				else:
 					config.Logs.Log('No ISY response restart')
 					maintscreen.errorexit('reboot')
-					sys.exit(3)  # should never get here
+					sys.exit(10)  # should never get here
 
 		if r.status_code <> 200:
 			print 'ISY text response:'
@@ -274,7 +312,8 @@ class ISY(object):
 			config.Logs.Log('Status code: ' + str(r.status_code))
 			time.sleep(10)
 			maintscreen.errorexit('shut')
-			sys.exit(1)
+			config.Ending = True
+			sys.exit(4)
 
 		configdict = xmltodict.parse(r.text)['nodes']
 

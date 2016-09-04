@@ -47,6 +47,7 @@ config.exdir = os.path.dirname(os.path.abspath(__file__))
 print config.exdir
 lastfn = ""
 lastmod = 0
+config.Console_pid = os.getpid()
 for root, dirs, files in os.walk(config.exdir):
 	for file in files:
 		if file.endswith(".py"):
@@ -128,8 +129,10 @@ config.Logs.Log("Software under Apache 2.0 License")
 config.Logs.Log("Run from: ", config.exdir)
 config.Logs.Log("Last mod: ", lastfn)
 config.Logs.Log("Mod at: ", time.ctime(lastmod))
+config.Logs.Log("Version tag: ", vn)
+config.Logs.Log("Version sha: ", vs)
 config.Logs.Log("Start time: ", time.strftime('%c'))
-config.Logs.Log("Console Starting  pid: ", os.getpid())
+config.Logs.Log("Console Starting  pid: ", config.Console_pid)
 config.Logs.Log("Main config file: ", config.configfile)
 config.Logs.Log("Including config files:")
 for f in cfiles:
@@ -167,8 +170,9 @@ p = Process(target=watchdaemon.Watcher, name="Watcher")
 p.daemon = True
 p.start()
 config.DaemonProcess = p
-debugPrint('Main', "Spawned watcher as: ", p.pid)
-config.Logs.Log("Watcher pid: " + str(p.pid))
+config.Daemon_pid = p.pid
+debugPrint('Main', "Spawned watcher as: ", config.Daemon_pid)
+config.Logs.Log("Watcher pid: " + str(config.Daemon_pid))
 
 config.Logs.livelog = False  # turn off logging to the screen and give user a moment to scan
 time.sleep(2)

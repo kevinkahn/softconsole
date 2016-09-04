@@ -32,7 +32,6 @@ The most base type
 *  AddTitle
 *  ButtonFontSizes
 *  Center
-*  DynamicLabel
 *  FindFontSize
 *  FinishKey
 *  PaintKey
@@ -51,6 +50,10 @@ The most base type
 *  KeyCharColorOff
 *  KeyCharColorOn
 *  KeyColor
+*  KeyColorOff
+*  KeyColorOn
+*  KeyLabelOff
+*  KeyLabelOn
 *  KeyOffOutlineColor
 *  KeyOnOutlineColor
 *  KeyOutlineOffset
@@ -88,6 +91,7 @@ The most base type
 	Represents and ISY node/scene folder.
 	
 *  SendCommand
+*  TryCommand
 *  flag
 *  parenttype
 
@@ -118,7 +122,7 @@ The most base type
 	Represents an ISY program and provides command support to issue run commands to it.
 	
 
-##ScreenDesc: [HouseStatusScreenDesc, WeatherScreenDesc, BaseKeyScreenDesc, ClockScreenDesc]
+##ScreenDesc: [HouseStatusScreenDesc, TimeTempScreenDesc, WeatherScreenDesc, BaseKeyScreenDesc, ClockScreenDesc]
 
 	Basic information about a screen, subclassed by all other screens to handle this information
 	
@@ -148,6 +152,11 @@ The most base type
 *  NormalOff
 *  NormalOn
 *  SetUp
+
+##TimeTempScreenDesc: []
+
+***missing***
+
 
 ##WeatherScreenDesc: []
 

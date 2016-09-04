@@ -69,6 +69,7 @@ def Watcher():
 	config.watchstarttime = time.time()
 	config.watchlist = ['init']
 	debugPrint('Daemon', "Watcher: ", config.watchstarttime, os.getpid())
+	config.Daemon_pid = os.getpid()
 	server = ISYEvent()  # can add parameter debug = 3 to have library dump some info out output
 	server.subscribe(addr=config.ISYaddr, userl=config.ISYuser, userp=config.ISYpassword)
 	server.set_process_func(event_feed, "")

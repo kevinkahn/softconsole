@@ -91,15 +91,31 @@ def restart_console_handler(sig, frame):
 
 
 def signal_handler(sig, frame):
-	print "Signal: {}".format(sig)
-	print "pid: ", os.getpid()
-	traceback.print_stack()
-	config.Logs.Log("Console Signalled to Quit", severity=ConsoleError)
-	traceback.print_stack(file=config.Logs.disklogfile)
+	config.Ending = True
+	print "Signal: {}".format(sig),
+	if os.getpid() == config.Console_pid:
+		print " to Console process (" + str(os.getpid()) + ')'
+		me = "Console"
+	elif os.getpid() == config.Daemon_pid:
+		print "to Daemon process (" + str(os.getpid()) + ')'
+		me = "Daemon"
+	else:
+		print "to Unknown process (" + str(os.getpid()) + ')'
+		me = "Unknown"
+	if sig == signal.SIGINT:
+		print "Interrupt:"
+		traceback.print_stack()
+		config.Logs.Log(me + " Interrupted to Quit", severity=ConsoleError)
+		traceback.print_stack(file=config.Logs.disklogfile)
+	elif sig == signal.SIGTERM and me == "Daemon":
+		print "Daemon shutting down for termination"
+	else:
+		print"Unexpected signal situation"
+
 	time.sleep(1)
 	pygame.quit()
-	print time.time(), "Console Exiting"
-	sys.exit(0)
+	print time.time(), me + " Exiting (" + str(os.getpid()) + ')'
+	sys.exit(3)
 
 
 def daemon_died(sig, frame):
@@ -107,8 +123,8 @@ def daemon_died(sig, frame):
 	if config.DaemonProcess is None:
 		return
 	if config.DaemonProcess.is_alive():
-		print "Child ok"
-	else:
+		config.debugPrint("Main", "Child ok signal")
+	elif not config.Ending:
 		print time.time(), "Daemon died!"
 		pygame.quit()
 		sys.exit(2)
