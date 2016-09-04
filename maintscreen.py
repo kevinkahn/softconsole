@@ -112,22 +112,22 @@ def errorexit(opt):
 	sys.exit(1)
 
 def dobeta(K):
-	basedir = config.exdir + '/../'
+	basedir = os.path.dirname(config.exdir)
 	if K.name == 'stable':
 		subprocess.Popen('sudo rm /home/pi/usebeta', shell=True)
 	elif K.name == 'beta':
 		subprocess.Popen('sudo touch /home/pi/usebeta', shell=True)
 	elif K.name == 'fetch':
-		utilities.StageVersion(basedir + 'consolebeta', 'currentbeta', 'RequestedDownload')
-		utilities.InstallStagedVersion(basedir + 'consolebeta')
+		utilities.StageVersion(basedir + '/consolebeta', 'currentbeta', 'RequestedDownload')
+		utilities.InstallStagedVersion(basedir + '/consolebeta')
 	# subprocess.Popen('sudo /bin/bash -e scripts/getcurrentbeta', shell=True)
 	elif K.name == 'release':
 		if os.path.exists(basedir + '/homesystem'):
 			# personal system
-			utilities.StageVersion(basedir + 'consolestable', 'homerelease', 'RequestedDownload')
+			utilities.StageVersion(basedir + '/consolestable', 'homerelease', 'RequestedDownload')
 		else:
-			utilities.StageVersion(basedir + 'consolestable', 'currentrelease', 'RequestedDownload')
-		utilities.InstallStagedVersion(basedir + 'consolestable')
+			utilities.StageVersion(basedir + '/consolestable', 'currentrelease', 'RequestedDownload')
+		utilities.InstallStagedVersion(basedir + '/consolestable')
 	# subprocess.Popen('sudo /bin/bash -e scripts/getcurrentrelease', shell=True)  # todo switch to use staging stuff
 	K.State = not K.State
 	K.PaintKey()
