@@ -5,6 +5,7 @@
 # second parameter is the hostname for this rpi - this will be used to name this node and as the title in the vnc server
 #  if left blank default "raspberrypi" will be used
 # third parameter uses a nonstandard VNC port non blank
+# fourth parameter if non null indicates personal system (uses special release - don't suggest you try this)
 
 # This script should take a current Jessie release and install the adafruit stuff for the 3.5" PiTFT
 # It also installs needed python packages and downgrades the sdllib to the stable Wheezy version for the
@@ -59,15 +60,13 @@ else
   VNCport="-rfbport 8723"
 fi
 
+if [ -n $4 ]
+then
+    touch homesystem
+
 dpkg-reconfigure tzdata
 
 # for later convenience install tightvncserver to the system to make it easy to get into the Pi since it is otherwise headless
-echo "Set Up Console Directories"
-mkdir Console
-mkdir consolerem
-mkdir consolestable
-mkdir consolebeta
-chown pi Console consolerem consolestable consolebeta
 
 echo "Install tightvncserver"
 apt-get -y install tightvncserver
@@ -152,21 +151,24 @@ adafruit-pitft-touch-cal -f -t $1 -r 180
 
 
 cd /home/pi/
-echo "-----Get Current Release-----" >> /home/pi/log.txt
+echo "-------Install Console-------" >> /home/pi/log.txt
 date >> /home/pi/log.txt
-wget https://github.com/kevinkahn/softconsole/archive/currentrelease.tar.gz >> /home/pi/log.txt
-tar -zx < currentrelease.tar.gz >> /home/pi/log.txt
-rm -f currentrelease.tar.* >> /home/pi/log.txt
-rm -fr consolestable.old >> /home/pi/log.txt
-rm -fr consolestable >> /home/pi/log.txt
-mv softconsole-*release consolestable >> /home/pi/log.txt
+wget https://raw.githubusercontent.com/kevinkahn/softconsole/master/setupconsole.py
+python setupconsole.py >> /home/pi/log.txt
+#wget https://github.com/kevinkahn/softconsole/archive/currentrelease.tar.gz >> /home/pi/log.txt
+#tar -zx < currentrelease.tar.gz >> /home/pi/log.txt
+#rm -f currentrelease.tar.* >> /home/pi/log.txt
+#rm -fr consolestable.old >> /home/pi/log.txt
+#rm -fr consolestable >> /home/pi/log.txt
+#mv softconsole-*release consolestable >> /home/pi/log.txt
 
-echo "-------Get Beta Release------" >> /home/pi/log.txt
-wget https://github.com/kevinkahn/softconsole/archive/currentbeta.tar.gz >>  /home/pi/log.txt
-tar -zx < currentbeta.tar.gz >> /home/pi/log.txt
-rm -fr consolebeta >> /home/pi/log.txt
-mv softconsole-currentbeta consolebeta
-rm -f currentbeta.tar.gz
-echo "-----Done with Fetch -----" /home/pi/log.txt
+#echo "-------Get Beta Release------" >> /home/pi/log.txt
+#wget https://github.com/kevinkahn/softconsole/archive/currentbeta.tar.gz >>  /home/pi/log.txt
+#tar -zx < currentbeta.tar.gz >> /home/pi/log.txt
+#rm -fr consolebeta >> /home/pi/log.txt
+#mv softconsole-currentbeta consolebeta
+#rm -f currentbeta.tar.gz
+#echo "-----Done with Fetch -----" /home/pi/log.txt
+rm setupconsole.py
 chown pi /home/pi/log.txt
 

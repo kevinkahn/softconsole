@@ -44,7 +44,7 @@ urllib3.contrib.pyopenssl.inject_into_urllib3()
 utilities.InitializeEnvironment()
 
 config.exdir = os.path.dirname(os.path.abspath(__file__))
-print config.exdir
+print 'Console start: ', config.exdir,
 lastfn = ""
 lastmod = 0
 config.Console_pid = os.getpid()
@@ -55,15 +55,19 @@ for root, dirs, files in os.walk(config.exdir):
 			if os.path.getmtime(fn) > lastmod:
 				lastmod = os.path.getmtime(fn)
 				lastfn = fn
-print 'Version', lastfn, time.ctime(lastmod)
+print 'Version (', lastfn, time.ctime(lastmod),
 
 try:  # todo start to use this
 	with open(config.exdir + '/' + 'versioninfo') as f:
-		vn = f.readline()
-		vs = f.readline()
-		print vn, vs
+		vn = f.readline()[:-1]
+		vs = f.readline()[:-1]
+		vi = f.readline()[:-1]
+		print vn, vs, vi, ')'
 except:
-	print 'No version info'
+	vn = 'none'
+	vs = 'none'
+	vi = 'none'
+	print 'No version info)'
 
 import watchdaemon
 from config import debugPrint
@@ -126,11 +130,12 @@ config.Logs = logsupport.Logs(config.screen, os.path.dirname(config.configfile))
 config.Logs.Log(u"Soft ISY Console")
 config.Logs.Log(u"  \u00A9 Kevin Kahn 2016")
 config.Logs.Log("Software under Apache 2.0 License")
-config.Logs.Log("Run from: ", config.exdir)
-config.Logs.Log("Last mod: ", lastfn)
-config.Logs.Log("Mod at: ", time.ctime(lastmod))
-config.Logs.Log("Version tag: ", vn)
-config.Logs.Log("Version sha: ", vs)
+config.Logs.Log("Version Information:")
+config.Logs.Log(" Run from: ", config.exdir)
+config.Logs.Log(" Last mod: ", lastfn)
+config.Logs.Log(" Mod at: ", time.ctime(lastmod))
+config.Logs.Log(" Tag: ", vn)
+config.Logs.Log(" Sha: ", vs)
 config.Logs.Log("Start time: ", time.strftime('%c'))
 config.Logs.Log("Console Starting  pid: ", config.Console_pid)
 config.Logs.Log("Main config file: ", config.configfile)

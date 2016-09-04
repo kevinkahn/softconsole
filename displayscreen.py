@@ -15,7 +15,7 @@ wc = webcolors.name_to_rgb
 class DisplayScreen(object):
 	def __init__(self):
 
-		print "Screensize: ", config.screenwidth, config.screenheight
+		config.debugPrint("Main", "Screensize: ", config.screenwidth, config.screenheight)
 		config.Logs.Log("Screensize: " + str(config.screenwidth) + " x " + str(config.screenheight))
 		config.Logs.Log(
 			"Scaling ratio: " + "{0:.2f}".format(config.dispratioW) + ':' + "{0:.2f}".format(config.dispratioH))
