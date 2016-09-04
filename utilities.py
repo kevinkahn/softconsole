@@ -280,6 +280,7 @@ def DumpDocumentation():
 
 
 def StageVersion(dir, tag, label):
+	print "Staging ", tag, " in ", dir, ' because ', label,
 	sha = "zzz"
 	cwd = os.getcwd()
 	os.chdir(dir)
@@ -297,12 +298,12 @@ def StageVersion(dir, tag, label):
 	with open('versioninfo', 'w') as f:
 		f.writelines(['{0}\n'.format(tag), '{0}\n'.format(sha), label + ': ' + time.strftime('%m-%d-%y %H:%M:%S\n')])
 	os.remove(tag + '.tar.gz')
+	print ' SHA: ', sha
 	os.chdir(cwd)
-
 
 def InstallStagedVersion(d):
 	shutil.rmtree(d + '/previousversion', True)  # don't keep multiple previous version in tree
 	os.rename(d, d + '.TMP')  # move active directory to temp
 	os.rename(d + '.TMP/stagedversion', d)  # move new version into place
-	os.rename(d + '.TMP', d + '/previous'
-							  'version')  # save previous version
+	os.rename(d + '.TMP', d + '/previousversion')  # save previous version
+	print "Staged version installed in ", d

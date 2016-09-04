@@ -118,14 +118,22 @@ def dobeta(K):
 	elif K.name == 'beta':
 		subprocess.Popen('sudo touch /home/pi/usebeta', shell=True)
 	elif K.name == 'fetch':
+		config.Logs.Log("New version fetch(currentbeta)")
+		print "----------------------------------------"
+		print "New Version Fetch Requested (currentbeta)"
 		utilities.StageVersion(basedir + '/consolebeta', 'currentbeta', 'RequestedDownload')
 		utilities.InstallStagedVersion(basedir + '/consolebeta')
 	# subprocess.Popen('sudo /bin/bash -e scripts/getcurrentbeta', shell=True)
 	elif K.name == 'release':
+		print "----------------------------------------"
 		if os.path.exists(basedir + '/homesystem'):
 			# personal system
+			config.Logs.Log("New version fetch(homerelease)")
+			print "New Version Fetch Requested (homesystem)"
 			utilities.StageVersion(basedir + '/consolestable', 'homerelease', 'RequestedDownload')
 		else:
+			config.Logs.Log("New version fetch(currentrelease)")
+			print "New Version Fetch Requested (currentrelease)"
 			utilities.StageVersion(basedir + '/consolestable', 'currentrelease', 'RequestedDownload')
 		utilities.InstallStagedVersion(basedir + '/consolestable')
 	# subprocess.Popen('sudo /bin/bash -e scripts/getcurrentrelease', shell=True)  # todo switch to use staging stuff
