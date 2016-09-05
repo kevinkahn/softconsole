@@ -1,6 +1,6 @@
 import os
 import pwd, grp
-import utilities as U
+import githubutil as U
 
 # decide when/how to call
 # handle failure case - don't want to leave system with no code

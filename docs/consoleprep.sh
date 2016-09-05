@@ -63,6 +63,7 @@ fi
 if [ -n $4 ]
 then
     touch homesystem
+fi
 
 dpkg-reconfigure tzdata
 
@@ -81,7 +82,7 @@ After=sshd.service
 
 [Service]
 Type=dbus
-ExecStart=/usr/bin/tightvncserver :0 -geometry 1280x1024 -name $NodeName $VNCport
+ExecStart=/usr/bin/tightvncserver :1 -geometry 1280x1024 -name $NodeName $VNCport
 User=pi
 Type=forking
 
@@ -95,15 +96,15 @@ systemctl daemon-reload && sudo systemctl enable tightvncserver.service
 echo "Update system"
 apt-get update
 echo "Upgrade system"
-apt-get upgrade
+apt-get -y upgrade
 
 
 echo "Add adafruit"
 curl -SLs https://apt.adafruit.com/add-pin | sudo bash
 echo "Install bootloader"
-apt-get install raspberrypi-bootloader
+apt-get -y install raspberrypi-bootloader
 echo "Install pitft helper"
-apt-get install adafruit-pitft-helper
+apt-get -y install adafruit-pitft-helper
 
 echo "Run helper"
 adafruit-pitft-helper -t $1
@@ -154,21 +155,10 @@ cd /home/pi/
 echo "-------Install Console-------" >> /home/pi/log.txt
 date >> /home/pi/log.txt
 wget https://raw.githubusercontent.com/kevinkahn/softconsole/master/setupconsole.py
+wget https://raw.githubusercontent.com/kevinkahn/softconsole/master/githubutil.py
 python setupconsole.py >> /home/pi/log.txt
-#wget https://github.com/kevinkahn/softconsole/archive/currentrelease.tar.gz >> /home/pi/log.txt
-#tar -zx < currentrelease.tar.gz >> /home/pi/log.txt
-#rm -f currentrelease.tar.* >> /home/pi/log.txt
-#rm -fr consolestable.old >> /home/pi/log.txt
-#rm -fr consolestable >> /home/pi/log.txt
-#mv softconsole-*release consolestable >> /home/pi/log.txt
+shutdown
 
-#echo "-------Get Beta Release------" >> /home/pi/log.txt
-#wget https://github.com/kevinkahn/softconsole/archive/currentbeta.tar.gz >>  /home/pi/log.txt
-#tar -zx < currentbeta.tar.gz >> /home/pi/log.txt
-#rm -fr consolebeta >> /home/pi/log.txt
-#mv softconsole-currentbeta consolebeta
-#rm -f currentbeta.tar.gz
-#echo "-----Done with Fetch -----" /home/pi/log.txt
-rm setupconsole.py
+rm setupconsole.py, githubutil.py
 chown pi /home/pi/log.txt
 

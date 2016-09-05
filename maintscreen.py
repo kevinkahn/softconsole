@@ -16,6 +16,7 @@ import time
 import sys
 import utilities
 import screen
+import githubutil as U
 
 fixedoverrides = {'CharColor': 'white', 'BackgroundColor': 'royalblue', 'label': ['Maintenance'], 'DimTO': 100000}
 
@@ -121,8 +122,8 @@ def dobeta(K):
 		config.Logs.Log("New version fetch(currentbeta)")
 		print "----------------------------------------"
 		print "New Version Fetch Requested (currentbeta)"
-		utilities.StageVersion(basedir + '/consolebeta', 'currentbeta', 'RequestedDownload')
-		utilities.InstallStagedVersion(basedir + '/consolebeta')
+		U.StageVersion(basedir + '/consolebeta', 'currentbeta', 'RequestedDownload')
+		U.InstallStagedVersion(basedir + '/consolebeta')
 	# subprocess.Popen('sudo /bin/bash -e scripts/getcurrentbeta', shell=True)
 	elif K.name == 'release':
 		print "----------------------------------------"
@@ -130,12 +131,12 @@ def dobeta(K):
 			# personal system
 			config.Logs.Log("New version fetch(homerelease)")
 			print "New Version Fetch Requested (homesystem)"
-			utilities.StageVersion(basedir + '/consolestable', 'homerelease', 'RequestedDownload')
+			U.StageVersion(basedir + '/consolestable', 'homerelease', 'RequestedDownload')
 		else:
 			config.Logs.Log("New version fetch(currentrelease)")
 			print "New Version Fetch Requested (currentrelease)"
-			utilities.StageVersion(basedir + '/consolestable', 'currentrelease', 'RequestedDownload')
-		utilities.InstallStagedVersion(basedir + '/consolestable')
+			U.StageVersion(basedir + '/consolestable', 'currentrelease', 'RequestedDownload')
+		U.InstallStagedVersion(basedir + '/consolestable')
 	# subprocess.Popen('sudo /bin/bash -e scripts/getcurrentrelease', shell=True)  # todo switch to use staging stuff
 	K.State = not K.State
 	K.PaintKey()
