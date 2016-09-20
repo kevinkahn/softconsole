@@ -98,17 +98,20 @@ def signal_handler(sig, frame):
 	print "Signal: {}".format(sig),
 	if os.getpid() == config.Console_pid:
 		print " to Console process (" + str(os.getpid()) + ')'
-		me = "Console/" + str(os.getpid())
+		me = "Console"
+		id = "/" + str(os.getpid())
 	elif os.getpid() == config.Daemon_pid:
 		print "to Daemon process (" + str(os.getpid()) + ')'
-		me = "Daemon/" + str(os.getpid())
+		me = "Daemon"
+		id = "/" + str(os.getpid())
 	else:
 		print "to Unknown process (" + str(os.getpid()) + ')'
-		me = "Unknown/" + str(os.getpid())
+		me = "Unknown"
+		id = "/" + str(os.getpid())
 	if sig == signal.SIGINT:
 		print "Interrupt:"
 		traceback.print_stack()
-		config.Logs.Log(me + " Interrupted to Quit", severity=ConsoleError)
+		config.Logs.Log(me + id + " Interrupted to Quit", severity=ConsoleError)
 		traceback.print_stack(file=config.Logs.disklogfile)
 	elif sig == signal.SIGTERM and me == "Daemon":
 		print "Daemon shutting down for termination"
@@ -117,7 +120,7 @@ def signal_handler(sig, frame):
 
 	time.sleep(1)
 	pygame.quit()
-	print time.time(), me + " Exiting (" + str(os.getpid()) + ')'
+	print time.strftime('%m-%d-%y %H:%M:%S'), me + id + " Exiting (" + str(os.getpid()) + ')'
 	sys.exit(3)
 
 
