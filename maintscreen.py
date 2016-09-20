@@ -119,6 +119,8 @@ def errorexit(opt):
 
 def dobeta(K):
 	basedir = os.path.dirname(config.exdir)
+	K.State = not K.State
+	K.PaintKey()
 	if K.name == 'stable':
 		subprocess.Popen('sudo rm /home/pi/usebeta', shell=True)
 	elif K.name == 'beta':
@@ -144,9 +146,8 @@ def dobeta(K):
 		U.InstallStagedVersion(basedir + '/consolestable')
 	# subprocess.Popen('sudo /bin/bash -e scripts/getcurrentrelease', shell=True)  # todo switch to use staging stuff
 
-	K.State = not K.State
-	K.PaintKey()
-	time.sleep(4)
+
+	time.sleep(2)
 	K.State = not K.State
 	K.PaintKey()
 
