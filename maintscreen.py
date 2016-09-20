@@ -85,6 +85,8 @@ def dorealexit(K):
 	elif ExitKey == 'reboot':
 		Exit_Options("Reboot Pi Requested", "Rebooting Pi")
 
+	os.chdir(config.exdir)  # set cwd to be correct when dirs move underneath us so that scripts execute
+
 	subprocess.Popen('nohup sudo /bin/bash -e scripts/consoleexit ' + ExitKey + ' ' + config.configfile + ' user',
 					 shell=True)
 	config.Ending = True
@@ -107,6 +109,9 @@ def errorexit(opt):
 	elif opt == 'shut':
 		Exit_Options('Error Shutdown', 'Error Check Log')
 	print opt
+
+	os.chdir(config.exdir)  # set cwd to be correct when dirs move underneath us so that scripts execute
+
 	subprocess.Popen('nohup sudo /bin/bash -e scripts/consoleexit ' + opt + ' ' + config.configfile + ' ' + ' error',
 					 shell=True)
 	config.Ending = True
@@ -138,6 +143,7 @@ def dobeta(K):
 			U.StageVersion(basedir + '/consolestable', 'currentrelease', 'RequestedDownload')
 		U.InstallStagedVersion(basedir + '/consolestable')
 	# subprocess.Popen('sudo /bin/bash -e scripts/getcurrentrelease', shell=True)  # todo switch to use staging stuff
+
 	K.State = not K.State
 	K.PaintKey()
 	time.sleep(4)
