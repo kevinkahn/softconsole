@@ -98,13 +98,13 @@ def signal_handler(sig, frame):
 	print "Signal: {}".format(sig),
 	if os.getpid() == config.Console_pid:
 		print " to Console process (" + str(os.getpid()) + ')'
-		me = "Console"
+		me = "Console/" + str(os.getpid())
 	elif os.getpid() == config.Daemon_pid:
 		print "to Daemon process (" + str(os.getpid()) + ')'
-		me = "Daemon"
+		me = "Daemon/" + str(os.getpid())
 	else:
 		print "to Unknown process (" + str(os.getpid()) + ')'
-		me = "Unknown"
+		me = "Unknown/" + str(os.getpid())
 	if sig == signal.SIGINT:
 		print "Interrupt:"
 		traceback.print_stack()
