@@ -170,7 +170,7 @@ wget https://raw.githubusercontent.com/kevinkahn/softconsole/master/setupconsole
 wget https://raw.githubusercontent.com/kevinkahn/softconsole/master/githubutil.py
 python setupconsole.py >> /home/pi/log.txt
 
-rm setupconsole.py, githubutil.py
+rm setupconsole.py githubuti
 chown pi /home/pi/log.txt
 mv --backup=numbered /home/pi/consolestable/docs/rc.local /etc/rc.local
 chmod a+x /etc/rc.local
