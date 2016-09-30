@@ -155,13 +155,13 @@ echo "N" | ./install.sh
 
 ./re4son-pi-tft-setup -d
 
-./re4son-pi-tft-setup -t 35r
+echo "Y N" | ./re4son-pi-tft-setup -t 35r
 
 echo "Configure the screen and calibrate"
 # set vertical orientation
 mv /boot/config.txt /boot/config.sav
 sed s/rotate=90/rotate=180/ /boot/config.sav > /boot/config.txt
-adafruit-pitft-touch-cal -f -t $1 -r 180
+python /home/pi/adafruit-pitft-touch-cal -f -t $1 -r 180
 
 cd /home/pi/
 echo "-------Install Console-------" >> /home/pi/log.txt
