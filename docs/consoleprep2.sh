@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # MUST BE RUN as root:  sudo consoleprep.sh
-# parameter is the type of display: 35r (tested), 28c, 28c (not tested)
+# parameter is the type of display: 35r (tested), 28c (tested), 28r (not tested)
 # second parameter is the hostname for this rpi - this will be used to name this node and as the title in the vnc server
 #  if left blank default "raspberrypi" will be used
 # third parameter uses a nonstandard VNC port non blank
@@ -9,7 +9,7 @@
 
 # This script should take a current Jessie release and install the adafruit stuff for the 3.5" PiTFT
 # It also installs needed python packages and downgrades the sdllib to the stable Wheezy version for the
-# touchscreen to work since sdllib 2 breaks pygame.
+# touchscreen to work since sdllibn 2 breaks pygame.
 
 # Before running this script you should load a current Jessie on the SD card and boot; connect WiFi as appropriate if necessary;
 # run raspi-config and expand the file system and update things as needed under the adv settings and REBOOT
@@ -98,26 +98,13 @@ apt-get update
 echo "Upgrade system"
 apt-get -y upgrade
 
-mount /dev/mmcblk0p1 /boot
-cd /usr/local/src
-wget  -O re4son_kali-pi-tft_kernel_current.tar.xz http://whitedome.com.au/re4son/downloads/10452/
-tar -xJf re4son_kali-pi-tft_kernel_current.tar.xz
-cd re4son_kali-pi-tft*
-./install.sh
 
-./re4son-pi-tft-setup -d
+# Get the one adafruit tool we need since this script uses the kali pitft support
 
-./re4son-pi-tft-setup -t 35r -a pi -b cli
+cd /home/pi
+wget raw.githubusercontent.com/adafruit/Adafruit-PiTFT-Helper/master/adafruit-pitft-touch-cal
 
-#echo "Add adafruit"
-#curl -SLs https://apt.adafruit.com/add-pin | sudo bash
-#echo "Install bootloader"
-#apt-get -y install raspberrypi-bootloader
-#echo "Install pitft helper"
-#apt-get -y install adafruit-pitft-helper
-
-#echo "Run helper"
-#adafruit-pitft-helper -t $1
+# Install the python packages needed for the console
 
 echo "Install stuff for console"
 apt-get -y install python-dev
@@ -128,6 +115,8 @@ pip install webcolors
 pip install xmltodict
 pip install wiringpi
 /usr/local/bin/pip install ISYlib
+
+# PiTFT touch using PyGame requires the older wheezy sdl library (long term problem that PyGame needs to resolve)
 
 echo "Setup to downgrade touch stuff to wheezy"
 #enable wheezy package sources
@@ -146,6 +135,7 @@ Package: libsdl1.2debian
 Pin: release n=wheezy
 Pin-Priority: 900
 " > /etc/apt/preferences.d/libsdl
+
 #install
 
 echo "Update to downgrade"
@@ -153,13 +143,24 @@ apt-get -y --force-yes update
 echo "Install the downgrade"
 apt-get -y --force-yes install libsdl1.2debian/wheezy
 
+# third party has figured out PiTFT support for newer Debian distrs
+# ref: https://whitedome.com.au/re4son/sticky-fingers-kali-pi/#TFT
+
+cd /usr/local/src
+wget  -O re4son_kali-pi-tft_kernel_current.tar.xz http://whitedome.com.au/re4son/downloads/10452/
+tar -xJf re4son_kali-pi-tft_kernel_current.tar.xz
+cd re4son_kali-pi-tft*
+echo "N" | "./install.sh
+
+./re4son-pi-tft-setup -d
+
+./re4son-pi-tft-setup -t 35r
+
 echo "Configure the screen and calibrate"
 # set vertical orientation
 mv /boot/config.txt /boot/config.sav
 sed s/rotate=90/rotate=180/ /boot/config.sav > /boot/config.txt
 adafruit-pitft-touch-cal -f -t $1 -r 180
-
-
 
 cd /home/pi/
 echo "-------Install Console-------" >> /home/pi/log.txt
@@ -167,8 +168,12 @@ date >> /home/pi/log.txt
 wget https://raw.githubusercontent.com/kevinkahn/softconsole/master/setupconsole.py
 wget https://raw.githubusercontent.com/kevinkahn/softconsole/master/githubutil.py
 python setupconsole.py >> /home/pi/log.txt
-shutdown
 
 rm setupconsole.py, githubutil.py
 chown pi /home/pi/log.txt
+mv --backup=numbered /home/pi/consolestable/docs/rc.local /etc/rc.local
+chmod a+x /etc/rc.local
+chown root /etc/rc.local
+
+echo "Install/setup finished -- set up config.txt file and reboot to start console"
 
