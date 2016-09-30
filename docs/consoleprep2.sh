@@ -15,7 +15,8 @@
 # run raspi-config and expand the file system and update things as needed under the adv settings and REBOOT
 
 # get this script with:
-# wget https://raw.githubusercontent.com/kevinkahn/softconsole/master/docs/consoleprep.sh
+# wget https://raw.githubusercontent.com/kevinkahn/softconsole/master/docs/consoleprep2.sh
+# (or https://goo.gl/5V1HtG)
 # chmod +x this script
 # script will prompt for Timezone info
 # script installs tightvncserver as a convenience - this installation will prompt for a vnc password
@@ -150,7 +151,7 @@ cd /usr/local/src
 wget  -O re4son_kali-pi-tft_kernel_current.tar.xz http://whitedome.com.au/re4son/downloads/10452/
 tar -xJf re4son_kali-pi-tft_kernel_current.tar.xz
 cd re4son_kali-pi-tft*
-echo "N" | "./install.sh
+echo "N" | ./install.sh
 
 ./re4son-pi-tft-setup -d
 
