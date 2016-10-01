@@ -38,6 +38,8 @@ def debugPrint(flag, *args):
 			for arg in args:
 				print arg,
 			print
+			if Logs <> None:
+				Logs.Log(*args, severity=-1, diskonly=True)
 	else:
 		print "DEBUG FLAG NAME ERROR", flag
 

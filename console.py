@@ -39,7 +39,7 @@ import json
 urllib3.disable_warnings()
 import urllib3.contrib.pyopenssl
 
-sys.stdout = open('/home/pi/master.log', 'a')
+sys.stdout = open('/home/pi/master.log', 'a', 0)
 print time.strftime('%m-%d-%y %H:%M:%S'), 'CONSOLE START'
 urllib3.contrib.pyopenssl.inject_into_urllib3()
 
