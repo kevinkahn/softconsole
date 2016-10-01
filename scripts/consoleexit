@@ -52,7 +52,7 @@ case $1 in
                 ;;
             esac
         echo "+++++++++++++++++++++++++++++++++++++++++++++" >> log.txt
-		#sudo shutdown -r now >> log.txt
+		sudo shutdown -r now >> log.txt
 		;;
 	*)
 		echo "Unknown exit" >> log.txt
