@@ -50,14 +50,16 @@ def SetUpMaintScreens():
 
 
 def setdbg(K):
-	print "FLAG: ", K.name, config.Flags[K.name]
+	# print "FLAG: ", K.name, config.Flags[K.name]
 	config.Flags[K.name] = not config.Flags[K.name]
 	K.State = config.Flags[K.name]
-	print "CHANGE", config.Flags[K.name], K.State
+	#print "CHANGE", config.Flags[K.name], K.State
 	config.Logs.Log("Debug flag ", K.name, ' = ', K.State, severity=ConsoleWarning)
 	# Let the daemon know about flags change
 	config.toDaemon.put(('flagchange', K.name, config.Flags[K.name]))
-	print config.Flags
+
+
+#print config.Flags
 
 
 ExitKey = 'none'
