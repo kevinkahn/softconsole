@@ -131,7 +131,7 @@ def daemon_died(sig, frame):
 	if config.DaemonProcess.is_alive():
 		config.debugPrint("Main", "Child ok signal")
 	elif not config.Ending:
-		print time.time(), "Daemon died!"
+		print time.strftime('%m-%d-%y %H:%M:%S'), "Daemon died!"
 		pygame.quit()
 		sys.exit(2)
 
@@ -143,6 +143,7 @@ def EarlyAbort(scrnmsg):
 	r = config.fonts.Font(40, '', True, True).render(scrnmsg, 0, wc("white"))
 	config.screen.blit(r, ((config.screenwidth - r.get_width())/2, config.screenheight*.4))
 	pygame.display.update()
+	print time.strftime('%m-%d-%y %H:%M:%S'), scrnmsg
 	time.sleep(5)
 	sys.exit(9)
 

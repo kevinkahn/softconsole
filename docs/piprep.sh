@@ -177,10 +177,12 @@ chmod a+x /etc/rc.local
 chown root /etc/rc.local
 
 # install OpenVPN
-apt-get install openvpn
+apt-get -y install openvpn
 
-# install ddclient
+# install -y ddclient
 apt-get install ddclient
+
+# install watchdog?
 
 
 echo "Install/setup finished -- set up config.txt file and reboot to start console"
