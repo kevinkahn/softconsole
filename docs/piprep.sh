@@ -182,8 +182,11 @@ apt-get -y install openvpn
 # install -y ddclient
 apt-get install ddclient
 
-# install watchdog?
-
+# install watchdog
+cd /home/pi
+echo "------Get Watchdog-------"
+wget https://github.com/kevinkahn/watchdoghander/archive/1.0.tar.gz
+tar -zxls --strip-components=1 < '1.0.tar.gz
 
 echo "Install/setup finished -- set up config.txt file and reboot to start console"
 

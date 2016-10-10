@@ -1,8 +1,8 @@
 #!/bin/bash
 #
 # Meant to be put on boot file system when SD card is created then moved and run from pi home dir
-#sudo passwd pi
-#sudo raspi-config
+sudo passwd pi
+sudo raspi-config
 echo "Make sure to set up network"
 cd /home/pi/.config/lxterminal
 echo "
@@ -15,5 +15,5 @@ fgcolor=#c63eef9a0c11
 " > lxfix
 cp lxterminal.conf lxterminal.conf.bak
 sed -f lxfix lxterminal.conf.bak > lxterminal.conf
-cd
+cd /home/pi
 wget https://raw.githubusercontent.com/kevinkahn/softconsole/master/docs/piprep.sh
