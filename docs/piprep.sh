@@ -22,6 +22,13 @@
 # script installs tightvncserver as a convenience - this installation will prompt for a vnc password
 # script may ask for permission to use more file system space - always say y
 #
+if [ -z "$1" ] || [ "$1" != --tee ]; then
+  $0 --tee "$@" | tee prep.log
+  exit $?
+else
+  shift
+fi
+
 if [[ "$EUID" -ne 0 ]]
 then
   echo "Must be run as root"
@@ -170,11 +177,12 @@ wget https://raw.githubusercontent.com/kevinkahn/softconsole/master/setupconsole
 wget https://raw.githubusercontent.com/kevinkahn/softconsole/master/githubutil.py
 python setupconsole.py >> /home/pi/log.txt
 
-rm setupconsole.py githubuti
+rm setupconsole.* githubutil.*
 chown pi /home/pi/log.txt
 mv --backup=numbered /home/pi/consolestable/docs/rc.local /etc/rc.local
 chmod a+x /etc/rc.local
 chown root /etc/rc.local
+
 
 # install OpenVPN
 apt-get -y install openvpn
@@ -185,8 +193,10 @@ apt-get install ddclient
 # install watchdog
 cd /home/pi
 echo "------Get Watchdog-------"
-wget https://github.com/kevinkahn/watchdoghander/archive/1.0.tar.gz
-tar -zxls --strip-components=1 < '1.0.tar.gz
+mkdir Watchdog
+cd Watchdog
+wget https://github.com/kevinkahn/watchdoghandler/archive/1.0.tar.gz
+tar -zxls --strip-components=1 < 1.0.tar.gz
 
 echo "Install/setup finished -- set up config.txt file and reboot to start console"
 

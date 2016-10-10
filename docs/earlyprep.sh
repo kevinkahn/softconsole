@@ -1,9 +1,12 @@
 #!/bin/bash
 #
 # Meant to be put on boot file system when SD card is created then moved and run from pi home dir
+echo "Connect WiFI if needed"
+read -p "Press any key to continue"
 sudo passwd pi
+echo "Expand File System and Set WiFi country"
+read -p "Press any key to continue"
 sudo raspi-config
-echo "Make sure to set up network"
 cd /home/pi/.config/lxterminal
 echo "
 /fontname/c \\
@@ -17,3 +20,4 @@ cp lxterminal.conf lxterminal.conf.bak
 sed -f lxfix lxterminal.conf.bak > lxterminal.conf
 cd /home/pi
 wget https://raw.githubusercontent.com/kevinkahn/softconsole/master/docs/piprep.sh
+echo "Reboot now and then run piprep.sh as root"
