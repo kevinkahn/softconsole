@@ -14,6 +14,6 @@ bgcolor=#5ddb1a55f009
 fgcolor=#c63eef9a0c11
 " > lxfix
 cp lxterminal.conf lxterminal.conf.bak
-sed -f lxfix lxterminal.conf.bak > lxterinal.conf2
+sed -f lxfix lxterminal.conf.bak > lxterminal.conf
 cd
 wget https://raw.githubusercontent.com/kevinkahn/softconsole/master/docs/piprep.sh
