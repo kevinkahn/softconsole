@@ -74,6 +74,7 @@ Get_val NodeName "What name for this system?"
 Get_yn VNCstdPort "Install VNC on standard port (Y/N)?"
 Get_yn Personal "Is this the developer personal system (Y/N) (risky to say Y if it not)?"
 Get_yn AutoConsole "Autostart console (Y/N)?"
+Get_yn InstallOVPN "Install OpenVPN (Y/N)?"
 Get_yn InstallDDC "Install ddclient (Y/N)?"
 Get_yn InstallWD "Install and start Watchdog (Y/N)?"
 
@@ -82,6 +83,7 @@ echo "NodeName:                   $NodeName"
 echo "Developer system:           $Personal"
 echo "Standard VNC port:          $VNCstdPort"
 echo "Auto start Console on boot: $AutoConsole"
+echo "Install OpenVPN:            $InstallOVPN"
 echo "Install ddclient:           $InstallDDC"
 echo "Install and start watchdog: $InstallWD"
 
@@ -91,6 +93,8 @@ then
   exit 1
 fi
 
+dpkg-reconfigure tzdata
+
 echo "System Preparation" > prep.log
 date >> prep.log
 echo "Screen Type:                $ScreenType" >> prep.log
@@ -98,6 +102,7 @@ echo "NodeName:                   $NodeName" >> prep.log
 echo "Developer system:           $Personal" >> prep.log
 echo "Standard VNC port:          $VNCstdPort" >> prep.log
 echo "Auto start Console on boot: $AutoConsole" >> prep.log
+echo "Install OpenVPN:            $InstallOVPN" >> prep.log
 echo "Install ddclient:           $InstallDDC" >> prep.log
 echo "Install and start watchdog: $InstallWD" >> prep.log
 exec > >(tee -a prep.log)
@@ -108,8 +113,6 @@ mv -n /etc/hosts /etc/hosts.orig
 sed s/raspberrypi/$NodeName/ /etc/hosts.orig > /etc/hosts
 echo $NodeName > /etc/hostname
 hostname $NodeName
-
-dpkg-reconfigure tzdata
 
 LogBanner "System Options"
 
@@ -157,7 +160,7 @@ systemctl daemon-reload && sudo systemctl enable tightvncserver.service
 
 LogBanner "Update/upgrade system"
 apt-get update
-apt-get -y upgrade
+DEBIAN_FRONTEND=noninteractive apt-get -y upgrade
 
 
 # Get the one adafruit tool we need since this script uses the kali pitft support
@@ -246,18 +249,28 @@ fi
 
 
 # install OpenVPN
-LogBanner "Install OpenVPN"
-apt-get -y install openvpn
+if [ $InstallOVPN" == "Y" ]
+then
+  LogBanner "Install OpenVPN"
+  apt-get -y install openvpn
+fi
 
 # install -y ddclient
 if [ "$InstallDDC" == "Y" ]
 then
   LogBanner Install ddclient
-  apt-get -y install ddclient
+  DEBIAN_FRONTEND=noninteractive apt-get -y install ddclient
+  echo " \
+  ssl=yes\
+  protocol=googledomains\
+  login=<addfromgoogle>\
+  password=<addfromgoogle>
+  use=????\
+  host.domain.tld" > /etc/ddclient.conf
 fi
 
 # install watchdog
-if [ "#InstallWD" == "Y" ]
+if [ "$InstallWD" == "Y" ]
 then
   LogBanner "Install Watchdog"
   cd /home/pi
@@ -267,5 +280,5 @@ then
   wget https://github.com/kevinkahn/watchdoghandler/archive/1.0.tar.gz
   tar -zxls --strip-components=1 < 1.0.tar.gz
 
-LogBanner "Install/setup finished -- set up config.txt file and reboot to start console"
+LogBanner "Install/setup finished"
 
