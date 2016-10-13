@@ -252,7 +252,7 @@ fi
 
 
 # install OpenVPN
-if [ $InstallOVPN" == "Y" ]
+if [ "$InstallOVPN" == "Y" ]
 then
   LogBanner "Install OpenVPN"
   apt-get -y install openvpn
@@ -263,14 +263,16 @@ fi
 if [ "$InstallDDC" == "Y" ]
 then
   LogBanner "Install ddclient"
+  echo "
+  ssl=yes
+  protocol=googledomains
+  login=<addfromgoogle>
+  password=<addfromgoogle>
+  use=????
+  host.domain.tld
+  " > /etc/ddclient.conf
   DEBIAN_FRONTEND=noninteractive apt-get -y install ddclient
-  echo " \
-  ssl=yes\
-  protocol=googledomains\
-  login=<addfromgoogle>\
-  password=<addfromgoogle>\
-  use=????\
-  host.domain.tld" > /etc/ddclient.conf
+
   echo "Configure ddclient" >> /home/pi/TODO-installation
 fi
 
@@ -279,12 +281,13 @@ if [ "$InstallWD" == "Y" ]
 then
   LogBanner "Install Watchdog"
   cd /home/pi
-  mkdir Watchdog
-  cd Watchdog
-  wget https://github.com/kevinkahn/watchdoghandler/archive/1.0.tar.gz
+  mkdir watchdog
+  cd watchdog
+  wget https://github.com/kevinkahn/watchdoghandler/archive/1.1tar.gz
   tar -zxls --strip-components=1 < 1.0.tar.gz
   bash ./WDsetup.sh
   echo "Edit watchdog yaml file as needed" >> /home/pi/TODO-installation
+fi
 
 LogBanner "Install and setup finished"
 
