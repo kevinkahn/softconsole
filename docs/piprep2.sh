@@ -283,8 +283,8 @@ then
   cd /home/pi
   mkdir watchdog
   cd watchdog
-  wget https://github.com/kevinkahn/watchdoghandler/archive/1.1tar.gz
-  tar -zxls --strip-components=1 < 1.0.tar.gz
+  wget https://github.com/kevinkahn/watchdoghandler/archive/1.1.tar.gz
+  tar -zxls --strip-components=1 < 1.1.tar.gz
   bash ./WDsetup.sh
   echo "Edit watchdog yaml file as needed" >> /home/pi/TODO-installation
 fi
