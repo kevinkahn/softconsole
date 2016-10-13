@@ -43,11 +43,13 @@ function Get_val()
 
 function LogBanner()
 {
+  echo
   echo "----------------------------------------------------------"
   echo "----------------------------------------------------------"
   echo "$1"
   echo "----------------------------------------------------------"
   echo "----------------------------------------------------------"
+  echo
 }
 
 LogBanner "Pi setup Script"
@@ -258,7 +260,7 @@ fi
 # install -y ddclient
 if [ "$InstallDDC" == "Y" ]
 then
-  LogBanner Install ddclient
+  LogBanner "Install ddclient"
   DEBIAN_FRONTEND=noninteractive apt-get -y install ddclient
   echo " \
   ssl=yes\
@@ -274,11 +276,11 @@ if [ "$InstallWD" == "Y" ]
 then
   LogBanner "Install Watchdog"
   cd /home/pi
-  echo "------Get Watchdog-------"
   mkdir Watchdog
   cd Watchdog
   wget https://github.com/kevinkahn/watchdoghandler/archive/1.0.tar.gz
   tar -zxls --strip-components=1 < 1.0.tar.gz
+  bash ./WDsetup.sh
 
-LogBanner "Install/setup finished"
+LogBanner "Install and setup finished"
 
