@@ -6,7 +6,6 @@ read -p "Press any key to continue"
 sudo passwd pi
 echo "Expand File System and Set WiFi country"
 read -p "Press any key to continue"
-sudo raspi-config
 cd /home/pi/.config/lxterminal
 echo "
 /fontname/c \\
@@ -20,4 +19,5 @@ cp lxterminal.conf lxterminal.conf.bak
 sed -f lxfix lxterminal.conf.bak > lxterminal.conf
 cd /home/pi
 wget https://raw.githubusercontent.com/kevinkahn/softconsole/master/docs/piprep2.sh
+sudo raspi-config
 echo "Reboot now and then run piprep.sh as root"

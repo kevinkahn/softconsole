@@ -247,6 +247,7 @@ then
   mv --backup=numbered /home/pi/consolestable/docs/rc.local /etc/rc.local
   chmod a+x /etc/rc.local
   chown root /etc/rc.local
+  echo "Create configuration files in Console" >> /home/pi/TODO-installation
 fi
 
 
@@ -255,6 +256,7 @@ if [ $InstallOVPN" == "Y" ]
 then
   LogBanner "Install OpenVPN"
   apt-get -y install openvpn
+  echo "Set up OpenVPN keys etc." >> /home/pi/TODO-installation
 fi
 
 # install -y ddclient
@@ -266,9 +268,10 @@ then
   ssl=yes\
   protocol=googledomains\
   login=<addfromgoogle>\
-  password=<addfromgoogle>
+  password=<addfromgoogle>\
   use=????\
   host.domain.tld" > /etc/ddclient.conf
+  echo "Configure ddclient" >> /home/pi/TODO-installation
 fi
 
 # install watchdog
@@ -281,6 +284,7 @@ then
   wget https://github.com/kevinkahn/watchdoghandler/archive/1.0.tar.gz
   tar -zxls --strip-components=1 < 1.0.tar.gz
   bash ./WDsetup.sh
+  echo "Edit watchdog yaml file as needed" >> /home/pi/TODO-installation
 
 LogBanner "Install and setup finished"
 
