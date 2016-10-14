@@ -6,11 +6,6 @@ from utilities import scaleW, scaleH
 wc = webcolors.name_to_rgb
 
 
-def InBut(pos, Key):
-	return (pos[0] > Key.Center[0] - Key.Size[0]/2) and (pos[0] < Key.Center[0] + Key.Size[0]/2) and \
-		   (pos[1] > Key.Center[1] - Key.Size[1]/2) and (pos[1] < Key.Center[1] + Key.Size[1]/2)
-
-
 class TouchPoint(object):
 	"""
 	Represents a touchable rectangle on the screen.
@@ -20,6 +15,10 @@ class TouchPoint(object):
 		self.Center = c
 		self.Size = s
 		utilities.register_example("TouchPoint", self)
+
+	def Touched(self, pos):
+		return (pos[0] > self.Center[0] - self.Size[0]/2) and (pos[0] < self.Center[0] + self.Size[0]/2) and \
+			   (pos[1] > self.Center[1] - self.Size[1]/2) and (pos[1] < self.Center[1] + self.Size[1]/2)
 
 
 class ManualKeyDesc(TouchPoint):

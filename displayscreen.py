@@ -100,18 +100,18 @@ class DisplayScreen(object):
 
 				for i in range(len(self.AS.keysbyord)):
 					K = self.AS.keysbyord[i]
-					if toucharea.InBut(pos, K):
+					if K.touched(pos):
 						if tapcount == 1:
 							rtn = (WAITNORMALBUTTON, i)
 						else:
 							rtn = (WAITNORMALBUTTONFAST, i)
 				if self.AS.PrevScreen is not None:
-					if toucharea.InBut(pos, self.AS.PrevScreenKey):
+					if self.AS.PrevScreenKey.touched(pos):
 						rtn = (WAITEXIT, self.AS.PrevScreen)
-					elif toucharea.InBut(pos, self.AS.NextScreenKey):
+					elif self.AS.NextScreenKey.touched(pos):
 						rtn = (WAITEXIT, self.AS.NextScreen)
 				for K in self.AS.ExtraCmdKeys:
-					if toucharea.InBut(pos, K):
+					if K.touched(pos):
 						rtn = (WAITEXTRACONTROLBUTTON, K.name)
 				if rtn[0] <> 0:
 					break
