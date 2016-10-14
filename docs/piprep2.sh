@@ -227,7 +227,7 @@ LogBanner "Configure the screen and calibrate"
 # set vertical orientation
 mv /boot/config.txt /boot/config.sav
 sed s/rotate=90/rotate=180/ /boot/config.sav > /boot/config.txt
-python /home/pi/adafruit-pitft-touch-cal -f -t $1 -r 180
+python /home/pi/adafruit-pitft-touch-cal -f -t $ScreenType -r 180
 
 cd /home/pi/
 LogBanner "Console Installation"
