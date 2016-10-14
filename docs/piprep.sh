@@ -1,13 +1,8 @@
 #!/bin/bash
 
 # MUST BE RUN as root:  sudo consoleprep.sh
-# parameter is the type of display: 35r (tested), 28c (tested), 28r (not tested)
-# second parameter is the hostname for this rpi - this will be used to name this node and as the title in the vnc server
-#  if left blank default "raspberrypi" will be used
-# third parameter uses a nonstandard VNC port non blank
-# fourth parameter if non null indicates personal system (uses special release - don't suggest you try this)
 
-# This script should take a current Jessie release and install the adafruit stuff for the 3.5" PiTFT
+# This script should take a current Jessie release and install support for PiTFT
 # It also installs needed python packages and downgrades the sdllib to the stable Wheezy version for the
 # touchscreen to work since sdllibn 2 breaks pygame.
 
@@ -21,46 +16,109 @@
 # script will prompt for Timezone info
 # script installs tightvncserver as a convenience - this installation will prompt for a vnc password
 # script may ask for permission to use more file system space - always say y
+# script prompts for system name and other options
 #
-if [ -z "$1" ] || [ "$1" != --tee ]; then
-  $0 --tee "$@" | tee prep.log
-  exit $?
-else
-  shift
-fi
+
+function Get_yn()
+{
+  # params: var, prompt
+  read -p "$2 " resp
+  case $resp in
+    "Y" | "y")
+      resp="Y" ;;
+    "N" | "n")
+      resp="N" ;;
+    *)
+      resp="N" ;;
+  esac
+  eval $1="'$resp'"
+}
+
+function Get_val()
+{
+  # params: var, prompt
+  read -p "$2 " resp
+  eval $1="'$resp'"
+}
+
+function LogBanner()
+{
+  echo
+  echo "----------------------------------------------------------"
+  echo "----------------------------------------------------------"
+  echo "$1"
+  echo "----------------------------------------------------------"
+  echo "----------------------------------------------------------"
+  echo
+}
+
+LogBanner "Pi setup Script"
+
+#if [ -z "$1" ] || [ "$1" != --tee ]; then
+#  $0 --tee "$@" | tee prep.log
+#  exit $?
+#else
+#  shift
+#fi
 
 if [[ "$EUID" -ne 0 ]]
 then
   echo "Must be run as root"
-  exit
+#  exit
 fi
 
-NodeName="raspberrypi"
-ScreenType="35r"
+ScreenType="XXX"
+while [[ "$ScreenType" != "35r" && "$ScreenType" != "28c" && "$ScreenType" != "28r" ]]
+do
+  Get_val ScreenType "Which PiTFT (35r, 28c, 28r)?"
+done
+Get_val NodeName "What name for this system?"
+Get_yn VNCstdPort "Install VNC on standard port (Y/N)?"
+Get_yn Personal "Is this the developer personal system (Y/N) (risky to say Y if it not)?"
+Get_yn AutoConsole "Autostart console (Y/N)?"
+Get_yn InstallOVPN "Install OpenVPN (Y/N)?"
+Get_yn InstallDDC "Install ddclient (Y/N)?"
+Get_yn InstallWD "Install and start Watchdog (Y/N)?"
 
-case $1 in
-  "35r")
-    echo "3.5 inch resistive touch screen" ;;
-  "28c")
-    echo "2.8 inch capacitive touch screen - currently untested" ;;
-  "28r")
-    echo "2.8 inch resistive touch screen currently untested";;
-  *)
-    echo "unknown or missing display parameter"
-    exit 1 ;;
-esac
+echo "Screen Type:                $ScreenType"
+echo "NodeName:                   $NodeName"
+echo "Developer system:           $Personal"
+echo "Standard VNC port:          $VNCstdPort"
+echo "Auto start Console on boot: $AutoConsole"
+echo "Install OpenVPN:            $InstallOVPN"
+echo "Install ddclient:           $InstallDDC"
+echo "Install and start watchdog: $InstallWD"
 
-if [ -n $2 ]
+Get_yn Go "Proceed?"
+if [ "$Go" != "Y" ]
 then
-  NodeName=$2
-  echo "Changing Node Name to: $NodeName"
-  mv -n /etc/hosts /etc/hosts.orig
-  sed s/raspberrypi/$NodeName/ /etc/hosts.orig > /etc/hosts
-  echo $NodeName > /etc/hostname
-  hostname $NodeName
+  exit 1
 fi
 
-if [ -z $3 ]
+dpkg-reconfigure tzdata
+
+echo "System Preparation" > prep.log
+date >> prep.log
+echo "Screen Type:                $ScreenType" >> prep.log
+echo "NodeName:                   $NodeName" >> prep.log
+echo "Developer system:           $Personal" >> prep.log
+echo "Standard VNC port:          $VNCstdPort" >> prep.log
+echo "Auto start Console on boot: $AutoConsole" >> prep.log
+echo "Install OpenVPN:            $InstallOVPN" >> prep.log
+echo "Install ddclient:           $InstallDDC" >> prep.log
+echo "Install and start watchdog: $InstallWD" >> prep.log
+exec > >(tee -a prep.log)
+
+
+LogBanner "Changing Node Name to: $NodeName"
+mv -n /etc/hosts /etc/hosts.orig
+sed s/raspberrypi/$NodeName/ /etc/hosts.orig > /etc/hosts
+echo $NodeName > /etc/hostname
+hostname $NodeName
+
+LogBanner "System Options"
+
+if [ $VNCstdPort == "Y" ]
 then
   echo "VNC will be set up on its normal port"
   VNCport=""
@@ -69,16 +127,16 @@ else
   VNCport="-rfbport 8723"
 fi
 
-if [ -n $4 ]
+if [ $Personal == "Y" ]
 then
     touch homesystem
+    echo "Make Home System"
 fi
 
-dpkg-reconfigure tzdata
 
 # for later convenience install tightvncserver to the system to make it easy to get into the Pi since it is otherwise headless
 
-echo "Install tightvncserver"
+LogBanner "Install tightvncserver"
 apt-get -y install tightvncserver
 sudo -u pi tightvncserver
 apt-get -y install autocutsel
@@ -102,10 +160,9 @@ WantedBy=multi-user.target
 echo "Start tightvncserver service"
 systemctl daemon-reload && sudo systemctl enable tightvncserver.service
 
-echo "Update system"
+LogBanner "Update/upgrade system"
 apt-get update
-echo "Upgrade system"
-apt-get -y upgrade
+DEBIAN_FRONTEND=noninteractive apt-get -y upgrade
 
 
 # Get the one adafruit tool we need since this script uses the kali pitft support
@@ -115,7 +172,7 @@ wget raw.githubusercontent.com/adafruit/Adafruit-PiTFT-Helper/master/adafruit-pi
 
 # Install the python packages needed for the console
 
-echo "Install stuff for console"
+LogBanner "Install stuff for console"
 apt-get -y install python-dev
 
 pip install --upgrade pip
@@ -127,7 +184,7 @@ pip install wiringpi
 
 # PiTFT touch using PyGame requires the older wheezy sdl library (long term problem that PyGame needs to resolve)
 
-echo "Setup to downgrade touch stuff to wheezy"
+LogBanner "Setup to downgrade touch stuff to wheezy"
 #enable wheezy package sources
 echo "deb http://archive.raspbian.org/raspbian wheezy main
 " > /etc/apt/sources.list.d/wheezy.list
@@ -155,6 +212,7 @@ apt-get -y --force-yes install libsdl1.2debian/wheezy
 # third party has figured out PiTFT support for newer Debian distrs
 # ref: https://whitedome.com.au/re4son/sticky-fingers-kali-pi/#TFT
 
+LogBanner "Changes for PiTFT Support"
 cd /usr/local/src
 wget  -O re4son_kali-pi-tft_kernel_current.tar.xz http://whitedome.com.au/re4son/downloads/10452/
 tar -xJf re4son_kali-pi-tft_kernel_current.tar.xz
@@ -165,13 +223,14 @@ echo "N" | ./install.sh
 
 echo "Y N" | ./re4son-pi-tft-setup -t 35r
 
-echo "Configure the screen and calibrate"
+LogBanner "Configure the screen and calibrate"
 # set vertical orientation
 mv /boot/config.txt /boot/config.sav
 sed s/rotate=90/rotate=180/ /boot/config.sav > /boot/config.txt
-python /home/pi/adafruit-pitft-touch-cal -f -t $1 -r 180
+python /home/pi/adafruit-pitft-touch-cal -f -t $ScreenType -r 180
 
 cd /home/pi/
+LogBanner "Console Installation"
 echo "-------Install Console-------" >> /home/pi/log.txt
 date >> /home/pi/log.txt
 wget https://raw.githubusercontent.com/kevinkahn/softconsole/master/setupconsole.py
@@ -180,24 +239,55 @@ python setupconsole.py >> /home/pi/log.txt
 
 rm setupconsole.* githubutil.*
 chown pi /home/pi/log.txt
-mv --backup=numbered /home/pi/consolestable/docs/rc.local /etc/rc.local
-chmod a+x /etc/rc.local
-chown root /etc/rc.local
+
+# set Console to start automatically at boot
+if [ "$AutoConsole" == "Y" ]
+then
+  LogBanner "Set Console to Start at Boot"
+  mv --backup=numbered /home/pi/consolestable/docs/rc.local /etc/rc.local
+  chmod a+x /etc/rc.local
+  chown root /etc/rc.local
+  echo "Create configuration files in Console" >> /home/pi/TODO-installation
+fi
 
 
 # install OpenVPN
-apt-get -y install openvpn
+if [ "$InstallOVPN" == "Y" ]
+then
+  LogBanner "Install OpenVPN"
+  apt-get -y install openvpn
+  echo "Set up OpenVPN keys etc." >> /home/pi/TODO-installation
+fi
 
 # install -y ddclient
-apt-get -y install ddclient
+if [ "$InstallDDC" == "Y" ]
+then
+  LogBanner "Install ddclient"
+  echo "
+  ssl=yes
+  protocol=googledomains
+  login=<addfromgoogle>
+  password=<addfromgoogle>
+  use=????
+  host.domain.tld
+  " > /etc/ddclient.conf
+  DEBIAN_FRONTEND=noninteractive apt-get -y install ddclient
+
+  echo "Configure ddclient" >> /home/pi/TODO-installation
+fi
 
 # install watchdog
-cd /home/pi
-echo "------Get Watchdog-------"
-mkdir Watchdog
-cd Watchdog
-wget https://github.com/kevinkahn/watchdoghandler/archive/1.0.tar.gz
-tar -zxls --strip-components=1 < 1.0.tar.gz
+if [ "$InstallWD" == "Y" ]
+then
+  LogBanner "Install Watchdog"
+  cd /home/pi
+  mkdir watchdog
+  cd watchdog
+  wget https://github.com/kevinkahn/watchdoghandler/archive/1.1.tar.gz
+  tar -zxls --strip-components=1 < 1.1.tar.gz
+  bash ./WDsetup.sh
+  echo "Edit watchdog yaml file as needed" >> /home/pi/TODO-installation
+fi
 
-echo "Install/setup finished -- set up config.txt file and reboot to start console"
+LogBanner "Install and setup finished"
 
