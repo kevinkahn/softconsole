@@ -149,7 +149,6 @@ def dobeta(K):
 			print "New Version Fetch Requested (currentrelease)"
 			U.StageVersion(basedir + '/consolestable', 'currentrelease', 'RequestedDownload')
 		U.InstallStagedVersion(basedir + '/consolestable')
-	# subprocess.Popen('sudo /bin/bash -e scripts/getcurrentrelease', shell=True)  # todo switch to use staging stuff
 
 
 	time.sleep(2)
