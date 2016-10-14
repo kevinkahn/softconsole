@@ -5,7 +5,6 @@ import requests, time
 import config
 import utilities
 import maintscreen
-from config import ISYdebug
 from logsupport import ConsoleInfo, ConsoleWarning, ConsoleError
 import sys
 
@@ -365,7 +364,7 @@ class ISY(object):
 				if scene['name'] <> '~Auto DR':
 					print 'Scene with no members', scene['name']
 		self.LinkChildrenParents(self.ScenesByAddr, self.ScenesByName, self.FoldersByAddr, self.NodesByAddr)
-		if ISYdebug:
+		if config.Flags['ISY']:
 			self.PrintTree(self.NodeRoot, "    ")
 
 		"""
@@ -390,7 +389,7 @@ class ISY(object):
 								 self.ProgramsByAddr)
 
 		utilities.register_example("ISY", self)
-		if ISYdebug:
+		if config.Flags['ISY']:
 			self.PrintTree(self.ProgRoot, "    ")
 
 	def PrintTree(self, startpoint, indent):

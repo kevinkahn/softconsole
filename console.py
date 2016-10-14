@@ -59,7 +59,7 @@ for root, dirs, files in os.walk(config.exdir):
 				lastfn = fn
 print 'Version (', lastfn, time.ctime(lastmod),
 
-try:  # todo start to use this
+try:
 	with open(config.exdir + '/' + 'versioninfo') as f:
 		vn = f.readline()[:-1]
 		vs = f.readline()[:-1]
