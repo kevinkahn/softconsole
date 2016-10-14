@@ -16,7 +16,7 @@ class TouchPoint(object):
 		self.Size = s
 		utilities.register_example("TouchPoint", self)
 
-	def Touched(self, pos):
+	def touched(self, pos):
 		return (pos[0] > self.Center[0] - self.Size[0]/2) and (pos[0] < self.Center[0] + self.Size[0]/2) and \
 			   (pos[1] > self.Center[1] - self.Size[1]/2) and (pos[1] < self.Center[1] + self.Size[1]/2)
 
