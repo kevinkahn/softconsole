@@ -282,12 +282,13 @@ class ISY(object):
 		Build the Folder/Node/Scene tree
 		"""
 
-		trycount = 100
+		trycount = 20
 		while True:
 			try:
 				r = ISYsession.get(config.ISYprefix + 'nodes', verify=False, timeout=3)
 				break
-			except requests.exceptions.ConnectTimeout:
+			# except requests.exceptions.ConnectTimeout:
+			except:
 				# after total power outage ISY is slower to come back than RPi so
 				# we wait testing periodically.  Eventually we try rebooting just in case our own network
 				# is what is hosed
@@ -295,7 +296,7 @@ class ISY(object):
 				if trycount > 0:
 					config.Logs.Log('ISY not responding')
 					config.Logs.Log('-ISY: ' + config.ISYprefix)
-					time.sleep(10)
+					time.sleep(15)
 				else:
 					config.Logs.Log('No ISY response restart')
 					maintscreen.errorexit('reboot')
