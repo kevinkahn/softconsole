@@ -393,7 +393,8 @@ class ISY(object):
 					config.Logs.Log('No ISY response restart (programs)')
 					maintscreen.errorexit('reboot')
 					sys.exit(12)  # should never get here
-				# todo check r.status for 200?
+				# todo check r.status for 200?  looks like simetimes r,text is garbage early on?
+
 		configdict = xmltodict.parse(r.text)['programs']['program']
 		for item in configdict:
 			if item['@id'] == '0001':
