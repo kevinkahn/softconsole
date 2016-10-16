@@ -18,7 +18,7 @@ if os.path.exists('homesystem'):
 	# personal system
 	U.StageVersion('consolestable', 'homerelease', 'InitialInstall')
 else:
-	U.InstallStagedVersion('consolestable', 'currentrelease', 'InitialInstall')
+	U.StagedVersion('consolestable', 'currentrelease', 'InitialInstall')
 U.InstallStagedVersion('consolestable')
 
 U.StageVersion('consolebeta', 'currentbeta', 'InitialInstall')
