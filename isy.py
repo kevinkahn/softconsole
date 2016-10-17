@@ -277,6 +277,8 @@ class ISY(object):
 		self.ProgramsByAddr = {}
 		self.ProgramsByName = {}
 		self.ProgramFoldersByName = {}
+		self.varsState = {}
+		self.varsInt = {}
 
 		"""
 		Build the Folder/Node/Scene tree
@@ -286,7 +288,7 @@ class ISY(object):
 		while True:
 			try:
 				r = ISYsession.get(config.ISYprefix + 'nodes', verify=False, timeout=3)
-				config.Logs.Log('Successful node read:' + str(r.status_code))
+				config.Logs.Log('Successful node read: ' + str(r.status_code))
 				break
 			# except requests.exceptions.ConnectTimeout:
 			except:
@@ -377,7 +379,7 @@ class ISY(object):
 		while True:
 			try:
 				r = ISYsession.get(config.ISYprefix + 'programs?subfolders=true', verify=False, timeout=3)
-				config.Logs.Log('Successful programs read' + str(r.status_code))
+				config.Logs.Log('Successful programs read: ' + str(r.status_code))
 				break
 			# except requests.exceptions.ConnectTimeout:
 			except:
@@ -410,6 +412,38 @@ class ISY(object):
 								 self.ProgramsByAddr)
 		self.LinkChildrenParents(self.ProgramsByAddr, self.ProgramsByName, self.ProgramFoldersByAddr,
 								 self.ProgramsByAddr)
+
+		"""
+		Get the variables
+		"""
+		while True:
+			try:
+				r1 = ISYsession.get(config.ISYprefix + 'vars/definitions/2', verify=False, timeout=3)
+				r2 = ISYsession.get(config.ISYprefix + 'vars/definitions/1', verify=False, timeout=3)
+				config.Logs.Log('Successful variable read: ' + str(r1.status_code) + '/' + str(r2.status_code))
+				break
+			# except requests.exceptions.ConnectTimeout:
+			except:
+				# after total power outage ISY is slower to come back than RPi so
+				# we wait testing periodically.  Eventually we try rebooting just in case our own network
+				# is what is hosed
+				trycount -= 1
+				if trycount > 0:
+					config.Logs.Log('ISY not responding')
+					config.Logs.Log('-ISY(vars): ' + config.ISYprefix)
+					time.sleep(15)
+				else:
+					config.Logs.Log('No ISY response restart (vars)')
+					maintscreen.errorexit('reboot')
+					sys.exit(12)  # should never get here
+				# todo check r.status for 200?  looks like simetimes r,text is garbage early on?
+
+		configdict = xmltodict.parse(r1.text)['CList']['e']
+		for v in configdict:
+			self.varsState[v['@name']] = v['@id']
+		configdict = xmltodict.parse(r2.text)['CList']['e']
+		for v in configdict:
+			self.varsInt[v['@name']] = v['@id']
 
 		utilities.register_example("ISY", self)
 		if config.Flags['ISY']:
