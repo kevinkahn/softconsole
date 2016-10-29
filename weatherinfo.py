@@ -81,8 +81,13 @@ class WeatherInfo:
 
 				# refresh the conditions - don't do more than once per 30 minutes
 				self.lastwebreq = time.time() # do this first so that even in error case we wait a while to try again
-				f = urllib2.urlopen(self.url)
-				val = f.read()
+				try:
+					f = urllib2.urlopen(self.url, None, 15)  # wait at most 15 seconds for weather response then timeout
+					val = f.read()
+				except:
+					# todo - can report actual error codes in case not a timeout?
+					config.Logs.Log("Error fetching weather", severity=logsupport.ConsoleWarning)
+					return -1
 				if val.find("keynotfound") <> -1:
 					if self.location <> "":
 						# only report once in log
