@@ -1,4 +1,5 @@
 import functools
+import sys
 import json
 import time
 import urllib2
@@ -86,7 +87,8 @@ class WeatherInfo:
 					val = f.read()
 				except:
 					# todo - can report actual error codes in case not a timeout?
-					config.Logs.Log("Error fetching weather", severity=logsupport.ConsoleWarning)
+					config.Logs.Log("Error fetching weather: " + str(sys.exc_info()[0]),
+									severity=logsupport.ConsoleWarning)
 					return -1
 				if val.find("keynotfound") <> -1:
 					if self.location <> "":
