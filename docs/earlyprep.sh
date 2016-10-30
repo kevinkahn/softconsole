@@ -19,5 +19,6 @@ cp lxterminal.conf lxterminal.conf.bak
 sed -f lxfix lxterminal.conf.bak > lxterminal.conf
 cd /home/pi
 wget https://raw.githubusercontent.com/kevinkahn/softconsole/master/docs/piprep.sh
+chmod +x piprep.sh
 sudo raspi-config
 echo "Reboot now and then run piprep.sh as root"
