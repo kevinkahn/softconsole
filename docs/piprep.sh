@@ -259,7 +259,7 @@ then
   echo "Set up OpenVPN keys etc." >> /home/pi/TODO-installation
 fi
 
-# install -y ddclient
+# install ddclient
 if [ "$InstallDDC" == "Y" ]
 then
   LogBanner "Install ddclient"

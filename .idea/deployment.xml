@@ -1,44 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="PublishConfigData" autoUpload="Always" serverName="pgaw" promptOnLocalOverwrite="false" exclude=".svn;.cvs;.idea;.DS_Store;.git;.hg;*.pyc" autoUploadExternalChanges="true">
+  <component name="PublishConfigData" autoUpload="Always" serverName="development" promptOnLocalOverwrite="false" exclude=".svn;.cvs;.idea;.DS_Store;.git;.hg;*.pyc" autoUploadExternalChanges="true">
     <serverData>
-      <paths name="Copy of project-level server 'PGAW'">
-        <serverdata>
-          <mappings>
-            <mapping deploy="/consolestable" local="$PROJECT_DIR$" web="/" />
-          </mappings>
-        </serverdata>
-      </paths>
-      <paths name="PDX-PI">
-        <serverdata>
-          <mappings>
-            <mapping deploy="/consolerem" local="$PROJECT_DIR$" web="/" />
-            <mapping deploy="/watchdog" local="$PROJECT_DIR$/../watchdoghandler" web="/" />
-          </mappings>
-        </serverdata>
-      </paths>
-      <paths name="PGAW">
-        <serverdata>
-          <mappings>
-            <mapping deploy="/consolestable" local="$PROJECT_DIR$" web="/" />
-          </mappings>
-        </serverdata>
-      </paths>
-      <paths name="RPi-LRWall">
-        <serverdata>
-          <mappings>
-            <mapping deploy="/consolerem" local="$PROJECT_DIR$" web="/" />
-          </mappings>
-        </serverdata>
-      </paths>
-      <paths name="RPi-Suzi">
-        <serverdata>
-          <mappings>
-            <mapping deploy="/consolerem" local="$PROJECT_DIR$" web="/" />
-          </mappings>
-        </serverdata>
-      </paths>
-      <paths name="pgaw">
+      <paths name="development">
         <serverdata>
           <mappings>
             <mapping deploy="/consolerem" local="$PROJECT_DIR$" web="/" />

@@ -56,6 +56,8 @@ ISYprefix = ''  # holds the url prefix for rest interface
 fonts = None
 Logs = None
 
+configfilelist = {}  # list of configfiles and their timestamps
+
 TermShortener = {}
 versionname = ""
 versionsha = ""

@@ -37,11 +37,11 @@ import urllib3
 import json
 
 urllib3.disable_warnings()
-import urllib3.contrib.pyopenssl
+# import urllib3.contrib.pyopenssl
 
 sys.stdout = open('/home/pi/master.log', 'a', 0)
 print time.strftime('%m-%d-%y %H:%M:%S'), 'CONSOLE START'
-urllib3.contrib.pyopenssl.inject_into_urllib3()
+#urllib3.contrib.pyopenssl.inject_into_urllib3()
 
 utilities.InitializeEnvironment()
 
@@ -112,18 +112,19 @@ signal.signal(signal.SIGCHLD, utilities.daemon_died)  # todo win alternative?
 config.ParsedConfigFile = ConfigObj(config.configfile)  # read the config.txt file
 configdir = os.path.dirname(config.configfile)
 
+config.configfilelist[config.configfile] = os.path.getmtime(config.configfile)
+
 cfiles = []
 includes = config.ParsedConfigFile.get('include', [])
 while includes <> []:
 	f = includes.pop(0)
-	if f[0] == '/':
-		tmpconf = ConfigObj(f)
-		cfiles.append(f)
-	else:
-		tmpconf = ConfigObj(configdir + "/" + f)
-		cfiles.append(configdir + "/" + f)
+	if f[0] <> '/':
+		f = configdir + "/" + f
+	tmpconf = ConfigObj(f)
+	cfiles.append(f)
 	includes = includes + tmpconf.get('include', [])
 	config.ParsedConfigFile.merge(tmpconf)
+	config.configfilelist[f] = os.path.getmtime(f)
 
 config.Flags = logsupport.Flags()
 utilities.ParseParam(globalparams)  # add global parameters to config file
@@ -141,10 +142,11 @@ config.Logs.Log(" Sha: ", vs)
 config.Logs.Log(" How: ", vi)
 config.Logs.Log("Start time: ", time.strftime('%c'))
 config.Logs.Log("Console Starting  pid: ", config.Console_pid)
-config.Logs.Log("Main config file: ", config.configfile)
+config.Logs.Log("Main config file: ", config.configfile,
+				time.strftime(' %c', time.localtime(config.configfilelist[config.configfile])))
 config.Logs.Log("Including config files:")
 for f in cfiles:
-	config.Logs.Log("  ", f)
+	config.Logs.Log("  ", f, config.configfile, time.strftime(' %c', time.localtime(config.configfilelist[f])))
 for flg, fval in config.Flags.iteritems():
 	if fval:
 		config.Logs.Log('Debug flag ', flg, '=', fval, severity=logsupport.ConsoleWarning)
