@@ -22,6 +22,18 @@ class ClockScreenDesc(screen.ScreenDesc):
 		return screen.ScreenDesc.__repr__(self) + "\r\n     ClockScreenDesc:" + str(self.CharColor) + ":" + str(
 			self.OutFormat) + ":" + str(self.CharSize)
 
+	def EnterScreen(self):
+		# PaintBase
+		# Post 1 second event with proc repaint
+		# return
+		pass
+
+	def ExitScreen(self):
+		# unpost events
+		# no other clean up for clock
+		pass
+
+
 	def HandleScreen(self, newscr=True):
 
 		# stop any watching for device stream

@@ -13,6 +13,7 @@ wc = webcolors.name_to_rgb
 
 
 class DisplayScreen(object):
+
 	def __init__(self):
 
 		config.debugPrint("Main", "Screensize: ", config.screenwidth, config.screenheight)
@@ -21,6 +22,7 @@ class DisplayScreen(object):
 			"Scaling ratio: " + "{0:.2f}".format(config.dispratioW) + ':' + "{0:.2f}".format(config.dispratioH))
 
 		# define user events
+		self.TIMER = pygame.event.Event(pygame.USEREVENT + 4)
 		self.MAXTIMEHIT = pygame.event.Event(pygame.USEREVENT)
 		self.INTERVALHIT = pygame.event.Event(pygame.USEREVENT + 1)
 		self.GOHOMEHIT = pygame.event.Event(pygame.USEREVENT + 2)
@@ -30,6 +32,18 @@ class DisplayScreen(object):
 		self.presscount = 0
 		self.AS = None
 		self.BrightenToHome = False
+		self.EventSet = []
+
+	# event set entry is type(owner,id,proc)
+
+	class TimerItem(object):
+		def __init__(self):
+			self.ownerscreen = None
+			self.id = 0
+			self.callback = None
+			self.type = 0  # Quiet or needs screen
+			self.interval = 0  # time interval ?  is this here of is it somehow added in the event list?
+			self.targettime = 0  # computed time when should occur - use to handle multiple events in timer window
 
 	def GoDim(self, dim):
 		if dim:
@@ -47,6 +61,49 @@ class DisplayScreen(object):
 			if self.BrightenToHome:
 				self.BrightenToHome = False
 				return config.HomeScreen
+
+	def MainControlLoop(self, InitScreen):
+		"""
+		Pick a screen, call its enter
+		wait for event (press, daemon notification, timer, event queue item)
+		respond to the event (Press -> call screen.press(button, type)
+		Queued event -. has a proc to call
+		command button -> exit screen pick new one?
+
+		"""
+		CurrentScreen = InitScreen
+		while True:
+			CurrentScreen.EnterScreen()
+
+			event = pygame.fastevent.poll()
+			if event.type == pygame.NOEVENT:
+				time.sleep(.01)
+			elif event.type == pygame.MOUSEBUTTONDOWN:
+				pass
+			elif event.type == self.TIMER.type:
+				pass
+			# handle timer events from queue
+			# grab first event, check eventtime<now+epsilon
+			# timer event queue can have screen callbacks on it or alert event
+			# unhide - either provide a call back to displayscreen or just return a code + proc to call after prev screen exits (better?)
+			# should we treat GOHOME as such an event or keep special
+			# - yes: call associated proc (is there any param needed?
+			# - no: set next timer event at nexteventtime - now
+			elif event.type == self.GOHOMEHIT.type:
+				pass
+			# Exit current screen
+			# Enter home screen
+			elif event.type == self.MAXTIMEINT.type:
+				pass
+			# set screen dim (do we tell the screen it's dim?
+			elif event.type == self.DIMCYCLE.type:
+				pass
+			# go to next dim screen
+
+			pass
+
+
+
 
 	def NewWaitPress(self, ActiveScreen, callbackint=0, callbackproc=None, callbackcount=0):
 
