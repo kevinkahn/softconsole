@@ -1,9 +1,10 @@
 {
     "Chance of Rain": "Chc of Rain",
-    "Scattered Clouds": "Sct Clouds",
-    "Chance of a Thunderstorm": "Chc of TStorm",
-    "Partly Cloudy": "Ptly Cldy",
+    "Light Drizzle": "Lt Drizzle",
     "Mostly Cloudy": "Mstly Cldy",
+    "Chance of a Thunderstorm": "Chc of TStorm",
     "Portland International Airport": "PDX",
-    "Light Drizzle": "Lt Drizzle"
+    "Partly Cloudy": "Ptly Cldy",
+    "Portland International": "PDX",
+    "Scattered Clouds": "Sct Clouds"
 }

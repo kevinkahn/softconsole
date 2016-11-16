@@ -5,14 +5,17 @@ import webcolors
 
 import config
 import hw
-import toucharea
-from config import debugPrint, WAITNORMALBUTTON, WAITNORMALBUTTONFAST, WAITEXIT, WAITISYCHANGE, WAITEXTRACONTROLBUTTON
+from eventlist import EventItem, EventList
+import threading
+from config import debugPrint
 from logsupport import ConsoleWarning
 
 wc = webcolors.name_to_rgb
 
 
 class DisplayScreen(object):
+	(activenonhome, dimnonhome, activehome, dimhome, covers) = range(5)
+	states = ['ActiveNonHome', 'DimNonHome', 'ActiveHome', 'DimHone', 'Covers']
 
 	def __init__(self):
 
@@ -21,48 +24,72 @@ class DisplayScreen(object):
 		config.Logs.Log(
 			"Scaling ratio: " + "{0:.2f}".format(config.dispratioW) + ':' + "{0:.2f}".format(config.dispratioH))
 
-		# define user events
-		self.TIMER = pygame.event.Event(pygame.USEREVENT + 4)
-		self.MAXTIMEHIT = pygame.event.Event(pygame.USEREVENT)
-		self.INTERVALHIT = pygame.event.Event(pygame.USEREVENT + 1)
-		self.GOHOMEHIT = pygame.event.Event(pygame.USEREVENT + 2)
-		self.DIMCYCLE = pygame.event.Event(pygame.USEREVENT + 3)
-		self.dimscreenindex = 0
-		self.isDim = False
-		self.presscount = 0
-		self.AS = None
-		self.BrightenToHome = False
+		self.State = self.activehome
+
+		# Central Task List
+		self.Tasks = EventList()
+		self.StatusNodes = []  # Nodes that should be watched due to alerts
+		self.Deferrals = []
+
+		# Time Events
+		self.ACTIVITYTIMER = pygame.event.Event(pygame.USEREVENT + 1)
+
+		# ISY Change event
+		self.ISYChange = pygame.USEREVENT + 2
+
+		self.AS = None  # Active Screen
 		self.EventSet = []
+
+		self.ScreensDict = {}
+		self.Chain = 0
 
 	# event set entry is type(owner,id,proc)
 
-	class TimerItem(object):
-		def __init__(self):
-			self.ownerscreen = None
-			self.id = 0
-			self.callback = None
-			self.type = 0  # Quiet or needs screen
-			self.interval = 0  # time interval ?  is this here of is it somehow added in the event list?
-			self.targettime = 0  # computed time when should occur - use to handle multiple events in timer window
+	def Dim(self, level):
+		hw.GoDim(level)
 
-	def GoDim(self, dim):
-		if dim:
-			hw.GoDim()
-			self.isDim = True
-			if self.AS == config.HomeScreen:
-				self.BrightenToHome = True
-				self.dimscreenindex = 0
-				pygame.time.set_timer(self.DIMCYCLE.type, config.DimIdleTimes[0])
-				return config.DimIdleList[0]
+	def Brighten(self, level):
+		hw.GoBright(level)
+
+	def SetActivityTimer(self, timeinsecs, dbgmsg):
+		pygame.time.set_timer(self.ACTIVITYTIMER.type, timeinsecs*1000)
+		debugPrint('Dispatch', 'Set activity timer: ', timeinsecs, ' ', dbgmsg)
+
+	def SwitchScreen(self, NS, NavKeys=True):
+		oldState = self.State
+		if NS == config.HomeScreen:
+			if (self.State == self.activehome) or (self.State == self.activenonhome):
+				self.State = self.activehome
+			else:
+				self.State = self.dimhome
+		if self.AS is not None:
+			debugPrint('Dispatch', "Switch from: ", self.AS.name, " to ", NS.name, "Nav=", NavKeys, ' State=',
+					   self.states[oldState], '/', self.states[self.State])
+			self.AS.ExitScreen()
+		self.AS = NS
+		if NavKeys:
+			nav = [self.ScreensDict[self.AS.name].prevkey, self.ScreensDict[self.AS.name].nextkey]
 		else:
-			hw.GoBright()
-			self.isDim = False
-			pygame.time.set_timer(self.DIMCYCLE.type, 0)
-			if self.BrightenToHome:
-				self.BrightenToHome = False
-				return config.HomeScreen
+			nav = []
+		self.AS.EnterScreen()
+		config.toDaemon.put(['Status'] + self.AS.NodeWatch + self.StatusNodes)
+		debugPrint('Dispatch', "New watchlist(Main): " + str(self.AS.NodeWatch + self.StatusNodes))
+		self.AS.InitDisplay(nav)
+
+	def NavPress(self, NS, press):
+		# for now don't care about press type
+		debugPrint('Dispatch', 'Navkey: ', NS.name, self.State)
+		if NS == config.HomeScreen:
+			self.State = self.activehome
+		else:
+			self.State = self.activenonhome
+		debugPrint('Dispatch', 'Nav new state:', self.State)
+		self.SwitchScreen(NS)
+		self.SetActivityTimer(self.AS.DimTO, 'NavPress')
 
 	def MainControlLoop(self, InitScreen):
+		# Build the screen loops for prev/next keys
+
 		"""
 		Pick a screen, call its enter
 		wait for event (press, daemon notification, timer, event queue item)
@@ -71,149 +98,158 @@ class DisplayScreen(object):
 		command button -> exit screen pick new one?
 
 		"""
-		CurrentScreen = InitScreen
-		while True:
-			CurrentScreen.EnterScreen()
 
-			event = pygame.fastevent.poll()
-			if event.type == pygame.NOEVENT:
-				time.sleep(.01)
-			elif event.type == pygame.MOUSEBUTTONDOWN:
-				pass
-			elif event.type == self.TIMER.type:
-				pass
-			# handle timer events from queue
-			# grab first event, check eventtime<now+epsilon
-			# timer event queue can have screen callbacks on it or alert event
-			# unhide - either provide a call back to displayscreen or just return a code + proc to call after prev screen exits (better?)
-			# should we treat GOHOME as such an event or keep special
-			# - yes: call associated proc (is there any param needed?
-			# - no: set next timer event at nexteventtime - now
-			elif event.type == self.GOHOMEHIT.type:
-				pass
-			# Exit current screen
-			# Enter home screen
-			elif event.type == self.MAXTIMEINT.type:
-				pass
-			# set screen dim (do we tell the screen it's dim?
-			elif event.type == self.DIMCYCLE.type:
-				pass
-			# go to next dim screen
+		def Qhandler():
+			while True:
 
-			pass
+				debugPrint('Dispatch', "Q size at main loop ", config.fromDaemon.qsize())
+				item = config.fromDaemon.get()
+				debugPrint('Dispatch', time.time(), "ISY reports change: ", "Key: ", str(item))
+				if item[0] == "Log":
+					config.Logs.Log(item[1], severity=item[2])
+				elif item[0] == "Node":
+					print "QH: ", item
+					notice = pygame.event.Event(self.ISYChange, {"Info": item})
+					pygame.fastevent.post(notice)
+				else:
+					config.Logs.Log("Bad msg from watcher: " + str(item), Severity=ConsoleWarning)
 
+		QH = threading.Thread(name='QH', target=Qhandler)
+		QH.setDaemon(True)
+		QH.start()
+		self.ScreensDict = config.SecondaryDict.copy()
+		self.ScreensDict.update(config.MainDict)
 
-
-
-	def NewWaitPress(self, ActiveScreen, callbackint=0, callbackproc=None, callbackcount=0):
-
-		self.AS = ActiveScreen
-		cycle = 0
-		if callbackint <> 0:  # todo needs a better structural fix for posted actions that persist across Waitpress calls
-			pygame.time.set_timer(self.INTERVALHIT.type, int(callbackint*1000))
-			cycle = callbackcount if callbackcount <> 0 else 100000000  # essentially infinite
-		if self.isDim and self.BrightenToHome:
-			pygame.time.set_timer(self.GOHOMEHIT.type, 0)  # in final quiet state so cancel gohome until a touch
-		else:
-			pygame.time.set_timer(self.MAXTIMEHIT.type,
-								  self.AS.DimTO*1000)  # if not in final quiet state set dim timer
+		self.SwitchScreen(InitScreen)
+		self.Brighten(self.AS.BrightLevel)
+		self.SetActivityTimer(self.AS.DimTO, 'Startup')
 
 		while True:
-			rtn = (0, 0)
 
-			event = pygame.fastevent.poll()
+			if self.Deferrals:  # an event was deferred
+				event = self.Deferrals.pop(0)
+				debugPrint('EventList', 'Deferred Event Pop', event)
+			else:
+				event = pygame.fastevent.wait()
 
-			if event.type == pygame.NOEVENT:
-				time.sleep(.01)
-				pass
-			elif event.type == pygame.MOUSEBUTTONDOWN:
+			if event.type == pygame.MOUSEBUTTONDOWN:
+				self.SetActivityTimer(self.AS.DimTO, 'Screen touch')
+
+				if self.State == self.activenonhome or self.State == self.activehome:
+					pass
+				# then fall through to handle the clicks; note that this lets the dim happen a little less than DimTO after last click for multiclick
+
+				elif self.State == self.dimnonhome:
+					self.State = self.activenonhome
+					self.Brighten(self.AS.BrightLevel)
+					continue  # ignore the tap that wakes the screen up
+
+				elif self.State == self.dimhome:
+					self.State = self.activehome
+					self.Brighten(self.AS.BrightLevel)
+					continue  # ignore the tap that wakes the screen up
+
+				elif self.State == self.covers:
+					self.State = self.activehome
+					self.SwitchScreen(config.HomeScreen)
+					self.Brighten(self.AS.BrightLevel)
+					continue  # ignore the tap that wakes the screen up
+
+				else:
+					pass  # FatalError
+				# error
+
+				# Handle the touch as meaningful
 				pos = (pygame.mouse.get_pos()[0], pygame.mouse.get_pos()[1])
-				# if self.presscount < 10:  # this is debug code for a weird/unreproducible RPi behavior where touch is off
-				#	print pos
-				#	self.presscount += 1
 				tapcount = 1
 				pygame.time.delay(config.MultiTapTime)
 				while True:
 					eventx = pygame.fastevent.poll()
-					if eventx.type == pygame.NOEVENT:
-						break
-					elif eventx.type == pygame.MOUSEBUTTONDOWN:
+					if eventx.type == pygame.MOUSEBUTTONDOWN:
 						tapcount += 1
 						pygame.time.delay(config.MultiTapTime)
+					elif eventx.type == pygame.NOEVENT:
+						break
 					else:
-						continue
-				if tapcount > 2:
-					self.GoDim(False)
-					rtn = (WAITEXIT, tapcount)
-					break
-				# on any touch reset return to home screen
-				pygame.time.set_timer(self.GOHOMEHIT.type, int(config.HomeScreenTO)*1000)
-				# on any touch restart dim timer and reset to bright if dim
-				pygame.time.set_timer(self.MAXTIMEHIT.type, self.AS.DimTO*1000)
-				dimscr = self.GoDim(False)
-				if dimscr is not None:
-					rtn = (WAITEXIT, config.HomeScreen)
-					break
+						if eventx.type >= pygame.USEREVENT:  # it isn't a screen related event
+							self.Deferrals.append(eventx)  # defer the event until after the clicks are sorted out
+						# todo add handling for hold here with checking for MOUSE UP etc.
+				if tapcount == 3:
+					# Switch screen chains
+					if self.Chain == 0:
+						self.Chain = 1
+						self.State = self.activenonhome
+						self.SwitchScreen(config.HomeScreen2)
+					else:
+						self.Chain = 0
+						self.State = self.activehome
+						self.SwitchScreen(config.HomeScreen)
+					continue
 
-				for i in range(len(self.AS.keysbyord)):
-					K = self.AS.keysbyord[i]
+				elif tapcount > 3:
+					# Go to maintenance
+					self.SwitchScreen(config.MaintScreen, NavKeys=False)
+					self.State = self.activenonhome
+					continue
+
+				for K in self.AS.Keys:
 					if K.touched(pos):
 						if tapcount == 1:
-							rtn = (WAITNORMALBUTTON, i)
+							K.Proc(config.PRESS)
 						else:
-							rtn = (WAITNORMALBUTTONFAST, i)
-				if self.AS.PrevScreen is not None:
-					if self.AS.PrevScreenKey.touched(pos):
-						rtn = (WAITEXIT, self.AS.PrevScreen)
-					elif self.AS.NextScreenKey.touched(pos):
-						rtn = (WAITEXIT, self.AS.NextScreen)
-				for K in self.AS.ExtraCmdKeys:
+							K.Proc(config.FASTPRESS)
+
+				for K in self.AS.NavKeys:
 					if K.touched(pos):
-						rtn = (WAITEXTRACONTROLBUTTON, K.name)
-				if rtn[0] <> 0:
-					break
-				continue
+						K.Proc(config.PRESS)  # same action whether single or double tap
 
-			elif event.type == self.MAXTIMEHIT.type:
-				dimscr = self.GoDim(True)
-				if dimscr is not None:
-					rtn = (WAITEXIT, dimscr)
-					break
-				continue
-			elif event.type == self.DIMCYCLE.type:
-				self.dimscreenindex = (self.dimscreenindex + 1)%len(config.DimIdleList)
-				pygame.time.set_timer(self.DIMCYCLE.type, config.DimIdleTimes[self.dimscreenindex])
-				rtn = (WAITEXIT, config.DimIdleList[self.dimscreenindex])
-				break
-			elif event.type == self.INTERVALHIT.type:
-				if (callbackproc is not None) and (cycle > 0):
-					callbackproc(cycle)
-					cycle -= 1
-				continue
-			elif event.type == self.GOHOMEHIT.type:
-				rtn = (WAITEXIT, config.HomeScreen)
-				break
-			else:
-				pass  # ignore and flush other events
+			elif event.type == self.ACTIVITYTIMER.type:
+				oldState = self.State
 
-			if (not config.fromDaemon.empty()) and (cycle == 0):  # todo don't process daemon reports while cycling
-				debugPrint('Main', "Q size at main loop ", config.fromDaemon.qsize())
-				item = config.fromDaemon.get()
-				debugPrint('Main', time.time(), "ISY reports change: ", "Key: ", str(item))
-				if item[0] == "Log":
-					config.Logs.Log(item[1], severity=item[2])
-					continue
-				elif item[0] == "Node":
-					rtn = (WAITISYCHANGE, (item[1], item[2]))
-					break
+				if self.State == self.activenonhome:
+					# There is a non-home screen up time to dim it
+					self.Dim(self.AS.DimLevel)  # set dim level based on AS
+					self.State = self.dimnonhome
+					self.SetActivityTimer(self.AS.PersistTO, "Dim nonhome and wait persist")
+				elif self.State == self.dimnonhome:
+					# There is a non=home screen up that is dim time to go home
+					self.State = self.dimhome
+					self.SetActivityTimer(self.AS.PersistTO, "Direct to dim home to persist")
+					self.SwitchScreen(config.HomeScreen)
+				elif self.State == self.activehome:
+					# The Home screen is up and no dim - time to dim it
+					self.Dim(self.AS.DimLevel)
+					self.State = self.dimhome
+					self.SetActivityTimer(self.AS.PersistTO, "Dim home and wait persist")
+				elif self.State == self.dimhome:
+					# The Home screen is up and dim - time to go to a cover screen
+					self.State = self.covers
+					self.SetActivityTimer(config.DimIdleTimes[0], "First cover persist")
+					self.SwitchScreen(config.DimIdleList[0], NavKeys=False)
+					config.DimIdleList = config.DimIdleList[1:] + config.DimIdleList[:1]
+					config.DimIdleTimes = config.DimIdleTimes[1:] + config.DimIdleTimes[:1]
+				elif self.State == self.covers:
+					# Cover screen is up - move to the next one
+					self.SetActivityTimer(config.DimIdleTimes[0], "Later cover persist")
+					self.SwitchScreen(config.DimIdleList[0], NavKeys=False)
+					config.DimIdleList = config.DimIdleList[1:] + config.DimIdleList[:1]
+					config.DimIdleTimes = config.DimIdleTimes[1:] + config.DimIdleTimes[:1]
+
 				else:
-					config.Logs.Log("Bad msg from watcher: " + str(item), Severity=ConsoleWarning)
+					# State value error - fatal error
+					pass
+				debugPrint('Dispatch', 'Activity timer fired State=', self.states[oldState], '/',
+						   self.states[self.State])
 
-				# check for periodic alert items todo
+			elif event.type == self.ISYChange:
+				debugPrint('Dispatch', 'ISY Change Event', event)
+				self.AS.ISYEvent(event.__dict__['Info'])
 
 
-
-		pygame.time.set_timer(self.INTERVALHIT.type, 0)
-		pygame.time.set_timer(self.MAXTIMEHIT.type, 0)
-
-		return rtn
+			elif event.type == self.Tasks.TASKREADY.type:
+				E = self.Tasks.PopTask()
+				if E is not None:
+					debugPrint('Dispatch', 'Task Event fired: ', E.screen.name, E.id, E.name)
+					E.proc()  # config.DS.Tasks,E.screen,E.id,E.name,E.delay) # todo deal with hidden
+				else:
+					debugPrint('Dispatch', 'Empty Task Event fired')

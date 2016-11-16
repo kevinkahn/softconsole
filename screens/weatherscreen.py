@@ -1,26 +1,30 @@
-import time
-
 import pygame
 import webcolors
 
 import config
-from config import debugPrint, WAITEXTRACONTROLBUTTON, WAITEXIT
+from config import debugPrint
 
 wc = webcolors.name_to_rgb
 import screen
 import logsupport
 import weatherinfo
 import utilities
+import toucharea
 
 fsizes = ((20, False, False), (30, True, False), (45, True, True))
 
 
 class WeatherScreenDesc(screen.ScreenDesc):
 	def __init__(self, screensection, screenname):
-		debugPrint('BuildScreen', "New WeatherScreenDesc ", screenname)
+		debugPrint('Screen', "New WeatherScreenDesc ", screenname)
+		screen.ScreenDesc.__init__(self, screensection, screenname)
+		butsize = screen.ButSize(1, 1, 0)
+		self.Keys = [
+			toucharea.TouchPoint((config.horizborder + .5*butsize[0], config.topborder + .5*butsize[1]), butsize,
+								 proc=self.CondOrFcst)]
+		self.currentconditions = True  # show conditions or forecast
 
-		screen.ScreenDesc.__init__(self, screensection, screenname, (('which',('',)),))
-		utilities.LocalizeParams(self, screensection, WunderKey='', location='')
+		utilities.LocalizeParams(self, screensection, '-', WunderKey='', location='')
 		self.scrlabel = screen.FlatenScreenLabel(self.label)
 		# entries are (fontsize, centered, formatstring, values)
 		self.conditions = [(2, True, "{d}", self.scrlabel),
@@ -40,6 +44,10 @@ class WeatherScreenDesc(screen.ScreenDesc):
 
 	def __repr__(self):
 		return screen.ScreenDesc.__repr__(self) + "\r\n     WeatherScreenDesc:" + str(self.CharColor)
+
+	def CondOrFcst(self, press):
+		self.currentconditions = not self.currentconditions
+		self.ShowScreen(self.currentconditions)
 
 	def RenderScreenLines(self, recipe, values, color):
 		h = 0
@@ -69,7 +77,7 @@ class WeatherScreenDesc(screen.ScreenDesc):
 
 
 	def ShowScreen(self, conditions):
-		self.PaintBase([[('Conditions',)], [('Forecast',)]][conditions])
+		self.ReInitDisplay()
 		usefulheight = config.screenheight - config.topborder - config.botborder
 		h = 0
 		centered = []
@@ -102,20 +110,17 @@ class WeatherScreenDesc(screen.ScreenDesc):
 			vert_off = vert_off + renderedlines[i].get_height() + s
 		pygame.display.update()
 
-	def HandleScreen(self, newscr=True):
+	def EnterScreen(self):
+		debugPrint('Main', "Enter to screen: ", self.name)
+		self.NodeWatch = []
+		self.currentconditions = True
 
-		# stop any watching for device stream
-		config.toDaemon.put([])
-		currentconditions = True
-		if self.ShowScreen(currentconditions) == -1:
-			return config.HomeScreen
-		while 1:
-			choice = config.DS.NewWaitPress(self)
-			if choice[0] == WAITEXIT:
-				return choice[1]
-			elif choice[0] == WAITEXTRACONTROLBUTTON:
-				currentconditions = not currentconditions
-				self.ShowScreen(currentconditions)
+	def InitDisplay(self, nav):
+		super(WeatherScreenDesc, self).InitDisplay(nav)
+		if self.ShowScreen(self.currentconditions) == -1:
+			config.DS.SwitchScreen(config.HomeScreen)
 
+	def ExitScreen(self):
+		pass
 
 config.screentypes["Weather"] = WeatherScreenDesc

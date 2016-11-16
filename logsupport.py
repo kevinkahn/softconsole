@@ -49,7 +49,7 @@ class Logs(object):
 
 	def Log(self, *args, **kwargs):
 		"""
-		:param severity:
+		:param severity:nan
 		:param entry:
 		"""
 		severity = kwargs.pop('severity', ConsoleInfo)

@@ -39,9 +39,13 @@ import json
 urllib3.disable_warnings()
 # import urllib3.contrib.pyopenssl
 
-sys.stdout = open('/home/pi/master.log', 'a', 0)
+# sys.stdout = open('/home/pi/master.log', 'a', 0)
 print time.strftime('%m-%d-%y %H:%M:%S'), 'CONSOLE START'
 #urllib3.contrib.pyopenssl.inject_into_urllib3()
+
+signal.signal(signal.SIGTERM, utilities.signal_handler)
+signal.signal(signal.SIGINT, utilities.signal_handler)
+signal.signal(signal.SIGCHLD, utilities.daemon_died)  # todo win alternative?
 
 utilities.InitializeEnvironment()
 
@@ -95,9 +99,6 @@ with open(config.exdir + '/termshortenlist', 'r') as f:
 	except:
 		config.TermShortener = {}
 
-# requests.packages.urllib3.disable_warnings(
-#	InsecureRequestWarning)  # probably should fix certificates at some point todo
-
 if len(sys.argv) == 2:
 	config.configfile = sys.argv[1]
 
@@ -105,9 +106,6 @@ if not os.path.isfile(config.configfile):
 	utilities.EarlyAbort('No Configuration File')
 
 
-signal.signal(signal.SIGTERM, utilities.signal_handler)
-signal.signal(signal.SIGINT, utilities.signal_handler)
-signal.signal(signal.SIGCHLD, utilities.daemon_died)  # todo win alternative?
 
 config.ParsedConfigFile = ConfigObj(config.configfile)  # read the config.txt file
 configdir = os.path.dirname(config.configfile)
@@ -206,31 +204,12 @@ docfile.close()
 """
 Loop here using screen type to choose renderer and names to fill in cmdtxt - return value is next screen or a tap count
 """
-config.CurrentScreen = config.HomeScreen
-prevscreen = None
-mainchainactive = True
+config.DS.MainControlLoop(config.HomeScreen)
 
-while 1:
 	# humidity, temperature = Adafruit_DHT.read_retry(22,4)
 	# tempF = temperature*9/5.0 +32
 	# if humidity is not None and temperature is not None:
 	#	print 'Temp={0:0.1f}*  Humidity={1:0.1f}%'.format(tempF, humidity)
 
 
-	nextscreen = config.CurrentScreen.HandleScreen(prevscreen <> config.CurrentScreen)
-	if isinstance(nextscreen, int):
-		if nextscreen < 5:
-			if mainchainactive:
-				nextscreen = config.HomeScreen2
-				mainchainactive = False
-			else:
-				nextscreen = config.HomeScreen
-				mainchainactive = True
-		else:
-			nextscreen = config.MaintScreen
-	elif nextscreen is None:
-		nextscreen = config.HomeScreen
-	elif not isinstance(nextscreen, screen.ScreenDesc):
-		config.Logs.Log("Internal error unknown nextscreen", severity=logsupport.ConsoleError)
-	prevscreen = config.CurrentScreen
-	config.CurrentScreen = nextscreen
+# todo - should return from the control loop mean anything?

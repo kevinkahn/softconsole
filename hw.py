@@ -22,9 +22,9 @@ def initOS():
 	wiringpi.pwmWrite(18, 1024)
 
 
-def GoDim():
-	wiringpi.pwmWrite(18, (config.DimLevel*1024)/100)
+def GoDim(level):
+	wiringpi.pwmWrite(18, (level*1024)/100)
 
 
-def GoBright():
-	wiringpi.pwmWrite(18, (config.BrightLevel*1024)/100)
+def GoBright(level):
+	wiringpi.pwmWrite(18, (level*1024)/100)

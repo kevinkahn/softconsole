@@ -117,7 +117,6 @@ def signal_handler(sig, frame):
 		print "Daemon shutting down for termination"
 	else:
 		print"Unexpected signal situation"
-
 	time.sleep(1)
 	pygame.quit()
 	print time.strftime('%m-%d-%y %H:%M:%S'), me + id + " Exiting (" + str(os.getpid()) + ')'
@@ -155,9 +154,6 @@ def InitializeEnvironment():
 	config.fonts = fonts.Fonts()
 	config.screenwidth, config.screenheight = (pygame.display.Info().current_w, pygame.display.Info().current_h)
 
-	#    config.screenwidth = 240  # todo 2 lines for test only
-	#    config.screenheight = 320
-
 	"""
 	Scale screen constants
 	"""
@@ -167,7 +163,6 @@ def InitializeEnvironment():
 	config.topborder = scaleH(config.topborder)
 	config.botborder = scaleH(config.botborder)
 	config.cmdvertspace = scaleH(config.cmdvertspace)
-
 	config.screen = pygame.display.set_mode((config.screenwidth, config.screenheight), pygame.FULLSCREEN)
 	config.screen.fill((0, 0, 0))  # clear screen
 	pygame.display.update()
@@ -176,7 +171,7 @@ def InitializeEnvironment():
 	pygame.fastevent.init()
 
 
-def LocalizeParams(inst, configsection, *args, **kwargs):
+def LocalizeParams(inst, configsection, indent, *args, **kwargs):
 	"""
 	Merge screen specific parameter values into self.<var> entries for the class
 	inst is the class object (self), configsection is the Section of the config.txt file for this object,
@@ -212,12 +207,15 @@ def LocalizeParams(inst, configsection, *args, **kwargs):
 		else:
 			config.Logs.Log("Obj " + inst.__class__.__name__ + ' attempted import of non-existent global ' + nametoadd,
 			                severity=ConsoleError)
+
 	for i in range(len(lcllist)):
 		val = type(lclval[i])(configsection.get(lcllist[i], lclval[i]))
 		if isinstance(val, list):
 			for j, v in enumerate(val):
 				if isinstance(v, str):
 					val[j] = unicode(v)
+		if (lclval[i] <> val) and (lcllist[i] in args):
+			config.Logs.Log(indent + 'LParam: ' + lcllist[i] + ': ' + str(val))
 		inst.__dict__[lcllist[i]] = val
 
 

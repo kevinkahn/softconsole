@@ -4,15 +4,8 @@ starttime = 0
 Console_pid = 0
 Daemon_pid = 0
 Ending = False
-
-WAITNORMALBUTTON = 1
-WAITEXIT = 2
-WAITISYCHANGE = 4
-WAITEXTRACONTROLBUTTON = 5
-# WAITDBLTAP = 7
-WAITQUADTAP = 8
-# WAITMAINTTAP = 9
-WAITNORMALBUTTONFAST = 10
+PRESS = 1
+FASTPRESS = 2
 
 """ Daemon related stuff"""
 toDaemon = None
@@ -25,7 +18,7 @@ streamid = ""
 
 # Debug flags
 Flags = {}
-DbgFlags = ['Main', 'Daemon', 'BuildScreen', 'ISY']
+DbgFlags = ['Main', 'DaemonCtl', 'DaemonStream', 'Screen', 'ISY', 'Dispatch', 'EventList', 'Fonts']
 dbgscreenbuild = False
 dbgMain = False
 dbgdaemon = False
@@ -34,6 +27,7 @@ dbgdaemon = False
 def debugPrint(flag, *args):
 	if flag in DbgFlags:
 		if Flags[flag]:
+			print flag, '-> ',
 			for arg in args:
 				print arg,
 			print
@@ -71,7 +65,7 @@ dispratioW = 1
 dispratioH = 1
 baseheight = 480  # program design height
 basewidth = 320  # program design width
-# todo should any of these be settable in global params?
+
 horizborder = 20
 topborder = 20
 botborder = 80
@@ -85,3 +79,6 @@ MaintScreen = None
 DimHomeScreenCover = None
 DimIdleList = []
 DimIdleTimes = []
+MainDict = {}  # map: name:screen
+SecondaryDict = {}
+ExtraDict = {}

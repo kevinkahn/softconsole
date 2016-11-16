@@ -7,6 +7,7 @@ HomeScreenTO = 60
 DimLevel = 10
 BrightLevel = 100
 DimTO = 20
+PersistTO = 20
 CmdKeyCol = "red"
 CmdCharCol = "white"
 MultiTapTime = 400

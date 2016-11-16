@@ -120,10 +120,10 @@ class OnOffItem(object):
 		else:
 			return (0, 200)
 
-	def SendCommand(self, state, fast):
+	def SendCommand(self, state, presstype):
 		try:
 			for i in range(3):
-				error, status_code = self.TryCommand(state, fast)
+				error, status_code = self.TryCommand(state, presstype)
 				if error == 0:  # good result
 					raise GotIt()
 				else:

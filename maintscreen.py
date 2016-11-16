@@ -1,13 +1,14 @@
 import subprocess
 from collections import OrderedDict
 import os
+import functools
 
 import pygame
 import webcolors
 
 import config
 import toucharea
-from config import debugPrint, WAITNORMALBUTTON, WAITNORMALBUTTONFAST, WAITEXIT
+from config import debugPrint
 from utilities import interval_str
 
 wc = webcolors.name_to_rgb
@@ -18,42 +19,50 @@ import utilities
 import screen
 import githubutil as U
 
-fixedoverrides = {'CharColor': 'white', 'BackgroundColor': 'royalblue', 'label': ['Maintenance'], 'DimTO': 100000}
+fixedoverrides = {'CharColor': 'white', 'BackgroundColor': 'royalblue', 'label': ['Maintenance'], 'DimTO': 60,
+				  'PersistTO': 5}
 
 
 def SetUpMaintScreens():
-
-	Exits = MaintScreenDesc(
-		OrderedDict([('shut', ('Shutdown Console', doexit)), ('restart', ('Restart Console', doexit)),
-					 ('shutpi', (('Shutdown Pi'), doexit)), ('reboot', (('Reboot Pi'), doexit)),
-					 ('return', ('Return', None))]))
-	Beta = MaintScreenDesc(
-		OrderedDict([('stable', (('Use Stable Release'), dobeta)), ('beta', (('Use Beta Release'), dobeta)),
-					 ('release', (('Download release'), dobeta)), ('fetch', (('Download Beta'), dobeta)),
-					 ('return', ('Return', None))]))
+	LogDisp = LogDisplayScreen()
+	Exits = MaintScreenDesc('Exits',
+							OrderedDict([('shut', ('Shutdown Console', doexit)), ('restart', ('Restart Console', doexit)),
+										 ('shutpi', (('Shutdown Pi'), doexit)), ('reboot', (('Reboot Pi'), doexit)),
+										 ('return', ('Return', functools.partial(goto, False, config.MaintScreen)))]))
+	Beta = MaintScreenDesc('Versions',
+						   OrderedDict([('stable', (('Use Stable Release'), dobeta)), ('beta', (('Use Beta Release'), dobeta)),
+										('release', (('Download release'), dobeta)), ('fetch', (('Download Beta'), dobeta)),
+										('return', ('Return', functools.partial(goto, False, config.MaintScreen)))]))
+	config.MaintScreen = MaintScreenDesc('Maintenance',
+										 OrderedDict([('return',
+													   ('Exit Maintenance',
+														functools.partial(goto, True, config.HomeScreen))),
+													  ('log', ('Show Log', functools.partial(goto, False, LogDisp))),
+													  (
+													  'beta', ('Select Version', functools.partial(goto, False, Beta))),
+													  ('flags', ('Set Flags', setdbg)),
+													  # fixed below to break a dependency loop - this is key 3
+													  ('exit',
+													   ('Exit/Restart', functools.partial(goto, False, Exits)))]))
 	tmp = OrderedDict()
 	for flg in config.DbgFlags:
-		tmp[flg] = (flg, setdbg)
-	tmp['return'] = (('Return'), None)
-	DebugFlags = MaintScreenDesc(tmp)
-	for k in DebugFlags.keysbyord:
+		tmp[flg] = (flg, setdbg)  # setdbg gets fixed below to be actually callable
+	tmp['return'] = ('Return', functools.partial(goto, False, config.MaintScreen))
+	DebugFlags = MaintScreenDesc('Flags', tmp)
+	for k in DebugFlags.Keys:
 		if k.name in config.Flags:
 			k.State = config.Flags[k.name]
+			k.Proc = functools.partial(setdbg, k)
 
-	LogDisp = LogDisplayScreen()
-	config.MaintScreen = MaintScreenDesc(
-		OrderedDict([('return', ('Exit Maintenance', None)), ('log', ('Show Log', LogDisp.showlog)),
-					 ('beta', ('Select Version', Beta.HandleScreen)), ('flags', ('Set Flags', DebugFlags.HandleScreen)),
-					 ('exit', ('Exit/Restart', Exits.HandleScreen))]))
-	for screen in config.screentypes:
-		pass
+	# fix the flags key which is key 3 from above todo - could switch Keys to be OrderedDict then eliminate this
+	config.MaintScreen.Keys[3].Proc = functools.partial(goto, False, DebugFlags, config.MaintScreen.Keys[3])
 
 
-def setdbg(K):
+def setdbg(K, presstype):
 	# print "FLAG: ", K.name, config.Flags[K.name]
 	config.Flags[K.name] = not config.Flags[K.name]
 	K.State = config.Flags[K.name]
-	#print "CHANGE", config.Flags[K.name], K.State
+	K.PaintKey()
 	config.Logs.Log("Debug flag ", K.name, ' = ', K.State, severity=ConsoleWarning)
 	# Let the daemon know about flags change
 	config.toDaemon.put(('flagchange', K.name, config.Flags[K.name]))
@@ -64,7 +73,14 @@ def setdbg(K):
 
 ExitKey = 'none'
 
-def doexit(K):
+
+def goto(nav, screen, key, presstype):
+	config.DS.SwitchScreen(screen, NavKeys=nav)
+	if screen == config.HomeScreen:  # special case to get the activity timer set on maintenance exit
+		config.DS.SetActivityTimer(screen.DimTO, 'Leaving maint for home')
+
+
+def doexit(K, presstype):
 	global ExitKey
 	ExitKey = K.name
 	if K.name == 'shut':
@@ -75,12 +91,14 @@ def doexit(K):
 		verifymsg = 'Do Pi Shutdown'
 	else:
 		verifymsg = 'Do Pi Reboot'
+	Verify = MaintScreenDesc('Verify',
+							 OrderedDict([('yes', (verifymsg, functools.partial(dorealexit, K))),
+										  ('no', ('Cancel', functools.partial(goto, False, config.MaintScreen)))]))
+	config.DS.SwitchScreen(Verify, NavKeys=False)
 
-	MaintScreenDesc(
-		OrderedDict([('yes', (verifymsg, dorealexit)), ('no', ('Cancel', None))])).HandleScreen()
 
-
-def dorealexit(K):
+def dorealexit(K, YesKey, presstype):
+	ExitKey = K.name
 	if ExitKey == 'shut':
 		Exit_Options("Manual Shutdown Requested", "Shutting Down")
 	elif ExitKey == 'restart':
@@ -122,7 +140,8 @@ def errorexit(opt):
 	config.Ending = True
 	sys.exit(1)
 
-def dobeta(K):
+
+def dobeta(K, presstype):
 	basedir = os.path.dirname(config.exdir)
 	K.State = not K.State
 	K.PaintKey()
@@ -165,33 +184,42 @@ def Exit_Options(msg, scrnmsg):
 	time.sleep(2)
 
 
-def gotoscreen(K):
-	pass
-
-
 class LogDisplayScreen(screen.BaseKeyScreenDesc):
 	def __init__(self):
-		screen.BaseKeyScreenDesc.__init__(self, None, 'LOG', withnav=False)
-		self.keysbyord = [toucharea.TouchPoint((config.screenwidth/2, config.screenheight/2),
-											   (config.screenwidth, config.screenheight))]
+		screen.BaseKeyScreenDesc.__init__(self, None, 'LOG')
+		self.Keys = [toucharea.TouchPoint((config.screenwidth/2, config.screenheight/2),
+										  (config.screenwidth, config.screenheight), proc=self.NextPage)]
+		self.NodeWatch = []
+		self.name = 'Log'
 		utilities.register_example("LogDisplayScreen", self)
 
-	def showlog(self, K):
-		item = 0
-		while item >= 0:
-			item = config.Logs.RenderLog(self.BackgroundColor, start=item)
-			temp = config.DS.NewWaitPress(self)
+	def NextPage(self, presstype):
+		if self.item >= 0:
+			self.item = config.Logs.RenderLog(self.BackgroundColor, start=self.item)
+		else:
+			config.DS.SwitchScreen(config.MaintScreen, NavKeys=False)
 
+	def EnterScreen(self):
+		debugPrint('Main', "Enter to screen: ", self.name)
+		config.Logs.Log('Entering Log Screen')
+		self.item = 0
+		self.NodeWatch = []
+
+	def InitDisplay(self, nav):
+		super(LogDisplayScreen, self).InitDisplay(nav)
+		self.item = 0
+		self.NextPage(0)
 
 class MaintScreenDesc(screen.BaseKeyScreenDesc):
-	def __init__(self, keys):
-		debugPrint('BuildScreen', "Build Maintenance Screen")
-		screen.BaseKeyScreenDesc.__init__(self, fixedoverrides, 'Maint', withnav=False)
-		utilities.LocalizeParams(self, None, TitleFontSize=40, SubFontSize=25)
-		self.keysbyord = []
+	def __init__(self, name, keys):
+		debugPrint('Screen', "Build Maintenance Screen")
+		screen.BaseKeyScreenDesc.__init__(self, fixedoverrides, name)
+		utilities.LocalizeParams(self, None, '-', TitleFontSize=40, SubFontSize=25)
+		self.Keys = []
 		for k, kt in keys.iteritems():
-			self.keysbyord.append(
-				toucharea.ManualKeyDesc(k, [kt[0]], 'gold', 'black', 'white', KOn='black', KOff='white', proc=kt[1]))
+			NK = toucharea.ManualKeyDesc(k, [kt[0]], 'gold', 'black', 'white', KOn='black', KOff='white')
+			NK.Proc = functools.partial(kt[1], NK)
+			self.Keys.append(NK)
 		topoff = self.TitleFontSize + self.SubFontSize
 		self.LayoutKeys(topoff, config.screenheight - 2*config.topborder - topoff)
 		utilities.register_example("MaintScreenDesc", self)
@@ -209,28 +237,12 @@ class MaintScreenDesc(screen.BaseKeyScreenDesc):
 		self.PaintKeys()
 		pygame.display.update()
 
-	def HandleScreen(self, newscr=True):
-		config.toDaemon.put([])
-		# stop any watching for device stream
-		Logs = config.Logs
-		Logs.Log("Entering Maint Screen")
+	def EnterScreen(self):
+		config.DS.SetActivityTimer(self.DimTO, 'Maintenance Screen: ' + self.name)
+		debugPrint('Main', "Enter to screen: ", self.name)
+		config.Logs.Log('Entering Maintenance Screen')
+		self.NodeWatch = []
 
-		while 1:
-			self.ShowScreen()
-			choice = config.DS.NewWaitPress(self)
-			if choice[0] in (WAITNORMALBUTTON, WAITNORMALBUTTONFAST):
-				K = self.keysbyord[choice[1]]
-				if callable(K.RealObj):
-					K.RealObj(K)
-					continue
-				# return config.MaintScreen
-				elif K.RealObj == None:
-					return config.HomeScreen
-				else:
-					pass  # todo error?  what if multitap or 5 tap here
-					Logs.Log("Internal Error", severity=ConsoleError)
-			elif choice[0] == WAITEXIT:
-				return None
-			else:
-				Logs.Log("Internal Error Maint from Press", choice[0], severity=ConsoleError)
-				return choice[1]  # todo what is this
+	def InitDisplay(self, nav):
+		super(MaintScreenDesc, self).InitDisplay(nav)
+		self.ShowScreen()

@@ -9,9 +9,9 @@ class KeyDesc(toucharea.ManualKeyDesc):
 	# Describe a Key: name, background, keycharon, keycharoff, label(string tuple), type (ONOFF,ONBlink,OnOffRun,?),addr,OnU,OffU
 
 	def __init__(self, keysection, keyname):
-		debugPrint('BuildScreen', "             New Key Desc ", keyname)
+		debugPrint('Screen', "             New Key Desc ", keyname)
 		toucharea.ManualKeyDesc.__init__(self, keysection, keyname)
-		utilities.LocalizeParams(self, keysection, SceneProxy='', KeyRunThenName='', type='ONOFF')
+		utilities.LocalizeParams(self, keysection, '--', SceneProxy='', KeyRunThenName='', type='ONOFF')
 		self.MonitorObj = None  # ISY Object monitored to reflect state in the key (generally a device within a Scene)
 
 		# for ONOFF keys (and others later) map the real and monitored nodes in the ISY
@@ -19,54 +19,55 @@ class KeyDesc(toucharea.ManualKeyDesc):
 		# Obj is the representation of the ISY Object itself, addr is the address of the ISY device/scene
 		if self.type in ('ONOFF'):
 			if keyname in config.ISY.ScenesByName:
-				self.RealObj = config.ISY.ScenesByName[keyname]
+				self.ISYObj = config.ISY.ScenesByName[keyname]
 				if self.SceneProxy <> '':
 					# explicit proxy assigned
 					if self.SceneProxy in config.ISY.NodesByAddr:
 						# address given
 						self.MonitorObj = config.ISY.NodesByAddr[self.SceneProxy]
-						debugPrint('BuildScreen', "Scene ", keyname, " explicit address proxying with ",
+						debugPrint('Screen', "Scene ", keyname, " explicit address proxying with ",
 								   self.MonitorObj.name, '(', self.SceneProxy, ')')
 					elif self.SceneProxy in config.ISY.NodesByName:
 						self.MonitorObj = config.ISY.NodesByName[self.SceneProxy]
-						debugPrint('BuildScreen', "Scene ", keyname, " explicit name proxying with ",
+						debugPrint('Screen', "Scene ", keyname, " explicit name proxying with ",
 								   self.MonitorObj.name, '(', self.MonitorObj.address, ')')
 					else:
 						config.Logs.Log('Bad explicit scene proxy:' + self.name, severity=ConsoleWarning)
 				else:
-					for i in self.RealObj.members:
+					for i in self.ISYObj.members:
 						device = i[1]
 						if device.enabled and device.hasstatus:
 							self.MonitorObj = device
-							# todo   try to status the device here to see if it will respond
 							break
 						else:
 							config.Logs.Log('Skipping disabled/nonstatus device: ' + device.name, severity=ConsoleWarning)
 					if self.MonitorObj is None:
 						config.Logs.Log("No proxy for scene: " + keyname, severity=ConsoleError)
-					debugPrint('BuildScreen', "Scene ", keyname, " default proxying with ",
+					debugPrint('Screen', "Scene ", keyname, " default proxying with ",
 							   self.MonitorObj.name)
 			elif keyname in config.ISY.NodesByName:
-				self.RealObj = config.ISY.NodesByName[keyname]
-				self.MonitorObj = self.RealObj
+				self.ISYObj = config.ISY.NodesByName[keyname]
+				self.MonitorObj = self.ISYObj
 			else:
-				debugPrint('BuildScreen', "Screen", keyname, "unbound")
+				debugPrint('Screen', "Screen", keyname, "unbound")
 				config.Logs.Log('Key Binding missing: ' + self.name, severity=ConsoleWarning)
 		elif self.type in ("ONBLINKRUNTHEN"):
 			self.State = False
 			try:
-				self.RealObj = config.ISY.ProgramsByName[self.KeyRunThenName]
+				self.ISYObj = config.ISY.ProgramsByName[self.KeyRunThenName]
 			except:
-				self.RealObj = None
-				debugPrint('BuildScreen', "Unbound program key: ", self.name)
+				self.ISYObj = None
+				debugPrint('Screen', "Unbound program key: ", self.name)
 				config.Logs.Log("Missing Prog binding: " + self.name, severity=ConsoleWarning)
 		else:
-			debugPrint('BuildScreen', "Unknown key type: ", self.name)
+			self.type = "UNKNOWN"
+			debugPrint('Screen', "Unknown key type: ", self.name)
 			config.Logs.Log("Bad keytype: " + self.name, severity=ConsoleWarning)
 
 		utilities.register_example("KeyDesc", self)
 
-		debugPrint('BuildScreen', repr(self))
+		debugPrint('Screen', repr(self))
+
 
 	def __repr__(self):
 		return "KeyDesc:" + self.name + "|ST:" + str(self.State) + "|Clr:" + str(self.KeyColorOn) + "/" + str(

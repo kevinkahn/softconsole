@@ -3,7 +3,7 @@ import webcolors
 wc = webcolors.name_to_rgb
 import config
 import pygame
-from config import debugPrint, WAITEXIT
+from config import debugPrint
 import screen
 import utilities
 import isy
@@ -11,9 +11,9 @@ import isy
 
 class HouseStatusScreenDesc(screen.ScreenDesc):
 	def __init__(self, screensection, screenname):
-		debugPrint('BuildScreen', "Build House Status Screen")
-		screen.ScreenDesc.__init__(self, screensection, screenname, ())  # no extra cmd keys
-		utilities.LocalizeParams(self, screensection, NormalOn=[], NormalOff=[])
+		debugPrint('Screen', "Build House Status Screen")
+		screen.ScreenDesc.__init__(self, screensection, screenname)  # no extra cmd keys
+		utilities.LocalizeParams(self, screensection, '-', NormalOn=[], NormalOff=[])
 		checklist = [nm for nm in config.ISY.NodesByName if
 					 ((nm in self.NormalOn) or (nm in self.NormalOff))]  # addr -> name
 		utilities.register_example("HouseStatusScreenDesc", self)
@@ -49,7 +49,7 @@ class HouseStatusScreenDesc(screen.ScreenDesc):
 
 		while 1:
 			choice = config.DS.NewWaitPress(self)
-			if choice[0] == WAITEXIT:
+			if choice[0] == 0:
 				return choice[1]
 
 

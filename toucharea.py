@@ -11,9 +11,11 @@ class TouchPoint(object):
 	Represents a touchable rectangle on the screen.
 	"""
 
-	def __init__(self, c, s):
+	def __init__(self, c, s, proc=None):
 		self.Center = c
 		self.Size = s
+		self.Proc = proc  # function that gets called on touch - expects to take a single parameter which is thee type of press
+
 		utilities.register_example("TouchPoint", self)
 
 	def touched(self, pos):
@@ -33,7 +35,6 @@ class ManualKeyDesc(TouchPoint):
 	def __init__(self, *args, **kwargs):
 		# alternate creation signatures
 		self.ButtonFontSizes = (31, 28, 25, 22, 20, 18, 16)
-		# self.DynamicLabel = False
 		if len(args) == 2:
 			# signature: ManualKeyDesc(keysection, keyname)
 			# initialize by reading config file
@@ -43,6 +44,7 @@ class ManualKeyDesc(TouchPoint):
 			# initializing from program code case
 			self.docodeinit(*args, **kwargs)
 
+		# todo may need to change signature if handling "holds"?
 		if self.KeyColorOff == '':
 			self.KeyColorOff = self.KeyColor
 		if self.KeyColorOn == '':
@@ -51,15 +53,18 @@ class ManualKeyDesc(TouchPoint):
 			self.KeyLabelOn = self.label
 		if self.KeyLabelOff == ['', ]:
 			self.KeyLabelOff = self.label
+		if self.Size[0] <> 0:  # this key can be imaged now since it has a size
+			self.FinishKey((0, 0), (0, 0))
 		utilities.register_example("ManualKeyDesc", self)
 
 	def docodeinit(self, keyname, label, bcolor, charcoloron, charcoloroff, center=(0, 0), size=(0, 0), KOn='', KOff='',
-				   proc=None, KCon='', KCoff='', KLon=['', ], KLoff=['', ]):
+				   proc=None, param=None, KCon='', KCoff='', KLon=['', ], KLoff=['', ]):
 		# NOTE: do not put defaults for KOn/KOff in signature - imports and arg parsing subtleties will cause error
 		# because of when config is imported and what walues are at that time versus at call time
 		TouchPoint.__init__(self, center, size)
 		self.name = keyname
-		self.RealObj = proc
+		self.Proc = proc
+		self.Param = param
 		self.KeyColor = bcolor
 		self.KeyColorOn = KCon
 		self.KeyColorOff = KCoff
@@ -70,36 +75,35 @@ class ManualKeyDesc(TouchPoint):
 		self.KeyOutlineOffset = config.KeyOutlineOffset
 		self.State = True
 		self.label = label
+		self.ISYObj = None
 		self.KeyOnOutlineColor = config.KeyOnOutlineColor if KOn == '' else KOn
 		self.KeyOffOutlineColor = config.KeyOffOutlineColor if KOff == '' else KOff
 
 	def dosectioninit(self, keysection, keyname):
 		TouchPoint.__init__(self, (0, 0), (0, 0))
-		utilities.LocalizeParams(self, keysection, 'KeyColor', 'KeyOffOutlineColor', 'KeyOnOutlineColor',
+		utilities.LocalizeParams(self, keysection, '--', 'KeyColor', 'KeyOffOutlineColor', 'KeyOnOutlineColor',
 								 'KeyCharColorOn', 'KeyCharColorOff', 'KeyOutlineOffset', 'KeyColorOn', 'KeyColorOff',
 								 'KeyLabelOn', 'KeyLabelOff', label=[keyname])
 		self.name = keyname
 		self.State = True
-		self.RealObj = None  # this will get filled in by creator later - could be ISY node, ISY program, proc to call
+		self.ISYObj = None  # this will get filled in by creator later - could be ISY node, ISY program
+		self.Param = None
 
-	def PaintKey(self,latetitle=None):
+	def PaintKey(self, ForceDisplay=False, DisplayState=True):
 		x = self.Center[0] - self.Size[0]/2
 		y = self.Center[1] - self.Size[1]/2
-		if self.State:
-			if self.KeyLabelOn[0] == '':  # implied dynamic label
-				temp = self.KeyOnImage.copy()
-				self.AddTitle(temp,latetitle,self.FindFontSize(latetitle,0,True),self.KeyCharColorOn)
-				config.screen.blit(temp,(x,y))
+		if ForceDisplay:
+			# ignore Key state and display as "DisplayState"
+			if DisplayState:
+				config.screen.blit(self.KeyOnImage, (x, y))
 			else:
-				config.screen.blit(self.KeyOnImage,(x,y))
+				config.screen.blit(self.KeyOffImage, (x, y))
+		elif self.State:
+			config.screen.blit(self.KeyOnImage, (x, y))
 		else:
-			if self.KeyLabelOff[0] == '':  # implied dynamic label
-				temp = self.KeyOffImage.copy()
-				self.AddTitle(temp,latetitle,self.FindFontSize(latetitle,0,True),self.KeyCharColorOff)
-				config.screen.blit(temp,(x,y))
-			else:
-				config.screen.blit(self.KeyOffImage,(x,y))
+			config.screen.blit(self.KeyOffImage, (x, y))
 		pygame.display.update()
+
 
 	def FindFontSize(self,lab,firstfont,shrink):
 		lines = len(lab)
@@ -146,11 +150,8 @@ class ManualKeyDesc(TouchPoint):
 		s.fill(wc("white"))
 		self.KeyOffImage.blit(s, (0,0))
 
-		# if a non-blank label then add in the label - otherwise it is a late bound label that will get set at paint time
-		if self.KeyLabelOn[0] <> '':  # static label supplied
-			fontchoice = self.FindFontSize(self.KeyLabelOn, firstfont, shrink)
-			self.AddTitle(self.KeyOnImage, self.KeyLabelOn, fontchoice, self.KeyCharColorOn)
-		if self.KeyLabelOff[0] <> '':
-			fontchoice = self.FindFontSize(self.KeyLabelOff, firstfont,
-										   shrink)  # todo add Onlabel and OffLabel - they will need separate fontchoiices default to label
-			self.AddTitle(self.KeyOffImage, self.KeyLabelOff, fontchoice, self.KeyCharColorOff)
+		# Add the labels
+		fontchoice = self.FindFontSize(self.KeyLabelOn, firstfont, shrink)
+		self.AddTitle(self.KeyOnImage, self.KeyLabelOn, fontchoice, self.KeyCharColorOn)
+		fontchoice = self.FindFontSize(self.KeyLabelOff, firstfont, shrink)
+		self.AddTitle(self.KeyOffImage, self.KeyLabelOff, fontchoice, self.KeyCharColorOff)
