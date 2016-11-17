@@ -71,7 +71,7 @@ class KeyScreenDesc(screen.BaseKeyScreenDesc):
 
 	def EnterScreen(self):
 		self.subscriptionlist = {}
-		debugPrint('Main', "Enter to screen: ", self.name)
+		debugPrint('Screen', "Enter to screen: ", self.name)
 
 		for K in self.Keys:
 			if K.MonitorObj is not None:
@@ -81,7 +81,7 @@ class KeyScreenDesc(screen.BaseKeyScreenDesc):
 		debugPrint('Main', "Active Subscription List will be:")
 		self.NodeWatch = []
 		for i in self.subscriptionlist:
-			debugPrint('Main', "  Subscribe: ", i, self.subscriptionlist[i].name, " : ",
+			debugPrint('Screen', "  Subscribe: ", i, self.subscriptionlist[i].name, " : ",
 					   self.subscriptionlist[i].ISYObj.name, ' via ', self.subscriptionlist[i].MonitorObj.name)
 			self.NodeWatch.append(i)
 
@@ -96,14 +96,8 @@ class KeyScreenDesc(screen.BaseKeyScreenDesc):
 	def ISYEvent(self, event):
 		# Watched node reported change event is ("Node", addr, value, seq)
 		K = self.subscriptionlist[event[1]]
-		print 'KS ISYEvent ', K.name, event, K.State
+		debugPrint('Screen', 'KS ISYEvent ', K.name, str(event), str(K.State))
 		K.State = not (int(event[2] if event[2].isdigit() else 0) == 0)  # K is off (false) only if state is 0
-		print 'KS after ', K.State
 		K.PaintKey()
-
-
-
-
-
 
 config.screentypes["Keypad"] = KeyScreenDesc

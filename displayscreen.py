@@ -108,7 +108,6 @@ class DisplayScreen(object):
 				if item[0] == "Log":
 					config.Logs.Log(item[1], severity=item[2])
 				elif item[0] == "Node":
-					print "QH: ", item
 					notice = pygame.event.Event(self.ISYChange, {"Info": item})
 					pygame.fastevent.post(notice)
 				else:
