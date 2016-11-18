@@ -20,9 +20,8 @@ import sys
 import time
 from  multiprocessing import Process, Queue
 
-import requests
 from configobj import ConfigObj
-
+import alerttasks
 import config
 import configobjects
 import displayscreen
@@ -30,7 +29,6 @@ import globalparams
 import isy
 import logsupport
 import maintscreen
-import screen
 import utilities
 import requests
 import urllib3
@@ -113,11 +111,16 @@ configdir = os.path.dirname(config.configfile)
 config.configfilelist[config.configfile] = os.path.getmtime(config.configfile)
 
 cfiles = []
+pfiles = []
 includes = config.ParsedConfigFile.get('include', [])
 while includes <> []:
 	f = includes.pop(0)
 	if f[0] <> '/':
+		pfiles.append('+' + f)
 		f = configdir + "/" + f
+	else:
+		pfiles.append(f)
+	cfiles.append(f)
 	tmpconf = ConfigObj(f)
 	cfiles.append(f)
 	includes = includes + tmpconf.get('include', [])
@@ -143,8 +146,8 @@ config.Logs.Log("Console Starting  pid: ", config.Console_pid)
 config.Logs.Log("Main config file: ", config.configfile,
 				time.strftime(' %c', time.localtime(config.configfilelist[config.configfile])))
 config.Logs.Log("Including config files:")
-for f in cfiles:
-	config.Logs.Log("  ", f, config.configfile, time.strftime(' %c', time.localtime(config.configfilelist[f])))
+for p, f in zip(pfiles, cfiles):
+	config.Logs.Log("  ", p, time.strftime(' %c', time.localtime(config.configfilelist[f])))
 for flg, fval in config.Flags.iteritems():
 	if fval:
 		config.Logs.Log('Debug flag ', flg, '=', fval, severity=logsupport.ConsoleWarning)
@@ -152,6 +155,11 @@ for flg, fval in config.Flags.iteritems():
 config.DS = displayscreen.DisplayScreen()  # create the actual device screen and touch manager
 
 utilities.LogParams()
+if 'Alerts' in config.ParsedConfigFile:
+	alertspec = config.ParsedConfigFile['Alerts']
+	del config.ParsedConfigFile['Alerts']
+else:
+	alertspec = None
 
 """
 Set up for ISY access
@@ -163,11 +171,18 @@ config.ISYrequestsession.auth = (config.ISYuser, config.ISYpassword)
 config.ISY = isy.ISY(config.ISYrequestsession)
 config.Logs.Log("Enumerated ISY Structure")
 
+
 """
 Build the ISY object structure and connect the configured screens to it
 """
 configobjects.MyScreens()
 config.Logs.Log("Linked config to ISY")
+
+"""
+Build the alerts structures
+"""
+alerttasks.Alerts(alertspec)
+config.Logs.Log("Alerts established")
 
 """
 Set up the watcher daemon and its communications

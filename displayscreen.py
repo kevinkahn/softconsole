@@ -9,6 +9,7 @@ from eventlist import EventItem, EventList
 import threading
 from config import debugPrint
 from logsupport import ConsoleWarning
+from collections import OrderedDict
 
 wc = webcolors.name_to_rgb
 
@@ -68,9 +69,10 @@ class DisplayScreen(object):
 			self.AS.ExitScreen()
 		self.AS = NS
 		if NavKeys:
-			nav = [self.ScreensDict[self.AS.name].prevkey, self.ScreensDict[self.AS.name].nextkey]
+			nav = OrderedDict(
+				{'prevkey': self.ScreensDict[self.AS.name].prevkey, 'nextkey': self.ScreensDict[self.AS.name].nextkey})
 		else:
-			nav = []
+			nav = {}
 		self.AS.EnterScreen()
 		config.toDaemon.put(['Status'] + self.AS.NodeWatch + self.StatusNodes)
 		debugPrint('Dispatch', "New watchlist(Main): " + str(self.AS.NodeWatch + self.StatusNodes))
@@ -191,14 +193,14 @@ class DisplayScreen(object):
 					self.State = self.activenonhome
 					continue
 
-				for K in self.AS.Keys:
+				for K in self.AS.Keys.itervalues():
 					if K.touched(pos):
 						if tapcount == 1:
 							K.Proc(config.PRESS)
 						else:
 							K.Proc(config.FASTPRESS)
 
-				for K in self.AS.NavKeys:
+				for K in self.AS.NavKeys.itervalues():
 					if K.touched(pos):
 						K.Proc(config.PRESS)  # same action whether single or double tap
 
@@ -241,6 +243,9 @@ class DisplayScreen(object):
 						   self.states[self.State])
 
 			elif event.type == self.ISYChange:
+				# todo - 2 cases device is in AS, device is in a posted task - could be both and should call both then
+				# screen first? then task the proc to call for a posted task needs to be stored in the list here with StatusNodes
+				# only allow one proc per device? or multiple - latter then would need to distinguish who put on the list
 				debugPrint('Dispatch', 'ISY Change Event', event)
 				self.AS.ISYEvent(event.__dict__['Info'])
 

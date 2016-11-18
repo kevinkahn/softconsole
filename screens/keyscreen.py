@@ -33,7 +33,7 @@ class KeyScreenDesc(screen.BaseKeyScreenDesc):
 					NewKey.Proc = functools.partial(self.OnBlinkRunThen, NewKey)
 				else:  # unknown type
 					config.Logs.Log('Undefined key type for: ' + keyname, severity=logsupport.ConsoleWarning)
-				self.Keys.append(NewKey)
+				self.Keys[keyname] = NewKey
 
 		self.LayoutKeys()
 		utilities.register_example("KeyScreenDesc", self)
@@ -73,7 +73,7 @@ class KeyScreenDesc(screen.BaseKeyScreenDesc):
 		self.subscriptionlist = {}
 		debugPrint('Screen', "Enter to screen: ", self.name)
 
-		for K in self.Keys:
+		for K in self.Keys.itervalues():
 			if K.MonitorObj is not None:
 				# skip program buttons
 				self.subscriptionlist[K.MonitorObj.address] = K
@@ -88,7 +88,7 @@ class KeyScreenDesc(screen.BaseKeyScreenDesc):
 	def InitDisplay(self, nav):
 
 		states = isy.get_real_time_status(self.subscriptionlist.keys())
-		for K in self.Keys:
+		for K in self.Keys.itervalues():
 			if K.MonitorObj is not None:
 				K.State = not (states[K.MonitorObj.address] == 0)  # K is off (false) only if state is 0
 		super(KeyScreenDesc, self).InitDisplay(nav)

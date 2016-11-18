@@ -10,6 +10,7 @@ import logsupport
 import weatherinfo
 import utilities
 import toucharea
+from collections import OrderedDict
 
 fsizes = ((20, False, False), (30, True, False), (45, True, True))
 
@@ -19,9 +20,9 @@ class WeatherScreenDesc(screen.ScreenDesc):
 		debugPrint('Screen', "New WeatherScreenDesc ", screenname)
 		screen.ScreenDesc.__init__(self, screensection, screenname)
 		butsize = screen.ButSize(1, 1, 0)
-		self.Keys = [
-			toucharea.TouchPoint((config.horizborder + .5*butsize[0], config.topborder + .5*butsize[1]), butsize,
-								 proc=self.CondOrFcst)]
+		self.Keys = OrderedDict({'condorfcst': toucharea.TouchPoint('condorfcst', (
+		config.horizborder + .5*butsize[0], config.topborder + .5*butsize[1]), butsize,
+																	proc=self.CondOrFcst)})
 		self.currentconditions = True  # show conditions or forecast
 
 		utilities.LocalizeParams(self, screensection, '-', WunderKey='', location='')

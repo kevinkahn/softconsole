@@ -6,6 +6,7 @@ import config
 import logsupport
 import utilities
 import toucharea
+import collections
 
 wc = webcolors.name_to_rgb
 
@@ -42,8 +43,8 @@ class ScreenDesc(object):
 
 	def __init__(self, screensection, screenname):
 		self.name = screenname
-		self.NavKeys = []
-		self.Keys = []
+		self.NavKeys = collections.OrderedDict()
+		self.Keys = collections.OrderedDict()
 		self.WithNav = True
 
 		utilities.LocalizeParams(self, screensection, '-', 'CharColor', 'DimTO', 'PersistTO', 'BackgroundColor',
@@ -54,10 +55,10 @@ class ScreenDesc(object):
 		utilities.register_example('ScreenDesc', self)
 
 	def PaintKeys(self):
-		for key in self.Keys:
+		for key in self.Keys.itervalues():
 			if type(key) is not toucharea.TouchPoint:
 				key.PaintKey()
-		for key in self.NavKeys:
+		for key in self.NavKeys.itervalues():
 			key.PaintKey()
 
 	def EnterScreen(self):
@@ -106,5 +107,5 @@ class BaseKeyScreenDesc(ScreenDesc):
 		for i in range(bpc):
 			vpos.append(config.topborder + extraOffset + (.5 + i)*buttonsize[1])
 
-		for i, key in enumerate(self.Keys):
+		for i, (kn, key) in enumerate(self.Keys.iteritems()):
 			key.FinishKey((hpos[i%bpr], vpos[i//bpr]), buttonsize)

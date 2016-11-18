@@ -26,21 +26,21 @@ fixedoverrides = {'CharColor': 'white', 'BackgroundColor': 'royalblue', 'label':
 def SetUpMaintScreens():
 	LogDisp = LogDisplayScreen()
 	Exits = MaintScreenDesc('Exits',
-							OrderedDict([('shut', ('Shutdown Console', doexit)), ('restart', ('Restart Console', doexit)),
-										 ('shutpi', (('Shutdown Pi'), doexit)), ('reboot', (('Reboot Pi'), doexit)),
-										 ('return', ('Return', functools.partial(goto, False, config.MaintScreen)))]))
+							OrderedDict(
+								[('shut', ('Shutdown Console', doexit)), ('restart', ('Restart Console', doexit)),
+								 ('shutpi', (('Shutdown Pi'), doexit)), ('reboot', (('Reboot Pi'), doexit)),
+								 ('return', ('Return', None))]))  # proc filled in below due to circularity
 	Beta = MaintScreenDesc('Versions',
 						   OrderedDict([('stable', (('Use Stable Release'), dobeta)), ('beta', (('Use Beta Release'), dobeta)),
 										('release', (('Download release'), dobeta)), ('fetch', (('Download Beta'), dobeta)),
-										('return', ('Return', functools.partial(goto, False, config.MaintScreen)))]))
+										('return', ('Return', None))]))  # proc filled in below due to circularity
 	config.MaintScreen = MaintScreenDesc('Maintenance',
-										 OrderedDict([('return',
-													   ('Exit Maintenance',
-														functools.partial(goto, True, config.HomeScreen))),
+										 OrderedDict([('return', (
+										 'Exit Maintenance', functools.partial(goto, True, config.HomeScreen))),
 													  ('log', ('Show Log', functools.partial(goto, False, LogDisp))),
 													  (
 													  'beta', ('Select Version', functools.partial(goto, False, Beta))),
-													  ('flags', ('Set Flags', setdbg)),
+													  ('flags', ('Set Flags', None)),
 													  # fixed below to break a dependency loop - this is key 3
 													  ('exit',
 													   ('Exit/Restart', functools.partial(goto, False, Exits)))]))
@@ -49,13 +49,14 @@ def SetUpMaintScreens():
 		tmp[flg] = (flg, setdbg)  # setdbg gets fixed below to be actually callable
 	tmp['return'] = ('Return', functools.partial(goto, False, config.MaintScreen))
 	DebugFlags = MaintScreenDesc('Flags', tmp)
-	for k in DebugFlags.Keys:
-		if k.name in config.Flags:
+	for kn, k in DebugFlags.Keys.iteritems():
+		if kn in config.Flags:
 			k.State = config.Flags[k.name]
 			k.Proc = functools.partial(setdbg, k)
 
-	# fix the flags key which is key 3 from above todo - could switch Keys to be OrderedDict then eliminate this
-	config.MaintScreen.Keys[3].Proc = functools.partial(goto, False, DebugFlags, config.MaintScreen.Keys[3])
+	config.MaintScreen.Keys['flags'].Proc = functools.partial(goto, False, DebugFlags, config.MaintScreen.Keys['flags'])
+	Exits.Keys['return'].Proc = functools.partial(goto, False, config.MaintScreen, Exits.Keys['return'])
+	Beta.Keys['return'].Proc = functools.partial(goto, False, config.MaintScreen, Beta.Keys['return'])
 
 
 def setdbg(K, presstype):
@@ -187,8 +188,8 @@ def Exit_Options(msg, scrnmsg):
 class LogDisplayScreen(screen.BaseKeyScreenDesc):
 	def __init__(self):
 		screen.BaseKeyScreenDesc.__init__(self, None, 'LOG')
-		self.Keys = [toucharea.TouchPoint((config.screenwidth/2, config.screenheight/2),
-										  (config.screenwidth, config.screenheight), proc=self.NextPage)]
+		self.Keys = {'nextpage': toucharea.TouchPoint('nextpage', (config.screenwidth/2, config.screenheight/2),
+													  (config.screenwidth, config.screenheight), proc=self.NextPage)}
 		self.NodeWatch = []
 		self.name = 'Log'
 		utilities.register_example("LogDisplayScreen", self)
@@ -215,11 +216,11 @@ class MaintScreenDesc(screen.BaseKeyScreenDesc):
 		debugPrint('Screen', "Build Maintenance Screen")
 		screen.BaseKeyScreenDesc.__init__(self, fixedoverrides, name)
 		utilities.LocalizeParams(self, None, '-', TitleFontSize=40, SubFontSize=25)
-		self.Keys = []
 		for k, kt in keys.iteritems():
 			NK = toucharea.ManualKeyDesc(k, [kt[0]], 'gold', 'black', 'white', KOn='black', KOff='white')
-			NK.Proc = functools.partial(kt[1], NK)
-			self.Keys.append(NK)
+			if kt[1] is not None:
+				NK.Proc = functools.partial(kt[1], NK)
+			self.Keys[k] = NK
 		topoff = self.TitleFontSize + self.SubFontSize
 		self.LayoutKeys(topoff, config.screenheight - 2*config.topborder - topoff)
 		utilities.register_example("MaintScreenDesc", self)

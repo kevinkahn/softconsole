@@ -11,9 +11,10 @@ class TouchPoint(object):
 	Represents a touchable rectangle on the screen.
 	"""
 
-	def __init__(self, c, s, proc=None):
+	def __init__(self, name, c, s, proc=None):
 		self.Center = c
 		self.Size = s
+		self.name = name
 		self.Proc = proc  # function that gets called on touch - expects to take a single parameter which is thee type of press
 
 		utilities.register_example("TouchPoint", self)
@@ -61,8 +62,7 @@ class ManualKeyDesc(TouchPoint):
 				   proc=None, param=None, KCon='', KCoff='', KLon=['', ], KLoff=['', ]):
 		# NOTE: do not put defaults for KOn/KOff in signature - imports and arg parsing subtleties will cause error
 		# because of when config is imported and what walues are at that time versus at call time
-		TouchPoint.__init__(self, center, size)
-		self.name = keyname
+		TouchPoint.__init__(self, keyname, center, size)
 		self.Proc = proc
 		self.Param = param
 		self.KeyColor = bcolor
@@ -80,11 +80,10 @@ class ManualKeyDesc(TouchPoint):
 		self.KeyOffOutlineColor = config.KeyOffOutlineColor if KOff == '' else KOff
 
 	def dosectioninit(self, keysection, keyname):
-		TouchPoint.__init__(self, (0, 0), (0, 0))
+		TouchPoint.__init__(self, keyname, (0, 0), (0, 0))
 		utilities.LocalizeParams(self, keysection, '--', 'KeyColor', 'KeyOffOutlineColor', 'KeyOnOutlineColor',
 								 'KeyCharColorOn', 'KeyCharColorOff', 'KeyOutlineOffset', 'KeyColorOn', 'KeyColorOff',
 								 'KeyLabelOn', 'KeyLabelOff', label=[keyname])
-		self.name = keyname
 		self.State = True
 		self.ISYObj = None  # this will get filled in by creator later - could be ISY node, ISY program
 		self.Param = None

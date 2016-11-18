@@ -50,32 +50,30 @@ class ThermostatScreenDesc(screen.BaseKeyScreenDesc):
 		for i in range(4):
 			gfxdraw.filled_trigon(self.AdjButSurf, *trifromtop(centerspacing, arrowsize/2, i + 1, arrowsize,
 															   wc(("red", "blue", "red", "blue")[i]), i%2 <> 0))
-			self.Keys.append(toucharea.TouchPoint((centerspacing*(i + 1), self.AdjButTops + arrowsize/2),
-												  (arrowsize*1.2, arrowsize*1.2),
-												  proc=functools.partial(self.BumpTemp,
-																		 ('CLISPH', 'CLISPH', 'CLISPC', 'CLISPC')[i],
-																		 (2, -2, 2, -2)[i])))
+			self.Keys['temp' + str(i)] = toucharea.TouchPoint('temp' + str(i),
+															  (centerspacing*(i + 1), self.AdjButTops + arrowsize/2),
+															  (arrowsize*1.2, arrowsize*1.2),
+															  proc=functools.partial(self.BumpTemp,
+																					 ('CLISPH', 'CLISPH', 'CLISPC', 'CLISPC')[i],
+																					 (2, -2, 2, -2)[i]))
 
 		self.ModeButPos = self.AdjButTops + scaleH(85)  # pixel
 
 		bsize = (scaleW(100), scaleH(50))  # pixel
 
-		self.ModeKey = toucharea.ManualKeyDesc("Mode", ["Mode"],
-											   self.KeyColor, self.CharColor, self.CharColor,
-											   center=(config.screenwidth/4, self.ModeButPos), size=bsize,
-											   KOn=config.KeyOffOutlineColor,
-											   proc=functools.partial(self.BumpMode, 'CLIMD', range(8)))
-		self.Keys.append(self.ModeKey)
+		self.Keys['Mode'] = toucharea.ManualKeyDesc("Mode", ["Mode"],
+													self.KeyColor, self.CharColor, self.CharColor,
+													center=(config.screenwidth/4, self.ModeButPos), size=bsize,
+													KOn=config.KeyOffOutlineColor,
+													proc=functools.partial(self.BumpMode, 'CLIMD', range(8)))
 
-		self.FanKey = toucharea.ManualKeyDesc("Fan", ["Fan"],
-											  self.KeyColor, self.CharColor, self.CharColor,
-											  center=(3*config.screenwidth/4, self.ModeButPos), size=bsize,
-											  KOn=config.KeyOffOutlineColor,
-											  proc=functools.partial(self.BumpMode, 'CLIFS', (7, 8)))
-		self.Keys.append(self.FanKey)
-
-		self.Keys[4].FinishKey((0, 0), (0, 0))
-		self.Keys[5].FinishKey((0, 0), (0, 0))
+		self.Keys['Fan'] = toucharea.ManualKeyDesc("Fan", ["Fan"],
+												   self.KeyColor, self.CharColor, self.CharColor,
+												   center=(3*config.screenwidth/4, self.ModeButPos), size=bsize,
+												   KOn=config.KeyOffOutlineColor,
+												   proc=functools.partial(self.BumpMode, 'CLIFS', (7, 8)))
+		self.Keys['Mode'].FinishKey((0, 0), (0, 0))
+		self.Keys['Fan'].FinishKey((0, 0), (0, 0))
 		self.ModesPos = self.ModeButPos + bsize[1]/2 + scaleH(5)
 		utilities.register_example("ThermostatScreenDesc", self)
 
@@ -124,14 +122,14 @@ class ThermostatScreenDesc(screen.BaseKeyScreenDesc):
 			wc(self.CharColor))
 		config.screen.blit(r, ((config.screenwidth - r.get_width())/2, self.SPPos))
 		config.screen.blit(self.AdjButSurf, (0, self.AdjButTops))
-		self.ModeKey.PaintKey()
-		self.FanKey.PaintKey()
+		self.Keys['Mode'].PaintKey()
+		self.Keys['Fan'].PaintKey()
 		r1 = config.fonts.Font(self.fsize[1]).render(
 			('Off', 'Heat', 'Cool', 'Auto', 'Fan', 'Prog Auto', 'Prog Heat', 'Prog Cool')[self.info["CLIMD"][0]], 0,
 			wc(self.CharColor))
 		r2 = config.fonts.Font(self.fsize[1]).render(('On', 'Auto')[self.info["CLIFS"][0] - 7], 0, wc(self.CharColor))
-		config.screen.blit(r1, (self.ModeKey.Center[0] - r1.get_width()/2, self.ModesPos))
-		config.screen.blit(r2, (self.FanKey.Center[0] - r2.get_width()/2, self.ModesPos))
+		config.screen.blit(r1, (self.Keys['Mode'].Center[0] - r1.get_width()/2, self.ModesPos))
+		config.screen.blit(r2, (self.Keys['Fan'].Center[0] - r2.get_width()/2, self.ModesPos))
 
 		pygame.display.update()
 

@@ -1,9 +1,6 @@
 import collections
 import os
 import sys
-import requests
-import shutil
-import subprocess
 import time
 import signal
 import webcolors
@@ -280,3 +277,16 @@ def DumpDocumentation():
 	docfile.close()
 	mdfile.close()
 
+
+import re
+from datetime import timedelta
+
+
+def get_timedelta(line):
+	timespaces = {"days": 0}
+	for timeunit in "year month week day hour minute second".split():
+		content = re.findall(r"([0-9]*?)\s*?" + timeunit, line)
+		if content:
+			timespaces[timeunit + "s"] = int(content[0])
+	timespaces["days"] += 30*timespaces.pop("months", 0) + 365*timespaces.pop("years", 0)
+	return timedelta(**timespaces)
