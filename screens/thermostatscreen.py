@@ -138,10 +138,11 @@ class ThermostatScreenDesc(screen.BaseKeyScreenDesc):
 		self.NodeWatch = [self.ISYObj.address]
 
 	def InitDisplay(self, nav):
-		super(ThermostatScreenDesc, self).InitDisplay(nav)
+		super(ThermostatScreenDesc, self).InitDisplay(
+			nav)  # todo what actually gets returned for thermo?  needed if want to optimize showscreen
 		self.ShowScreen()
 
-	def ISYEvent(self, event):
+	def ISYEvent(self, node, value):
 		self.ShowScreen()
 
 config.screentypes["Thermostat"] = ThermostatScreenDesc

@@ -7,7 +7,7 @@ import pygame
 from config import debugPrint
 import screen
 import utilities
-from eventlist import EventItem
+from eventlist import ProcEventItem
 
 
 class ClockScreenDesc(screen.ScreenDesc):
@@ -46,14 +46,13 @@ class ClockScreenDesc(screen.ScreenDesc):
 			config.screen.blit(l[i], (horiz_off, vert_off))
 			vert_off = vert_off + s + l[i].get_height()
 		pygame.display.update()
-		I = EventItem(self, '666', 'repaint', 1, self.repaintClock)  # set the interval a bit long to reduce early calls
+		I = ProcEventItem(id(self), 'repaint', 1, self.repaintClock)
 		config.DS.Tasks.AddTask(I)
 
 	def EnterScreen(self):
 		self.NodeWatch = []
 
 	def InitDisplay(self, nav):
-		self.PaintBase()
 		super(ClockScreenDesc, self).InitDisplay(nav)
 		self.repaintClock()
 

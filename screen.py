@@ -73,11 +73,11 @@ class ScreenDesc(object):
 		self.PaintBase()
 		self.PaintKeys()
 
-	def ISYEvent(self, event):
-		config.Logs.Log("ISY event to screen: ", self.name, severity=logsupport.ConsoleWarning)
+	def ISYEvent(self, node, value):
+		config.Logs.Log("Unexpected ISY event to screen: ", self.name, severity=logsupport.ConsoleWarning)
 
 	def ExitScreen(self):
-		config.DS.Tasks.RemoveAllScreen(self)  # by default delete all pending tasks override if screen needs to
+		config.DS.Tasks.RemoveAllScreen(id(self))  # by default delete all pending tasks override if screen needs to
 
 	# keep some tasks going
 

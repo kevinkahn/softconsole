@@ -10,7 +10,7 @@ import screen
 import utilities
 import logsupport
 from config import debugPrint
-from eventlist import EventItem
+from eventlist import EventItem, ProcEventItem
 
 wc = webcolors.name_to_rgb
 
@@ -47,7 +47,7 @@ class KeyScreenDesc(screen.BaseKeyScreenDesc):
 				K.PaintKey(ForceDisplay=True, DisplayState=True)  # force on
 			else:
 				K.PaintKey(ForceDisplay=True, DisplayState=False)  # force off
-			E = EventItem(self, 1, 'keyblink', .5, functools.partial(self.BlinkKey, K, cycle - 1))
+			E = ProcEventItem(id(self), 'keyblink', .5, functools.partial(self.BlinkKey, K, cycle - 1))
 			config.DS.Tasks.AddTask(E)
 		else:
 			K.PaintKey()  # make sure to leave it in real state
@@ -66,7 +66,7 @@ class KeyScreenDesc(screen.BaseKeyScreenDesc):
 		print "Blinker"
 		if presstype == config.FASTPRESS:
 			K.ISYObj.runThen()
-			E = EventItem(self, 1, 'keyblink', .5, functools.partial(self.BlinkKey, K, 7))
+			E = ProcEventItem(id(self), 'keyblink', .5, functools.partial(self.BlinkKey, K, 7))
 			config.DS.Tasks.AddTask(E)
 
 	def EnterScreen(self):
@@ -93,11 +93,11 @@ class KeyScreenDesc(screen.BaseKeyScreenDesc):
 				K.State = not (states[K.MonitorObj.address] == 0)  # K is off (false) only if state is 0
 		super(KeyScreenDesc, self).InitDisplay(nav)
 
-	def ISYEvent(self, event):
+	def ISYEvent(self, node, value):
 		# Watched node reported change event is ("Node", addr, value, seq)
-		K = self.subscriptionlist[event[1]]
-		debugPrint('Screen', 'KS ISYEvent ', K.name, str(event), str(K.State))
-		K.State = not (int(event[2] if event[2].isdigit() else 0) == 0)  # K is off (false) only if state is 0
+		K = self.subscriptionlist[node]
+		debugPrint('Screen', 'KS ISYEvent ', K.name, str(value), str(K.State))
+		K.State = not (int(value if value.isdigit() else 0) == 0)  # K is off (false) only if state is 0
 		K.PaintKey()
 
 config.screentypes["Keypad"] = KeyScreenDesc

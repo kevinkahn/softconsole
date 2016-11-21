@@ -21,7 +21,7 @@ import time
 from  multiprocessing import Process, Queue
 
 from configobj import ConfigObj
-import alerttasks
+
 import config
 import configobjects
 import displayscreen
@@ -84,6 +84,12 @@ for screentype in os.listdir(os.path.dirname(os.path.abspath(sys.argv[0])) + '/s
 		splitname = os.path.splitext(screentype)
 		if splitname[1] == '.py':
 			importlib.import_module('screens.' + splitname[0])
+
+for alertproctype in os.listdir(os.path.dirname(os.path.abspath(sys.argv[0])) + '/alerts'):
+	if '__' not in alertproctype:
+		splitname = os.path.splitext(alertproctype)
+		if splitname[1] == '.py':
+			importlib.import_module('alerts.' + splitname[0])
 
 """
 Initialize the Console
@@ -155,11 +161,7 @@ for flg, fval in config.Flags.iteritems():
 config.DS = displayscreen.DisplayScreen()  # create the actual device screen and touch manager
 
 utilities.LogParams()
-if 'Alerts' in config.ParsedConfigFile:
-	alertspec = config.ParsedConfigFile['Alerts']
-	del config.ParsedConfigFile['Alerts']
-else:
-	alertspec = None
+
 
 """
 Set up for ISY access
@@ -175,13 +177,21 @@ config.Logs.Log("Enumerated ISY Structure")
 """
 Build the ISY object structure and connect the configured screens to it
 """
+import alerttasks
+
+if 'Alerts' in config.ParsedConfigFile:
+	alertspec = config.ParsedConfigFile['Alerts']
+	del config.ParsedConfigFile['Alerts']
+else:
+	alertspec = None
 configobjects.MyScreens()
 config.Logs.Log("Linked config to ISY")
 
 """
 Build the alerts structures
 """
-alerttasks.Alerts(alertspec)
+config.Alerts = alerttasks.Alerts(alertspec)
+
 config.Logs.Log("Alerts established")
 
 """

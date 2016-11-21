@@ -1,4 +1,7 @@
 screentypes = {}  # set by each module for screens of the type that module creates (see last line in any XxxScreen module
+alertprocs = {}  # set by modules from alerts directory
+alertscreens = {}
+alertscreentype = None
 
 starttime = 0
 Console_pid = 0
@@ -10,7 +13,8 @@ FASTPRESS = 2
 """ Daemon related stuff"""
 toDaemon = None
 fromDaemon = None
-watchlist = ["init"]
+watchlist = []  # todo can this be moved to somewhere else - it isn't shared at all
+varlist = []
 watchstarttime = 0
 DaemonProcess = None
 seq = 0
@@ -43,7 +47,8 @@ ISYrequestsession = None  # handle for requests to ISY via the request interface
 ISY = None  # Root of structure representing the ISY - filled in from ISY
 screen = None  # pygame screen to blit on etc
 backlight = None  # GPIO instance of pin 18
-DS = None  # Global Display Screen handles running the button presses and touch recognition
+DS = None  # GlDaemobal Display Screen handles running the button presses and touch recognition
+Alerts = []
 ParsedConfigFile = None  # config.txt internal version
 configfile = "/home/pi/Console/config.txt"  # default location of configfile, can be overridden by arg1
 ISYprefix = ''  # holds the url prefix for rest interface

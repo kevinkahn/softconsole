@@ -278,7 +278,9 @@ class ISY(object):
 		self.ProgramsByName = {}
 		self.ProgramFoldersByName = {}
 		self.varsState = {}
+		self.varsStateInv = {}
 		self.varsInt = {}
+		self.varsIntInv = {}
 
 		"""
 		Build the Folder/Node/Scene tree
@@ -440,10 +442,12 @@ class ISY(object):
 
 		configdict = xmltodict.parse(r1.text)['CList']['e']
 		for v in configdict:
-			self.varsState[v['@name']] = v['@id']
+			self.varsState[v['@name']] = int(v['@id'])
+			self.varsStateInv[int(v['@id'])] = v['@name']
 		configdict = xmltodict.parse(r2.text)['CList']['e']
 		for v in configdict:
-			self.varsInt[v['@name']] = v['@id']
+			self.varsInt[v['@name']] = int(v['@id'])
+			self.varsIntInv[int(v['@id'])] = v['@name']
 
 		utilities.register_example("ISY", self)
 		if config.Flags['ISY']:

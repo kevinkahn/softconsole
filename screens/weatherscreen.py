@@ -119,7 +119,8 @@ class WeatherScreenDesc(screen.ScreenDesc):
 	def InitDisplay(self, nav):
 		super(WeatherScreenDesc, self).InitDisplay(nav)
 		if self.ShowScreen(self.currentconditions) == -1:
-			config.DS.SwitchScreen(config.HomeScreen)
+			config.DS.SwitchScreen(config.HomeScreen, 'Bright', 'Home', 'Weather screen error')
+		# config.DS.SwitchScreenOld(config.HomeScreen) # todo screenerror(name)
 
 	def ExitScreen(self):
 		pass

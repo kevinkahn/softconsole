@@ -144,6 +144,10 @@ def EarlyAbort(scrnmsg):
 	sys.exit(9)
 
 
+def FatalError(msg):
+	config.screen.fill(wc("red"))
+	config.Logs.Log(msg, severity=ConsoleError)
+
 def InitializeEnvironment():
 
 	hw.initOS()
@@ -283,10 +287,19 @@ from datetime import timedelta
 
 
 def get_timedelta(line):
+	if line is None:
+		return timedelta(0)
 	timespaces = {"days": 0}
 	for timeunit in "year month week day hour minute second".split():
 		content = re.findall(r"([0-9]*?)\s*?" + timeunit, line)
 		if content:
 			timespaces[timeunit + "s"] = int(content[0])
 	timespaces["days"] += 30*timespaces.pop("months", 0) + 365*timespaces.pop("years", 0)
-	return timedelta(**timespaces)
+	td = timedelta(**timespaces)
+	return td.days*86400 + td.seconds
+
+
+class Enumerate(object):
+	def __init__(self, names):
+		for number, name in enumerate(names.split()):
+			setattr(self, name, name)

@@ -68,7 +68,7 @@ class Logs(object):
 				config.screen.fill(wc('royalblue'))
 			self.livelogpos = self.RenderLogLine(entry, self.LogColors[severity], self.livelogpos)
 			if self.livelogpos > config.screenheight - config.botborder:
-				time.sleep(2)
+				time.sleep(1)
 				self.livelogpos = 0
 			pygame.display.update()
 

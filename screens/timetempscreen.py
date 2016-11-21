@@ -10,7 +10,7 @@ from config import debugPrint
 wc = webcolors.name_to_rgb
 import weatherinfo
 import pygame
-from eventlist import EventItem
+from eventlist import ProcEventItem
 
 
 class TimeTempScreenDesc(screen.ScreenDesc):
@@ -82,7 +82,7 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 			config.screen.blit(l[i], (horiz_off, vert_off))
 			vert_off = vert_off + s + l[i].get_height()
 		pygame.display.update()
-		I = EventItem(self, '666', 'repaintTimeTemp', 1, self.repaintClock)
+		I = ProcEventItem(id(self), 'repaintTimeTemp', 1, self.repaintClock)
 		config.DS.Tasks.AddTask(I)
 
 config.screentypes["TimeTemp"] = TimeTempScreenDesc

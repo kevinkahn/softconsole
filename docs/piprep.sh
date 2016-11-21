@@ -29,7 +29,7 @@ function Get_yn()
     "N" | "n")
       resp="N" ;;
     *)
-      resp="N" ;;
+      ;;
   esac
   eval $1="'$resp'"
 }
@@ -73,11 +73,12 @@ do
   Get_val ScreenType "Which PiTFT (35r, 28c, 28r)?"
 done
 Get_val NodeName "What name for this system?"
-Get_yn VNCstdPort "Install VNC on standard port (Y/N)?"
+Get_yn VNCstdPort "Install VNC/ssh on standard port (Y/N)?"
 Get_yn Personal "Is this the developer personal system (Y/N) (risky to say Y if it not)?"
 Get_yn AutoConsole "Autostart console (Y/N)?"
 Get_yn InstallOVPN "Install OpenVPN (Y/N)?"
 Get_yn InstallDDC "Install ddclient (Y/N)?"
+#Get_yn InstallSamba "Install samba (Y/N)?"
 Get_yn InstallWD "Install and start Watchdog (Y/N)?"
 
 echo "Screen Type:                $ScreenType"
@@ -87,6 +88,7 @@ echo "Standard VNC port:          $VNCstdPort"
 echo "Auto start Console on boot: $AutoConsole"
 echo "Install OpenVPN:            $InstallOVPN"
 echo "Install ddclient:           $InstallDDC"
+#echo "Install Samba:              $InstallSamba"
 echo "Install and start watchdog: $InstallWD"
 
 Get_yn Go "Proceed?"
@@ -118,13 +120,14 @@ hostname $NodeName
 
 LogBanner "System Options"
 
-if [ $VNCstdPort == "Y" ]
+if [ $VNCstdPort != "Y" ]
 then
   echo "VNC will be set up on its normal port"
   VNCport=""
 else
-  echo "VNC will be set up on port 8723"
-  VNCport="-rfbport 8723"
+  echo "VNC will be set up on port " $VNCstdPort
+  echo "sshd will be moved to port " $VNCstdPort - 100
+  VNCport="-rfbport " $VNCstdPort
 fi
 
 if [ $Personal == "Y" ]

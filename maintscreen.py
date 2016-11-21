@@ -35,32 +35,28 @@ def SetUpMaintScreens():
 										('release', (('Download release'), dobeta)), ('fetch', (('Download Beta'), dobeta)),
 										('return', ('Return', None))]))  # proc filled in below due to circularity
 	config.MaintScreen = MaintScreenDesc('Maintenance',
-										 OrderedDict([('return', (
-										 'Exit Maintenance', functools.partial(goto, True, config.HomeScreen))),
-													  ('log', ('Show Log', functools.partial(goto, False, LogDisp))),
-													  (
-													  'beta', ('Select Version', functools.partial(goto, False, Beta))),
+										 OrderedDict([('return', ('Exit Maintenance', gohome)),
+													  ('log', ('Show Log', functools.partial(goto, LogDisp))),
+													  ('beta', ('Select Version', functools.partial(goto, Beta))),
 													  ('flags', ('Set Flags', None)),
 													  # fixed below to break a dependency loop - this is key 3
-													  ('exit',
-													   ('Exit/Restart', functools.partial(goto, False, Exits)))]))
+													  ('exit', ('Exit/Restart', functools.partial(goto, Exits)))]))
 	tmp = OrderedDict()
 	for flg in config.DbgFlags:
 		tmp[flg] = (flg, setdbg)  # setdbg gets fixed below to be actually callable
-	tmp['return'] = ('Return', functools.partial(goto, False, config.MaintScreen))
+	tmp['return'] = ('Return', functools.partial(goto, config.MaintScreen))
 	DebugFlags = MaintScreenDesc('Flags', tmp)
 	for kn, k in DebugFlags.Keys.iteritems():
 		if kn in config.Flags:
 			k.State = config.Flags[k.name]
 			k.Proc = functools.partial(setdbg, k)
 
-	config.MaintScreen.Keys['flags'].Proc = functools.partial(goto, False, DebugFlags, config.MaintScreen.Keys['flags'])
-	Exits.Keys['return'].Proc = functools.partial(goto, False, config.MaintScreen, Exits.Keys['return'])
-	Beta.Keys['return'].Proc = functools.partial(goto, False, config.MaintScreen, Beta.Keys['return'])
+	config.MaintScreen.Keys['flags'].Proc = functools.partial(goto, DebugFlags, config.MaintScreen.Keys['flags'])
+	Exits.Keys['return'].Proc = functools.partial(goto, config.MaintScreen, Exits.Keys['return'])
+	Beta.Keys['return'].Proc = functools.partial(goto, config.MaintScreen, Beta.Keys['return'])
 
 
 def setdbg(K, presstype):
-	# print "FLAG: ", K.name, config.Flags[K.name]
 	config.Flags[K.name] = not config.Flags[K.name]
 	K.State = config.Flags[K.name]
 	K.PaintKey()
@@ -69,21 +65,14 @@ def setdbg(K, presstype):
 	config.toDaemon.put(('flagchange', K.name, config.Flags[K.name]))
 
 
-#print config.Flags
+def gohome(K, presstype):  # neither peram used
+	config.DS.SwitchScreen(config.HomeScreen, 'Bright', 'Home', 'Maint exit', NavKeys=True)
 
 
-ExitKey = 'none'
-
-
-def goto(nav, screen, key, presstype):
-	config.DS.SwitchScreen(screen, NavKeys=nav)
-	if screen == config.HomeScreen:  # special case to get the activity timer set on maintenance exit
-		config.DS.SetActivityTimer(screen.DimTO, 'Leaving maint for home')
-
+def goto(screen, K, presstype):
+	config.DS.SwitchScreen(screen, 'Bright', 'Maint', 'Maint goto', NavKeys=False)
 
 def doexit(K, presstype):
-	global ExitKey
-	ExitKey = K.name
 	if K.name == 'shut':
 		verifymsg = 'Do Console Shutdown'
 	elif K.name == 'restart':
@@ -94,8 +83,8 @@ def doexit(K, presstype):
 		verifymsg = 'Do Pi Reboot'
 	Verify = MaintScreenDesc('Verify',
 							 OrderedDict([('yes', (verifymsg, functools.partial(dorealexit, K))),
-										  ('no', ('Cancel', functools.partial(goto, False, config.MaintScreen)))]))
-	config.DS.SwitchScreen(Verify, NavKeys=False)
+										  ('no', ('Cancel', functools.partial(goto, config.MaintScreen)))]))
+	config.DS.SwitchScreen(Verify, 'Bright', 'Maint', 'Verify exit', NavKeys=False)
 
 
 def dorealexit(K, YesKey, presstype):
@@ -198,7 +187,7 @@ class LogDisplayScreen(screen.BaseKeyScreenDesc):
 		if self.item >= 0:
 			self.item = config.Logs.RenderLog(self.BackgroundColor, start=self.item)
 		else:
-			config.DS.SwitchScreen(config.MaintScreen, NavKeys=False)
+			config.DS.SwitchScreen(config.MaintScreen, 'Bright', 'Maint', 'Done showing log', NavKeys=False)
 
 	def EnterScreen(self):
 		debugPrint('Main', "Enter to screen: ", self.name)
@@ -217,12 +206,15 @@ class MaintScreenDesc(screen.BaseKeyScreenDesc):
 		screen.BaseKeyScreenDesc.__init__(self, fixedoverrides, name)
 		utilities.LocalizeParams(self, None, '-', TitleFontSize=40, SubFontSize=25)
 		for k, kt in keys.iteritems():
-			NK = toucharea.ManualKeyDesc(k, [kt[0]], 'gold', 'black', 'white', KOn='black', KOff='white')
+			NK = toucharea.ManualKeyDesc(k, [kt[0]], 'gold', 'black', 'red', KOn='black', KOff='red')
 			if kt[1] is not None:
 				NK.Proc = functools.partial(kt[1], NK)
 			self.Keys[k] = NK
 		topoff = self.TitleFontSize + self.SubFontSize
 		self.LayoutKeys(topoff, config.screenheight - 2*config.topborder - topoff)
+		self.NodeWatch = []
+		self.DimTO = 60
+		self.PersistTO = 1  # setting to 0 would turn off timer and stick us here
 		utilities.register_example("MaintScreenDesc", self)
 
 	def ShowScreen(self):
@@ -239,10 +231,8 @@ class MaintScreenDesc(screen.BaseKeyScreenDesc):
 		pygame.display.update()
 
 	def EnterScreen(self):
-		config.DS.SetActivityTimer(self.DimTO, 'Maintenance Screen: ' + self.name)
 		debugPrint('Main', "Enter to screen: ", self.name)
-		config.Logs.Log('Entering Maintenance Screen')
-		self.NodeWatch = []
+		config.Logs.Log('Entering Maintenance Screen: ' + self.name)
 
 	def InitDisplay(self, nav):
 		super(MaintScreenDesc, self).InitDisplay(nav)

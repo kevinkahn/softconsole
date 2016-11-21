@@ -13,6 +13,12 @@ from logsupport import ConsoleWarning
 seq = 0
 
 def event_feed(*arg):
+	def VarInList(vartype, varid):
+		for v in config.varlist:
+			if v[0] == vartype and v[1] == varid:
+				return v[2]
+		return None
+
 	reportablecodes = ["DON", "DFON", "DOF", "DFOF", "ST", "OL", "RR", "CLISP", "CLISPH", "CLISPC", "CLIFS", "CLIMD",
 					   "CLIHUM", "CLIHCS", "BRT", "DIM"]
 	global seq
@@ -36,13 +42,19 @@ def event_feed(*arg):
 
 	while not config.toDaemon.empty():
 		msg = config.toDaemon.get()
-		if len(msg) == 0:
-			config.watchlist = ["empty"]
+		if len(msg) == 0:  # todo - this is a bug
+			debugPrint('DaemonCtl', 'Empty message from console: ')
 		elif msg[0] == 'flagchange':
 			config.Flags[msg[1]] = msg[2]
+		elif msg[0] == 'Status':
+			config.watchlist = msg[1:]
+			debugPrint('DaemonCtl', time.time(), "New watchlist(watcher): ", config.watchlist)
+		elif msg[0] == 'Vars':
+			config.varlist = msg[1:]
+			debugPrint('DaemonCtl', "New varlist(watcher): ", config.varlist)
 		else:
-			config.watchlist = msg
-		debugPrint('DaemonCtl', time.time(), "New watchlist(watcher): ", config.watchlist)
+			debugPrint('DaemonCtl', 'Bad message from console: ', msg)
+
 
 	data = arg[0]
 	# data["Event-seqnum"],":",prcode," : ",data["node"]," : ",data["eventInfo"]," : ",data["action"]," : ",data["Event-sid"])
@@ -56,7 +68,8 @@ def event_feed(*arg):
 	else:
 		prcode = "**" + eventcode + "**"
 	# print "Ugly EC", eventcode, prcode
-	if (eventcode in reportablecodes or config.watchlist[0] == "") and data["node"] in config.watchlist:
+	#  or config.watchlist[0] == "" not sure why this wa in next statement
+	if (eventcode in reportablecodes) and data["node"] in config.watchlist:
 		debugPrint('DaemonCtl', time.time(), "Status update in stream: ", data["Event-seqnum"], ":", prcode, " : ",
 				   data["node"], " : ", data["eventInfo"], " : ", data["action"])
 		debugPrint('DaemonStream', time.time(), "Raw stream item: ", data)
@@ -65,6 +78,18 @@ def event_feed(*arg):
 			debugPrint('DaemonStream', "V5 stream - pull up action value: ", data["action"])
 		config.fromDaemon.put(("Node", data["node"], data["action"], seq))
 		debugPrint('DaemonCtl', "Qsize at daemon ", config.fromDaemon.qsize())
+	elif (eventcode == '_1') and (data['action'] == '6'):
+		vinfo = data['eventInfo']['var']
+		vartype = int(vinfo['var-type'])
+		varid = int(vinfo['var-id'])
+		varval = int(vinfo['val'])
+		debugPrint('DaemonCtl', 'Var change:', ('Unkn', 'Integer', 'State')[vartype], ' variable ', varid, ' set to ',
+				   varval)
+		vid = VarInList(vartype, varid)
+		if vid is not None:
+			config.fromDaemon.put(("VarChg", vartype, varid, varval, vid))
+			debugPrint('DaemonCtl', 'Qsize at daemon', config.fromDaemon.qsize(), ' VarChg:', vartype, ':', varid, ':',
+					   varval)
 	else:
 		config.debugPrint('DaemonStream', time.time(), "Other  update in stream: ", data["Event-seqnum"], ":", prcode,
 						  " : ",
@@ -73,7 +98,8 @@ def event_feed(*arg):
 
 def Watcher():
 	config.watchstarttime = time.time()
-	config.watchlist = ['init']
+	config.watchlist = []
+	config.varlist = []
 	debugPrint('DaemonCtl', "Watcher: ", config.watchstarttime, os.getpid())
 	config.Daemon_pid = os.getpid()
 	server = ISYEvent()  # can add parameter debug = 3 to have library dump some info out output
