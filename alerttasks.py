@@ -153,8 +153,8 @@ def ParseAlertParams(nm, spec):
 
 class Alerts(object):
 	def __init__(self, alertsspec):
+		self.AlertsList = {}  # hash:AlertItem
 		if alertsspec is not None:
-			self.AlertsList = {}  # hash:AlertItem
 			for nm, spec in alertsspec.items():
 				if isinstance(spec, Section):
 					alert = ParseAlertParams(nm, spec)
