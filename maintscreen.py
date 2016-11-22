@@ -70,7 +70,7 @@ def gohome(K, presstype):  # neither peram used
 
 
 def goto(screen, K, presstype):
-	config.DS.SwitchScreen(screen, 'Bright', 'Maint', 'Maint goto', NavKeys=False)
+	config.DS.SwitchScreen(screen, 'Bright', 'Maint', 'Maint goto' + screen.name, NavKeys=False)
 
 def doexit(K, presstype):
 	if K.name == 'shut':

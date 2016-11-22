@@ -65,12 +65,20 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 			h = h + l[-1].get_height()
 			sizeindex += 1
 		for dy in range(self.ForecastDays):
-			for i in range(len(self.ForecastFormat)):
-				vals = [self.WInfo.ForecastVals[dy + self.SkipDays][fld] for fld in self.ForecastFields]
-				l.append(
-					config.fonts.Font(self.CharSize[sizeindex + i], self.Font).render(
-						self.ForecastFormat[i].format(d=vals), 0, wc(self.CharColor)))
-				h = h + l[-1].get_height()
+			try:
+				for i in range(len(self.ForecastFormat)):
+					vals = [self.WInfo.ForecastVals[dy + self.SkipDays][fld] for fld in self.ForecastFields]
+					l.append(
+						config.fonts.Font(self.CharSize[sizeindex + i], self.Font).render(
+							self.ForecastFormat[i].format(d=vals), 0, wc(self.CharColor)))
+					h = h + l[-1].get_height()
+			except:  # todo remove if figure list index out of range bug
+				print i
+				print dy
+				print self.ForecastFields
+				print self.SkipDays
+				print self.Winfo.ForecastVals
+				exit(999)
 
 		s = (usefulheight - h)/(len(l) - 1)
 
@@ -82,7 +90,7 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 			config.screen.blit(l[i], (horiz_off, vert_off))
 			vert_off = vert_off + s + l[i].get_height()
 		pygame.display.update()
-		I = ProcEventItem(id(self), 'repaintTimeTemp', 1, self.repaintClock)
-		config.DS.Tasks.AddTask(I)
+		I = ProcEventItem(id(self), 'repaintTimeTemp', 1, self.repaintClock)  # why dynamic
+		config.DS.Tasks.AddTask(I, 1)
 
 config.screentypes["TimeTemp"] = TimeTempScreenDesc

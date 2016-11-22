@@ -10,14 +10,12 @@ class EventItem(object):
 	def __init__(self, gpid, name, dt):
 		self.gpid = gpid
 		self.delay = dt  # delay in seconds
-		self.abstime = time.time() + dt
+		self.abstime = 0  # set when added
 		self.name = name
 		self.deleted = False
-		debugPrint('EventList', 'Item Created: ', self.gpid, self.name, self.delay)
-
 
 	def __hash__(self):
-		return hash((self.abstime, self.delay, self.gpid, self.name))
+		return id(self)  # hash((self.delay, self.gpid, self.name))
 
 	def __eq__(self, other):
 		if other == None:
@@ -33,19 +31,11 @@ class EventItem(object):
 			self.deleted)
 
 
-class ScreenEventItem(EventItem):
-	def __init__(self, gpid, name, dt, screen):
-		EventItem.__init__(self, gpid, name, dt)
-		self.screen = screen
-
-	def __repr__(self):
-		return EventItem.__repr__(self) + ' Scrren: ' + repr(self.screen.name)
-
-
 class ProcEventItem(EventItem):
 	def __init__(self, gpid, name, dt, proc):
 		EventItem.__init__(self, gpid, name, dt)
 		self.proc = proc
+		debugPrint('EventList', ' Proc Item Created: ', self)
 
 	def __repr__(self):
 		return EventItem.__repr__(self) + ' Proc: ' + repr(self.proc)
@@ -55,22 +45,24 @@ class AlertEventItem(EventItem):
 	def __init__(self, gpid, name, dt, alert):
 		EventItem.__init__(self, gpid, name, dt)
 		self.alert = alert
+		debugPrint('EventList', ' Alert Item Created: ', self)
 
 	def __repr__(self):
 		return EventItem.__repr__(self) + ' Alert: ' + repr(self.alert)
 
 class EventList(object):
-	global faket
 	def __init__(self):
 		self.List = []
 		self.finder = {}
 		self.TASKREADY = pygame.event.Event(pygame.USEREVENT)
 
-	def AddTask(self, item):
+	def AddTask(self, item, dt):
 		debugPrint('EventList', 'Add: ', item.gpid, item.name, item.delay)
 		self.finder[item] = item
+		item.abstime = time.time() + dt
 		heappush(self.List, (item.abstime, item))
 		X = self.TimeToNext()
+		print 'set timer: ',X
 		pygame.time.set_timer(self.TASKREADY.type, X)  #self.TimeToNext())
 
 

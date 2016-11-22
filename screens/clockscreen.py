@@ -46,8 +46,8 @@ class ClockScreenDesc(screen.ScreenDesc):
 			config.screen.blit(l[i], (horiz_off, vert_off))
 			vert_off = vert_off + s + l[i].get_height()
 		pygame.display.update()
-		I = ProcEventItem(id(self), 'repaint', 1, self.repaintClock)
-		config.DS.Tasks.AddTask(I)
+		I = ProcEventItem(id(self), 'repaint', 1, self.repaintClock)  # todo why dynamic
+		config.DS.Tasks.AddTask(I, 1)
 
 	def EnterScreen(self):
 		self.NodeWatch = []

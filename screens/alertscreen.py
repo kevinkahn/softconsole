@@ -45,10 +45,10 @@ class AlertsScreenDesc(screen.ScreenDesc):
 			self.OutFormat) + ":" + str(self.CharSize)
 
 	def DeferAction(self, presstype):
-		print 'DEFER'
-		E = eventlist.AlertEventItem(0, 'deferred screen', self.Alert.trigger.delay, self.Alert)
-		config.DS.Tasks.AddTask(E)
-		self.Alert.State = 'Deferred'
+		debugPrint('Screen', 'Alertscreen manual defer: ' + self.name)
+		E = eventlist.AlertEventItem(id(self), 'self deferred screen: ' + self.name, self.Defer, self)
+		config.DS.Tasks.AddTask(E, self.Defer)
+		self.Alert.state = 'Deferred'
 		config.DS.SwitchScreen(config.HomeScreen, 'Bright', 'Home', 'Manual defer an alert')
 
 	# config.DS.SwitchScreenOld(config.HomeScreen)
@@ -83,9 +83,9 @@ class AlertsScreenDesc(screen.ScreenDesc):
 		pygame.display.update()
 
 	def ExitScreen(self):
-		E = eventlist.ScreenEventItem(id(self), self.name, self.Defer, self)
-		print 'deferal exit:', E
-		config.DS.Tasks.AddTask(E)
+		debugPrint('Screen', 'Alert screen defer to another screen: ' + self.name)
+		E = eventlist.AlertEventItem(id(self), 'external deferred screen: ' + self.name, self.Defer, self)
+		config.DS.Tasks.AddTask(E, self.Defer)
 		pass
 
 

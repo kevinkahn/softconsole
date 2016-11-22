@@ -2,12 +2,10 @@ import config, utilities, logsupport
 from configobjects import Section
 import screen
 from logsupport import ConsoleWarning
+from config import debugPrint
 
 Tests = ('EQ', 'NE')
 AlertType = ('NodeChange', 'StateVarChange', 'IntVarChange', 'Periodic', 'TOD', 'External')
-VarsTypes = {'StateVarChange': (2, config.ISY.varsState), 'IntVarChange': (1, config.ISY.varsInt)}
-AlertState = ('Armed', 'Delayed', 'Active', 'Deferred', 'Idle')
-
 
 class Alert(object):
 	def __init__(self, nm, type, trigger, action, actionname):
@@ -20,13 +18,13 @@ class Alert(object):
 
 	def Invoke(self):
 		if isinstance(self.actiontarget, config.alertscreentype):
-			self.State = 'Active'
+			print 'Alertscreentype', self
+			self.state = 'Active'
 			config.DS.SwitchScreen(self.actiontarget, 'Bright', 'Alert', 'Go to alert screen', NavKeys=False)
-			#			config.DS.SwitchScreenOld(self.actiontarget, NavKeys=False)
-			pass  # switch to screen and set active
 		else:
-			self.actiontarget.Invoke(self)
-			self.State = "Armed"
+			print 'Not alertscreentype', self
+			self.actiontarget.AlertProc(self)  # target is the proc
+			self.state = "Armed"
 
 	def __repr__(self):
 		if isinstance(self.actiontarget, screen.ScreenDesc):
@@ -34,7 +32,7 @@ class Alert(object):
 		else:
 			targtype = 'Proc'
 		return self.name + ': ' + self.type + ' Alert (' + self.state + ') Triggered: ' + repr(
-			self.trigger) + ' Call ' + targtype + ':' + self.actionname
+			self.trigger) + ' Invoke: ' + targtype + ':' + self.actionname
 
 
 class NodeChgtrigger(object):
@@ -81,7 +79,7 @@ class Periodictrigger(object):
 		self.interval = interval
 
 	def __repr__(self):
-		return 'Every ' + str(self.interval.days) + ' days + ' + str(self.interval) + ' seconds'
+		return 'Every ' + str(self.interval) + ' seconds'
 
 
 def getvalid(spec, item, choices, default=None):
@@ -97,6 +95,7 @@ def getvalid(spec, item, choices, default=None):
 
 
 def ParseAlertParams(nm, spec):
+	VarsTypes = {'StateVarChange': (2, config.ISY.varsState), 'IntVarChange': (1, config.ISY.varsInt)}
 	t = spec.get('Invoke', None)
 	# todo check none
 	if t in config.alertprocs:

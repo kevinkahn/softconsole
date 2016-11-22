@@ -6,8 +6,8 @@ class VersionCheck(object):
 		self.name = "VersionCheck"
 		pass
 
-	def Invoke(self, alert):
-		print "---------------------VC invocation", alert
+	def AlertProc(self, alert):
+		print "---------------------VC invocation", alert, id(alert)
 
 	# Invoked when the specified event or time occurs
 	# reason is one of Interval, Time, Device, Variable

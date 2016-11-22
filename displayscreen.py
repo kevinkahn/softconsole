@@ -10,7 +10,8 @@ import threading
 from config import debugPrint
 from logsupport import ConsoleWarning, ConsoleError
 from collections import OrderedDict
-from eventlist import AlertEventItem, ProcEventItem, ScreenEventItem
+from eventlist import AlertEventItem, ProcEventItem
+import alerttasks
 
 wc = webcolors.name_to_rgb
 
@@ -144,16 +145,19 @@ class DisplayScreen(object):
 		self.ScreensDict.update(config.MainDict)
 
 		for vid, a in config.Alerts.AlertsList.items():
+			print 'Init alerts: ', id(a), a.name
+			a.state = 'Armed'
 			if a.type in ('StateVarChange', 'IntVarChange'):
 				self.WatchVars.append((a.trigger.vartype, a.trigger.varid, vid))
 				self.WatchVarVals[(a.trigger.vartype, a.trigger.varid)] = None
 			elif a.type == 'Periodic':
-				pass  # todo schedule task
+				E = AlertEventItem(id(a), a.name, a.trigger.interval, a)
+				self.Tasks.AddTask(E, a.trigger.interval)
 			elif a.type == 'TOD':
 				pass  # schedule next occurrence
 			elif a.type == 'NodeChange':
 				self.WatchNodes.append(a.trigger.nodeaddress)
-			a.State = 'Armed'
+
 
 		config.toDaemon.put(['Vars'] + self.WatchVars)
 
@@ -251,39 +255,41 @@ class DisplayScreen(object):
 			elif event.type == self.ISYVar:
 				debugPrint('Dispatch', 'ISY variable change', event)
 				alert = config.Alerts.AlertsList[event.eid]
-				if alert.State == 'Armed' and alert.trigger.IsTrue():
-					if alert.trigger.delay <> 0:
-						alert.State = 'Delayed'
+				if alert.state == 'Armed' and alert.trigger.IsTrue():  # alert condition holds
+					if alert.trigger.delay <> 0:  # delay invocation
+						alert.state = 'Delayed'
 						debugPrint('Dispatch', "Post with delay:", alert.name, alert.trigger.delay)
-						E = AlertEventItem(0, 'delayedvar', alert.trigger.delay, alert)
-						config.DS.Tasks.AddTask(E)
-					else:
-						alert.Invoke()
-				elif alert.State == 'Active' and not alert.trigger.IsTrue():
-					alert.State = 'Armed'
+						E = AlertEventItem(id(alert), 'delayedvar', alert.trigger.delay, alert)
+						self.Tasks.AddTask(E, alert.trigger.delay)
+					else:  # invoke now
+						alert.Invoke()  # either calls a proc or enters a screen and adjusts alert state appropriately
+				elif alert.state == 'Active' and not alert.trigger.IsTrue():  # alert condition has cleared and screen is up
+					alert.state = 'Armed'  # just rearm the alert
 					self.SwitchScreen(config.HomeScreen, 'Dim', 'Home', 'Cleared alert')
-				# condition changed under an active screen call exit and rearm
-				elif ((alert.State == 'Delayed') or (alert.State == 'Deferred')) and not alert.trigger.IsTrue():
+				elif ((alert.state == 'Delayed') or (alert.state == 'Deferred')) and not alert.trigger.IsTrue():
 					# condition changed under a pending action (screen or proc) so just cancel and rearm
-					pass  # remove task todo
+					alert.state = 'Armed'
+					self.Tasks.RemoveTask(id(alert))
 				else:
-					debugPrint('Dispatch', 'ISYVar passing: ', alert.State, alert.trigger.IsTrue(), event, alert)
-					pass
+					debugPrint('Dispatch', 'ISYVar passing: ', alert.state, alert.trigger.IsTrue(), event, alert)
 				# Armed and false: irrelevant report
 				# Active and true: extaneous report
 				# Delayed or deferred and true: redundant report
-				# todo finish
 
 			elif event.type == self.Tasks.TASKREADY.type:
 				E = self.Tasks.PopTask()
-				if E is not None:
-					if isinstance(E, ProcEventItem):
-						debugPrint('Dispatch', 'Task ProcEvent fired with proc: ', E)
-						if callable(E.proc):
-							E.proc()
-					elif isinstance(E, AlertEventItem):
-						debugPrint('Dispatch', 'Task AlertEvent fired with screen: ', E)
-						E.alert.State = 'Active'
-						E.alert.Invoke()
-				else:
+				if E is None:
 					debugPrint('Dispatch', 'Empty Task Event fired')
+					continue  # some deleted task cleared
+				if isinstance(E, ProcEventItem):
+					debugPrint('Dispatch', 'Task ProcEvent fired: ', E)
+					if callable(E.proc):
+						E.proc()
+				elif isinstance(E, AlertEventItem):  # delayed alert screen
+					debugPrint('Dispatch', 'Task AlertEvent fired: ', E)
+					E.alert.Invoke()  # defered or delayed alert firing
+					if isinstance(E.alert.trigger, alerttasks.Periodictrigger):
+						self.Tasks.AddTask(E, E.alert.trigger.interval)
+				else:
+					# unknown eevent?
+					debugPrint('Dispatch', 'TASKREADY found unknown event: ', E)

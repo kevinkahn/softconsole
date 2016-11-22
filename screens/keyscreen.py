@@ -47,8 +47,9 @@ class KeyScreenDesc(screen.BaseKeyScreenDesc):
 				K.PaintKey(ForceDisplay=True, DisplayState=True)  # force on
 			else:
 				K.PaintKey(ForceDisplay=True, DisplayState=False)  # force off
-			E = ProcEventItem(id(self), 'keyblink', .5, functools.partial(self.BlinkKey, K, cycle - 1))
-			config.DS.Tasks.AddTask(E)
+			E = ProcEventItem(id(self), 'keyblink', .5,
+							  functools.partial(self.BlinkKey, K, cycle - 1))  # todo why dynamic
+			config.DS.Tasks.AddTask(E, .5)
 		else:
 			K.PaintKey()  # make sure to leave it in real state
 
@@ -66,8 +67,8 @@ class KeyScreenDesc(screen.BaseKeyScreenDesc):
 		print "Blinker"
 		if presstype == config.FASTPRESS:
 			K.ISYObj.runThen()
-			E = ProcEventItem(id(self), 'keyblink', .5, functools.partial(self.BlinkKey, K, 7))
-			config.DS.Tasks.AddTask(E)
+			E = ProcEventItem(id(self), 'keyblink', .5, functools.partial(self.BlinkKey, K, 7))  # todo why dynamic
+			config.DS.Tasks.AddTask(E, .5)
 
 	def EnterScreen(self):
 		self.subscriptionlist = {}
