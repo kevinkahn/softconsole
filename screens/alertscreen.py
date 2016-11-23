@@ -46,7 +46,7 @@ class AlertsScreenDesc(screen.ScreenDesc):
 
 	def DeferAction(self, presstype):
 		debugPrint('Screen', 'Alertscreen manual defer: ' + self.name)
-		E = eventlist.AlertEventItem(id(self), 'self deferred screen: ' + self.name, self.Defer, self.Alert)
+		E = eventlist.AlertEventItem(id(self), 'self deferred screen: ' + self.name, self.Alert)
 		config.DS.Tasks.AddTask(E, self.Defer)
 		self.Alert.state = 'Deferred'
 		config.DS.SwitchScreen(config.HomeScreen, 'Bright', 'Home', 'Manual defer an alert')
@@ -84,7 +84,7 @@ class AlertsScreenDesc(screen.ScreenDesc):
 
 	def ExitScreen(self):
 		debugPrint('Screen', 'Alert screen defer to another screen: ' + self.name)
-		E = eventlist.AlertEventItem(id(self), 'external deferred screen: ' + self.name, self.Defer, self.Alert)
+		E = eventlist.AlertEventItem(id(self), 'external deferred screen: ' + self.name, self.Alert)
 		config.DS.Tasks.AddTask(E, self.Defer)
 		pass
 

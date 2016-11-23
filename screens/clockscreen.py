@@ -21,9 +21,9 @@ class ClockScreenDesc(screen.ScreenDesc):
 		self.NodeWatch = []  # no ISY node changes are of interest to this screen
 		utilities.register_example("ClockScreen", self)
 
-	def __repr__(self):
-		return screen.ScreenDesc.__repr__(self) + "\r\n     ClockScreenDesc:" + str(self.CharColor) + ":" + str(
-			self.OutFormat) + ":" + str(self.CharSize)
+	#	def __repr__(self):
+	#		return screen.ScreenDesc.__repr__(self) + "\r\n     ClockScreenDesc:" + str(self.CharColor) + ":" + str(
+	#			self.OutFormat) + ":" + str(self.CharSize)
 
 	def repaintClock(self):
 		usefulheight = config.screenheight - config.topborder - config.botborder
@@ -46,7 +46,7 @@ class ClockScreenDesc(screen.ScreenDesc):
 			config.screen.blit(l[i], (horiz_off, vert_off))
 			vert_off = vert_off + s + l[i].get_height()
 		pygame.display.update()
-		I = ProcEventItem(id(self), 'repaint', 1, self.repaintClock)  # todo why dynamic
+		I = ProcEventItem(id(self), 'repaint', self.repaintClock)  # todo why dynamic
 		config.DS.Tasks.AddTask(I, 1)
 
 	def EnterScreen(self):

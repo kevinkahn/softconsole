@@ -153,13 +153,12 @@ class DisplayScreen(object):
 		self.ScreensDict.update(config.MainDict)
 
 		for vid, a in config.Alerts.AlertsList.items():
-			print 'Init alerts: ', id(a), a.name
 			a.state = 'Armed'
 			if a.type in ('StateVarChange', 'IntVarChange'):
 				self.WatchVars.append((a.trigger.vartype, a.trigger.varid, vid))
 				self.WatchVarVals[(a.trigger.vartype, a.trigger.varid)] = None
 			elif a.type == 'Periodic':
-				E = AlertEventItem(id(a), a.name, a.trigger.interval, a)
+				E = AlertEventItem(id(a), a.name, a)
 				self.Tasks.AddTask(E, a.trigger.interval)
 			elif a.type == 'TOD':
 				pass  # schedule next occurrence
@@ -267,7 +266,7 @@ class DisplayScreen(object):
 					if alert.trigger.delay <> 0:  # delay invocation
 						alert.state = 'Delayed'
 						debugPrint('Dispatch', "Post with delay:", alert.name, alert.trigger.delay)
-						E = AlertEventItem(id(alert), 'delayedvar', alert.trigger.delay, alert)
+						E = AlertEventItem(id(alert), 'delayedvar', alert)
 						self.Tasks.AddTask(E, alert.trigger.delay)
 					else:  # invoke now
 						alert.Invoke()  # either calls a proc or enters a screen and adjusts alert state appropriately

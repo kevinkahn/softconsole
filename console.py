@@ -90,6 +90,8 @@ for alertproctype in os.listdir(os.path.dirname(os.path.abspath(sys.argv[0])) + 
 		splitname = os.path.splitext(alertproctype)
 		if splitname[1] == '.py':
 			importlib.import_module('alerts.' + splitname[0])
+for n in config.alertprocs:
+	config.alertprocs[n] = config.alertprocs[n]()  # instantiate an instance of each alert class
 
 """
 Initialize the Console

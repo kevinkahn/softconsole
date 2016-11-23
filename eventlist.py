@@ -7,9 +7,9 @@ Tasks = None
 
 class EventItem(object):
 	# basic event has name,dt, abstime,target (screen, proc, something - needed for hash)
-	def __init__(self, gpid, name, dt):
+	def __init__(self, gpid, name):
 		self.gpid = gpid
-		self.delay = dt  # delay in seconds
+		# self.delay = -1  # delay in seconds filled in when added to list
 		self.abstime = 0  # set when added
 		self.name = name
 		self.deleted = False
@@ -20,20 +20,20 @@ class EventItem(object):
 	def __eq__(self, other):
 		if other == None:
 			return False
-		return (self.abstime, self.delay, self.gpid, self.name) == (
-			other.abstime, other.delay, other.gpid, other.name)
+		return (self.abstime, self.gpid, self.name) == (
+			other.abstime, other.gpid, other.name)
 
 	def __ne__(self, other):
 		return not (self == other)
 
 	def __repr__(self):
-		return 'gpid: ' + str(self.gpid) + ' name: ' + self.name + ' delay: ' + str(self.delay) + ' del: ' + str(
+		return 'gpid: ' + str(self.gpid) + ' name: ' + self.name + ' del: ' + str(
 			self.deleted)
 
 
 class ProcEventItem(EventItem):
-	def __init__(self, gpid, name, dt, proc):
-		EventItem.__init__(self, gpid, name, dt)
+	def __init__(self, gpid, name, proc):
+		EventItem.__init__(self, gpid, name)
 		self.proc = proc
 		debugPrint('EventList', ' Proc Item Created: ', self)
 
@@ -42,8 +42,8 @@ class ProcEventItem(EventItem):
 
 
 class AlertEventItem(EventItem):
-	def __init__(self, gpid, name, dt, alert):
-		EventItem.__init__(self, gpid, name, dt)
+	def __init__(self, gpid, name, alert):
+		EventItem.__init__(self, gpid, name)
 		self.alert = alert
 		debugPrint('EventList', ' Alert Item Created: ', self)
 
@@ -52,29 +52,39 @@ class AlertEventItem(EventItem):
 
 class EventList(object):
 	def __init__(self):
+		self.BaseTime = 0
 		self.List = []
 		self.finder = {}
 		self.TASKREADY = pygame.event.Event(pygame.USEREVENT)
 
+	def PrettyTime(self, t):
+		return t - self.BaseTime
+
+	def PrettyList(self, list):
+		for t, item in enumerate(list):
+			print '\n--------------------', t, item
+
+	def RelNow(self):
+		return time.time() - self.BaseTime
+
 	def AddTask(self, item, dt):
-		debugPrint('EventList', 'Add: ', item.gpid, item.name, item.delay)
+		if self.BaseTime == 0: self.BaseTime = time.time()
+		debugPrint('EventList', self.RelNow(), ' Add: ', dt, item)
 		self.finder[item] = item
 		item.abstime = time.time() + dt
 		heappush(self.List, (item.abstime, item))
-		X = self.TimeToNext()
-		print 'set timer: ',X
-		pygame.time.set_timer(self.TASKREADY.type, X)  #self.TimeToNext())
+		pygame.time.set_timer(self.TASKREADY.type, self.TimeToNext())
 
 
 	def RemoveTask(self, item):
-		debugPrint('EventList', 'Remove: ', item.gpid, item.name)
+		debugPrint('EventList', self.RelNow(), ' Remove: ', item)
 		self.finder[item].deleted = True
 
 	def _TopItem(self):
 		try:
 			acttime, item = self.List[0]
 			while item.deleted is True:
-				debugPrint('EventList', 'Flush deleted: ', item.gpid, item.name)
+				debugPrint('EventList', self.RelNow(), ' Flush deleted: ', item)
 				heappop(self.List)
 				del self.finder[item]
 				acttime, item = self.List[0]
@@ -100,15 +110,15 @@ class EventList(object):
 				del self.finder[I]
 				nextdelay = self.TimeToNext()
 				pygame.time.set_timer(self.TASKREADY.type, nextdelay)
-				debugPrint('EventList', 'Pop: ', I.gpid, I.name, I.delay, ' Nextdelay: ', nextdelay)
+				debugPrint('EventList', self.RelNow(), ' Pop: ', I, ' Nextdelay: ', nextdelay)
 				return I
 			else:  # we are early for some reason so just repost a wakeup
 				pygame.time.set_timer(self.TASKREADY.type, int(round(DiffToSched*1000 + .5)))
-				debugPrint('EventList', 'Early wake: ', DiffToSched, self.List)
+				debugPrint('EventList', self.RelNow(), ' Early wake: ', DiffToSched, self.PrettyList(self.List))
 				return None
 		else:
 			pygame.time.set_timer(self.TASKREADY.type, 0)  # there is no next item
-			debugPrint('EventList', 'Clear timer on list empty')
+			debugPrint('EventList', self.RelNow(), ' Clear timer on list empty')
 			return None
 
 	def RemoveAllScreen(self, gpid):

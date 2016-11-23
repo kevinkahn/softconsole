@@ -92,7 +92,7 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 			config.screen.blit(l[i], (horiz_off, vert_off))
 			vert_off = vert_off + s + l[i].get_height()
 		pygame.display.update()
-		I = ProcEventItem(id(self), 'repaintTimeTemp', 1, self.repaintClock)  # why dynamic
+		I = ProcEventItem(id(self), 'repaintTimeTemp', self.repaintClock)  # why dynamic
 		config.DS.Tasks.AddTask(I, 1)
 
 config.screentypes["TimeTemp"] = TimeTempScreenDesc

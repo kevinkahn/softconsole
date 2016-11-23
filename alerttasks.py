@@ -18,12 +18,10 @@ class Alert(object):
 
 	def Invoke(self):
 		if isinstance(self.actiontarget, config.alertscreentype):
-			print 'Alertscreentype', self
 			self.state = 'Active'
 			config.DS.SwitchScreen(self.actiontarget, 'Bright', 'Alert', 'Go to alert screen', NavKeys=False)
 		else:
-			print 'Not alertscreentype', self
-			self.actiontarget.AlertProc(self)  # target is the proc
+			self.actiontarget(self)  # target is the proc
 			self.state = "Armed"
 
 	def __repr__(self):
@@ -97,13 +95,23 @@ def getvalid(spec, item, choices, default=None):
 def ParseAlertParams(nm, spec):
 	VarsTypes = {'StateVarChange': (2, config.ISY.varsState), 'IntVarChange': (1, config.ISY.varsInt)}
 	t = spec.get('Invoke', None)
-	# todo check none
-	if t in config.alertprocs:
-		action = config.alertprocs[t]
+	if t is None:
+		config.Logs.Log('Missing alert proc invoke spec in ' + nm, severity=ConsoleWarning)
+		return None
+	nmlist = t.split('.')
+
+	if nmlist[0] in config.alertprocs:
+		if len(nmlist) <> 2:
+			config.Logs.Log('Bad alert proc spec ' + t + ' in ' + nm, severity=ConsoleWarning)
+			return None
+		action = getattr(config.alertprocs[nmlist[0]], nmlist[1])
 		actionname = t
 		fixscreen = False
-	elif t in config.alertscreens:
-		action = config.alertscreens[t]
+	elif nmlist[0] in config.alertscreens:
+		if len(nmlist) <> 1:
+			config.Logs.Log('Alert screen name must be unqualified in ' + nm)
+			return None
+		action = config.alertscreens[nmlist[0]]
 		actionname = t
 		fixscreen = True
 	else:
