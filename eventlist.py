@@ -63,18 +63,22 @@ class EventList(object):
 	def PrettyList(self, list):
 		plist = ''
 		for t, item in enumerate(list):
-			plist = plist + '\n--------------------' + str(t) + str(self.PrettyTime(item[0])) + str(item)
+			plist = plist + '\n--------------------' + str(t) + ' : ' + str(self.PrettyTime(item[0])) + str(item)
+		return plist
 
 	def RelNow(self):
 		return time.time() - self.BaseTime
 
 	def AddTask(self, item, dt):
 		if self.BaseTime == 0: self.BaseTime = time.time()
-		debugPrint('EventList', self.RelNow(), ' Add: ', dt, item)
+
 		self.finder[item] = item
 		item.abstime = time.time() + dt
 		heappush(self.List, (item.abstime, item))
-		pygame.time.set_timer(self.TASKREADY.type, self.TimeToNext())
+		T = self.TimeToNext()
+		debugPrint('EventList', self.RelNow(), ' Add: ', dt, item, T)
+		# debugPrint('EventList', self.RelNow(), ' Add: ', dt, item,T,self.PrettyList(self.List))
+		pygame.time.set_timer(self.TASKREADY.type, T)
 
 
 	def RemoveTask(self, item):
@@ -97,7 +101,7 @@ class EventList(object):
 		# time in milliseconds to next task
 		T = self._TopItem()
 		if T is not None:
-			return int(round((T[0] - time.time())*1000))
+			return max(int(round((T[0] - time.time())*1000)), 1)  # always at least 1 millisec if list non-empty
 		else:
 			return 0
 
@@ -114,6 +118,12 @@ class EventList(object):
 				debugPrint('EventList', self.RelNow(), ' Pop: ', I, ' Nextdelay: ', nextdelay)
 				return I
 			else:  # we are early for some reason so just repost a wakeup
+				'''
+				Note - early wakeups are likely when events happen close together in time.  set_timer actually sets
+				a repeating timer so if 2 events are schedules for essentially the same time the time to next after the
+				first of them will be very short and it is likely to tick a second time before the correct time to next
+				is set by the second of the 2 close events.
+				'''
 				pygame.time.set_timer(self.TASKREADY.type, int(round(DiffToSched*1000 + .5)))
 				debugPrint('EventList', self.RelNow(), ' Early wake: ', DiffToSched, self.PrettyList(self.List))
 				return None
