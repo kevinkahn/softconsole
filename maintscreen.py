@@ -121,15 +121,6 @@ def dobeta(K, presstype):
 	K.PaintKey()
 
 
-def Exit_Options(msg, scrnmsg):
-	config.screen.fill(wc("red"))
-	r = config.fonts.Font(40, '', True, True).render(scrnmsg, 0, wc("white"))
-	config.screen.blit(r, ((config.screenwidth - r.get_width())/2, config.screenheight*.4))
-	config.Logs.Log(msg)
-	pygame.display.update()
-	time.sleep(2)
-
-
 class LogDisplayScreen(screen.BaseKeyScreenDesc):
 	def __init__(self):
 		screen.BaseKeyScreenDesc.__init__(self, None, 'LOG')

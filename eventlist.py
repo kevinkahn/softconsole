@@ -61,8 +61,9 @@ class EventList(object):
 		return t - self.BaseTime
 
 	def PrettyList(self, list):
+		plist = ''
 		for t, item in enumerate(list):
-			print '\n--------------------', t, item
+			plist = plist + '\n--------------------' + str(t) + str(self.PrettyTime(item[0])) + str(item)
 
 	def RelNow(self):
 		return time.time() - self.BaseTime

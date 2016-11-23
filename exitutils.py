@@ -3,9 +3,13 @@ import subprocess
 import sys
 import time
 
+import pygame
+
 import config
 from logsupport import ConsoleWarning
-from maintscreen import Exit_Options
+import webcolors
+
+wc = webcolors.name_to_rgb
 
 
 def dorealexit(K, YesKey, presstype):
@@ -50,3 +54,12 @@ def errorexit(opt):
 					 shell=True)
 	config.Ending = True
 	sys.exit(1)
+
+
+def Exit_Options(msg, scrnmsg):
+	config.screen.fill(wc("red"))
+	r = config.fonts.Font(40, '', True, True).render(scrnmsg, 0, wc("white"))
+	config.screen.blit(r, ((config.screenwidth - r.get_width())/2, config.screenheight*.4))
+	config.Logs.Log(msg)
+	pygame.display.update()
+	time.sleep(2)
