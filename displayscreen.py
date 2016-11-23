@@ -11,7 +11,8 @@ from config import debugPrint
 from logsupport import ConsoleWarning, ConsoleError
 from collections import OrderedDict
 from eventlist import AlertEventItem, ProcEventItem
-import alerttasks
+import alerttasks, maintscreen
+import Queue
 
 wc = webcolors.name_to_rgb
 
@@ -95,7 +96,14 @@ class DisplayScreen(object):
 
 		self.state = newstate
 		self.AS.EnterScreen()
-		config.toDaemon.put(['Status'] + self.AS.NodeWatch + self.WatchNodes)
+		try:
+			config.toDaemon.put(['Status'] + self.AS.NodeWatch + self.WatchNodes, True, 5)  # max wait 5 seconds
+		except Queue.Full:
+			config.Logs.Log('Timeout putting Status to queue')
+			qs = config.toDaemon.qsize()
+			config.Logs.Log('Queue size = ' + str(qs))
+			maintscreen.errorexit('restart')
+
 		debugPrint('Dispatch', "New watchlist(Main): " + str(self.AS.NodeWatch) + str(self.WatchNodes))
 		self.AS.InitDisplay(nav)
 

@@ -77,7 +77,9 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 				print dy
 				print self.ForecastFields
 				print self.SkipDays
-				print self.Winfo.ForecastVals
+				print vals
+				print self.WInfo.ForecastVals
+				print self.ForecastFormat
 				exit(999)
 
 		s = (usefulheight - h)/(len(l) - 1)
