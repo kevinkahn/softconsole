@@ -5,6 +5,8 @@ import time
 import signal
 import webcolors
 
+import exitutils
+
 wc = webcolors.name_to_rgb
 from sets import Set
 
@@ -15,7 +17,6 @@ import fonts
 import hw
 from logsupport import ConsoleError
 import traceback
-import maintscreen
 
 globdoc = {}
 moddoc = {}
@@ -129,7 +130,7 @@ def daemon_died(sig, frame):
 		config.debugPrint("Main", "Child ok signal")
 	elif not config.Ending:
 		print time.strftime('%m-%d-%y %H:%M:%S'), "Daemon died!"
-		maintscreen.errorexit('reboot')
+		exitutils.errorexit('reboot')
 		pygame.quit()  # todo restart
 		sys.exit(2)
 

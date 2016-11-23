@@ -3,6 +3,7 @@ import collections
 import xmltodict
 import requests, time
 import config
+import exitutils
 import utilities
 import maintscreen
 from logsupport import ConsoleInfo, ConsoleWarning, ConsoleError
@@ -61,7 +62,7 @@ def get_real_time_status(addrlist):
 					time.sleep(.5)
 					config.Logs.Log("Attempting ISY retry " + str(i + 1), severity=ConsoleError)
 			config.Logs.Log("ISY Communications Failure", severity=ConsoleError)
-			maintscreen.errorexit('reboot')
+			exitutils.errorexit('reboot')
 		except GotIt:
 			pass
 	config.debugPrint('ISY', statusdict)
@@ -131,7 +132,7 @@ class OnOffItem(object):
 					time.sleep(.5)
 					config.Logs.Log("Attempting ISY retry (Send Cmd) " + str(i + 1), severity=ConsoleError)
 			config.Logs.Log("ISY Communications Failure (Send Cmd)", severity=ConsoleError)
-			maintscreen.errorexit('reboot')
+			exitutils.errorexit('reboot')
 		except GotIt:
 			pass
 
@@ -304,7 +305,7 @@ class ISY(object):
 					time.sleep(15)
 				else:
 					config.Logs.Log('No ISY response restart (nodes)')
-					maintscreen.errorexit('reboot')
+					exitutils.errorexit('reboot')
 					sys.exit(10)  # should never get here
 
 		if r.status_code <> 200:
@@ -316,7 +317,7 @@ class ISY(object):
 			config.Logs.Log('Cannot access ISY - check username/password')
 			config.Logs.Log('Status code: ' + str(r.status_code))
 			time.sleep(10)
-			maintscreen.errorexit('shut')
+			exitutils.errorexit('shut')
 			config.Ending = True
 			sys.exit(4)
 
@@ -395,7 +396,7 @@ class ISY(object):
 					time.sleep(15)
 				else:
 					config.Logs.Log('No ISY response restart (programs)')
-					maintscreen.errorexit('reboot')
+					exitutils.errorexit('reboot')
 					sys.exit(12)  # should never get here
 				# todo check r.status for 200?  looks like simetimes r,text is garbage early on?
 
@@ -436,7 +437,7 @@ class ISY(object):
 					time.sleep(15)
 				else:
 					config.Logs.Log('No ISY response restart (vars)')
-					maintscreen.errorexit('reboot')
+					exitutils.errorexit('reboot')
 					sys.exit(12)  # should never get here
 				# todo check r.status for 200?  looks like simetimes r,text is garbage early on?
 

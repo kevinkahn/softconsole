@@ -4,6 +4,7 @@ import pygame
 import webcolors
 
 import config
+import exitutils
 import hw
 from eventlist import EventItem, EventList
 import threading
@@ -102,7 +103,7 @@ class DisplayScreen(object):
 			config.Logs.Log('Timeout putting Status to queue')
 			qs = config.toDaemon.qsize()
 			config.Logs.Log('Queue size = ' + str(qs))
-			maintscreen.errorexit('restart')
+			exitutils.errorexit('restart')
 
 		debugPrint('Dispatch', "New watchlist(Main): " + str(self.AS.NodeWatch) + str(self.WatchNodes))
 		self.AS.InitDisplay(nav)
