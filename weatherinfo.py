@@ -87,16 +87,16 @@ class WeatherInfo:
 					val = f.read()
 				except:
 					# todo - can report actual error codes in case not a timeout?
-					config.Logs.Log("Error fetching weather: " + str(sys.exc_info()[0]),
+					config.Logs.Log("Error fetching weather: " + self.url + str(sys.exc_info()[0]),
 									severity=logsupport.ConsoleWarning)
-					return -1
+					raise
 				if val.find("keynotfound") <> -1:
 					if self.location <> "":
 						# only report once in log
 						config.Logs.Log("Bad weatherunderground key:" + self.location, severity=logsupport.ConsoleError)
 					self.location = ""
 					self.lastwebreq = 0
-					return -1
+					raise
 				progress= 1
 				parsed_json = json.loads(val)
 				js = functools.partial(TreeDict, parsed_json)
@@ -166,7 +166,7 @@ class WeatherInfo:
 					config.Logs.Log("Weather error: ", self.ConditionErr, logsupport.ConsoleError)
 
 			except:
-				config.Logs.Log("Error retrieving weather", severity=logsupport.ConsoleError)
+				config.Logs.Log("Error retrieving weather" + str(sys.exc_info()[0]), severity=logsupport.ConsoleError)
 				# print "Getting fresh weather failed ", time.time()
 				# print "Progress: ", progress
 				# print self.ConditionVals

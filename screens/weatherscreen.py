@@ -2,7 +2,7 @@ import pygame
 import webcolors
 
 import config
-from config import debugPrint
+from debug import debugPrint
 
 wc = webcolors.name_to_rgb
 import screen
@@ -28,6 +28,7 @@ class WeatherScreenDesc(screen.ScreenDesc):
 		utilities.LocalizeParams(self, screensection, '-', WunderKey='', location='')
 		self.scrlabel = screen.FlatenScreenLabel(self.label)
 		# entries are (fontsize, centered, formatstring, values)
+		self.errormsg = [(2, True, "{d}", "Weather Not Available")]
 		self.conditions = [(2, True, "{d}", self.scrlabel),
 						   (1, True, "{d[0]}", ('Location',)),
 						   (1, False, u"Now: {d[0]} {d[1]}\u00B0F", ('Sky', 'Temp')),
@@ -83,21 +84,24 @@ class WeatherScreenDesc(screen.ScreenDesc):
 		h = 0
 		centered = []
 		if self.Info.FetchWeather() == -1:
-			return -1
-		if conditions:
-			self.conditions[-1] = (0, False, "Readings as of {d} ago", self.Info.ConditionVals['Age'])
-			renderedlines, centered, h = self.RenderScreenLines(self.conditions, self.Info.ConditionVals,
-																self.CharColor)
+			renderedlines, centered, h = self.RenderScreenLines(self.errormsg, [0], self.CharColor)
+			config.Logs.Log('Weatherscreen missing weather' + self.name, severity=logsupport.ConsoleWarning)
 		else:
-			renderedlines = [config.fonts.Font(fsizes[2][0], '', fsizes[2][1], fsizes[2][2]).render(self.scrlabel, 0,
-																									wc(self.CharColor))]
-			centered.append(True)
-			h = h + renderedlines[0].get_height()
-			for fcst in self.Info.ForecastVals:
-				r, c, temph = self.RenderScreenLines(self.forecast, fcst, self.CharColor)
-				h += temph
-				renderedlines = renderedlines + r
-				centered = centered + c
+			if conditions:
+				self.conditions[-1] = (0, False, "Readings as of {d} ago", self.Info.ConditionVals['Age'])
+				renderedlines, centered, h = self.RenderScreenLines(self.conditions, self.Info.ConditionVals,
+																	self.CharColor)
+			else:
+				renderedlines = [
+					config.fonts.Font(fsizes[2][0], '', fsizes[2][1], fsizes[2][2]).render(self.scrlabel, 0,
+																						   wc(self.CharColor))]
+				centered.append(True)
+				h = h + renderedlines[0].get_height()
+				for fcst in self.Info.ForecastVals:
+					r, c, temph = self.RenderScreenLines(self.forecast, fcst, self.CharColor)
+					h += temph
+					renderedlines = renderedlines + r
+					centered = centered + c
 
 		s = (usefulheight - h)/(len(renderedlines) - 1) if len(renderedlines) > 1 else 0
 		vert_off = config.topborder

@@ -1,7 +1,7 @@
 from heapq import *
 import time
 import pygame
-from config import debugPrint
+from debug import debugPrint
 
 Tasks = None
 
@@ -69,31 +69,30 @@ class EventList(object):
 	def RelNow(self):
 		return time.time() - self.BaseTime
 
-	def AddTask(self, item, dt):
+	def AddTask(self, evnt, dt):
 		if self.BaseTime == 0: self.BaseTime = time.time()
 
-		self.finder[item] = item
-		item.abstime = time.time() + dt
-		heappush(self.List, (item.abstime, item))
+		self.finder[id(evnt)] = evnt
+		evnt.abstime = time.time() + dt
+		heappush(self.List, (evnt.abstime, evnt))
 		T = self.TimeToNext()
-		debugPrint('EventList', self.RelNow(), ' Add: ', dt, item, T)
+		debugPrint('EventList', self.RelNow(), ' Add: ', dt, evnt, T)
 		# debugPrint('EventList', self.RelNow(), ' Add: ', dt, item,T,self.PrettyList(self.List))
 		pygame.time.set_timer(self.TASKREADY.type, T)
 
-
-	def RemoveTask(self, item):
-		debugPrint('EventList', self.RelNow(), ' Remove: ', item)
-		self.finder[item].deleted = True
+	def RemoveTask(self, evnt):
+		debugPrint('EventList', self.RelNow(), ' Remove: ', evnt)
+		self.finder[id(evnt)].deleted = True
 
 	def _TopItem(self):
 		try:
-			acttime, item = self.List[0]
-			while item.deleted is True:
-				debugPrint('EventList', self.RelNow(), ' Flush deleted: ', item)
+			acttime, evnt = self.List[0]
+			while evnt.deleted is True:
+				debugPrint('EventList', self.RelNow(), ' Flush deleted: ', evnt)
 				heappop(self.List)
-				del self.finder[item]
-				acttime, item = self.List[0]
-			return (acttime, item)
+				del self.finder[id(evnt)]
+				acttime, evnt = self.List[0]
+			return (acttime, evnt)
 		except IndexError:
 			return None
 
@@ -112,7 +111,7 @@ class EventList(object):
 			DiffToSched = T[0] - time.time()
 			if DiffToSched <= epsilon:  # task is due
 				I = heappop(self.List)[1]
-				del self.finder[I]
+				del self.finder[id(I)]
 				nextdelay = self.TimeToNext()
 				pygame.time.set_timer(self.TASKREADY.type, nextdelay)
 				debugPrint('EventList', self.RelNow(), ' Pop: ', I, ' Nextdelay: ', nextdelay)
@@ -132,9 +131,9 @@ class EventList(object):
 			debugPrint('EventList', self.RelNow(), ' Clear timer on list empty')
 			return None
 
-	def RemoveAllScreen(self, gpid):
+	def RemoveAllGrp(self, gpid):
 		# remove all events where screen is this screen
-		for e in self.finder:
+		for e in self.finder.itervalues():
 			if e.gpid == gpid:
 				self.RemoveTask(e)
 

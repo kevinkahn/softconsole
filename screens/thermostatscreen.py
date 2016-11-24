@@ -5,7 +5,8 @@ from pygame import gfxdraw
 
 wc = webcolors.name_to_rgb
 import config
-from config import debugPrint, dispratioH, dispratioW
+from config import dispratioH, dispratioW
+from debug import debugPrint
 import screen
 import xmltodict
 import toucharea

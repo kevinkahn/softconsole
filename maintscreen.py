@@ -7,8 +7,9 @@ import pygame
 import webcolors
 
 import config
+import debug
 import toucharea
-from config import debugPrint
+from debug import debugPrint
 from exitutils import dorealexit
 from utilities import interval_str
 
@@ -42,13 +43,13 @@ def SetUpMaintScreens():
 													  # fixed below to break a dependency loop - this is key 3
 													  ('exit', ('Exit/Restart', functools.partial(goto, Exits)))]))
 	tmp = OrderedDict()
-	for flg in config.DbgFlags:
+	for flg in debug.DbgFlags:
 		tmp[flg] = (flg, setdbg)  # setdbg gets fixed below to be actually callable
 	tmp['return'] = ('Return', functools.partial(goto, config.MaintScreen))
 	DebugFlags = MaintScreenDesc('Flags', tmp)
 	for kn, k in DebugFlags.Keys.iteritems():
-		if kn in config.Flags:
-			k.State = config.Flags[k.name]
+		if kn in debug.Flags:
+			k.State = debug.Flags[k.name]
 			k.Proc = functools.partial(setdbg, k)
 
 	config.MaintScreen.Keys['flags'].Proc = functools.partial(goto, DebugFlags, config.MaintScreen.Keys['flags'])
@@ -57,12 +58,12 @@ def SetUpMaintScreens():
 
 
 def setdbg(K, presstype):
-	config.Flags[K.name] = not config.Flags[K.name]
-	K.State = config.Flags[K.name]
+	debug.Flags[K.name] = not debug.Flags[K.name]
+	K.State = debug.Flags[K.name]
 	K.PaintKey()
 	config.Logs.Log("Debug flag ", K.name, ' = ', K.State, severity=ConsoleWarning)
 	# Let the daemon know about flags change
-	config.toDaemon.put(('flagchange', K.name, config.Flags[K.name]))
+	config.toDaemon.put(('flagchange', K.name, debug.Flags[K.name]))
 
 
 def gohome(K, presstype):  # neither peram used

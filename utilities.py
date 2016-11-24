@@ -5,6 +5,7 @@ import time
 import signal
 import webcolors
 
+import debug
 import exitutils
 
 wc = webcolors.name_to_rgb
@@ -127,7 +128,7 @@ def daemon_died(sig, frame):
 	if config.DaemonProcess is None:
 		return
 	if config.DaemonProcess.is_alive():
-		config.debugPrint("Main", "Child ok signal")
+		debug.debugPrint("Main", "Child ok signal")
 	elif not config.Ending:
 		print time.strftime('%m-%d-%y %H:%M:%S'), "Daemon died!"
 		exitutils.errorexit('reboot')

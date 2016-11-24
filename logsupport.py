@@ -2,6 +2,7 @@ import pygame
 import webcolors
 
 import config
+import debug
 
 wc = webcolors.name_to_rgb
 import time
@@ -16,7 +17,7 @@ ConsoleError = 2
 
 def Flags():
 	dbg = {}
-	for flg in config.DbgFlags:
+	for flg in debug.DbgFlags:
 		dbg[flg] = config.ParsedConfigFile.get(flg, False)
 	return dbg
 

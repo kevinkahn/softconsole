@@ -3,7 +3,7 @@ import webcolors
 wc = webcolors.name_to_rgb
 import config
 import pygame
-from config import debugPrint
+from debug import debugPrint
 import screen
 import utilities
 import isy

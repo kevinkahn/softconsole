@@ -9,7 +9,7 @@ import keydesc
 import screen
 import utilities
 import logsupport
-from config import debugPrint
+from debug import debugPrint
 from eventlist import EventItem, ProcEventItem
 
 wc = webcolors.name_to_rgb

@@ -1,7 +1,7 @@
 import config
 import toucharea
 import utilities
-from config import debugPrint
+from debug import debugPrint
 from logsupport import ConsoleInfo, ConsoleWarning, ConsoleError
 
 

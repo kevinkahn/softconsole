@@ -24,6 +24,7 @@ from configobj import ConfigObj
 
 import config
 import configobjects
+import debug
 import displayscreen
 import globalparams
 import isy
@@ -74,7 +75,7 @@ except:
 	print 'No version info)'
 
 import watchdaemon
-from config import debugPrint
+from debug import debugPrint
 
 """
 Dynamically load class definitions for all defined screen types and link them to how configuration happens
@@ -135,7 +136,7 @@ while includes <> []:
 	config.ParsedConfigFile.merge(tmpconf)
 	config.configfilelist[f] = os.path.getmtime(f)
 
-config.Flags = logsupport.Flags()
+debug.Flags = logsupport.Flags()
 utilities.ParseParam(globalparams)  # add global parameters to config file
 
 config.Logs = logsupport.Logs(config.screen, os.path.dirname(config.configfile))
@@ -156,7 +157,7 @@ config.Logs.Log("Main config file: ", config.configfile,
 config.Logs.Log("Including config files:")
 for p, f in zip(pfiles, cfiles):
 	config.Logs.Log("  ", p, time.strftime(' %c', time.localtime(config.configfilelist[f])))
-for flg, fval in config.Flags.iteritems():
+for flg, fval in debug.Flags.iteritems():
 	if fval:
 		config.Logs.Log('Debug flag ', flg, '=', fval, severity=logsupport.ConsoleWarning)
 

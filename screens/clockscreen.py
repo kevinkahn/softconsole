@@ -4,7 +4,7 @@ wc = webcolors.name_to_rgb
 import config
 import time
 import pygame
-from config import debugPrint
+from debug import debugPrint
 import screen
 import utilities
 from eventlist import ProcEventItem

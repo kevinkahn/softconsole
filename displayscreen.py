@@ -4,11 +4,12 @@ import pygame
 import webcolors
 
 import config
+import debug
 import exitutils
 import hw
 from eventlist import EventItem, EventList
 import threading
-from config import debugPrint
+from debug import debugPrint
 from logsupport import ConsoleWarning, ConsoleError
 from collections import OrderedDict
 from eventlist import AlertEventItem, ProcEventItem
@@ -21,7 +22,7 @@ wc = webcolors.name_to_rgb
 class DisplayScreen(object):
 	def __init__(self):
 
-		config.debugPrint("Main", "Screensize: ", config.screenwidth, config.screenheight)
+		debug.debugPrint("Main", "Screensize: ", config.screenwidth, config.screenheight)
 		config.Logs.Log("Screensize: " + str(config.screenwidth) + " x " + str(config.screenheight))
 		config.Logs.Log(
 			"Scaling ratio: " + "{0:.2f}".format(config.dispratioW) + ':' + "{0:.2f}".format(config.dispratioH))
@@ -277,7 +278,7 @@ class DisplayScreen(object):
 				elif ((alert.state == 'Delayed') or (alert.state == 'Deferred')) and not alert.trigger.IsTrue():
 					# condition changed under a pending action (screen or proc) so just cancel and rearm
 					alert.state = 'Armed'
-					self.Tasks.RemoveTask(id(alert))
+					self.Tasks.RemoveAllGrp(id(alert))
 				else:
 					debugPrint('Dispatch', 'ISYVar passing: ', alert.state, alert.trigger.IsTrue(), event, alert)
 				# Armed and false: irrelevant report

@@ -3,6 +3,7 @@ import collections
 import xmltodict
 import requests, time
 import config
+import debug
 import exitutils
 import utilities
 import maintscreen
@@ -14,7 +15,7 @@ def try_status(addr):
 	# returns (code, respstatus, devicestatus)
 	try:
 		t = 'http://' + config.ISYaddr + '/rest/status/' + addr
-		config.debugPrint('ISY', t)
+		debug.debugPrint('ISY', t)
 		r = config.ISYrequestsession.get(t, verify=False)
 	except requests.exceptions.ConnectTimeout:
 		config.Logs.Log("ISY Comm Timeout (RT status): " + addr, severity=ConsoleError)
@@ -58,14 +59,14 @@ def get_real_time_status(addrlist):
 					statusdict[addr] = int(devstate if devstate.isdigit() else 0)
 					raise GotIt()
 				else:
-					config.debugPrint('ISY', 'Get status failed: ', str(error), str(status_code), str(devstate))
+					debug.debugPrint('ISY', 'Get status failed: ', str(error), str(status_code), str(devstate))
 					time.sleep(.5)
 					config.Logs.Log("Attempting ISY retry " + str(i + 1), severity=ConsoleError)
 			config.Logs.Log("ISY Communications Failure", severity=ConsoleError)
 			exitutils.errorexit('reboot')
 		except GotIt:
 			pass
-	config.debugPrint('ISY', statusdict)
+	debug.debugPrint('ISY', statusdict)
 	return statusdict
 
 
@@ -93,7 +94,7 @@ class OnOffItem(object):
 
 	def TryCommand(self, state, fast):
 		selcmd = (('DOF', 'DFOF'), ('DON', 'DFON'))
-		config.debugPrint('ISY', "OnOff sent: ", selcmd[state][fast], ' to ', self.name)
+		debug.debugPrint('ISY', "OnOff sent: ", selcmd[state][fast], ' to ', self.name)
 		url = 'http://' + config.ISYaddr + '/rest/nodes/' + self.address + '/cmd/' + selcmd[state][fast]
 		try:
 			r = config.ISYrequestsession.get(url, verify=False)
@@ -128,7 +129,7 @@ class OnOffItem(object):
 				if error == 0:  # good result
 					raise GotIt()
 				else:
-					config.debugPrint('ISY', 'Send command failed', str(error), str(status_code))
+					debug.debugPrint('ISY', 'Send command failed', str(error), str(status_code))
 					time.sleep(.5)
 					config.Logs.Log("Attempting ISY retry (Send Cmd) " + str(i + 1), severity=ConsoleError)
 			config.Logs.Log("ISY Communications Failure (Send Cmd)", severity=ConsoleError)
@@ -228,7 +229,7 @@ class Program(ProgramFolder):
 		utilities.register_example("Program", self)
 
 	def runThen(self):
-		config.debugPrint('ISY', "runThen sent to ", self.name)
+		debug.debugPrint('ISY', "runThen sent to ", self.name)
 		url = config.ISYprefix + 'programs/' + self.address + '/runThen'
 		r = config.ISYrequestsession.get(url)
 		return r
@@ -371,7 +372,7 @@ class ISY(object):
 				if scene['name'] <> '~Auto DR':
 					print 'Scene with no members', scene['name']
 		self.LinkChildrenParents(self.ScenesByAddr, self.ScenesByName, self.FoldersByAddr, self.NodesByAddr)
-		if config.Flags['ISY']:
+		if debug.Flags['ISY']:
 			self.PrintTree(self.NodeRoot, "    ")
 
 		"""
@@ -451,7 +452,7 @@ class ISY(object):
 			self.varsIntInv[int(v['@id'])] = v['@name']
 
 		utilities.register_example("ISY", self)
-		if config.Flags['ISY']:
+		if debug.Flags['ISY']:
 			self.PrintTree(self.ProgRoot, "    ")
 
 	def PrintTree(self, startpoint, indent):

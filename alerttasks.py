@@ -2,7 +2,7 @@ import config, utilities, logsupport
 from configobjects import Section
 import screen
 from logsupport import ConsoleWarning
-from config import debugPrint
+from debug import debugPrint
 
 Tests = ('EQ', 'NE')
 AlertType = ('NodeChange', 'StateVarChange', 'IntVarChange', 'Periodic', 'TOD', 'External')

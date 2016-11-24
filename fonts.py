@@ -1,4 +1,6 @@
 import pygame
+
+import debug
 import utilities
 
 import config
@@ -33,6 +35,6 @@ class Fonts(object):
 							self.fontcache[face][size][italic][bold] = gennewfont()
 						else:
 							pass  # log this - should never get here
-			config.debugPrint('Fonts', 'New font: ', face if face <> "" else '-Sys-', ' :', size, (' b', ' B')[bold],
-							  (' i', ' I')[italic])
+			debug.debugPrint('Fonts', 'New font: ', face if face <> "" else '-Sys-', ' :', size, (' b', ' B')[bold],
+							 (' i', ' I')[italic])
 			return self.fontcache[face][size][italic][bold]

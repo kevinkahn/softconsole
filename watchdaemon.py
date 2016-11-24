@@ -3,11 +3,12 @@ import time
 
 # For now import private bug fixed version
 # from  ISY.IsyEvent import ISYEvent
+import debug
 from IsyEvent import ISYEvent
 from  ISY.IsyEventData import EVENT_CTRL
 
 import config
-from config import debugPrint
+from debug import debugPrint
 from logsupport import ConsoleWarning
 
 seq = 0
@@ -45,7 +46,7 @@ def event_feed(*arg):
 		if len(msg) == 0:  # todo - this is a bug
 			debugPrint('DaemonCtl', 'Empty message from console: ')
 		elif msg[0] == 'flagchange':
-			config.Flags[msg[1]] = msg[2]
+			debug.Flags[msg[1]] = msg[2]
 		elif msg[0] == 'Status':
 			config.watchlist = msg[1:]
 			debugPrint('DaemonCtl', time.time(), "New watchlist(watcher): ", config.watchlist)
@@ -91,9 +92,9 @@ def event_feed(*arg):
 			debugPrint('DaemonCtl', 'Qsize at daemon', config.fromDaemon.qsize(), ' VarChg:', vartype, ':', varid, ':',
 					   varval)
 	else:
-		config.debugPrint('DaemonStream', time.time(), "Other  update in stream: ", data["Event-seqnum"], ":", prcode,
+		debug.debugPrint('DaemonStream', time.time(), "Other  update in stream: ", data["Event-seqnum"], ":", prcode,
 						  " : ",
-						  data["node"], " : ", data["eventInfo"], " : ", data["action"])
+						 data["node"], " : ", data["eventInfo"], " : ", data["action"])
 		debugPrint('DaemonStream', time.time(), "Raw stream item: ", data)
 
 def Watcher():

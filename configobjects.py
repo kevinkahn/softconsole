@@ -1,7 +1,7 @@
 from configobj import Section
 
 import config
-from config import debugPrint
+from debug import debugPrint
 from logsupport import ConsoleWarning
 import toucharea
 import functools

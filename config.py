@@ -20,27 +20,6 @@ DaemonProcess = None
 seq = 0
 streamid = ""
 
-# Debug flags
-Flags = {}
-DbgFlags = ['Main', 'DaemonCtl', 'DaemonStream', 'Screen', 'ISY', 'Dispatch', 'EventList', 'Fonts']
-dbgscreenbuild = False
-dbgMain = False
-dbgdaemon = False
-
-
-def debugPrint(flag, *args):
-	if flag in DbgFlags:
-		if Flags[flag]:
-			print flag, '-> ',
-			for arg in args:
-				print arg,
-			print
-			if Logs <> None:
-				Logs.Log(*args, severity=-1, diskonly=True)
-	else:
-		print "DEBUG FLAG NAME ERROR", flag
-
-
 # Global pointers
 exdir = ''
 ISYrequestsession = None  # handle for requests to ISY via the request interface
