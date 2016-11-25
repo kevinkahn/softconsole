@@ -34,9 +34,9 @@ def GetSHA(tag):
 	for i in d:
 		if i['name'] == tag:
 			sha = i['commit']['sha']
-	r = requests.get('https://api.github.com/repos/kevinkahn/softconsole/commits')
+			url = i['commit']['url']
+			break
+	r = requests.get(url)
 	d = r.json()
-	for i in d:
-		if i['sha'] == sha:
-			c = i['commit']['committer']['date']
+	c = d['commit']['committer']['date']
 	return (sha, c)
