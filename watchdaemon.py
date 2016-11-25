@@ -14,11 +14,6 @@ from logsupport import ConsoleWarning
 seq = 0
 
 def event_feed(*arg):
-	def VarInList(vartype, varid):
-		for v in config.varlist:
-			if v[0] == vartype and v[1] == varid:
-				return v[2]
-		return None
 
 	reportablecodes = ["DON", "DFON", "DOF", "DFOF", "ST", "OL", "RR", "CLISP", "CLISPH", "CLISPC", "CLIFS", "CLIMD",
 					   "CLIHUM", "CLIHCS", "BRT", "DIM"]
@@ -86,9 +81,8 @@ def event_feed(*arg):
 		varval = int(vinfo['val'])
 		debugPrint('DaemonCtl', 'Var change:', ('Unkn', 'Integer', 'State')[vartype], ' variable ', varid, ' set to ',
 				   varval)
-		vid = VarInList(vartype, varid)
-		if vid is not None:
-			config.fromDaemon.put(("VarChg", vartype, varid, varval, vid))
+		if (vartype, varid) in config.varlist:
+			config.fromDaemon.put(("VarChg", vartype, varid, varval))
 			debugPrint('DaemonCtl', 'Qsize at daemon', config.fromDaemon.qsize(), ' VarChg:', vartype, ':', varid, ':',
 					   varval)
 	else:

@@ -69,6 +69,7 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 				sizeindex += 1
 			for dy in range(self.ForecastDays):
 				try:
+					# todo issue seems to be that sometimes no forecast is returned for Pumpkin at least
 					for i in range(len(self.ForecastFormat)):
 						vals = [self.WInfo.ForecastVals[dy + self.SkipDays][fld] for fld in self.ForecastFields]
 						l.append(

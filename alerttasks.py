@@ -72,6 +72,10 @@ class VarChgtrigger(object):
 			utilities.FatalError('VarChgtriggerIsTrue')
 
 
+class InitTrigger(object):
+	def __init__(self, spec):
+		self.spec = spec
+
 class Periodictrigger(object):
 	def __init__(self, interval):
 		self.interval = interval
@@ -151,6 +155,10 @@ def ParseAlertParams(nm, spec):
 	elif triggertype == 'External':
 		pass  # todo external?
 		return None
+	elif triggertype == 'Init':  # Trigger once at start up passing in the configobj spec
+		trig = InitTrigger(spec)
+		A = Alert(nm, triggertype, trig, action, actionname)
+
 
 	if fixscreen:
 		action.Alert = A

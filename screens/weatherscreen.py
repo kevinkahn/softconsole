@@ -28,7 +28,7 @@ class WeatherScreenDesc(screen.ScreenDesc):
 		utilities.LocalizeParams(self, screensection, '-', WunderKey='', location='')
 		self.scrlabel = screen.FlatenScreenLabel(self.label)
 		# entries are (fontsize, centered, formatstring, values)
-		self.errormsg = [(2, True, "{d}", "Weather Not Available")]
+		self.errormsg = [(1, True, "{d}", "Weather Not Available")]
 		self.conditions = [(2, True, "{d}", self.scrlabel),
 						   (1, True, "{d[0]}", ('Location',)),
 						   (1, False, u"Now: {d[0]} {d[1]}\u00B0F", ('Sky', 'Temp')),

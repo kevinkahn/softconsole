@@ -32,10 +32,12 @@ class DisplayScreen(object):
 
 		# Central Task List
 		self.Tasks = EventList()
-		self.WatchNodes = []  # Nodes that should be watched due to alerts
-		self.WatchVars = []  # Variables that should be watched for changes (entry is (vartype,varid)
+		self.WatchNodes = {}  # Nodes that should be watched for changes (key is node address, value is [alerts]
+		# todo if ever possible to delete alerts then need id per comment on vars
+		self.WatchVars = {}  # Variables that should be watched for changes (key is (vartype,varid) value is [alerts]
+		# todo if watches could be dynamic then delete needs to pass in the alert to id which to delete
 		self.Deferrals = []
-		self.WatchVarVals = {}  # most revent reported watched variable values todo - should initialize?
+		self.WatchVarVals = {}  # most recent reported watched variable values todo - should initialize?
 
 		# Events that drive the main control loop
 		self.ACTIVITYTIMER = pygame.event.Event(
@@ -99,7 +101,7 @@ class DisplayScreen(object):
 		self.state = newstate
 		self.AS.EnterScreen()
 		try:
-			config.toDaemon.put(['Status'] + self.AS.NodeWatch + self.WatchNodes, True, 5)  # max wait 5 seconds
+			config.toDaemon.put(['Status'] + self.AS.NodeWatch + self.WatchNodes.keys(), True, 5)  # max wait 5 seconds
 		except Queue.Full:
 			config.Logs.Log('Timeout putting Status to queue')
 			qs = config.toDaemon.qsize()
@@ -125,16 +127,16 @@ class DisplayScreen(object):
 				if item[0] == "Log":
 					config.Logs.Log(item[1], severity=item[2])
 				elif item[0] == "Node":
-
 					if item[1] in self.WatchNodes:
 						debugPrint('DaemonCtl', 'ISY reports change(alert):', str(item))
-						notice = pygame.event.Event(self.ISYAlert, node=item[1], value=item[2])
-					else:
+						for a in self.WatchNodes[item[1]]:
+							notice = pygame.event.Event(self.ISYAlert, node=item[1], value=item[2], alert=a)
+							pygame.fastevent.post(notice)
+					if item[1] in self.AS.NodeWatch:
 						debugPrint('DaemonCtl', time.time(), "ISY reports change: ", "Key: ", str(item))
 						notice = pygame.event.Event(self.ISYChange, node=item[1], value=item[2])
-					pygame.fastevent.post(notice)
+						pygame.fastevent.post(notice)
 				elif item[0] == "VarChg":
-					notice = pygame.event.Event(self.ISYVar, vartype=item[1], varid=item[2], value=item[3], eid=item[4])
 					self.WatchVarVals[(item[1], item[2])] = item[3]
 					if item[1] == 1:
 						debugPrint('DaemonCtl', 'Int variable value change: ', config.ISY.varsIntInv[item[2]], ' <- ',
@@ -144,7 +146,10 @@ class DisplayScreen(object):
 								   ' <- ', item[3])
 					else:
 						config.Logs.Log('Bad var message from daemon' + str(item[1]), severity=ConsoleError)
-					pygame.fastevent.post(notice)
+
+					for a in self.WatchVars[(item[1], item[2])]:
+						notice = pygame.event.Event(self.ISYVar, vartype=item[1], varid=item[2], value=item[3], alert=a)
+						pygame.fastevent.post(notice)
 				else:
 					config.Logs.Log("Bad msg from watcher: " + str(item), Severity=ConsoleWarning)
 
@@ -154,21 +159,28 @@ class DisplayScreen(object):
 		self.ScreensDict = config.SecondaryDict.copy()
 		self.ScreensDict.update(config.MainDict)
 
-		for vid, a in config.Alerts.AlertsList.items():
+		for a in config.Alerts.AlertsList.itervalues():
 			a.state = 'Armed'
 			if a.type in ('StateVarChange', 'IntVarChange'):
-				self.WatchVars.append((a.trigger.vartype, a.trigger.varid, vid))
+				if (a.trigger.vartype, a.trigger.varid) in self.WatchVars:
+					self.WatchVars[(a.trigger.vartype, a.trigger.varid)].append(a)
+				else:
+					self.WatchVars[(a.trigger.vartype, a.trigger.varid)] = [a]
 				self.WatchVarVals[(a.trigger.vartype, a.trigger.varid)] = None
 			elif a.type == 'Periodic':
 				E = AlertEventItem(id(a), a.name, a)
 				self.Tasks.AddTask(E, a.trigger.interval)
 			elif a.type == 'TOD':
-				pass  # schedule next occurrence
+				pass  # schedule next occurrence todo
 			elif a.type == 'NodeChange':
-				self.WatchNodes.append(a.trigger.nodeaddress)
+				if a.trigger.nodeaddress in self.WatchNodes:
+					self.WatchNodes[a.trigger.nodeaddress].append(a)
+				else:
+					self.WatchNodes[a.trigger.nodeaddress] = [a]
+			elif a.type == 'Init':
+				a.Invoke()
 
-
-		config.toDaemon.put(['Vars'] + self.WatchVars)
+		config.toDaemon.put(['Vars'] + self.WatchVars.keys())
 
 		self.SwitchScreen(InitScreen, 'Bright', 'Home', 'Startup')
 
@@ -259,11 +271,12 @@ class DisplayScreen(object):
 
 			elif event.type == self.ISYAlert:
 				debugPrint('Dispatch', 'ISY Node Alert', event)
+			# event.alert has the alert of interest
 			# todo finish handle delay etc evaluate the alert condition delay, execute, or stop
 
 			elif event.type == self.ISYVar:
 				debugPrint('Dispatch', 'ISY variable change', event)
-				alert = config.Alerts.AlertsList[event.eid]
+				alert = event.alert
 				if alert.state == 'Armed' and alert.trigger.IsTrue():  # alert condition holds
 					if alert.trigger.delay <> 0:  # delay invocation
 						alert.state = 'Delayed'
