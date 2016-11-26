@@ -7,8 +7,8 @@ starttime = 0
 Console_pid = 0
 Daemon_pid = 0
 Ending = False
-PRESS = 1
-FASTPRESS = 2
+PRESS = 0
+FASTPRESS = 1
 
 """ Daemon related stuff"""
 toDaemon = None
