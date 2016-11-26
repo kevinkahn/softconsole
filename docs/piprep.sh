@@ -19,6 +19,7 @@
 # script prompts for system name and other options
 #
 
+
 function Get_yn()
 {
   # params: var, prompt
