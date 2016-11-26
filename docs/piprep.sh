@@ -235,6 +235,7 @@ mv /boot/config.txt /boot/config.sav
 sed s/rotate=90/rotate=0/ /boot/config.sav > /boot/config.txt
 python /home/pi/adafruit-pitft-touch-cal -f -t $ScreenType -r 0
 
+
 cd /home/pi/
 LogBanner "Console Installation"
 echo "-------Install Console-------" >> /home/pi/log.txt
