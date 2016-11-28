@@ -50,10 +50,10 @@ class SetVarKey(ManualKeyDesc):
 class RunThenKey(ManualKeyDesc):
 	def __init__(self, screen, keysection, keyname):
 		debugPrint('Screen', "             New RunThen Key Desc ", keyname)
-		utilities.LocalizeParams(self, keysection, '--', KeyRunThenName='', Blink=7)
+		utilities.LocalizeParams(self, keysection, '--', KeyRunThenName='', FastPress=1, Blink=7)
 		# todo check handle of deprecated keyword
 		ManualKeyDesc.__init__(self, screen, keysection, keyname)
-		self.State = False
+		self.State = False  # for appearance only
 		try:
 			self.ISYObj = config.ISY.ProgramsByName[self.KeyRunThenName]
 		except:
@@ -66,8 +66,8 @@ class RunThenKey(ManualKeyDesc):
 
 	def OnBlinkRunThen(self, presstype):
 		# force double tap for programs for safety - too easy to accidentally single tap with touchscreen
-		print "Blinker"
-		if presstype == config.FASTPRESS:
+
+		if not (self.FastPress and presstype <> config.FASTPRESS):
 			self.ISYObj.runThen()
 			# todo Feedback
 			if self.Blink <> 0:

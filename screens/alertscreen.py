@@ -46,6 +46,7 @@ class AlertsScreenDesc(screen.ScreenDesc):
 			self.Keys['action'].Center = (
 			config.screenwidth/2, config.topborder + messageareaheight + 1.5*alertbutheight)
 			self.Keys['action'].Size = (config.screenwidth - 2*config.horizborder, alertbutheight)
+			self.Keys['action'].State = True  # for appearance only
 		else:
 			# todo create a blank key
 			self.Keys['action'] = toucharea.ManualKeyDesc('clearcond', self.ActKeyLabel, self.KeyColor,
