@@ -1,9 +1,8 @@
-class KeyDesc(object):
+class KeyDesc(object):  # todo delete this file
 	# Describe a Key: name, background, keycharon, keycharoff, label(string tuple), type (ONOFF,ONBlink,OnOffRun,?),addr,OnU,OffU
 
 	pass
 
-	# todo add BLINK as a keyword default to 0, otherwise number of times to blink
 	"""
 	if self.type == 'ONBLINKRUNTHEN':
 		# deprecated parameter

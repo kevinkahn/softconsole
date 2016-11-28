@@ -86,7 +86,7 @@ def LogParams():
 		config.Logs.Log(p)
 
 
-def restart_console_handler(sig, frame):
+def restart_console_handler(sig, frame):  # todo
 	if sig == signal.SIGUSR1:
 		print "Restart Console signal"
 	if sig == signal.SIGUSR2:
@@ -203,7 +203,7 @@ def LocalizeParams(inst, configsection, indent, *args, **kwargs):
 			lclval.append(kwargs[nametoadd])
 			moddoc[inst.__class__.__name__]['loc'][lcllist[-1]] = type(lclval[-1])
 		else:
-			print 'why dup', nametoadd  # todo make this a log warning
+			config.Logs.Log('Duplicated keyword localization (internal error): ' + nametoadd)
 	for nametoadd in args:
 		if nametoadd in config.__dict__:
 			lcllist.append(nametoadd)

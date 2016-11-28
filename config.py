@@ -13,12 +13,7 @@ FASTPRESS = 1
 """ Daemon related stuff"""
 toDaemon = None
 fromDaemon = None
-watchlist = []  # todo can this be moved to somewhere else - it isn't shared at all
-varlist = []
-watchstarttime = 0
 DaemonProcess = None
-seq = 0
-streamid = ""
 
 # Global pointers
 exdir = ''
@@ -37,9 +32,11 @@ Logs = None
 configfilelist = {}  # list of configfiles and their timestamps
 
 TermShortener = {}
+
 versionname = ""
 versionsha = ""
-lastalertcheck = 0
+versiondnld = ""
+versioncommit = ""
 
 # Screen Display Info
 screenwidth = 0

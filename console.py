@@ -64,14 +64,16 @@ print 'Version (', lastfn, time.ctime(lastmod),
 
 try:
 	with open(config.exdir + '/' + 'versioninfo') as f:
-		vn = f.readline()[:-1]
-		vs = f.readline()[:-1]
-		vi = f.readline()[:-1]
-		print vn, vs, vi, ')'
+		config.versionname = f.readline()[:-1]
+		config.versionsha = f.readline()[:-1]
+		config.versiondnld = f.readline()[:-1]
+		config.versioncommit = f.readline()[:-1]
+		print config.versionname, config.versionsha, config.versiondnld, config.versioncommit, ')'
 except:
-	vn = 'none'
-	vs = 'none'
-	vi = 'none'
+	config.versionname = 'none'
+	config.versionsha = 'none'
+	config.versiondnld = 'none'
+	config.versioncommit = 'none'
 	print 'No version info)'
 
 import watchdaemon
@@ -147,9 +149,10 @@ config.Logs.Log("Version Information:")
 config.Logs.Log(" Run from: ", config.exdir)
 config.Logs.Log(" Last mod: ", lastfn)
 config.Logs.Log(" Mod at: ", time.ctime(lastmod))
-config.Logs.Log(" Tag: ", vn)
-config.Logs.Log(" Sha: ", vs)
-config.Logs.Log(" How: ", vi)
+config.Logs.Log(" Tag: ", config.versionname)
+config.Logs.Log(" Sha: ", config.versionsha)
+config.Logs.Log(" How: ", config.versiondnld)
+config.Logs.Log(" Version date: ", config.versioncommit)
 config.Logs.Log("Start time: ", time.strftime('%c'))
 config.Logs.Log("Console Starting  pid: ", config.Console_pid)
 config.Logs.Log("Main config file: ", config.configfile,

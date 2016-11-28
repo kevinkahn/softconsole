@@ -27,6 +27,7 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 		self.WInfo = weatherinfo.WeatherInfo(self.WunderKey, self.location)
 		for i in range(len(self.CharSize), len(self.TimeFormat) + len(self.ConditionFormat) + len(self.ForecastFormat)):
 			self.CharSize.append(self.CharSize[-1])
+		self.ClockRepaintEvent = ProcEventItem(id(self), 'repaintTimeTemp', self.repaintClock)
 
 	def EnterScreen(self):
 		self.NodeWatch = []
@@ -69,22 +70,17 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 				sizeindex += 1
 			for dy in range(self.ForecastDays):
 				try:
-					# todo issue seems to be that sometimes no forecast is returned for Pumpkin at least
 					for i in range(len(self.ForecastFormat)):
 						vals = [self.WInfo.ForecastVals[dy + self.SkipDays][fld] for fld in self.ForecastFields]
 						l.append(
 							config.fonts.Font(self.CharSize[sizeindex + i], self.Font).render(
 								self.ForecastFormat[i].format(d=vals), 0, wc(self.CharColor)))
 						h = h + l[-1].get_height()
-				except:  # todo remove if figure list index out of range bug
-					config.Logs.Log('TimeTemp Weather Error', severity=ConsoleWarning)
-					print self.name, i, dy
-					print self.ForecastDays
-					print self.ForecastFields
-					print self.SkipDays
-					print vals
-					print self.WInfo.ForecastVals
-					print self.ForecastFormat
+				except:
+					config.Logs.Log('TimeTemp Weather Forecast Error', severity=ConsoleWarning)
+					l.append(config.fonts.Font(self.CharSize[sizeindex], self.Font).render(
+						'Forecast Not Available', 0, wc(self.CharColor)))
+					h = h + l[-1].get_height()
 
 		s = (usefulheight - h)/(len(l) - 1)
 
@@ -96,7 +92,6 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 			config.screen.blit(l[i], (horiz_off, vert_off))
 			vert_off = vert_off + s + l[i].get_height()
 		pygame.display.update()
-		I = ProcEventItem(id(self), 'repaintTimeTemp', self.repaintClock)  # todo why dynamic
-		config.DS.Tasks.AddTask(I, 1)
+		config.DS.Tasks.AddTask(self.ClockRepaintEvent, 1)
 
 config.screentypes["TimeTemp"] = TimeTempScreenDesc

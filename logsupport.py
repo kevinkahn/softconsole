@@ -88,13 +88,13 @@ class Logs(object):
 					break
 				t = config.fonts.Font(config.LogFontSize).size(''.join(ptext) + ltext[0])[
 					0]
-				if t > config.screenwidth - 10:  # todo pixels literal
+				if t > config.screenwidth - 10:
 					break
 				else:
 					ptext.append(ltext[0])
 					del ltext[0]
 			l = config.fonts.Font(config.LogFontSize).render(''.join(ptext), False, wc(clr))
-			self.screen.blit(l, (10, pos))  # todo pixel
+			self.screen.blit(l, (10, pos))
 			ptext = ["    "]
 			pos = pos + config.fonts.Font(config.LogFontSize).get_linesize()
 		pygame.display.update()

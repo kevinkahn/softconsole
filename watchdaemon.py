@@ -12,42 +12,46 @@ from debug import debugPrint
 from logsupport import ConsoleWarning
 
 seq = 0
+reportablecodes = ["DON", "DFON", "DOF", "DFOF", "ST", "OL", "RR", "CLISP", "CLISPH", "CLISPC", "CLIFS", "CLIMD",
+				   "CLIHUM", "CLIHCS", "BRT", "DIM"]
+watchlist = []
+varlist = []
+streamid = ''
+watchstarttime = 0
+
 
 def event_feed(*arg):
-
-	reportablecodes = ["DON", "DFON", "DOF", "DFOF", "ST", "OL", "RR", "CLISP", "CLISPH", "CLISPC", "CLIFS", "CLIMD",
-					   "CLIHUM", "CLIHCS", "BRT", "DIM"]
-	global seq
+	global seq, reportablecodes, watchlist, varlist, streamid, watchstarttime
 	seq = seq + 1
 	data = arg[0]
-	if config.seq <> int(data["Event-seqnum"]):
+	if seq <> int(data["Event-seqnum"]):
 		config.fromDaemon.put(
-			("Log", "Event mismatch - Expected: " + str(config.seq) + " Got: " + str(data["Event-seqnum"]), ConsoleWarning))
-		config.seq = int(data["Event-seqnum"]) + 1
+			("Log", "Event mismatch - Expected: " + str(seq) + " Got: " + str(data["Event-seqnum"]), ConsoleWarning))
+		seq = int(data["Event-seqnum"]) + 1
 	else:
-		config.seq += 1
+		seq += 1
 
-	if config.streamid <> data["Event-sid"]:
+	if streamid <> data["Event-sid"]:
 		config.fromDaemon.put(("Log", "Now using event stream: " + str(data["Event-sid"]), ConsoleWarning))
-		config.streamid = data["Event-sid"]
+		streamid = data["Event-sid"]
 
-	if time.time() < config.watchstarttime + 5:
+	if time.time() < watchstarttime + 5:
 		debugPrint('DaemonStream', time.time(), "Skipping item in stream: ", data["Event-seqnum"], ":",
 				   data["control"], " : ", data["node"], " : ", data["eventInfo"], " : ", data["action"])
 		return None
 
 	while not config.toDaemon.empty():
 		msg = config.toDaemon.get()
-		if len(msg) == 0:  # todo - this is a bug
+		if len(msg) == 0:
 			debugPrint('DaemonCtl', 'Empty message from console: ')
 		elif msg[0] == 'flagchange':
 			debug.Flags[msg[1]] = msg[2]
 		elif msg[0] == 'Status':
-			config.watchlist = msg[1:]
-			debugPrint('DaemonCtl', time.time(), "New watchlist(watcher): ", config.watchlist)
+			watchlist = msg[1:]
+			debugPrint('DaemonCtl', time.time(), "New watchlist(watcher): ", watchlist)
 		elif msg[0] == 'Vars':
-			config.varlist = msg[1:]
-			debugPrint('DaemonCtl', "New varlist(watcher): ", config.varlist)
+			varlist = msg[1:]
+			debugPrint('DaemonCtl', "New varlist(watcher): ", varlist)
 		else:
 			debugPrint('DaemonCtl', 'Bad message from console: ', msg)
 
@@ -60,12 +64,10 @@ def event_feed(*arg):
 	eventcode = data["control"]
 	if eventcode in EVENT_CTRL:
 		prcode = EVENT_CTRL[eventcode]
-	# print "Orig EC", eventcode, prcode
 	else:
 		prcode = "**" + eventcode + "**"
-	# print "Ugly EC", eventcode, prcode
-	#  or config.watchlist[0] == "" not sure why this wa in next statement
-	if (eventcode in reportablecodes) and data["node"] in config.watchlist:
+
+	if (eventcode in reportablecodes) and data["node"] in watchlist:
 		debugPrint('DaemonCtl', time.time(), "Status update in stream: ", data["Event-seqnum"], ":", prcode, " : ",
 				   data["node"], " : ", data["eventInfo"], " : ", data["action"])
 		debugPrint('DaemonStream', time.time(), "Raw stream item: ", data)
@@ -81,7 +83,7 @@ def event_feed(*arg):
 		varval = int(vinfo['val'])
 		debugPrint('DaemonCtl', 'Var change:', ('Unkn', 'Integer', 'State')[vartype], ' variable ', varid, ' set to ',
 				   varval)
-		if (vartype, varid) in config.varlist:
+		if (vartype, varid) in varlist:
 			config.fromDaemon.put(("VarChg", vartype, varid, varval))
 			debugPrint('DaemonCtl', 'Qsize at daemon', config.fromDaemon.qsize(), ' VarChg:', vartype, ':', varid, ':',
 					   varval)
@@ -92,10 +94,11 @@ def event_feed(*arg):
 		debugPrint('DaemonStream', time.time(), "Raw stream item: ", data)
 
 def Watcher():
-	config.watchstarttime = time.time()
-	config.watchlist = []
-	config.varlist = []
-	debugPrint('DaemonCtl', "Watcher: ", config.watchstarttime, os.getpid())
+	global watchlist, varlist
+	watchstarttime = time.time()
+	watchlist = []
+	varlist = []
+	debugPrint('DaemonCtl', "Watcher: ", watchstarttime, os.getpid())
 	config.Daemon_pid = os.getpid()
 	server = ISYEvent()  # can add parameter debug = 3 to have library dump some info out output
 	server.subscribe(addr=config.ISYaddr, userl=config.ISYuser, userp=config.ISYpassword)

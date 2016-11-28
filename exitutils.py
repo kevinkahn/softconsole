@@ -12,6 +12,13 @@ import webcolors
 wc = webcolors.name_to_rgb
 
 
+def Exit(option, trigger, ecode):
+	os.chdir(config.exdir)  # set cwd to be correct when dirs move underneath us so that scripts execute
+	subprocess.Popen('nohup sudo /bin/bash -e scripts/consoleexit ' + option + ' ' + config.configfile + ' ' + trigger,
+					 shell=True)
+	config.Ending = True
+	sys.exit(ecode)
+
 def dorealexit(K, YesKey, presstype):
 	ExitKey = K.name
 	if ExitKey == 'shut':
@@ -22,14 +29,7 @@ def dorealexit(K, YesKey, presstype):
 		Exit_Options("Shutdown Pi Requested", "Shutting Down Pi")
 	elif ExitKey == 'reboot':
 		Exit_Options("Reboot Pi Requested", "Rebooting Pi")
-
-	os.chdir(config.exdir)  # set cwd to be correct when dirs move underneath us so that scripts execute
-
-	subprocess.Popen('nohup sudo /bin/bash -e scripts/consoleexit ' + ExitKey + ' ' + config.configfile + ' user',
-					 shell=True)
-	config.Ending = True
-	sys.exit(0)
-
+	Exit(ExitKey, 'user', 0)
 
 def errorexit(opt):
 	if opt == 'restart':
@@ -47,14 +47,7 @@ def errorexit(opt):
 	elif opt == 'shut':
 		Exit_Options('Error Shutdown', 'Error Check Log')
 	print opt
-
-	os.chdir(config.exdir)  # set cwd to be correct when dirs move underneath us so that scripts execute
-
-	subprocess.Popen('nohup sudo /bin/bash -e scripts/consoleexit ' + opt + ' ' + config.configfile + ' ' + ' error',
-					 shell=True)
-	config.Ending = True
-	sys.exit(1)
-
+	Exit(opt, 'error', 1)
 
 def Exit_Options(msg, scrnmsg):
 	config.screen.fill(wc("red"))

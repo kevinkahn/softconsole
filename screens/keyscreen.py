@@ -33,26 +33,13 @@ class KeyScreenDesc(screen.BaseKeyScreenDesc):
 	def __repr__(self):
 		return screen.ScreenDesc.__repr__(self) + "\r\n     KeyScreenDesc:" + ":<" + str(self.Keys) + ">"
 
-	def BlinkKey(self, K, cycle):
-		if cycle > 0:
-			if cycle%2 == 0:
-				K.PaintKey(ForceDisplay=True, DisplayState=True)  # force on
-			else:
-				K.PaintKey(ForceDisplay=True, DisplayState=False)  # force off
-			E = ProcEventItem(id(self), 'keyblink',
-							  functools.partial(self.BlinkKey, K, cycle - 1))  # todo why dynamic
-			config.DS.Tasks.AddTask(E, .5)
-		else:
-			K.PaintKey()  # make sure to leave it in real state
-
-
 	def EnterScreen(self):
 		self.subscriptionlist = {}
 		debugPrint('Screen', "Enter to screen: ", self.name)
 
 		for K in self.Keys.itervalues():
 			if isinstance(K, keyspecs.OnOffKey):
-				# skip program buttons # todo how to make sure we don't forget this for new key types?
+				# skip program buttons # todo how to make sure we don't forget this for new key types? keys should register their own needs (vars as well)
 				self.subscriptionlist[K.MonitorObj.address] = K
 
 		debugPrint('Main', "Active Subscription List will be:")

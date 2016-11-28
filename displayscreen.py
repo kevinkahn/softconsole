@@ -37,7 +37,7 @@ class DisplayScreen(object):
 		self.WatchVars = {}  # Variables that should be watched for changes (key is (vartype,varid) value is [alerts]
 		# todo if watches could be dynamic then delete needs to pass in the alert to id which to delete
 		self.Deferrals = []
-		self.WatchVarVals = {}  # most recent reported watched variable values todo - should initialize?
+		self.WatchVarVals = {}  # most recent reported watched variable values
 
 		# Events that drive the main control loop
 		self.ACTIVITYTIMER = pygame.event.Event(
