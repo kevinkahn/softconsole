@@ -57,6 +57,12 @@ class EventList(object):
 		self.finder = {}
 		self.TASKREADY = pygame.event.Event(pygame.USEREVENT)
 
+	def StartLongOp(self):
+		pygame.time.set_timer(self.TASKREADY.type, 0)
+
+	def EndLongOp(self):
+		pygame.time.set_timer(self.TASKREADY.type, self.TimeToNext())
+
 	def PrettyTime(self, t):
 		return t - self.BaseTime
 

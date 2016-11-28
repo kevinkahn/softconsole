@@ -22,7 +22,6 @@ watchstarttime = 0
 
 def event_feed(*arg):
 	global seq, reportablecodes, watchlist, varlist, streamid, watchstarttime
-	seq = seq + 1
 	data = arg[0]
 	if seq <> int(data["Event-seqnum"]):
 		config.fromDaemon.put(
