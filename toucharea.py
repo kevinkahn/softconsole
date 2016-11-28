@@ -1,9 +1,13 @@
-import config
-import utilities
 import pygame
 import webcolors
+
+import config
+import utilities
 from utilities import scaleW, scaleH
+
 wc = webcolors.name_to_rgb
+import eventlist
+import functools
 
 
 class TouchPoint(object):
@@ -36,7 +40,7 @@ class ManualKeyDesc(TouchPoint):
 	def __init__(self, *args, **kwargs):
 		# alternate creation signatures
 		self.ButtonFontSizes = (31, 28, 25, 22, 20, 18, 16)
-		if len(args) == 2:
+		if len(args) == 3:
 			# signature: ManualKeyDesc(keysection, keyname)
 			# initialize by reading config file
 			self.dosectioninit(*args)
@@ -59,12 +63,12 @@ class ManualKeyDesc(TouchPoint):
 		utilities.register_example("ManualKeyDesc", self)
 
 	def docodeinit(self, keyname, label, bcolor, charcoloron, charcoloroff, center=(0, 0), size=(0, 0), KOn='', KOff='',
-				   proc=None, param=None, KCon='', KCoff='', KLon=['', ], KLoff=['', ]):
+				   proc=None, KCon='', KCoff='', KLon=['', ], KLoff=['', ], Blink=0):
 		# NOTE: do not put defaults for KOn/KOff in signature - imports and arg parsing subtleties will cause error
 		# because of when config is imported and what walues are at that time versus at call time
+		# todo add screen as 1st param for blinking things
 		TouchPoint.__init__(self, keyname, center, size)
 		self.Proc = proc
-		self.Param = param
 		self.KeyColor = bcolor
 		self.KeyColorOn = KCon
 		self.KeyColorOff = KCoff
@@ -79,14 +83,14 @@ class ManualKeyDesc(TouchPoint):
 		self.KeyOnOutlineColor = config.KeyOnOutlineColor if KOn == '' else KOn
 		self.KeyOffOutlineColor = config.KeyOffOutlineColor if KOff == '' else KOff
 
-	def dosectioninit(self, keysection, keyname):
+	def dosectioninit(self, screen, keysection, keyname):
 		TouchPoint.__init__(self, keyname, (0, 0), (0, 0))
 		utilities.LocalizeParams(self, keysection, '--', 'KeyColor', 'KeyOffOutlineColor', 'KeyOnOutlineColor',
 								 'KeyCharColorOn', 'KeyCharColorOff', 'KeyOutlineOffset', 'KeyColorOn', 'KeyColorOff',
 								 'KeyLabelOn', 'KeyLabelOff', label=[keyname])
+		self.Screen = screen
 		self.State = True
 		self.ISYObj = None  # this will get filled in by creator later - could be ISY node, ISY program
-		self.Param = None
 
 	def PaintKey(self, ForceDisplay=False, DisplayState=True):
 		x = self.Center[0] - self.Size[0]/2
@@ -102,6 +106,22 @@ class ManualKeyDesc(TouchPoint):
 		else:
 			config.screen.blit(self.KeyOffImage, (x, y))
 		pygame.display.update()
+
+	def BlinkKey(self, cycle):
+		if cycle > 0:
+			if cycle%2 == 0:
+				self.PaintKey(ForceDisplay=True, DisplayState=True)  # force on
+			else:
+				self.PaintKey(ForceDisplay=True, DisplayState=False)  # force off
+			E = eventlist.ProcEventItem(id(self.Screen), 'keyblink',
+										functools.partial(self.BlinkKey, cycle - 1))
+			config.DS.Tasks.AddTask(E, .5)
+		else:
+			self.PaintKey()  # make sure to leave it in real state
+
+	def FeedbackKey(self):  # todo
+		self.PaintKey()
+
 
 
 	def FindFontSize(self,lab,firstfont,shrink):

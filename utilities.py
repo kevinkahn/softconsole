@@ -203,7 +203,7 @@ def LocalizeParams(inst, configsection, indent, *args, **kwargs):
 			lclval.append(kwargs[nametoadd])
 			moddoc[inst.__class__.__name__]['loc'][lcllist[-1]] = type(lclval[-1])
 		else:
-			print 'why dup', nametoadd
+			print 'why dup', nametoadd  # todo make this a log warning
 	for nametoadd in args:
 		if nametoadd in config.__dict__:
 			lcllist.append(nametoadd)

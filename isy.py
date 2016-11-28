@@ -11,30 +11,49 @@ from logsupport import ConsoleInfo, ConsoleWarning, ConsoleError
 import sys
 
 
-def try_status(addr):
-	# returns (code, respstatus, devicestatus)
-	try:
-		t = 'http://' + config.ISYaddr + '/rest/status/' + addr
-		debug.debugPrint('ISY', t)
-		r = config.ISYrequestsession.get(t, verify=False)
-	except requests.exceptions.ConnectTimeout:
-		config.Logs.Log("ISY Comm Timeout (RT status): " + addr, severity=ConsoleError)
-		config.Logs.Log(sys.exc_info()[1], severity=ConsoleError)
-		return (1, 0, False)
-	except requests.exceptions.ConnectionError:
-		config.Logs.Log("ISY Comm ConnErr (RT status): " + addr, severity=ConsoleError)
-		config.Logs.Log(sys.exc_info()[1], severity=ConsoleError)
-		return (2, 0, False)
-	except:
-		config.Logs.Log("ISY Comm UnknownErr (RT status): " + addr, severity=ConsoleError)
-		config.Logs.Log(sys.exc_info()[1], severity=ConsoleError)
-		return (3, 0, False)
-	if r.status_code <> 200:
-		config.Logs.Log('ISY Bad status (RT status)' + str(r.status_code) + ' on ' + addr, severity=ConsoleError)
-		config.Logs.Log(r.text)
-		return (4, r.status_code, False)
-	else:
-		props = xmltodict.parse(r.text)['properties']['property']
+class CommsError(Exception): pass
+
+
+def try_ISY_comm(urlcmd):
+	for i in range(3):
+		try:
+			try:
+				t = 'http://' + config.ISYaddr + urlcmd
+				debug.debugPrint('ISY', t)
+				r = config.ISYrequestsession.get(t, verify=False)
+			except requests.exceptions.ConnectTimeout:
+				config.Logs.Log("ISY Comm Timeout: " + ' Cmd: ' + urlcmd, severity=ConsoleError)
+				config.Logs.Log(sys.exc_info()[1], severity=ConsoleError)
+				raise CommsError
+			except requests.exceptions.ConnectionError:
+				config.Logs.Log("ISY Comm ConnErr: " + ' Cmd: ' + urlcmd, severity=ConsoleError)
+				config.Logs.Log(sys.exc_info()[1], severity=ConsoleError)
+				raise CommsError
+			except:
+				config.Logs.Log("ISY Comm UnknownErr: " + ' Cmd: ' + urlcmd, severity=ConsoleError)
+				config.Logs.Log(sys.exc_info()[1], severity=ConsoleError)
+				raise CommsError
+			if r.status_code <> 200:
+				config.Logs.Log('ISY Bad status:' + str(r.status_code) + ' on Cmd: ' + urlcmd, severity=ConsoleError)
+				config.Logs.Log(r.text)
+				raise CommsError
+			else:
+				return r.text
+		except CommsError:
+			time.sleep(.5)
+			config.Logs.Log("Attempting ISY retry " + str(i + 1), severity=ConsoleError)
+
+	config.Logs.Log("ISY Communications Failure", severity=ConsoleError)
+	exitutils.errorexit('reboot')
+
+
+def get_real_time_status(addrlist):
+	# multiple calls here is substantially faster than one call for all status then selecting devices
+	# this proc assumes a device that returns a simple ST value for status
+	statusdict = {}
+	for addr in addrlist:
+		text = try_ISY_comm('/rest/status/' + addr)
+		props = xmltodict.parse(text)['properties']['property']
 		if isinstance(props, dict):
 			props = [props]
 		devstate = 0
@@ -42,30 +61,7 @@ def try_status(addr):
 			if item['@id'] == "ST":
 				devstate = item['@value']
 				break
-		return (0, 200, devstate)
-
-
-class GotIt(Exception): pass
-
-def get_real_time_status(addrlist):
-	# multiple calls here is substantially faster than one call for all status then selecting devices
-	# this proc assumes a device that returns a simple ST value for status
-	statusdict = {}
-	for addr in addrlist:
-		try:
-			for i in range(3):
-				error, status_code, devstate = try_status(addr)
-				if error == 0:  # good result
-					statusdict[addr] = int(devstate if devstate.isdigit() else 0)
-					raise GotIt()
-				else:
-					debug.debugPrint('ISY', 'Get status failed: ', str(error), str(status_code), str(devstate))
-					time.sleep(.5)
-					config.Logs.Log("Attempting ISY retry " + str(i + 1), severity=ConsoleError)
-			config.Logs.Log("ISY Communications Failure", severity=ConsoleError)
-			exitutils.errorexit('reboot')
-		except GotIt:
-			pass
+		statusdict[addr] = int(devstate if devstate.isdigit() else 0)
 	debug.debugPrint('ISY', statusdict)
 	return statusdict
 
@@ -92,50 +88,11 @@ class OnOffItem(object):
 	Provides command handling for nodes that can be sent on/off faston/fastoff commands.
 	"""
 
-	def TryCommand(self, state, fast):
-		selcmd = (('DOF', 'DFOF'), ('DON', 'DFON'))
-		debug.debugPrint('ISY', "OnOff sent: ", selcmd[state][fast], ' to ', self.name)
-		url = 'http://' + config.ISYaddr + '/rest/nodes/' + self.address + '/cmd/' + selcmd[state][fast]
-		try:
-			r = config.ISYrequestsession.get(url, verify=False)
-		except requests.exceptions.ConnectTimeout:
-			config.Logs.Log("ISY Comm Timeout (Send Cmd): " + self.address + 'Cmd: ' + selcmd[state][fast],
-							severity=ConsoleError)
-			config.Logs.Log(sys.exc_info()[1], severity=ConsoleError)
-			return (1, 0)
-		except requests.exceptions.ConnectionError:
-			config.Logs.Log("ISY Comm ConnErr (Send Cmd): " + self.address + 'Cmd: ' + selcmd[state][fast],
-							severity=ConsoleError)
-			config.Logs.Log(sys.exc_info()[1], severity=ConsoleError)
-			return (2, 0)
-		except:
-			config.Logs.Log("ISY Comm UnknownErr (Send Cmd): " + self.address + 'Cmd: ' + selcmd[state][fast],
-							severity=ConsoleError)
-			config.Logs.Log(sys.exc_info()[1], severity=ConsoleError)
-			return (3, 0)
-		if r.status_code <> 200:
-			config.Logs.Log(
-				'ISY Bad status (Send Cmd)' + str(r.status_code) + ' on ' + self.address + 'Cmd: ' + selcmd[state][
-					fast], severity=ConsoleError)
-			config.Logs.Log(r.text)
-			return (4, r.status_code)
-		else:
-			return (0, 200)
-
 	def SendCommand(self, state, presstype):
-		try:
-			for i in range(3):
-				error, status_code = self.TryCommand(state, presstype)
-				if error == 0:  # good result
-					raise GotIt()
-				else:
-					debug.debugPrint('ISY', 'Send command failed', str(error), str(status_code))
-					time.sleep(.5)
-					config.Logs.Log("Attempting ISY retry (Send Cmd) " + str(i + 1), severity=ConsoleError)
-			config.Logs.Log("ISY Communications Failure (Send Cmd)", severity=ConsoleError)
-			exitutils.errorexit('reboot')
-		except GotIt:
-			pass
+		selcmd = (('DOF', 'DFOF'), ('DON', 'DFON'))
+		debug.debugPrint('ISY', "OnOff sent: ", selcmd[state][presstype], ' to ', self.name)
+		text = try_ISY_comm('/rest/nodes/' + self.address + '/cmd/' + selcmd[state][presstype])
+
 
 
 class Folder(TreeItem):
@@ -454,6 +411,14 @@ class ISY(object):
 		utilities.register_example("ISY", self)
 		if debug.Flags['ISY']:
 			self.PrintTree(self.ProgRoot, "    ")
+
+	def GetVar(self, vartype, varid):
+		text = try_ISY_comm('/rest/vars/get/' + str(vartype) + '/' + str(varid))
+		return xmltodict.parse(text)['var']['val']
+
+	def SetVar(self, vartype, varid, value):
+		try_ISY_comm('/rest/vars/set/' + str(vartype) + '/' + str(varid) + '/' + str(value))
+
 
 	def PrintTree(self, startpoint, indent):
 		if isinstance(startpoint, Scene):

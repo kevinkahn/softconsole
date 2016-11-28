@@ -5,12 +5,12 @@ from configobj import Section
 
 import config
 import isy
-import keydesc
 import screen
 import utilities
 import logsupport
 from debug import debugPrint
 from eventlist import EventItem, ProcEventItem
+import keyspecs
 
 wc = webcolors.name_to_rgb
 
@@ -25,15 +25,7 @@ class KeyScreenDesc(screen.BaseKeyScreenDesc):
 		# Build the Key objects
 		for keyname in screensection:
 			if isinstance(screensection[keyname], Section):
-				config.Logs.Log("-Key:" + keyname)
-				NewKey = keydesc.KeyDesc(screensection[keyname], keyname)
-				if NewKey.type == 'ONOFF':
-					NewKey.Proc = functools.partial(self.OnOff, NewKey)
-				elif NewKey.type == 'ONBLINKRUNTHEN':
-					NewKey.Proc = functools.partial(self.OnBlinkRunThen, NewKey)
-				else:  # unknown type
-					config.Logs.Log('Undefined key type for: ' + keyname, severity=logsupport.ConsoleWarning)
-				self.Keys[keyname] = NewKey
+				self.Keys[keyname] = keyspecs.CreateKey(self, screensection[keyname], keyname)
 
 		self.LayoutKeys()
 		utilities.register_example("KeyScreenDesc", self)
@@ -53,30 +45,14 @@ class KeyScreenDesc(screen.BaseKeyScreenDesc):
 		else:
 			K.PaintKey()  # make sure to leave it in real state
 
-	def OnOff(self, K, presstype):
-		K.State = not K.State
-		if K.ISYObj is not None:
-			K.ISYObj.SendCommand(K.State, presstype)
-		else:
-			config.Logs.Log("Screen: " + self.name + " press unbound key: " + K.name,
-							severity=logsupport.ConsoleWarning)
-		K.PaintKey()
-
-	def OnBlinkRunThen(self, K, presstype):
-		# force double tap for programs for safety - too easy to accidentally single tap with touchscreen
-		print "Blinker"
-		if presstype == config.FASTPRESS:
-			K.ISYObj.runThen()
-			E = ProcEventItem(id(self), 'keyblink', functools.partial(self.BlinkKey, K, 7))  # todo why dynamic
-			config.DS.Tasks.AddTask(E, .5)
 
 	def EnterScreen(self):
 		self.subscriptionlist = {}
 		debugPrint('Screen', "Enter to screen: ", self.name)
 
 		for K in self.Keys.itervalues():
-			if K.MonitorObj is not None:
-				# skip program buttons
+			if isinstance(K, keyspecs.OnOffKey):
+				# skip program buttons # todo how to make sure we don't forget this for new key types?
 				self.subscriptionlist[K.MonitorObj.address] = K
 
 		debugPrint('Main', "Active Subscription List will be:")
@@ -90,7 +66,7 @@ class KeyScreenDesc(screen.BaseKeyScreenDesc):
 
 		states = isy.get_real_time_status(self.subscriptionlist.keys())
 		for K in self.Keys.itervalues():
-			if K.MonitorObj is not None:
+			if isinstance(K, keyspecs.OnOffKey):
 				K.State = not (states[K.MonitorObj.address] == 0)  # K is off (false) only if state is 0
 		super(KeyScreenDesc, self).InitDisplay(nav)
 

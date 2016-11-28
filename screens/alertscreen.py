@@ -8,6 +8,7 @@ from debug import debugPrint
 import screen
 import utilities
 from eventlist import ProcEventItem, AlertEventItem
+import keyspecs
 
 
 class AlertsScreenDesc(screen.ScreenDesc):
@@ -38,14 +39,24 @@ class AlertsScreenDesc(screen.ScreenDesc):
 															 config.topborder + messageareaheight + 0.5*alertbutheight),
 													 size=(config.screenwidth - 2*config.horizborder, alertbutheight),
 													 proc=self.DeferAction)
-
-		self.Keys['clearcond'] = toucharea.ManualKeyDesc('clearcond', self.ActKeyLabel, self.KeyColor,
+		if 'Action' in screensection:
+			action = screensection['Action']
+			self.Keys['action'] = keyspecs.CreateKey(self, action,
+													 'Action')  # todo need to set size and position for such keys
+			self.Keys['action'].Center = (
+			config.screenwidth/2, config.topborder + messageareaheight + 1.5*alertbutheight)
+			self.Keys['action'].Size = (config.screenwidth - 2*config.horizborder, alertbutheight)
+		else:
+			# todo create a blank key
+			self.Keys['action'] = toucharea.ManualKeyDesc('clearcond', self.ActKeyLabel, self.KeyColor,
 														 self.KeyCharColorOn, self.KeyCharColorOff,
 														 center=(config.screenwidth/2,
 																 config.topborder + messageareaheight + 1.5*alertbutheight),
 														 size=(
 														 config.screenwidth - 2*config.horizborder, alertbutheight),
 														 proc=self.ClearCondition)
+		for k in self.Keys.itervalues():  # todo relook at Finish Key - can it be done as part of creation?
+			k.FinishKey((0, 0), (0, 0))
 
 		for i in range(len(self.CharSize), len(self.Message)):
 			self.CharSize.append(self.CharSize[-1])
@@ -64,7 +75,7 @@ class AlertsScreenDesc(screen.ScreenDesc):
 		self.messageimage.fill(wc(self.MessageBack))
 		self.messageblank.fill(wc(self.BackgroundColor))
 
-		self.BlinkEvent = ProcEventItem(id(self), 'keyblink', self.BlinkMsg)
+		self.BlinkEvent = ProcEventItem(id(self), 'msgblink', self.BlinkMsg)
 
 		vert_off = s/2
 		for i in range(len(l)):

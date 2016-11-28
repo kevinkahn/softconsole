@@ -57,7 +57,7 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 		h = h + l[-1].get_height()
 		if self.WInfo.FetchWeather() == -1:
 			l.append(config.fonts.Font(self.CharSize[sizeindex], self.Font).render(
-				'Weather Not Available'))
+				'Weather Not Available', 0, wc(self.CharColor)))
 			h = h + l[-1].get_height()
 		else:
 			for i in range(len(self.ConditionFormat)):

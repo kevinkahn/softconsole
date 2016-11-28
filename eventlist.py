@@ -74,6 +74,7 @@ class EventList(object):
 
 		self.finder[id(evnt)] = evnt
 		evnt.abstime = time.time() + dt
+		evnt.deleted = False
 		heappush(self.List, (evnt.abstime, evnt))
 		T = self.TimeToNext()
 		debugPrint('EventList', self.RelNow(), ' Add: ', dt, evnt, T)

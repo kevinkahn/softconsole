@@ -139,11 +139,9 @@ class DisplayScreen(object):
 				elif item[0] == "VarChg":
 					self.WatchVarVals[(item[1], item[2])] = item[3]
 					if item[1] == 1:
-						debugPrint('DaemonCtl', 'Int variable value change: ', config.ISY.varsIntInv[item[2]], ' <- ',
-								   item[3])
+						debugPrint('DaemonCtl', 'Int var change: ', config.ISY.varsIntInv[item[2]], ' <- ', item[3])
 					elif item[1] == 2:
-						debugPrint('DaemonCtl', 'State variable value change: ', config.ISY.varsStateInv[item[2]],
-								   ' <- ', item[3])
+						debugPrint('DaemonCtl', 'State var change: ', config.ISY.varsStateInv[item[2]], ' <- ', item[3])
 					else:
 						config.Logs.Log('Bad var message from daemon' + str(item[1]), severity=ConsoleError)
 
@@ -166,7 +164,12 @@ class DisplayScreen(object):
 					self.WatchVars[(a.trigger.vartype, a.trigger.varid)].append(a)
 				else:
 					self.WatchVars[(a.trigger.vartype, a.trigger.varid)] = [a]
-				self.WatchVarVals[(a.trigger.vartype, a.trigger.varid)] = None
+				self.WatchVarVals[(a.trigger.vartype, a.trigger.varid)] = config.ISY.GetVar(a.trigger.vartype,
+																							a.trigger.varid)
+				if a.trigger.IsTrue():
+					notice = pygame.event.Event(self.ISYVar, vartype=a.trigger.vartype, varid=a.trigger.varid,
+												value=self.WatchVarVals[(a.trigger.vartype, a.trigger.varid)], alert=a)
+					pygame.fastevent.post(notice)
 			elif a.type == 'Periodic':
 				E = AlertEventItem(id(a), a.name, a)
 				self.Tasks.AddTask(E, a.trigger.interval)
