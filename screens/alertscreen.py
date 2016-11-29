@@ -33,7 +33,7 @@ class AlertsScreenDesc(screen.ScreenDesc):
 		self.NodeWatch = []
 		self.Keys = {}
 
-		self.Keys['defer'] = toucharea.ManualKeyDesc('defer', ['Defer'], self.KeyColor, self.KeyCharColorOn,
+		self.Keys['defer'] = toucharea.ManualKeyDesc(self, 'defer', ['Defer'], self.KeyColor, self.KeyCharColorOn,
 													 self.KeyCharColorOff,
 													 center=(config.screenwidth/2,
 															 config.topborder + messageareaheight + 0.5*alertbutheight),
@@ -49,13 +49,13 @@ class AlertsScreenDesc(screen.ScreenDesc):
 			self.Keys['action'].State = True  # for appearance only
 		else:
 			# todo create a blank key
-			self.Keys['action'] = toucharea.ManualKeyDesc('clearcond', self.ActKeyLabel, self.KeyColor,
-														 self.KeyCharColorOn, self.KeyCharColorOff,
-														 center=(config.screenwidth/2,
+			self.Keys['action'] = toucharea.ManualKeyDesc(self, 'clearcond', self.ActKeyLabel, self.KeyColor,
+														  self.KeyCharColorOn, self.KeyCharColorOff,
+														  center=(config.screenwidth/2,
 																 config.topborder + messageareaheight + 1.5*alertbutheight),
-														 size=(
+														  size=(
 														 config.screenwidth - 2*config.horizborder, alertbutheight),
-														 proc=self.ClearCondition)
+														  proc=self.ClearCondition)
 		for k in self.Keys.itervalues():  # todo relook at Finish Key - can it be done as part of creation?
 			k.FinishKey((0, 0), (0, 0))
 

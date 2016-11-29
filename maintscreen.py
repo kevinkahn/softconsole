@@ -154,7 +154,7 @@ class MaintScreenDesc(screen.BaseKeyScreenDesc):
 		screen.BaseKeyScreenDesc.__init__(self, fixedoverrides, name)
 		utilities.LocalizeParams(self, None, '-', TitleFontSize=40, SubFontSize=25)
 		for k, kt in keys.iteritems():
-			NK = toucharea.ManualKeyDesc(k, [kt[0]], 'gold', 'black', 'red', KOn='black', KOff='red')
+			NK = toucharea.ManualKeyDesc(self, k, [kt[0]], 'gold', 'black', 'red', KOn='black', KOff='red')
 			if kt[1] is not None:
 				NK.Proc = functools.partial(kt[1], NK)
 			self.Keys[k] = NK

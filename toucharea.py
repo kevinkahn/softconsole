@@ -41,11 +41,11 @@ class ManualKeyDesc(TouchPoint):
 		# alternate creation signatures
 		self.ButtonFontSizes = (31, 28, 25, 22, 20, 18, 16)
 		if len(args) == 3:
-			# signature: ManualKeyDesc(keysection, keyname)
+			# signature: ManualKeyDesc(screen, keysection, keyname)
 			# initialize by reading config file
 			self.dosectioninit(*args)
 		else:
-			# signature: ManualKeyDesc(keyname, label, bcolor, charcoloron, charcoloroff, center=, size=, KOn=, KOff=, proc=)
+			# signature: ManualKeyDesc(screen, keyname, label, bcolor, charcoloron, charcoloroff, center=, size=, KOn=, KOff=, proc=)
 			# initializing from program code case
 			self.docodeinit(*args, **kwargs)
 
