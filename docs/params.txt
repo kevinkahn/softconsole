@@ -32,6 +32,28 @@ Global Parameters:
     PersistTO                       :  int       20
     SecondaryChain                  :  list      []
 Module Parameters:
+    AlertsScreenDesc
+        Local Parameters:
+            ActKeyLabel             :  list    
+            BlinkTime               :  int     
+            CharSize                :  list    
+            DeferTime               :  str     
+            Font                    :  str     
+            Message                 :  list    
+            MessageBack             :  str     
+            label                   :  list    
+        Overrideable Globals:
+            BackgroundColor
+            BrightLevel
+            CharColor
+            CmdCharCol
+            CmdKeyCol
+            DimLevel
+            DimTO
+            KeyCharColorOff
+            KeyCharColorOn
+            KeyColor
+            PersistTO
     ClockScreenDesc
         Local Parameters:
             CharSize                :  list    
@@ -61,23 +83,6 @@ Module Parameters:
             DimLevel
             DimTO
             PersistTO
-    KeyDesc
-        Local Parameters:
-            KeyRunThenName          :  str     
-            SceneProxy              :  str     
-            label                   :  list    
-            type                    :  str     
-        Overrideable Globals:
-            KeyCharColorOff
-            KeyCharColorOn
-            KeyColor
-            KeyColorOff
-            KeyColorOn
-            KeyLabelOff
-            KeyLabelOn
-            KeyOffOutlineColor
-            KeyOnOutlineColor
-            KeyOutlineOffset
     KeyScreenDesc
         Local Parameters:
             label                   :  list    
@@ -116,6 +121,38 @@ Module Parameters:
             DimLevel
             DimTO
             PersistTO
+    OnOffKey
+        Local Parameters:
+            SceneProxy              :  str     
+            label                   :  list    
+        Overrideable Globals:
+            KeyCharColorOff
+            KeyCharColorOn
+            KeyColor
+            KeyColorOff
+            KeyColorOn
+            KeyLabelOff
+            KeyLabelOn
+            KeyOffOutlineColor
+            KeyOnOutlineColor
+            KeyOutlineOffset
+    RunThenKey
+        Local Parameters:
+            Blink                   :  int     
+            FastPress               :  int     
+            KeyRunThenName          :  str     
+            label                   :  list    
+        Overrideable Globals:
+            KeyCharColorOff
+            KeyCharColorOn
+            KeyColor
+            KeyColorOff
+            KeyColorOn
+            KeyLabelOff
+            KeyLabelOn
+            KeyOffOutlineColor
+            KeyOnOutlineColor
+            KeyOutlineOffset
     ThermostatScreenDesc
         Local Parameters:
             label                   :  list    
@@ -130,6 +167,29 @@ Module Parameters:
             KeyColor
             KeyOffOutlineColor
             KeyOnOutlineColor
+            PersistTO
+    TimeTempScreenDesc
+        Local Parameters:
+            CharSize                :  list    
+            ConditionFields         :  list    
+            ConditionFormat         :  list    
+            Font                    :  str     
+            ForecastDays            :  int     
+            ForecastFields          :  list    
+            ForecastFormat          :  list    
+            SkipDays                :  int     
+            TimeFormat              :  list    
+            WunderKey               :  str     
+            label                   :  list    
+            location                :  str     
+        Overrideable Globals:
+            BackgroundColor
+            BrightLevel
+            CharColor
+            CmdCharCol
+            CmdKeyCol
+            DimLevel
+            DimTO
             PersistTO
     WeatherScreenDesc
         Local Parameters:

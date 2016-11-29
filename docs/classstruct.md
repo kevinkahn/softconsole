@@ -1,7 +1,7 @@
 # Class/Attribute Structure):
 
 
-#object: [ISY, TouchPoint, OnOffItem, ScreenDesc]
+#object: [ISY, OnOffItem, TouchPoint, ScreenDesc]
 The most base type
 
 ##ISY: []
@@ -12,6 +12,7 @@ The most base type
 	
 *  FoldersByAddr
 *  FoldersByName
+*  GetVar
 *  LinkChildrenParents
 *  NodeRoot
 *  NodesByAddr
@@ -24,55 +25,11 @@ The most base type
 *  ProgramsByName
 *  ScenesByAddr
 *  ScenesByName
+*  SetVar
 *  varsInt
+*  varsIntInv
 *  varsState
-
-##TouchPoint: [ManualKeyDesc]
-
-	Represents a touchable rectangle on the screen.
-	
-*  AddTitle
-*  ButtonFontSizes
-*  Center
-*  FindFontSize
-*  FinishKey
-*  PaintKey
-*  Proc
-*  Size
-*  docodeinit
-*  dosectioninit
-*  touched
-
-##ManualKeyDesc: [KeyDesc]
-
-	Defines a drawn touchable rectangle on the screen that represents a key (button).  May be called with one of 2
-	signatures.  It can be called manually by code to create a key by supplying all the attributes of the key in the
-	code explicitly.  It can also be called with a config objects section in which case it will build the key from the
-	combination of the defaults for the attributes and the explicit overides found in the config.txt file section
-	that is passed in.
-	
-*  ISYObj
-*  KeyCharColorOff
-*  KeyCharColorOn
-*  KeyColor
-*  KeyColorOff
-*  KeyColorOn
-*  KeyLabelOff
-*  KeyLabelOn
-*  KeyOffOutlineColor
-*  KeyOnOutlineColor
-*  KeyOutlineOffset
-*  Param
-*  State
-
-##KeyDesc: []
-
-***missing***
-
-*  KeyRunThenName
-*  MonitorObj
-*  SceneProxy
-*  type
+*  varsStateInv
 
 ##OnOffItem: [TreeItem]
 
@@ -95,7 +52,6 @@ The most base type
 	Represents and ISY node/scene folder.
 	
 *  SendCommand
-*  TryCommand
 *  flag
 *  parenttype
 
@@ -126,7 +82,64 @@ The most base type
 	Represents an ISY program and provides command support to issue run commands to it.
 	
 
-##ScreenDesc: [HouseStatusScreenDesc, WeatherScreenDesc, BaseKeyScreenDesc, ClockScreenDesc]
+##TouchPoint: [ManualKeyDesc]
+
+	Represents a touchable rectangle on the screen.
+	
+*  AddTitle
+*  BlinkKey
+*  ButtonFontSizes
+*  Center
+*  FeedbackKey
+*  FindFontSize
+*  FinishKey
+*  PaintKey
+*  Proc
+*  Size
+*  docodeinit
+*  dosectioninit
+*  touched
+
+##ManualKeyDesc: [RunThenKey, OnOffKey]
+
+	Defines a drawn touchable rectangle on the screen that represents a key (button).  May be called with one of 2
+	signatures.  It can be called manually by code to create a key by supplying all the attributes of the key in the
+	code explicitly.  It can also be called with a config objects section in which case it will build the key from the
+	combination of the defaults for the attributes and the explicit overides found in the config.txt file section
+	that is passed in.
+	
+*  ISYObj
+*  KeyCharColorOff
+*  KeyCharColorOn
+*  KeyColor
+*  KeyColorOff
+*  KeyColorOn
+*  KeyLabelOff
+*  KeyLabelOn
+*  KeyOffOutlineColor
+*  KeyOnOutlineColor
+*  KeyOutlineOffset
+*  State
+
+##RunThenKey: []
+
+***missing***
+
+*  Blink
+*  FastPress
+*  KeyRunThenName
+*  OnBlinkRunThen
+
+##OnOffKey: []
+
+***missing***
+
+*  MonitorObj
+*  OnOff
+*  SceneProxy
+*  Screen
+
+##ScreenDesc: [HouseStatusScreenDesc, AlertsScreenDesc, TimeTempScreenDesc, WeatherScreenDesc, BaseKeyScreenDesc, ClockScreenDesc]
 
 	Basic information about a screen, subclassed by all other screens to handle this information
 	
@@ -162,6 +175,16 @@ The most base type
 *  NormalOn
 *  SetUp
 
+##AlertsScreenDesc: []
+
+***missing***
+
+
+##TimeTempScreenDesc: []
+
+***missing***
+
+
 ##WeatherScreenDesc: []
 
 ***missing***
@@ -172,6 +195,7 @@ The most base type
 *  WunderKey
 *  conditions
 *  currentconditions
+*  errormsg
 *  forecast
 *  location
 *  scrlabel
@@ -191,9 +215,7 @@ The most base type
 *  AdjButTops
 *  BumpMode
 *  BumpTemp
-*  FanKey
 *  ModeButPos
-*  ModeKey
 *  ModesPos
 *  SPPos
 *  StatePos
@@ -220,9 +242,6 @@ The most base type
 
 ***missing***
 
-*  BlinkKey
-*  OnBlinkRunThen
-*  OnOff
 *  subscriptionlist
 
 ##ClockScreenDesc: []
