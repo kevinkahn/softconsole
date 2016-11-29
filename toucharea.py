@@ -62,12 +62,14 @@ class ManualKeyDesc(TouchPoint):
 			self.FinishKey((0, 0), (0, 0))
 		utilities.register_example("ManualKeyDesc", self)
 
-	def docodeinit(self, keyname, label, bcolor, charcoloron, charcoloroff, center=(0, 0), size=(0, 0), KOn='', KOff='',
+	def docodeinit(self, screen, keyname, label, bcolor, charcoloron, charcoloroff, center=(0, 0), size=(0, 0), KOn='',
+				   KOff='',
 				   proc=None, KCon='', KCoff='', KLon=['', ], KLoff=['', ], Blink=0):
 		# NOTE: do not put defaults for KOn/KOff in signature - imports and arg parsing subtleties will cause error
 		# because of when config is imported and what walues are at that time versus at call time
 
 		TouchPoint.__init__(self, keyname, center, size)
+		self.Screen = screen
 		self.Proc = proc
 		self.KeyColor = bcolor
 		self.KeyColorOn = KCon
