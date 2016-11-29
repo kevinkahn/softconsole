@@ -66,7 +66,7 @@ class ManualKeyDesc(TouchPoint):
 				   proc=None, KCon='', KCoff='', KLon=['', ], KLoff=['', ], Blink=0):
 		# NOTE: do not put defaults for KOn/KOff in signature - imports and arg parsing subtleties will cause error
 		# because of when config is imported and what walues are at that time versus at call time
-		# todo add screen as 1st param for blinking things
+
 		TouchPoint.__init__(self, keyname, center, size)
 		self.Proc = proc
 		self.KeyColor = bcolor
