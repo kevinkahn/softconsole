@@ -7,6 +7,7 @@
 * Current release notes:
     * This has been tested at this point with the 3.5 resistive PiTFT on a Pi2 and Pi3 and with a 2.8 capacitive PiTFT on a Pi Zero.  It should work with other combinations since this is a pretty broad sample but YMMV.
     * The latest release moved to using the Pi hardware PWM to control screen brightness which gets rid of periodic brightness glitches.  This requires installing wiringpi and python-dev modules.  Consoleprep now does this but if you have an existing installation you can manually issue the commands (see the consoleprep script for them).  If for some reason you don't wish to use hw PWM the hwa.py has the soft PWM version and can be renamed to hw.py to use it rather than the hw.py that is there by default.
+    * Version 2 code made a major overhaul the the fundamental program sequencing structure to allow for alert procedures and alert screens.  Alert procedures are procedures that can be called based on time, the value of an ISY var, or the state of an ISY device.  Alert screens are screens that can be defined to take over control of the display based on the value of an ISY var or an ISY node value, possibly delayed in time by some period.  Alert screens can be deferred by a keytouch or can execute some action that will resolve the alert.  If the alert condition is otherwise cleared within the ISY, the screen will also go away.
 
 # Manually Installing Softconsole
 * Insure all necessary libraries for python needed by the console are installed
@@ -25,6 +26,7 @@
 * Keypad: mimics the KPL.  Can support any number of buttons from 1 to 25 and will autoplace/autosize buttons in this range.  Buttons may be colored as desired.  Key types are:
     * ONOFF: linked to a device or scene and supports On, Off, FastOn, FastOff behaviors
     * ONBLINKRUNTHEN: linked to a program.  Will blink to provide user feedback and will issue RunThen on program
+    * SETVAR: set the value of an ISY variable
     * Note: for scenes ONOFF will choose a device to use as a proxy for the state of the scene for purposes of the appearance of the button.  Generally this will turn out to be some other switch or KPL button that is a controller for the scene.  This can be overridden by supplying a specific device address or name to use as the proxy.
 * Clock: displays a clock formatted according to the OutFormat parameter using any of the underlying OS time formatting codes.  The character size for each line can be set individually.  If there are more lines in the format than character sizes the last size is repeated. Python standard formatting is at https://docs.python.org/2/library/time.html.  Linux (RPi) supports a somewhat richer set of codes e.g. http://linux.die.net/man/3/strftime
 * Weather: uses Weather Underground to display current conditions and forecast.  The location parameter is a WU location code - see their site for codes.  To use this screen you must have a WU key which can be gotten for free for low volume use.  
@@ -49,13 +51,18 @@
 * On the maintenance/log screen single tap to see the next page
 
 # Developers Notes
-## Defining New Screens by Coding a Module
-New screens can be developed/deployed by subclassing screen.ScreenDesc and placing the code in the screens directory.  A new screen needs to define and __init__ method that takes a section object from the config file and a screen name and uses those to build a new object.  That object must define a HandleScreen method that takes one optional parameter that indicated whether the console driver thinks the screen needs to be painted afresh.  HandleScreen must ultimately call NewWaitPress passing itself.  It may optionally also pass a callback procedure and a callback interval  and a callback count in which case this will be called periodically as specified.  (An example use is that the current clock screen uses this to update the seconds every second even when no touches are happening.)  NewWaitPress will return when a single or double tap has occurred or s command key had been pressed.  Return values are a tuple (reason, info).  Reason may be:
+## Defining New Screens by Coding a Module (updated for version 2)
+New screens can be developed/deployed by subclassing screen.ScreenDesc and placing the code in the screens directory.  Screens modules have a single line of code at the module level of the form "config.screentypes[*name*] = *classname*" where *name* is the string to be used in config files to as the type value to create instances and *classname* is the name of the class defined in the module.  A screen class defines the following methods (ScreenDesc provide base level implementations that should be called if overridden):
 
-* WAITEXIT in which case the screen object should itself return with the info as its return value
-* WAITNORMALBUTTON, WAITNORMALBUTTONFAST: if keys have been defined on the screen info contains the key number that was pressed.
-* WAITEXTRACONTROLBUTTON: if the screen specified extra control button(s) info is the index of the one pressed
-* WAITISYCHANGE: a notification of a change of state for a device being monitored in the ISY event stream occurred. Info is s tuple  (address, state) of the device.
+* __init__: Create a screen object based on an entry in the config file with a type equal to the type string registered in the definition of the screen.
+* EnterScreen: code to be performed just before the screen is gets displayed.  Most typically sets any ISY nodes to be watched while the screen is up.
+* InitDisplay(nav): code to display the screen.  nav are the navigation keys or None and should be passed through the the underlying InitDisplay of ScreenDesc
+* ReInitDisplay: code to redisplay the screen if it has been removed temporarily and assumes nav keys are already set.  Generally not overridden.
+* ISYEvent(node,value): A watched ISY *node* has changed to the new *value*
+* ExitScreen: code that is called as the screen is being taken off the display
+
+## Defining New Alert Procs
+Alert procs are defined as methods in classes stored in the alerts directory.  They have a single module level line of code of the form "config.alertprocs["*classname*"] = *classname*" where *classname* is the name of the class defined in the module.  The class will be instantiated once at console start time.  It may define one or more methods that will be called based on the definition of Alerts in the config file that the console reads.
 
 ## Attribute Use and Classes
 The file classstruct.txt in docs provides an automatically generated list of Classes, their subclasses, and the attributes defined at each level of the class structure.  This may be a useful aid if a new screen is being written or new types of keys need to be created.

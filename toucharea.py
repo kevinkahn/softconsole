@@ -156,7 +156,7 @@ class ManualKeyDesc(TouchPoint):
 		# create image of ON key
 		self.KeyOnImage = pygame.Surface(self.Size)
 		pygame.draw.rect(self.KeyOnImage, wc(self.KeyColorOn), ((0, 0), self.Size), 0)
-		bord = 3  # todo pixel - probably should use same scaling in both dimensions since this is a line width
+		bord = self.KeyOutlineOffset
 		pygame.draw.rect(self.KeyOnImage, wc(self.KeyOnOutlineColor), ((scaleW(bord),scaleH(bord)), buttonsmaller), bord)
 
 		# create image of OFF key
@@ -164,6 +164,7 @@ class ManualKeyDesc(TouchPoint):
 		pygame.draw.rect(self.KeyOffImage, wc(self.KeyColorOff), ((0, 0), self.Size), 0)
 		bord = self.KeyOutlineOffset
 		pygame.draw.rect(self.KeyOffImage, wc(self.KeyOffOutlineColor), ((scaleW(bord),scaleH(bord)), buttonsmaller), bord)
+		# dull the OFF key
 		s = pygame.Surface(self.Size)
 		s.set_alpha(150)
 		s.fill(wc("white"))
