@@ -123,6 +123,7 @@ Module Parameters:
             PersistTO
     OnOffKey
         Local Parameters:
+            NodeName                :  str     
             SceneProxy              :  str     
             label                   :  list    
         Overrideable Globals:
