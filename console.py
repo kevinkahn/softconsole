@@ -123,17 +123,19 @@ config.configfilelist[config.configfile] = os.path.getmtime(config.configfile)
 
 cfiles = []
 pfiles = []
+cfglib = config.ParsedConfigFile.get('cfglib', '')
+if cfglib <> '':
+	cfglib = cfglib + '/'
 includes = config.ParsedConfigFile.get('include', [])
 while includes <> []:
 	f = includes.pop(0)
 	if f[0] <> '/':
 		pfiles.append('+' + f)
-		f = configdir + "/" + f
+		f = configdir + "/" + cfglib + f
 	else:
 		pfiles.append(f)
 	cfiles.append(f)
 	tmpconf = ConfigObj(f)
-	cfiles.append(f)
 	includes = includes + tmpconf.get('include', [])
 	config.ParsedConfigFile.merge(tmpconf)
 	config.configfilelist[f] = os.path.getmtime(f)

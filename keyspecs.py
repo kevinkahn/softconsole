@@ -10,8 +10,8 @@ from logsupport import ConsoleWarning, ConsoleError
 def CreateKey(screen, screensection, keyname):
 	keytype = screensection.get('type', 'ONOFF')
 	config.Logs.Log("-Key:" + keyname)
-	if keytype == 'ONOFF':
-		NewKey = OnOffKey(screen, screensection, keyname)
+	if keytype in ('ONOFF', 'ON'):
+		NewKey = OnOffKey(screen, screensection, keyname, keytype)
 	elif keytype in ('ONBLINKRUNTHEN', 'RUNTHEN'):
 		NewKey = RunThenKey(screen, screensection, keyname)
 	elif keytype == 'SETVAR':
@@ -77,11 +77,12 @@ class RunThenKey(ManualKeyDesc):
 
 
 class OnOffKey(ManualKeyDesc):
-	def __init__(self, screen, keysection, keyname):
-		debugPrint('Screen', "             New OnOff Key Desc ", keyname)
-		utilities.LocalizeParams(self, keysection, '--', SceneProxy='')
+	def __init__(self, screen, keysection, keyname, keytype):
+		debugPrint('Screen', "             New ", keytype, " Key Desc ", keyname)
+		utilities.LocalizeParams(self, keysection, '--', SceneProxy='', NodeName='')
 		self.MonitorObj = None  # ISY Object monitored to reflect state in the key (generally a device within a Scene) todo?
 		ManualKeyDesc.__init__(self, screen, keysection, keyname)
+		if keyname == 'Action': keyname = self.NodeName
 		if keyname in config.ISY.ScenesByName:
 			self.ISYObj = config.ISY.ScenesByName[keyname]
 			if self.SceneProxy <> '':
@@ -112,10 +113,16 @@ class OnOffKey(ManualKeyDesc):
 		elif keyname in config.ISY.NodesByName:
 			self.ISYObj = config.ISY.NodesByName[keyname]
 			self.MonitorObj = self.ISYObj
+		elif keyname == 'Action':
+			# alert screen action keu
+			pass  # todo
 		else:
 			debugPrint('Screen', "Screen", keyname, "unbound")
 			config.Logs.Log('Key Binding missing: ' + self.name, severity=ConsoleWarning)
-		self.Proc = self.OnOff  # todo should Proc be unified as 'action'?
+		if keytype == 'ONOFF':
+			self.Proc = self.OnOff  # todo should Proc be unified as 'action'?
+		else:
+			self.Proc = self.OnKey
 
 		utilities.register_example("OnOffKey", self)
 
@@ -124,6 +131,14 @@ class OnOffKey(ManualKeyDesc):
 		if self.ISYObj is not None:
 			self.ISYObj.SendCommand(self.State, presstype)
 		else:
-			config.Logs.Log("Screen: " + self.name + " press unbound key: " + K.name,
+			config.Logs.Log("Screen: " + self.name + " press unbound key: " + self.name,
 							severity=ConsoleWarning)
+		self.PaintKey()  # todo Feedback
+
+	def OnKey(self, presstype):
+		self.State = True
+		if self.ISYObj is not None:
+			self.ISYObj.SendCommand(True, presstype)
+		else:
+			config.Logs.Log("Screen: " + self.name + " press unbound key: " + self.name, severity=ConsoleWarning)
 		self.PaintKey()  # todo Feedback

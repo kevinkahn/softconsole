@@ -47,21 +47,25 @@ def try_ISY_comm(urlcmd):
 	exitutils.errorexit('reboot')
 
 
+def get_real_time_node_status(addr):
+	text = try_ISY_comm('/rest/status/' + addr)
+	props = xmltodict.parse(text)['properties']['property']
+	if isinstance(props, dict):
+		props = [props]
+	devstate = 0
+	for item in props:
+		if item['@id'] == "ST":
+			devstate = item['@value']
+			break
+	return int(devstate if devstate.isdigit() else 0)
+
+
 def get_real_time_status(addrlist):
 	# multiple calls here is substantially faster than one call for all status then selecting devices
 	# this proc assumes a device that returns a simple ST value for status
 	statusdict = {}
 	for addr in addrlist:
-		text = try_ISY_comm('/rest/status/' + addr)
-		props = xmltodict.parse(text)['properties']['property']
-		if isinstance(props, dict):
-			props = [props]
-		devstate = 0
-		for item in props:
-			if item['@id'] == "ST":
-				devstate = item['@value']
-				break
-		statusdict[addr] = int(devstate if devstate.isdigit() else 0)
+		statusdict[addr] = get_real_time_node_status(addr)
 	debug.debugPrint('ISY', statusdict)
 	return statusdict
 

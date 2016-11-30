@@ -3,6 +3,7 @@ from configobjects import Section
 import screen
 from logsupport import ConsoleWarning
 from debug import debugPrint
+import isy
 
 Tests = ('EQ', 'NE')
 AlertType = ('NodeChange', 'StateVarChange', 'IntVarChange', 'Periodic', 'TOD', 'External')
@@ -39,6 +40,15 @@ class NodeChgtrigger(object):
 		self.test = test
 		self.value = value
 		self.delay = delay
+
+	def IsTrue(self):
+		val = isy.get_real_time_node_status(self.nodeaddress)
+		if self.test == 'EQ':
+			return int(val) == int(self.value)
+		elif self.test == 'NE':
+			return int(val) <> int(self.value)
+		else:
+			utilities.FatalError('VarChgtriggerIsTrue')
 
 	def __repr__(self):
 		return 'Node ' + self.nodeaddress + ' status ' + self.test + ' ' + str(self.value) + ' delayed ' + str(

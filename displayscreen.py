@@ -120,10 +120,8 @@ class DisplayScreen(object):
 		def Qhandler():
 			# integrate the daemon reports into the pygame event stream
 			while True:
-
 				debugPrint('DaemonCtl', "Q size at main loop ", config.fromDaemon.qsize())
 				item = config.fromDaemon.get()
-
 				if item[0] == "Log":
 					config.Logs.Log(item[1], severity=item[2])
 				elif item[0] == "Node":
@@ -197,7 +195,6 @@ class DisplayScreen(object):
 
 			if event.type == pygame.MOUSEBUTTONDOWN:
 				# screen touch events; this includes touches to non-sensitive area of screen
-
 				self.SetActivityTimer(self.AS.DimTO,
 									  'Screen touch')  # refresh non-dimming in all cases including non=sensitive areas
 				# this refresh is redundant in some cases where the touch causes other activities
@@ -272,19 +269,15 @@ class DisplayScreen(object):
 				debugPrint('Dispatch', 'ISY Change Event', event)
 				self.AS.ISYEvent(event.node, event.value)
 
-			elif event.type == self.ISYAlert:
-				debugPrint('Dispatch', 'ISY Node Alert', event)
-			# event.alert has the alert of interest
-			# todo finish handle delay etc evaluate the alert condition delay, execute, or stop
-
-			elif event.type == self.ISYVar:
-				debugPrint('Dispatch', 'ISY variable change', event)
+			elif event.type in (self.ISYVar, self.ISYAlert):
+				evtype = 'variable' if event.type == self.ISYVar else 'node'
+				debugPrint('Dispatch', 'ISY ', evtype, ' change', event)
 				alert = event.alert
 				if alert.state == 'Armed' and alert.trigger.IsTrue():  # alert condition holds
 					if alert.trigger.delay <> 0:  # delay invocation
 						alert.state = 'Delayed'
 						debugPrint('Dispatch', "Post with delay:", alert.name, alert.trigger.delay)
-						E = AlertEventItem(id(alert), 'delayedvar', alert)
+						E = AlertEventItem(id(alert), 'delayed' + evtype, alert)
 						self.Tasks.AddTask(E, alert.trigger.delay)
 					else:  # invoke now
 						alert.Invoke()  # either calls a proc or enters a screen and adjusts alert state appropriately
@@ -296,7 +289,8 @@ class DisplayScreen(object):
 					alert.state = 'Armed'
 					self.Tasks.RemoveAllGrp(id(alert))
 				else:
-					debugPrint('Dispatch', 'ISYVar passing: ', alert.state, alert.trigger.IsTrue(), event, alert)
+					debugPrint('Dispatch', 'ISYVar/ISYAlert passing: ', alert.state, alert.trigger.IsTrue(), event,
+							   alert)
 				# Armed and false: irrelevant report
 				# Active and true: extaneous report
 				# Delayed or deferred and true: redundant report
@@ -306,7 +300,7 @@ class DisplayScreen(object):
 				if E is None:
 					debugPrint('Dispatch', 'Empty Task Event fired')
 					continue  # some deleted task cleared
-				if isinstance(E, ProcEventItem):
+				if isinstance(E, ProcEventItem):  # internal proc fired
 					debugPrint('Dispatch', 'Task ProcEvent fired: ', E)
 					if callable(E.proc):
 						E.proc()
