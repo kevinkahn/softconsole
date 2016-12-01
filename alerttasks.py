@@ -2,7 +2,6 @@ import config, utilities, logsupport
 from configobjects import Section
 import screen
 from logsupport import ConsoleWarning
-from debug import debugPrint
 import isy
 
 Tests = ('EQ', 'NE')
@@ -18,7 +17,7 @@ class Alert(object):
 		self.actionname = actionname
 
 	def Invoke(self):
-		if isinstance(self.actiontarget, config.alertscreentype):
+		if isinstance(self.actiontarget, config.screentypes["Alert"]):
 			self.state = 'Active'
 			config.DS.SwitchScreen(self.actiontarget, 'Bright', 'Alert', 'Go to alert screen', NavKeys=False)
 		else:
@@ -147,7 +146,7 @@ def ParseAlertParams(nm, spec):
 		else:
 			Node = ''
 		test = getvalid(spec, 'Test', Tests)
-		value = spec.get('Status', None)
+		value = spec.get('Value', None)
 		delay = utilities.get_timedelta(spec.get('Delay', None))
 		trig = NodeChgtrigger(Node, test, value, delay)
 		# todo check nones

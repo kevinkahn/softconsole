@@ -17,17 +17,16 @@ def FlatenScreenLabel(label):
 		scrlabel = scrlabel + " " + s
 	return scrlabel
 
-
 def ButLayout(butcount):
-	butbreaks = (5, 8, 12, 16)
-	try:
-		q = next(t[0] for t in enumerate([float(y)/butcount for y in butbreaks]) if t[1] >= 1)
-		return q + 1, int(math.ceil(float(butcount)/(q + 1)))
-	except (ZeroDivisionError, StopIteration):
-		config.Logs.Log("Button layout error - too many or no buttons", logsupport.ConsoleError)
-		return 5, 5
-
-
+	#        1     2     3     4     5     6     7     8     9    10
+	plan = ((1, 1), (1, 2), (1, 3), (2, 2), (1, 5), (2, 3), (2, 4), (2, 4), (3, 3), (4, 3),
+			#       11    12    13    14    15    16    17    18    19    20
+			(4, 3), (4, 3), (4, 4), (4, 4), (4, 4), (4, 4), (5, 4), (5, 4), (5, 4), (5, 4))
+	if butcount in range(1, 21):
+		return plan[butcount - 1]
+	else:
+		config.Logs.Log("Button layout error - too many or no buttons: " + butcount, logsupport.ConsoleError)
+		return (5, 5)
 
 def ButSize(bpr, bpc, height):
 	h = config.screenheight - config.topborder - config.botborder if height == 0 else height

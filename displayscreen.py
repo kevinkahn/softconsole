@@ -13,11 +13,9 @@ from debug import debugPrint
 from logsupport import ConsoleWarning, ConsoleError
 from collections import OrderedDict
 from eventlist import AlertEventItem, ProcEventItem
-import alerttasks, maintscreen
+import alerttasks
 import Queue
-
-wc = webcolors.name_to_rgb
-
+import queuemerger
 
 class DisplayScreen(object):
 	def __init__(self):
@@ -117,43 +115,9 @@ class DisplayScreen(object):
 
 	def MainControlLoop(self, InitScreen):
 
-		def Qhandler():
-			# integrate the daemon reports into the pygame event stream
-			while True:
-				debugPrint('DaemonCtl', "Q size at main loop ", config.fromDaemon.qsize())
-				item = config.fromDaemon.get()
-				if item[0] == "Log":
-					config.Logs.Log(item[1], severity=item[2])
-				elif item[0] == "Node":
-					if item[1] in self.WatchNodes:
-						debugPrint('DaemonCtl', 'ISY reports change(alert):', str(item))
-						for a in self.WatchNodes[item[1]]:
-							config.Logs.Log("Node alert fired: " + str(a))
-							notice = pygame.event.Event(self.ISYAlert, node=item[1], value=item[2], alert=a)
-							pygame.fastevent.post(notice)
-					if item[1] in self.AS.NodeWatch:
-						debugPrint('DaemonCtl', time.time(), "ISY reports change: ", "Key: ", str(item))
-						notice = pygame.event.Event(self.ISYChange, node=item[1], value=item[2])
-						pygame.fastevent.post(notice)
-				elif item[0] == "VarChg":
-					self.WatchVarVals[(item[1], item[2])] = item[3]
-					if item[1] == 1:
-						debugPrint('DaemonCtl', 'Int var change: ', config.ISY.varsIntInv[item[2]], ' <- ', item[3])
-					elif item[1] == 2:
-						debugPrint('DaemonCtl', 'State var change: ', config.ISY.varsStateInv[item[2]], ' <- ', item[3])
-					else:
-						config.Logs.Log('Bad var message from daemon' + str(item[1]), severity=ConsoleError)
-
-					for a in self.WatchVars[(item[1], item[2])]:
-						config.Logs.Log("Var alert fired: " + str(a))
-						notice = pygame.event.Event(self.ISYVar, vartype=item[1], varid=item[2], value=item[3], alert=a)
-						pygame.fastevent.post(notice)
-				else:
-					config.Logs.Log("Bad msg from watcher: " + str(item), Severity=ConsoleWarning)
-
-		QH = threading.Thread(name='QH', target=Qhandler)
+		QH = threading.Thread(name='QH', target=queuemerger.Qhandler)
 		QH.setDaemon(True)
-		QH.start()  # should check if this thread dies todo
+		QH.start()
 		self.ScreensDict = config.SecondaryDict.copy()
 		self.ScreensDict.update(config.MainDict)
 
@@ -161,15 +125,15 @@ class DisplayScreen(object):
 			a.state = 'Armed'
 			config.Logs.Log("Arming " + a.type + " alert: " + str(a))
 			if a.type in ('StateVarChange', 'IntVarChange'):
-				if (a.trigger.vartype, a.trigger.varid) in self.WatchVars:
-					self.WatchVars[(a.trigger.vartype, a.trigger.varid)].append(a)
+				var = (a.trigger.vartype, a.trigger.varid)
+				if var in self.WatchVars:
+					self.WatchVars[var].append(a)
 				else:
-					self.WatchVars[(a.trigger.vartype, a.trigger.varid)] = [a]
-				self.WatchVarVals[(a.trigger.vartype, a.trigger.varid)] = config.ISY.GetVar(a.trigger.vartype,
-																							a.trigger.varid)
+					self.WatchVars[var] = [a]
+				self.WatchVarVals[var] = config.ISY.GetVar(var)
 				if a.trigger.IsTrue():
-					notice = pygame.event.Event(self.ISYVar, vartype=a.trigger.vartype, varid=a.trigger.varid,
-												value=self.WatchVarVals[(a.trigger.vartype, a.trigger.varid)], alert=a)
+					notice = pygame.event.Event(self.ISYVar,
+												alert=a)  # vartype=var[0], varid=var[1],value=self.WatchVarVals[var], alert=a)
 					pygame.fastevent.post(notice)
 			elif a.type == 'Periodic':
 				E = AlertEventItem(id(a), a.name, a)
@@ -181,6 +145,10 @@ class DisplayScreen(object):
 					self.WatchNodes[a.trigger.nodeaddress].append(a)
 				else:
 					self.WatchNodes[a.trigger.nodeaddress] = [a]
+				if a.trigger.IsTrue():
+					notice = pygame.event.Event(config.DS.ISYAlert,
+												alert=a)  # , node=a.trigger.nodeaddress, value=item[2], alert=a)
+					pygame.fastevent.post(notice)
 			elif a.type == 'Init':
 				a.Invoke()
 

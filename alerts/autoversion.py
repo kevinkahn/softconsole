@@ -9,7 +9,6 @@ class AutoVersion(object):
 		pass
 
 	def CheckUpToDate(self, alert):
-		print 'Check'
 		if config.versionname not in ('none', 'development'):  # skip if we don't know what is running
 			config.DS.Tasks.StartLongOp()  # todo perhaps a cleaner way to deal with long ops
 			sha, c = githubutil.GetSHA(config.versionname)

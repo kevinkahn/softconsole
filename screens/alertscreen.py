@@ -18,10 +18,12 @@ class AlertsScreenDesc(screen.ScreenDesc):
 		screen.ScreenDesc.__init__(self, screensection, screenname)
 		utilities.LocalizeParams(self, screensection, '-', 'KeyColor', 'KeyCharColorOn', 'KeyCharColorOff',
 								 CharSize=[20], Font='droidsansmono', MessageBack='',
-								 Message=[], DeferTime="2 minutes", ActKeyLabel=['Do It'], BlinkTime=0)
+								 Message=[], DeferTime="2 minutes", BlinkTime=0)
 
 		if self.MessageBack == '':
 			self.MessageBack == self.BackgroundColor
+		self.DimTO = 0  # alert screens don't dim or yield volutarily
+		self.PersistTO = 0
 
 		messageareapart = .7
 		messageareaheight = (config.screenheight - 2*config.topborder)*messageareapart  # no need to allow for Nav keys
@@ -41,21 +43,16 @@ class AlertsScreenDesc(screen.ScreenDesc):
 													 proc=self.DeferAction)
 		if 'Action' in screensection:
 			action = screensection['Action']
-			self.Keys['action'] = keyspecs.CreateKey(self, action,
-													 'Action')  # todo need to set size and position for such keys
+			self.Keys['action'] = keyspecs.CreateKey(self, action, '*Action*')
+			# this is only case so far that is a user descibed key that gets explicit positioning so just do it here
 			self.Keys['action'].Center = (
 			config.screenwidth/2, config.topborder + messageareaheight + 1.5*alertbutheight)
 			self.Keys['action'].Size = (config.screenwidth - 2*config.horizborder, alertbutheight)
 			self.Keys['action'].State = True  # for appearance only
 		else:
-			# todo create a blank key
-			self.Keys['action'] = toucharea.ManualKeyDesc(self, 'clearcond', self.ActKeyLabel, self.KeyColor,
-														  self.KeyCharColorOn, self.KeyCharColorOff,
-														  center=(config.screenwidth/2,
-																 config.topborder + messageareaheight + 1.5*alertbutheight),
-														  size=(
-														 config.screenwidth - 2*config.horizborder, alertbutheight),
-														  proc=self.ClearCondition)
+			pass
+		# no key created - just a blank spot on the alert screen
+
 		for k in self.Keys.itervalues():  # todo relook at Finish Key - can it be done as part of creation?
 			k.FinishKey((0, 0), (0, 0))
 
@@ -91,7 +88,6 @@ class AlertsScreenDesc(screen.ScreenDesc):
 		self.PersistTO = 0
 		utilities.register_example("AlertsScreen", self)
 
-
 	def DeferAction(self, presstype):
 		debugPrint('Screen', 'Alertscreen manual defer: ' + self.name)
 		config.DS.Tasks.RemoveAllGrp(id(self))
@@ -112,9 +108,6 @@ class AlertsScreenDesc(screen.ScreenDesc):
 	def EnterScreen(self):
 		pass
 
-	def ClearCondition(self, presstype):
-		print 'ACTION KEY'
-
 	def InitDisplay(self, nav):
 		super(AlertsScreenDesc, self).InitDisplay(nav)
 
@@ -132,8 +125,5 @@ class AlertsScreenDesc(screen.ScreenDesc):
 		if self.Alert.trigger.IsTrue():  # if the trigger condition is still true requeue post deferral
 			E = AlertEventItem(id(self), 'external deferred screen: ' + self.name, self.Alert)
 			config.DS.Tasks.AddTask(E, self.Defer)
-		pass
 
-
-config.alertscreentype = AlertsScreenDesc
 config.screentypes["Alert"] = AlertsScreenDesc

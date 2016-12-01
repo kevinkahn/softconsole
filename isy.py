@@ -416,8 +416,8 @@ class ISY(object):
 		if debug.Flags['ISY']:
 			self.PrintTree(self.ProgRoot, "    ")
 
-	def GetVar(self, vartype, varid):
-		text = try_ISY_comm('/rest/vars/get/' + str(vartype) + '/' + str(varid))
+	def GetVar(self, var):
+		text = try_ISY_comm('/rest/vars/get/' + str(var[0]) + '/' + str(var[1]))
 		return xmltodict.parse(text)['var']['val']
 
 	def SetVar(self, vartype, varid, value):

@@ -17,7 +17,7 @@ def CreateKey(screen, screensection, keyname):
 	elif keytype == 'SETVAR':
 		NewKey = SetVarKey(screen, screensection, keyname)
 	else:  # unknown type
-		NewKey = None  # todo - this should be a "blank" key
+		NewKey = None  # todo - this should be a "blank" key can cause caller to later blow up
 		config.Logs.Log('Undefined key type ' + keytype + ' for: ' + keyname, severity=ConsoleWarning)
 	return NewKey
 
@@ -82,7 +82,7 @@ class OnOffKey(ManualKeyDesc):
 		utilities.LocalizeParams(self, keysection, '--', SceneProxy='', NodeName='')
 		self.MonitorObj = None  # ISY Object monitored to reflect state in the key (generally a device within a Scene) todo?
 		ManualKeyDesc.__init__(self, screen, keysection, keyname)
-		if keyname == 'Action': keyname = self.NodeName
+		if keyname == '*Action*': keyname = self.NodeName
 		if keyname in config.ISY.ScenesByName:
 			self.ISYObj = config.ISY.ScenesByName[keyname]
 			if self.SceneProxy <> '':
@@ -113,12 +113,13 @@ class OnOffKey(ManualKeyDesc):
 		elif keyname in config.ISY.NodesByName:
 			self.ISYObj = config.ISY.NodesByName[keyname]
 			self.MonitorObj = self.ISYObj
-		elif keyname == 'Action':
-			# alert screen action keu
+		elif keyname == '*Action*':
+			# alert screen action key
 			pass  # todo
 		else:
 			debugPrint('Screen', "Screen", keyname, "unbound")
 			config.Logs.Log('Key Binding missing: ' + self.name, severity=ConsoleWarning)
+
 		if keytype == 'ONOFF':
 			self.Proc = self.OnOff  # todo should Proc be unified as 'action'?
 		else:
