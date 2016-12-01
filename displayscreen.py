@@ -128,7 +128,7 @@ class DisplayScreen(object):
 					if item[1] in self.WatchNodes:
 						debugPrint('DaemonCtl', 'ISY reports change(alert):', str(item))
 						for a in self.WatchNodes[item[1]]:
-							config.Logs.Log("Node alert fired: " + a)
+							config.Logs.Log("Node alert fired: " + str(a))
 							notice = pygame.event.Event(self.ISYAlert, node=item[1], value=item[2], alert=a)
 							pygame.fastevent.post(notice)
 					if item[1] in self.AS.NodeWatch:
@@ -153,7 +153,7 @@ class DisplayScreen(object):
 
 		QH = threading.Thread(name='QH', target=Qhandler)
 		QH.setDaemon(True)
-		QH.start()
+		QH.start()  # should check if this thread dies todo
 		self.ScreensDict = config.SecondaryDict.copy()
 		self.ScreensDict.update(config.MainDict)
 
