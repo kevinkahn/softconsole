@@ -169,7 +169,7 @@ def ParseAlertParams(nm, spec):
 		trig = InitTrigger(spec)
 		A = Alert(nm, triggertype, trig, action, actionname)
 
-
+	config.Logs.Log("Created alert: " + A)
 	if fixscreen:
 		action.Alert = A
 
