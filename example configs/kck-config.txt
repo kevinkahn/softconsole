@@ -1,0 +1,20 @@
+cfglib = cfglib
+include = auth.cfg, pdxalerts.cfg,tstat.cfg,weathPump.cfg,weathCC.cfg,weathPDX.cfg,myclock.cfg,BR-kck.cfg,upperlev.cfg, bathroom.cfg,LR.cfg,othermain.cfg,downstairs.cfg,weathLQ.cfg,timetempLQ.cfg
+HomeScreenName = BR
+HomeScreenTO = 90
+DimLevel = 5
+DimTO = 25
+DimIdleListNames = MyClock, LQTT
+DimIdleListTimes = 20,20
+
+
+MainChain = BR, Pumpkin, Local, Thermostat - Main, MyClock
+SecondaryChain = Bathroom, Upper Level, LR, OtherMain, Downstairs, Portland
+
+[HouseStat]
+    type = Status
+    NormalOff = Pucks, Downlights, Kitchen Dimmer, Office Ceiling
+    NormalOn = Main Hall, Landscape, LR Dual Spots
+
+
+

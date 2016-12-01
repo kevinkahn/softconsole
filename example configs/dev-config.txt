@@ -1,0 +1,92 @@
+cfglib = cfglib
+include = auth.cfg, pdxalerts.cfg, timetempPR.cfg, timetempLQ.cfg, weathCC.cfg, timetempPDX.cfg, myclock.cfg,bathroom.cfg,upperlev.cfg,BR-kck.cfg
+HomeScreenName = LR1
+HomeScreenTO = 45
+DimLevel = 50
+DimTO = 25
+DimIdleListNames = MyClock, Portland, Pumpkin, LaQuinta
+DimIdleListTimes =	20, 20, 20, 20
+
+MainChain = LR1,LR2, Pumpkin, Local, Upper Level
+SecondaryChain = Portland, Bathroom, BR
+
+[Alerts]
+
+	[[VersionCheck]]
+	Type = Periodic
+	Interval = 90 seconds
+	Invoke = VersionCheck.AlertProc1
+	[[AltVarTest]]
+	Type = StateVarChange
+	Var = tEST
+	Test = NE
+	Value = 0
+	Delay = 5 seconds
+	Invoke = TestAlert
+	[[NodeTest]]
+	Type = NodeChange
+	Node = Office Ceiling
+	Test = NE
+	Value = 0
+	Delay = 5 seconds
+	Invoke = NodeTest
+
+[NodeTest]
+	type = Alert
+	BackgroundColor = black
+	MessageBack = green
+	CharColor = navyblue
+	Message = Test, Node, Ceiling, On
+	CharSize = 30,
+	DeferTime = 10
+	BlinkTime = 1
+	KeyColor = maroon
+	[[Action]]
+		type = ONOFF
+		NodeName = Office Ceiling
+		label = Clear, Test Condition
+		
+
+[TestAlert]
+	type = Alert
+	BackgroundColor = royalblue
+	MessageBack = red
+	CharColor = black
+	Message = "Test", "Variable", "tEST","Set"
+	CharSize = 30, 30, 40, 30
+	DeferTime = 10 seconds
+	BlinkTime = 2
+	KeyColor = maroon
+	[[Action]]
+		type = SETVAR
+		VarType = State
+		Var = tEST
+		KeyColor = Maroon
+		label = Clear tEST,
+		
+
+[LR1]
+    type = Keypad
+    label = Living, Room 1
+    [[LR Wall Plugs]]
+	label = Wall, Plugs
+    [[LR Dual Spots]]
+        label = Dual, Spots
+    [[LR Pict Spot]]
+        label = Art Spot,
+    [[Up Lights]]
+ [LR2]
+    type = Keypad
+    label = Living, Room 2   
+    [[Main Hall]]
+    [[Upper Hall]]
+    [[LR Plug Win]]
+        label = Reading, Light, Window
+    [[LR Plug Dr]]
+        label = Reading, Light, Door
+
+
+
+
+
+

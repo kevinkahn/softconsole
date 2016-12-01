@@ -1,0 +1,38 @@
+cfglib = cfglib
+include = auth.cfg, pdxalerts.cfg, timetempPR.cfg, timetempLQ.cfg, weathCC.cfg, timetempPDX.cfg, myclock.cfg,bathroom.cfg,upperlev.cfg,BR-kck.cfg
+HomeScreenName = LR1
+HomeScreenTO = 45
+DimLevel = 50
+DimTO = 25
+DimIdleListNames = MyClock, Portland, Pumpkin, LaQuinta
+DimIdleListTimes =	20, 20, 20, 20
+
+MainChain = LR1,LR2, Pumpkin, Local, Upper Level
+SecondaryChain = Portland, Bathroom, BR
+
+
+[LR1]
+    type = Keypad
+    label = Living, Room 1
+    [[LR Wall Plugs]]
+	label = Wall, Plugs
+    [[LR Dual Spots]]
+        label = Dual, Spots
+    [[LR Pict Spot]]
+        label = Art Spot,
+    [[Up Lights]]
+ [LR2]
+    type = Keypad
+    label = Living, Room 2   
+    [[Main Hall]]
+    [[Upper Hall]]
+    [[LR Plug Win]]
+        label = Reading, Light, Window
+    [[LR Plug Dr]]
+        label = Reading, Light, Door
+
+
+
+
+
+

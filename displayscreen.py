@@ -132,8 +132,7 @@ class DisplayScreen(object):
 					self.WatchVars[var] = [a]
 				self.WatchVarVals[var] = config.ISY.GetVar(var)
 				if a.trigger.IsTrue():
-					notice = pygame.event.Event(self.ISYVar,
-												alert=a)  # vartype=var[0], varid=var[1],value=self.WatchVarVals[var], alert=a)
+					notice = pygame.event.Event(self.ISYVar, alert=a)
 					pygame.fastevent.post(notice)
 			elif a.type == 'Periodic':
 				E = AlertEventItem(id(a), a.name, a)
@@ -146,8 +145,7 @@ class DisplayScreen(object):
 				else:
 					self.WatchNodes[a.trigger.nodeaddress] = [a]
 				if a.trigger.IsTrue():
-					notice = pygame.event.Event(config.DS.ISYAlert,
-												alert=a)  # , node=a.trigger.nodeaddress, value=item[2], alert=a)
+					notice = pygame.event.Event(config.DS.ISYAlert, alert=a)
 					pygame.fastevent.post(notice)
 			elif a.type == 'Init':
 				a.Invoke()
