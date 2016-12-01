@@ -190,6 +190,10 @@ class DisplayScreen(object):
 
 		while True:  # Operational Control Loop
 
+			if not QH.is_alive():
+				config.Logs.Log('Queue handler died', severity=ConsoleError)
+				exitutils.errorexit('restart')
+
 			if self.Deferrals:  # an event was deferred mid screen touches - handle now
 				event = self.Deferrals.pop(0)
 				debugPrint('EventList', 'Deferred Event Pop', event)
