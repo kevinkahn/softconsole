@@ -159,7 +159,7 @@ class DisplayScreen(object):
 
 		for a in config.Alerts.AlertsList.itervalues():
 			a.state = 'Armed'
-			config.Logs.Log("Arming " + a.type + " alert: " + a)
+			config.Logs.Log("Arming " + a.type + " alert: " + str(a))
 			if a.type in ('StateVarChange', 'IntVarChange'):
 				if (a.trigger.vartype, a.trigger.varid) in self.WatchVars:
 					self.WatchVars[(a.trigger.vartype, a.trigger.varid)].append(a)
@@ -309,7 +309,7 @@ class DisplayScreen(object):
 						E.proc()
 				elif isinstance(E, AlertEventItem):  # delayed alert screen
 					debugPrint('Dispatch', 'Task AlertEvent fired: ', E)
-					config.Logs.Log("Alert event fired" + E.alert)
+					config.Logs.Log("Alert event fired" + str(E.alert))
 					E.alert.Invoke()  # defered or delayed alert firing
 					if isinstance(E.alert.trigger, alerttasks.Periodictrigger):
 						self.Tasks.AddTask(E, E.alert.trigger.interval)
