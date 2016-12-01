@@ -128,6 +128,7 @@ class DisplayScreen(object):
 					if item[1] in self.WatchNodes:
 						debugPrint('DaemonCtl', 'ISY reports change(alert):', str(item))
 						for a in self.WatchNodes[item[1]]:
+							config.Logs.Log("Node alert fired: " + a)
 							notice = pygame.event.Event(self.ISYAlert, node=item[1], value=item[2], alert=a)
 							pygame.fastevent.post(notice)
 					if item[1] in self.AS.NodeWatch:
@@ -144,6 +145,7 @@ class DisplayScreen(object):
 						config.Logs.Log('Bad var message from daemon' + str(item[1]), severity=ConsoleError)
 
 					for a in self.WatchVars[(item[1], item[2])]:
+						config.Logs.Log("Var alert fired: " + a)
 						notice = pygame.event.Event(self.ISYVar, vartype=item[1], varid=item[2], value=item[3], alert=a)
 						pygame.fastevent.post(notice)
 				else:
@@ -157,6 +159,7 @@ class DisplayScreen(object):
 
 		for a in config.Alerts.AlertsList.itervalues():
 			a.state = 'Armed'
+			config.Logs.Log("Arming " + a.type + " alert: " + a)
 			if a.type in ('StateVarChange', 'IntVarChange'):
 				if (a.trigger.vartype, a.trigger.varid) in self.WatchVars:
 					self.WatchVars[(a.trigger.vartype, a.trigger.varid)].append(a)
@@ -306,6 +309,7 @@ class DisplayScreen(object):
 						E.proc()
 				elif isinstance(E, AlertEventItem):  # delayed alert screen
 					debugPrint('Dispatch', 'Task AlertEvent fired: ', E)
+					config.Logs.Log("Alert event fired" + E.alert)
 					E.alert.Invoke()  # defered or delayed alert firing
 					if isinstance(E.alert.trigger, alerttasks.Periodictrigger):
 						self.Tasks.AddTask(E, E.alert.trigger.interval)
