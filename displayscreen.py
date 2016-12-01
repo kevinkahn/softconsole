@@ -145,7 +145,7 @@ class DisplayScreen(object):
 						config.Logs.Log('Bad var message from daemon' + str(item[1]), severity=ConsoleError)
 
 					for a in self.WatchVars[(item[1], item[2])]:
-						config.Logs.Log("Var alert fired: " + a)
+						config.Logs.Log("Var alert fired: " + str(a))
 						notice = pygame.event.Event(self.ISYVar, vartype=item[1], varid=item[2], value=item[3], alert=a)
 						pygame.fastevent.post(notice)
 				else:

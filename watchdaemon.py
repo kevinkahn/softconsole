@@ -34,7 +34,7 @@ def event_feed(*arg):
 		config.fromDaemon.put(("Log", "Now using event stream: " + str(data["Event-sid"]), ConsoleWarning))
 		streamid = data["Event-sid"]
 
-	if time.time() < watchstarttime + 5:
+	if time.time() < watchstarttime + 2:
 		debugPrint('DaemonStream', time.time(), "Skipping item in stream: ", data["Event-seqnum"], ":",
 				   data["control"], " : ", data["node"], " : ", data["eventInfo"], " : ", data["action"])
 		return None
@@ -50,7 +50,7 @@ def event_feed(*arg):
 			debugPrint('DaemonCtl', time.time(), "New watchlist(watcher): ", watchlist)
 		elif msg[0] == 'Vars':
 			varlist = msg[1:]
-			debugPrint('DaemonCtl', "New varlist(watcher): ", varlist)
+			debugPrint('Special', "New varlist(watcher): ", varlist)
 		else:
 			debugPrint('DaemonCtl', 'Bad message from console: ', msg)
 
@@ -80,11 +80,11 @@ def event_feed(*arg):
 		vartype = int(vinfo['var-type'])
 		varid = int(vinfo['var-id'])
 		varval = int(vinfo['val'])
-		debugPrint('DaemonCtl', 'Var change:', ('Unkn', 'Integer', 'State')[vartype], ' variable ', varid, ' set to ',
+		debugPrint('Special', 'Var change:', ('Unkn', 'Integer', 'State')[vartype], ' variable ', varid, ' set to ',
 				   varval)
 		if (vartype, varid) in varlist:
 			config.fromDaemon.put(("VarChg", vartype, varid, varval))
-			debugPrint('DaemonCtl', 'Qsize at daemon', config.fromDaemon.qsize(), ' VarChg:', vartype, ':', varid, ':',
+			debugPrint('Special', 'Qsize at daemon', config.fromDaemon.qsize(), ' VarChg:', vartype, ':', varid, ':',
 					   varval)
 	else:
 		debug.debugPrint('DaemonStream', time.time(), "Other  update in stream: ", data["Event-seqnum"], ":", prcode,

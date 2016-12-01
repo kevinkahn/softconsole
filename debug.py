@@ -1,7 +1,7 @@
 from config import Logs
 
 Flags = {}
-DbgFlags = ['Main', 'DaemonCtl', 'DaemonStream', 'Screen', 'ISY', 'Dispatch', 'EventList', 'Fonts']
+DbgFlags = ['Main', 'DaemonCtl', 'DaemonStream', 'Screen', 'ISY', 'Dispatch', 'EventList', 'Fonts', 'Special']
 
 
 def debugPrint(flag, *args):

@@ -156,7 +156,7 @@ def ParseAlertParams(nm, spec):
 	elif triggertype in ('StateVarChange', 'IntVarChange'):  # needs var, test, value, delay
 		n = spec.get('Var', None)
 		if n is not None:
-			varspec = (VarsTypes[triggertype][0], VarsTypes[triggertype][1][n])  # todo nonecheck
+			varspec = (VarsTypes[triggertype][0], VarsTypes[triggertype][1][n])  # todo nonecheck blows up on bad name
 		test = getvalid(spec, 'Test', Tests)
 		value = spec.get('Value', None)
 		delay = utilities.get_timedelta(spec.get('Delay', None))
