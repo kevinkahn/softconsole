@@ -160,6 +160,10 @@ class DisplayScreen(object):
 				config.Logs.Log('Queue handler died', severity=ConsoleError)
 				exitutils.errorexit('restart')
 
+			if not config.DaemonProcess.is_alive():
+				config.Logs.Log('Watcher Process died', severity=ConsoleError)
+				exitutils.errorexit('restart')
+
 			if self.Deferrals:  # an event was deferred mid screen touches - handle now
 				event = self.Deferrals.pop(0)
 				debugPrint('EventList', 'Deferred Event Pop', event)

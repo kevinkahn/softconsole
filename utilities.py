@@ -126,6 +126,7 @@ def signal_handler(sig, frame):
 def daemon_died(sig, frame):
 	# print "CSignal: {}".format(sig)
 	if config.DaemonProcess is None:
+		print time.strftime('%m-%d-%y %H:%M:%S'), "Child interrupt no child"
 		return
 	if config.DaemonProcess.is_alive():
 		debug.debugPrint("Main", "Child ok signal")

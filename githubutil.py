@@ -11,7 +11,7 @@ def StageVersion(dir, tag, label):
 	os.chdir('stagedversion')
 	subprocess.call('wget https://github.com/kevinkahn/softconsole/archive/' + tag + '.tar.gz', shell=True)
 	subprocess.call('tar -zxls'
-					' --strip-components=1 < ' + tag + '.tar.gz >> /home/pi/text.txt', shell=True)
+					' --strip-components=1 < ' + tag + '.tar.gz >> /home/pi/log.txt', shell=True)
 	sha, cdate = GetSHA(tag)
 	with open('versioninfo', 'w') as f:
 		f.writelines(['{0}\n'.format(tag), '{0}\n'.format(sha), label + ': ' + time.strftime('%m-%d-%y %H:%M:%S\n'),

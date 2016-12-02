@@ -44,12 +44,21 @@ function Get_val()
 function LogBanner()
 {
   echo
+  echo >> prep.log
   echo "----------------------------------------------------------"
   echo "----------------------------------------------------------"
+  echo "----------------------------------------------------------" >> prep.log
+  echo "----------------------------------------------------------" >> prep.log
   echo "$1"
+  echo "$1" >> prep.log
   echo "----------------------------------------------------------"
   echo "----------------------------------------------------------"
+  echo "----------------------------------------------------------" >> prep.log
+  echo "----------------------------------------------------------" >> prep.log
   echo
+  echo >> prep.log
+  date
+  date >> prep.log
 }
 
 LogBanner "Pi setup Script"
@@ -127,7 +136,7 @@ then
   echo "sshd will be moved to port " $SSHDport
   VNCport="-rfbport $VNCstdPort"
   cp /etc/ssh/sshd_config /etc/ssh/sshd_config.sav
-  sed s/22/$SSHDport/ /etc/ssh/sshd_config > /etc/ssh/sshd_config
+  sed s/22/$SSHDport/ /etc/ssh/sshd_config.sav > /etc/ssh/sshd_config
 else
   echo "VNC will be set up on its normal port"
   VNCport=""
