@@ -122,10 +122,11 @@ LogBanner "System Options"
 
 if [ $VNCstdPort != "Y" ]
 then
+  SSHDport=$(($VNCstdPort - 100))
   echo "VNC will be set up on port " $VNCstdPort
-  echo "sshd will be moved to port " $VNCstdPort - 100
-  SSHDport= $VNCstdPort - 100
-  VNCport="-rfbport " $VNCstdPort
+  echo "sshd will be moved to port " $SSHDport
+  VNCport="-rfbport $VNCstdPort"
+  cp /etc/ssh/sshd_config /etc/ssh/sshd_config.sav
   sed s/22/$SSHDport/ /etc/ssh/sshd_config > /etc/ssh/sshd_config
 else
   echo "VNC will be set up on its normal port"
