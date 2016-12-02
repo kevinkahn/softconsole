@@ -140,7 +140,8 @@ while includes <> []:
 	config.ParsedConfigFile.merge(tmpconf)
 	config.configfilelist[f] = os.path.getmtime(f)
 
-debug.Flags = logsupport.Flags()
+debug.Flags = debug.InitFlags()
+logsupport.LogLevel = int(config.ParsedConfigFile.get('LogLevel', 2))
 utilities.ParseParam(globalparams)  # add global parameters to config file
 
 config.Logs = logsupport.Logs(config.screen, os.path.dirname(config.configfile))

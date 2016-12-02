@@ -5,7 +5,9 @@ import sys
 import time
 import debug
 import exitutils
+import webcolors
 
+wc = webcolors.name_to_rgb
 from sets import Set
 
 import pygame
@@ -13,7 +15,7 @@ import pygame
 import config
 import fonts
 import hw
-from logsupport import ConsoleError
+from logsupport import ConsoleError, ConsoleDetail
 import traceback
 
 globdoc = {}
@@ -214,7 +216,7 @@ def LocalizeParams(inst, configsection, indent, *args, **kwargs):
 				if isinstance(v, str):
 					val[j] = unicode(v)
 		if (lclval[i] <> val) and (lcllist[i] in args):
-			config.Logs.Log(indent + 'LParam: ' + lcllist[i] + ': ' + str(val))
+			config.Logs.Log(indent + 'LParam: ' + lcllist[i] + ': ' + str(val), severity=ConsoleDetail)
 		inst.__dict__[lcllist[i]] = val
 
 

@@ -2,7 +2,7 @@ import config, utilities, logsupport
 import exitutils
 from configobjects import Section
 import screen
-from logsupport import ConsoleWarning
+from logsupport import ConsoleWarning, ConsoleDetail
 import isy
 
 Tests = ('EQ', 'NE')
@@ -156,7 +156,14 @@ def ParseAlertParams(nm, spec):
 	elif triggertype in ('StateVarChange', 'IntVarChange'):  # needs var, test, value, delay
 		n = spec.get('Var', None)
 		if n is not None:
-			varspec = (VarsTypes[triggertype][0], VarsTypes[triggertype][1][n])  # todo nonecheck blows up on bad name
+			if n in VarsTypes[triggertype][1]:
+				varspec = (VarsTypes[triggertype][0], VarsTypes[triggertype][1][n])
+			else:
+				config.Logs.Log("Alert: ", nm, " var name " + n + " doesn't exist", severity=ConsoleWarning)
+				return None
+		else:
+			config.Logs.Log("Alert: ", nm, " var name not specified", severity=ConsoleWarning)
+			return None
 		test = getvalid(spec, 'Test', Tests)
 		value = spec.get('Value', None)
 		delay = utilities.get_timedelta(spec.get('Delay', None))
@@ -169,7 +176,8 @@ def ParseAlertParams(nm, spec):
 		trig = InitTrigger()
 		A = Alert(nm, triggertype, trig, action, actionname)
 
-	config.Logs.Log("Created alert: " + str(A))
+	config.Logs.Log("Created alert: " + nm)
+	config.Logs.Log("Detail: " + str(A), severity=ConsoleDetail)
 	if fixscreen:
 		action.Alert = A
 

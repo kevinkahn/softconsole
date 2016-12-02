@@ -1,8 +1,4 @@
-import time
-
 import pygame
-import webcolors
-
 import config
 import debug
 import exitutils
@@ -10,7 +6,7 @@ import hw
 from eventlist import EventItem, EventList
 import threading
 from debug import debugPrint
-from logsupport import ConsoleWarning, ConsoleError
+from logsupport import ConsoleWarning, ConsoleError, ConsoleDetail
 from collections import OrderedDict
 from eventlist import AlertEventItem, ProcEventItem
 import alerttasks
@@ -123,7 +119,8 @@ class DisplayScreen(object):
 
 		for a in config.Alerts.AlertsList.itervalues():
 			a.state = 'Armed'
-			config.Logs.Log("Arming " + a.type + " alert: " + str(a))
+			config.Logs.Log("Arming " + a.type + " alert " + a.name)
+			config.Logs.Log("Detail " + str(a), severity=ConsoleDetail)
 			if a.type in ('StateVarChange', 'IntVarChange'):
 				var = (a.trigger.vartype, a.trigger.varid)
 				if var in self.WatchVars:

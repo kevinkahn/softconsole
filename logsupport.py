@@ -2,7 +2,6 @@ import pygame
 import webcolors
 
 import config
-import debug
 
 wc = webcolors.name_to_rgb
 import time
@@ -10,16 +9,12 @@ import os
 import re
 from hw import disklogging
 
-ConsoleInfo = 0
-ConsoleWarning = 1
-ConsoleError = 2
-
-
-def Flags():
-	dbg = {}
-	for flg in debug.DbgFlags:
-		dbg[flg] = config.ParsedConfigFile.get(flg, False)
-	return dbg
+LogLevel = 2
+ConsoleDebug = 0
+ConsoleDetail = 1
+ConsoleInfo = 2
+ConsoleWarning = 3
+ConsoleError = 4
 
 
 class Logs(object):
@@ -27,7 +22,7 @@ class Logs(object):
 	livelogpos = 0
 	log = []
 
-	LogColors = ("white", "yellow", "red")
+	LogColors = ("teal", "lightgreen", "white", "yellow", "red")
 
 	def __init__(self, screen, dirnm):
 		self.screen = screen
@@ -53,7 +48,10 @@ class Logs(object):
 		:param severity:nan
 		:param entry:
 		"""
+		global LogLevel
 		severity = kwargs.pop('severity', ConsoleInfo)
+		if severity < LogLevel:
+			return
 		diskonly = kwargs.pop('diskonly', False)
 		entry = "".join([unicode(i) for i in args])
 		if not diskonly:
