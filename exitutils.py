@@ -6,7 +6,7 @@ import time
 import pygame
 
 import config
-from logsupport import ConsoleWarning
+from logsupport import ConsoleWarning, ConsoleError
 import webcolors
 
 wc = webcolors.name_to_rgb
@@ -56,3 +56,9 @@ def Exit_Options(msg, scrnmsg):
 	config.Logs.Log(msg)
 	pygame.display.update()
 	time.sleep(2)
+
+
+def FatalError(msg):
+	config.screen.fill(wc("red"))
+	config.Logs.Log(msg, severity=ConsoleError)
+	Exit('restart', 'codeerror', 99)

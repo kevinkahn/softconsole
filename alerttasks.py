@@ -1,11 +1,12 @@
 import config, utilities, logsupport
+import exitutils
 from configobjects import Section
 import screen
 from logsupport import ConsoleWarning
 import isy
 
 Tests = ('EQ', 'NE')
-AlertType = ('NodeChange', 'StateVarChange', 'IntVarChange', 'Periodic', 'TOD', 'External')
+AlertType = ('NodeChange', 'StateVarChange', 'IntVarChange', 'Periodic', 'TOD', 'External', 'Init')
 
 class Alert(object):
 	def __init__(self, nm, type, trigger, action, actionname):
@@ -47,7 +48,7 @@ class NodeChgtrigger(object):
 		elif self.test == 'NE':
 			return int(val) <> int(self.value)
 		else:
-			utilities.FatalError('VarChgtriggerIsTrue')
+			exitutils.FatalError('VarChgtriggerIsTrue')
 
 	def __repr__(self):
 		return 'Node ' + self.nodeaddress + ' status ' + self.test + ' ' + str(self.value) + ' delayed ' + str(
@@ -78,12 +79,12 @@ class VarChgtrigger(object):
 		elif self.test == 'NE':
 			return int(val) <> int(self.value)
 		else:
-			utilities.FatalError('VarChgtriggerIsTrue')
+			exitutils.FatalError('VarChgtriggerIsTrue')
 
 
 class InitTrigger(object):
-	def __init__(self, spec):
-		self.spec = spec
+	def __init__(self):
+		pass
 
 class Periodictrigger(object):
 	def __init__(self, interval):
@@ -99,7 +100,7 @@ def getvalid(spec, item, choices, default=None):
 		if i in choices:
 			return i
 		else:
-			config.Logs.Log('Choice error: ' + item + " not in " + choices, severity=logsupport.ConsoleWarning)
+			config.Logs.Log('Choice error: ' + item + " not in " + str(choices), severity=logsupport.ConsoleWarning)
 			return None
 	else:
 		config.Logs.Log('Missing required alert parameter: ' + item)
@@ -165,7 +166,7 @@ def ParseAlertParams(nm, spec):
 		pass  # todo external?
 		return None
 	elif triggertype == 'Init':  # Trigger once at start up passing in the configobj spec
-		trig = InitTrigger(spec)
+		trig = InitTrigger()
 		A = Alert(nm, triggertype, trig, action, actionname)
 
 	config.Logs.Log("Created alert: " + str(A))

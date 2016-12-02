@@ -1,14 +1,11 @@
 import collections
 import os
+import signal
 import sys
 import time
-import signal
-import webcolors
-
 import debug
 import exitutils
 
-wc = webcolors.name_to_rgb
 from sets import Set
 
 import pygame
@@ -148,10 +145,6 @@ def EarlyAbort(scrnmsg):
 	time.sleep(5)
 	sys.exit(9)
 
-
-def FatalError(msg):
-	config.screen.fill(wc("red"))
-	config.Logs.Log(msg, severity=ConsoleError)
 
 def InitializeEnvironment():
 
