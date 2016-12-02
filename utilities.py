@@ -129,7 +129,7 @@ def daemon_died(sig, frame):
 		debug.debugPrint("Main", "Child ok signal")
 	elif not config.Ending:
 		print time.strftime('%m-%d-%y %H:%M:%S'), "Daemon died!"
-		exitutils.errorexit('reboot')
+		exitutils.errorexit('restart')
 		pygame.quit()  # todo restart
 		sys.exit(2)
 

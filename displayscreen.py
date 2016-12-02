@@ -160,8 +160,12 @@ class DisplayScreen(object):
 				config.Logs.Log('Queue handler died', severity=ConsoleError)
 				exitutils.errorexit('restart')
 
-			if not config.DaemonProcess.is_alive():
+			if not config.DaemonProcess.is_alive():  # todo why doesn't this catch sort of dead daemon
 				config.Logs.Log('Watcher Process died', severity=ConsoleError)
+				exitutils.errorexit('restart')
+
+			if config.toDaemon.qsize() > 10:  # likely dead daemon - no reason for queue to exceed 1 or 2
+				config.Logs.Log('Watcher Queue Stuck, severity=ConsoleError')
 				exitutils.errorexit('restart')
 
 			if self.Deferrals:  # an event was deferred mid screen touches - handle now
