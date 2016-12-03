@@ -289,6 +289,8 @@ from datetime import timedelta
 def get_timedelta(line):
 	if line is None:
 		return timedelta(0)
+	if line.isdigit():
+		line = line + ' seconds'
 	timespaces = {"days": 0}
 	for timeunit in "year month week day hour minute second".split():
 		content = re.findall(r"([0-9]*?)\s*?" + timeunit, line)

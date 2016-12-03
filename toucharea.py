@@ -68,9 +68,8 @@ class ManualKeyDesc(TouchPoint):
 		# NOTE: do not put defaults for KOn/KOff in signature - imports and arg parsing subtleties will cause error
 		# because of when config is imported and what walues are at that time versus at call time
 
-		TouchPoint.__init__(self, keyname, center, size)
+		TouchPoint.__init__(self, keyname, center, size, proc=proc)
 		self.Screen = screen
-		self.Proc = proc
 		self.KeyColor = bcolor
 		self.KeyColorOn = KCon
 		self.KeyColorOff = KCoff
