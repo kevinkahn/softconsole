@@ -34,7 +34,6 @@ Global Parameters:
 Module Parameters:
     AlertsScreenDesc
         Local Parameters:
-            ActKeyLabel             :  list    
             BlinkTime               :  int     
             CharSize                :  list    
             DeferTime               :  str     
@@ -59,20 +58,6 @@ Module Parameters:
             CharSize                :  list    
             Font                    :  str     
             OutFormat               :  list    
-            label                   :  list    
-        Overrideable Globals:
-            BackgroundColor
-            BrightLevel
-            CharColor
-            CmdCharCol
-            CmdKeyCol
-            DimLevel
-            DimTO
-            PersistTO
-    HouseStatusScreenDesc
-        Local Parameters:
-            NormalOff               :  list    
-            NormalOn                :  list    
             label                   :  list    
         Overrideable Globals:
             BackgroundColor
@@ -154,21 +139,23 @@ Module Parameters:
             KeyOffOutlineColor
             KeyOnOutlineColor
             KeyOutlineOffset
-    ThermostatScreenDesc
+    SetVarKey
         Local Parameters:
+            Value                   :  int     
+            Var                     :  str     
+            VarType                 :  str     
             label                   :  list    
         Overrideable Globals:
-            BackgroundColor
-            BrightLevel
-            CharColor
-            CmdCharCol
-            CmdKeyCol
-            DimLevel
-            DimTO
+            KeyCharColorOff
+            KeyCharColorOn
             KeyColor
+            KeyColorOff
+            KeyColorOn
+            KeyLabelOff
+            KeyLabelOn
             KeyOffOutlineColor
             KeyOnOutlineColor
-            PersistTO
+            KeyOutlineOffset
     TimeTempScreenDesc
         Local Parameters:
             CharSize                :  list    

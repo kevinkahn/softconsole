@@ -100,7 +100,7 @@ The most base type
 *  dosectioninit
 *  touched
 
-##ManualKeyDesc: [RunThenKey, OnOffKey]
+##ManualKeyDesc: [SetVarKey, RunThenKey, OnOffKey]
 
 	Defines a drawn touchable rectangle on the screen that represents a key (button).  May be called with one of 2
 	signatures.  It can be called manually by code to create a key by supplying all the attributes of the key in the
@@ -122,6 +122,15 @@ The most base type
 *  Screen
 *  State
 
+##SetVarKey: []
+
+***missing***
+
+*  Value
+*  Var
+*  VarID
+*  VarType
+
 ##RunThenKey: []
 
 ***missing***
@@ -141,7 +150,7 @@ The most base type
 *  OnOff
 *  SceneProxy
 
-##ScreenDesc: [HouseStatusScreenDesc, TimeTempScreenDesc, BaseKeyScreenDesc, WeatherScreenDesc, AlertsScreenDesc, ClockScreenDesc]
+##ScreenDesc: [TimeTempScreenDesc, BaseKeyScreenDesc, WeatherScreenDesc, AlertsScreenDesc, ClockScreenDesc]
 
 	Basic information about a screen, subclassed by all other screens to handle this information
 	
@@ -168,44 +177,17 @@ The most base type
 *  WithNav
 *  label
 
-##HouseStatusScreenDesc: []
-
-***missing***
-
-*  HandleScreen
-*  NormalOff
-*  NormalOn
-*  SetUp
-
 ##TimeTempScreenDesc: []
 
 ***missing***
 
 
-##BaseKeyScreenDesc: [ThermostatScreenDesc, MaintScreenDesc, LogDisplayScreen, KeyScreenDesc]
+##BaseKeyScreenDesc: [MaintScreenDesc, LogDisplayScreen, KeyScreenDesc]
 
 ***missing***
 
 *  buttonspercol
 *  buttonsperrow
-
-##ThermostatScreenDesc: []
-
-***missing***
-
-*  AdjButSurf
-*  AdjButTops
-*  BumpMode
-*  BumpTemp
-*  ModeButPos
-*  ModesPos
-*  SPPos
-*  StatePos
-*  TempPos
-*  TitlePos
-*  TitleRen
-*  fsize
-*  info
 
 ##MaintScreenDesc: []
 
