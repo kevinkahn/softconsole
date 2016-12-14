@@ -100,22 +100,27 @@ def dobeta(K, presstype):
 		config.Logs.Log("New version fetch(currentbeta)")
 		print "----------------------------------------"
 		print "New Version Fetch Requested (currentbeta)"
-		U.StageVersion(basedir + '/consolebeta', 'currentbeta', 'RequestedDownload')
-		U.InstallStagedVersion(basedir + '/consolebeta')
+		try:
+			U.StageVersion(basedir + '/consolebeta', 'currentbeta', 'RequestedDownload')
+			U.InstallStagedVersion(basedir + '/consolebeta')
+		except:
+			config.Logs.Log('Failed beta download', severity=ConsoleWarning)
 	# subprocess.Popen('sudo /bin/bash -e scripts/getcurrentbeta', shell=True)
 	elif K.name == 'release':
 		print "----------------------------------------"
-		if os.path.exists(basedir + '/homesystem'):
-			# personal system
-			config.Logs.Log("New version fetch(homerelease)")
-			print "New Version Fetch Requested (homesystem)"
-			U.StageVersion(basedir + '/consolestable', 'homerelease', 'RequestedDownload')
-		else:
-			config.Logs.Log("New version fetch(currentrelease)")
-			print "New Version Fetch Requested (currentrelease)"
-			U.StageVersion(basedir + '/consolestable', 'currentrelease', 'RequestedDownload')
-		U.InstallStagedVersion(basedir + '/consolestable')
-
+		try:
+			if os.path.exists(basedir + '/homesystem'):
+				# personal system
+				config.Logs.Log("New version fetch(homerelease)")
+				print "New Version Fetch Requested (homesystem)"
+				U.StageVersion(basedir + '/consolestable', 'homerelease', 'RequestedDownload')
+			else:
+				config.Logs.Log("New version fetch(currentrelease)")
+				print "New Version Fetch Requested (currentrelease)"
+				U.StageVersion(basedir + '/consolestable', 'currentrelease', 'RequestedDownload')
+			U.InstallStagedVersion(basedir + '/consolestable')
+		except:
+			config.Logs.Log('Failed release download', severity=ConsoleWarning)
 
 	time.sleep(2)
 	K.State = not K.State
