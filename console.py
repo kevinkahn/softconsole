@@ -76,7 +76,7 @@ except:
 	config.versioncommit = 'none'
 	print 'No version info)'
 
-import watchdaemon
+
 from debug import debugPrint
 
 """
@@ -206,9 +206,11 @@ config.Logs.Log("Alerts established")
 """
 Set up the watcher daemon and its communications
 """
+# from watchdaemon import Watcher
+from watch2 import Watcher
 config.toDaemon = Queue(300)
 config.fromDaemon = Queue(300)
-p = Process(target=watchdaemon.Watcher, name="Watcher")
+p = Process(target=Watcher, name="Watcher")
 p.daemon = True
 p.start()
 config.DaemonProcess = p

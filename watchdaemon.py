@@ -72,7 +72,7 @@ def event_feed(*arg):
 				   data["node"], " : ", data["eventInfo"], " : ", data["action"])
 		debugPrint('DaemonStream', time.time(), "Raw stream item: ", data)
 		if data["action"] is dict:
-			data["action"] = data["action"]["action"]
+			data["action"] = data["action"]["action"]  # todo the new xmltodict will return as data['action']['#text']
 			debugPrint('DaemonStream', "V5 stream - pull up action value: ", data["action"])
 		config.fromDaemon.put(("Node", data["node"], data["action"], seq))
 		debugPrint('DaemonCtl', "Qsize at daemon ", config.fromDaemon.qsize())

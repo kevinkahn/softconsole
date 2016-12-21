@@ -252,7 +252,7 @@ class ISYEvent(object):
 		if et.attrib:
 			for k, v in list(et.items()):
 				d[et.tag + "-" + k] = v
-			d[et.tag] = et.text
+			d[et.tag] = et.text  # todo myadd
 		if children:
 			for child in children:
 				if child.tag in d:
