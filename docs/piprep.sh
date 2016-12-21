@@ -195,6 +195,7 @@ pip install --upgrade pip
 pip install configobj
 pip install webcolors
 pip install xmltodict
+pip install websocket-client
 pip install wiringpi
 /usr/local/bin/pip install ISYlib
 
