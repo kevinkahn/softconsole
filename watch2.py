@@ -116,7 +116,7 @@ def on_message(ws, message):
 
 def on_error(ws, error):
 	config.fromDaemon.put(("Log", "Websocket error: " + str(error), ConsoleError))
-	time.wait(1)  # todo should fatal out?
+	time.sleep(1)  # todo should fatal out?q
 	print 'err', error
 
 
