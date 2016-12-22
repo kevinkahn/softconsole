@@ -118,10 +118,16 @@ def on_error(ws, error):
 	config.fromDaemon.put(("Log", "Websocket error: " + str(error), ConsoleError))
 	time.sleep(1)  # todo should fatal out?q
 	print 'err', error
+	print ws.url
+	print ws.cookie
 
 
 def on_close(ws):
 	print '###close###'
+
+
+def on_open(ws):
+	print '###open###'
 
 
 def Watcher():
@@ -133,10 +139,11 @@ def Watcher():
 	debugPrint('DaemonCtl', "Watcher: ", watchstarttime, os.getpid())
 	config.Daemon_pid = os.getpid()
 	websocket.enableTrace(True)
+	print "opening ws"
 	ws = websocket.WebSocketApp('ws://' + config.ISYaddr + '/rest/subscribe', on_message=on_message, on_error=on_error,
-								on_close=on_close,
+								on_close=on_close, on_open=on_open,
 								subprotocols=['ISYSUB'], header={'Authorization': 'Basic ' + a})
-
+	print "ws open"
 	ws.run_forever()
 
 # websocket.WebSocketApp()
