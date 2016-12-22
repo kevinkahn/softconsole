@@ -124,6 +124,8 @@ def on_error(ws, error):
 
 def on_close(ws):
 	print '###close###'
+	time.sleep(10)
+	print '###allow time###'
 
 
 def on_open(ws):
@@ -145,5 +147,3 @@ def Watcher():
 								subprotocols=['ISYSUB'], header={'Authorization': 'Basic ' + a})
 	print "ws open"
 	ws.run_forever()
-
-# websocket.WebSocketApp()
