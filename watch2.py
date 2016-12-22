@@ -1,6 +1,8 @@
 import base64
 import os
 import time
+import signal
+import exceptions
 
 import websocket
 import xmltodict
@@ -17,6 +19,7 @@ watchlist = []
 varlist = []
 streamid = ''
 watchstarttime = 0
+ws = 0
 
 
 def on_message(ws, message):
@@ -25,13 +28,10 @@ def on_message(ws, message):
 
 	if 'SubscriptionResponse' in m:
 		sr = m['SubscriptionResponse']
-		print sr
-
 		if streamid <> sr['SID']:
 			streamid = sr['SID']
 			config.fromDaemon.put(("Log", "Now using event stream: " + streamid, ConsoleWarning))
 			print 'StreamID: ', streamid
-
 
 	elif 'Event' in m:
 		e = m['Event']
@@ -115,35 +115,38 @@ def on_message(ws, message):
 
 
 def on_error(ws, error):
-	config.fromDaemon.put(("Log", "Websocket error: " + str(error), ConsoleError))
-	time.sleep(1)  # todo should fatal out?q
-	print 'err', error
-	print ws.url
-	print ws.cookie
-
+	if type(error) is not exceptions.SystemExit:
+		config.fromDaemon.put(("Log", "Websocket error: " + type(error) + str(error), ConsoleError))
+		# todo should fatal out?
+		print 'errws', error
 
 def on_close(ws):
-	print '###close###'
-	time.sleep(10)
-	print '###allow time###'
-
+	debugPrint('DaemonCtl', "Websocket stream closed")
 
 def on_open(ws):
-	print '###open###'
-
+	debugPrint('DaemonCtl', "Websocket stream opened")
 
 def Watcher():
-	global watchlist, varlist
+	global watchlist, varlist, ws
+
+	def signalhandler(sig, frame):
+		global ws
+		t = os.getpid()
+		debugPrint('DaemonCtl', "Watcher daemon signalled to terminate - pid: ", t)
+		ws.close()
+		exit()
+		print 'huh?'
+
+
 	a = base64.b64encode(config.ISYuser + ':' + config.ISYpassword)
 	watchstarttime = time.time()
 	watchlist = []
 	varlist = []
 	debugPrint('DaemonCtl', "Watcher: ", watchstarttime, os.getpid())
+	signal.signal(signal.SIGTERM, signalhandler)
 	config.Daemon_pid = os.getpid()
-	websocket.enableTrace(True)
-	print "opening ws"
+	# websocket.enableTrace(True)
 	ws = websocket.WebSocketApp('ws://' + config.ISYaddr + '/rest/subscribe', on_message=on_message, on_error=on_error,
 								on_close=on_close, on_open=on_open,
 								subprotocols=['ISYSUB'], header={'Authorization': 'Basic ' + a})
-	print "ws open"
 	ws.run_forever()

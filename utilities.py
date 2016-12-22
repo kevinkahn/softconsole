@@ -122,21 +122,6 @@ def signal_handler(sig, frame):
 	sys.exit(3)
 
 
-def daemon_died(sig, frame):
-	# print "CSignal: {}".format(sig)
-	if config.DaemonProcess is None:
-		print time.strftime('%m-%d-%y %H:%M:%S'), "Child interrupt no child"
-		print frame
-		return
-	if config.DaemonProcess.is_alive():
-		debug.debugPrint("Main", "Child ok signal")
-	elif not config.Ending:
-		print time.strftime('%m-%d-%y %H:%M:%S'), "Daemon died!"
-		exitutils.errorexit('restart')
-		pygame.quit()  # todo restart
-		sys.exit(2)
-
-
 def EarlyAbort(scrnmsg):
 	config.screen.fill(wc("red"))
 	# this font is manually loaded into the fontcache to avoid log message on early abort before log is up

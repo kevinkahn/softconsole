@@ -35,7 +35,7 @@ import requests
 import urllib3
 import json
 
-urllib3.disable_warnings()
+# urllib3.disable_warnings()
 # import urllib3.contrib.pyopenssl
 
 # sys.stdout = open('/home/pi/master.log', 'a', 0)
@@ -49,7 +49,7 @@ signal.signal(signal.SIGINT, utilities.signal_handler)
 utilities.InitializeEnvironment()
 
 # This goes after InitializeEnvironment to avoid a spurious signal
-signal.signal(signal.SIGCHLD, utilities.daemon_died)  # todo win alternative?
+#signal.signal(signal.SIGCHLD, utilities.daemon_died)  # todo win alternative?
 
 
 config.exdir = os.path.dirname(os.path.abspath(__file__))
@@ -208,6 +208,12 @@ config.Alerts = alerttasks.Alerts(alertspec)
 config.Logs.Log("Alerts established")
 
 """
+Set up the Maintenance Screen
+"""
+config.Logs.Log("Built Maintenance Screen")
+maintscreen.SetUpMaintScreens()
+
+"""
 Set up the watcher daemon and its communications
 """
 # from watchdaemon import Watcher
@@ -224,13 +230,6 @@ config.Logs.Log("Watcher pid: " + str(config.Daemon_pid))
 
 config.Logs.livelog = False  # turn off logging to the screen and give user a moment to scan
 time.sleep(2)
-# config.backlight.ChangeDutyCycle(config.BrightLevel)
-
-"""
-Set up the Maintenance Screen
-"""
-config.Logs.Log("Built Maintenance Screen")
-maintscreen.SetUpMaintScreens()
 
 """
 Dump documentation
