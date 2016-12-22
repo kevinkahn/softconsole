@@ -10,9 +10,9 @@ import githubutil as U
 
 piuid = pwd.getpwnam('pi')[2]
 pigrp = grp.getgrnam('pi')[2]
-for dir in ('Console', 'consolestable', 'consolebeta', 'consolerem'):
-	os.mkdir(dir)
-	os.chown(dir, piuid, pigrp)
+for pdir in ('Console', 'consolestable', 'consolebeta', 'consolerem'):
+	os.mkdir(pdir)
+	os.chown(pdir, piuid, pigrp)
 
 if os.path.exists('homesystem'):
 	# personal system

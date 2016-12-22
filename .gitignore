@@ -1,4 +1,3 @@
-*.pyc
 .idea/workspace.xml
 config.txt
 classnametemp.py

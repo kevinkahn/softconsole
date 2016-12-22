@@ -3,6 +3,7 @@ import config
 import debug
 import exitutils
 import hw
+import isy
 from eventlist import EventItem, EventList
 import threading
 from debug import debugPrint
@@ -34,8 +35,9 @@ class DisplayScreen(object):
 		self.WatchVarVals = {}  # most recent reported watched variable values
 
 		# Events that drive the main control loop
-		self.ACTIVITYTIMER = pygame.event.Event(
-			pygame.USEREVENT + 1)  # screen activity timing (Dimming, persistence etc)
+		# self.ACTIVITYTIMER = pygame.event.Event(
+		#	pygame.USEREVENT + 1)  # screen activity timing (Dimming, persistence etc)
+		self.ACTIVITYTIMER = pygame.USEREVENT + 1
 		self.ISYChange = pygame.USEREVENT + 2  # Node state change in a current screen watched node on the ISY
 		self.ISYAlert = pygame.USEREVENT + 3  # Mpde state change in watched node for alerts
 		self.ISYVar = pygame.USEREVENT + 4  # Var value change for a watched variable on ISY
@@ -53,7 +55,7 @@ class DisplayScreen(object):
 		hw.GoBright(self.AS.BrightLevel)
 
 	def SetActivityTimer(self, timeinsecs, dbgmsg):
-		pygame.time.set_timer(self.ACTIVITYTIMER.type, timeinsecs*1000)
+		pygame.time.set_timer(self.ACTIVITYTIMER, timeinsecs*1000)  #todo .type deleted
 		debugPrint('Dispatch', 'Set activity timer: ', timeinsecs, ' ', dbgmsg)
 
 	def SwitchScreen(self, NS, newdim, newstate, reason, NavKeys=True):
@@ -127,7 +129,7 @@ class DisplayScreen(object):
 					self.WatchVars[var].append(a)
 				else:
 					self.WatchVars[var] = [a]
-				self.WatchVarVals[var] = config.ISY.GetVar(var)
+				self.WatchVarVals[var] = isy.GetVar(var)
 				if a.trigger.IsTrue():
 					notice = pygame.event.Event(self.ISYVar, alert=a)
 					pygame.fastevent.post(notice)
@@ -226,7 +228,7 @@ class DisplayScreen(object):
 					if K.touched(pos):
 						K.Proc(config.PRESS)  # same action whether single or double tap
 
-			elif event.type == self.ACTIVITYTIMER.type:
+			elif event.type == self.ACTIVITYTIMER:  # todo .type:
 				debugPrint('Dispatch', 'Activity timer fired State=', self.state, '/', self.dim)
 
 				if self.dim == 'Bright':

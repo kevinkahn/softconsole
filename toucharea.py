@@ -18,6 +18,7 @@ class TouchPoint(object):
 	def __init__(self, name, c, s, proc=None):
 		self.Center = c
 		self.Size = s
+		self.Screen = None
 		self.name = name
 		self.Proc = proc  # function that gets called on touch - expects to take a single parameter which is thee type of press
 
@@ -37,6 +38,7 @@ class ManualKeyDesc(TouchPoint):
 	that is passed in.
 	"""
 
+	# noinspection PyMissingConstructor
 	def __init__(self, *args, **kwargs):
 		# alternate creation signatures
 		self.ButtonFontSizes = (31, 28, 25, 22, 20, 18, 16)
@@ -48,7 +50,7 @@ class ManualKeyDesc(TouchPoint):
 			# signature: ManualKeyDesc(screen, keyname, label, bcolor, charcoloron, charcoloroff, center=, size=, KOn=, KOff=, proc=)
 			# initializing from program code case
 			self.docodeinit(*args, **kwargs)
-
+		self.State = True
 		# todo may need to change signature if handling "holds"?
 		if self.KeyColorOff == '':
 			self.KeyColorOff = self.KeyColor
@@ -78,7 +80,6 @@ class ManualKeyDesc(TouchPoint):
 		self.KeyCharColorOn = charcoloron
 		self.KeyCharColorOff = charcoloroff
 		self.KeyOutlineOffset = config.KeyOutlineOffset
-		self.State = True
 		self.label = label
 		self.ISYObj = None
 		self.KeyOnOutlineColor = config.KeyOnOutlineColor if KOn == '' else KOn
@@ -90,7 +91,6 @@ class ManualKeyDesc(TouchPoint):
 								 'KeyCharColorOn', 'KeyCharColorOff', 'KeyOutlineOffset', 'KeyColorOn', 'KeyColorOff',
 								 'KeyLabelOn', 'KeyLabelOff', label=[keyname])
 		self.Screen = screen
-		self.State = True
 		self.ISYObj = None  # this will get filled in by creator later - could be ISY node, ISY program
 
 	def PaintKey(self, ForceDisplay=False, DisplayState=True):

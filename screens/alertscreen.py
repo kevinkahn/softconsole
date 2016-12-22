@@ -12,6 +12,7 @@ import keyspecs
 
 
 class AlertsScreenDesc(screen.ScreenDesc):
+	# noinspection PyDictCreation
 	def __init__(self, screensection, screenname):
 		debugPrint('Screen', "Build Alerts Screen")
 
@@ -21,9 +22,11 @@ class AlertsScreenDesc(screen.ScreenDesc):
 								 Message=[], DeferTime="2 minutes", BlinkTime=0)
 
 		if self.MessageBack == '':
-			self.MessageBack == self.BackgroundColor
+			self.MessageBack = self.BackgroundColor
 		self.DimTO = 0  # alert screens don't dim or yield volutarily
 		self.PersistTO = 0
+
+		self.Msg = True
 
 		messageareapart = .7
 		messageareaheight = (config.screenheight - 2*config.topborder)*messageareapart  # no need to allow for Nav keys

@@ -27,6 +27,17 @@ def TreeDict(d, *args):
 		return TreeDict(d[args[0]], *args[1:])
 
 
+def TryShorten(term):
+	if term in config.TermShortener:
+		return config.TermShortener[term]
+	elif len(term) > 12:
+		config.Logs.Log("Long term: " + term, severity=logsupport.ConsoleWarning)
+		config.TermShortener[term] = term  # only report once
+		with open(config.exdir + '/termshortenlist.new', 'w') as f:
+			json.dump(config.TermShortener, f, indent=4, separators=(',', ": "))
+	return term
+
+
 class WeatherInfo:
 	ConditionMap = {'Time': (int, ('current_observation', 'observation_epoch')),
 					'Location': (str, ('location', 'city')),
@@ -53,17 +64,6 @@ class WeatherInfo:
 				   'Sky': (str, ('conditions',)),
 				   'WindDir': (str, ('avewind', 'dir')),
 				   'WindSpd': (float, ('avewind', 'mph'))}
-
-
-	def TryShorten(self, term):
-		if term in config.TermShortener:
-			return config.TermShortener[term]
-		elif len(term) > 12:
-			config.Logs.Log("Long term: " + term, severity=logsupport.ConsoleWarning)
-			config.TermShortener[term] = term  # only report once
-			with open(config.exdir + '/termshortenlist.new', 'w') as f:
-				json.dump(config.TermShortener, f, indent=4, separators=(',', ": "))
-		return term
 
 	def __init__(self, WunderKey, location):
 		self.lastwebreq = 0  # time of last call out to wunderground
@@ -111,7 +111,7 @@ class WeatherInfo:
 					try:
 						self.ConditionVals[cond] = desc[0](js(*desc[1]))
 						if desc[0] == str:
-							self.ConditionVals[cond] = self.TryShorten(self.ConditionVals[cond])
+							self.ConditionVals[cond] = TryShorten(self.ConditionVals[cond])
 						progress = (4,cond)
 					except:
 						self.ConditionVals[cond] = desc[0]('0')
@@ -125,7 +125,7 @@ class WeatherInfo:
 						try:
 							self.ForecastVals[i][fc] = desc[0](fs(*desc[1]))
 							if desc[0] == str:
-								self.ForecastVals[i][fc] = self.TryShorten(self.ForecastVals[i][fc])
+								self.ForecastVals[i][fc] = TryShorten(self.ForecastVals[i][fc])
 						except:
 							print "W2",i,fc
 							config.Logs.Log("Forecast error: ", i, fc, fs(*desc[1]), severity=logsupport.ConsoleError)

@@ -13,7 +13,7 @@ def debugPrint(flag, *args):
 			for arg in args:
 				print arg,
 			print
-			if config.Logs <> None:
+			if config.Logs is not None:
 				config.Logs.Log(*args, severity=ConsoleDebug, diskonly=True)
 	else:
 		print "DEBUG FLAG NAME ERROR", flag

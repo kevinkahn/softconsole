@@ -1,13 +1,14 @@
-import websocket
-import thread
-import time
 import base64
+import os
+import time
+
+import websocket
 import xmltodict
-from isycodes import EVENT_CTRL
+
 import config
 from debug import debugPrint, Flags
-import os
-from logsupport import ConsoleWarning, ConsoleDetail, ConsoleError
+from isycodes import EVENT_CTRL
+from logsupport import ConsoleWarning, ConsoleError
 
 seq = 0
 reportablecodes = ["DON", "DFON", "DOF", "DFOF", "ST", "OL", "RR", "CLISP", "CLISPH", "CLISPC", "CLIFS", "CLIMD",
@@ -43,8 +44,8 @@ def on_message(ws, message):
 		eseq = int(e['@seqnum'])
 		if seq <> eseq:
 			config.fromDaemon.put(
-				("Log", "Event mismatch - Expected: " + str(seq) + " Got: " + str(eseq),
-				 ConsoleWarning))  # todo indicates a missed event - so should rebase the data?
+				("Log", "Event mismatch - Expected: " + str(seq) + " Got: " + str(eseq), ConsoleWarning))
+			# todo indicates a missed event - so should rebase the data?
 			seq = eseq + 1
 		else:
 			seq += 1
@@ -75,8 +76,8 @@ def on_message(ws, message):
 		eI = e['eventInfo']
 
 		if (eventcode in reportablecodes) and node in watchlist:
-			debugPrint('DaemonCtl', time.time(), "Status update in stream: ", eseq, ":", prcode, " : ",
-					   node, " : ", eI, " : ", action)
+			debugPrint('DaemonCtl', time.time(), "Status update in stream: ", eseq, ":", prcode, " : ", node, " : ", eI,
+					   " : ", action)
 			debugPrint('DaemonStream', time.time(), "Raw stream item: ", e)
 
 			if action is dict:

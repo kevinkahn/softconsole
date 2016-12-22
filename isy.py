@@ -199,6 +199,15 @@ class Program(ProgramFolder):
 		return 'Program: ' + TreeItem.__repr__(self) + ' '
 
 
+def GetVar(var):
+	text = try_ISY_comm('/rest/vars/get/' + str(var[0]) + '/' + str(var[1]))
+	return xmltodict.parse(text)['var']['val']
+
+
+def SetVar(vartype, varid, value):
+	try_ISY_comm('/rest/vars/set/' + str(vartype) + '/' + str(varid) + '/' + str(value))
+
+
 class ISY(object):
 	"""
 	Singleton object (1 per console) that represents the ISY system as a whole and provides roots to its structures
@@ -415,14 +424,6 @@ class ISY(object):
 		utilities.register_example("ISY", self)
 		if debug.Flags['ISY']:
 			self.PrintTree(self.ProgRoot, "    ")
-
-	def GetVar(self, var):
-		text = try_ISY_comm('/rest/vars/get/' + str(var[0]) + '/' + str(var[1]))
-		return xmltodict.parse(text)['var']['val']
-
-	def SetVar(self, vartype, varid, value):
-		try_ISY_comm('/rest/vars/set/' + str(vartype) + '/' + str(varid) + '/' + str(value))
-
 
 	def PrintTree(self, startpoint, indent):
 		if isinstance(startpoint, Scene):

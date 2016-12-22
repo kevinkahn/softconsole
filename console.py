@@ -44,9 +44,13 @@ print time.strftime('%m-%d-%y %H:%M:%S'), 'CONSOLE START'
 
 signal.signal(signal.SIGTERM, utilities.signal_handler)
 signal.signal(signal.SIGINT, utilities.signal_handler)
-signal.signal(signal.SIGCHLD, utilities.daemon_died)  # todo win alternative?
+
 
 utilities.InitializeEnvironment()
+
+# This goes after InitializeEnvironment to avoid a spurious signal
+signal.signal(signal.SIGCHLD, utilities.daemon_died)  # todo win alternative?
+
 
 config.exdir = os.path.dirname(os.path.abspath(__file__))
 print 'Console start: ', config.exdir,
@@ -54,9 +58,9 @@ lastfn = ""
 lastmod = 0
 config.Console_pid = os.getpid()
 for root, dirs, files in os.walk(config.exdir):
-	for file in files:
-		if file.endswith(".py"):
-			fn = os.path.join(root, file)
+	for fname in files:
+		if fname.endswith(".py"):
+			fn = os.path.join(root, fname)
 			if os.path.getmtime(fn) > lastmod:
 				lastmod = os.path.getmtime(fn)
 				lastfn = fn
@@ -125,9 +129,9 @@ cfiles = []
 pfiles = []
 cfglib = config.ParsedConfigFile.get('cfglib', '')
 if cfglib <> '':
-	cfglib = cfglib + '/'
+	cfglib += '/'
 includes = config.ParsedConfigFile.get('include', [])
-while includes <> []:
+while includes:
 	f = includes.pop(0)
 	if f[0] <> '/':
 		pfiles.append('+' + f)

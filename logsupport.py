@@ -45,8 +45,7 @@ class Logs(object):
 
 	def Log(self, *args, **kwargs):
 		"""
-		:param severity:nan
-		:param entry:
+		params: args is one or more strings (like for print) and kwargs is severity=
 		"""
 		global LogLevel
 		severity = kwargs.pop('severity', ConsoleInfo)

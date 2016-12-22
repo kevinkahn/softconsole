@@ -4,6 +4,7 @@ from toucharea import ManualKeyDesc
 import eventlist
 import functools
 import config
+import isy
 from logsupport import ConsoleWarning, ConsoleError
 
 
@@ -42,7 +43,7 @@ class SetVarKey(ManualKeyDesc):
 	# need to set the proc to call using id(screen) as gp
 
 	def SetVar(self, presstype):
-		config.ISY.SetVar(self.VarID[0], self.VarID[1], self.Value)
+		isy.SetVar(self.VarID[0], self.VarID[1], self.Value)
 
 	# todo  call Feedback
 

@@ -38,8 +38,8 @@ clslst = {}
 doclst = {}
 
 
-def register_example(str, obj):
-	exemplarobjs[str] = list(dir(obj))
+def register_example(estr, obj):
+	exemplarobjs[estr] = list(dir(obj))
 	mro = list(obj.__class__.__mro__)
 	mro.reverse()
 	for i in range(len(mro)):
@@ -98,19 +98,19 @@ def signal_handler(sig, frame):
 	if os.getpid() == config.Console_pid:
 		print " to Console process (" + str(os.getpid()) + ')'
 		me = "Console"
-		id = "/" + str(os.getpid())
+		procid = "/" + str(os.getpid())
 	elif os.getpid() == config.Daemon_pid:
 		print "to Daemon process (" + str(os.getpid()) + ')'
 		me = "Daemon"
-		id = "/" + str(os.getpid())
+		procid = "/" + str(os.getpid())
 	else:
 		print "to Unknown process (" + str(os.getpid()) + ')'
 		me = "Unknown"
-		id = "/" + str(os.getpid())
+		procid = "/" + str(os.getpid())
 	if sig == signal.SIGINT:
 		print "Interrupt:"
 		traceback.print_stack()
-		config.Logs.Log(me + id + " Interrupted to Quit", severity=ConsoleError)
+		config.Logs.Log(me + procid + " Interrupted to Quit", severity=ConsoleError)
 		traceback.print_stack(file=config.Logs.disklogfile)
 	elif sig == signal.SIGTERM and me == "Daemon":
 		print "Daemon shutting down for termination"
@@ -118,7 +118,7 @@ def signal_handler(sig, frame):
 		print"Unexpected signal situation"
 	time.sleep(1)
 	pygame.quit()
-	print time.strftime('%m-%d-%y %H:%M:%S'), me + id + " Exiting (" + str(os.getpid()) + ')'
+	print time.strftime('%m-%d-%y %H:%M:%S'), me + procid + " Exiting (" + str(os.getpid()) + ')'
 	sys.exit(3)
 
 
@@ -126,6 +126,7 @@ def daemon_died(sig, frame):
 	# print "CSignal: {}".format(sig)
 	if config.DaemonProcess is None:
 		print time.strftime('%m-%d-%y %H:%M:%S'), "Child interrupt no child"
+		print frame
 		return
 	if config.DaemonProcess.is_alive():
 		debug.debugPrint("Main", "Child ok signal")
@@ -250,13 +251,13 @@ def DumpDocumentation():
 	olditems = []
 	for i, scr in exemplarobjs.iteritems():
 		varsinuse[i] = [x for x in scr if not x.startswith('_') and x not in olditems]
-		olditems = olditems + [x for x in scr if not x.startswith('_')]
+		olditems += [x for x in scr if not x.startswith('_')]
 
 	def scrublowers(r):
 		lower = []
 		rtn = list(r.members)
 		for i in r.members:
-			lower = lower + scrublowers(i)
+			lower += scrublowers(i)
 		r.members = [x for x in r.members if x not in lower]
 		return rtn
 
@@ -290,7 +291,7 @@ def get_timedelta(line):
 	if line is None:
 		return timedelta(0)
 	if line.isdigit():
-		line = line + ' seconds'
+		line += ' seconds'
 	timespaces = {"days": 0}
 	for timeunit in "year month week day hour minute second".split():
 		content = re.findall(r"([0-9]*?)\s*?" + timeunit, line)

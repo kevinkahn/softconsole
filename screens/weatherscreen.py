@@ -100,8 +100,8 @@ class WeatherScreenDesc(screen.ScreenDesc):
 				for fcst in self.Info.ForecastVals:
 					r, c, temph = self.RenderScreenLines(self.forecast, fcst, self.CharColor)
 					h += temph
-					renderedlines = renderedlines + r
-					centered = centered + c
+					renderedlines += r
+					centered += c
 
 		s = (usefulheight - h)/(len(renderedlines) - 1) if len(renderedlines) > 1 else 0
 		vert_off = config.topborder

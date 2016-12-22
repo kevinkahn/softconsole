@@ -1,11 +1,11 @@
 import os, shutil, subprocess, requests, time
 
 
-def StageVersion(dir, tag, label):
-	print "Staging ", tag, " in ", dir, ' because ', label,
+def StageVersion(vdir, tag, label):
+	print "Staging ", tag, " in ", vdir, ' because ', label,
 	sha = "zzz"
 	cwd = os.getcwd()
-	os.chdir(dir)
+	os.chdir(vdir)
 	shutil.rmtree('stagedversion', True)
 	os.mkdir('stagedversion')
 	os.chdir('stagedversion')
@@ -39,4 +39,4 @@ def GetSHA(tag):
 	r = requests.get(url)
 	d = r.json()
 	c = d['commit']['committer']['date']
-	return (sha, c)
+	return sha, c

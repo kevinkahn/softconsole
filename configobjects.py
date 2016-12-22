@@ -91,7 +91,7 @@ class MyScreens(object):
 																  config.CmdCharCol,
 																  proc=functools.partial(config.DS.NavPress, nextk),
 																  center=(
-																  config.horizborder + (1.5)*cbutwidth, cvertcenter),
+																	  config.horizborder + 1.5*cbutwidth, cvertcenter),
 																  size=(cbutwidth, cbutheight))
 
 		for i, kn in enumerate(config.SecondaryChain):
@@ -112,7 +112,7 @@ class MyScreens(object):
 																	   config.CmdCharCol,
 																	   proc=functools.partial(config.DS.NavPress,
 																							  nextk),
-																	   center=(config.horizborder + (1.5)*cbutwidth,
+																	   center=(config.horizborder + 1.5*cbutwidth,
 																			   cvertcenter),
 																	   size=(cbutwidth, cbutheight))
 

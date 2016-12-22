@@ -18,7 +18,7 @@ class EventItem(object):
 		return id(self)  # hash((self.delay, self.gpid, self.name))
 
 	def __eq__(self, other):
-		if other == None:
+		if other is None:
 			return False
 		return (self.abstime, self.gpid, self.name) == (
 			other.abstime, other.gpid, other.name)
@@ -55,7 +55,8 @@ class EventList(object):
 		self.BaseTime = 0
 		self.List = []
 		self.finder = {}
-		self.TASKREADY = pygame.event.Event(pygame.USEREVENT)
+		self.TASKREADY = pygame.event.Event(pygame.USEREVENT,
+											{})  # todo think this could just be the int constant and remove .type below where used
 
 	def StartLongOp(self):
 		pygame.time.set_timer(self.TASKREADY.type, 0)
@@ -66,9 +67,9 @@ class EventList(object):
 	def PrettyTime(self, t):
 		return t - self.BaseTime
 
-	def PrettyList(self, list):
+	def PrettyList(self, inlist):
 		plist = ''
-		for t, item in enumerate(list):
+		for t, item in enumerate(inlist):
 			plist = plist + '\n--------------------' + str(t) + ' : ' + str(self.PrettyTime(item[0])) + str(item)
 		return plist
 
@@ -99,7 +100,7 @@ class EventList(object):
 				heappop(self.List)
 				del self.finder[id(evnt)]
 				acttime, evnt = self.List[0]
-			return (acttime, evnt)
+			return acttime, evnt
 		except IndexError:
 			return None
 

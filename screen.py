@@ -26,7 +26,7 @@ def ButLayout(butcount):
 		return plan[butcount - 1]
 	else:
 		config.Logs.Log("Button layout error - too many or no buttons: " + butcount, logsupport.ConsoleError)
-		return (5, 5)
+		return 5, 5
 
 def ButSize(bpr, bpc, height):
 	h = config.screenheight - config.topborder - config.botborder if height == 0 else height
@@ -45,6 +45,7 @@ class ScreenDesc(object):
 		self.NavKeys = collections.OrderedDict()
 		self.Keys = collections.OrderedDict()
 		self.WithNav = True
+		self.NodeWatch = []
 
 		utilities.LocalizeParams(self, screensection, '-', 'CharColor', 'DimTO', 'PersistTO', 'BackgroundColor',
 								 'CmdKeyCol',
