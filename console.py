@@ -18,9 +18,10 @@ import os
 import signal
 import sys
 import time
-from  multiprocessing import Process, Queue
+import threading
 
 from configobj import ConfigObj
+import queuemerger2
 
 import config
 import configobjects
@@ -32,7 +33,7 @@ import logsupport
 import maintscreen
 import utilities
 import requests
-import urllib3
+
 import json
 
 # urllib3.disable_warnings()
@@ -42,15 +43,11 @@ import json
 print time.strftime('%m-%d-%y %H:%M:%S'), 'CONSOLE START'
 #urllib3.contrib.pyopenssl.inject_into_urllib3()
 
-signal.signal(signal.SIGTERM, utilities.signal_handler)
+# signal.signal(signal.SIGTERM, utilities.signal_handler)
 signal.signal(signal.SIGINT, utilities.signal_handler)
 
 
 utilities.InitializeEnvironment()
-
-# This goes after InitializeEnvironment to avoid a spurious signal
-#signal.signal(signal.SIGCHLD, utilities.daemon_died)  # todo win alternative?
-
 
 config.exdir = os.path.dirname(os.path.abspath(__file__))
 print 'Console start: ', config.exdir,
@@ -201,10 +198,18 @@ configobjects.MyScreens()
 config.Logs.Log("Linked config to ISY")
 
 """
+Set up the websocket thread to handle ISY stream
+"""
+config.EventMonitor = queuemerger2.ISYEventMonitor()
+config.QH = threading.Thread(name='QH', target=config.EventMonitor.QHandler)
+config.QH.setDaemon(True)
+config.QH.start()
+config.Logs.Log("ISY stream thread started")
+
+"""
 Build the alerts structures
 """
 config.Alerts = alerttasks.Alerts(alertspec)
-
 config.Logs.Log("Alerts established")
 
 """
@@ -212,21 +217,6 @@ Set up the Maintenance Screen
 """
 config.Logs.Log("Built Maintenance Screen")
 maintscreen.SetUpMaintScreens()
-
-"""
-Set up the watcher daemon and its communications
-"""
-# from watchdaemon import Watcher
-from watch2 import Watcher
-config.toDaemon = Queue(300)
-config.fromDaemon = Queue(300)
-p = Process(target=Watcher, name="Watcher")
-p.daemon = True
-p.start()
-config.DaemonProcess = p
-config.Daemon_pid = p.pid
-debugPrint('Main', "Spawned watcher as: ", config.Daemon_pid)
-config.Logs.Log("Watcher pid: " + str(config.Daemon_pid))
 
 config.Logs.livelog = False  # turn off logging to the screen and give user a moment to scan
 time.sleep(2)

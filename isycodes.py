@@ -1,3 +1,5 @@
+import config
+
 EVENT_CTRL = {
 	"_0": "Heartbeat",
 	"_1": "Trigger",
@@ -39,8 +41,31 @@ EVENT_CTRL = {
 	"CLIMD": "Thermostat Mode",
 	"CLIHUM": "Humidity",
 	"CLIHCS": "Heat/Cool State",
+	"UOM": "Thermostaat Units",
 	"BRT": "Brighten",
 	"DIM": "Dim",
 	"X10": "Direct X10 Commands",
-	"BEEP": "Beep",
+	"BEEP": "Beep"
 }
+
+
+def formatwsitem(sid, seq, code, action, node, info, extra):
+	try:
+		if action is None:
+			action = 'NONE'
+		if node is None:
+			node = 'NONE'
+		if info is None:
+			info = 'NONE'
+		try:
+			isynd = config.ISY.NodesByAddr[node].name
+		except:
+			isynd = node
+		pretty = sid + '/' + str(seq) + ' ' + EVENT_CTRL[code] + ': ' + str(action) + ' Node: ' + isynd + ' ' + str(
+			info)
+		if extra:
+			pretty = pretty + 'Extra: ' + repr(extra)
+	except:
+		pretty = 'FORMATTING ERROR: ' + repr(sid) + repr(seq) + repr(code) + repr(action) + repr(node) + repr(
+			info) + repr(extra)
+	return pretty

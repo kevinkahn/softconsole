@@ -15,15 +15,10 @@ wc = webcolors.name_to_rgb
 
 def Exit(option, trigger, ecode):
 	os.chdir(config.exdir)  # set cwd to be correct when dirs move underneath us so that scripts execute
-	print "Signal daemon to term"
-	os.kill(config.Daemon_pid, signal.SIGTERM)
-	config.Ending = True
-	print "join wait"
-	config.DaemonProcess.join()
-	print "join done"
 	subprocess.Popen(
 		'nohup sudo /bin/bash -e scripts/consoleexit ' + option + ' ' + config.configfile + ' ' + trigger + '>>../log.txt 2>&1',
 		shell=True)
+	pygame.quit()
 	sys.exit(ecode)
 
 def dorealexit(K, YesKey, presstype):

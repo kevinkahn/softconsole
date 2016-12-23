@@ -9,7 +9,7 @@ import xmltodict
 
 import config
 from debug import debugPrint, Flags
-from isycodes import EVENT_CTRL
+from isycodes import EVENT_CTRL, formatwsitem
 from logsupport import ConsoleWarning, ConsoleError
 
 seq = 0
@@ -31,17 +31,16 @@ def on_message(ws, message):
 		if streamid <> sr['SID']:
 			streamid = sr['SID']
 			config.fromDaemon.put(("Log", "Now using event stream: " + streamid, ConsoleWarning))
-			print 'StreamID: ', streamid
 
 	elif 'Event' in m:
 		e = m['Event']
 
-		esid = e['@sid']
+		esid = e.pop('@sid', 'No sid')
 		if streamid <> esid:
 			config.fromDaemon.put(("Log", "Now using event stream: " + str(esid), ConsoleWarning))
 			streamid = esid  # todo this can't happen - change of streamid without warning
 
-		eseq = int(e['@seqnum'])
+		eseq = int(e.pop('@seqnum', -99))
 		if seq <> eseq:
 			config.fromDaemon.put(
 				("Log", "Event mismatch - Expected: " + str(seq) + " Got: " + str(eseq), ConsoleWarning))
@@ -65,28 +64,29 @@ def on_message(ws, message):
 			else:
 				debugPrint('DaemonCtl', 'Bad message from console: ', msg)
 
-		eventcode = e['control']
-		if eventcode in EVENT_CTRL:
-			prcode = EVENT_CTRL[eventcode]
+		ecode = e.pop('control', 'Missing control')
+		if ecode in EVENT_CTRL:
+			prcode = EVENT_CTRL[ecode]
 		else:
-			prcode = "**" + eventcode + "**"
+			prcode = "**" + ecode + "**"
 
-		action = e['action']
-		node = e['node']
-		eI = e['eventInfo']
+		eaction = e.pop('action', 'No action')
+		enode = e.pop('node', 'No node')
+		eInfo = e.pop('eventInfo', 'No EventInfo')
 
-		if (eventcode in reportablecodes) and node in watchlist:
-			debugPrint('DaemonCtl', time.time(), "Status update in stream: ", eseq, ":", prcode, " : ", node, " : ", eI,
-					   " : ", action)
+		if (ecode in reportablecodes) and enode in watchlist:
+			debugPrint('DaemonCtl', time.time(), "Status update in stream: ", eseq, ":", prcode, " : ", enode, " : ",
+					   eInfo,
+					   " : ", eaction)
 			debugPrint('DaemonStream', time.time(), "Raw stream item: ", e)
 
-			if action is dict:
-				debugPrint('DaemonStream', "V5 stream - pull up action value: ", action)
-				action = action["#text"]  # todo the new xmltodict will return as data['action']['#text']
-			config.fromDaemon.put(("Node", node, action, seq))
+			if eaction is dict:
+				debugPrint('DaemonStream', "V5 stream - pull up action value: ", eaction)
+				eaction = eaction["#text"]  # todo the new xmltodict will return as data['action']['#text']
+			config.fromDaemon.put(("Node", enode, eaction, seq))
 			debugPrint('DaemonCtl', "Qsize at daemon ", config.fromDaemon.qsize())
-		elif (prcode == 'Trigger') and (action == '6'):
-			vinfo = eI['var']
+		elif (prcode == 'Trigger') and (eaction == '6'):
+			vinfo = eInfo['var']
 			vartype = int(vinfo['@type'])
 			varid = int(vinfo['@id'])
 			varval = int(vinfo['val'])
@@ -98,17 +98,15 @@ def on_message(ws, message):
 						   ':', varval)
 		else:
 			debugPrint('DaemonStream', time.time(), "Other  update in stream: ", eseq, ":", prcode, " : ",
-					   node, " : ", eI, " : ", action)
+					   enode, " : ", eInfo, " : ", eaction)
 			debugPrint('DaemonStream', time.time(), "Raw stream item: ", m)
 
-		del e['@seqnum']
-		del e['@sid']
-		del e['control']
-		del e['action']
-		del e['node']
-		del e['eventInfo']
+
 		if e:
 			config.fromDaemon.put(("Log", "Extra info in event: " + str(e), ConsoleWarning))
+		print formatwsitem(esid, eseq, ecode, eaction, enode, eInfo, e)
+		if ecode == 'ST':
+			config.fromDaemon.put(('ST', enode, int(eaction)))
 
 	else:
 		config.fromDaemon.put(("Log", "Strange item in event stream: " + str(m), ConsoleWarning))

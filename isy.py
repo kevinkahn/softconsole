@@ -57,6 +57,11 @@ def get_real_time_node_status(addr):
 		if item['@id'] == "ST":
 			devstate = item['@value']
 			break
+	try:
+		if config.ISY.NodesByAddr[addr].devState <> int(devstate):
+			print "Shadow state wrong: ", addr, devstate, config.ISY.NodesByAddr[addr].devState
+	except:
+		print 'Odd NBA: ', addr, config.ISY.NodesByAddr[addr]
 	return int(devstate if devstate.isdigit() else 0)
 
 
@@ -124,6 +129,7 @@ class Node(Folder, OnOffItem):
 		self.pnode = None  # for things like KPLs
 		self.enabled = enabled == "true"
 		self.hasstatus = False
+		self.devState = -1  # device status reported in the ISY event stream
 		# props is either an OrderedDict(@id:ST,@value:val, . . .) or a list of such
 		if isinstance(props, collections.OrderedDict):
 			props = [props]  # make it a list so below always works

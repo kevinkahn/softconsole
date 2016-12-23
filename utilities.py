@@ -92,6 +92,7 @@ def restart_console_handler(sig, frame):  # todo
 		print "Reload home release and restart"
 
 
+"""
 def signal_handler(sig, frame):
 	config.Ending = True
 	print "Signal: {}".format(sig),
@@ -120,7 +121,13 @@ def signal_handler(sig, frame):
 	pygame.quit()
 	print time.strftime('%m-%d-%y %H:%M:%S'), me + procid + " Exiting (" + str(os.getpid()) + ')'
 	sys.exit(3)
+"""
 
+
+def signal_handler(sig, frame):
+	print 'BYE'
+	pygame.quit()
+	sys.exit()
 
 def EarlyAbort(scrnmsg):
 	config.screen.fill(wc("red"))

@@ -4,15 +4,11 @@ alertscreens = {}
 
 starttime = 0
 Console_pid = 0
-Daemon_pid = 0
-Ending = False
 PRESS = 0
 FASTPRESS = 1
 
-""" Daemon related stuff"""
-toDaemon = None
-fromDaemon = None
-DaemonProcess = None
+EventMonitor = None
+QH = None
 
 # Global pointers
 exdir = ''

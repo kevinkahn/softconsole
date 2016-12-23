@@ -11,8 +11,6 @@ from logsupport import ConsoleWarning, ConsoleError, ConsoleDetail
 from collections import OrderedDict
 from eventlist import AlertEventItem, ProcEventItem
 import alerttasks
-import Queue
-import queuemerger
 
 class DisplayScreen(object):
 	def __init__(self):
@@ -96,13 +94,6 @@ class DisplayScreen(object):
 
 		self.state = newstate
 		self.AS.EnterScreen()
-		try:
-			config.toDaemon.put(['Status'] + self.AS.NodeWatch + self.WatchNodes.keys(), True, 5)  # max wait 5 seconds
-		except Queue.Full:
-			config.Logs.Log('Timeout putting Status to queue')
-			qs = config.toDaemon.qsize()
-			config.Logs.Log('Queue size = ' + str(qs))
-			exitutils.errorexit('restart')
 
 		debugPrint('Dispatch', "New watchlist(Main): " + str(self.AS.NodeWatch) + str(self.WatchNodes))
 		self.AS.InitDisplay(nav)
@@ -113,9 +104,6 @@ class DisplayScreen(object):
 
 	def MainControlLoop(self, InitScreen):
 
-		QH = threading.Thread(name='QH', target=queuemerger.Qhandler)
-		QH.setDaemon(True)
-		QH.start()
 		self.ScreensDict = config.SecondaryDict.copy()
 		self.ScreensDict.update(config.MainDict)
 
@@ -149,22 +137,12 @@ class DisplayScreen(object):
 			elif a.type == 'Init':
 				a.Invoke()
 
-		config.toDaemon.put(['Vars'] + self.WatchVars.keys())
-
 		self.SwitchScreen(InitScreen, 'Bright', 'Home', 'Startup')
 
 		while True:  # Operational Control Loop
 
-			if not QH.is_alive():
+			if not config.QH.is_alive():
 				config.Logs.Log('Queue handler died', severity=ConsoleError)
-				exitutils.errorexit('restart')
-
-			if not config.DaemonProcess.is_alive():  # todo why doesn't this catch sort of dead daemon
-				config.Logs.Log('Watcher Process died', severity=ConsoleError)
-				exitutils.errorexit('restart')
-
-			if config.toDaemon.qsize() > 10:  # likely dead daemon - no reason for queue to exceed 1 or 2
-				config.Logs.Log('Watcher Queue Stuck, severity=ConsoleError')
 				exitutils.errorexit('restart')
 
 			if self.Deferrals:  # an event was deferred mid screen touches - handle now

@@ -35,5 +35,7 @@ def Qhandler():
 				config.Logs.Log("Var alert fired: " + str(a))
 				notice = pygame.event.Event(config.DS.ISYVar, vartype=item[1], varid=item[2], value=item[3], alert=a)
 				pygame.fastevent.post(notice)
+		elif item[0] == 'ST':
+			config.ISY.NodesByAddr[item[1]].devState = item[2]
 		else:
 			config.Logs.Log("Bad msg from watcher: " + str(item), Severity=ConsoleWarning)
