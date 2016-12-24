@@ -9,12 +9,12 @@ import os
 import re
 from hw import disklogging
 
-LogLevel = 2
 ConsoleDebug = 0
-ConsoleDetail = 1
-ConsoleInfo = 2
-ConsoleWarning = 3
-ConsoleError = 4
+ConsoleDetailHigh = 1
+ConsoleDetail = 2
+ConsoleInfo = 3
+ConsoleWarning = 4
+ConsoleError = 5
 
 
 class Logs(object):
@@ -22,7 +22,7 @@ class Logs(object):
 	livelogpos = 0
 	log = []
 
-	LogColors = ("teal", "lightgreen", "white", "yellow", "red")
+	LogColors = ("teal", "lightgreen", "darkgreen", "white", "yellow", "red")
 
 	def __init__(self, screen, dirnm):
 		self.screen = screen
@@ -47,9 +47,8 @@ class Logs(object):
 		"""
 		params: args is one or more strings (like for print) and kwargs is severity=
 		"""
-		global LogLevel
 		severity = kwargs.pop('severity', ConsoleInfo)
-		if severity < LogLevel:
+		if severity < config.LogLevel:
 			return
 		diskonly = kwargs.pop('diskonly', False)
 		entry = "".join([unicode(i) for i in args])

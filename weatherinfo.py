@@ -6,7 +6,7 @@ import urllib2
 import utilities
 
 import config
-import logsupport
+from logsupport import ConsoleWarning, ConsoleError
 
 
 def TreeDict(d, *args):
@@ -31,7 +31,7 @@ def TryShorten(term):
 	if term in config.TermShortener:
 		return config.TermShortener[term]
 	elif len(term) > 12:
-		config.Logs.Log("Long term: " + term, severity=logsupport.ConsoleWarning)
+		config.Logs.Log("Long term: " + term, severity=ConsoleWarning)
 		config.TermShortener[term] = term  # only report once
 		with open(config.exdir + '/termshortenlist.new', 'w') as f:
 			json.dump(config.TermShortener, f, indent=4, separators=(',', ": "))
@@ -77,23 +77,19 @@ class WeatherInfo:
 		progress = 0
 		if time.time() > self.lastwebreq + 30*60:
 			try:
-				# print 'WU call',time.time(),self.lastwebreq
-				# print self.url
-
 				# refresh the conditions - don't do more than once per 30 minutes
-				self.lastwebreq = time.time() # do this first so that even in error case we wait a while to try again
+				self.lastwebreq = time.time()  # do this first so that even in error cases we wait a while to try again
 				try:
 					f = urllib2.urlopen(self.url, None, 15)  # wait at most 15 seconds for weather response then timeout
 					val = f.read()
 				except:
-					# todo - can report actual error codes in case not a timeout?
 					config.Logs.Log("Error fetching weather: " + self.url + str(sys.exc_info()[0]),
-									severity=logsupport.ConsoleWarning)
+									severity=ConsoleWarning)
 					raise
 				if val.find("keynotfound") <> -1:
 					if self.location <> "":
 						# only report once in log
-						config.Logs.Log("Bad weatherunderground key:" + self.location, severity=logsupport.ConsoleError)
+						config.Logs.Log("Bad weatherunderground key:" + self.location, severity=ConsoleError)
 					self.location = ""
 					self.lastwebreq = 0
 					raise
@@ -128,7 +124,7 @@ class WeatherInfo:
 								self.ForecastVals[i][fc] = TryShorten(self.ForecastVals[i][fc])
 						except:
 							print "W2",i,fc
-							config.Logs.Log("Forecast error: ", i, fc, fs(*desc[1]), severity=logsupport.ConsoleError)
+							config.Logs.Log("Forecast error: ", i, fc, fs(*desc[1]), severity=ConsoleError)
 							self.ForecastVals[i][fc] = desc[0]('0')
 							self.ForecastErr[i].append(fc)
 				"""
@@ -163,10 +159,10 @@ class WeatherInfo:
 						d=[self.ConditionVals[x] for x in ('WindDir', 'WindMPH', 'WindGust')])
 
 				if self.ConditionErr:
-					config.Logs.Log("Weather error: ", self.ConditionErr, logsupport.ConsoleError)
+					config.Logs.Log("Weather error: ", self.ConditionErr, severity=ConsoleError)
 
 			except:
-				config.Logs.Log("Error retrieving weather" + str(sys.exc_info()[0]), severity=logsupport.ConsoleError)
+				config.Logs.Log("Error retrieving weather" + str(sys.exc_info()[0]), severity=ConsoleError)
 				# print "Getting fresh weather failed ", time.time()
 				# print "Progress: ", progress
 				# print self.ConditionVals

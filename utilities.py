@@ -15,7 +15,7 @@ import pygame
 import config
 import fonts
 import hw
-from logsupport import ConsoleError, ConsoleDetail
+from logsupport import ConsoleError, ConsoleDetail, ConsoleDetailHigh
 import traceback
 
 globdoc = {}
@@ -84,48 +84,14 @@ def LogParams():
 	for p in paramlog:
 		config.Logs.Log(p)
 
-
 def restart_console_handler(sig, frame):  # todo
 	if sig == signal.SIGUSR1:
 		print "Restart Console signal"
 	if sig == signal.SIGUSR2:
 		print "Reload home release and restart"
 
-
-"""
 def signal_handler(sig, frame):
-	config.Ending = True
-	print "Signal: {}".format(sig),
-	if os.getpid() == config.Console_pid:
-		print " to Console process (" + str(os.getpid()) + ')'
-		me = "Console"
-		procid = "/" + str(os.getpid())
-	elif os.getpid() == config.Daemon_pid:
-		print "to Daemon process (" + str(os.getpid()) + ')'
-		me = "Daemon"
-		procid = "/" + str(os.getpid())
-	else:
-		print "to Unknown process (" + str(os.getpid()) + ')'
-		me = "Unknown"
-		procid = "/" + str(os.getpid())
-	if sig == signal.SIGINT:
-		print "Interrupt:"
-		traceback.print_stack()
-		config.Logs.Log(me + procid + " Interrupted to Quit", severity=ConsoleError)
-		traceback.print_stack(file=config.Logs.disklogfile)
-	elif sig == signal.SIGTERM and me == "Daemon":
-		print "Daemon shutting down for termination"
-	else:
-		print"Unexpected signal situation"
-	time.sleep(1)
-	pygame.quit()
-	print time.strftime('%m-%d-%y %H:%M:%S'), me + procid + " Exiting (" + str(os.getpid()) + ')'
-	sys.exit(3)
-"""
-
-
-def signal_handler(sig, frame):
-	print 'BYE'
+	print 'BYE', sig
 	pygame.quit()
 	sys.exit()
 
@@ -209,7 +175,7 @@ def LocalizeParams(inst, configsection, indent, *args, **kwargs):
 				if isinstance(v, str):
 					val[j] = unicode(v)
 		if (lclval[i] <> val) and (lcllist[i] in args):
-			config.Logs.Log(indent + 'LParam: ' + lcllist[i] + ': ' + str(val), severity=ConsoleDetail)
+			config.Logs.Log(indent + 'LParam: ' + lcllist[i] + ': ' + str(val), severity=ConsoleDetailHigh)
 		inst.__dict__[lcllist[i]] = val
 
 

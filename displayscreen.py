@@ -110,7 +110,7 @@ class DisplayScreen(object):
 		for a in config.Alerts.AlertsList.itervalues():
 			a.state = 'Armed'
 			config.Logs.Log("Arming " + a.type + " alert " + a.name)
-			config.Logs.Log("Detail " + str(a), severity=ConsoleDetail)
+			config.Logs.Log("->" + str(a), severity=ConsoleDetail)
 			if a.type in ('StateVarChange', 'IntVarChange'):
 				var = (a.trigger.vartype, a.trigger.varid)
 				if var in self.WatchVars:

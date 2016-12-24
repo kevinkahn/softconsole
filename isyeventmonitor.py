@@ -6,6 +6,7 @@ from logsupport import ConsoleWarning, ConsoleError
 from debug import debugPrint, Flags
 from isycodes import EVENT_CTRL, formatwsitem
 import pygame, time
+import exitutils
 
 
 class ISYEventMonitor:
@@ -14,7 +15,7 @@ class ISYEventMonitor:
 		self.watchstarttime = time.time()
 		self.watchlist = []
 		self.varlist = []
-		self.streamid = 0
+		self.streamid = "unset"
 		self.seq = 0
 		debugPrint('DaemonCtl', "Watcher: ", self.watchstarttime)
 		self.reportablecodes = ["DON", "DFON", "DOF", "DFOF", "ST", "OL", "RR", "CLISP", "CLISPH", "CLISPC", "CLIFS",
@@ -22,16 +23,14 @@ class ISYEventMonitor:
 
 	def QHandler(self):
 		def on_error(ws, error):
-			#		if type(error) is not exceptions.SystemExit:
-			#			config.fromDaemon.put(("Log", "Websocket error: " + type(error) + str(error), ConsoleError))
-			#			# todo should fatal out?
-			print 'errws', error
+			config.Logs.Log("Error in WS stream " + repr(error), severity=ConsoleError)
+			exitutils.FatalError("websocket stream error")
 
 		def on_close(ws):
 			debugPrint('DaemonCtl', "Websocket stream closed")
 
 		def on_open(ws):
-			debugPrint('DaemonCtl', "Websocket stream opened")
+			debugPrint('DaemonCtl', "Websocket stream opened: " + self.streamid)
 
 		def on_message(ws, message):
 			global varlist, watchlist
@@ -40,16 +39,17 @@ class ISYEventMonitor:
 			if 'SubscriptionResponse' in m:
 				sr = m['SubscriptionResponse']
 				if self.streamid <> sr['SID']:
-					streamid = sr['SID']
-					config.Logs.Log("Log", "Now using event stream: " + streamid, severity=ConsoleWarning)
+					self.streamid = sr['SID']
+					config.Logs.Log("Opened event stream: " + self.streamid, severity=ConsoleWarning)
 
 			elif 'Event' in m:
 				e = m['Event']
 
 				esid = e.pop('@sid', 'No sid')
 				if self.streamid <> esid:
-					config.Logs.Log("Now using event stream: " + str(esid), severity=ConsoleWarning)
-					self.streamid = esid  # todo this can't happen - change of streamid without warning
+					config.Logs.Log("Unexpected event stream change: " + self.streamid + "/" + str(esid),
+									severity=ConsoleError)
+					exitutils.FatalError("WS Stream ID Changed")
 
 				eseq = int(e.pop('@seqnum', -99))
 				if self.seq <> eseq:

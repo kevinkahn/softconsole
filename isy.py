@@ -359,13 +359,15 @@ class ISY(object):
 		while True:
 			try:
 				r = ISYsession.get(config.ISYprefix + 'programs?subfolders=true', verify=False, timeout=3)
+				if r.status_code <> 200:
+					config.Logs.Log('ISY bad program read' + r.text, severity=ConsoleWarning)
+					raise requests.exceptions.ConnectionError  # fake a connection error if we didn't get a good read
 				config.Logs.Log('Successful programs read: ' + str(r.status_code))
 				break
 			# except requests.exceptions.ConnectTimeout:
 			except:
-				# after total power outage ISY is slower to come back than RPi so
-				# we wait testing periodically.  Eventually we try rebooting just in case our own network
-				# is what is hosed
+				# after total power outage ISY is slower to come back than RPi sowait testing periodically.
+				# Eventually we try rebooting just in case our own network is what is hosed
 				trycount -= 1
 				if trycount > 0:
 					config.Logs.Log('ISY not responding')
@@ -375,7 +377,6 @@ class ISY(object):
 					config.Logs.Log('No ISY response restart (programs)')
 					exitutils.errorexit('reboot')
 					sys.exit(12)  # should never get here
-				# todo check r.status for 200?  looks like simetimes r,text is garbage early on?
 
 		configdict = xmltodict.parse(r.text)['programs']['program']
 		for item in configdict:
@@ -400,13 +401,14 @@ class ISY(object):
 			try:
 				r1 = ISYsession.get(config.ISYprefix + 'vars/definitions/2', verify=False, timeout=3)
 				r2 = ISYsession.get(config.ISYprefix + 'vars/definitions/1', verify=False, timeout=3)
+				if r1.status_code <> 200 or r2.status_code <> 200:
+					config.Logs.Log("Bad ISY var read" + r1.text + r2.text, severity=ConsoleWarning)
+					raise requests.exceptions.ConnectionError  # fake connection error on bad read
 				config.Logs.Log('Successful variable read: ' + str(r1.status_code) + '/' + str(r2.status_code))
 				break
-			# except requests.exceptions.ConnectTimeout:
 			except:
-				# after total power outage ISY is slower to come back than RPi so
-				# we wait testing periodically.  Eventually we try rebooting just in case our own network
-				# is what is hosed
+				# after total power outage ISY is slower to come back than RPi so we wait testing periodically
+				# Eventually we try rebooting just in case our own network is what is hosed
 				trycount -= 1
 				if trycount > 0:
 					config.Logs.Log('ISY not responding')
@@ -416,7 +418,6 @@ class ISY(object):
 					config.Logs.Log('No ISY response restart (vars)')
 					exitutils.errorexit('reboot')
 					sys.exit(12)  # should never get here
-				# todo check r.status for 200?  looks like simetimes r,text is garbage early on?
 
 		configdict = xmltodict.parse(r1.text)['CList']['e']
 		for v in configdict:

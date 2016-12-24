@@ -35,17 +35,14 @@ class SetVarKey(ManualKeyDesc):
 			else:
 				self.VarID = (1, config.ISY.varsInt[self.Var])
 		except:
-			# todo error fix
-			config.Logs.Log('Var key error on screen: ' + screen.name + ' Var: ' + self.Var)
+			config.Logs.Log('Var key error on screen: ' + screen.name + ' Var: ' + self.Var, severity=ConsoleWarning)
 		self.Proc = self.SetVar
 		utilities.register_example("SetVarKey", self)
-
-	# need to set the proc to call using id(screen) as gp
 
 	def SetVar(self, presstype):
 		isy.SetVar(self.VarID[0], self.VarID[1], self.Value)
 
-	# todo  call Feedback
+	# todo  add visual call Feedback
 
 
 class RunThenKey(ManualKeyDesc):
@@ -70,10 +67,9 @@ class RunThenKey(ManualKeyDesc):
 
 		if not (self.FastPress and presstype <> config.FASTPRESS):
 			self.ISYObj.runThen()
-			# todo Feedback
 			if self.Blink <> 0:
-				E = eventlist.ProcEventItem(id(self.Screen), 'keyblink', functools.partial(self.BlinkKey,
-																						   self.Blink))  # todo why dynamic, should move to a feedback call of some sort
+				E = eventlist.ProcEventItem(id(self.Screen), 'keyblink', functools.partial(self.BlinkKey, self.Blink))
+				# todo why dynamic, should move to a feedback call of some sort
 				config.DS.Tasks.AddTask(E, .5)
 
 
@@ -83,7 +79,7 @@ class OnOffKey(ManualKeyDesc):
 		utilities.LocalizeParams(self, keysection, '--', SceneProxy='', NodeName='')
 		self.MonitorObj = None  # ISY Object monitored to reflect state in the key (generally a device within a Scene) todo?
 		ManualKeyDesc.__init__(self, screen, keysection, keyname)
-		if keyname == '*Action*': keyname = self.NodeName
+		if keyname == '*Action*': keyname = self.NodeName  # special case for alert screen action keys that always have same name
 		if keyname in config.ISY.ScenesByName:
 			self.ISYObj = config.ISY.ScenesByName[keyname]
 			if self.SceneProxy <> '':
@@ -114,9 +110,6 @@ class OnOffKey(ManualKeyDesc):
 		elif keyname in config.ISY.NodesByName:
 			self.ISYObj = config.ISY.NodesByName[keyname]
 			self.MonitorObj = self.ISYObj
-		elif keyname == '*Action*':
-			# alert screen action key
-			pass  # todo
 		else:
 			debugPrint('Screen', "Screen", keyname, "unbound")
 			config.Logs.Log('Key Binding missing: ' + self.name, severity=ConsoleWarning)

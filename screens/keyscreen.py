@@ -40,6 +40,8 @@ class KeyScreenDesc(screen.BaseKeyScreenDesc):
 		for K in self.Keys.itervalues():
 			if isinstance(K, keyspecs.OnOffKey):
 				# skip program buttons # todo how to make sure we don't forget this for new key types? keys should register their own needs (vars as well)
+				# KEY should have an indicator of what node if any should go to subscriptionlist
+				# with the change to capture duplicate state everywhere may want a general repaint list for a screen?
 				self.subscriptionlist[K.MonitorObj.address] = K
 
 		debugPrint('Main', "Active Subscription List will be:")
@@ -58,7 +60,7 @@ class KeyScreenDesc(screen.BaseKeyScreenDesc):
 		super(KeyScreenDesc, self).InitDisplay(nav)
 
 	def ISYEvent(self, node, value):
-		# Watched node reported change event is ("Node", addr, value, seq)
+		# Watched node reported change event is ("Node", addr, value, seq) todo tied to above comment
 		K = self.subscriptionlist[node]
 		debugPrint('Screen', 'KS ISYEvent ', K.name, str(value), str(K.State))
 		K.State = not (int(value if value.isdigit() else 0) == 0)  # K is off (false) only if state is 0

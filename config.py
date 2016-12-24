@@ -23,6 +23,7 @@ configfile = "/home/pi/Console/config.txt"  # default location of configfile, ca
 ISYprefix = ''  # holds the url prefix for rest interface
 fonts = None
 Logs = None
+LogLevel = 3
 
 configfilelist = {}  # list of configfiles and their timestamps
 

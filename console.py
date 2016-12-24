@@ -21,7 +21,7 @@ import time
 import threading
 
 from configobj import ConfigObj
-import queuemerger2
+import isyeventmonitor
 
 import config
 import configobjects
@@ -43,7 +43,7 @@ import json
 print time.strftime('%m-%d-%y %H:%M:%S'), 'CONSOLE START'
 #urllib3.contrib.pyopenssl.inject_into_urllib3()
 
-# signal.signal(signal.SIGTERM, utilities.signal_handler)
+signal.signal(signal.SIGTERM, utilities.signal_handler)
 signal.signal(signal.SIGINT, utilities.signal_handler)
 
 
@@ -159,6 +159,7 @@ config.Logs.Log(" How: ", config.versiondnld)
 config.Logs.Log(" Version date: ", config.versioncommit)
 config.Logs.Log("Start time: ", time.strftime('%c'))
 config.Logs.Log("Console Starting  pid: ", config.Console_pid)
+config.Logs.Log("Log level: ", config.LogLevel)
 config.Logs.Log("Main config file: ", config.configfile,
 				time.strftime(' %c', time.localtime(config.configfilelist[config.configfile])))
 config.Logs.Log("Including config files:")
@@ -200,7 +201,7 @@ config.Logs.Log("Linked config to ISY")
 """
 Set up the websocket thread to handle ISY stream
 """
-config.EventMonitor = queuemerger2.ISYEventMonitor()
+config.EventMonitor = isyeventmonitor.ISYEventMonitor()
 config.QH = threading.Thread(name='QH', target=config.EventMonitor.QHandler)
 config.QH.setDaemon(True)
 config.QH.start()
@@ -235,10 +236,10 @@ Loop here using screen type to choose renderer and names to fill in cmdtxt - ret
 """
 config.DS.MainControlLoop(config.HomeScreen)
 
+# This never returns
+
 	# humidity, temperature = Adafruit_DHT.read_retry(22,4)
 	# tempF = temperature*9/5.0 +32
 	# if humidity is not None and temperature is not None:
 	#	print 'Temp={0:0.1f}*  Humidity={1:0.1f}%'.format(tempF, humidity)
 
-
-# todo - should return from the control loop mean anything?
