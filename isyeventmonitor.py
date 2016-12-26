@@ -2,7 +2,7 @@ import base64
 import websocket
 import xmltodict
 import config
-from logsupport import ConsoleWarning, ConsoleError
+from logsupport import ConsoleWarning, ConsoleError, ConsoleDetail
 from debug import debugPrint, Flags
 from isycodes import EVENT_CTRL, formatwsitem
 import pygame, time
@@ -83,7 +83,7 @@ class ISYEventMonitor:
 					if enode in config.DS.WatchNodes:
 						debugPrint('DaemonCtl', 'ISY reports change(alert):', config.ISY.NodesByAddr[enode].name)
 						for a in config.DS.WatchNodes[enode]:
-							config.Logs.Log("Node alert fired: " + str(a))
+							config.Logs.Log("Node alert fired: " + str(a), severity=ConsoleDetail)
 							notice = pygame.event.Event(config.DS.ISYAlert, node=enode, value=eaction, alert=a)
 							pygame.fastevent.post(notice)
 					else:  # don't explicity test for config.DS.AS.Nodewatch since AS may not be active yet
