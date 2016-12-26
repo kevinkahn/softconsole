@@ -264,7 +264,7 @@ class DisplayScreen(object):
 						E.proc()
 				elif isinstance(E, AlertEventItem):  # delayed alert screen
 					debugPrint('Dispatch', 'Task AlertEvent fired: ', E)
-					config.Logs.Log("Alert event fired" + str(E.alert))
+					config.Logs.Log("Alert event fired" + str(E.alert), severity=ConsoleDetail)
 					E.alert.Invoke()  # defered or delayed alert firing
 					if isinstance(E.alert.trigger, alerttasks.Periodictrigger):
 						self.Tasks.AddTask(E, E.alert.trigger.interval)

@@ -24,7 +24,7 @@ class AutoVersion(object):
 					config.Logs.Log('Restart for new version')
 					exitutils.Exit('restart', 'auto', 0)
 			except:
-				config.Logs.Log('Github check not available', severity=ConsoleWarning)
+				config.Logs.Log('Github check not available', severity=ConsoleWarning)  # todo clarify why?
 			config.DS.Tasks.EndLongOp()
 
 
