@@ -1,13 +1,11 @@
 import time
 
-import webcolors
-
 import config
 import screen
 import utilities
 from debug import debugPrint
+from utilities import wc
 
-wc = webcolors.name_to_rgb
 import weatherinfo
 import pygame
 from eventlist import ProcEventItem

@@ -1,14 +1,9 @@
-import math
-
-import webcolors
-
 import config
 import logsupport
 import utilities
 import toucharea
 import collections
-
-wc = webcolors.name_to_rgb
+from utilities import wc
 
 
 def FlatenScreenLabel(label):

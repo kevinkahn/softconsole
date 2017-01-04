@@ -1,11 +1,9 @@
 import pygame
-import webcolors
 
 import config
 import utilities
-from utilities import scaleW, scaleH
+from utilities import scaleW, scaleH, wc
 
-wc = webcolors.name_to_rgb
 import eventlist
 import functools
 

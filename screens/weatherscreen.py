@@ -1,10 +1,7 @@
 import pygame
-import webcolors
-
 import config
 from debug import debugPrint
-
-wc = webcolors.name_to_rgb
+from utilities import wc
 import screen
 import logsupport
 import weatherinfo

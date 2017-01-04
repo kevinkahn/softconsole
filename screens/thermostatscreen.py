@@ -1,17 +1,14 @@
 import pygame
-import webcolors
 import logsupport
 from pygame import gfxdraw
 
-wc = webcolors.name_to_rgb
 import config
-from config import dispratioH, dispratioW
 from debug import debugPrint
 import screen
 import xmltodict
 import toucharea
 import utilities
-from utilities import scaleW, scaleH
+from utilities import scaleW, scaleH, wc
 import functools
 
 
@@ -100,7 +97,7 @@ class ThermostatScreenDesc(screen.BaseKeyScreenDesc):
 	def ShowScreen(self):
 		self.ReInitDisplay()
 		r = config.ISYrequestsession.get('http://' + config.ISYaddr + '/rest/nodes/' + self.ISYObj.address,
-										 verify=False)
+										 verify=False)  # todo check r response
 		tstatdict = xmltodict.parse(r.text)
 		props = tstatdict["nodeInfo"]["properties"]["property"]
 
@@ -123,8 +120,8 @@ class ThermostatScreenDesc(screen.BaseKeyScreenDesc):
 			wc(self.CharColor))
 		config.screen.blit(r, ((config.screenwidth - r.get_width())/2, self.SPPos))
 		config.screen.blit(self.AdjButSurf, (0, self.AdjButTops))
-		self.Keys['Mode'].PaintKey()
-		self.Keys['Fan'].PaintKey()
+		# self.Keys['Mode'].PaintKey() # todo also painting in reinit and in init - should sort out
+		#self.Keys['Fan'].PaintKey()
 		r1 = config.fonts.Font(self.fsize[1]).render(
 			('Off', 'Heat', 'Cool', 'Auto', 'Fan', 'Prog Auto', 'Prog Heat', 'Prog Cool')[self.info["CLIMD"][0]], 0,
 			wc(self.CharColor))

@@ -7,9 +7,7 @@ import pygame
 
 import config
 from logsupport import ConsoleWarning, ConsoleError
-import webcolors
-
-wc = webcolors.name_to_rgb
+from utilities import wc
 
 
 def Exit(option, trigger, ecode):

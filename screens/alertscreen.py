@@ -1,6 +1,4 @@
-import webcolors
-import functools
-wc = webcolors.name_to_rgb
+from utilities import wc
 import config
 import toucharea
 import pygame

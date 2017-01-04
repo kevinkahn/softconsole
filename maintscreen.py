@@ -4,16 +4,14 @@ import subprocess
 from collections import OrderedDict
 
 import pygame
-import webcolors
 
 import config
 import debug
 import toucharea
 from debug import debugPrint
 from exitutils import dorealexit
-from utilities import interval_str
+from utilities import interval_str, wc
 
-wc = webcolors.name_to_rgb
 from logsupport import ConsoleWarning
 import time
 import utilities
@@ -62,8 +60,6 @@ def setdbg(K, presstype):
 	K.State = debug.Flags[K.name]
 	K.PaintKey()
 	config.Logs.Log("Debug flag ", K.name, ' = ', K.State, severity=ConsoleWarning)
-	# Let the daemon know about flags change
-	config.toDaemon.put(('flagchange', K.name, debug.Flags[K.name]))
 
 
 def gohome(K, presstype):  # neither peram used

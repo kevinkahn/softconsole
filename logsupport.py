@@ -1,9 +1,10 @@
 import pygame
 import webcolors
 
-import config
+wc = webcolors.name_to_rgb  # can't use the safe version from utilities due to import loop but this is only used with
+# known color names
 
-wc = webcolors.name_to_rgb
+import config
 import time
 import os
 import re

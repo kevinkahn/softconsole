@@ -68,7 +68,7 @@ class MyScreens(object):
 				config.SecondaryChain.remove(scr)
 			else:
 				config.Logs.Log("---" + scr)
-		config.Logs.Log("Not on a screen list (unavailable)", severity=ConsoleWarning)
+		config.Logs.Log("Not on a screen list (unavailable via nav keys)")
 		for scr in config.ExtraChain:
 			config.Logs.Log("---" + scr, severity=ConsoleWarning)
 

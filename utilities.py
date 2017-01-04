@@ -3,11 +3,8 @@ import os
 import signal
 import sys
 import time
-import debug
-import exitutils
 import webcolors
 
-wc = webcolors.name_to_rgb
 from sets import Set
 
 import pygame
@@ -15,13 +12,22 @@ import pygame
 import config
 import fonts
 import hw
-from logsupport import ConsoleError, ConsoleDetail, ConsoleDetailHigh
+from logsupport import ConsoleError, ConsoleDetail, ConsoleDetailHigh, ConsoleWarning
 import traceback
 
 globdoc = {}
 moddoc = {}
 paramlog = []
 exemplarobjs = collections.OrderedDict()
+
+
+def wc(clr):
+	try:
+		v = webcolors.name_to_rgb(clr)
+	except:
+		config.Logs.Log('Bad color name: ' + str(clr), severity=ConsoleWarning)
+		v = webcolors.name_to_rgb('black')
+	return v
 
 
 class clsstruct:

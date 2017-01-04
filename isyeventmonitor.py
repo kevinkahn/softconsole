@@ -107,7 +107,7 @@ class ISYEventMonitor:
 							debugPrint('DaemonCtl', 'State var change: ', config.ISY.varsStateInv[varid], ' <- ',
 									   varval)
 						else:
-							config.Logs.Log('Bad var message from daemon' + str(varid), severity=ConsoleError)
+							config.Logs.Log('Bad var message:' + str(varid), severity=ConsoleError)
 
 						for a in config.DS.WatchVars[(vartype, varid)]:
 							config.Logs.Log("Var alert fired: " + str(a))

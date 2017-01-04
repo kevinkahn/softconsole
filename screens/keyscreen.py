@@ -1,19 +1,11 @@
-import functools
-
-import webcolors
 from configobj import Section
 
 import config
 import isy
 import screen
 import utilities
-import logsupport
 from debug import debugPrint
-from eventlist import EventItem, ProcEventItem
 import keyspecs
-
-wc = webcolors.name_to_rgb
-
 
 class KeyScreenDesc(screen.BaseKeyScreenDesc):
 	def __init__(self, screensection, screenname):
