@@ -2,7 +2,7 @@ import config
 from logsupport import ConsoleDebug
 
 Flags = {}
-DbgFlags = ['Main', 'DaemonCtl', 'DaemonStream', 'Screen', 'ISY', 'Dispatch', 'EventList', 'Fonts', 'Special']
+DbgFlags = ['Main', 'DaemonCtl', 'DaemonStream', 'Screen', 'ISY', 'Dispatch', 'EventList', 'Fonts', 'Special', 'QDump']
 
 
 def debugPrint(flag, *args):

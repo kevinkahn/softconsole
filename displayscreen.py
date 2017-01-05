@@ -5,7 +5,7 @@ import exitutils
 import hw
 import isy
 from eventlist import EventItem, EventList
-import threading
+import time
 from debug import debugPrint
 from logsupport import ConsoleWarning, ConsoleError, ConsoleDetail
 from collections import OrderedDict
@@ -39,6 +39,7 @@ class DisplayScreen(object):
 		self.ISYChange = pygame.USEREVENT + 2  # Node state change in a current screen watched node on the ISY
 		self.ISYAlert = pygame.USEREVENT + 3  # Mpde state change in watched node for alerts
 		self.ISYVar = pygame.USEREVENT + 4  # Var value change for a watched variable on ISY
+		self.NOEVENT = pygame.event.Event(pygame.NOEVENT)
 
 		self.AS = None  # Active Screen
 		self.ScreensDict = {}  # all the sceens by name for setting navigation keys
@@ -148,6 +149,17 @@ class DisplayScreen(object):
 			if self.Deferrals:  # an event was deferred mid screen touches - handle now
 				event = self.Deferrals.pop(0)
 				debugPrint('EventList', 'Deferred Event Pop', event)
+			elif debug.Flags['QDump']:
+				events = pygame.fastevent.get()
+				if events:
+					debugPrint('QDump', 'Time: ', time.time())
+					for e in events:
+						self.Deferrals.append(e)
+						debugPrint('QDump', e, e.type)
+					else:
+						debugPrint('QDump', "Empty queue")
+						time.sleep(0.01)
+				event = self.NOEVENT
 			else:
 				event = pygame.fastevent.wait()  # wait for the next event: touches, timeouts, ISY changes on note
 
