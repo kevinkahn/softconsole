@@ -104,12 +104,15 @@ class ThermostatScreenDesc(screen.BaseKeyScreenDesc):
 		self.info = {}
 		for item in props:
 			debugPrint('Main', item["@id"], ":", item["@value"], ":", item["@formatted"])
-			self.info[item["@id"]] = (int(item['@value']), item['@formatted'])
+			try:
+				self.info[item["@id"]] = (int(item['@value']), item['@formatted'])
+			except:
+				self.info[item["@id"]] = (0, item['@formatted'])
 		config.screen.blit(self.TitleRen, self.TitlePos)
 		r = config.fonts.Font(self.fsize[3], bold=True).render(u"{:4.1f}".format(self.info["ST"][0]/2), 0,
 															   wc(self.CharColor))
 		config.screen.blit(r, ((config.screenwidth - r.get_width())/2, self.TempPos))
-		if isinstance(self.info["CLIHCS"][0], int):
+		if isinstance(self.info["CLIHCS"][0], int):  # todo now redundant given I force to 0 above
 			r = config.fonts.Font(self.fsize[0]).render(("Idle", "Heating", "Cooling")[self.info["CLIHCS"][0]], 0,
 													wc(self.CharColor))
 		else:
