@@ -13,7 +13,7 @@ SecondaryChain = Bathroom, Upper Level, LR, OtherMain, Downstairs, Portland
 [Alerts]
     [[RemoteCommands]]
     Type = IntVarChange
-    Var = Command-kck
+    Var = Commandkck
     Test = NE
     Value = 0
     Invoke = NetCmd.Command

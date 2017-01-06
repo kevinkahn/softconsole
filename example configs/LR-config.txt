@@ -10,6 +10,13 @@ DimIdleListTimes =	20, 20, 20, 20
 MainChain = LR1,LR2, Pumpkin, Local, Upper Level
 SecondaryChain = Portland, Bathroom, BR
 
+[Alerts]
+    [[RemoteCommands]]
+    Type = IntVarChange
+    Var = Commandlr
+    Test = NE
+    Value = 0
+    Invoke = NetCmd.Command
 
 [LR1]
     type = Keypad
