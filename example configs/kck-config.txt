@@ -10,6 +10,13 @@ DimIdleListTimes = 20,20
 
 MainChain = BR, Pumpkin, Local, Thermostat - Main, MyClock
 SecondaryChain = Bathroom, Upper Level, LR, OtherMain, Downstairs, Portland
+[Alerts]
+    [[RemoteCommands]]
+    Type = IntVarChange
+    Var = Command-kck
+    Test = NE
+    Value = 0
+    Invoke = NetCmd.Command
 
 [HouseStat]
     type = Status
