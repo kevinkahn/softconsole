@@ -1,5 +1,6 @@
 import pygame
 import webcolors
+import sys
 
 wc = webcolors.name_to_rgb  # can't use the safe version from utilities due to import loop but this is only used with
 # known color names
@@ -42,6 +43,7 @@ class Logs(object):
 				pass
 			self.disklogfile = open('Console.log', 'w')
 			os.chmod('Console.log', 0o555)
+			sys.stdout = self.disklogfile
 			os.chdir(cwd)
 
 	def Log(self, *args, **kwargs):

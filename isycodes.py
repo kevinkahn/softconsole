@@ -61,8 +61,34 @@ def formatwsitem(sid, seq, code, action, node, info, extra):
 			isynd = config.ISY.NodesByAddr[node].name
 		except:
 			isynd = node
-		pretty = sid + '/' + str(seq) + ' ' + EVENT_CTRL[code] + ': ' + str(action) + ' Node: ' + isynd + ' ' + str(
-			info)
+		pretty = ' ' + sid + '/' + str(seq) + ' '
+		EC = EVENT_CTRL[code]
+		if EC == 'Status':
+			return pretty + 'Status ' + isynd + ': ' + str(action)
+		elif EC == 'Heartbeat':
+			return pretty + 'Heartbeat: ' + str(action)
+		elif EC == 'Ramp Rate':
+			return pretty + 'Ramp ' + isynd + ': ' + str(action)
+		elif EC == 'Trigger' and str(action) == '0':
+			runinfo = ''
+			if 'r' in info:
+				runinfo = runinfo + ' Last run ' + info['r']
+			if 'f' in info:
+				runinfo = runinfo + ' Last finish ' + info['f']
+			if 'nsr' in info:
+				runinfo = runinfo + ' Next run ' + info['nsr']
+			other = ''
+			if 'off' in info:
+				other = 'Disabled '
+			if 'rr' in info:
+				other = other + 'Run@reboot'
+			paddr = str("0x%0.4X"%int(info['id'], 16))[2:]
+			return pretty + 'ProgRun ' + config.ISY.ProgramsByAddr[paddr].name + runinfo + ' Status: ' + info[
+				's'] + other
+		elif EC == "System Status":
+			return pretty + "System Status " + ('Not Busy', 'Busy', 'Idle', 'Safe Mode')[int(action)]
+		else:
+			pretty = pretty + EC + ': ' + str(action) + ' Node: ' + isynd + ' ' + str(info)
 		if extra:
 			pretty = pretty + 'Extra: ' + repr(extra)
 	except:

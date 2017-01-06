@@ -1,4 +1,5 @@
 import config
+import sys
 from logsupport import ConsoleDebug
 
 Flags = {}
@@ -9,14 +10,14 @@ def debugPrint(flag, *args):
 	global Flags, DbgFlags
 	if flag in DbgFlags:
 		if Flags[flag]:
-			print flag, '-> ',
+			print >> sys.stderr, flag, '-> ',
 			for arg in args:
-				print arg,
-			print
+				print >> sys.stderr, arg,
+			print >> sys.stderr
 			if config.Logs is not None:
-				config.Logs.Log(*args, severity=ConsoleDebug, diskonly=True)
+				config.Logs.Log(flag, '-> ', *args, severity=ConsoleDebug, diskonly=True)
 	else:
-		print "DEBUG FLAG NAME ERROR", flag
+		print >> sys.stderr, "DEBUG FLAG NAME ERROR", flag
 
 
 def InitFlags():

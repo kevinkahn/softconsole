@@ -74,7 +74,8 @@ class ISYEventMonitor:
 				else:
 					tt = config.DS.WatchNodes.keys()
 				if (ecode in self.reportablecodes) and (enode in tt):
-					debugPrint('DaemonCtl', time.time(), "Status update in stream: ", eseq, ":", prcode, " : ", enode,
+					debugPrint('DaemonCtl', time.time() - config.starttime, "Status update in stream: ", eseq, ":",
+							   prcode, " : ", enode,
 							   " : ", eInfo, " : ", eaction)
 					if eaction is dict:
 						debugPrint('DaemonStream', "V5 stream - pull up action value: ", eaction)
@@ -120,7 +121,8 @@ class ISYEventMonitor:
 
 				if e:
 					config.Logs.Log("Extra info in event: " + str(e), severity=ConsoleWarning)
-				debugPrint('DaemonStream', time.time(), formatwsitem(esid, eseq, ecode, eaction, enode, eInfo, e))
+				debugPrint('DaemonStream', time.time() - config.starttime,
+						   formatwsitem(esid, eseq, ecode, eaction, enode, eInfo, e))
 
 				if ecode == 'ST':
 					config.ISY.NodesByAddr[enode].devState = int(eaction)
@@ -128,7 +130,7 @@ class ISYEventMonitor:
 			else:
 				config.Logs.Log("Strange item in event stream: " + str(m), severity=ConsoleWarning)
 
-		websocket.enableTrace(True)
+		websocket.enableTrace(False)
 		ws = websocket.WebSocketApp('ws://' + config.ISYaddr + '/rest/subscribe', on_message=on_message,
 									on_error=on_error,
 									on_close=on_close, on_open=on_open,

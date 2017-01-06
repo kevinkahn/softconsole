@@ -19,6 +19,7 @@ import signal
 import sys
 import time
 import threading
+import cgitb
 
 from configobj import ConfigObj
 import isyeventmonitor
@@ -77,8 +78,6 @@ except:
 	config.versioncommit = 'none'
 	print 'No version info)'
 
-
-from debug import debugPrint
 
 """
 Dynamically load class definitions for all defined screen types and link them to how configuration happens
@@ -146,6 +145,7 @@ config.LogLevel = int(config.ParsedConfigFile.get('LogLevel', config.LogLevel))
 utilities.ParseParam(globalparams)  # add global parameters to config file
 
 config.Logs = logsupport.Logs(config.screen, os.path.dirname(config.configfile))
+cgitb.enable(format='text')
 config.Logs.Log(u"Soft ISY Console")
 config.Logs.Log(u"  \u00A9 Kevin Kahn 2016")
 config.Logs.Log("Software under Apache 2.0 License")
