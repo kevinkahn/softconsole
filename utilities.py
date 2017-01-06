@@ -253,7 +253,7 @@ from datetime import timedelta
 
 def get_timedelta(line):
 	if line is None:
-		return timedelta(0)
+		return 0
 	if line.isdigit():
 		line += ' seconds'
 	timespaces = {"days": 0}

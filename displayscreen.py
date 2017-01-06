@@ -140,7 +140,7 @@ class DisplayScreen(object):
 
 		self.SwitchScreen(InitScreen, 'Bright', 'Home', 'Startup')
 
-		while True:  # Operational Control Loop
+		while config.Running:  # Operational Control Loop
 
 			if not config.QH.is_alive():
 				config.Logs.Log('Queue handler died', severity=ConsoleError)
@@ -283,3 +283,5 @@ class DisplayScreen(object):
 				else:
 					# unknown eevent?
 					debugPrint('Dispatch', 'TASKREADY found unknown event: ', E)
+
+		config.Logs.Log('Main Loop Exit')

@@ -1,4 +1,4 @@
-import os, shutil, subprocess, requests, time
+import os, shutil, subprocess, requests, time, config
 
 
 def StageVersion(vdir, tag, label):
@@ -26,7 +26,7 @@ def InstallStagedVersion(d):
 	os.rename(d + '.TMP/stagedversion', d)  # move new version into place
 	os.rename(d + '.TMP', d + '/previousversion')  # save previous version
 	subprocess.call('sudo bash ' + d + '/scripts/upgradeprep.sh >> /home/pi/text.txt', shell=True)
-	print "Staged version installed in ", d
+	config.Logs.Log("Staged version installed in ", d)
 
 
 def GetSHA(tag):

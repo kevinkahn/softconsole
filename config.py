@@ -3,6 +3,7 @@ alertprocs = {}  # set by modules from alerts directory
 alertscreens = {}
 
 starttime = 0
+Running = True
 Console_pid = 0
 PRESS = 0
 FASTPRESS = 1
