@@ -44,8 +44,8 @@ import json
 print time.strftime('%m-%d-%y %H:%M:%S'), 'CONSOLE START'
 #urllib3.contrib.pyopenssl.inject_into_urllib3()
 
-signal.signal(signal.SIGTERM, utilities.signal_handler)
-signal.signal(signal.SIGINT, utilities.signal_handler)
+# signal.signal(signal.SIGTERM, utilities.signal_handler)
+# signal.signal(signal.SIGINT, utilities.signal_handler)
 
 
 utilities.InitializeEnvironment()
