@@ -9,7 +9,7 @@ class AutoVersion(object):
 		pass
 
 	@staticmethod
-	def CheckUpToDate(alert):
+	def CheckUpToDate(self, alert):
 		exiting = F
 		if config.versionname not in ('none', 'development'):  # skip if we don't know what is running
 			config.DS.Tasks.StartLongOp()  # todo perhaps a cleaner way to deal with long ops

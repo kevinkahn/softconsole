@@ -250,6 +250,7 @@ class DisplayScreen(object):
 						E = AlertEventItem(id(alert), 'delayed' + evtype, alert)
 						self.Tasks.AddTask(E, alert.trigger.delay)
 					else:  # invoke now
+						debugPrint('Dispatch', "Invoke: ", alert.name)
 						alert.Invoke()  # either calls a proc or enters a screen and adjusts alert state appropriately
 				elif alert.state == 'Active' and not alert.trigger.IsTrue():  # alert condition has cleared and screen is up
 					alert.state = 'Armed'  # just rearm the alert

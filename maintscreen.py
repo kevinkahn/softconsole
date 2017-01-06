@@ -45,6 +45,7 @@ def SetUpMaintScreens():
 		tmp[flg] = (flg, setdbg)  # setdbg gets fixed below to be actually callable
 	tmp['return'] = ('Return', functools.partial(goto, config.MaintScreen))
 	DebugFlags = MaintScreenDesc('Flags', tmp)
+	debug.DebugFlagKeys = DebugFlags.Keys
 	for kn, k in DebugFlags.Keys.iteritems():
 		if kn in debug.Flags:
 			k.State = debug.Flags[k.name]
@@ -93,34 +94,43 @@ def dobeta(K, presstype):
 	elif K.name == 'beta':
 		subprocess.Popen('sudo touch /home/pi/usebeta', shell=True)
 	elif K.name == 'fetch':
-		config.Logs.Log("New version fetch(currentbeta)")
-		print "----------------------------------------"
-		print "New Version Fetch Requested (currentbeta)"
-		try:
-			U.StageVersion(basedir + '/consolebeta', 'currentbeta', 'RequestedDownload')
-			U.InstallStagedVersion(basedir + '/consolebeta')
-		except:
-			config.Logs.Log('Failed beta download', severity=ConsoleWarning)
-	# subprocess.Popen('sudo /bin/bash -e scripts/getcurrentbeta', shell=True)
+		fetch_beta()
 	elif K.name == 'release':
-		print "----------------------------------------"
-		try:
-			if os.path.exists(basedir + '/homesystem'):
-				# personal system
-				config.Logs.Log("New version fetch(homerelease)")
-				print "New Version Fetch Requested (homesystem)"
-				U.StageVersion(basedir + '/consolestable', 'homerelease', 'RequestedDownload')
-			else:
-				config.Logs.Log("New version fetch(currentrelease)")
-				print "New Version Fetch Requested (currentrelease)"
-				U.StageVersion(basedir + '/consolestable', 'currentrelease', 'RequestedDownload')
-			U.InstallStagedVersion(basedir + '/consolestable')
-		except:
-			config.Logs.Log('Failed release download', severity=ConsoleWarning)
+		fetch_stable()
 
 	time.sleep(2)
 	K.State = not K.State
 	K.PaintKey()
+
+
+def fetch_stable():
+	basedir = os.path.dirname(config.exdir)
+	print "----------------------------------------"
+	try:
+		if os.path.exists(basedir + '/homesystem'):
+			# personal system
+			config.Logs.Log("New version fetch(homerelease)")
+			print "New Version Fetch Requested (homesystem)"
+			U.StageVersion(basedir + '/consolestable', 'homerelease', 'RequestedDownload')
+		else:
+			config.Logs.Log("New version fetch(currentrelease)")
+			print "New Version Fetch Requested (currentrelease)"
+			U.StageVersion(basedir + '/consolestable', 'currentrelease', 'RequestedDownload')
+		U.InstallStagedVersion(basedir + '/consolestable')
+	except:
+		config.Logs.Log('Failed release download', severity=ConsoleWarning)
+
+
+def fetch_beta():
+	basedir = os.path.dirname(config.exdir)
+	config.Logs.Log("New version fetch(currentbeta)")
+	print "----------------------------------------"
+	print "New Version Fetch Requested (currentbeta)"
+	try:
+		U.StageVersion(basedir + '/consolebeta', 'currentbeta', 'RequestedDownload')
+		U.InstallStagedVersion(basedir + '/consolebeta')
+	except:
+		config.Logs.Log('Failed beta download', severity=ConsoleWarning)
 
 
 class LogDisplayScreen(screen.BaseKeyScreenDesc):

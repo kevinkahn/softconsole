@@ -4,6 +4,7 @@ from logsupport import ConsoleDebug
 
 Flags = {}
 DbgFlags = ['Main', 'DaemonCtl', 'DaemonStream', 'Screen', 'ISY', 'Dispatch', 'EventList', 'Fonts', 'Special', 'QDump']
+DebugFlagKeys = None
 
 
 def debugPrint(flag, *args):
