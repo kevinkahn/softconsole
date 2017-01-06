@@ -25,7 +25,7 @@ def InstallStagedVersion(d):
 	os.rename(d, d + '.TMP')  # move active directory to temp
 	os.rename(d + '.TMP/stagedversion', d)  # move new version into place
 	os.rename(d + '.TMP', d + '/previousversion')  # save previous version
-	subprocess.call('sudo bash ' + d + 'scripts/upgradeprep.sh >> /home/pi/text.txt', shell=True)
+	subprocess.call('sudo bash ' + d + '/scripts/upgradeprep.sh >> /home/pi/text.txt', shell=True)
 	print "Staged version installed in ", d
 
 
