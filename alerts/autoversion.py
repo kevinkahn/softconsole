@@ -10,7 +10,7 @@ class AutoVersion(object):
 
 	@staticmethod
 	def CheckUpToDate(self, alert):
-		exiting = F
+		exiting = False
 		if config.versionname not in ('none', 'development'):  # skip if we don't know what is running
 			config.DS.Tasks.StartLongOp()  # todo perhaps a cleaner way to deal with long ops
 			try:  # if network is down or other error occurs just skip for now rather than blow up
