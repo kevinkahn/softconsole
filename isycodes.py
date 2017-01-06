@@ -50,6 +50,7 @@ EVENT_CTRL = {
 
 
 def formatwsitem(sid, seq, code, action, node, info, extra):
+	paddr = 'zzzzz'
 	try:
 		if action is None:
 			action = 'NONE'
@@ -82,9 +83,12 @@ def formatwsitem(sid, seq, code, action, node, info, extra):
 				other = 'Disabled '
 			if 'rr' in info:
 				other = other + 'Run@reboot'
+			if 's' in info:
+				stat = ' Status: ' + info['s']
+			else:
+				stat = ''
 			paddr = str("0x%0.4X"%int(info['id'], 16))[2:]
-			return pretty + 'ProgRun ' + config.ISY.ProgramsByAddr[paddr].name + runinfo + ' Status: ' + info[
-				's'] + other
+			return pretty + 'ProgRun ' + config.ISY.ProgramsByAddr[paddr].name + runinfo + stat + other
 		elif EC == "System Status":
 			return pretty + "System Status " + ('Not Busy', 'Busy', 'Idle', 'Safe Mode')[int(action)]
 		else:
