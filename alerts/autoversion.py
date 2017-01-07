@@ -8,7 +8,7 @@ class AutoVersion(object):
 	def __init__(self):
 		pass
 
-	@staticmethod
+	# @staticmethod
 	def CheckUpToDate(self, alert):
 		exiting = False
 		if config.versionname not in ('none', 'development'):  # skip if we don't know what is running
