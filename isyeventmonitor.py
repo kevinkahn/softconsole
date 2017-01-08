@@ -77,11 +77,17 @@ class ISYEventMonitor:
 					debugPrint('DaemonCtl', time.time() - config.starttime, "Status update in stream: ", eseq, ":",
 							   prcode, " : ", enode,
 							   " : ", eInfo, " : ", eaction)
+
+					debugPrint('Special', time.time() - config.starttime, "Status update in stream: ", eseq, ":",
+							   prcode, " : ", enode,
+							   " : ", eInfo, " : ", eaction)
 					if eaction is dict:
 						debugPrint('DaemonStream', "V5 stream - pull up action value: ", eaction)
 						eaction = eaction["#text"]  # todo the new xmltodict will return as data['action']['#text']
 
 					if enode in config.DS.WatchNodes:
+						debugPrint('Special', time.time() - config.starttime,
+								   formatwsitem(esid, eseq, ecode, eaction, enode, eInfo, e))
 						debugPrint('DaemonCtl', 'ISY reports change(alert):', config.ISY.NodesByAddr[enode].name)
 						for a in config.DS.WatchNodes[enode]:
 							config.Logs.Log("Node alert fired: " + str(a), severity=ConsoleDetail)
@@ -123,6 +129,9 @@ class ISYEventMonitor:
 					config.Logs.Log("Extra info in event: " + str(e), severity=ConsoleWarning)
 				debugPrint('DaemonStream', time.time() - config.starttime,
 						   formatwsitem(esid, eseq, ecode, eaction, enode, eInfo, e))
+				if enode == '20 F9 76 1':
+					debugPrint('Special', time.time() - config.starttime,
+							   formatwsitem(esid, eseq, ecode, eaction, enode, eInfo, e))
 
 				if ecode == 'ST':
 					config.ISY.NodesByAddr[enode].devState = int(eaction)
