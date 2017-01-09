@@ -15,8 +15,9 @@ def Exit(option, trigger, ecode):
 	subprocess.Popen(
 		'nohup sudo /bin/bash -e scripts/consoleexit ' + option + ' ' + config.configfile + ' ' + trigger + '>>../log.txt 2>&1 &',
 		shell=True)
-	pygame.quit()
+
 	config.Logs.Log("Console Exiting")
+	pygame.quit()
 	config.Running = False  # make sure the main loop ends even if this exit call returns
 	sys.exit(ecode)
 
