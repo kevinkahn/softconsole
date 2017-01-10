@@ -59,9 +59,10 @@ def get_real_time_node_status(addr):
 			break
 	try:
 		if config.ISY.NodesByAddr[addr].devState <> int(devstate):
-			print "Shadow state wrong: ", addr, devstate, config.ISY.NodesByAddr[addr].devState
+			config.Logs.Log("Shadow state wrong: ", addr, devstate, config.ISY.NodesByAddr[addr].devState,
+							severity=ConsoleWarning)
 	except:
-		print 'Odd NBA: ', addr, config.ISY.NodesByAddr[addr]
+		config.Logs.Log('Bad NodeByAddr in rt status: ', addr, severity=ConsoleError)
 	return int(devstate if devstate.isdigit() else 0)
 
 
@@ -286,11 +287,10 @@ class ISY(object):
 					sys.exit(10)  # should never get here
 
 		if r.status_code <> 200:
-			print 'ISY text response:'
-			print '-----'
-			print r.text
-			print '-----'
-			print 'Cannot access ISY - check username and password.  Status code: ' + str(r.status_code)
+			config.Logs.Log('ISY text response:', severity=ConsoleError)
+			config.Logs.Log('-----', severity=ConsoleError)
+			config.Logs.Log(r.text, severity=ConsoleError)
+			config.Logs.Log('-----', severity=ConsoleError)
 			config.Logs.Log('Cannot access ISY - check username/password')
 			config.Logs.Log('Status code: ' + str(r.status_code))
 			time.sleep(10)
@@ -346,10 +346,10 @@ class ISY(object):
 															p, memberlist)
 			else:
 				if scene['name'] <> '~Auto DR':
-					print 'Scene with no members', scene['name']
+					config.Logs.Log('Scene with no members', scene['name'], severity=ConsoleWarning)
 		self.LinkChildrenParents(self.ScenesByAddr, self.ScenesByName, self.FoldersByAddr, self.NodesByAddr)
 		if debug.Flags['ISY']:
-			self.PrintTree(self.NodeRoot, "    ")
+			self.PrintTree(self.NodeRoot, "    ", 'Nodes')
 
 		"""
 		Build the Program tree
@@ -430,11 +430,12 @@ class ISY(object):
 
 		utilities.register_example("ISY", self)
 		if debug.Flags['ISY']:
-			self.PrintTree(self.ProgRoot, "    ")
+			self.PrintTree(self.ProgRoot, "    ", 'Programs')
 
-	def PrintTree(self, startpoint, indent):
+	def PrintTree(self, startpoint, indent, msg):
+		debug.debugPrint('ISY', 'Graph for ', msg)
 		if isinstance(startpoint, Scene):
-			print indent + startpoint.__repr__()
+			debug.debugPrint('ISY', indent + startpoint.__repr__())
 			for m in startpoint.members:
 				if m[0] == 16:
 					sR = 'R'
@@ -442,10 +443,10 @@ class ISY(object):
 					sR = 'C'
 				else:
 					sR = 'X'
-				print indent + "-" + sR + "--" + (m[1].__repr__())
+				debug.debugPrint('ISY', indent + "-" + sR + "--" + (m[1].__repr__()))
 		elif isinstance(startpoint, TreeItem):
-			print indent + startpoint.__repr__()
+			debug.debugPrint('ISY', indent + startpoint.__repr__())
 			for c in startpoint.children:
 				self.PrintTree(c, indent + "....")
 		else:
-			print "Funny thing in tree ", startpoint.__repr__
+			debug.debugPrint('ISY', "Funny thing in tree ", startpoint.__repr__)

@@ -41,7 +41,7 @@ import json
 # import urllib3.contrib.pyopenssl
 
 # sys.stdout = open('/home/pi/master.log', 'a', 0)
-print time.strftime('%m-%d-%y %H:%M:%S'), 'CONSOLE START'
+# print time.strftime('%m-%d-%y %H:%M:%S'), 'CONSOLE START'
 #urllib3.contrib.pyopenssl.inject_into_urllib3()
 
 # signal.signal(signal.SIGTERM, utilities.signal_handler)
@@ -51,7 +51,7 @@ print time.strftime('%m-%d-%y %H:%M:%S'), 'CONSOLE START'
 utilities.InitializeEnvironment()
 
 config.exdir = os.path.dirname(os.path.abspath(__file__))
-print 'Console start: ', config.exdir,
+#print 'Console start: ', config.exdir,
 lastfn = ""
 lastmod = 0
 config.Console_pid = os.getpid()
@@ -62,7 +62,7 @@ for root, dirs, files in os.walk(config.exdir):
 			if os.path.getmtime(fn) > lastmod:
 				lastmod = os.path.getmtime(fn)
 				lastfn = fn
-print 'Version (', lastfn, time.ctime(lastmod),
+#print 'Version (', lastfn, time.ctime(lastmod),
 
 try:
 	with open(config.exdir + '/' + 'versioninfo') as f:
@@ -70,13 +70,13 @@ try:
 		config.versionsha = f.readline()[:-1]
 		config.versiondnld = f.readline()[:-1]
 		config.versioncommit = f.readline()[:-1]
-		print config.versionname, config.versionsha, config.versiondnld, config.versioncommit, ')'
+	#print config.versionname, config.versionsha, config.versiondnld, config.versioncommit, ')'
 except:
 	config.versionname = 'none'
 	config.versionsha = 'none'
 	config.versiondnld = 'none'
 	config.versioncommit = 'none'
-	print 'No version info)'
+#print 'No version info)'
 
 
 """

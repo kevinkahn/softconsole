@@ -145,6 +145,3 @@ class EventList(object):
 			if e.gpid == gpid:
 				self.RemoveTask(e)
 
-
-				# add debug option to print (flag=timerq) name, screen.name, abstime, dt, deleted, hidden
-				# add to create, add?, next, remove, remove all - will create lots of output = throttle sommehow?
