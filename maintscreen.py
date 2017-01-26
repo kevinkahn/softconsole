@@ -117,6 +117,7 @@ def fetch_stable():
 			print "New Version Fetch Requested (currentrelease)"
 			U.StageVersion(basedir + '/consolestable', 'currentrelease', 'RequestedDownload')
 		U.InstallStagedVersion(basedir + '/consolestable')
+		config.Logs.Log("Staged version installed in consolestable")
 	except:
 		config.Logs.Log('Failed release download', severity=ConsoleWarning)
 
@@ -129,6 +130,7 @@ def fetch_beta():
 	try:
 		U.StageVersion(basedir + '/consolebeta', 'currentbeta', 'RequestedDownload')
 		U.InstallStagedVersion(basedir + '/consolebeta')
+		config.Logs.Log("Staged version installed in consolebeta")
 	except:
 		config.Logs.Log('Failed beta download', severity=ConsoleWarning)
 

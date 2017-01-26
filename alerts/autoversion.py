@@ -22,6 +22,7 @@ class AutoVersion(object):
 					config.Logs.Log('Getting: ' + sha + ' of ' + c)
 					githubutil.StageVersion(config.exdir, config.versionname, 'Automatic download')
 					githubutil.InstallStagedVersion(config.exdir)
+					config.Logs.Log("Staged version installed in ", config.exdir)
 					exiting = True
 					config.Logs.Log('Restart for new version')
 					exitutils.Exit('restart', 'auto', 0)

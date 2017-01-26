@@ -1,5 +1,9 @@
-import os, shutil, subprocess, requests, time, config
+import os, shutil, subprocess, requests, tim
 
+"""
+NOTE: This gets used in initial setup of console by the setup program
+** Don't add any dependencies on other parts of the console (E.g., no logging
+"""
 
 def StageVersion(vdir, tag, label):
 	print "Staging ", tag, " in ", vdir, ' because ', label,
@@ -25,8 +29,7 @@ def InstallStagedVersion(d):
 	os.rename(d, d + '.TMP')  # move active directory to temp
 	os.rename(d + '.TMP/stagedversion', d)  # move new version into place
 	os.rename(d + '.TMP', d + '/prevcd iousversion')  # save previous version
-	subprocess.call('sudo bash ' + d + '/scripts/upgradeprep.sh >> /home/pi/text.txt', shell=True)  # todo log elsewhere
-	config.Logs.Log("Staged version installed in ", d)
+	subprocess.call('sudo bash ' + d + '/scripts/upgradeprep.sh >> /home/pi/text.txt', shell=True)
 
 
 def GetSHA(tag):
