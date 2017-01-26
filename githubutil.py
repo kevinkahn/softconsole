@@ -1,4 +1,4 @@
-import os, shutil, subprocess, requests, tim
+import os, shutil, subprocess, requests, time
 
 """
 NOTE: This gets used in initial setup of console by the setup program
