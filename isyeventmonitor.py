@@ -27,9 +27,11 @@ class ISYEventMonitor:
 			exitutils.FatalError("websocket stream error")
 
 		def on_close(ws):
+			config.Logs.Log("Websocket stream closed")
 			debugPrint('DaemonCtl', "Websocket stream closed")
 
 		def on_open(ws):
+			config.Logs.Log("Websocket stream opened")
 			debugPrint('DaemonCtl', "Websocket stream opened: " + self.streamid)
 
 		def on_message(ws, message):
@@ -78,7 +80,7 @@ class ISYEventMonitor:
 							   prcode, " : ", enode,
 							   " : ", eInfo, " : ", eaction)
 
-					debugPrint('Special', time.time() - config.starttime, "Status update in stream: ", eseq, ":",
+					debugPrint('DebugSpecial', time.time() - config.starttime, "Status update in stream: ", eseq, ":",
 							   prcode, " : ", enode,
 							   " : ", eInfo, " : ", eaction)
 					if eaction is dict:
@@ -86,7 +88,7 @@ class ISYEventMonitor:
 						eaction = eaction["#text"]  # todo the new xmltodict will return as data['action']['#text']
 
 					if enode in config.DS.WatchNodes:
-						debugPrint('Special', time.time() - config.starttime,
+						debugPrint('DebugSpecial', time.time() - config.starttime,
 								   formatwsitem(esid, eseq, ecode, eaction, enode, eInfo, e))
 						debugPrint('DaemonCtl', 'ISY reports change(alert):', config.ISY.NodesByAddr[enode].name)
 						for a in config.DS.WatchNodes[enode]:
@@ -130,7 +132,7 @@ class ISYEventMonitor:
 				debugPrint('DaemonStream', time.time() - config.starttime,
 						   formatwsitem(esid, eseq, ecode, eaction, enode, eInfo, e))
 				if enode == '20 F9 76 1':
-					debugPrint('Special', time.time() - config.starttime,
+					debugPrint('DebugSpecial', time.time() - config.starttime,
 							   formatwsitem(esid, eseq, ecode, eaction, enode, eInfo, e))
 
 				if ecode == 'ST':
@@ -139,7 +141,7 @@ class ISYEventMonitor:
 			else:
 				config.Logs.Log("Strange item in event stream: " + str(m), severity=ConsoleWarning)
 
-		websocket.enableTrace(False)
+		websocket.enableTrace(True)
 		ws = websocket.WebSocketApp('ws://' + config.ISYaddr + '/rest/subscribe', on_message=on_message,
 									on_error=on_error,
 									on_close=on_close, on_open=on_open,

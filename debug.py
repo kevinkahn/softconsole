@@ -3,7 +3,8 @@ import sys
 from logsupport import ConsoleDebug
 
 Flags = {}
-DbgFlags = ['Main', 'DaemonCtl', 'DaemonStream', 'Screen', 'ISY', 'Dispatch', 'EventList', 'Fonts', 'Special', 'QDump']
+DbgFlags = ['Main', 'DaemonCtl', 'DaemonStream', 'Screen', 'ISY', 'Dispatch', 'EventList', 'Fonts', 'DebugSpecial',
+			'QDump']
 DebugFlagKeys = None
 
 
