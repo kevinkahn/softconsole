@@ -170,5 +170,8 @@ class WeatherInfo:
 				# print self.url
 				# self.lastwebreq = 0 todo wunderground key error caused overuse
 				return -1
-		self.ConditionVals['Age'] = utilities.interval_str(time.time() - self.ConditionVals['Time'])
+		try:
+			self.ConditionVals['Age'] = utilities.interval_str(time.time() - self.ConditionVals['Time'])
+		except:
+			self.ConditionVals['Age'] = "No readings every retrieved"
 		return self.lastwebreq
