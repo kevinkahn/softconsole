@@ -147,3 +147,4 @@ class ISYEventMonitor:
 									on_close=on_close, on_open=on_open,
 									subprotocols=['ISYSUB'], header={'Authorization': 'Basic ' + self.a})
 		ws.run_forever()
+		config.Logs.Log("QH Thread exiting", severity=ConsoleError)

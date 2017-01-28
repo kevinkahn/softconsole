@@ -1,6 +1,7 @@
 import pygame
 import webcolors
 import sys
+import traceback
 
 wc = webcolors.name_to_rgb  # can't use the safe version from utilities due to import loop but this is only used with
 # known color names
@@ -51,6 +52,7 @@ class Logs(object):
 		params: args is one or more strings (like for print) and kwargs is severity=
 		"""
 		severity = kwargs.pop('severity', ConsoleInfo)
+		tb = kwargs.pop('tb', True)
 		if severity < config.LogLevel:
 			return
 		diskonly = kwargs.pop('diskonly', False)
@@ -61,6 +63,11 @@ class Logs(object):
 			self.disklogfile.write(time.strftime('%m-%d-%y %H:%M:%S')
 								   + ' Sev: ' + str(severity) + " " + entry.encode('ascii',
 																				   errors='backslashreplace') + '\n')
+			if severity == ConsoleError and tb:
+				# traceback.print_stack(file=self.disklogfile)
+				frames = traceback.format_stack()
+				for f in frames[0:-2]:
+					self.disklogfile.write('-----------------' + f)
 			self.disklogfile.flush()
 			os.fsync(self.disklogfile.fileno())
 		if self.livelog and not diskonly:

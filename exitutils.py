@@ -60,5 +60,5 @@ def Exit_Options(msg, scrnmsg):
 
 def FatalError(msg):
 	config.screen.fill(wc("red"))
-	config.Logs.Log(msg, severity=ConsoleError)
+	config.Logs.Log(msg, severity=ConsoleError, tb=False)
 	Exit('restart', 'codeerror', 99)
