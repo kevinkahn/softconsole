@@ -27,7 +27,7 @@ class ISYEventMonitor:
 			exitutils.FatalError("websocket stream error")
 
 		def on_close(ws, code, reason):
-			config.Logs.Log("Websocket stream closed: " + str(code) + ' : ' + str(reason))
+			config.Logs.Log("Websocket stream closed: " + str(code) + ' : ' + str(reason), severity=ConsoleError)
 			debugPrint('DaemonCtl', "Websocket stream closed", str(code), str(reason))
 
 		def on_open(ws):
