@@ -162,7 +162,9 @@ class WeatherInfo:
 					config.Logs.Log("Weather error: ", self.ConditionErr, severity=ConsoleError)
 
 			except:
-				config.Logs.Log("Error retrieving weather" + str(sys.exc_info()[0]), severity=ConsoleError)
+				config.Logs.Log(
+					"Error retrieving weather" + str(sys.exc_info()[0]) + ':' + str(sys.exc_info()[1]) + ' ' + self.url,
+					severity=ConsoleError)
 				# print "Getting fresh weather failed ", time.time()
 				# print "Progress: qq", progress
 				# print self.ConditionVals
