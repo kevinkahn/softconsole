@@ -141,7 +141,7 @@ while includes:
 	config.configfilelist[f] = os.path.getmtime(f)
 
 debug.Flags = debug.InitFlags()
-config.LogLevel = int(config.ParsedConfigFile.get('LogLevel', config.LogLevel))
+
 utilities.ParseParam(globalparams)  # add global parameters to config file
 
 config.Logs = logsupport.Logs(config.screen, os.path.dirname(config.configfile))
@@ -159,7 +159,6 @@ config.Logs.Log(" How: ", config.versiondnld)
 config.Logs.Log(" Version date: ", config.versioncommit)
 config.Logs.Log("Start time: ", time.strftime('%c'))
 config.Logs.Log("Console Starting  pid: ", config.Console_pid)
-config.Logs.Log("Log level: ", config.LogLevel)
 config.Logs.Log("Main config file: ", config.configfile,
 				time.strftime(' %c', time.localtime(config.configfilelist[config.configfile])))
 config.Logs.Log("Including config files:")
@@ -168,7 +167,9 @@ for p, f in zip(pfiles, cfiles):
 for flg, fval in debug.Flags.iteritems():
 	if fval:
 		config.Logs.Log('Debug flag ', flg, '=', fval, severity=logsupport.ConsoleWarning)
-
+		config.LogLevel = 0  # if a debug flag is set force Logging unless explicitly overridden
+config.LogLevel = int(config.ParsedConfigFile.get('LogLevel', config.LogLevel))
+config.Logs.Log("Log level: ", config.LogLevel)
 config.DS = displayscreen.DisplayScreen()  # create the actual device screen and touch manager
 
 utilities.LogParams()
