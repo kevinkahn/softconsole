@@ -164,11 +164,11 @@ class WeatherInfo:
 			except:
 				config.Logs.Log("Error retrieving weather" + str(sys.exc_info()[0]), severity=ConsoleError)
 				# print "Getting fresh weather failed ", time.time()
-				# print "Progress: ", progress
+				# print "Progress: qq", progress
 				# print self.ConditionVals
 				# print self.ForecastVals
 				# print self.url
-				self.lastwebreq = 0
+				# self.lastwebreq = 0 todo wunderground key error caused overuse
 				return -1
 		self.ConditionVals['Age'] = utilities.interval_str(time.time() - self.ConditionVals['Time'])
 		return self.lastwebreq
