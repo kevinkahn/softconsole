@@ -20,7 +20,7 @@ def try_ISY_comm(urlcmd):
 			try:
 				t = 'http://' + config.ISYaddr + urlcmd
 				debug.debugPrint('ISY', t)
-				r = config.ISYrequestsession.get(t, verify=False)
+				r = config.ISYrequestsession.get(t, verify=False, timeout=3)
 			except requests.exceptions.ConnectTimeout:
 				config.Logs.Log("ISY Comm Timeout: " + ' Cmd: ' + urlcmd, severity=ConsoleError)
 				config.Logs.Log(sys.exc_info()[1], severity=ConsoleError)

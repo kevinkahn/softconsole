@@ -19,6 +19,7 @@ class NetCmd(object):
 	6: Set Beta
 	1xx: Set xxth debug flag
 	2xx: Clear xxth debug flag
+	30x: Set LogLevel to x (defaults 3, debug set 0)
 	"""
 
 	def __init__(self):
@@ -62,6 +63,9 @@ class NetCmd(object):
 			debug.Flags[flg] = False
 			debug.DebugFlagKeys[flg].State = False
 			config.Logs.Log('Remote clear debug ', flg)
+		elif varval in range(300, 310):
+			config.LogLevel = varval - 300
+			config.Logs.Log('Remove set LogLevel to ', varval - 300)
 
 		else:
 			config.Logs.Log('Unknown remote command: ', varval)
