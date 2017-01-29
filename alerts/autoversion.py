@@ -1,7 +1,7 @@
 import config
 import githubutil
 import exitutils
-import eventlist
+import sys
 from logsupport import ConsoleWarning
 
 class AutoVersion(object):
@@ -28,7 +28,9 @@ class AutoVersion(object):
 					exitutils.Exit('restart', 'auto', 0)
 			except:
 				if not exiting:
-					config.Logs.Log('Github check not available', severity=ConsoleWarning)  # todo clarify why?
+					config.Logs.Log(
+						'Github check not available' + str(sys.exc_info()[0]) + ': ' + str(sys.exc_info()[1]),
+						severity=ConsoleWarning)
 			config.DS.Tasks.EndLongOp()
 
 

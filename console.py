@@ -15,7 +15,6 @@ Copyright 2016 Kevin Kahn
 """
 import importlib
 import os
-import signal
 import sys
 import time
 import threading

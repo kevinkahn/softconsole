@@ -89,7 +89,7 @@ class WeatherInfo:
 				if val.find("keynotfound") <> -1:
 					if self.location <> "":
 						# only report once in log
-						config.Logs.Log("Bad weatherunderground key:" + self.location, severity=ConsoleError)
+						config.Logs.Log("Bad weatherunderground key:" + self.location, severity=ConsoleError, tb=False)
 					self.location = ""
 					self.lastwebreq = 0
 					raise
@@ -124,7 +124,7 @@ class WeatherInfo:
 								self.ForecastVals[i][fc] = TryShorten(self.ForecastVals[i][fc])
 						except:
 							print "W2",i,fc
-							config.Logs.Log("Forecast error: ", i, fc, fs(*desc[1]), severity=ConsoleError)
+							config.Logs.Log("Forecast error: ", i, fc, fs(*desc[1]), severity=ConsoleError, tb=False)
 							self.ForecastVals[i][fc] = desc[0]('0')
 							self.ForecastErr[i].append(fc)
 				"""

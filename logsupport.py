@@ -65,8 +65,8 @@ class Logs(object):
 																				   errors='backslashreplace') + '\n')
 			if severity == ConsoleError and tb:
 				# traceback.print_stack(file=self.disklogfile)
-				frames = traceback.format_stack()
-				for f in frames[0:-2]:
+				frames = traceback.extract_tb(sys.exc_info()[2])
+				for f in frames:
 					self.disklogfile.write('-----------------' + f)
 			self.disklogfile.flush()
 			os.fsync(self.disklogfile.fileno())

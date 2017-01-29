@@ -13,7 +13,6 @@ import config
 import fonts
 import hw
 from logsupport import ConsoleError, ConsoleDetail, ConsoleDetailHigh, ConsoleWarning
-import traceback
 
 globdoc = {}
 moddoc = {}
