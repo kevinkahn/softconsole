@@ -67,7 +67,9 @@ class Logs(object):
 				# traceback.print_stack(file=self.disklogfile)
 				frames = traceback.extract_tb(sys.exc_info()[2])
 				for f in frames:
-					self.disklogfile.write('-----------------' + f)
+					fname, lineno, fn, text = f
+					self.disklogfile.write(
+						'-----------------' + fname + ':' + str(lineno) + ' ' + fn + ' ' + text + '\n')
 			self.disklogfile.flush()
 			os.fsync(self.disklogfile.fileno())
 		if self.livelog and not diskonly:

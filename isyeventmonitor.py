@@ -24,10 +24,12 @@ class ISYEventMonitor:
 	def QHandler(self):
 		def on_error(ws, error):
 			config.Logs.Log("Error in WS stream " + repr(error), severity=ConsoleError)
+			debugPrint('DaemonCtl', "Websocket stream error", repr(error))
 			exitutils.FatalError("websocket stream error")
 
 		def on_close(ws, code, reason):
-			config.Logs.Log("Websocket stream closed: " + str(code) + ' : ' + str(reason), severity=ConsoleError)
+			config.Logs.Log("Websocket stream closed: " + str(code) + ' : ' + str(reason), severity=ConsoleError,
+							tb=False)
 			debugPrint('DaemonCtl', "Websocket stream closed", str(code), str(reason))
 
 		def on_open(ws):
@@ -146,5 +148,5 @@ class ISYEventMonitor:
 									on_error=on_error,
 									on_close=on_close, on_open=on_open,
 									subprotocols=['ISYSUB'], header={'Authorization': 'Basic ' + self.a})
-		ws.run_forever()
+		ws.run_forever()  # (ping_interval=20,ping_timeout=2)
 		config.Logs.Log("QH Thread exiting", severity=ConsoleError)
