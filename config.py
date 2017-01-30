@@ -10,6 +10,9 @@ FASTPRESS = 1
 
 EventMonitor = None
 QH = None
+QHnum = 1
+lastheartbeat = 0
+digestinginit = True
 
 # Global pointers
 exdir = ''

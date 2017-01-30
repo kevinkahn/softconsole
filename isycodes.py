@@ -45,7 +45,8 @@ EVENT_CTRL = {
 	"BRT": "Brighten",
 	"DIM": "Dim",
 	"X10": "Direct X10 Commands",
-	"BEEP": "Beep"
+	"BEEP": "Beep",
+	"ERR": "NodeCommError"
 }
 
 

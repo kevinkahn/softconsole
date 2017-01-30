@@ -7,7 +7,15 @@ from debug import debugPrint, Flags
 from isycodes import EVENT_CTRL, formatwsitem
 import pygame, time
 import exitutils
+import threading
 
+
+def CreateWSThread():
+	config.EventMonitor = ISYEventMonitor()
+	config.QH = threading.Thread(name='QH', target=config.EventMonitor.QHandler)
+	config.QH.setDaemon(True)
+	config.QH.start()
+	config.Logs.Log("ISY stream thread " + str(config.EventMonitor.num) + " started")
 
 class ISYEventMonitor:
 	def __init__(self):
@@ -17,24 +25,29 @@ class ISYEventMonitor:
 		self.varlist = []
 		self.streamid = "unset"
 		self.seq = 0
-		debugPrint('DaemonCtl', "Watcher: ", self.watchstarttime)
+		self.num = config.QHnum
+		config.QHnum += 1
+		debugPrint('DaemonCtl', "Queue Handler ", self.num, " started: ", self.watchstarttime)
 		self.reportablecodes = ["DON", "DFON", "DOF", "DFOF", "ST", "OL", "RR", "CLISP", "CLISPH", "CLISPC", "CLIFS",
 								"CLIMD", "CLIHUM", "CLIHCS", "BRT", "DIM"]
 
 	def QHandler(self):
 		def on_error(ws, error):
-			config.Logs.Log("Error in WS stream " + repr(error), severity=ConsoleError)
-			debugPrint('DaemonCtl', "Websocket stream error", repr(error))
-			exitutils.FatalError("websocket stream error")
+			config.Logs.Log("Error in WS stream " + str(self.num) + ':' + repr(error), severity=ConsoleError)
+			debugPrint('DaemonCtl', "Websocket stream error", self.num, repr(error))
+			ws.close()
+
+		# exitutils.FatalError("websocket stream error")
 
 		def on_close(ws, code, reason):
-			config.Logs.Log("Websocket stream closed: " + str(code) + ' : ' + str(reason), severity=ConsoleError,
+			config.Logs.Log("Websocket stream " + str(self.num) + " closed: " + str(code) + ' : ' + str(reason),
+							severity=ConsoleError,
 							tb=False)
 			debugPrint('DaemonCtl', "Websocket stream closed", str(code), str(reason))
 
 		def on_open(ws):
-			config.Logs.Log("Websocket stream opened")
-			debugPrint('DaemonCtl', "Websocket stream opened: " + self.streamid)
+			config.Logs.Log("Websocket stream " + str(self.num) + " opened")
+			debugPrint('DaemonCtl', "Websocket stream opened: ", self.num, self.streamid)
 
 		def on_message(ws, message):
 			global varlist, watchlist
@@ -52,7 +65,7 @@ class ISYEventMonitor:
 				esid = e.pop('@sid', 'No sid')
 				if self.streamid <> esid:
 					config.Logs.Log("Unexpected event stream change: " + self.streamid + "/" + str(esid),
-									severity=ConsoleError)
+									severity=ConsoleError, tb=False)
 					exitutils.FatalError("WS Stream ID Changed")
 
 				eseq = int(e.pop('@seqnum', -99))
@@ -125,7 +138,11 @@ class ISYEventMonitor:
 							notice = pygame.event.Event(config.DS.ISYVar, vartype=vartype, varid=varid, value=varval,
 														alert=a)
 							pygame.fastevent.post(notice)
-
+				elif prcode == 'Heartbeat':
+					config.lastheartbeat = time.time()
+					config.digestinginit = False
+				elif prcode == 'Billing':
+					config.digestinginit = False
 				else:
 					pass  # handle any other? todo
 
@@ -136,6 +153,12 @@ class ISYEventMonitor:
 				if enode == '20 F9 76 1':
 					debugPrint('DebugSpecial', time.time() - config.starttime,
 							   formatwsitem(esid, eseq, ecode, eaction, enode, eInfo, e))
+				if ecode == "ERR":
+					try:
+						isynd = config.ISY.NodesByAddr[enode].name
+					except:
+						isynd = enode
+					config.Logs.Log("ISY shows comm error for node: " + str(isynd), severity=ConsoleWarning)
 
 				if ecode == 'ST':
 					config.ISY.NodesByAddr[enode].devState = int(eaction)
@@ -143,10 +166,12 @@ class ISYEventMonitor:
 			else:
 				config.Logs.Log("Strange item in event stream: " + str(m), severity=ConsoleWarning)
 
-		websocket.enableTrace(True)
+		# websocket.enableTrace(True)
+		websocket.setdefaulttimeout(240)
 		ws = websocket.WebSocketApp('ws://' + config.ISYaddr + '/rest/subscribe', on_message=on_message,
 									on_error=on_error,
 									on_close=on_close, on_open=on_open,
 									subprotocols=['ISYSUB'], header={'Authorization': 'Basic ' + self.a})
-		ws.run_forever()  # (ping_interval=20,ping_timeout=2)
-		config.Logs.Log("QH Thread exiting", severity=ConsoleError)
+		config.lastheartbeat = time.time()
+		ws.run_forever()
+		config.Logs.Log("QH Thread " + str(self.num) + " exiting", severity=ConsoleError)

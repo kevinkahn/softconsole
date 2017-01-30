@@ -11,6 +11,7 @@ from logsupport import ConsoleWarning, ConsoleError, ConsoleDetail
 from collections import OrderedDict
 from eventlist import AlertEventItem, ProcEventItem
 import alerttasks
+import isyeventmonitor
 
 class DisplayScreen(object):
 	def __init__(self):
@@ -138,6 +139,10 @@ class DisplayScreen(object):
 			elif a.type == 'Init':
 				a.Invoke()
 
+		while config.digestinginit:
+			config.Logs.Log("Waiting initial status dump")
+			time.sleep(.1)
+
 		if config.Running:  # allow for a very early restart request from things like autoversion
 			self.SwitchScreen(InitScreen, 'Bright', 'Home', 'Startup')
 
@@ -145,7 +150,12 @@ class DisplayScreen(object):
 
 			if not config.QH.is_alive():
 				config.Logs.Log('Queue handler died', severity=ConsoleError)
-				exitutils.errorexit('restart')
+				isyeventmonitor.CreateWSThread()
+			# exitutils.errorexit('restart')
+
+			if time.time() - config.lastheartbeat > 240:  # twice heartbeat interval
+				config.Logs.Log('Lost ISY heartbeat', severity=ConsoleError, tb=False)
+				isyeventmonitor.CreateWSThread()
 
 			if self.Deferrals:  # an event was deferred mid screen touches - handle now
 				event = self.Deferrals.pop(0)

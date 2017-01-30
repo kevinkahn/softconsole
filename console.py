@@ -201,11 +201,12 @@ config.Logs.Log("Linked config to ISY")
 """
 Set up the websocket thread to handle ISY stream
 """
-config.EventMonitor = isyeventmonitor.ISYEventMonitor()
-config.QH = threading.Thread(name='QH', target=config.EventMonitor.QHandler)
-config.QH.setDaemon(True)
-config.QH.start()
-config.Logs.Log("ISY stream thread started")
+isyeventmonitor.CreateWSThread()
+# config.EventMonitor = isyeventmonitor.ISYEventMonitor()
+# config.QH = threading.Thread(name='QH', target=config.EventMonitor.QHandler)
+# config.QH.setDaemon(True)
+# config.QH.start()
+# config.Logs.Log("ISY stream thread started")
 
 """
 Build the alerts structures
@@ -232,7 +233,7 @@ config.ParsedConfigFile.write(docfile)
 docfile.close()
 
 """
-Loop here using screen type to choose renderer and names to fill in cmdtxt - return value is next screen or a tap count
+Run the main console loop
 """
 config.DS.MainControlLoop(config.HomeScreen)
 
