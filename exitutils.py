@@ -17,8 +17,9 @@ def Exit(option, trigger, ecode):
 		shell=True)
 
 	config.Logs.Log("Console Exiting")
-	pygame.quit()
+
 	config.Running = False  # make sure the main loop ends even if this exit call returns
+	pygame.quit()
 	sys.exit(ecode)
 
 def dorealexit(K, YesKey, presstype):

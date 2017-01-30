@@ -138,7 +138,8 @@ class DisplayScreen(object):
 			elif a.type == 'Init':
 				a.Invoke()
 
-		self.SwitchScreen(InitScreen, 'Bright', 'Home', 'Startup')
+		if config.Running:  # allow for a very early restart request from things like autoversion
+			self.SwitchScreen(InitScreen, 'Bright', 'Home', 'Startup')
 
 		while config.Running:  # Operational Control Loop
 
