@@ -15,23 +15,23 @@ class CommsError(Exception): pass
 
 
 def try_ISY_comm(urlcmd):
-	for i in range(3):
+	for i in range(15):
 		try:
 			try:
 				t = 'http://' + config.ISYaddr + urlcmd
 				debug.debugPrint('ISY', t)
-				r = config.ISYrequestsession.get(t, verify=False, timeout=3)
+				r = config.ISYrequestsession.get(t, verify=False, timeout=5)
 			except requests.exceptions.ConnectTimeout:
 				config.Logs.Log("ISY Comm Timeout: " + ' Cmd: ' + urlcmd, severity=ConsoleError)
-				config.Logs.Log(sys.exc_info()[1], severity=ConsoleError)
+				config.Logs.Log(sys.exc_info()[1], severity=ConsoleError, tb=False)
 				raise CommsError
 			except requests.exceptions.ConnectionError:
 				config.Logs.Log("ISY Comm ConnErr: " + ' Cmd: ' + urlcmd, severity=ConsoleError)
-				config.Logs.Log(sys.exc_info()[1], severity=ConsoleError)
+				config.Logs.Log(sys.exc_info()[1], severity=ConsoleError, tb=False)
 				raise CommsError
 			except:
 				config.Logs.Log("ISY Comm UnknownErr: " + ' Cmd: ' + urlcmd, severity=ConsoleError)
-				config.Logs.Log(sys.exc_info()[1], severity=ConsoleError)
+				config.Logs.Log(sys.exc_info()[1], severity=ConsoleError, tb=False)
 				raise CommsError
 			if r.status_code <> 200:
 				config.Logs.Log('ISY Bad status:' + str(r.status_code) + ' on Cmd: ' + urlcmd, severity=ConsoleError)
@@ -41,7 +41,7 @@ def try_ISY_comm(urlcmd):
 				return r.text
 		except CommsError:
 			time.sleep(.5)
-			config.Logs.Log("Attempting ISY retry " + str(i + 1), severity=ConsoleError)
+			config.Logs.Log("Attempting ISY retry " + str(i + 1), severity=ConsoleError, tb=False)
 
 	config.Logs.Log("ISY Communications Failure", severity=ConsoleError)
 	exitutils.errorexit('reboot')
