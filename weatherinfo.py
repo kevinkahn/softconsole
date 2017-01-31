@@ -73,6 +73,7 @@ class WeatherInfo:
 		self.ConditionVals = {}
 		self.ForecastVals = []
 		self.location = location
+		self.returnval = 0
 		if config.versionname in ('development', 'homerelease'):
 			self.weathvalfile = open(os.path.dirname(config.configfile) + '/' + location + 'wv.log', 'w')
 			self.weathjsonfile = open(os.path.dirname(config.configfile) + '/' + location + 'wj.log', 'w')
@@ -89,8 +90,8 @@ class WeatherInfo:
 			self.weathjsonfile.flush()
 
 	def FetchWeather(self):
-		progress = 0
 		if time.time() > self.lastwebreq + 30*60:
+			self.returnval = self.lastwebreq
 			try:
 				# refresh the conditions - don't do more than once per 30 minutes
 				self.lastwebreq = time.time()  # do this first so that even in error cases we wait a while to try again
@@ -109,12 +110,10 @@ class WeatherInfo:
 					self.location = ""
 					self.lastwebreq = 0
 					raise
-				progress= 1
 				parsed_json = json.loads(val)
 				js = functools.partial(TreeDict, parsed_json)
 				fcsts = TreeDict(parsed_json, 'forecast', 'simpleforecast', 'forecastday')
 				f.close()
-				progress = 2
 				self.ConditionVals = {}
 				self.ForecastVals = []
 				self.ConditionErr = []
@@ -132,7 +131,6 @@ class WeatherInfo:
 					self.ForecastVals.append({})
 					self.ForecastErr.append([])
 					fs = functools.partial(TreeDict, fcst)
-					progress = (5,i)
 					for fc, desc in WeatherInfo.ForecastDay.iteritems():
 						try:
 							self.ForecastVals[i][fc] = desc[0](fs(*desc[1]))
@@ -148,7 +146,6 @@ class WeatherInfo:
 				"""
 				# Moonrise/set
 				if 'MoonriseH' not in self.ConditionErr and 'MoonriseM' not in self.ConditionErr:
-					# t1 = [self.ConditionVals[x] for x in ('MoonriseH','MoonriseM')]
 					self.ConditionVals['Moonrise'] = "{d[0]:02d}:{d[1]:02d}".format(
 						d=[self.ConditionVals[x] for x in ('MoonriseH', 'MoonriseM')])
 				else:
@@ -175,23 +172,20 @@ class WeatherInfo:
 						d=[self.ConditionVals[x] for x in ('WindDir', 'WindMPH', 'WindGust')])
 
 				if self.ConditionErr:
-					config.Logs.Log("Weather error: ", self.ConditionErr, severity=ConsoleError, tb=False)
+					config.Logs.Log("Weather error: ", self.location, self.ConditionErr, severity=ConsoleWarning)
 					self.dumpweatherresp(val, parsed_json)
+					self.returnval = -1
+					return -1
 
 			except:
 				config.Logs.Log(
 					"Error retrieving weather" + str(sys.exc_info()[0]) + ':' + str(sys.exc_info()[1]) + ' ' + self.url,
 					severity=ConsoleError)
 				self.dumpweatherresp(val, parsed_json)
-				# print "Getting fresh weather failed ", time.time()
-				# print "Progress: qq", progress
-				# print self.ConditionVals
-				# print self.ForecastVals
-				# print self.url
-				# self.lastwebreq = 0 todo wunderground key error caused overuse
+				self.returnval = -1
 				return -1
 		try:
 			self.ConditionVals['Age'] = utilities.interval_str(time.time() - self.ConditionVals['Time'])
 		except:
 			self.ConditionVals['Age'] = "No readings ever retrieved"
-		return self.lastwebreq
+		return self.returnval
