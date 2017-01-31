@@ -50,7 +50,6 @@ import json
 utilities.InitializeEnvironment()
 
 config.exdir = os.path.dirname(os.path.abspath(__file__))
-#print 'Console start: ', config.exdir,
 lastfn = ""
 lastmod = 0
 config.Console_pid = os.getpid()
@@ -61,7 +60,6 @@ for root, dirs, files in os.walk(config.exdir):
 			if os.path.getmtime(fn) > lastmod:
 				lastmod = os.path.getmtime(fn)
 				lastfn = fn
-#print 'Version (', lastfn, time.ctime(lastmod),
 
 try:
 	with open(config.exdir + '/' + 'versioninfo') as f:
@@ -69,13 +67,11 @@ try:
 		config.versionsha = f.readline()[:-1]
 		config.versiondnld = f.readline()[:-1]
 		config.versioncommit = f.readline()[:-1]
-	#print config.versionname, config.versionsha, config.versiondnld, config.versioncommit, ')'
 except:
 	config.versionname = 'none'
 	config.versionsha = 'none'
 	config.versiondnld = 'none'
 	config.versioncommit = 'none'
-#print 'No version info)'
 
 
 """
@@ -112,8 +108,6 @@ if len(sys.argv) == 2:
 
 if not os.path.isfile(config.configfile):
 	utilities.EarlyAbort('No Configuration File')
-
-
 
 config.ParsedConfigFile = ConfigObj(config.configfile)  # read the config.txt file
 configdir = os.path.dirname(config.configfile)
@@ -202,11 +196,6 @@ config.Logs.Log("Linked config to ISY")
 Set up the websocket thread to handle ISY stream
 """
 isyeventmonitor.CreateWSThread()
-# config.EventMonitor = isyeventmonitor.ISYEventMonitor()
-# config.QH = threading.Thread(name='QH', target=config.EventMonitor.QHandler)
-# config.QH.setDaemon(True)
-# config.QH.start()
-# config.Logs.Log("ISY stream thread started")
 
 """
 Build the alerts structures
