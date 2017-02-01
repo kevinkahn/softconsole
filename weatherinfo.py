@@ -67,7 +67,8 @@ class WeatherInfo:
 				   'WindSpd': (float, ('avewind', 'mph'))}
 
 	def __init__(self, WunderKey, location):
-		self.lastwebreq = 0  # time of last call out to wunderground
+		self.nextwebreq = 0  # time of next call out to wunderground
+		self.webreqinterval = 60*30  # 30 minutes
 		self.url = 'http://api.wunderground.com/api/' + WunderKey + '/geolookup/conditions/forecast/astronomy/q/' \
 				   + location + '.json'
 		self.ConditionVals = {}
@@ -90,11 +91,11 @@ class WeatherInfo:
 			self.weathjsonfile.flush()
 
 	def FetchWeather(self):
-		if time.time() > self.lastwebreq + 30*60:
-			self.returnval = self.lastwebreq
+		if time.time() > self.nextwebreq:
+			self.returnval = time.time()
 			try:
-				# refresh the conditions - don't do more than once per 30 minutes
-				self.lastwebreq = time.time()  # do this first so that even in error cases we wait a while to try again
+				# refresh the conditions - don't do more than once per webrequestinterval seconds
+				self.nextwebreq = time.time() + self.webreqinterval  # do this first so that even in error cases we wait a while to try again
 				try:
 					f = urllib2.urlopen(self.url, None, 15)  # wait at most 15 seconds for weather response then timeout
 					val = f.read()
@@ -108,8 +109,13 @@ class WeatherInfo:
 						# only report once in log
 						config.Logs.Log("Bad weatherunderground key:" + self.location, severity=ConsoleError, tb=False)
 					self.location = ""
-					self.lastwebreq = 0
+					self.nextwebreq = time.time() + 60*60*24*300  # next web request in 300 days - i.e., never
 					raise
+				if val.find("you must supply a key") <> -1:
+					config.Logs.Log("WeatherUnderground missed the key:" + self.locations, severity=ConsoleWarning)
+					self.returnval = -1
+					self.nextwebreq = time.time()  # try this again since key didn't register or count
+					return -1
 				parsed_json = json.loads(val)
 				js = functools.partial(TreeDict, parsed_json)
 				fcsts = TreeDict(parsed_json, 'forecast', 'simpleforecast', 'forecastday')

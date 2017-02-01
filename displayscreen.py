@@ -264,10 +264,12 @@ class DisplayScreen(object):
 						debugPrint('Dispatch', "Invoke: ", alert.name)
 						alert.Invoke()  # either calls a proc or enters a screen and adjusts alert state appropriately
 				elif alert.state == 'Active' and not alert.trigger.IsTrue():  # alert condition has cleared and screen is up
+					debugPrint('Dispatch', 'Active alert cleared', alert.name)
 					alert.state = 'Armed'  # just rearm the alert
 					self.SwitchScreen(config.HomeScreen, 'Dim', 'Home', 'Cleared alert')
 				elif ((alert.state == 'Delayed') or (alert.state == 'Deferred')) and not alert.trigger.IsTrue():
 					# condition changed under a pending action (screen or proc) so just cancel and rearm
+					debugPrint('Dispatch', 'Delayed event cleared before invoke', alert.name)
 					alert.state = 'Armed'
 					self.Tasks.RemoveAllGrp(id(alert))
 				else:
