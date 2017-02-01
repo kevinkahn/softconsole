@@ -14,6 +14,7 @@ fsizes = ((20, False, False), (30, True, False), (45, True, True))
 
 class WeatherScreenDesc(screen.ScreenDesc):
 	def __init__(self, screensection, screenname):
+		self.fmt = weatherinfo.WFormatter()
 		debugPrint('Screen', "New WeatherScreenDesc ", screenname)
 		screen.ScreenDesc.__init__(self, screensection, screenname)
 		butsize = screen.ButSize(1, 1, 0)
@@ -57,12 +58,14 @@ class WeatherScreenDesc(screen.ScreenDesc):
 		for line in recipe:
 			try:
 				if isinstance(line[3], basestring):  # handles case of a direct var e.g. label string
-					linestr = line[2].format(d=line[3])
+					# linestr = line[2].format(d=line[3])
+					linestr = self.fmt.format(line[2], d=line[3])
 				else:
 					args = []
 					for item in line[3]:
 						args.append(values[item])
-					linestr = line[2].format(d=args)
+					# linestr = line[2].format(d=args)
+					linestr = self.fmt.format(line[2], d=args)
 			except:
 				config.Logs.Log("Weather format error: " + str(line[3]), severity=logsupport.ConsoleWarning)
 				linestr = ''

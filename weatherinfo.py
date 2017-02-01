@@ -5,10 +5,20 @@ import time
 import urllib2
 import utilities
 import os
+import string
 
 import config
 from logsupport import ConsoleWarning, ConsoleError
 
+
+class WFormatter(string.Formatter):
+	def format_field(self, value, format_spec):
+		if format_spec.endswith(('f', 'd')) and value is None:
+			return 'n/a'
+		elif value is None:
+			return 'n/a'
+		else:
+			return super(WFormatter, self).format_field(value, format_spec)
 
 def TreeDict(d, *args):
 	# Allow a nest of dictionaries to be accessed by a tuple of keys for easier code
@@ -131,7 +141,7 @@ class WeatherInfo:
 							self.ConditionVals[cond] = TryShorten(self.ConditionVals[cond])
 						progress = (4,cond)
 					except:
-						self.ConditionVals[cond] = desc[0]('0')
+						self.ConditionVals[cond] = None  # desc[0]('0')
 						self.ConditionErr.append(cond)
 				for i, fcst in enumerate(fcsts):
 					self.ForecastVals.append({})
@@ -145,8 +155,7 @@ class WeatherInfo:
 						except:
 							config.Logs.Log("Forecast error: Day " + str(i) + ' field ' + str(fc) + ' returned *' + str(
 								fs(*desc[1])) + '*', severity=ConsoleError, tb=False)
-							self.dumpweatherresp(val, parsed_json)
-							self.ForecastVals[i][fc] = desc[0]('0')
+							self.ForecastVals[i][fc] = None  #desc[0]('0')
 							self.ForecastErr[i].append(fc)
 				"""
 				Create synthetic fields and fix error cases
@@ -178,11 +187,14 @@ class WeatherInfo:
 					self.ConditionVals['WindStr'] = "{d[0]}@{d[1]} gusts {d[2]}".format(
 						d=[self.ConditionVals[x] for x in ('WindDir', 'WindMPH', 'WindGust')])
 
+				if self.ForecastErr:
+					self.dumpweatherresp(val, parsed_json)
+
 				if self.ConditionErr:
 					config.Logs.Log("Weather error: ", self.location, self.ConditionErr, severity=ConsoleWarning)
 					self.dumpweatherresp(val, parsed_json)
-					self.returnval = -1
-					return -1
+				# self.returnval = -1
+				#return -1
 
 			except:
 				config.Logs.Log(
