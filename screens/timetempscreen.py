@@ -18,7 +18,7 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 		debugPrint('Screen', "New TimeTempDesc ", screenname)
 
 		screen.ScreenDesc.__init__(self, screensection, screenname)
-		utilities.LocalizeParams(self, screensection, '-', WunderKey='', location='', CharSize=[20],
+		utilities.LocalizeParams(self, screensection, '-', 'WunderKey', location='', CharSize=[20],
 								 Font='droidsansmono',
 								 TimeFormat=[], ConditionFields=[], ConditionFormat=[], ForecastFields=[],
 								 ForecastFormat=[], ForecastDays=1, SkipDays=0)

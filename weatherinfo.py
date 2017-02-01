@@ -41,7 +41,7 @@ def TryShorten(term):
 
 class WeatherInfo:
 	ConditionMap = {'Time': (int, ('current_observation', 'observation_epoch')),
-					'Location': (str, ('location', 'city')),
+					'Location': (str, ('current_observation', 'display_location', 'city')),
 					'Temp': (float, ('current_observation', 'temp_f')),
 					'Sky': (str, ('current_observation', 'weather')),
 					'Feels': (float, ('current_observation', 'feelslike_f')),
@@ -69,7 +69,7 @@ class WeatherInfo:
 	def __init__(self, WunderKey, location):
 		self.nextwebreq = 0  # time of next call out to wunderground
 		self.webreqinterval = 60*30  # 30 minutes
-		self.url = 'http://api.wunderground.com/api/' + WunderKey + '/geolookup/conditions/forecast/astronomy/q/' \
+		self.url = 'http://api.wunderground.com/api/' + WunderKey + '/conditions/forecast/astronomy/q/' \
 				   + location + '.json'
 		self.ConditionVals = {}
 		self.ForecastVals = []
@@ -143,7 +143,8 @@ class WeatherInfo:
 							if desc[0] == str:
 								self.ForecastVals[i][fc] = TryShorten(self.ForecastVals[i][fc])
 						except:
-							config.Logs.Log("Forecast error: ", i, fc, fs(*desc[1]), severity=ConsoleError, tb=False)
+							config.Logs.Log("Forecast error: Day " + str(i) + ' field ' + str(fc) + ' returned *' + str(
+								fs(*desc[1])) + '*', severity=ConsoleError, tb=False)
 							self.dumpweatherresp(val, parsed_json)
 							self.ForecastVals[i][fc] = desc[0]('0')
 							self.ForecastErr[i].append(fc)

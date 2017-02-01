@@ -22,7 +22,7 @@ class WeatherScreenDesc(screen.ScreenDesc):
 																	proc=self.CondOrFcst)})
 		self.currentconditions = True  # show conditions or forecast
 
-		utilities.LocalizeParams(self, screensection, '-', WunderKey='', location='')
+		utilities.LocalizeParams(self, screensection, '-', 'WunderKey', location='')
 		self.scrlabel = screen.FlatenScreenLabel(self.label)
 		# entries are (fontsize, centered, formatstring, values)
 		self.errormsg = [(2, True, "{d}", self.scrlabel),
