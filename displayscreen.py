@@ -139,9 +139,15 @@ class DisplayScreen(object):
 			elif a.type == 'Init':
 				a.Invoke()
 
+		lp = 30
 		while config.digestinginit:
-			config.Logs.Log("Waiting initial status dump")
-			time.sleep(.1)
+			lp = - 1
+			if lp > 0:
+				config.Logs.Log("Waiting initial status dump")
+				time.sleep(.1)
+			else:
+				config.Logs.Log("Initial status dump timeout", severity=ConsoleError, tb=False)
+				exitutils.FatalError('Comms Init Failure')
 
 		if config.Running:  # allow for a very early restart request from things like autoversion
 			self.SwitchScreen(InitScreen, 'Bright', 'Home', 'Startup')

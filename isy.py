@@ -6,10 +6,9 @@ import config
 import debug
 import exitutils
 import utilities
-import maintscreen
 from logsupport import ConsoleInfo, ConsoleWarning, ConsoleError
 import sys
-
+import traceback
 
 class CommsError(Exception): pass
 
@@ -19,15 +18,16 @@ def try_ISY_comm(urlcmd):
 		try:
 			try:
 				t = 'http://' + config.ISYaddr + urlcmd
-				debug.debugPrint('ISY', t)
+				debug.debugPrint('ISY', '*' + t + '*')
 				r = config.ISYrequestsession.get(t, verify=False, timeout=5)
 			except requests.exceptions.ConnectTimeout:
-				config.Logs.Log("ISY Comm Timeout: " + ' Cmd: ' + urlcmd, severity=ConsoleError)
+				config.Logs.Log("ISY Comm Timeout: " + ' Cmd: ' + '*' + urlcmd + '*', severity=ConsoleError)
 				config.Logs.Log(sys.exc_info()[1], severity=ConsoleError, tb=False)
 				raise CommsError
 			except requests.exceptions.ConnectionError:
 				config.Logs.Log("ISY Comm ConnErr: " + ' Cmd: ' + urlcmd, severity=ConsoleError)
 				config.Logs.Log(sys.exc_info()[1], severity=ConsoleError, tb=False)
+				traceback.print_exc()
 				raise CommsError
 			except:
 				config.Logs.Log("ISY Comm UnknownErr: " + ' Cmd: ' + urlcmd, severity=ConsoleError)
@@ -447,6 +447,6 @@ class ISY(object):
 		elif isinstance(startpoint, TreeItem):
 			debug.debugPrint('ISY', indent + startpoint.__repr__())
 			for c in startpoint.children:
-				self.PrintTree(c, indent + "....")
+				self.PrintTree(c, indent + "....", msg)
 		else:
 			debug.debugPrint('ISY', "Funny thing in tree ", startpoint.__repr__)

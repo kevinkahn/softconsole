@@ -69,4 +69,4 @@ def FatalError(msg):
 	config.screen.blit(r, ((config.screenwidth - r.get_width())/2, config.screenheight*.4))
 	pygame.display.update()
 	config.Logs.Log(msg, severity=ConsoleError, tb=False)
-	Exit('restart', 'codeerror', 99)
+	Exit('restart', 'fatal error', 99)

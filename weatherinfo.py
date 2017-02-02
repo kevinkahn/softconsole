@@ -93,10 +93,12 @@ class WeatherInfo:
 			self.weathjsonfile.write(location + '\n==================\n')
 			self.weathjsonfile.flush()
 
-	def dumpweatherresp(self, val, json):
+	def dumpweatherresp(self, val, json, tag, param):
 		if config.versionname in ('development', 'homerelease'):
-			self.weathvalfile.write(time.strftime('%H:%M:%S') + '\n' + repr(val) + '\n=================')
-			self.weathjsonfile.write(time.strftime('%H:%M:%S') + '\n' + repr(json) + '\n=================')
+			self.weathvalfile.write(
+				time.strftime('%H:%M:%S') + ' ' + tag + repr(param) + '\n' + repr(val) + '\n=================')
+			self.weathjsonfile.write(
+				time.strftime('%H:%M:%S') + ' ' + tag + repr(param) + '\n' + repr(json) + '\n=================')
 			self.weathvalfile.flush()
 			self.weathjsonfile.flush()
 
@@ -112,7 +114,7 @@ class WeatherInfo:
 				except:
 					config.Logs.Log("Error fetching weather: " + self.url + str(sys.exc_info()[0]),
 									severity=ConsoleWarning)
-					self.dumpweatherresp(val, 'none')
+					self.dumpweatherresp(val, 'none', 'fetch', '--')
 					raise
 				if val.find("keynotfound") <> -1:
 					if self.location <> "":
@@ -188,11 +190,11 @@ class WeatherInfo:
 						d=[self.ConditionVals[x] for x in ('WindDir', 'WindMPH', 'WindGust')])
 
 				if self.ForecastErr:
-					self.dumpweatherresp(val, parsed_json)
+					self.dumpweatherresp(val, parsed_json, 'forecast', self.ForecastErr)
 
 				if self.ConditionErr:
 					config.Logs.Log("Weather error: ", self.location, self.ConditionErr, severity=ConsoleWarning)
-					self.dumpweatherresp(val, parsed_json)
+					self.dumpweatherresp(val, parsed_json, 'condition', self.ConditionErr)
 				# self.returnval = -1
 				#return -1
 
@@ -200,7 +202,7 @@ class WeatherInfo:
 				config.Logs.Log(
 					"Error retrieving weather" + str(sys.exc_info()[0]) + ':' + str(sys.exc_info()[1]) + ' ' + self.url,
 					severity=ConsoleError)
-				self.dumpweatherresp(val, parsed_json)
+				self.dumpweatherresp(val, parsed_json, 'exception', str(sys.exc_info()))
 				self.returnval = -1
 				return -1
 		try:
