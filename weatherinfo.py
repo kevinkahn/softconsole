@@ -189,7 +189,7 @@ class WeatherInfo:
 					self.ConditionVals['WindStr'] = "{d[0]}@{d[1]} gusts {d[2]}".format(
 						d=[self.ConditionVals[x] for x in ('WindDir', 'WindMPH', 'WindGust')])
 
-				if self.ForecastErr:
+				if any(self.ForecastErr):
 					self.dumpweatherresp(val, parsed_json, 'forecast', self.ForecastErr)
 
 				if self.ConditionErr:

@@ -433,7 +433,8 @@ class ISY(object):
 			self.PrintTree(self.ProgRoot, "    ", 'Programs')
 
 	def PrintTree(self, startpoint, indent, msg):
-		debug.debugPrint('ISY', 'Graph for ', msg)
+		if msg is not None:
+			debug.debugPrint('ISY', 'Graph for ', msg)
 		if isinstance(startpoint, Scene):
 			debug.debugPrint('ISY', indent + startpoint.__repr__())
 			for m in startpoint.members:
@@ -447,6 +448,6 @@ class ISY(object):
 		elif isinstance(startpoint, TreeItem):
 			debug.debugPrint('ISY', indent + startpoint.__repr__())
 			for c in startpoint.children:
-				self.PrintTree(c, indent + "....", msg)
+				self.PrintTree(c, indent + "....", None)
 		else:
 			debug.debugPrint('ISY', "Funny thing in tree ", startpoint.__repr__)
