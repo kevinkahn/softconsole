@@ -124,7 +124,7 @@ class WeatherInfo:
 					self.nextwebreq = time.time() + 60*60*24*300  # next web request in 300 days - i.e., never
 					raise
 				if val.find("you must supply a key") <> -1:
-					config.Logs.Log("WeatherUnderground missed the key:" + self.locations, severity=ConsoleWarning)
+					config.Logs.Log("WeatherUnderground missed the key:" + self.location, severity=ConsoleWarning)
 					self.returnval = -1
 					self.nextwebreq = time.time()  # try this again since key didn't register or count
 					return -1
