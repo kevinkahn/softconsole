@@ -105,6 +105,7 @@ class WeatherInfo:
 	def FetchWeather(self):
 		if time.time() > self.nextwebreq:
 			self.returnval = time.time()
+			parsed_json = None
 			try:
 				# refresh the conditions - don't do more than once per webrequestinterval seconds
 				self.nextwebreq = time.time() + self.webreqinterval  # do this first so that even in error cases we wait a while to try again
