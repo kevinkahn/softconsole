@@ -3,6 +3,7 @@ import logsupport
 from pygame import gfxdraw
 
 import config
+import isy
 from debug import debugPrint
 import screen
 import xmltodict
@@ -79,9 +80,11 @@ class ThermostatScreenDesc(screen.BaseKeyScreenDesc):
 
 		debugPrint('Main', "Bump temp: ", setpoint, degrees)
 		debugPrint('Main', "New: ", self.info[setpoint][0] + degrees)
-		r = config.ISYrequestsession.get(
-			config.ISYprefix + 'nodes/' + self.ISYObj.address + '/set/' + setpoint + '/' + str(
+		rtxt = isy.try_ISY_comm('/rest/nodes/' + self.ISYObj.address + '/set/' + setpoint + '/' + str(
 				self.info[setpoint][0] + degrees))
+		# r = config.ISYrequestsession.get(
+		#	config.ISYprefix + 'nodes/' + self.ISYObj.address + '/set/' + setpoint + '/' + str(
+		#		self.info[setpoint][0] + degrees))
 		self.ShowScreen()
 
 	def BumpMode(self, mode, vals, presstype):
@@ -90,15 +93,17 @@ class ThermostatScreenDesc(screen.BaseKeyScreenDesc):
 		debugPrint('Main', cv, vals[cv])
 		cv = (cv + 1)%len(vals)
 		debugPrint('Main', "new cv: ", cv)
-		r = config.ISYrequestsession.get(
-			config.ISYprefix + 'nodes/' + self.ISYObj.address + '/set/' + mode + '/' + str(vals[cv]))
+		rtxt = isy.try_ISY_comm('/rest/nodes/' + self.ISYObj.address + '/set/' + mode + '/' + str(vals[cv]))
+		# r = config.ISYrequestsession.get(
+		#	config.ISYprefix + 'nodes/' + self.ISYObj.address + '/set/' + mode + '/' + str(vals[cv]))
 		self.ShowScreen()
 
 	def ShowScreen(self):
 		self.ReInitDisplay()
-		r = config.ISYrequestsession.get('http://' + config.ISYaddr + '/rest/nodes/' + self.ISYObj.address,
-										 verify=False)  # todo check r response
-		tstatdict = xmltodict.parse(r.text)
+		rtxt = isy.try_ISY_comm('/rest/nodes/' + self.ISYObj.address)
+		# r = config.ISYrequestsession.get('http://' + config.ISYaddr + '/rest/nodes/' + self.ISYObj.address,
+		#								 verify=False)  # todo check r response
+		tstatdict = xmltodict.parse(rtxt)  #r.text)
 		props = tstatdict["nodeInfo"]["properties"]["property"]
 
 		self.info = {}
