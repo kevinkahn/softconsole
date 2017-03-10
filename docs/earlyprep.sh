@@ -22,3 +22,4 @@ wget https://raw.githubusercontent.com/kevinkahn/softconsole/master/docs/piprep.
 chmod +x piprep.sh
 sudo raspi-config
 echo "Reboot now and then run piprep.sh as root"
+echo " "
