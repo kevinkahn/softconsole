@@ -238,7 +238,8 @@ echo "N" | ./install.sh
 
 ./re4son-pi-tft-setup -d
 
-echo "Y N" | ./re4son-pi-tft-setup -t $ScreenType
+#echo "Y N" |
+./re4son-pi-tft-setup -t $ScreenType
 
 LogBanner "Configure the screen and calibrate"
 # set vertical orientation
