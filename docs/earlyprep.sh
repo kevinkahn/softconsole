@@ -20,8 +20,8 @@ sed -f lxfix lxterminal.conf.bak > lxterminal.conf
 cd /home/pi
 wget https://raw.githubusercontent.com/kevinkahn/softconsole/master/docs/piprep.sh
 wget https://raw.githubusercontent.com/kevinkahn/softconsole/master/docs/piprep2.sh
-#mv piprep2.sh piprep.sh
-chmod +x piprep.sh piprep2.sh
+wget https://raw.githubusercontent.com/kevinkahn/softconsole/master/docs/piprepadafruit.sh
+chmod +x piprep.sh piprep2.sh piprepadafruit.sh
 sudo raspi-config
 echo "Reboot now and then run piprep.sh as root"
-echo " "
+
