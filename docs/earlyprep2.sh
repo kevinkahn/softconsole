@@ -187,7 +187,7 @@ cd re4son_kali-pi-tft_kernel_4*
 LogBanner "Choose Correct Display Type"
 ./re4son-pi-tft-setup -d
 ./re4son-pi-tft-setup -h
-Get_val DisplayType
+Get_val DisplayType "Enter display type: "
 ./re4son-pi-tft-setup -t $DisplayType
 
 
@@ -205,4 +205,4 @@ sed s/rotate=90/rotate=0/ /boot/config.sav > /boot/config.txt
 
 echo "Reboot now and then run installconsole.sh as root"
 
-# separate console install from os setup
+
