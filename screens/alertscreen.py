@@ -21,7 +21,7 @@ class AlertsScreenDesc(screen.ScreenDesc):
 
 		if self.MessageBack == '':
 			self.MessageBack = self.BackgroundColor
-		self.DimTO = 0  # alert screens don't dim or yield volutarily
+		self.DimTO = 0  # alert screens don't dim or yield voluntarily
 		self.PersistTO = 0
 
 		self.Msg = True
