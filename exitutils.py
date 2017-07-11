@@ -39,7 +39,7 @@ def errorexit(opt):
 		Exit_Options('Error restart', 'Error - Restarting')
 	elif opt == 'reboot':
 		consoleup = time.time() - config.starttime
-		config.Logs.Log("Console was up: ", str(consoleup), severity=ConsoleWarning)
+		config.Logs.Log("Console was up: ", str(consoleup), severity=ConsoleWarning)  # todo convert to readable uptime
 		"""
 		todo reboot loop?
 		if consoleup < 120:
@@ -70,3 +70,14 @@ def FatalError(msg):
 	pygame.display.update()
 	config.Logs.Log(msg, severity=ConsoleError, tb=False)
 	Exit('restart', 'fatal error', 99)
+
+
+def ErrorScreen(msg1, msg2, msg3):
+	config.screen.fill(wc("red"))
+	r = config.fonts.Font(40, '', True, True).render(msg1, 0, wc("white"))
+	config.screen.blit(r, ((config.screenwidth - r.get_width())/2, config.screenheight*.2))
+	r = config.fonts.Font(40, '', True, True).render(msg2, 0, wc("white"))
+	config.screen.blit(r, ((config.screenwidth - r.get_width())/2, config.screenheight*.4))
+	r = config.fonts.Font(40, '', True, True).render(msg3, 0, wc("white"))
+	config.screen.blit(r, ((config.screenwidth - r.get_width())/2, config.screenheight*.6))
+	pygame.display.update()
