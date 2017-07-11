@@ -226,26 +226,18 @@ apt-get -y --force-yes update
 echo "Install the downgrade"
 apt-get -y --force-yes install libsdl1.2debian/wheezy
 
-# third party has figured out PiTFT support for newer Debian distrs
-# ref: https://whitedome.com.au/re4son/sticky-fingers-kali-pi/#TFT
-
-LogBanner "Changes for PiTFT Support"
-cd /usr/local/src
-wget  -O re4son_kali-pi-tft_kernel_current.tar.xz http://whitedome.com.au/re4son/downloads/10452/
-tar -xJf re4son_kali-pi-tft_kernel_current.tar.xz
-cd re4son_kali-pi-tft*
-echo "N" | ./install.sh
-
-./re4son-pi-tft-setup -d
-
-#echo "Y N" |
-./re4son-pi-tft-setup -t $ScreenType
+#LogBanner "Changes for PiTFT Support"
+#cd /home/pi
+#curl -SLs https://apt.adafruit.com/add-pin | sudo bash
+#apt-get install -y raspberrypi-bootloader adafruit-pitft-helper raspberrypi-kernel
+#adafruit-pitft-helper -t $ScreenType
 
 LogBanner "Configure the screen and calibrate"
 # set vertical orientation
 mv /boot/config.txt /boot/config.sav
 sed s/rotate=90/rotate=0/ /boot/config.sav > /boot/config.txt
-python /home/pi/adafruit-pitft-touch-cal -f -t $ScreenType -r 0
+#python /home/pi/adafruit-pitft-touch-cal -f -t $ScreenType -r 0
+adafruit-pitft-touch-cal -f -r 0
 
 
 cd /home/pi/

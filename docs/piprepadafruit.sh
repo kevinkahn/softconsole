@@ -76,11 +76,11 @@ then
 #  exit
 fi
 
-ScreenType="XXX"
-while [[ "$ScreenType" != "35r" && "$ScreenType" != "28c" && "$ScreenType" != "28r" ]]
-do
-  Get_val ScreenType "Which PiTFT (35r, 28c, 28r)?"
-done
+#ScreenType="XXX"
+#while [[ "$ScreenType" != "35r" && "$ScreenType" != "28c" && "$ScreenType" != "28r" ]]
+#do
+#  Get_val ScreenType "Which PiTFT (35r, 28c, 28r)?"
+#done
 Get_val NodeName "What name for this system?"
 Get_yn VNCstdPort "Install VNC/ssh on standard port (Y/N)?"
 Get_yn Personal "Is this the developer personal system (Y/N) (risky to say Y if it not)?"
@@ -90,7 +90,7 @@ Get_yn InstallDDC "Install ddclient (Y/N)?"
 #Get_yn InstallSamba "Install samba (Y/N)?"
 Get_yn InstallWD "Install and start Watchdog (Y/N)?"
 
-echo "Screen Type:                $ScreenType"
+#echo "Screen Type:                $ScreenType"
 echo "NodeName:                   $NodeName"
 echo "Developer system:           $Personal"
 echo "Standard VNC port:          $VNCstdPort"
@@ -110,7 +110,7 @@ dpkg-reconfigure tzdata
 
 echo "System Preparation" > prep.log
 date >> prep.log
-echo "Screen Type:                $ScreenType" >> prep.log
+#echo "Screen Type:                $ScreenType" >> prep.log
 echo "NodeName:                   $NodeName" >> prep.log
 echo "Developer system:           $Personal" >> prep.log
 echo "Standard VNC port:          $VNCstdPort" >> prep.log
@@ -226,26 +226,13 @@ apt-get -y --force-yes update
 echo "Install the downgrade"
 apt-get -y --force-yes install libsdl1.2debian/wheezy
 
-# third party has figured out PiTFT support for newer Debian distrs
-# ref: https://whitedome.com.au/re4son/sticky-fingers-kali-pi/#TFT
-
-LogBanner "Changes for PiTFT Support"
-cd /usr/local/src
-wget  -O re4son_kali-pi-tft_kernel_current.tar.xz http://whitedome.com.au/re4son/downloads/10452/
-tar -xJf re4son_kali-pi-tft_kernel_current.tar.xz
-cd re4son_kali-pi-tft*
-echo "N" | ./install.sh
-
-./re4son-pi-tft-setup -d
-
-#echo "Y N" |
-./re4son-pi-tft-setup -t $ScreenType
 
 LogBanner "Configure the screen and calibrate"
 # set vertical orientation
 mv /boot/config.txt /boot/config.sav
 sed s/rotate=90/rotate=0/ /boot/config.sav > /boot/config.txt
-python /home/pi/adafruit-pitft-touch-cal -f -t $ScreenType -r 0
+#python /home/pi/adafruit-pitft-touch-cal -f -t $ScreenType -r 0
+adafruit-pitft-touch-cal -f -r 0
 
 
 cd /home/pi/
@@ -309,4 +296,14 @@ then
 fi
 
 LogBanner "Install and setup finished"
+LogBanner "Rebooting in 5 seconds"
+i=5
+for i in 5 4 3 2 1
+do
+  echo $1
+  sleep 1
+done
+echo "Reboot . . ."
+reboot now
+
 
