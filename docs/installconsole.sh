@@ -33,21 +33,21 @@ function Get_val()
 function LogBanner()
 {
   echo
-  echo >> prep.log
+  echo >> /home/pi/prep.log
   echo "----------------------------------------------------------"
   echo "----------------------------------------------------------"
-  echo "----------------------------------------------------------" >> prep.log
-  echo "----------------------------------------------------------" >> prep.log
+  echo "----------------------------------------------------------" >> /home/pi/prep.log
+  echo "----------------------------------------------------------" >> /home/pi/prep.log
   echo "$1"
-  echo "$1" >> prep.log
+  echo "$1" >> /home/pi/prep.log
   echo "----------------------------------------------------------"
   echo "----------------------------------------------------------"
-  echo "----------------------------------------------------------" >> prep.log
-  echo "----------------------------------------------------------" >> prep.log
+  echo "----------------------------------------------------------" >> /home/pi/prep.log
+  echo "----------------------------------------------------------" >> /home/pi/prep.log
   echo
-  echo >> prep.log
+  echo >> /home/pi/prep.log
   date
-  date >> prep.log
+  date >> /home/pi/prep.log
 }
 
 LogBanner "Console Setup Script"
@@ -70,11 +70,11 @@ then
 fi
 
 
-echo "Console Setup" > prep.log
-date >> prep.log
-echo "Developer system:           $Personal" >> prep.log
-echo "Auto start Console on boot: $AutoConsole" >> prep.log
-exec > >(tee -a prep.log)
+echo "Console Setup" > /home/pi/prep.log
+date >> /home/pi/prep.log
+echo "Developer system:           $Personal" >> /home/pi/prep.log
+echo "Auto start Console on boot: $AutoConsole" >> /home/pi/prep.log
+exec > >(tee -a /home/pi/prep.log)
 
 
 if [ $Personal == "Y" ]
@@ -113,6 +113,9 @@ echo "APT::Default-release \"stable\";
 #set the priority for libsdl from wheezy higher then the jessie package
 echo "Package: libsdl1.2debian
 Pin: release n=jessie
+Pin-Priority: -10
+Package: libsdl1.2debian
+Pin: release n=stretch
 Pin-Priority: -10
 Package: libsdl1.2debian
 Pin: release n=wheezy

@@ -24,21 +24,21 @@ function Get_val()
 function LogBanner()
 {
   echo
-  echo >> earlyprep.log
+  echo >> /home/pi/earlyprep.log
   echo "----------------------------------------------------------"
   echo "----------------------------------------------------------"
-  echo "----------------------------------------------------------" >> earlyprep.log
-  echo "----------------------------------------------------------" >> earlyprep.log
+  echo "----------------------------------------------------------" >> /home/pi/earlyprep.log
+  echo "----------------------------------------------------------" >> /home/pi/earlyprep.log
   echo "$1"
-  echo "$1" >> earlyprep.log
+  echo "$1" >> /home/pi/earlyprep.log
   date
-  date >> earlyprep.log
+  date >> /home/pi/earlyprep.log
   echo "----------------------------------------------------------"
   echo "----------------------------------------------------------"
-  echo "----------------------------------------------------------" >> earlyprep.log
-  echo "----------------------------------------------------------" >> earlyprep.log
+  echo "----------------------------------------------------------" >> /home/pi/earlyprep.log
+  echo "----------------------------------------------------------" >> /home/pi/earlyprep.log
   echo
-  echo >> earlyprep.log
+  echo >> /home/pi/earlyprep.log
 
 }
 
@@ -62,7 +62,7 @@ then
 fi
 # redo asks
 
-exec > >(tee -a earlyprep.log)
+exec > >(tee -a /home/pi/earlyprep.log)
 
 LogBanner "Set WiFi country, set TimeZone, fix keyboard if needed"
 LogBanner "Do not reboot when prompted to do so"
