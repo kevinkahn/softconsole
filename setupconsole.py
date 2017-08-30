@@ -11,7 +11,10 @@ import githubutil as U
 piuid = pwd.getpwnam('pi')[2]
 pigrp = grp.getgrnam('pi')[2]
 for pdir in ('Console', 'consolestable', 'consolebeta', 'consolerem'):
-	os.mkdir(pdir)
+	try:
+		os.mkdir(pdir)
+	except:
+		pass
 	os.chown(pdir, piuid, pigrp)
 
 if os.path.exists('homesystem'):

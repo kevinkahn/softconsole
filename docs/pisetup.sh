@@ -182,13 +182,14 @@ wget  -O re4son-kernel_current.tar.xz https://whitedome.com.au/re4son/downloads/
 tar -xJf re4son-kernel_current.tar.xz
 
 LogBanner "If on Pi3 or Pi0W answer Y when prompted to install BT/WiFi Drivers and when prompted to enable BT"
+LogBanner "Expect long wait for BT and WiFi updates to finish installing"
 cd re4son-kernel_4*
 ./install.sh
 
 
 
 LogBanner "Choose Correct Display Type"
-./re4son-pi-tft-setup -d
+./re4son-pi-tft-setup -u
 ./re4son-pi-tft-setup -h
 Get_val DisplayType "Enter display type: "
 ./re4son-pi-tft-setup -t $DisplayType
@@ -204,7 +205,7 @@ LogBanner "Configure the screen and calibrate"
 # set vertical orientation
 mv /boot/config.txt /boot/config.sav
 sed s/rotate=90/rotate=0/ /boot/config.sav > /boot/config.txt
-adafruit-pitft-touch-cal -f -r 0 # TODO needs to work for waveshare screen
+./adafruit-pitft-touch-cal -f -r 0 # TODO needs to work for waveshare screen
 
 echo "Reboot now and then run installconsole.sh as root"
 
