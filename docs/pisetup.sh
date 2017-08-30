@@ -66,7 +66,7 @@ exec > >(tee -a earlyprep.log)
 
 LogBanner "Set WiFi country, set TimeZone, fix keyboard if needed"
 LogBanner "Do not reboot when prompted to do so"
-read -p "Press Enter to continue"
+read -p "Press Enter to continue to WiFi and TZ setting menu (under localization)"
 sudo raspi-config
 touch /boot/ssh # turn on ssh
 
@@ -177,9 +177,12 @@ chmod +x installconsole.sh
 
 LogBanner "Install Display Setup Scripts"
 cd /usr/local/src
-wget  -O re4son_kali-pi-tft_kernel_testing.tar.xz https://whitedome.com.au/re4son/downloads/11335/
-tar -xJf re4son_kali-pi-tft_kernel_testing.tar.xz
-cd re4son_kali-pi-tft_kernel_4*
+## re4son current stable as of 8/29/2017 is 11299
+wget  -O re4son-kernel_current.tar.xz https://whitedome.com.au/re4son/downloads/11299/
+tar -xJf re4son-kernel_current.tar.xz
+
+LogBanner "If on Pi3 or Pi0W answer Y when prompted to install BT/WiFi Drivers and when prompted to enable BT"
+cd re4son-kernel_4*
 ./install.sh
 
 
@@ -201,7 +204,7 @@ LogBanner "Configure the screen and calibrate"
 # set vertical orientation
 mv /boot/config.txt /boot/config.sav
 sed s/rotate=90/rotate=0/ /boot/config.sav > /boot/config.txt
-#adafruit-pitft-touch-cal -f -r 0 # TODO needs to work for waveshare screen
+adafruit-pitft-touch-cal -f -r 0 # TODO needs to work for waveshare screen
 
 echo "Reboot now and then run installconsole.sh as root"
 
