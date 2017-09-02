@@ -33,24 +33,24 @@ function Get_val()
 function LogBanner()
 {
   echo
-  echo >> /home/pi/prep.log
+  #echo >> /home/pi/prep.log
   echo "----------------------------------------------------------"
   echo "----------------------------------------------------------"
-  echo "----------------------------------------------------------" >> /home/pi/prep.log
-  echo "----------------------------------------------------------" >> /home/pi/prep.log
+  #echo "----------------------------------------------------------" >> /home/pi/prep.log
+  #echo "----------------------------------------------------------" >> /home/pi/prep.log
   echo "$1"
-  echo "$1" >> /home/pi/prep.log
+  #echo "$1" >> /home/pi/prep.log
   echo "----------------------------------------------------------"
   echo "----------------------------------------------------------"
-  echo "----------------------------------------------------------" >> /home/pi/prep.log
-  echo "----------------------------------------------------------" >> /home/pi/prep.log
+  #echo "----------------------------------------------------------" >> /home/pi/prep.log
+  #echo "----------------------------------------------------------" >> /home/pi/prep.log
   echo
-  echo >> /home/pi/prep.log
+  #echo >> /home/pi/prep.log
   date
-  date >> /home/pi/prep.log
+  #date >> /home/pi/prep.log
 }
 
-LogBanner "Console Setup Script"
+LogBanner "Console Setup Script" > /home/pi/prep.log
 if [[ "$EUID" -ne 0 ]]
 then
   echo "Must be run as root"
@@ -70,7 +70,6 @@ then
 fi
 
 
-echo "Console Setup" > /home/pi/prep.log
 date >> /home/pi/prep.log
 echo "Developer system:           $Personal" >> /home/pi/prep.log
 echo "Auto start Console on boot: $AutoConsole" >> /home/pi/prep.log
@@ -131,14 +130,11 @@ apt-get -y --force-yes install libsdl1.2debian/wheezy
 
 cd /home/pi/
 LogBanner "Console Installation"
-echo "-------Install Console-------" >> /home/pi/log.txt
-date >> /home/pi/log.txt
 wget https://raw.githubusercontent.com/kevinkahn/softconsole/master/setupconsole.py
 wget https://raw.githubusercontent.com/kevinkahn/softconsole/master/githubutil.py
-python setupconsole.py >> /home/pi/log.txt
+python setupconsole.py
 
 rm setupconsole.* githubutil.*
-chown pi /home/pi/log.txt
 
 # set Console to start automatically at boot
 if [ "$AutoConsole" == "Y" ]

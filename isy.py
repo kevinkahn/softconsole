@@ -419,14 +419,22 @@ class ISY(object):
 					exitutils.errorexit('reboot')
 					sys.exit(12)  # should never get here
 
-		configdict = xmltodict.parse(r1.text)['CList']['e']
-		for v in configdict:
-			self.varsState[v['@name']] = int(v['@id'])
-			self.varsStateInv[int(v['@id'])] = v['@name']
-		configdict = xmltodict.parse(r2.text)['CList']['e']
-		for v in configdict:
-			self.varsInt[v['@name']] = int(v['@id'])
-			self.varsIntInv[int(v['@id'])] = v['@name']
+		try:
+			configdict = xmltodict.parse(r1.text)['CList']['e']
+			for v in configdict:
+				self.varsState[v['@name']] = int(v['@id'])
+				self.varsStateInv[int(v['@id'])] = v['@name']
+		except:
+			self.varsState['##nostatevars##'] = 0
+			config.Logs.Log('No state variables defined')
+		try:
+			configdict = xmltodict.parse(r2.text)['CList']['e']
+			for v in configdict:
+				self.varsInt[v['@name']] = int(v['@id'])
+				self.varsIntInv[int(v['@id'])] = v['@name']
+		except:
+			self.varsInt['##nointevars##'] = 0
+			config.Logs.Log('No integer variables defined')
 
 		utilities.register_example("ISY", self)
 		if debug.Flags['ISY']:
