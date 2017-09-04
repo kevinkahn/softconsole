@@ -20,7 +20,7 @@ if os.path.exists('homesystem'):
 	U.StageVersion('consolestable', 'homerelease', 'InitialInstall')
 	print "Stage homerelease as stable"
 else:
-	U.StagedVersion('consolestable', 'currentrelease', 'InitialInstall')
+	U.StageVersion('consolestable', 'currentrelease', 'InitialInstall')
 	print "Stage standard stable release"
 U.InstallStagedVersion('consolestable')
 print "Installed staged stable"

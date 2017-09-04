@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Meant to be put on boot file system when SD card is created then moved and run from pi home dir
+# Meant to be put on boot file system when SD card is created then run as root
 function Get_yn()
 {
   # params: var, prompt
@@ -170,9 +170,6 @@ fi
 
 cd /home/pi
 wget https://raw.githubusercontent.com/kevinkahn/softconsole/master/docs/installconsole.sh
-#wget https://raw.githubusercontent.com/kevinkahn/softconsole/master/docs/piprep2.sh
-#wget https://raw.githubusercontent.com/kevinkahn/softconsole/master/docs/piprepadafruit.sh
-#chmod +x piprep.sh piprep2.sh piprepadafruit.sh
 chmod +x installconsole.sh
 
 LogBanner "Install Display Setup Scripts"
@@ -204,7 +201,7 @@ chmod +x adafruit-pitft-touch-cal
 LogBanner "Configure the screen and calibrate"
 # set vertical orientation
 mv /boot/config.txt /boot/config.sav
-sed s/rotate=90/rotate=0/ /boot/config.sav > /boot/config.txt
+sed s/rotate=90/rotate=0/ /boot/config.sav > /boot/config.txt  # TODO need to pick rotation based on screen type
 ./adafruit-pitft-touch-cal -f -r 0 -t $DisplayType # TODO needs to work for waveshare screen
 
 echo "Reboot now and then run installconsole.sh as root"

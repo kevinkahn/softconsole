@@ -90,6 +90,7 @@ DEBIAN_FRONTEND=noninteractive apt-get -y upgrade
 
 LogBanner "Install stuff for console"
 apt-get -y install python-dev
+apt-get -y install fonts-droid
 
 pip install --upgrade pip
 pip install configobj
@@ -132,7 +133,7 @@ cd /home/pi/
 LogBanner "Console Installation"
 wget https://raw.githubusercontent.com/kevinkahn/softconsole/master/setupconsole.py
 wget https://raw.githubusercontent.com/kevinkahn/softconsole/master/githubutil.py
-python setupconsole.py
+python -u setupconsole.py
 
 rm setupconsole.* githubutil.*
 
