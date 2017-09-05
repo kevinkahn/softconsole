@@ -27,7 +27,7 @@ class EventItem(object):
 		return not (self == other)
 
 	def __repr__(self):
-		return 'gpid: ' + str(self.gpid) + ' name: ' + self.name + ' del: ' + str(
+		return 'ID:' + str(id(self)) + ' gpid: ' + str(self.gpid) + ' name: ' + self.name + ' del: ' + str(
 			self.deleted)
 
 
@@ -98,7 +98,10 @@ class EventList(object):
 			while evnt.deleted is True:
 				debugPrint('EventList', self.RelNow(), ' Flush deleted: ', evnt)
 				heappop(self.List)
-				del self.finder[id(evnt)]
+				try:
+					del self.finder[id(evnt)]
+				except:
+					debugPrint('EventList', self.RelNow(), 'Extra delete?', evnt)
 				acttime, evnt = self.List[0]
 			return acttime, evnt
 		except IndexError:

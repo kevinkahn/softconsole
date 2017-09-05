@@ -72,7 +72,7 @@ class ISYEventMonitor:
 				if self.seq <> eseq:
 					config.Logs.Log("Event mismatch - Expected: " + str(self.seq) + " Got: " + str(eseq),
 									severity=ConsoleWarning)
-					# todo indicates a missed event - so should rebase the data?
+					# indicates a missed event - so should rebase the data?
 					self.seq = eseq + 1
 				else:
 					self.seq += 1
