@@ -55,7 +55,7 @@ class MyScreens(object):
 
 		# Validate screen lists and log them
 
-		config.Logs.Log("Main Screen List:")  # TODO fix the deletion and test against empty case
+		config.Logs.Log("Main Screen List:")
 		tmpchain = config.MainChain  # can't sequence loop over actual MainChain because of possiblity of deletions
 		for scr in tmpchain:
 			if not scr in config.MainDict:
@@ -134,7 +134,7 @@ class MyScreens(object):
 		if config.SecondaryChain <> []:
 			config.HomeScreen2 = config.SecondaryDict[config.SecondaryChain[0]].screen
 		else:
-			config.HomeScreen2 = config.HomeScreen  # just point secondary at main  TODO test this
+			config.HomeScreen2 = config.HomeScreen  # just point secondary at main
 		config.Logs.Log("Home Screen: " + config.HomeScreen.name)
 		for sn, st in zip(config.DimIdleListNames, config.DimIdleListTimes):
 			for l, d in zip((config.MainChain, config.SecondaryChain, config.ExtraChain),

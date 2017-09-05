@@ -39,18 +39,14 @@ import json
 # urllib3.disable_warnings()
 # import urllib3.contrib.pyopenssl
 
-# sys.stdout = open('/home/pi/master.log', 'a', 0)
-# print time.strftime('%m-%d-%y %H:%M:%S'), 'CONSOLE START'
-#urllib3.contrib.pyopenssl.inject_into_urllib3()
-
-# signal.signal(signal.SIGTERM, utilities.signal_handler)
-# signal.signal(signal.SIGINT, utilities.signal_handler)
-
-# TODO add running as root check
-# TODO add some logging prior to opening Console.log then delete it if no issues once console log is open
-
-earlylog = open('earlylog.log', 'w')
+earlylog = open('/home/pi/Console/earlylog.log', 'w', 0)
 earlylog.write("Console start at " + time.strftime('%m-%d-%y %H:%M:%S') + '\n')
+
+if os.getegid() <> 0:
+	# Not running as root
+	earlylog.write("Not running as root - exit\n")
+	print "Must run as root"
+	exit(999)
 
 utilities.InitializeEnvironment()
 
@@ -131,7 +127,7 @@ if not os.path.isfile(config.configfile):
 
 config.ParsedConfigFile = ConfigObj(config.configfile)  # read the config.txt file
 
-earlylog.write("Parsed config file\n")
+earlylog.write("Parsed base config file\n")
 
 configdir = os.path.dirname(config.configfile)
 
@@ -154,15 +150,21 @@ while includes:
 	tmpconf = ConfigObj(f)
 	includes = includes + tmpconf.get('include', [])
 	config.ParsedConfigFile.merge(tmpconf)
+	earlylog.write("Merged config file " + f + "\n")
 	config.configfilelist[f] = os.path.getmtime(f)
 
 debug.Flags = debug.InitFlags()
 
 utilities.ParseParam(globalparams)  # add global parameters to config file
 
+earlylog.write("Parsed globals\n")
+
 config.Logs = logsupport.Logs(config.screen, os.path.dirname(config.configfile))
 cgitb.enable(format='text')
 config.Logs.Log(u"Soft ISY Console")
+earlylog.write("Switched to real log\n")
+earlylog.close()
+# TODO delete the early log
 config.Logs.Log(u"  \u00A9 Kevin Kahn 2016")
 config.Logs.Log("Software under Apache 2.0 License")
 config.Logs.Log("Version Information:")

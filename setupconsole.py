@@ -4,6 +4,11 @@ import githubutil as U
 
 # Set up directories
 
+if os.getegid() <> 0:
+	# Not running as root
+	print "Must run as root"
+	exit(999)
+
 print "*** Setupconsole ***"
 piuid = pwd.getpwnam('pi')[2]
 pigrp = grp.getgrnam('pi')[2]
