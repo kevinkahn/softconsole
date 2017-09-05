@@ -45,13 +45,14 @@ class MyScreens(object):
 				else:
 					config.ExtraDict[NewScreen.name] = self.scrlistitem(NewScreen)
 					config.ExtraChain.append(NewScreen.name)
-
+		'''
 		if not config.SecondaryDict:
 			# Secondary Dict empty
 			config.SecondaryDict = config.ExtraDict
 			config.SecondaryChain = config.ExtraChain
 			config.ExtraChain = []
 			config.ExtraDict = {}
+		'''
 
 		# Validate screen lists and log them
 
@@ -81,6 +82,7 @@ class MyScreens(object):
 			exitutils.errorexit("shut")
 
 		# Create the navigation keys
+		# TODO - eliminate nav keys if chain length is 1 and use more screen space?
 		cbutwidth = (config.screenwidth - 2*config.horizborder)/2
 		cvertcenter = config.screenheight - config.botborder/2
 		cbutheight = config.botborder - config.cmdvertspace*2
@@ -130,19 +132,25 @@ class MyScreens(object):
 		else:
 			config.Logs.Log("Error in Home Screen Name", severity=ConsoleWarning)
 			config.HomeScreen = config.MainDict[config.MainChain[0]].screen
+		config.Logs.Log("Home Screen: " + config.HomeScreen.name)
 
 		if config.SecondaryChain <> []:
 			config.HomeScreen2 = config.SecondaryDict[config.SecondaryChain[0]].screen
+			config.Logs.Log("Secondary home screen: " + config.HomeScreen2.name)
 		else:
-			config.HomeScreen2 = config.HomeScreen  # just point secondary at main
-		config.Logs.Log("Home Screen: " + config.HomeScreen.name)
-		for sn, st in zip(config.DimIdleListNames, config.DimIdleListTimes):
-			for l, d in zip((config.MainChain, config.SecondaryChain, config.ExtraChain),
-							(config.MainDict, config.SecondaryDict, config.ExtraDict)):
-				if sn in l:
-					config.Logs.Log('Dim Screen: ' + sn + '/' + st)
-					config.DimIdleList.append(d[sn].screen)
-					config.DimIdleTimes.append(int(st))
+			config.HomeScreen2 = config.HomeScreen
+			config.Logs.Log("No secondary screen chain")  # just point secondary at main
+
+		try:
+			for sn, st in zip(config.DimIdleListNames, config.DimIdleListTimes):
+				for l, d in zip((config.MainChain, config.SecondaryChain, config.ExtraChain),
+								(config.MainDict, config.SecondaryDict, config.ExtraDict)):
+					if sn in l:
+						config.Logs.Log('Dim Screen: ' + sn + '/' + st)
+						config.DimIdleList.append(d[sn].screen)
+						config.DimIdleTimes.append(int(st))
+		except:
+			config.Logs.Log("Error specifying idle screens - check config", severity=ConsoleWarning)
 
 		# handle deprecated DimHomeScreenCoverName
 		if config.DimHomeScreenCoverName <> "" and not config.DimIdleList:
@@ -150,10 +158,7 @@ class MyScreens(object):
 				config.DimIdleList.append(config.MainDict[config.DimHomeScreenCoverName].screen)
 				config.DimIdleTimes.append(1000000)
 				config.Logs.Log("DimHS(deprecated): " + config.DimHomeScreenCoverName)
-
 		if not config.DimIdleList:
 			config.DimIdleList = [config.HomeScreen]
 			config.DimIdleTimes = [1000000]
 			config.Logs.Log("No Dim Home Screen Cover Set")
-
-		config.Logs.Log("First Secondary Screen: " + config.HomeScreen2.name)
