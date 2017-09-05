@@ -139,15 +139,9 @@ class DisplayScreen(object):
 			elif a.type == 'Init':
 				a.Invoke()
 
-		lp = 30  # TODO old junk?
 		while config.digestinginit:
-			lp = - 1
-			if lp > 0:
-				config.Logs.Log("Waiting initial status dump")
-				time.sleep(.1)
-			else:
-				config.Logs.Log("Initial status dump timeout", severity=ConsoleError, tb=False)
-				exitutils.FatalError('Comms Init Failure')
+			config.Logs.Log("Waiting initial status dump")
+			time.sleep(.2)
 
 		if config.Running:  # allow for a very early restart request from things like autoversion
 			self.SwitchScreen(InitScreen, 'Bright', 'Home', 'Startup')
@@ -211,12 +205,13 @@ class DisplayScreen(object):
 						# todo add handling for hold here with checking for MOUSE UP etc.
 				if tapcount == 3:
 					# Switch screen chains
-					if self.Chain == 0:
-						self.Chain = 1  # TODO check case of no secondary chain where home2 = home
-						self.SwitchScreen(config.HomeScreen2, 'Bright', 'NonHome', 'Chain switch to secondary')
-					else:
-						self.Chain = 0
-						self.SwitchScreen(config.HomeScreen, 'Bright', 'Home', 'Chain switch to main')
+					if config.HomeScreen <> config.HomeScreen2:  # only do if there is a real secondary chain
+						if self.Chain == 0:
+							self.Chain = 1
+							self.SwitchScreen(config.HomeScreen2, 'Bright', 'NonHome', 'Chain switch to secondary')
+						else:
+							self.Chain = 0
+							self.SwitchScreen(config.HomeScreen, 'Bright', 'Home', 'Chain switch to main')
 					continue
 
 				elif tapcount > 3:
@@ -246,6 +241,7 @@ class DisplayScreen(object):
 						self.SwitchScreen(config.HomeScreen, 'Dim', 'Home', 'Dim nonhome to dim home')
 					elif self.state == 'Home' or self.state == 'Cover':
 						self.SwitchScreen(config.DimIdleList[0], 'Dim', 'Cover', 'Go to cover', NavKeys=False)
+						# TODO funny case where there are no idle screens and the nav keys don't get drawn on touch
 						# rotate covers
 						config.DimIdleList = config.DimIdleList[1:] + config.DimIdleList[:1]
 						config.DimIdleTimes = config.DimIdleTimes[1:] + config.DimIdleTimes[:1]
