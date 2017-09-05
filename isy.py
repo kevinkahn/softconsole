@@ -345,8 +345,8 @@ class ISY(object):
 				self.ScenesByAddr[scene['address']] = Scene(scene['@flag'], scene['name'], str(scene['address']), ptyp,
 															p, memberlist)
 			else:
-				if scene['name'] <> '~Auto DR':
-					config.Logs.Log('Scene with no members', scene['name'], severity=ConsoleWarning)
+				if scene['name'] not in ('~Auto DR', 'Auto DR'):
+					config.Logs.Log('Scene with no members ', scene['name'], severity=ConsoleWarning)
 		self.LinkChildrenParents(self.ScenesByAddr, self.ScenesByName, self.FoldersByAddr, self.NodesByAddr)
 		if debug.Flags['ISY']:
 			self.PrintTree(self.NodeRoot, "    ", 'Nodes')

@@ -46,13 +46,23 @@ import json
 # signal.signal(signal.SIGTERM, utilities.signal_handler)
 # signal.signal(signal.SIGINT, utilities.signal_handler)
 
+# TODO add running as root check
+# TODO add some logging prior to opening Console.log then delete it if no issues once console log is open
+
+earlylog = open('earlylog.log', 'w')
+earlylog.write("Console start at " + time.strftime('%m-%d-%y %H:%M:%S') + '\n')
 
 utilities.InitializeEnvironment()
+
+earlylog.write('Environment initialized\n')
 
 config.exdir = os.path.dirname(os.path.abspath(__file__))
 lastfn = ""
 lastmod = 0
 config.Console_pid = os.getpid()
+
+earlylog.write('Exdir: ' + config.exdir + '  Pid: ' + str(config.Console_pid) + '\n')
+
 for root, dirs, files in os.walk(config.exdir):
 	for fname in files:
 		if fname.endswith(".py"):
@@ -73,6 +83,8 @@ except:
 	config.versiondnld = 'none'
 	config.versioncommit = 'none'
 
+earlylog.write(
+	'Version/Sha/Dnld/Commit: ' + config.versionname + ' ' + config.versionsha + ' ' + config.versiondnld + ' ' + config.versioncommit + '\n')
 
 """
 Dynamically load class definitions for all defined screen types and link them to how configuration happens
@@ -83,13 +95,20 @@ for screentype in os.listdir(os.path.dirname(os.path.abspath(sys.argv[0])) + '/s
 		if splitname[1] == '.py':
 			importlib.import_module('screens.' + splitname[0])
 
+earlylog.write("Screen types imported \n")
+
 for alertproctype in os.listdir(os.path.dirname(os.path.abspath(sys.argv[0])) + '/alerts'):
 	if '__' not in alertproctype:
 		splitname = os.path.splitext(alertproctype)
 		if splitname[1] == '.py':
 			importlib.import_module('alerts.' + splitname[0])
+
+earlylog.write("Alert Proc types imported\n")
+
 for n in config.alertprocs:
 	config.alertprocs[n] = config.alertprocs[n]()  # instantiate an instance of each alert class
+
+earlylog.write("Alert classes instantiated\n")
 
 """
 Initialize the Console
@@ -107,9 +126,13 @@ if len(sys.argv) == 2:
 	config.configfile = sys.argv[1]
 
 if not os.path.isfile(config.configfile):
+	earlylog.write("Abort - no configuratio file\n")
 	utilities.EarlyAbort('No Configuration File')
 
 config.ParsedConfigFile = ConfigObj(config.configfile)  # read the config.txt file
+
+earlylog.write("Parsed config file\n")
+
 configdir = os.path.dirname(config.configfile)
 
 config.configfilelist[config.configfile] = os.path.getmtime(config.configfile)

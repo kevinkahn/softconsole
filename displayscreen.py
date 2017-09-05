@@ -139,7 +139,7 @@ class DisplayScreen(object):
 			elif a.type == 'Init':
 				a.Invoke()
 
-		lp = 30
+		lp = 30  # TODO old junk?
 		while config.digestinginit:
 			lp = - 1
 			if lp > 0:
@@ -212,7 +212,7 @@ class DisplayScreen(object):
 				if tapcount == 3:
 					# Switch screen chains
 					if self.Chain == 0:
-						self.Chain = 1
+						self.Chain = 1  # TODO check case of no secondary chain where home2 = home
 						self.SwitchScreen(config.HomeScreen2, 'Bright', 'NonHome', 'Chain switch to secondary')
 					else:
 						self.Chain = 0
