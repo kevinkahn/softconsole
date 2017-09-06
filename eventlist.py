@@ -82,6 +82,9 @@ class EventList(object):
 		self.finder[id(evnt)] = evnt
 		evnt.abstime = time.time() + dt
 		evnt.deleted = False
+		for i in self.List:
+			if i[1] == evnt:
+				print "Whoops"
 		heappush(self.List, (evnt.abstime, evnt))
 		T = self.TimeToNext()
 		debugPrint('EventList', self.RelNow(), ' Add: ', dt, evnt, T)
@@ -96,8 +99,10 @@ class EventList(object):
 		try:
 			acttime, evnt = self.List[0]
 			while evnt.deleted is True:
+				debugPrint('EventList', "PRE", self.List)
 				debugPrint('EventList', self.RelNow(), ' Flush deleted: ', evnt)
 				heappop(self.List)
+				debugPrint('EventList', "POST", self.List)
 				try:
 					del self.finder[id(evnt)]
 				except:
@@ -130,7 +135,7 @@ class EventList(object):
 			else:  # we are early for some reason so just repost a wakeup
 				'''
 				Note - early wakeups are likely when events happen close together in time.  set_timer actually sets
-				a repeating timer so if 2 events are schedules for essentially the same time the time to next after the
+				a repeating timer so if 2 events are scheduled for essentially the same time, the time to next after the
 				first of them will be very short and it is likely to tick a second time before the correct time to next
 				is set by the second of the 2 close events.
 				'''

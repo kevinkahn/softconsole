@@ -70,6 +70,7 @@ class DisplayScreen(object):
 			debugPrint('Dispatch', "Switch from: ", self.AS.name, " to ", NS.name, "Nav=", NavKeys, ' State=',
 					   oldstate + '/' + newstate + ':' + olddim + '/' + newdim, ' ', reason)
 			self.AS.ExitScreen()
+		OS = self.AS
 		self.AS = NS
 		if newdim == 'Dim':
 			self.Dim()
@@ -98,7 +99,7 @@ class DisplayScreen(object):
 		self.AS.EnterScreen()
 
 		debugPrint('Dispatch', "New watchlist(Main): " + str(self.AS.NodeWatch) + str(self.WatchNodes))
-		self.AS.InitDisplay(nav)
+		if OS <> self.AS: self.AS.InitDisplay(nav)
 
 	def NavPress(self, NS, press):
 		debugPrint('Dispatch', 'Navkey: ', NS.name, self.state + '/' + self.dim)
