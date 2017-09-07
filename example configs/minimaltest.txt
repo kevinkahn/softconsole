@@ -1,0 +1,15 @@
+cfglib = cfglib
+include = auth.cfg,myclock.cfg
+HomeScreenName = test
+HomeScreenTO = 30
+DimLevel = 5
+DimTO = 15
+DimIdleListNames = MyClock,
+DimIdleListTimes = 20,
+
+MainChain = test,
+
+[test]
+type = Keypad
+label = My,Test
+[[Office Ceiling]]
