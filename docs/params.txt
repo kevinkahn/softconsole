@@ -31,28 +31,8 @@ Global Parameters:
     MultiTapTime                    :  int       400
     PersistTO                       :  int       20
     SecondaryChain                  :  list      []
+    WunderKey                       :  str       none
 Module Parameters:
-    AlertsScreenDesc
-        Local Parameters:
-            BlinkTime               :  int     
-            CharSize                :  list    
-            DeferTime               :  str     
-            Font                    :  str     
-            Message                 :  list    
-            MessageBack             :  str     
-            label                   :  list    
-        Overrideable Globals:
-            BackgroundColor
-            BrightLevel
-            CharColor
-            CmdCharCol
-            CmdKeyCol
-            DimLevel
-            DimTO
-            KeyCharColorOff
-            KeyCharColorOn
-            KeyColor
-            PersistTO
     ClockScreenDesc
         Local Parameters:
             CharSize                :  list    
@@ -122,54 +102,9 @@ Module Parameters:
             KeyOffOutlineColor
             KeyOnOutlineColor
             KeyOutlineOffset
-    RunThenKey
+    ThermostatScreenDesc
         Local Parameters:
-            Blink                   :  int     
-            FastPress               :  int     
-            KeyRunThenName          :  str     
             label                   :  list    
-        Overrideable Globals:
-            KeyCharColorOff
-            KeyCharColorOn
-            KeyColor
-            KeyColorOff
-            KeyColorOn
-            KeyLabelOff
-            KeyLabelOn
-            KeyOffOutlineColor
-            KeyOnOutlineColor
-            KeyOutlineOffset
-    SetVarKey
-        Local Parameters:
-            Value                   :  int     
-            Var                     :  str     
-            VarType                 :  str     
-            label                   :  list    
-        Overrideable Globals:
-            KeyCharColorOff
-            KeyCharColorOn
-            KeyColor
-            KeyColorOff
-            KeyColorOn
-            KeyLabelOff
-            KeyLabelOn
-            KeyOffOutlineColor
-            KeyOnOutlineColor
-            KeyOutlineOffset
-    TimeTempScreenDesc
-        Local Parameters:
-            CharSize                :  list    
-            ConditionFields         :  list    
-            ConditionFormat         :  list    
-            Font                    :  str     
-            ForecastDays            :  int     
-            ForecastFields          :  list    
-            ForecastFormat          :  list    
-            SkipDays                :  int     
-            TimeFormat              :  list    
-            WunderKey               :  str     
-            label                   :  list    
-            location                :  str     
         Overrideable Globals:
             BackgroundColor
             BrightLevel
@@ -178,18 +113,7 @@ Module Parameters:
             CmdKeyCol
             DimLevel
             DimTO
-            PersistTO
-    WeatherScreenDesc
-        Local Parameters:
-            WunderKey               :  str     
-            label                   :  list    
-            location                :  str     
-        Overrideable Globals:
-            BackgroundColor
-            BrightLevel
-            CharColor
-            CmdCharCol
-            CmdKeyCol
-            DimLevel
-            DimTO
+            KeyColor
+            KeyOffOutlineColor
+            KeyOnOutlineColor
             PersistTO
