@@ -1,13 +1,13 @@
 cfglib = cfglib
 include = auth.cfg,myclock.cfg
 HomeScreenName = test
-HomeScreenTO = 30
+PersistTO = 30
 DimLevel = 5
 DimTO = 15
 DimIdleListNames = MyClock,
 DimIdleListTimes = 20,
 
-MainChain = test,
+MainChain = test, MyClock
 
 [test]
 type = Keypad
