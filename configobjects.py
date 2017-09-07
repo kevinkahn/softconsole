@@ -57,7 +57,7 @@ class MyScreens(object):
 		# Validate screen lists and log them
 
 		config.Logs.Log("Main Screen List:")
-		tmpchain = config.MainChain  # can't sequence loop over actual MainChain because of possiblity of deletions
+		tmpchain = config.MainChain[:]  # copy MainChain (not pointer to) because of possiblity of deletions
 		for scr in tmpchain:
 			if not scr in config.MainDict:
 				config.Logs.Log("-- Undefined Screen:", scr, severity=ConsoleWarning)
@@ -65,7 +65,7 @@ class MyScreens(object):
 			else:
 				config.Logs.Log("---" + scr)
 		config.Logs.Log("Secondary Screen List:")
-		tmpchain = config.SecondaryChain
+		tmpchain = config.SecondaryChain[:]
 		for scr in tmpchain:
 			if not scr in config.SecondaryDict:
 				config.Logs.Log("-- Undefined Screen:", scr, severity=ConsoleWarning)
