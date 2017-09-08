@@ -113,6 +113,17 @@ def EarlyAbort(scrnmsg):
 
 
 def InitializeEnvironment():
+	# this section is an unbelievable nasty hack - for some reason Pygame
+	# needs a keyboardinterrupt to initialise in some limited circs (second time running)
+	# lines below commented with HACK also part of workaround
+	# see https://stackoverflow.com/questions/17035699/pygame-requires-keyboard-interrupt-to-init-display
+	class Alarm(Exception):
+		pass
+
+	def alarm_handler(signum, frame):
+		raise Alarm
+
+	# end hack
 
 	hw.initOS()
 	pygame.display.init()
@@ -128,7 +139,15 @@ def InitializeEnvironment():
 	config.topborder = scaleH(config.topborder)
 	config.botborder = scaleH(config.botborder)
 	config.cmdvertspace = scaleH(config.cmdvertspace)
-	config.screen = pygame.display.set_mode((config.screenwidth, config.screenheight), pygame.FULLSCREEN)
+	signal.signal(signal.SIGALRM, alarm_handler)  # HACK
+	signal.alarm(3)  # HACK
+	try:  # HACK
+		config.screen = pygame.display.set_mode((config.screenwidth, config.screenheight),
+												pygame.FULLSCREEN)  # real needed line
+		signal.alarm(0)  # HACK
+	except Alarm:  # HACK
+		raise KeyboardInterrupt  # HACK
+
 	config.screen.fill((0, 0, 0))  # clear screen
 	pygame.display.update()
 	if hw.touchdevice:
