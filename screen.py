@@ -91,7 +91,7 @@ class BaseKeyScreenDesc(ScreenDesc):
 	def LayoutKeys(self, extraOffset=0, height=0):
 		# Compute the positions and sizes for the Keys and store in the Key objects
 		explicitlayout = self.KeysPerColumn*self.KeysPerRow
-		bpr, bpc = ButLayout(len(self.Keys))
+
 		if explicitlayout <> 0:
 			# user provided explicit button layout
 			if explicitlayout > len(self.Keys):
@@ -100,8 +100,10 @@ class BaseKeyScreenDesc(ScreenDesc):
 			else:
 				# bad user layout - go with automatic
 				config.Logs.Log('Bad explicit key layout for: ', self.name, severity=logsupport.ConsoleWarning)
+				bpr, bpc = ButLayout(len(self.Keys))
 		else:
-			pass
+			bpr, bpc = ButLayout(
+				len(self.Keys))  # don't do this if explicit layout spec's because may be more keys than it can handle
 
 		self.buttonsperrow = bpr
 		self.buttonspercol = bpc
