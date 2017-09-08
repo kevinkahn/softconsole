@@ -36,3 +36,7 @@ KeyOffOutlineColor = "black"
 KeyOutlineOffset = 3
 KeyLabelOn = ['', ]
 KeyLabelOff = ['', ]
+
+# Defaults for KeyScreen
+KeysPerColumn = 0
+KeysPerRow = 0

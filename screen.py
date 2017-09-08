@@ -83,14 +83,26 @@ class ScreenDesc(object):
 class BaseKeyScreenDesc(ScreenDesc):
 	def __init__(self, screensection, screenname):
 		ScreenDesc.__init__(self, screensection, screenname)
-		utilities.LocalizeParams(self, None, '')
+		utilities.LocalizeParams(self, screensection, '-', 'KeysPerColumn', 'KeysPerRow')
 		self.buttonsperrow = -1
 		self.buttonspercol = -1
 		utilities.register_example('BaseKeyScreenDesc', self)
 
 	def LayoutKeys(self, extraOffset=0, height=0):
 		# Compute the positions and sizes for the Keys and store in the Key objects
+		explicitlayout = self.KeysPerColumn*self.KeysPerRow
 		bpr, bpc = ButLayout(len(self.Keys))
+		if explicitlayout <> 0:
+			# user provided explicit button layout
+			if explicitlayout > len(self.Keys):
+				# user layout provides enough space
+				bpr, bpc = (self.KeysPerRow, self.KeysPerColumn)
+			else:
+				# bad user layout - go with automatic
+				config.Logs.Log('Bad explicit key layout for: ', self.name, severity=logsupport.ConsoleWarning)
+		else:
+			pass
+
 		self.buttonsperrow = bpr
 		self.buttonspercol = bpc
 
