@@ -104,6 +104,7 @@ class ThermostatScreenDesc(screen.BaseKeyScreenDesc):
 		# r = config.ISYrequestsession.get('http://' + config.ISYaddr + '/rest/nodes/' + self.ISYObj.address,
 		#								 verify=False)  # todo check r response
 		tstatdict = xmltodict.parse(rtxt)  #r.text)
+		# config.Logs.Log('****' + str(tstatdict)) why do we sometimes get a garbage response TODO
 		props = tstatdict["nodeInfo"]["properties"]["property"]
 
 		self.info = {}
@@ -130,10 +131,17 @@ class ThermostatScreenDesc(screen.BaseKeyScreenDesc):
 		config.screen.blit(self.AdjButSurf, (0, self.AdjButTops))
 		# self.Keys['Mode'].PaintKey() # todo also painting in reinit and in init - should sort out
 		#self.Keys['Fan'].PaintKey()
-		r1 = config.fonts.Font(self.fsize[1]).render(
-			('Off', 'Heat', 'Cool', 'Auto', 'Fan', 'Prog Auto', 'Prog Heat', 'Prog Cool')[self.info["CLIMD"][0]], 0,
-			wc(self.CharColor))
-		r2 = config.fonts.Font(self.fsize[1]).render(('On', 'Auto')[self.info["CLIFS"][0] - 7], 0, wc(self.CharColor))
+		try:
+			r1 = config.fonts.Font(self.fsize[1]).render(
+				('Off', 'Heat', 'Cool', 'Auto', 'Fan', 'Prog Auto', 'Prog Heat', 'Prog Cool')[self.info["CLIMD"][0]], 0,
+				wc(self.CharColor))
+		except:
+			r1 = config.fonts.Font(self.fsize[1]).render('---', 0, wc(self.CharColor))
+		try:
+			r2 = config.fonts.Font(self.fsize[1]).render(('On', 'Auto')[self.info["CLIFS"][0] - 7], 0,
+														 wc(self.CharColor))
+		except:
+			r2 = config.fonts.Font(self.fsize[1]).render('---', 0, wc(self.CharColor))
 		config.screen.blit(r1, (self.Keys['Mode'].Center[0] - r1.get_width()/2, self.ModesPos))
 		config.screen.blit(r2, (self.Keys['Fan'].Center[0] - r2.get_width()/2, self.ModesPos))
 

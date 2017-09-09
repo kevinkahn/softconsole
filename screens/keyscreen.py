@@ -53,7 +53,11 @@ class KeyScreenDesc(screen.BaseKeyScreenDesc):
 
 	def ISYEvent(self, node, value):
 		# Watched node reported change event is ("Node", addr, value, seq) todo tied to above comment
-		K = self.subscriptionlist[node]
+		try:
+			K = self.subscriptionlist[node]
+		except:
+			debugPrint('Screen', 'Bad key to KS - race?', self.name, str(node))
+			return  # treat as noop
 		debugPrint('Screen', 'KS ISYEvent ', K.name, str(value), str(K.State))
 		K.State = not (int(value if value.isdigit() else 0) == 0)  # K is off (false) only if state is 0
 		K.PaintKey()
