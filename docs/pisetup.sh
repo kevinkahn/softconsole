@@ -24,21 +24,21 @@ function Get_val()
 function LogBanner()
 {
   echo
-  echo >> /home/pi/earlyprep.log
+  #echo >> /home/pi/earlyprep.log
   echo "----------------------------------------------------------"
   echo "----------------------------------------------------------"
-  echo "----------------------------------------------------------" >> /home/pi/earlyprep.log
-  echo "----------------------------------------------------------" >> /home/pi/earlyprep.log
+  #echo "----------------------------------------------------------" >> /home/pi/earlyprep.log
+  #echo "----------------------------------------------------------" >> /home/pi/earlyprep.log
   echo "$1"
-  echo "$1" >> /home/pi/earlyprep.log
+  #echo "$1" >> /home/pi/earlyprep.log
   date
-  date >> /home/pi/earlyprep.log
+  #date >> /home/pi/earlyprep.log
   echo "----------------------------------------------------------"
   echo "----------------------------------------------------------"
-  echo "----------------------------------------------------------" >> /home/pi/earlyprep.log
-  echo "----------------------------------------------------------" >> /home/pi/earlyprep.log
+  #echo "----------------------------------------------------------" >> /home/pi/earlyprep.log
+  #echo "----------------------------------------------------------" >> /home/pi/earlyprep.log
   echo
-  echo >> /home/pi/earlyprep.log
+  #echo >> /home/pi/earlyprep.log
 
 }
 
