@@ -63,13 +63,13 @@ def Exit_Options(msg, scrnmsg):
 	time.sleep(2)
 
 
-def FatalError(msg):
+def FatalError(msg, restartopt='restart'):
 	config.screen.fill(wc("red"))
 	r = config.fonts.Font(40, '', True, True).render(msg, 0, wc("white"))
 	config.screen.blit(r, ((config.screenwidth - r.get_width())/2, config.screenheight*.4))
 	pygame.display.update()
 	config.Logs.Log(msg, severity=ConsoleError, tb=False)
-	Exit('restart', 'fatal error', 99)
+	Exit(restartopt, 'fatal error', 99)
 
 
 def ErrorScreen(msg1, msg2, msg3):

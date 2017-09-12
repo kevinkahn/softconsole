@@ -16,8 +16,8 @@ Copyright 2016 Kevin Kahn
 import importlib
 import os
 import sys
+import signal
 import time
-import threading
 import cgitb
 
 from configobj import ConfigObj
@@ -36,8 +36,17 @@ import requests
 
 import json
 
-# urllib3.disable_warnings()
-# import urllib3.contrib.pyopenssl
+
+def handler(signum, frame):
+	if signum == signal.SIGTERM:
+		config.Logs.Log("Console received a SIGTERM - Exiting")
+		time.sleep(1)
+		os._exit(0)
+	else:
+		config.Logs.Log("Console received signal " + str(signum) + " Ignoring")
+
+
+signal.signal(signal.SIGTERM, handler)
 
 earlylog = open('/home/pi/Console/earlylog.log', 'w', 0)
 earlylog.write("Console start at " + time.strftime('%m-%d-%y %H:%M:%S') + '\n')

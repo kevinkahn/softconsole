@@ -1,7 +1,6 @@
 import pygame
 import config
 import debug
-import exitutils
 import hw
 import isy
 from eventlist import EventItem, EventList
