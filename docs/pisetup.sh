@@ -42,6 +42,11 @@ function LogBanner()
 
 }
 
+if [[ "$EUID" -ne 0 ]]
+then
+  echo "Must be run as root"
+  exit
+fi
 
 cd /home/pi
 LogBanner "Connect WiFI if needed"
@@ -49,11 +54,19 @@ read -p "Press Enter to continue"
 sudo passwd pi
 Get_val NodeName "What name for this system?"
 Get_yn VNCstdPort "Install VNC/ssh on standard port (Y/N)?"
-Get_yn InstallOVPN "Install OpenVPN (Y/N)?"
-Get_yn InstallDDC "Install ddclient (Y/N)?"
-#Get_yn InstallSamba "Install samba (Y/N)?"
-Get_yn InstallWD "Install and start Watchdog (Y/N)?"
 
+if "x$1" -ne "x"
+then
+  LogBanner "Extended setup requested"
+  Get_yn InstallOVPN "Install OpenVPN (Y/N)?"
+  Get_yn InstallDDC "Install ddclient (Y/N)?"
+  #Get_yn InstallSamba "Install samba (Y/N)?"
+  Get_yn InstallWD "Install and start Watchdog (Y/N)?"
+else
+  InstallOVPN=Nle
+  InstallDDC=N
+  InstallWD=N
+fi
 
 Get_yn Go "Proceed?"
 if [ "$Go" != "Y" ]
@@ -64,10 +77,36 @@ fi
 
 exec > >(tee -a /home/pi/earlyprep.log)
 
-LogBanner "Set WiFi country, set TimeZone, fix keyboard if needed"
-LogBanner "Do not reboot when prompted to do so"
-read -p "Press Enter to continue to WiFi and TZ setting menu (under localization)"
-sudo raspi-config
+LogBanner "Force WiFi to US"
+COUNTRY=US
+if [ -e /etc/wpa_supplicant/wpa_supplicant.conf ]; then
+    if grep -q "^country=" /etc/wpa_supplicant/wpa_supplicant.conf ; then
+        sed -i --follow-symlinks "s/^country=.*/country=$COUNTRY/g" /etc/wpa_supplicant/wpa_supplicant.conf
+    else
+        sed -i --follow-symlinks "1i country=$COUNTRY" /etc/wpa_supplicant/wpa_supplicant.conf
+    fi
+else
+    echo "country=$COUNTRY" > /etc/wpa_supplicant/wpa_supplicant.conf
+fi
+LogBanner "Fix Keyboard"
+echo "
+# Softconsole setup forced keyboard setting for US Standard
+
+# Consult the keyboard(5) manual page.
+
+XKBMODEL=\"pc105\"
+XKBLAYOUT=\"us\"
+XKBVARIANT=\"\"
+XKBOPTIONS=\"\"
+BACKSPACE=\"guess\"
+" > /etc/default/keyboard
+invoke-rc.d keyboard-setup start
+udevadm trigger --subsystem-match=input --action=change
+
+dpkg-reconfigure tzdata
+
+LogBanner "Run raspi-config if you need non-US wifi, non-US keyboard, or other specials"
+LogBanner "Turn on ssh"
 touch /boot/ssh # turn on ssh
 
 LogBanner "Changing Node Name to: $NodeName"
@@ -103,7 +142,7 @@ then
 
   VNCport="-rfbport $VNCstdPort"
   cp /etc/ssh/sshd_config /etc/ssh/sshd_config.sav
-  sed '/Port /s/.*/Port $SSHDport/' /etc/ssh/sshd_config.sav > /etc/ssh/sshd_config
+  sed "/Port /s/.*/Port $SSHDport" /etc/ssh/sshd_config.sav > /etc/ssh/sshd_config
 else
   echo "VNC will be set up on its normal port"
   VNCport=""
@@ -130,6 +169,7 @@ WantedBy=multi-user.target
 
 echo "Start tightvncserver service"
 systemctl daemon-reload && sudo systemctl enable tightvncserver.service
+systemctl start tightvncserver.service
 
 # install OpenVPN
 if [ "$InstallOVPN" == "Y" ]

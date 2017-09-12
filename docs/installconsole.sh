@@ -54,7 +54,7 @@ LogBanner "Console Setup Script" > /home/pi/prep.log
 if [[ "$EUID" -ne 0 ]]
 then
   echo "Must be run as root"
-#  exit
+  exit
 fi
 
 Get_yn Personal "Is this the developer personal system (Y/N) (risky to say Y if it not)?"
