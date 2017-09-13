@@ -55,7 +55,7 @@ sudo passwd pi
 Get_val NodeName "What name for this system?"
 Get_yn VNCstdPort "Install VNC/ssh on standard port (Y/N)?"
 
-if "x$1" -ne "x"
+if [ "x$1" != "x" ]
 then
   LogBanner "Extended setup requested"
   Get_yn InstallOVPN "Install OpenVPN (Y/N)?"
@@ -63,7 +63,7 @@ then
   #Get_yn InstallSamba "Install samba (Y/N)?"
   Get_yn InstallWD "Install and start Watchdog (Y/N)?"
 else
-  InstallOVPN=Nle
+  InstallOVPN=N
   InstallDDC=N
   InstallWD=N
 fi
@@ -142,7 +142,7 @@ then
 
   VNCport="-rfbport $VNCstdPort"
   cp /etc/ssh/sshd_config /etc/ssh/sshd_config.sav
-  sed "/Port /s/.*/Port $SSHDport" /etc/ssh/sshd_config.sav > /etc/ssh/sshd_config
+  sed "/Port /s/.*/Port $SSHDport/" /etc/ssh/sshd_config.sav > /etc/ssh/sshd_config
 else
   echo "VNC will be set up on its normal port"
   VNCport=""
