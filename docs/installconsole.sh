@@ -33,21 +33,12 @@ function Get_val()
 function LogBanner()
 {
   echo
-  #echo >> /home/pi/prep.log
   echo "----------------------------------------------------------"
   echo "----------------------------------------------------------"
-  #echo "----------------------------------------------------------" >> /home/pi/prep.log
-  #echo "----------------------------------------------------------" >> /home/pi/prep.log
   echo "$1"
-  #echo "$1" >> /home/pi/prep.log
-  echo "----------------------------------------------------------"
-  echo "----------------------------------------------------------"
-  #echo "----------------------------------------------------------" >> /home/pi/prep.log
-  #echo "----------------------------------------------------------" >> /home/pi/prep.log
-  echo
-  #echo >> /home/pi/prep.log
   date
-  #date >> /home/pi/prep.log
+  echo "----------------------------------------------------------"
+  echo "----------------------------------------------------------"
 }
 
 LogBanner "Console Setup Script" > /home/pi/prep.log
@@ -147,16 +138,13 @@ then
   echo "Create configuration files in Console" >> /home/pi/TODO-installation
 fi
 
-
 LogBanner "Install and setup finished"
 LogBanner "Rebooting in 5 seconds"
 i=5
 for i in 5 4 3 2 1
 do
-  echo $1
+  echo Rebooting $1
   sleep 1
 done
 echo "Reboot . . ."
 reboot now
-
-
