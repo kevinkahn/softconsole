@@ -21,6 +21,11 @@ function Get_val()
   read -p "$2 " resp
   eval $1="'$resp'"
 }
+function InList()
+{
+  [[ $1 =~ (^|[[:space:]])$2($|[[:space:]]) ]] && exit(0) || exit(1)
+}
+
 function LogBanner()
 {
   echo
@@ -44,6 +49,8 @@ read -p "Press Enter to continue"
 sudo passwd pi
 Get_val NodeName "What name for this system?"
 Get_yn VNCstdPort "Install VNC/ssh on standard port (Y/N)?"
+SCREENTYPES=35r,
+Get_val ScreenType "What type screen(35r,28r,28c,wave35)?"
 
 if [ "x$1" != "x" ]
 then
@@ -77,12 +84,11 @@ if [ -e /etc/wpa_supplicant/wpa_supplicant.conf ]; then
 else
     echo "country=$COUNTRY" > /etc/wpa_supplicant/wpa_supplicant.conf
 fi
+
 LogBanner "Fix Keyboard"
 echo "
 # Softconsole setup forced keyboard setting for US Standard
-
 # Consult the keyboard(5) manual page.
-
 XKBMODEL=\"pc105\"
 XKBLAYOUT=\"us\"
 XKBVARIANT=\"\"
@@ -92,9 +98,11 @@ BACKSPACE=\"guess\"
 invoke-rc.d keyboard-setup start
 udevadm trigger --subsystem-match=input --action=change
 
+LogBanner "Set Time Zone"
 dpkg-reconfigure tzdata
 
 LogBanner "Run raspi-config if you need non-US wifi, non-US keyboard, or other specials"
+
 LogBanner "Turn on ssh"
 touch /boot/ssh # turn on ssh
 
@@ -117,49 +125,38 @@ fgcolor=#c63eef9a0c11
 cp lxterminal.conf lxterminal.conf.bak
 sed -f lxfix lxterminal.conf.bak > lxterminal.conf
 
-LogBanner "Install tightvncserver"
-apt-get -y install tightvncserver
-sudo -u pi tightvncserver
+#LogBanner "Install tightvncserver"
+#apt-get -y install tightvncserver
+#sudo -u pi tightvncserver
 #apt-get -y install autocutsel
 
 
 if [ $VNCstdPort != "Y" ]
+echo "Authentication=VncAuth" >> /root/.vnc/config.d/vncserver-x11
+echo "Encryption=PreferOff" >> /root/.vnc/config.d/vncserver-x11
 then
   SSHDport=$(($VNCstdPort - 100))
-  echo "VNC will be set up on port " $VNCstdPort
+  VNCConsole=$(($VNCstdPort - 1))
+  echo "Console VNC will be set up on port " $VNCConsole
+  echo "Virtual VNC will be set up on port " $VNCstdPort
   echo "sshd will be moved to port " $SSHDport
-
-  VNCport="-rfbport $VNCstdPort"
   cp /etc/ssh/sshd_config /etc/ssh/sshd_config.sav
   sed "/Port /s/.*/Port $SSHDport/" /etc/ssh/sshd_config.sav > /etc/ssh/sshd_config
+  echo "RfbPort=$VNCstdPort" >> /home/pi/.vnc/config.d/Xvnc
+  chown pi /home/pi/.vnc/config.d/Xvnc
+  echo "RfbPort=$VNCConsole" >> /root/.vnc/config.d/vncserver-x11
 else
-  echo "VNC will be set up on its normal port"
-  VNCport=""
-
+  echo "VNC will be set up on its normal port" #TODO test this case for vnc ports
 fi
+LogBanner "Set Virtual VNC Start in rc.local"
+cp /etc/rc.local /etc/rc.local.~1~
+echo "su pi -c vncserver >> /home/pi/log.txt" >> /etc/rc.local
 
-echo "Create tightvnc service files"
-echo "
-[Unit]
-Description=TightVNC remote desktop server
-After=sshd.service
-
-[Service]
-Type=dbus
-ExecStart=/usr/bin/tightvncserver :1 -geometry 1280x1024 -name $NodeName $VNCport
-User=pi
-Type=forking
-
-[Install]
-WantedBy=multi-user.target
-" > /etc/systemd/system/tightvncserver.service
+vncpasswd -service
+systemctl enable vncserver-x11-serviced.service
+systemctl start vncserver-x11-serviced.service
 
 
-echo "Start tightvncserver service"
-systemctl daemon-reload && sudo systemctl enable tightvncserver.service
-systemctl start tightvncserver.service
-
-# install OpenVPN
 if [ "$InstallOVPN" == "Y" ]
 then
   LogBanner "Install OpenVPN"
@@ -201,35 +198,18 @@ cd /home/pi
 wget https://raw.githubusercontent.com/kevinkahn/softconsole/master/docs/installconsole.sh
 chmod +x installconsole.sh
 
-LogBanner "Install Display Setup Scripts"
-cd /usr/local/src
-## re4son current stable as of 8/29/2017 is 11299
-wget  -O re4son-kernel_current.tar.xz https://whitedome.com.au/re4son/downloads/11299/
-tar -xJf re4son-kernel_current.tar.xz
-
-LogBanner "If on Pi3 or Pi0W answer Y when prompted to install BT/WiFi Drivers and when prompted to enable BT"
-LogBanner "Expect long wait for BT and WiFi updates to finish installing"
-cd re4son-kernel_4*
-./install.sh
-
-
-LogBanner "Choose Correct Display Type"
-./re4son-pi-tft-setup -u
-./re4son-pi-tft-setup -h
-Get_val DisplayType "Enter display type: "
-./re4son-pi-tft-setup -t $DisplayType # TODO coordinate this with the adafruit call below
-
-
-# fixups = ads7846  orientation fixes in 99 cal
-
-cd /home/pi
 wget raw.githubusercontent.com/adafruit/Adafruit-PiTFT-Helper/master/adafruit-pitft-touch-cal
-chmod +x adafruit-pitft-touch-cal
+wget raw.githubusercontent.com/adafruit/Adafruit-PiTFT-Helper/master/adafruit-pitft-helper
+chmod +x adafruit-pitft-touch-caly adafruit-pitft-helper
+LogBanner "Run PiTFT Helper"
+./adafruit-pitft-helper -t $ScreenType
+echo "# Dummy entry to keep this file from being recreated in Stretch" > /usr/share/X11/xorg.conf.d/99-fbturbo.conf
 
 LogBanner "Configure the screen and calibrate"
 # set vertical orientation
 mv /boot/config.txt /boot/config.sav
-sed s/rotate=90/rotate=0/ /boot/config.sav > /boot/config.txt  # TODO need to pick rotation based on screen type
+sed s/rotate=[90|180|270]/rotate=0/ /boot/config.sav > /boot/config.txt  # TODO need to pick rotation based on screen type
 ./adafruit-pitft-touch-cal -f -r 0 -t $DisplayType # TODO needs to work for waveshare screen
 
 LogBanner "Reboot now and then run installconsole.sh as root"
+

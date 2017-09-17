@@ -19,6 +19,10 @@ echo "My IP address is "${IP} >> /home/pi/startlog
 
 cd /home/pi
 echo "----------------" >> log.txt
+echo " Start Virtual Mode VNC server for user pi" >> log.txt
+su pi -c vncserver >> log.txt
+echo "----------------" >> log.txt
+echo "----------------" >> log.txt
 date >> log.txt
 echo "---Pi Restart---" >> log.txt
 if [ -e usebeta ] && [ -e cleanexit ]
