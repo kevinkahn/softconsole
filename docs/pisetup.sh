@@ -152,8 +152,10 @@ read -p "Press Enter to continue"
 
 LogBanner "Set Time Zone"
 dpkg-reconfigure tzdata
-
+LogBanner "Pi User Password"
 sudo passwd pi
+LogBanner "VNC Service Password"
+vncpasswd -service
 Get_val NodeName "What name for this system?"
 Get_yn VNCstdPort "Install VNC/ssh on standard port (Y/N)?"
 Get_yn Personal "Is this the developer personal system (Y/N) (bit risky to say Y if it not)?"
@@ -172,7 +174,7 @@ do
     ScreenType="--"
   fi
 done
-
+Get_yn CON "Would you like the console to appear on the PiTFT display?"
 Get_yn Reboot "Automatically continue install by rebooting to install console after system setup?"
 
 if [ "x$1" != "x" ]
@@ -277,7 +279,7 @@ echo "su pi -c vncserver >> /home/pi/log.txt" >> /etc/rc.local
 echo "exit 0" >> /etc/rc.local
 cp /etc/rc.local /etc/rc.local.hold # helper script below screws up rc.local
 
-vncpasswd -service
+
 systemctl enable vncserver-x11-serviced.service
 systemctl start vncserver-x11-serviced.service
 
@@ -330,7 +332,7 @@ chmod +x adafruit-pitft-touch-cal adafruit-pitft-helper
 case $ScreenType in
   28r|28c|35r)
     LogBanner "Run PiTFT Helper"
-    ./adafruit-pitft-helper -t $ScreenType
+    echo $CON N | ./adafruit-pitft-helper -t $ScreenType
     LogBanner "Configure the screen and calibrate"
     # set vertical orientation
     mv /boot/config.txt /boot/config.sav
@@ -375,7 +377,6 @@ EOF
 5729 138 -1857350 78 8574 -2707152 65536
 EOF
 
-    Get_yn CON "Would you like the console to appear on the PiTFT display?"
     if $CON
       then
         echo "Updating console to PiTFT..."
@@ -396,22 +397,26 @@ mv --backup=numbered /etc/rc.local.hold /etc/rc.local
 chmod +x /etc/rc.local
 echo "# Dummy entry to keep this file from being recreated in Stretch" > /usr/share/X11/xorg.conf.d/99-fbturbo.conf
 
-cd /home/pi
-mv .bashrc .bashrc.real
-cat > .bashrc << EOF
-cd /home/pi
-source .bashrc.real
-mv .bashrc.real .bashrc
-echo Autorunning console install in 5 second - ctl-c to stop
-sleep 6
-sudo bash ./installconsole.sh $Personal $AutoConsole
-EOF
-
 LogBanner "Reboot now installconsole.sh will autorun as root unless aborted"
 echo "Install will set Personal $Personal and AutoConsole $AutoConsole"
 
 if [ "$Reboot" == "Y" ]
 then
+    cd /home/pi
+    mv .bashrc .bashrc.real
+    cat > .bashrc << EOF
+cd /home/pi
+source .bashrc.real
+mv -f .bashrc.real .bashrc
+echo "/bashrc has been modified to start installconsole.sh"
+echo Autorunning console install in 10 second - ctl-c to stop
+for i in 10 9 8 7 6 5 4 3 2 1
+    do
+      echo installconsole.sh start in $i
+      sleep 1
+    done
+sudo bash ./installconsole.sh $Personal $AutoConsole
+EOF
     LogBanner "Rebooting in 10 seconds"
     for i in 10 9 8 7 6 5 4 3 2 1
     do
@@ -421,4 +426,3 @@ then
     echo "Reboot . . ."
     reboot now
 fi
-
