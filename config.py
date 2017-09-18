@@ -14,6 +14,8 @@ QHnum = 1
 lastheartbeat = 0
 digestinginit = True
 
+monofont = "notomono"  # gets reset to "droidsansmono" if noto not present to support pre Stretch
+
 # Global pointers
 exdir = ''
 ISYrequestsession = None  # handle for requests to ISY via the request interface

@@ -9,6 +9,10 @@ import config
 class Fonts(object):
 	def __init__(self):
 		pygame.font.init()
+		f = pygame.font.get_fonts()
+		if not config.monofont in f:
+			# pre stretch system doesn't have noto mono
+			config.monofont = "droidsansmono"
 		self.fontcache = {"": {40: {True: {True: pygame.font.SysFont("", utilities.scaleH(40), True, True)}}}}
 
 	# cache is tree dir with first key as name, second as size, third as ital, fourth as bold
