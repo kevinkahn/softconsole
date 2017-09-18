@@ -40,6 +40,9 @@ function LogBanner()
 
 #**************ROUTINES ADAPTED FROM RE4SON PITFT SETUP***************
 # Specific to wave35 at this point
+function info(){
+    echo $2
+}
 
 function update_xorg() {
     mkdir -p /etc/X11/xorg.conf.d
@@ -51,13 +54,13 @@ Section "Device"
   Option "fbdev" "/dev/fb1"
 EndSection
 EOF
-# TODO get correct for portrait screen
+# for portrait screen from a run of xinput_calibrator on waveshare35 screen
     cat > /etc/X11/xorg.conf.d/99-calibration.conf <<EOF
 Section "InputClass"
          Identifier "calibration"
          MatchProduct "ADS7846 Touchscreen"
-         Option "SwapAxes" "1"
-         Option "Calibration" "3933 227 241 3893"
+         Option "SwapAxes" "0"
+         Option "Calibration" "1155 1227 1408 1463"
 EndSection
 EOF
 # TODO - is this relevant?
@@ -143,11 +146,15 @@ then
 fi
 
 cd /home/pi
+LogBanner "This is the system setup script"
 LogBanner "Connect WiFI if needed"
 read -p "Press Enter to continue"
 sudo passwd pi
 Get_val NodeName "What name for this system?"
 Get_yn VNCstdPort "Install VNC/ssh on standard port (Y/N)?"
+Get_yn Personal "Is this the developer personal system (Y/N) (bit risky to say Y if it not)?"
+Get_yn AutoConsole "Autostart console (Y/N)?"
+Get_yn Reboot "Automatically continue install by rebooting to install console after system setup?"
 
 Screens="28r 28c 35r wave35 custom"
 ScreenType="--"
@@ -261,11 +268,12 @@ else
   echo "VNC will be set up on its normal port" #TODO test this case for vnc ports
 fi
 LogBanner "Set Virtual VNC Start in rc.local"
-cp /etc/rc.local /etc/rc.local.~1~
-sed -e /^\s*exit/d rc.local.~1~ > rc.local
+
+sed -e /^\s*exit/d /etc/rc.local > /etc/rc.local.new
+mv --backup=numbered /etc/rc.local.new /etc/rc.local
 echo "su pi -c vncserver >> /home/pi/log.txt" >> /etc/rc.local
-echo "exit 0" > /etc/rc.local
-mv /etc/rc.local /etc/rc.local.hold # helper script below screws up rc.local
+echo "exit 0" >> /etc/rc.local
+cp /etc/rc.local /etc/rc.local.hold # helper script below screws up rc.local
 
 vncpasswd -service
 systemctl enable vncserver-x11-serviced.service
@@ -332,6 +340,11 @@ case $ScreenType in
     ;;
   wave35)
     LogBanner "Install Waveshare screen"
+    echo "Get the screen driver and move to /boot/overlays"
+    wget raw.githubusercontent.com/kevinkahn/softconsole/master/screensupport/waveshare35a-overlay.dtb
+    mv waveshare35a-overlay.dtb /boot/overlays/waveshare35a.dtbo
+    chmod 755 /boot/overlays/waveshare35a.dtbo
+    echo "Edit /boot/config.txt"
     cat >> /boot/config.txt <<EOF
 
 # --- added by softconsole setup $date ---
@@ -378,6 +391,32 @@ esac
 
 
 mv --backup=numbered /etc/rc.local.hold /etc/rc.local
+chmod +x /etc/rc.local
 echo "# Dummy entry to keep this file from being recreated in Stretch" > /usr/share/X11/xorg.conf.d/99-fbturbo.conf
-LogBanner "Reboot now and then run installconsole.sh as root"
+
+cd /home/pi
+mv .bashrc .bashrc.real
+cat > .bashrc << EOF
+cd /home/pi
+source .bashrc.real
+mv .bashrc.real .bashrc
+echo Autorunning console install in 5 second - ctl-c to stop
+sleep 6
+sudo bash ./installconsole.sh $Personal $AutoConsole
+EOF
+
+LogBanner "Reboot now installconsole.sh will autorun as root unless aborted"
+echo "Install will set Personal $Personal and AutoConsole $AutoConsole"
+
+if [ "$Reboot" == "Y" ]
+then
+    LogBanner "Rebooting in 10 seconds"
+    for i in 10 9 8 7 6 5 4 3 2 1
+    do
+      echo Rebooting $i
+      sleep 1
+    done
+    echo "Reboot . . ."
+    reboot now
+fi
 
