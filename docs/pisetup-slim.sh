@@ -154,7 +154,6 @@ Get_val NodeName "What name for this system?"
 Get_yn VNCstdPort "Install VNC/ssh on standard port (Y/N)?"
 Get_yn Personal "Is this the developer personal system (Y/N) (bit risky to say Y if it not)?"
 Get_yn AutoConsole "Autostart console (Y/N)?"
-Get_yn Reboot "Automatically continue install by rebooting to install console after system setup?"
 
 Screens="28r 28c 35r wave35 custom"
 ScreenType="--"
@@ -169,6 +168,8 @@ do
     ScreenType="--"
   fi
 done
+
+Get_yn Reboot "Automatically continue install by rebooting to install console after system setup?"
 
 if [ "x$1" != "x" ]
 then
