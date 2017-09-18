@@ -23,7 +23,7 @@ function Get_val()
 }
 function InList()
 {
-  [[ $1 =~ (^|[[:space:]])$2($|[[:space:]]) ]] && exit(0) || exit(1)
+  [[ $1 =~ (^|[[:space:]])$2($|[[:space:]]) ]] && return 1 || return 0
 }
 
 function LogBanner()
@@ -37,6 +37,105 @@ function LogBanner()
   echo "----------------------------------------------------------"
 }
 
+
+#**************ROUTINES ADAPTED FROM RE4SON PITFT SETUP***************
+# Specific to wave35 at this point
+
+function update_xorg() {
+    mkdir -p /etc/X11/xorg.conf.d
+
+    cat > /etc/X11/xorg.conf.d/99-fbdev.conf <<EOF
+Section "Device"
+  Identifier "myfb"
+  Driver "fbdev"
+  Option "fbdev" "/dev/fb1"
+EndSection
+EOF
+# TODO get correct for portrait screen
+    cat > /etc/X11/xorg.conf.d/99-calibration.conf <<EOF
+Section "InputClass"
+         Identifier "calibration"
+         MatchProduct "ADS7846 Touchscreen"
+         Option "SwapAxes" "1"
+         Option "Calibration" "3933 227 241 3893"
+EndSection
+EOF
+# TODO - is this relevant?
+#    libinput_path="/usr/share/X11/xorg.conf.d/60-libinput.conf"
+#    if [ -e $libinput_path ]; then
+#        info PI-TFT "Applying Neto calibration patch:"
+#        echo "Moving ${libinput_path} to ${target_homedir}/.60-libinput.conf.bak"
+#        mv "$libinput_path" ${target_homedir}/.60-libinput.conf.bak
+#    fi
+}
+
+function update_x11profile() {
+    fbturbo_path="/usr/share/X11/xorg.conf.d/99-fbturbo.conf"
+    if [ -e $fbturbo_path ]; then
+        echo "Moving ${fbturbo_path} to ${target_homedir}"
+        mv "$fbturbo_path" "$target_homedir"
+    fi
+
+    if grep -xq "export FRAMEBUFFER=/dev/fb1" "${target_homedir}/.profile"; then
+        echo "Already had 'export FRAMEBUFFER=/dev/fb1'"
+    else
+        echo "Adding 'export FRAMEBUFFER=/dev/fb1'"
+        date=`date`
+        cat >> "${target_homedir}/.profile" <<EOF
+# --- added by re4son-pi-tft-setup $date ---
+export FRAMEBUFFER=/dev/fb1
+# --- end re4son-pi-tft-setup $date ---
+EOF
+    fi
+}
+
+function update_udev() {
+   cat > /etc/udev/rules.d/95-ADS7846.rules <<EOF
+SUBSYSTEM=="input", ATTRS{name}=="ADS7846 Touchscreen", ENV{DEVNAME}=="*event*", SYMLINK+="input/touchscreen"
+EOF
+}
+
+function install_console() {
+    if ! grep -q 'fbcon=map:10 fbcon=font:VGA8x8' /boot/cmdline.txt; then
+        info PI-TFT "Updating /boot/cmdline.txt"
+        sed -i 's/rootwait/rootwait fbcon=map:10 fbcon=font:VGA8x8/g' "/boot/cmdline.txt"
+    else
+        info PI-TFT "/boot/cmdline.txt already updated"
+    fi
+    if [ ! -f /etc/kbd/config ]; then
+        info PI-TFT "Creating /etc/kbd/config"
+        mkdir -p /etc/kbd
+        touch /etc/kbd/config
+    fi
+    sed -i 's/BLANK_TIME=.*/BLANK_TIME=0/g' "/etc/kbd/config"
+}
+
+function install_xserver-xorg-input-evdev {
+## Debian releases after early 2017 break touch input - this will fix it
+    set +e
+    info PI-TFT "Checking for xserver-xorg-input-evdev:"
+    PKG_STATUS=$(dpkg-query -W --showformat='${Status}\n' xserver-xorg-input-evdev|grep "install ok installed")
+    if [ "" == "$PKG_STATUS" ]; then
+        info PI-TFT "**** Installing xserver-xorg-input-evdev package ****"
+        info PI-TFT "No xserver-xorg-input-evdev. Installing it now."
+        apt update
+        apt install -y xserver-xorg-input-evdev
+    fi
+    if [ ! -f /usr/share/X11/xorg.conf.d/45-evdev.conf ]; then
+            info PI-TFT "Creating /usr/share/X11/xorg.conf.d/45-evdev.conf"
+            ln -s /usr/share/X11/xorg.conf.d/10-evdev.conf /usr/share/X11/xorg.conf.d/45-evdev.conf
+    fi
+    info PI-TFT "**** xserver-xorg-input-evdev package installed ****"
+    set -e
+}
+
+#************** END ROUTINES ADAPTED FROM RE4SON PITFT SETUP***************
+
+
+
+
+
+
 if [[ "$EUID" -ne 0 ]]
 then
   echo "Must be run as root"
@@ -49,8 +148,20 @@ read -p "Press Enter to continue"
 sudo passwd pi
 Get_val NodeName "What name for this system?"
 Get_yn VNCstdPort "Install VNC/ssh on standard port (Y/N)?"
-SCREENTYPES=35r,
-Get_val ScreenType "What type screen(35r,28r,28c,wave35)?"
+
+Screens="28r 28c 35r wave35 custom"
+ScreenType="--"
+
+until [ $ScreenType != "--" ]
+do
+  Get_val ScreenType "What type screen($Screems)?"
+  InList "$Screens" "$ScreenType"
+  if [ $? -ne 1 ]
+  then
+    echo Not a valid screen type
+    ScreenType="--"
+  fi
+done
 
 if [ "x$1" != "x" ]
 then
@@ -134,6 +245,7 @@ sed -f lxfix lxterminal.conf.bak > lxterminal.conf
 if [ $VNCstdPort != "Y" ]
 echo "Authentication=VncAuth" >> /root/.vnc/config.d/vncserver-x11
 echo "Encryption=PreferOff" >> /root/.vnc/config.d/vncserver-x11
+su pi -c vncserver # create the Xvnc file in ~pi/.vnc/config.d so it can be modified below; until reboot vnc on 5900
 then
   SSHDport=$(($VNCstdPort - 100))
   VNCConsole=$(($VNCstdPort - 1))
@@ -150,7 +262,10 @@ else
 fi
 LogBanner "Set Virtual VNC Start in rc.local"
 cp /etc/rc.local /etc/rc.local.~1~
+sed -e /^\s*exit/d rc.local.~1~ > rc.local
 echo "su pi -c vncserver >> /home/pi/log.txt" >> /etc/rc.local
+echo "exit 0" > /etc/rc.local
+mv /etc/rc.local /etc/rc.local.hold # helper script below screws up rc.local
 
 vncpasswd -service
 systemctl enable vncserver-x11-serviced.service
@@ -200,16 +315,69 @@ chmod +x installconsole.sh
 
 wget raw.githubusercontent.com/adafruit/Adafruit-PiTFT-Helper/master/adafruit-pitft-touch-cal
 wget raw.githubusercontent.com/adafruit/Adafruit-PiTFT-Helper/master/adafruit-pitft-helper
-chmod +x adafruit-pitft-touch-caly adafruit-pitft-helper
-LogBanner "Run PiTFT Helper"
-./adafruit-pitft-helper -t $ScreenType
+chmod +x adafruit-pitft-touch-cal adafruit-pitft-helper
+
+case $ScreenType in
+  28r|28c|35r)
+    LogBanner "Run PiTFT Helper"
+    ./adafruit-pitft-helper -t $ScreenType
+    LogBanner "Configure the screen and calibrate"
+    # set vertical orientation
+    mv /boot/config.txt /boot/config.sav
+    sed -r 's/rotate=(90|180|270)/rotate=0/' /boot/config.sav > /boot/config.txt  # TODO need to pick rotation based on screen type
+    ./adafruit-pitft-touch-cal -f -r 0 -t $DisplayType # TODO needs to work for waveshare screen
+    ;;
+  custom)
+    LogBanner "No Screen Configured - do it manually for custom screen before reboot"
+    ;;
+  wave35)
+    LogBanner "Install Waveshare screen"
+    cat >> /boot/config.txt <<EOF
+
+# --- added by softconsole setup $date ---
+dtparam=spi=on
+dtparam=i2c1=on
+dtparam=i2c_arm=on
+dtoverlay=waveshare35a,rotate=0
+###########################################
+####  Overclocking the micro sdcard    ####
+#### Uncomment  84 for Raspberry Pi 2  ####
+# dtparam=sd_overclock=84
+#### Uncomment 100 for Raspberry Pi 3  ####
+# dtparam=sd_overclock=100
+###########################################
+# --- end softconsole setup $date ---
+EOF
+
+    echo "Update xorg"
+    update_xorg
+    echo "Update X11 Profile"
+    update_x11profile
+    echo "Update udev"
+    update_udev
+    echo "Update pointercal"
+    cat > /etc/pointercal <<EOF
+5729 138 -1857350 78 8574 -2707152 65536
+EOF
+
+    Get_yn CON "Would you like the console to appear on the PiTFT display?"
+    if $CON
+      then
+        echo "Updating console to PiTFT..."
+        install_console
+      fi
+    echo "Install xserver xorg input evdev"
+    install_xserver-xorg-input-evdev
+    echo "Finished waveshare install"
+    ;;
+  *)
+    LogBanner "Screen Selection Error!!!"
+    exit 99
+    ;;
+esac
+
+
+mv --backup=numbered /etc/rc.local.hold /etc/rc.local
 echo "# Dummy entry to keep this file from being recreated in Stretch" > /usr/share/X11/xorg.conf.d/99-fbturbo.conf
-
-LogBanner "Configure the screen and calibrate"
-# set vertical orientation
-mv /boot/config.txt /boot/config.sav
-sed s/rotate=[90|180|270]/rotate=0/ /boot/config.sav > /boot/config.txt  # TODO need to pick rotation based on screen type
-./adafruit-pitft-touch-cal -f -r 0 -t $DisplayType # TODO needs to work for waveshare screen
-
 LogBanner "Reboot now and then run installconsole.sh as root"
 
