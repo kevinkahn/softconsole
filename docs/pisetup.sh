@@ -336,8 +336,8 @@ case $ScreenType in
     LogBanner "Configure the screen and calibrate"
     # set vertical orientation
     mv /boot/config.txt /boot/config.sav
-    sed -r 's/rotate=(90|180|270)/rotate=0/' /boot/config.sav > /boot/config.txt  # TODO need to pick rotation based on screen type
-    ./adafruit-pitft-touch-cal -f -r 0 -t $DisplayType # TODO needs to work for waveshare screen
+    sed -r 's/rotate=(90|180|270)/rotate=0/' /boot/config.sav > /boot/config.txt
+    ./adafruit-pitft-touch-cal -f -r 0 -t $DisplayType
     ;;
   custom)
     LogBanner "No Screen Configured - do it manually for custom screen before reboot"
