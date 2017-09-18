@@ -81,7 +81,6 @@ DEBIAN_FRONTEND=noninteractive apt-get -y upgrade
 
 LogBanner "Install stuff for console"
 apt-get -y install python-dev
-apt-get -y install fonts-droid
 
 pip install --upgrade pip
 pip install configobj

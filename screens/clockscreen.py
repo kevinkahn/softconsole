@@ -12,7 +12,7 @@ class ClockScreenDesc(screen.ScreenDesc):
 	def __init__(self, screensection, screenname):
 		debugPrint('Screen', "Build Clock Screen")
 		screen.ScreenDesc.__init__(self, screensection, screenname)
-		utilities.LocalizeParams(self, screensection, '-', CharSize=[20], Font='droidsansmono', OutFormat=[])
+		utilities.LocalizeParams(self, screensection, '-', CharSize=[20], Font='notomono', OutFormat=[])
 		for i in range(len(self.CharSize), len(self.OutFormat)):
 			self.CharSize.append(self.CharSize[-1])
 		self.KeyList = None  # no touch areas active on this screen

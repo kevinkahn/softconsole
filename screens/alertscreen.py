@@ -16,7 +16,7 @@ class AlertsScreenDesc(screen.ScreenDesc):
 
 		screen.ScreenDesc.__init__(self, screensection, screenname)
 		utilities.LocalizeParams(self, screensection, '-', 'KeyColor', 'KeyCharColorOn', 'KeyCharColorOff',
-								 CharSize=[20], Font='droidsansmono', MessageBack='',
+								 CharSize=[20], Font='notosmono', MessageBack='',
 								 Message=[], DeferTime="2 minutes", BlinkTime=0)
 
 		if self.MessageBack == '':

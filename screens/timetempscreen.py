@@ -18,7 +18,7 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 
 		screen.ScreenDesc.__init__(self, screensection, screenname)
 		utilities.LocalizeParams(self, screensection, '-', 'WunderKey', location='', CharSize=[20],
-								 Font='droidsansmono',
+								 Font='notomono',
 								 TimeFormat=[], ConditionFields=[], ConditionFormat=[], ForecastFields=[],
 								 ForecastFormat=[], ForecastDays=1, SkipDays=0)
 		self.scrlabel = screen.FlatenScreenLabel(self.label)
