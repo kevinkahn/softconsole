@@ -168,7 +168,7 @@ ScreenType="--"
 
 until [ $ScreenType != "--" ]
 do
-  Get_val ScreenType "What type screen($Screems)?"
+  Get_val ScreenType "What type screen($Screens)?"
   InList "$Screens" "$ScreenType"
   if [ $? -ne 1 ]
   then
