@@ -404,6 +404,14 @@ echo "Install will set Personal $Personal and AutoConsole $AutoConsole"
 
 if [ "$Reboot" == "Y" ]
 then
+
+    LogBanner "Rebooting in 10 seconds"
+    for i in 10 9 8 7 6 5 4 3 2 1
+    do
+      echo Rebooting $i
+      sleep 1
+    done
+    echo "Reboot . . ."
     cd /home/pi
     mv .bashrc .bashrc.real
     cat > .bashrc << EOF
@@ -419,12 +427,6 @@ for i in 10 9 8 7 6 5 4 3 2 1
     done
 sudo bash ./installconsole.sh $Personal $AutoConsole
 EOF
-    LogBanner "Rebooting in 10 seconds"
-    for i in 10 9 8 7 6 5 4 3 2 1
-    do
-      echo Rebooting $i
-      sleep 1
-    done
-    echo "Reboot . . ."
     reboot now
 fi
+LogBanner "Chose to manually reboot and run installconsole.sh"
