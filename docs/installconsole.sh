@@ -142,6 +142,15 @@ wget https://raw.githubusercontent.com/kevinkahn/softconsole/master/setupconsole
 wget https://raw.githubusercontent.com/kevinkahn/softconsole/master/githubutil.py
 python -u setupconsole.py
 
+if [ -e Consoleauth ]
+then
+  mv -f Consoleauth Console/cfglib/auth.cfg
+fi
+if [ -e ConsoleMinEx ]
+then
+  mv -f ConsoleMinEx Console/config.txt
+fi
+
 rm setupconsole.* githubutil.*
 
 # set Console to start automatically at boot

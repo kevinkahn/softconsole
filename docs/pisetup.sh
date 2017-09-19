@@ -149,6 +149,7 @@ cd /home/pi
 LogBanner "This is the system setup script"
 LogBanner "Connect WiFI if needed"
 read -p "Press Enter to continue"
+wget https://raw.githubusercontent.com/kevinkahn/softconsole/master/docs/installconsole.shwget https://raw.githubusercontent.com/kevinkahn/softconsole/master/minimalexample.py
 
 LogBanner "Set Time Zone"
 dpkg-reconfigure tzdata
@@ -175,7 +176,8 @@ do
   fi
 done
 Get_yn CON "Would you like the console to appear on the PiTFT display?"
-Get_yn Reboot "Automatically continue install by rebooting to install console after system setup?"
+Get_yn Reboot "Automatically reboot to continue install after system setup?"
+python minimalexample.py
 
 if [ "x$1" != "x" ]
 then
