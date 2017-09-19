@@ -8,6 +8,12 @@ Console_pid = 0
 PRESS = 0
 FASTPRESS = 1
 
+personalsystem = False
+screentype = ""
+portrait = True
+lastup = 0  # last time upstatus known
+previousup = 0  # previous lifetime
+
 EventMonitor = None
 QH = None
 QHnum = 1

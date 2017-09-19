@@ -19,6 +19,7 @@ import sys
 import signal
 import time
 import cgitb
+import datetime
 
 from configobj import ConfigObj
 import isyeventmonitor
@@ -119,8 +120,6 @@ earlylog.write("Alert classes instantiated\n")
 Initialize the Console
 """
 
-config.starttime = time.time()
-
 with open(config.exdir + '/termshortenlist', 'r') as f:
 	try:
 		config.TermShortener = json.load(f)
@@ -184,13 +183,23 @@ config.Logs.Log(" Tag: ", config.versionname)
 config.Logs.Log(" Sha: ", config.versionsha)
 config.Logs.Log(" How: ", config.versiondnld)
 config.Logs.Log(" Version date: ", config.versioncommit)
-config.Logs.Log("Start time: ", time.strftime('%c'))
+config.Logs.Log("Start time: ", time.ctime(config.starttime))
+with open("../.ConsoleStart", "w") as f:
+	f.write(str(config.starttime) + '\n')
 config.Logs.Log("Console Starting  pid: ", config.Console_pid)
+config.Logs.Log("Screen type: ", config.screentype)
+config.Logs.Log("Screen Orientation: ", ("Landscape", "Portrait")[config.portrait])
+if config.personalsystem:
+	config.Logs.Log("Personal System")
+if config.previousup > 0:
+	config.Logs.Log("Previous Console Lifetime: ", str(datetime.timedelta(seconds=config.previousup)))
+if config.lastup > 0:
+	config.Logs.Log("Previous Console Downtime: ", str(datetime.timedelta(seconds=(config.starttime - config.lastup))))
 config.Logs.Log("Main config file: ", config.configfile,
 				time.strftime(' %c', time.localtime(config.configfilelist[config.configfile])))
 config.Logs.Log("Including config files:")
 for p, f in zip(pfiles, cfiles):
-	config.Logs.Log("  ", p, time.strftime(' %c', time.localtime(config.configfilelist[f])))
+	config.Logs.Log("  ", p, time.strftime(' %c', time.localtime(config.starttime - config.configfilelist[f])))
 for flg, fval in debug.Flags.iteritems():
 	if fval:
 		config.Logs.Log('Debug flag ', flg, '=', fval, severity=logsupport.ConsoleWarning)

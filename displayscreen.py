@@ -11,6 +11,7 @@ from collections import OrderedDict
 from eventlist import AlertEventItem, ProcEventItem
 import alerttasks
 import isyeventmonitor
+import os
 
 class DisplayScreen(object):
 	def __init__(self):
@@ -142,11 +143,15 @@ class DisplayScreen(object):
 		while config.digestinginit:
 			config.Logs.Log("Waiting initial status dump")
 			time.sleep(.2)
-
+		with open("../.ConsoleStart", "a") as f:
+			f.write(str(time.time()) + '\n')
 		if config.Running:  # allow for a very early restart request from things like autoversion
 			self.SwitchScreen(InitScreen, 'Bright', 'Home', 'Startup')
 
 		while config.Running:  # Operational Control Loop
+
+			os.utime("../.ConsoleStart",
+					 None)  # TODO maybe only do this if more that x seconds since last for performance?
 
 			if not config.QH.is_alive():
 				config.Logs.Log('Queue handler died', severity=ConsoleError)

@@ -332,6 +332,7 @@ wget raw.githubusercontent.com/adafruit/Adafruit-PiTFT-Helper/master/adafruit-pi
 wget raw.githubusercontent.com/adafruit/Adafruit-PiTFT-Helper/master/adafruit-pitft-helper
 chmod +x adafruit-pitft-touch-cal adafruit-pitft-helper
 
+echo $ScreenType > .Screentype
 case $ScreenType in
   28r|28c|35r)
     LogBanner "Run PiTFT Helper"

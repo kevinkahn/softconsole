@@ -3,6 +3,7 @@ import os
 import signal
 import sys
 import time
+import datetime
 import webcolors
 
 from sets import Set
@@ -127,8 +128,36 @@ def InitializeEnvironment():
 
 	hw.initOS()
 	pygame.display.init()
+	config.starttime = time.time()
 	config.fonts = fonts.Fonts()
 	config.screenwidth, config.screenheight = (pygame.display.Info().current_w, pygame.display.Info().current_h)
+
+	config.personalsystem = os.path.isfile("../homesystem")
+
+	try:
+		with open("../.Screentype") as f:
+			config.screentype = f.readline()
+	except:
+		config.screentype = "*Unknown*"
+
+	if config.screenwidth > config.screenheight:
+		config.portrait = False
+	try:
+		config.lastup = os.path.getmtime("../.ConsoleStart")
+		with open("../.ConsoleStart") as f:
+			laststart = float(f.readline())
+			lastrealstart = float(f.readline())
+		config.previousup = config.lastup - lastrealstart
+		prevsetup = lastrealstart - laststart
+	except:
+		config.previousup = -1
+		config.lastup = -1
+		prevsetup = -1
+
+	with open("../.RelLog", "a") as f:
+		f.write(
+			str(config.starttime) + ' ' + str(prevsetup) + ' ' + str(config.previousup) + ' ' + str(config.lastup) + ' '
+			+ str(config.starttime - config.lastup) + '\n')
 
 	"""
 	Scale screen constants
