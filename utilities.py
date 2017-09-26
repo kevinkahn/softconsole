@@ -136,7 +136,7 @@ def InitializeEnvironment():
 
 	try:
 		with open("../.Screentype") as f:
-			config.screentype = f.readline()
+			config.screentype = f.readline().rstrip('\n')
 	except:
 		config.screentype = "*Unknown*"
 
