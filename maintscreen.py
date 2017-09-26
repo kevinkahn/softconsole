@@ -138,15 +138,27 @@ def fetch_beta():
 class LogDisplayScreen(screen.BaseKeyScreenDesc):
 	def __init__(self):
 		screen.BaseKeyScreenDesc.__init__(self, None, 'LOG')
-		self.Keys = {'nextpage': toucharea.TouchPoint('nextpage', (config.screenwidth/2, config.screenheight/2),
-													  (config.screenwidth, config.screenheight), proc=self.NextPage)}
+		self.Keys = {'nextpage': toucharea.TouchPoint('nextpage', (config.screenwidth/2, 3*config.screenheight/4),
+													  (config.screenwidth, config.screenheight), proc=self.NextPage),
+					 'prevpage': toucharea.TouchPoint('prevpage', (config.screenwidth/2, config.screenheight/4),
+													  (config.screenwidth, config.screenheight/2), proc=self.PrevPage)}
 		self.NodeWatch = []
 		self.name = 'Log'
 		utilities.register_example("LogDisplayScreen", self)
 
 	def NextPage(self, presstype):
 		if self.item >= 0:
+			self.pageno += 1
 			self.item = config.Logs.RenderLog(self.BackgroundColor, start=self.item)
+			if self.pageno + 1 == len(self.PageStartItem):
+				self.PageStartItem.append(self.item)
+		else:
+			config.DS.SwitchScreen(config.MaintScreen, 'Bright', 'Maint', 'Done showing log', NavKeys=False)
+
+	def PrevPage(self, presstype):
+		if self.pageno > 0:
+			self.pageno -= 1
+			self.item = config.Logs.RenderLog(self.BackgroundColor, start=self.PageStartItem[self.pageno])
 		else:
 			config.DS.SwitchScreen(config.MaintScreen, 'Bright', 'Maint', 'Done showing log', NavKeys=False)
 
@@ -155,6 +167,8 @@ class LogDisplayScreen(screen.BaseKeyScreenDesc):
 		config.Logs.Log('Entering Log Screen')
 		self.item = 0
 		self.NodeWatch = []
+		self.PageStartItem = [0]
+		self.pageno = -1
 
 	def InitDisplay(self, nav):
 		super(LogDisplayScreen, self).InitDisplay(nav)
