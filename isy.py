@@ -9,6 +9,7 @@ import utilities
 from logsupport import ConsoleInfo, ConsoleWarning, ConsoleError
 import sys
 import traceback
+import pygame
 
 class CommsError(Exception): pass
 
@@ -206,13 +207,27 @@ class Program(ProgramFolder):
 		return 'Program: ' + TreeItem.__repr__(self) + ' '
 
 
-def GetVar(var):
-	text = try_ISY_comm('/rest/vars/get/' + str(var[0]) + '/' + str(var[1]))
-	return xmltodict.parse(text)['var']['val']
+def GetVar(var):  # TODO Locals
+	if var[0] == 3:  # Local var
+		return config.ISY.LocalVars[var[1]]
+	else:
+		text = try_ISY_comm('/rest/vars/get/' + str(var[0]) + '/' + str(var[1]))
+		return xmltodict.parse(text)['var']['val']
 
 
 def SetVar(vartype, varid, value):
-	try_ISY_comm('/rest/vars/set/' + str(vartype) + '/' + str(varid) + '/' + str(value))
+	if vartype == 3:
+		config.ISY.LocalVars[varid] = value
+		if (vartype, varid) in config.DS.WatchVars.keys():
+			config.DS.WatchVarVals[vartype, varid] = value
+
+			for a in config.DS.WatchVars[(vartype, varid)]:
+				config.Logs.Log("Var alert fired: " + str(a))
+				notice = pygame.event.Event(config.DS.ISYVar, vartype=vartype, varid=varid, value=value, alert=a)
+				pygame.fastevent.post(notice)
+
+	else:
+		try_ISY_comm('/rest/vars/set/' + str(vartype) + '/' + str(varid) + '/' + str(value))
 
 
 class ISY(object):
@@ -260,6 +275,9 @@ class ISY(object):
 		self.varsStateInv = {}
 		self.varsInt = {}
 		self.varsIntInv = {}
+		self.varsLocal = {}
+		self.varsLocalInv = {}
+		self.LocalVars = []
 
 		"""
 		Build the Folder/Node/Scene tree
@@ -435,6 +453,7 @@ class ISY(object):
 		except:
 			self.varsInt['##nointevars##'] = 0
 			config.Logs.Log('No integer variables defined')
+
 
 		utilities.register_example("ISY", self)
 		if debug.Flags['ISY']:

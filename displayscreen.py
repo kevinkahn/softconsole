@@ -114,7 +114,7 @@ class DisplayScreen(object):
 			a.state = 'Armed'
 			config.Logs.Log("Arming " + a.type + " alert " + a.name)
 			config.Logs.Log("->" + str(a), severity=ConsoleDetail)
-			if a.type in ('StateVarChange', 'IntVarChange'):
+			if a.type in ('StateVarChange', 'IntVarChange', 'LocalVarChange'):
 				var = (a.trigger.vartype, a.trigger.varid)
 				if var in self.WatchVars:
 					self.WatchVars[var].append(a)
@@ -244,12 +244,17 @@ class DisplayScreen(object):
 				else:
 					if self.state == 'NonHome':
 						self.SwitchScreen(config.HomeScreen, 'Dim', 'Home', 'Dim nonhome to dim home')
-					elif self.state == 'Home' or self.state == 'Cover':
+					elif self.state == 'Home':
 						self.SwitchScreen(config.DimIdleList[0], 'Dim', 'Cover', 'Go to cover', NavKeys=False)
 						# TODO funny case where there are no idle screens and the nav keys don't get drawn on touch
-						# rotate covers
+						# rotate covers - save even if only 1 cover
 						config.DimIdleList = config.DimIdleList[1:] + config.DimIdleList[:1]
 						config.DimIdleTimes = config.DimIdleTimes[1:] + config.DimIdleTimes[:1]
+					elif self.state == 'Cover':
+						if len(config.DimIdleList) > 1:
+							self.SwitchScreen(config.DimIdleList[0], 'Dim', 'Cover', 'Go to next cover', NavKeys=False)
+							config.DimIdleList = config.DimIdleList[1:] + config.DimIdleList[:1]
+							config.DimIdleTimes = config.DimIdleTimes[1:] + config.DimIdleTimes[:1]
 					else:  # Maint or Alert - todo?
 						debugPrint('Dispatch', 'TO while in: ', self.state)
 

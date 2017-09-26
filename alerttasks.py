@@ -6,16 +6,17 @@ from logsupport import ConsoleWarning, ConsoleDetail
 import isy
 
 Tests = ('EQ', 'NE')
-AlertType = ('NodeChange', 'StateVarChange', 'IntVarChange', 'Periodic', 'TOD', 'External', 'Init')
+AlertType = ('NodeChange', 'StateVarChange', 'IntVarChange', 'LocalVarChange', 'Periodic', 'TOD', 'External', 'Init')
 
 class Alert(object):
-	def __init__(self, nm, type, trigger, action, actionname):
+	def __init__(self, nm, type, trigger, action, actionname, param):
 		self.name = nm
 		self.state = 'Idle'
 		self.type = type
 		self.trigger = trigger
 		self.actiontarget = action
 		self.actionname = actionname
+		self.param = param
 
 	def Invoke(self):
 		if isinstance(self.actiontarget, config.screentypes["Alert"]):
@@ -62,15 +63,17 @@ class VarChgtrigger(object):
 		self.test = test
 		self.value = value
 		self.delay = delay
-		self.VT = ('UNKN', 'Integer', 'State')
+		self.VT = ('UNKN', 'Integer', 'State', 'Local')
 		if self.vartype == 1:
 			self.name = config.ISY.varsIntInv[int(self.varid)]
 		elif self.vartype == 2:
 			self.name = config.ISY.varsStateInv[int(self.varid)]
+		elif self.vartype == 3:
+			self.name = config.ISY.varsLocalInv[int(self.varid)]
 
 	def __repr__(self):
 		return str(self.VT[self.vartype]) + ' variable ' + self.name + '(' + str(
-			self.varid) + '} ' + self.test + ' ' + str(self.value) + ' delayed ' + str(self.delay) + ' seconds'
+			self.varid) + ') ' + self.test + ' ' + str(self.value) + ' delayed ' + str(self.delay) + ' seconds'
 
 	def IsTrue(self):
 		val = config.DS.WatchVarVals[(self.vartype, self.varid)]
@@ -107,8 +110,10 @@ def getvalid(spec, item, choices, default=None):
 
 
 def ParseAlertParams(nm, spec):
-	VarsTypes = {'StateVarChange': (2, config.ISY.varsState), 'IntVarChange': (1, config.ISY.varsInt)}
+	VarsTypes = {'StateVarChange': (2, config.ISY.varsState), 'IntVarChange': (1, config.ISY.varsInt),
+				 'LocalVarChange': (3, config.ISY.varsLocal)}
 	t = spec.get('Invoke', None)
+	param = spec.get('Parameter', None)
 	if t is None:
 		config.Logs.Log('Missing alert proc invoke spec in ' + nm, severity=ConsoleWarning)
 		return None
@@ -135,7 +140,7 @@ def ParseAlertParams(nm, spec):
 	if triggertype == 'Periodic':
 		# parse time specs
 		interval = utilities.get_timedelta(spec.get('Interval', None))
-		A = Alert(nm, triggertype, Periodictrigger(interval), action, actionname)
+		A = Alert(nm, triggertype, Periodictrigger(interval), action, actionname, param)
 	elif triggertype == 'TOD':
 		pass
 		return None
@@ -151,9 +156,9 @@ def ParseAlertParams(nm, spec):
 		delay = utilities.get_timedelta(spec.get('Delay', None))
 		trig = NodeChgtrigger(Node, test, value, delay)
 		# todo check nones
-		A = Alert(nm, triggertype, trig, action, actionname)
+		A = Alert(nm, triggertype, trig, action, actionname, param)
 
-	elif triggertype in ('StateVarChange', 'IntVarChange'):  # needs var, test, value, delay
+	elif triggertype in ('StateVarChange', 'IntVarChange', 'LocalVarChange'):  # needs var, test, value, delay
 		n = spec.get('Var', None)
 		if n is not None:
 			if n in VarsTypes[triggertype][1]:
@@ -168,13 +173,13 @@ def ParseAlertParams(nm, spec):
 		value = spec.get('Value', None)
 		delay = utilities.get_timedelta(spec.get('Delay', None))
 		trig = VarChgtrigger(varspec, test, value, delay)
-		A = Alert(nm, triggertype, trig, action, actionname)
+		A = Alert(nm, triggertype, trig, action, actionname, param)
 	elif triggertype == 'External':
 		pass  # todo external?
 		return None
 	elif triggertype == 'Init':  # Trigger once at start up passing in the configobj spec
 		trig = InitTrigger()
-		A = Alert(nm, triggertype, trig, action, actionname)
+		A = Alert(nm, triggertype, trig, action, actionname, param)
 
 	config.Logs.Log("Created alert: " + nm)
 	config.Logs.Log("->" + str(A), severity=ConsoleDetail)

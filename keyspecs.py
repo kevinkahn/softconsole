@@ -32,8 +32,10 @@ class SetVarKey(ManualKeyDesc):
 		try:
 			if self.VarType == 'State':
 				self.VarID = (2, config.ISY.varsState[self.Var])
-			else:
+			elif self.VarType == 'Int':
 				self.VarID = (1, config.ISY.varsInt[self.Var])
+			elif self.VarType == 'Local':
+				self.VarID = (3, config.ISY.varsLocal[self.Var])
 		except:
 			config.Logs.Log('Var key error on screen: ' + screen.name + ' Var: ' + self.Var, severity=ConsoleWarning)
 		self.Proc = self.SetVar

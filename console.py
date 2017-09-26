@@ -232,6 +232,15 @@ if 'Alerts' in config.ParsedConfigFile:
 	del config.ParsedConfigFile['Alerts']
 else:
 	alertspec = None
+if 'Variables' in config.ParsedConfigFile:
+	i = 0
+	for nm, val in config.ParsedConfigFile['Variables'].iteritems():
+		config.ISY.LocalVars.append(int(val))
+		config.ISY.varsLocal[nm] = i
+		config.ISY.varsLocalInv[i] = nm
+		config.Logs.Log("Local variable: " + nm + "(" + str(i) + ") = " + str(val))
+		i += 1
+	del config.ParsedConfigFile['Variables']
 configobjects.MyScreens()
 config.Logs.Log("Linked config to ISY")
 
