@@ -120,11 +120,14 @@ class AlertsScreenDesc(screen.ScreenDesc):
 			config.DS.Tasks.AddTask(self.BlinkEvent, self.BlinkTime)
 
 	def ExitScreen(self):
-		debugPrint('Screen', 'Alert screen defer to another screen: ' + self.name)
-		config.Logs.Log("Alert screen " + self.name + " deferring")
 		config.DS.Tasks.RemoveAllGrp(id(self))
 		if self.Alert.trigger.IsTrue():  # if the trigger condition is still true requeue post deferral
 			E = AlertEventItem(id(self), 'external deferred screen: ' + self.name, self.Alert)
 			config.DS.Tasks.AddTask(E, self.Defer)
+			debugPrint('Screen', 'Alert screen defer to another screen: ' + self.name)
+			config.Logs.Log("Alert screen " + self.name + " deferring")
+		else:
+			debugPrint('Screen', 'Alert screen cause cleared: ' + self.name)
+			config.Logs.Log("Alert screen " + self.name + " cause cleared")
 
 config.screentypes["Alert"] = AlertsScreenDesc
