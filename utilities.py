@@ -3,10 +3,10 @@ import os
 import signal
 import sys
 import time
-import datetime
+import socket
 import webcolors
 
-from sets import Set
+# from sets import Set
 
 import pygame
 
@@ -34,7 +34,7 @@ class clsstruct:
 	def __init__(self, nm):
 		self.name = nm
 		self.members = []
-		self.membernms = Set()
+		self.membernms = set()
 
 	def addmem(self, nm):
 		self.membernms.add(nm)
@@ -128,6 +128,7 @@ def InitializeEnvironment():
 
 	hw.initOS()
 	pygame.display.init()
+	config.hostname = socket.gethostname()
 	config.starttime = time.time()
 	config.fonts = fonts.Fonts()
 	config.screenwidth, config.screenheight = (pygame.display.Info().current_w, pygame.display.Info().current_h)

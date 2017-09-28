@@ -94,7 +94,7 @@ class BaseKeyScreenDesc(ScreenDesc):
 
 		if explicitlayout <> 0:
 			# user provided explicit button layout
-			if explicitlayout > len(self.Keys):
+			if explicitlayout >= len(self.Keys):
 				# user layout provides enough space
 				bpr, bpc = (self.KeysPerRow, self.KeysPerColumn)
 			else:
