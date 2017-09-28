@@ -25,6 +25,8 @@ Global Parameters:
     KeyOffOutlineColor              :  str       black
     KeyOnOutlineColor               :  str       white
     KeyOutlineOffset                :  int       3
+    KeysPerColumn                   :  int       0
+    KeysPerRow                      :  int       0
     LogFontSize                     :  int       23
     MainChain                       :  list      []
     MaxLogFiles                     :  int       5
@@ -33,6 +35,27 @@ Global Parameters:
     SecondaryChain                  :  list      []
     WunderKey                       :  str       none
 Module Parameters:
+    AlertsScreenDesc
+        Local Parameters:
+            BlinkTime               :  int     
+            CharSize                :  list    
+            DeferTime               :  str     
+            Font                    :  str     
+            Message                 :  list    
+            MessageBack             :  str     
+            label                   :  list    
+        Overrideable Globals:
+            BackgroundColor
+            BrightLevel
+            CharColor
+            CmdCharCol
+            CmdKeyCol
+            DimLevel
+            DimTO
+            KeyCharColorOff
+            KeyCharColorOn
+            KeyColor
+            PersistTO
     ClockScreenDesc
         Local Parameters:
             CharSize                :  list    
@@ -59,6 +82,8 @@ Module Parameters:
             CmdKeyCol
             DimLevel
             DimTO
+            KeysPerColumn
+            KeysPerRow
             PersistTO
     LogDisplayScreen
         Local Parameters:
@@ -71,6 +96,8 @@ Module Parameters:
             CmdKeyCol
             DimLevel
             DimTO
+            KeysPerColumn
+            KeysPerRow
             PersistTO
     MaintScreenDesc
         Local Parameters:
@@ -85,6 +112,8 @@ Module Parameters:
             CmdKeyCol
             DimLevel
             DimTO
+            KeysPerColumn
+            KeysPerRow
             PersistTO
     OnOffKey
         Local Parameters:
@@ -102,18 +131,20 @@ Module Parameters:
             KeyOffOutlineColor
             KeyOnOutlineColor
             KeyOutlineOffset
-    ThermostatScreenDesc
+    SetVarKey
         Local Parameters:
+            Value                   :  int     
+            Var                     :  str     
+            VarType                 :  str     
             label                   :  list    
         Overrideable Globals:
-            BackgroundColor
-            BrightLevel
-            CharColor
-            CmdCharCol
-            CmdKeyCol
-            DimLevel
-            DimTO
+            KeyCharColorOff
+            KeyCharColorOn
             KeyColor
+            KeyColorOff
+            KeyColorOn
+            KeyLabelOff
+            KeyLabelOn
             KeyOffOutlineColor
             KeyOnOutlineColor
-            PersistTO
+            KeyOutlineOffset

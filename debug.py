@@ -5,8 +5,9 @@ from logsupport import ConsoleDebug
 Flags = {}
 DbgFlags = ['Main', 'DaemonCtl', 'DaemonStream', 'Screen', 'ISY', 'Dispatch', 'EventList', 'Fonts', 'DebugSpecial',
 			'QDump']
-DebugFlagKeys = None
-
+DebugFlagKeys = {}
+flagspercol = 3  # number of flags per maint screen
+flagsperrow = 2
 
 def debugPrint(flag, *args):
 	global Flags, DbgFlags

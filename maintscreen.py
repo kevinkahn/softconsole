@@ -40,18 +40,43 @@ def SetUpMaintScreens():
 													  ('flags', ('Set Flags', None)),
 													  # fixed below to break a dependency loop - this is key 3
 													  ('exit', ('Exit/Restart', functools.partial(goto, Exits)))]))
-	tmp = OrderedDict()
-	for flg in debug.DbgFlags:
-		tmp[flg] = (flg, setdbg)  # setdbg gets fixed below to be actually callable
-	tmp['return'] = ('Return', functools.partial(goto, config.MaintScreen))
-	DebugFlags = MaintScreenDesc('Flags', tmp)
-	debug.DebugFlagKeys = DebugFlags.Keys
-	for kn, k in DebugFlags.Keys.iteritems():
-		if kn in debug.Flags:
-			k.State = debug.Flags[k.name]
-			k.Proc = functools.partial(setdbg, k)
+	FlagsScreens = []
+	nflags = len(
+		debug.DbgFlags) + 2  # will need key for each debug flag plus a return plus a loglevel up and loglevel down
+	tmpDbgFlags = ["LogLevelUp", "LogLevelDown"] + debug.DbgFlags[:]  # temp copy of Flags
+	flagoverrides = fixedoverrides.copy()
+	flagoverrides.update(KeysPerColumn=debug.flagspercol, KeysPerRow=debug.flagsperrow)
+	while nflags > 0:
+		thisscrn = min(nflags, debug.flagspercol*debug.flagsperrow)
+		nflags = nflags - debug.flagspercol*debug.flagsperrow + 1
+		tmp = OrderedDict()
+		for i in range(thisscrn - 1):  # leave space for next or return
+			flg = tmpDbgFlags.pop(0)
+			tmp[flg] = (flg, setdbg)  # setdbg gets fixed below to be actually callable
+		if nflags > 0:  # will need another flag screen so build a "next"
+			tmp['next'] = (
+			'Next', functools.partial(goto, config.MaintScreen))  # this gets fixed below to be a real next
+		else:
+			tmp['return'] = ('Return', functools.partial(goto, config.MaintScreen))
+		FlagsScreens.append(MaintScreenDesc('Flags', tmp, overrides=flagoverrides))
+		FlagsScreens[-1].KeysPerColumn = debug.flagspercol
+		FlagsScreens[-1].KeysPerRow = debug.flagsperrow
 
-	config.MaintScreen.Keys['flags'].Proc = functools.partial(goto, DebugFlags, config.MaintScreen.Keys['flags'])
+	for i in range(len(FlagsScreens) - 1):
+		FlagsScreens[i].Keys['next'].Proc = functools.partial(goto, FlagsScreens[i + 1], FlagsScreens[i].Keys['next'])
+
+	for s in FlagsScreens:
+		debug.DebugFlagKeys.update(s.Keys)
+		for kn, k in s.Keys.iteritems():
+			if kn in debug.Flags:
+				k.State = debug.Flags[k.name]
+				k.Proc = functools.partial(setdbg, k)
+	debug.DebugFlagKeys["LogLevelUp"].Proc = functools.partial(adjloglevel, debug.DebugFlagKeys["LogLevelUp"])
+	debug.DebugFlagKeys["LogLevelDown"].Proc = functools.partial(adjloglevel, debug.DebugFlagKeys["LogLevelDown"])
+	debug.DebugFlagKeys["LogLevelUp"].SetKeyImages(("Log Level", str(config.LogLevel), "Up"))
+	debug.DebugFlagKeys["LogLevelDown"].SetKeyImages(("Log Level", str(config.LogLevel), "Down"))
+
+	config.MaintScreen.Keys['flags'].Proc = functools.partial(goto, FlagsScreens[0], config.MaintScreen.Keys['flags'])
 	Exits.Keys['return'].Proc = functools.partial(goto, config.MaintScreen, Exits.Keys['return'])
 	Beta.Keys['return'].Proc = functools.partial(goto, config.MaintScreen, Beta.Keys['return'])
 
@@ -61,6 +86,18 @@ def setdbg(K, presstype):
 	K.State = debug.Flags[K.name]
 	K.PaintKey()
 	config.Logs.Log("Debug flag ", K.name, ' = ', K.State, severity=ConsoleWarning)
+
+
+def adjloglevel(K, presstype):
+	if K.name == "LogLevelUp":
+		config.LogLevel += 1
+	else:
+		config.LogLevel -= 1
+	debug.DebugFlagKeys["LogLevelUp"].SetKeyImages(("Log Level", str(config.LogLevel), "Up"))
+	debug.DebugFlagKeys["LogLevelDown"].SetKeyImages(("Log Level", str(config.LogLevel), "Down"))
+	debug.DebugFlagKeys["LogLevelUp"].PaintKey()
+	debug.DebugFlagKeys["LogLevelDown"].PaintKey()
+	config.Logs.Log("Log Level changed via ", K.name, " to ", config.LogLevel, severity=ConsoleWarning)
 
 
 def gohome(K, presstype):  # neither peram used
@@ -176,9 +213,9 @@ class LogDisplayScreen(screen.BaseKeyScreenDesc):
 		self.NextPage(0)
 
 class MaintScreenDesc(screen.BaseKeyScreenDesc):
-	def __init__(self, name, keys):
+	def __init__(self, name, keys, overrides=fixedoverrides):
 		debugPrint('Screen', "Build Maintenance Screen")
-		screen.BaseKeyScreenDesc.__init__(self, fixedoverrides, name)
+		screen.BaseKeyScreenDesc.__init__(self, overrides, name)
 		utilities.LocalizeParams(self, None, '-', TitleFontSize=40, SubFontSize=25)
 		for k, kt in keys.iteritems():
 			NK = toucharea.ManualKeyDesc(self, k, [kt[0]], 'gold', 'black', 'red', KOn='black', KOff='red')

@@ -145,6 +145,16 @@ class ManualKeyDesc(TouchPoint):
 			horiz_off = (self.Size[0] - ren.get_width())/2
 			surface.blit(ren, (horiz_off,vert_off))
 
+	def SetKeyImages(self, onLabel, offLabel=None, firstfont=0, shrink=True):
+		if offLabel is None:
+			offLabel = onLabel
+		self.KeyOnImage = self.KeyOnImageBase.copy()
+		self.KeyOffImage = self.KeyOffImageBase.copy()
+		fontchoice = self.FindFontSize(onLabel, firstfont, shrink)
+		self.AddTitle(self.KeyOnImage, onLabel, fontchoice, self.KeyCharColorOn)
+		fontchoice = self.FindFontSize(offLabel, firstfont, shrink)
+		self.AddTitle(self.KeyOffImage, offLabel, fontchoice, self.KeyCharColorOff)
+
 	def FinishKey(self,center,size,firstfont=0,shrink=True):
 		if size[0] <> 0: # if size is not zero then set the pos/size of the key; otherwise it was previously set in manual creation
 			self.Center = center
@@ -153,24 +163,23 @@ class ManualKeyDesc(TouchPoint):
 		buttonsmaller = (self.Size[0] - scaleW(6), self.Size[1] - scaleH(6))
 
 		# create image of ON key
-		self.KeyOnImage = pygame.Surface(self.Size)
-		pygame.draw.rect(self.KeyOnImage, wc(self.KeyColorOn), ((0, 0), self.Size), 0)
+		self.KeyOnImageBase = pygame.Surface(self.Size)
+		pygame.draw.rect(self.KeyOnImageBase, wc(self.KeyColorOn), ((0, 0), self.Size), 0)
 		bord = self.KeyOutlineOffset
-		pygame.draw.rect(self.KeyOnImage, wc(self.KeyOnOutlineColor), ((scaleW(bord),scaleH(bord)), buttonsmaller), bord)
+		pygame.draw.rect(self.KeyOnImageBase, wc(self.KeyOnOutlineColor), ((scaleW(bord), scaleH(bord)), buttonsmaller),
+						 bord)
 
 		# create image of OFF key
-		self.KeyOffImage = pygame.Surface(self.Size)
-		pygame.draw.rect(self.KeyOffImage, wc(self.KeyColorOff), ((0, 0), self.Size), 0)
+		self.KeyOffImageBase = pygame.Surface(self.Size)
+		pygame.draw.rect(self.KeyOffImageBase, wc(self.KeyColorOff), ((0, 0), self.Size), 0)
 		bord = self.KeyOutlineOffset
-		pygame.draw.rect(self.KeyOffImage, wc(self.KeyOffOutlineColor), ((scaleW(bord),scaleH(bord)), buttonsmaller), bord)
+		pygame.draw.rect(self.KeyOffImageBase, wc(self.KeyOffOutlineColor),
+						 ((scaleW(bord), scaleH(bord)), buttonsmaller), bord)
 		# dull the OFF key
 		s = pygame.Surface(self.Size)
 		s.set_alpha(150)
 		s.fill(wc("white"))
-		self.KeyOffImage.blit(s, (0,0))
+		self.KeyOffImageBase.blit(s, (0, 0))
 
 		# Add the labels
-		fontchoice = self.FindFontSize(self.KeyLabelOn, firstfont, shrink)
-		self.AddTitle(self.KeyOnImage, self.KeyLabelOn, fontchoice, self.KeyCharColorOn)
-		fontchoice = self.FindFontSize(self.KeyLabelOff, firstfont, shrink)
-		self.AddTitle(self.KeyOffImage, self.KeyLabelOff, fontchoice, self.KeyCharColorOff)
+		self.SetKeyImages(self.KeyLabelOn, self.KeyLabelOff, firstfont, shrink)

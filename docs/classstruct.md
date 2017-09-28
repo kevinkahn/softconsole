@@ -13,6 +13,7 @@ The most base type
 *  FoldersByAddr
 *  FoldersByName
 *  LinkChildrenParents
+*  LocalVars
 *  NodeRoot
 *  NodesByAddr
 *  NodesByName
@@ -26,6 +27,8 @@ The most base type
 *  ScenesByName
 *  varsInt
 *  varsIntInv
+*  varsLocal
+*  varsLocalInv
 *  varsState
 *  varsStateInv
 
@@ -48,7 +51,7 @@ The most base type
 *  dosectioninit
 *  touched
 
-##ManualKeyDesc: [OnOffKey]
+##ManualKeyDesc: [SetVarKey, OnOffKey]
 
 	Defines a drawn touchable rectangle on the screen that represents a key (button).  May be called with one of 2
 	signatures.  It can be called manually by code to create a key by supplying all the attributes of the key in the
@@ -68,6 +71,16 @@ The most base type
 *  KeyOnOutlineColor
 *  KeyOutlineOffset
 *  State
+
+##SetVarKey: []
+
+***missing***
+
+*  SetVar
+*  Value
+*  Var
+*  VarID
+*  VarType
 
 ##OnOffKey: []
 
@@ -131,7 +144,7 @@ The most base type
 	Represents an ISY program and provides command support to issue run commands to it.
 	
 
-##ScreenDesc: [BaseKeyScreenDesc, ClockScreenDesc]
+##ScreenDesc: [AlertsScreenDesc, BaseKeyScreenDesc, ClockScreenDesc]
 
 	Basic information about a screen, subclassed by all other screens to handle this information
 	
@@ -159,30 +172,19 @@ The most base type
 *  WithNav
 *  label
 
-##BaseKeyScreenDesc: [ThermostatScreenDesc, MaintScreenDesc, LogDisplayScreen, KeyScreenDesc]
+##AlertsScreenDesc: []
 
 ***missing***
 
+
+##BaseKeyScreenDesc: [MaintScreenDesc, LogDisplayScreen, KeyScreenDesc]
+
+***missing***
+
+*  KeysPerColumn
+*  KeysPerRow
 *  buttonspercol
 *  buttonsperrow
-
-##ThermostatScreenDesc: []
-
-***missing***
-
-*  AdjButSurf
-*  AdjButTops
-*  BumpMode
-*  BumpTemp
-*  ModeButPos
-*  ModesPos
-*  SPPos
-*  StatePos
-*  TempPos
-*  TitlePos
-*  TitleRen
-*  fsize
-*  info
 
 ##MaintScreenDesc: []
 
@@ -196,6 +198,7 @@ The most base type
 ***missing***
 
 *  NextPage
+*  PrevPage
 
 ##KeyScreenDesc: []
 
