@@ -128,6 +128,10 @@ with open(config.exdir + '/termshortenlist', 'r') as f:
 
 if len(sys.argv) == 2:
 	config.configfile = sys.argv[1]
+elif os.path.isfile(config.configfilebase + "config.txt"):
+	config.configfile = config.configfilebase + "config.txt"
+else:
+	config.configfile = config.configfilebase + "config-" + config.hostname + ".txt"
 
 if not os.path.isfile(config.configfile):
 	earlylog.write("Abort - no configuratio file\n")
@@ -187,6 +191,7 @@ config.Logs.Log("Start time: ", time.ctime(config.starttime))
 with open("../.ConsoleStart", "w") as f:
 	f.write(str(config.starttime) + '\n')
 config.Logs.Log("Console Starting  pid: ", config.Console_pid)
+config.Logs.Log("Host name: ", config.hostname)
 config.Logs.Log("Screen type: ", config.screentype)
 config.Logs.Log("Screen Orientation: ", ("Landscape", "Portrait")[config.portrait])
 if config.personalsystem:

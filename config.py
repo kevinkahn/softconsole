@@ -9,6 +9,7 @@ PRESS = 0
 FASTPRESS = 1
 
 personalsystem = False
+hostname = ""
 screentype = ""
 portrait = True
 lastup = 0  # last time upstatus known
@@ -31,7 +32,8 @@ backlight = None  # GPIO instance of pin 18
 DS = None  # GlDaemobal Display Screen handles running the button presses and touch recognition
 Alerts = []
 ParsedConfigFile = None  # config.txt internal version
-configfile = "/home/pi/Console/config.txt"  # default location of configfile, can be overridden by arg1
+configfilebase = "/home/pi/Console/"  # default location of configfile, can be overridden by arg1.
+configfile = ""
 ISYprefix = ''  # holds the url prefix for rest interface
 fonts = None
 Logs = None
