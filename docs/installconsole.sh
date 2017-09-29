@@ -142,6 +142,10 @@ wget https://raw.githubusercontent.com/kevinkahn/softconsole/master/setupconsole
 wget https://raw.githubusercontent.com/kevinkahn/softconsole/master/githubutil.py
 python -u setupconsole.py
 
+# in case this is a development system
+cp consolestable/scripts/python-sudo.sh .
+chmod a+x python-sudo.sh
+
 if [ -e Consoleauth ]
 then
   mv -f Consoleauth Console/cfglib/auth.cfg
@@ -158,10 +162,13 @@ if [ "$AutoConsole" == "Y" ]
 then
   LogBanner "Set Console to Start at Boot"
   mv --backup=numbered /home/pi/consolestable/docs/rc.local /etc/rc.local
-  chmod a+x /etc/rc.local
-  chown root /etc/rc.local
-  echo "Create configuration files in Console" >> /home/pi/TODO-installation
+else
+  LogBanner "Set No Console Autostart at Boot"
+  mv --backup=numbered /home/pi/consolestable/docs/rc.local-noautostart /etc/rc.local
 fi
+echo "Create configuration files in Console" >> /home/pi/TODO-installation
+chmod a+x /etc/rc.local
+chown root /etc/rc.local
 
 LogBanner "Install and setup finished"
 LogBanner "Rebooting in 5 seconds"

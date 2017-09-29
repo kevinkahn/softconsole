@@ -18,25 +18,10 @@ date >> /home/pi/startlog
 echo "My IP address is "${IP} >> /home/pi/startlog
 
 cd /home/pi
-echo "----------------" >> log.txt
+
 echo " Start Virtual Mode VNC server for user pi" >> log.txt
 su pi -c vncserver >> log.txt
-echo "----------------" >> log.txt
-echo "----------------" >> log.txt
-date >> log.txt
-echo "---Pi Restart---" >> log.txt
-if [ -e usebeta ] && [ -e cleanexit ]
-then
-  rm cleanexit
-  echo "*****beta*******" >> log.txt
-  cd /home/pi/consolebeta
-else
-  rm -f usebeta cleanexit >> log.txt
-  echo "*****stable*****" >> log.txt
-  cd /home/pi/consolestable
-fi
-nohup python -u console.py >> /home/pi/log.txt 2>&1 &
-echo "Starting console as process "$! >> /home/pi/log.txt
-echo "RC.local with console start completed" >> /home/pi/startlog
+
+echo "RC.local without console autostart completed" >> /home/pi/startlog
 
 exit 0
