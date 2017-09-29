@@ -150,9 +150,12 @@ LogBanner "This is the system setup script"
 LogBanner "Connect WiFI if needed"
 read -p "Press Enter to continue"
 wget https://raw.githubusercontent.com/kevinkahn/softconsole/master/docs/installconsole.sh
-wget https://raw.githubusercontent.com/kevinkahn/softconsole/master/minimalexample.py
+wget https://raw.githubusercontent.com/kevinkahn/softconsole/master/getsetupinfo.py
+chmod +x installconsole.sh
 
 LogBanner "Set Time Zone"
+# seed the timezone dialog
+echo US/Pacific-New > /etc/timezone
 dpkg-reconfigure tzdata
 LogBanner "Pi User Password"
 sudo passwd pi
@@ -178,7 +181,7 @@ do
 done
 Get_yn CON "Would you like the console to appear on the PiTFT display?"
 Get_yn Reboot "Automatically reboot to continue install after system setup?"
-python minimalexample.py
+python getsetupinfo.py
 
 if [ "x$1" != "x" ]
 then
@@ -250,16 +253,12 @@ fgcolor=#c63eef9a0c11
 cp lxterminal.conf lxterminal.conf.bak
 sed -f lxfix lxterminal.conf.bak > lxterminal.conf
 
-#LogBanner "Install tightvncserver"
-#apt-get -y install tightvncserver
-#sudo -u pi tightvncserver
-#apt-get -y install autocutsel
 
 
-if [ $VNCstdPort != "Y" ]
 echo "Authentication=VncAuth" >> /root/.vnc/config.d/vncserver-x11
 echo "Encryption=PreferOff" >> /root/.vnc/config.d/vncserver-x11
 su pi -c vncserver # create the Xvnc file in ~pi/.vnc/config.d so it can be modified below; until reboot vnc on 5900
+if [ $VNCstdPort != "Y" ]
 then
   SSHDport=$(($VNCstdPort - 100))
   VNCConsole=$(($VNCstdPort - 1))
@@ -325,8 +324,6 @@ then
 fi
 
 cd /home/pi
-wget https://raw.githubusercontent.com/kevinkahn/softconsole/master/docs/installconsole.sh
-chmod +x installconsole.sh
 
 wget raw.githubusercontent.com/adafruit/Adafruit-PiTFT-Helper/master/adafruit-pitft-touch-cal
 wget raw.githubusercontent.com/adafruit/Adafruit-PiTFT-Helper/master/adafruit-pitft-helper
@@ -419,8 +416,12 @@ then
     cat > .bashrc << EOF
 cd /home/pi
 source .bashrc.real
+cp .bashrc .bashrc.sav
 mv -f .bashrc.real .bashrc
-echo "/bashrc has been modified to start installconsole.sh"
+sleep 4 # delay to allow X system to startup for next command (is this long enough in a Pi0) TODO
+DISPLAY=:0.0 x-terminal-emulator -t "Console Install" --geometry=40x17 -e bash /home/pi/doinstall.sh 2>> /home/pi/earlyprep.log
+EOF
+    cat > doinstall.sh << EOF
 echo Autorunning console install in 10 second - ctl-c to stop
 for i in 10 9 8 7 6 5 4 3 2 1
     do
