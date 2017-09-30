@@ -155,7 +155,7 @@ def InitializeEnvironment():
 		config.lastup = -1
 		prevsetup = -1
 
-	with open("../.RelLog", "a") as f:
+	with open(config.homedir + "/.RelLog", "a") as f:
 		f.write(
 			str(config.starttime) + ' ' + str(prevsetup) + ' ' + str(config.previousup) + ' ' + str(config.lastup) + ' '
 			+ str(config.starttime - config.lastup) + '\n')

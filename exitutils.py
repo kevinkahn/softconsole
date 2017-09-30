@@ -11,7 +11,7 @@ from utilities import wc
 
 
 def Exit(option, trigger, ecode):
-	with open("../.RelLog", "a") as f:
+	with open(config.homedir + "/.RelLog", "a") as f:
 		f.write('Exit ' + option + ' ' + trigger + ' ' + ecode + '\n')
 	os.chdir(config.exdir)  # set cwd to be correct when dirs move underneath us so that scripts execute
 	subprocess.Popen(
