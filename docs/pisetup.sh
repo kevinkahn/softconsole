@@ -155,7 +155,7 @@ chmod +x installconsole.sh
 
 LogBanner "Set Time Zone"
 # seed the timezone dialog
-echo US/Pacific-New > /etc/timezone
+echo 'US/Pacific-New' > /etc/timezone
 dpkg-reconfigure tzdata
 LogBanner "Pi User Password"
 sudo passwd pi
@@ -418,14 +418,14 @@ cd /home/pi
 source .bashrc.real
 cp .bashrc .bashrc.sav
 mv -f .bashrc.real .bashrc
-sleep 4 # delay to allow X system to startup for next command (is this long enough in a Pi0) TODO
-DISPLAY=:0.0 x-terminal-emulator -t "Console Install" --geometry=40x17 -e bash /home/pi/doinstall.sh 2>> /home/pi/earlyprep.log
+sleep 10 # delay to allow X system to startup for next command (is this long enough in a Pi0) TODO
+DISPLAY=:0.0 x-terminal-emulator -t "Console Install" --geometry=40x17 -e sudo bash /home/pi/doinstall.sh 2>> /home/pi/di.log
 EOF
     cat > doinstall.sh << EOF
 echo Autorunning console install in 10 second - ctl-c to stop
 for i in 10 9 8 7 6 5 4 3 2 1
     do
-      echo installconsole.sh start in $i
+      echo installconsole.sh start in \$i
       sleep 1
     done
 sudo bash ./installconsole.sh $Personal $AutoConsole
