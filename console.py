@@ -21,7 +21,7 @@ import time
 import cgitb
 import datetime
 
-from configobj import ConfigObj
+from configobj import ConfigObj, Section
 import isyeventmonitor
 
 import config
@@ -34,6 +34,7 @@ import logsupport
 import maintscreen
 import utilities
 import requests
+from logsupport import ConsoleWarning
 
 import json
 
@@ -48,6 +49,27 @@ def handler(signum, frame):
 
 
 signal.signal(signal.SIGTERM, handler)
+
+sectionget = Section.get
+
+
+def CO_get(self, key, default):
+	rtn = sectionget(self, key, default)
+	if key in self:
+		del self[key]
+	return rtn
+
+
+Section.get = CO_get
+
+
+def LogBadParams(section, name):
+	for nm, s in section.iteritems():
+		if isinstance(s, Section):
+			LogBadParams(s, nm)
+		else:
+			config.Logs.Log("Bad (unused) parameter name in: ", name, " (", nm, "=", str(s), ")",
+							severity=ConsoleWarning)
 
 earlylog = open('/home/pi/Console/earlylog.log', 'w', 0)
 earlylog.write("Console start at " + time.strftime('%m-%d-%y %H:%M:%S') + '\n')
@@ -284,6 +306,8 @@ maintscreen.SetUpMaintScreens()
 config.Logs.livelog = False  # turn off logging to the screen and give user a moment to scan
 time.sleep(2)
 
+LogBadParams(config.ParsedConfigFile, "Globals")
+LogBadParams(alertspec, "Alerts")
 """
 Dump documentation
 """
