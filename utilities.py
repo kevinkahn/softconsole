@@ -144,8 +144,8 @@ def InitializeEnvironment():
 	if config.screenwidth > config.screenheight:
 		config.portrait = False
 	try:
-		config.lastup = os.path.getmtime("../.ConsoleStart")
-		with open("../.ConsoleStart") as f:
+		config.lastup = os.path.getmtime(config.homedir + "/.ConsoleStart")
+		with open(config.homedir + "/.ConsoleStart") as f:
 			laststart = float(f.readline())
 			lastrealstart = float(f.readline())
 		config.previousup = config.lastup - lastrealstart

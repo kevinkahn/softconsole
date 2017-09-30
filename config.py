@@ -25,6 +25,7 @@ monofont = "notomono"  # gets reset to "droidsansmono" if noto not present to su
 
 # Global pointers
 exdir = ''
+homedir = ''
 ISYrequestsession = None  # handle for requests to ISY via the request interface
 ISY = None  # Root of structure representing the ISY - filled in from ISY
 screen = None  # pygame screen to blit on etc

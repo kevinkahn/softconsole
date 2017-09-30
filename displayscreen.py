@@ -143,14 +143,14 @@ class DisplayScreen(object):
 		while config.digestinginit:
 			config.Logs.Log("Waiting initial status dump")
 			time.sleep(.2)
-		with open("../.ConsoleStart", "a") as f:
+		with open(config.homedir + "/.ConsoleStart", "a") as f:
 			f.write(str(time.time()) + '\n')
 		if config.Running:  # allow for a very early restart request from things like autoversion
 			self.SwitchScreen(InitScreen, 'Bright', 'Home', 'Startup')
 
 		while config.Running:  # Operational Control Loop
 
-			os.utime("../.ConsoleStart",
+			os.utime(config.homedir + "/.ConsoleStart",
 					 None)  # TODO maybe only do this if more that x seconds since last for performance?
 
 			if not config.QH.is_alive():

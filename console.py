@@ -85,6 +85,8 @@ utilities.InitializeEnvironment()
 earlylog.write('Environment initialized\n')
 
 config.exdir = os.path.dirname(os.path.abspath(__file__))
+config.homedir = os.path.dirname(config.exdir)
+
 lastfn = ""
 lastmod = 0
 config.Console_pid = os.getpid()
@@ -210,7 +212,7 @@ config.Logs.Log(" Sha: ", config.versionsha)
 config.Logs.Log(" How: ", config.versiondnld)
 config.Logs.Log(" Version date: ", config.versioncommit)
 config.Logs.Log("Start time: ", time.ctime(config.starttime))
-with open("../.ConsoleStart", "w") as f:
+with open(config.homedir + "/.ConsoleStart", "w") as f:
 	f.write(str(config.starttime) + '\n')
 config.Logs.Log("Console Starting  pid: ", config.Console_pid)
 config.Logs.Log("Host name: ", config.hostname)
