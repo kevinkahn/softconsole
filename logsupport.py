@@ -12,6 +12,7 @@ import os
 import re
 from hw import disklogging
 
+LogLevels = ('Debug', 'DetailHigh', 'Detail', 'Info', 'Warning', 'Error')
 ConsoleDebug = 0
 ConsoleDetailHigh = 1
 ConsoleDetail = 2

@@ -11,7 +11,7 @@ import toucharea
 from debug import debugPrint
 from exitutils import dorealexit
 from utilities import interval_str, wc
-
+import logsupport
 from logsupport import ConsoleWarning
 import time
 import utilities
@@ -73,8 +73,10 @@ def SetUpMaintScreens():
 				k.Proc = functools.partial(setdbg, k)
 	debug.DebugFlagKeys["LogLevelUp"].Proc = functools.partial(adjloglevel, debug.DebugFlagKeys["LogLevelUp"])
 	debug.DebugFlagKeys["LogLevelDown"].Proc = functools.partial(adjloglevel, debug.DebugFlagKeys["LogLevelDown"])
-	debug.DebugFlagKeys["LogLevelUp"].SetKeyImages(("Log Level", str(config.LogLevel), "Up"))
-	debug.DebugFlagKeys["LogLevelDown"].SetKeyImages(("Log Level", str(config.LogLevel), "Down"))
+	debug.DebugFlagKeys["LogLevelUp"].SetKeyImages(
+		("Log Detail", logsupport.LogLevels[config.LogLevel] + '(' + str(config.LogLevel) + ')', "Less"))
+	debug.DebugFlagKeys["LogLevelDown"].SetKeyImages(
+		("Log Detail", logsupport.LogLevels[config.LogLevel] + '(' + str(config.LogLevel) + ')', "More"))
 
 	config.MaintScreen.Keys['flags'].Proc = functools.partial(goto, FlagsScreens[0], config.MaintScreen.Keys['flags'])
 	Exits.Keys['return'].Proc = functools.partial(goto, config.MaintScreen, Exits.Keys['return'])
@@ -90,11 +92,15 @@ def setdbg(K, presstype):
 
 def adjloglevel(K, presstype):
 	if K.name == "LogLevelUp":
-		config.LogLevel += 1
+		if config.LogLevel < len(logsupport.LogLevels) - 1:
+			config.LogLevel += 1
 	else:
-		config.LogLevel -= 1
-	debug.DebugFlagKeys["LogLevelUp"].SetKeyImages(("Log Level", str(config.LogLevel), "Up"))
-	debug.DebugFlagKeys["LogLevelDown"].SetKeyImages(("Log Level", str(config.LogLevel), "Down"))
+		if config.LogLevel > 0:
+			config.LogLevel -= 1
+	debug.DebugFlagKeys["LogLevelUp"].SetKeyImages(
+		("Log Detail", logsupport.LogLevels[config.LogLevel] + '(' + str(config.LogLevel) + ')', "Less"))
+	debug.DebugFlagKeys["LogLevelDown"].SetKeyImages(
+		("Log Detail", logsupport.LogLevels[config.LogLevel] + '(' + str(config.LogLevel) + ')', "More"))
 	debug.DebugFlagKeys["LogLevelUp"].PaintKey()
 	debug.DebugFlagKeys["LogLevelDown"].PaintKey()
 	config.Logs.Log("Log Level changed via ", K.name, " to ", config.LogLevel, severity=ConsoleWarning)

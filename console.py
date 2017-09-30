@@ -177,7 +177,7 @@ config.Logs.Log(u"Soft ISY Console")
 earlylog.write("Switched to real log\n")
 earlylog.close()
 # TODO delete the early log
-config.Logs.Log(u"  \u00A9 Kevin Kahn 2016")
+config.Logs.Log(u"  \u00A9 Kevin Kahn 2016, 2017")
 config.Logs.Log("Software under Apache 2.0 License")
 config.Logs.Log("Version Information:")
 config.Logs.Log(" Run from: ", config.exdir)
@@ -232,11 +232,26 @@ Build the ISY object structure and connect the configured screens to it
 """
 import alerttasks
 
+cmdvar = 'Command.' + config.hostname.replace('-', '.')
+if cmdvar in config.ISY.varsInt:
+	tmp = ConfigObj()
+	tmp['RemoteCommands2'] = {'Type': 'IntVarChange', 'Var': cmdvar, 'Test': 'NE', 'Value': '0',
+							  'Invoke': 'NetCmd.Command'}
+else:
+	tmp = None
+
 if 'Alerts' in config.ParsedConfigFile:
 	alertspec = config.ParsedConfigFile['Alerts']
+	if tmp <> None:
+		alertspec.merge(tmp)
 	del config.ParsedConfigFile['Alerts']
 else:
-	alertspec = None
+	if tmp <> None:
+		alertspec = ConfigObj()
+		alertspec.merge(tmp)
+	else:
+		alertspec = None
+
 if 'Variables' in config.ParsedConfigFile:
 	i = 0
 	for nm, val in config.ParsedConfigFile['Variables'].iteritems():
