@@ -1,0 +1,7 @@
+Net accessibility (useage plus example)
+config-nodename.txt
+check params and warn
+local variable support (add to useage)
+loglevel adjust on maint screen
+multipage flags
+command variables (add to useage)
