@@ -71,7 +71,11 @@ def LogBadParams(section, name):
 			config.Logs.Log("Bad (unused) parameter name in: ", name, " (", nm, "=", str(s), ")",
 							severity=ConsoleWarning)
 
-earlylog = open('/home/pi/Console/earlylog.log', 'w', 0)
+
+config.exdir = os.path.dirname(os.path.abspath(__file__))
+config.homedir = os.path.dirname(config.exdir)
+
+earlylog = open(config.homedir + '/Console/earlylog.log', 'w', 0)
 earlylog.write("Console start at " + time.strftime('%m-%d-%y %H:%M:%S') + '\n')
 
 if os.getegid() <> 0:
@@ -84,8 +88,6 @@ utilities.InitializeEnvironment()
 
 earlylog.write('Environment initialized\n')
 
-config.exdir = os.path.dirname(os.path.abspath(__file__))
-config.homedir = os.path.dirname(config.exdir)
 
 lastfn = ""
 lastmod = 0

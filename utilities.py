@@ -133,10 +133,10 @@ def InitializeEnvironment():
 	config.fonts = fonts.Fonts()
 	config.screenwidth, config.screenheight = (pygame.display.Info().current_w, pygame.display.Info().current_h)
 
-	config.personalsystem = os.path.isfile("../homesystem")
+	config.personalsystem = os.path.isfile(config.homedir + "/homesystem")
 
 	try:
-		with open("../.Screentype") as f:
+		with open(config.homedir + "/.Screentype") as f:
 			config.screentype = f.readline().rstrip('\n')
 	except:
 		config.screentype = "*Unknown*"

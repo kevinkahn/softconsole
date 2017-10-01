@@ -15,7 +15,7 @@ def Exit(option, trigger, ecode):
 		f.write('Exit ' + option + ' ' + trigger + ' ' + ecode + '\n')
 	os.chdir(config.exdir)  # set cwd to be correct when dirs move underneath us so that scripts execute
 	subprocess.Popen(
-		'nohup sudo /bin/bash -e scripts/consoleexit ' + option + ' ' + config.configfile + ' ' + trigger + '>>../log.txt 2>&1 &',
+		'nohup sudo /bin/bash -e scripts/consoleexit ' + option + ' ' + config.configfile + ' ' + trigger + '>>' + config.homedir + '/log.txt 2>&1 &',
 		shell=True)
 
 	config.Logs.Log("Console Exiting")
