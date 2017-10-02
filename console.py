@@ -20,6 +20,7 @@ import signal
 import time
 import cgitb
 import datetime
+import pygame
 
 from configobj import ConfigObj, Section
 import isyeventmonitor
@@ -40,15 +41,18 @@ import json
 
 
 def handler(signum, frame):
-	if signum == signal.SIGTERM:
-		config.Logs.Log("Console received a SIGTERM - Exiting")
+	if signum in (signal.SIGTERM, signal.SIGINT):
+		config.Logs.Log("Console received a termination signal ", str(signum), " - Exiting")
 		time.sleep(1)
+		pygame.display.quit()
+		pygame.quit()
 		os._exit(0)
 	else:
 		config.Logs.Log("Console received signal " + str(signum) + " Ignoring")
 
 
 signal.signal(signal.SIGTERM, handler)
+signal.signal(signal.SIGINT, handler)
 
 sectionget = Section.get
 
