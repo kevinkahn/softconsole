@@ -106,7 +106,8 @@ def getvalid(spec, item, choices, default=None):
 			config.Logs.Log('Choice error: ' + item + " not in " + str(choices), severity=logsupport.ConsoleWarning)
 			return None
 	else:
-		config.Logs.Log('Missing required alert parameter: ' + item)
+		config.Logs.Log('Missing required alert parameter: ' + item, severity=ConsoleWarning)
+		return None
 
 
 def ParseAlertParams(nm, spec):
@@ -123,12 +124,16 @@ def ParseAlertParams(nm, spec):
 		if len(nmlist) <> 2:
 			config.Logs.Log('Bad alert proc spec ' + t + ' in ' + nm, severity=ConsoleWarning)
 			return None
-		action = getattr(config.alertprocs[nmlist[0]], nmlist[1])
+		try:
+			action = getattr(config.alertprocs[nmlist[0]], nmlist[1])
+		except:
+			config.Logs.Log('No proc ', nmlist[1], ' in ', nmlist[0], severity=ConsoleWarning)
+			return None
 		actionname = t
 		fixscreen = False
 	elif nmlist[0] in config.alertscreens:
 		if len(nmlist) <> 1:
-			config.Logs.Log('Alert screen name must be unqualified in ' + nm)
+			config.Logs.Log('Alert screen name must be unqualified in ' + nm, severity=ConsoleWarning)
 			return None
 		action = config.alertscreens[nmlist[0]]
 		actionname = t
@@ -171,6 +176,8 @@ def ParseAlertParams(nm, spec):
 			return None
 		test = getvalid(spec, 'Test', Tests)
 		value = spec.get('Value', None)
+		if (test is None) or (value is None):
+			return None
 		delay = utilities.get_timedelta(spec.get('Delay', None))
 		trig = VarChgtrigger(varspec, test, value, delay)
 		A = Alert(nm, triggertype, trig, action, actionname, param)
