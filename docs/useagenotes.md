@@ -62,6 +62,11 @@ First I admit in advance that the syntax and parsing of the config files is both
 # Alerts
 Alerts are defined in an "\[Alerts\]" section of the config files.  See cfglib/pdxalerts for some examples.  Currently alerts can be triggered periodically, based on a node state chance, or based on a variable state change.  The effect of the alert can be delayed by some time to avoid alerts for routine events that should clear within some typical window.  Alerts can either invoke an alert screen (see the away and garage alerts in the sample file) or an alert procedure (see the update alert).
 
+Currently the following alerts are available:
+* **autoversion:** trigger this either at init time or periodically to check github for a new release.  If a new *currentrelease* is found it is downloaded, installed, and the console rebooted with the new version.  The old version is moved to a directory under the consolestable called *previousversion*.
+* **netcmd:** if the ISY has an integer variable defined with a name Command.\nodename> then a capability is enabled to issue a command on the console by changing the value of the ISY variable.  (To conform with ISY variable naming rules and '-' characters in the node name are replaced by '.' in the variable name.) To see the available commands that can be remotely issued see the header of the netcmd.py file in the source code.
+* **networkhealth** when triggered (typically periodically)check for network connectivity to a specified IP address.  E.g., checking for 8.8.8.8 (the google name servers) will allow creation of an alert if Internet access is lost.  Typically this trigger will be used to invoke an alert screen to display the alarm.  Define the trigger to have Parameter = IPaddress,localvarname and localvarname will be set to 1 if the address is pingable and 0 otherwise.  If the variable changes it triggers any alert based on a "varchange" which can be used to display the alarm.
+
 # Connecting Console Names with ISY Names
 * Some names in the config file are used to link console objects to ISY nodes/scenes.  Specifically the section name of a thermostat sceen is used to connect that screen to an ISY thermostat and the subsection names of ONOFF keys are used to link those keys to an ISY device or scene.
 * When a name is looked up in the ISY for linking preference it always given to finding the name as a scene first.  Thus if a device and a scene have the same name the console will link to the scene.
@@ -77,7 +82,7 @@ Alerts are defined in an "\[Alerts\]" section of the config files.  See cfglib/p
 * After the designated time screen will automatically return to the home screen (except from the maintenance screen)
 * From the home screen after the dim time out the screen will go to a "sleep" screen if designated - any tap will awaken it
     * The original version had only a single idle screen named by the DimHomeScreenCoverName parameter.  This parameter is deprecated but will still work if you don't opt for the new multi-idle screen ability.  You can designate a sequence of idle screens with DimIdleListNames and corresponding linger times per screen with DimIdleListTimes.  Once the console is idle it will cycle through these screens until tapped.  This got added to make a wall unit a nicer info display when not otherwise being used.
-* On the maintenance/log screen single tap to see the next page
+* On the maintenance/log screen single tap the lower part of the screen to see the next page or the upper part to see the previous page.
 
 # Developers Notes
 ## Defining New Screens by Coding a Module (updated for version 2)

@@ -23,22 +23,32 @@ def CreateKey(screen, screensection, keyname):
 	return NewKey
 
 
+def ErrorKey(presstype):
+	# used to handle badly defined keys
+	config.Logs.Log('Ill-defined Key Pressed', severity=ConsoleWarning)
+
 class SetVarKey(ManualKeyDesc):
 	def __init__(self, screen, keysection, keyname):
 		debugPrint('Screen', "             New SetVar Key Desc ", keyname)
 
 		ManualKeyDesc.__init__(self, screen, keysection, keyname)
-		utilities.LocalizeParams(self, keysection, '--', VarType='State', Var='', Value=0)
+		utilities.LocalizeParams(self, keysection, '--', VarType='undef', Var='', Value=0)
 		try:
+			self.Proc = self.SetVar
 			if self.VarType == 'State':
 				self.VarID = (2, config.ISY.varsState[self.Var])
 			elif self.VarType == 'Int':
 				self.VarID = (1, config.ISY.varsInt[self.Var])
 			elif self.VarType == 'Local':
 				self.VarID = (3, config.ISY.varsLocal[self.Var])
+			else:
+				config.Logs.Log('VarType not specified for key ', self.Var, ' on screen ', screen.name,
+								severity=ConsoleWarning)
+				self.Proc = ErrorKey
 		except:
 			config.Logs.Log('Var key error on screen: ' + screen.name + ' Var: ' + self.Var, severity=ConsoleWarning)
-		self.Proc = self.SetVar
+			self.Proc = ErrorKey
+
 		utilities.register_example("SetVarKey", self)
 
 	def SetVar(self, presstype):

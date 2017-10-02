@@ -10,12 +10,14 @@ DimIdleListTimes =	20, 20, 20, 20
 MainChain = LR1,LR2, Pumpkin, Local, Upper Level
 SecondaryChain = Portland, Bathroom, BR
 
-[Alerts]
+[Variables]
+    InternetUp = 1
 
-	[[VersionCheck]]
+[Alerts]
+	[[AutoVersion]]
 	Type = Periodic
-	Interval = 90 seconds
-	Invoke = VersionCheck.AlertProc1
+	Interval = 3 hours
+	Invoke = AutoVersion.CheckUpToDate
 	[[AltVarTest]]
 	Type = StateVarChange
 	Var = tEST
@@ -30,6 +32,33 @@ SecondaryChain = Portland, Bathroom, BR
 	Value = 0
 	Delay = 5 seconds
 	Invoke = NodeTest
+	[[Internet]]
+	Type = Periodic
+	Interval = 30 seconds
+	Invoke = NetworkHealth.Do_Ping
+	Parameter = '8.8.8.8',InternetUp
+	[[InternetAlert]]
+	Type = LocalVarChange
+	Var = InternetUp
+	Test = NE
+	Value = 1
+	Invoke = InternetAlertScreen
+
+[InternetAlertScreen]
+    type = Alert
+    BackgroundColor = black
+	MessageBack = green
+	CharColor = navyblue
+	Message = Internet, Down
+	CharSize = 30,
+	DeferTime = 10
+	BlinkTime = 1
+	KeyColor = maroon
+	[[Action]]
+		type = SETVAR
+		Var = InternetUp
+		VarType = Local
+		label = Acknowledge, Outage
 
 [NodeTest]
 	type = Alert
