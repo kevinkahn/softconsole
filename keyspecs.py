@@ -5,12 +5,12 @@ import eventlist
 import functools
 import config
 import isy
-from logsupport import ConsoleWarning, ConsoleError
+from logsupport import ConsoleWarning, ConsoleError, ConsoleDetail
 
 
 def CreateKey(screen, screensection, keyname):
 	keytype = screensection.get('type', 'ONOFF')
-	config.Logs.Log("-Key:" + keyname)
+	config.Logs.Log("-Key:" + keyname, severity=ConsoleDetail)
 	if keytype in ('ONOFF', 'ON'):
 		NewKey = OnOffKey(screen, screensection, keyname, keytype)
 	elif keytype in ('ONBLINKRUNTHEN', 'RUNTHEN'):

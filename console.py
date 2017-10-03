@@ -321,9 +321,6 @@ Dump documentation
 """
 utilities.DumpDocumentation()
 
-docfile = open('confignew.txt', 'w')
-config.ParsedConfigFile.write(docfile)
-docfile.close()
 
 """
 Run the main console loop

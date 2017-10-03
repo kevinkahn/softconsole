@@ -25,13 +25,13 @@ SecondaryChain = Portland, Bathroom, BR
 	Value = 0
 	Delay = 5 seconds
 	Invoke = TestAlert
-	[[NodeTest]]
-	Type = NodeChange
-	Node = Office Ceiling
-	Test = NE
-	Value = 0
-	Delay = 5 seconds
-	Invoke = NodeTest
+#	[[NodeTest]]
+#	Type = NodeChange
+#	Node = Office Ceiling
+#	Test = NE
+#	Value = 0
+#	Delay = 5 seconds
+#	Invoke = NodeTest
 	[[Internet]]
 	Type = Periodic
 	Interval = 30 seconds
