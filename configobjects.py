@@ -72,9 +72,6 @@ class MyScreens(object):
 				config.SecondaryChain.remove(scr)
 			else:
 				config.Logs.Log("---" + scr)
-		config.Logs.Log("Not on screen list (unavailable via nav keys)")
-		for scr in config.ExtraChain:
-			config.Logs.Log("---" + scr, severity=ConsoleWarning)
 
 		# Make sure we have screens defined
 		if config.MainChain == []:
@@ -146,7 +143,7 @@ class MyScreens(object):
 				for l, d in zip((config.MainChain, config.SecondaryChain, config.ExtraChain),
 								(config.MainDict, config.SecondaryDict, config.ExtraDict)):
 					if sn in l:
-						config.Logs.Log('Dim Screen: ' + sn + '/' + st)
+						config.Logs.Log('Cover Screen: ' + sn + '/' + st)
 						config.DimIdleList.append(d[sn].screen)
 						config.DimIdleTimes.append(int(st))
 		except:
@@ -162,3 +159,8 @@ class MyScreens(object):
 			config.DimIdleList = [config.HomeScreen]
 			config.DimIdleTimes = [1000000]
 			config.Logs.Log("No Dim Home Screen Cover Set")
+
+		config.Logs.Log("Not on screen list and not cover screen:")
+		for nm, scr in config.ExtraDict.iteritems():
+			if (not isinstance(scr.screen, config.screentypes["Alert"])) and (not scr.screen in config.DimIdleList):
+				config.Logs.Log("---" + nm, severity=ConsoleWarning)
