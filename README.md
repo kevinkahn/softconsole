@@ -11,3 +11,5 @@ can automatically dim after a period of no touching, return to a home screen, or
 home screen.  All is configurable via a config.txt file (with sensible defaults).  New types of screens could be added
 by coding a screen class (see existing code for examples) which can be linked to the existing program with only a
 single change to the existing code.
+
+For detailed documentation see the [useage notes](docs/useagenotes.md).
