@@ -7,7 +7,7 @@ import pygame
 
 import config
 from logsupport import ConsoleWarning, ConsoleError
-from utilities import wc
+from utilities import wc, interval_str
 
 
 def Exit(option, trigger, ecode):
@@ -41,15 +41,7 @@ def errorexit(opt):
 		Exit_Options('Error restart', 'Error - Restarting')
 	elif opt == 'reboot':
 		consoleup = time.time() - config.starttime
-		config.Logs.Log("Console was up: ", str(consoleup), severity=ConsoleWarning)  # todo convert to readable uptime
-		"""
-		todo reboot loop?
-		if consoleup < 120:
-			# never allow console to reboot the pi sooner than 120 seconds
-			Exit_Options('Error Reboot Loop', 'Suppressed Reboot')
-			opt = 'shut'  # just close the console - we are in a reboot loop
-		else:
-		"""
+		config.Logs.Log("Console was up: ", interval_str(consoleup), severity=ConsoleWarning)
 		Exit_Options('Error reboot', 'Error - Rebooting Pi')
 
 	elif opt == 'shut':

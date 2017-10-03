@@ -92,7 +92,11 @@ SecondaryChain = Portland, Bathroom, BR
 		Var = tEST
 		KeyColor = Maroon
 		label = Clear tEST,
-		
+
+[HouseStat]
+    type = Status
+    NormalOff = Pucks, Downlights, Kitchen Dimmer, Office Ceiling
+    NormalOn = Main Hall, Landscape, LR Dual Spots
 
 [LR1]
     type = Keypad

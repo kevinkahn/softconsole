@@ -207,7 +207,7 @@ class Program(ProgramFolder):
 		return 'Program: ' + TreeItem.__repr__(self) + ' '
 
 
-def GetVar(var):  # TODO Locals
+def GetVar(var):
 	if var[0] == 3:  # Local var
 		return config.ISY.LocalVars[var[1]]
 	else:

@@ -11,17 +11,35 @@ DimIdleListTimes = 20,20
 MainChain = BR, Pumpkin, Local, Thermostat - Main, MyClock
 SecondaryChain = Bathroom, Upper Level, LR, OtherMain, Downstairs, Portland
 [Alerts]
-    [[RemoteCommands]]
-    Type = IntVarChange
-    Var = Commandkck
-    Test = NE
-    Value = 0
-    Invoke = NetCmd.Command
+	[[Internet]]
+	Type = Periodic
+	Interval = 30 seconds
+	Invoke = NetworkHealth.Do_Ping
+	Parameter = '8.8.8.8',InternetUp
+	[[InternetAlert]]
+	Type = LocalVarChange
+	Var = InternetUp
+	Test = NE
+	Value = 1
+	Invoke = InternetAlertScreen
 
-[HouseStat]
-    type = Status
-    NormalOff = Pucks, Downlights, Kitchen Dimmer, Office Ceiling
-    NormalOn = Main Hall, Landscape, LR Dual Spots
+[InternetAlertScreen]
+    type = Alert
+    BackgroundColor = black
+	MessageBack = green
+	CharColor = navyblue
+	Message = Internet, Down
+	CharSize = 30,
+	DeferTime = 10
+	BlinkTime = 1
+	KeyColor = maroon
+	[[Action]]
+		type = SETVAR
+		Var = InternetUp
+		VarType = Local
+		label = Acknowledge, Outage
+
+
 
 
 

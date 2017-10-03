@@ -206,7 +206,7 @@ cgitb.enable(format='text')
 config.Logs.Log(u"Soft ISY Console")
 earlylog.write("Switched to real log\n")
 earlylog.close()
-# TODO delete the early log
+os.remove(config.homedir + '/Console/earlylog.log')
 config.Logs.Log(u"  \u00A9 Kevin Kahn 2016, 2017")
 config.Logs.Log("Software under Apache 2.0 License")
 config.Logs.Log("Version Information:")
@@ -317,9 +317,10 @@ time.sleep(2)
 LogBadParams(config.ParsedConfigFile, "Globals")
 LogBadParams(alertspec, "Alerts")
 """
-Dump documentation
+Dump documentation if development version
 """
-utilities.DumpDocumentation()
+if config.versionname == 'development':
+	utilities.DumpDocumentation()
 
 
 """

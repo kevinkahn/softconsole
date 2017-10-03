@@ -36,5 +36,4 @@ print "Stage current beta release"
 U.InstallStagedVersion('consolebeta')
 print "Installed staged beta"
 
-# TODO personal setup?
 subprocess.call("cp -r /home/pi/consolestable/'example configs'/* /home/pi/Console", shell=True)

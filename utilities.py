@@ -90,12 +90,6 @@ def LogParams():
 	for p in paramlog:
 		config.Logs.Log(p)
 
-def restart_console_handler(sig, frame):  # todo
-	if sig == signal.SIGUSR1:
-		print "Restart Console signal"
-	if sig == signal.SIGUSR2:
-		print "Reload home release and restart"
-
 def signal_handler(sig, frame):
 	print 'BYE', sig
 	pygame.quit()
@@ -237,7 +231,6 @@ def LocalizeParams(inst, configsection, indent, *args, **kwargs):
 def DumpDocumentation():
 	docfile = open('docs/params.txt', 'w')
 	os.chmod('docs/params.txt', 0o555)
-	# todo make this a command line option since only need to do for development purposes
 	docfile.write('Global Parameters:\n')
 	for p in sorted(globdoc):
 		docfile.write(
