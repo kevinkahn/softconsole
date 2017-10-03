@@ -7,3 +7,4 @@ loglevel adjust on maint screen
 multipage flags
 command variables (add to useage)
 page up/down log
+better documentation
