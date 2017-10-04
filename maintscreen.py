@@ -153,11 +153,11 @@ def fetch_stable():
 		if os.path.exists(basedir + '/homesystem'):
 			# personal system
 			config.Logs.Log("New version fetch(homerelease)")
-			print "New Version Fetch Requested (homesystem)"
+			# print "New Version Fetch Requested (homesystem)"
 			U.StageVersion(basedir + '/consolestable', 'homerelease', 'RequestedDownload')
 		else:
 			config.Logs.Log("New version fetch(currentrelease)")
-			print "New Version Fetch Requested (currentrelease)"
+			#print "New Version Fetch Requested (currentrelease)"
 			U.StageVersion(basedir + '/consolestable', 'currentrelease', 'RequestedDownload')
 		U.InstallStagedVersion(basedir + '/consolestable')
 		config.Logs.Log("Staged version installed in consolestable")

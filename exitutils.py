@@ -12,7 +12,7 @@ from utilities import wc, interval_str
 
 def Exit(option, trigger, ecode):
 	with open(config.homedir + "/.RelLog", "a") as f:
-		f.write('Exit ' + option + ' ' + trigger + ' ' + ecode + '\n')
+		f.write('Exit ' + option + ' ' + trigger + ' ' + str(ecode) + '\n')
 	os.chdir(config.exdir)  # set cwd to be correct when dirs move underneath us so that scripts execute
 	subprocess.Popen(
 		'nohup sudo /bin/bash -e scripts/consoleexit ' + option + ' ' + config.configfile + ' ' + trigger + '>>' + config.homedir + '/log.txt 2>&1 &',
