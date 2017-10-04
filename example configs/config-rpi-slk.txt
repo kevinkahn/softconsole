@@ -10,13 +10,7 @@ DimHomeScreenCoverName = TimeTemp
 MainChain = BR, TimeTemp, Suzi Misc1
 SecondaryChain = Thermostat - Main, Local, Portland, Downtown, La Quinta, Suzi Misc2
 
-[Alerts]
-    [[RemoteCommands]]
-    Type = IntVarChange
-    Var = Commandslk
-    Test = NE
-    Value = 0
-    Invoke = NetCmd.Command
+
 
 
 
