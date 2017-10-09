@@ -18,7 +18,7 @@ def CreateKey(screen, screensection, keyname):
 	elif keytype == 'SETVAR':
 		NewKey = SetVarKey(screen, screensection, keyname)
 	else:  # unknown type
-		NewKey = None  # todo - this should be a "blank" key can cause caller to later blow up
+		NewKey = BlankKey(screen, screensection, keyname)
 		config.Logs.Log('Undefined key type ' + keytype + ' for: ' + keyname, severity=ConsoleWarning)
 	return NewKey
 
@@ -26,6 +26,17 @@ def CreateKey(screen, screensection, keyname):
 def ErrorKey(presstype):
 	# used to handle badly defined keys
 	config.Logs.Log('Ill-defined Key Pressed', severity=ConsoleWarning)
+
+
+class BlankKey(ManualKeyDesc):
+	def __init__(self, screen, keysection, keyname):
+		debugPrint('Screen', "             New Blank Key Desc ", keyname)
+		ManualKeyDesc.__init__(self, screen, keysection, keyname)
+		self.Proc = ErrorKey
+		self.State = False
+		self.label = self.label.append('(NoOp)')
+
+		utilities.register_example("BlankKey", self)
 
 class SetVarKey(ManualKeyDesc):
 	def __init__(self, screen, keysection, keyname):
@@ -48,6 +59,7 @@ class SetVarKey(ManualKeyDesc):
 		except:
 			config.Logs.Log('Var key error on screen: ' + screen.name + ' Var: ' + self.Var, severity=ConsoleWarning)
 			self.Proc = ErrorKey
+
 
 		utilities.register_example("SetVarKey", self)
 
@@ -132,6 +144,10 @@ class OnOffKey(ManualKeyDesc):
 			self.Proc = self.OnKey
 
 		utilities.register_example("OnOffKey", self)
+
+	def ScreenEntered(self, screen):
+		# put key on subscription for screen to watch for ISY events
+		screen.subscriptionlist[self.MonitorObj.address] = self
 
 	def OnOff(self, presstype):
 		self.State = not self.State

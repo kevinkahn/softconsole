@@ -91,6 +91,11 @@ class ManualKeyDesc(TouchPoint):
 		self.Screen = screen
 		self.ISYObj = None  # this will get filled in by creator later - could be ISY node, ISY program
 
+	def ScreenEntered(self, screen):
+		# called when the screen containing this key is entered - allows key to know it is becoming active
+		# it can e.g., add itself to subscription list for the screen
+		pass  # default is to do nothing
+
 	def PaintKey(self, ForceDisplay=False, DisplayState=True):
 		x = self.Center[0] - self.Size[0]/2
 		y = self.Center[1] - self.Size[1]/2

@@ -166,7 +166,6 @@ else
   LogBanner "Set No Console Autostart at Boot"
   mv --backup=numbered /home/pi/consolestable/docs/rc.local-noautostart /etc/rc.local
 fi
-echo "Create configuration files in Console" >> /home/pi/TODO-installation
 chmod a+x /etc/rc.local
 chown root /etc/rc.local
 

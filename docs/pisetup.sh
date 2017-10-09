@@ -271,7 +271,7 @@ then
   chown pi /home/pi/.vnc/config.d/Xvnc
   echo "RfbPort=$VNCConsole" >> /root/.vnc/config.d/vncserver-x11
 else
-  echo "VNC will be set up on its normal port" #TODO test this case for vnc ports
+  echo "VNC will be set up on its normal port"
 fi
 LogBanner "Set Virtual VNC Start in rc.local"
 
@@ -290,7 +290,6 @@ if [ "$InstallOVPN" == "Y" ]
 then
   LogBanner "Install OpenVPN"
   apt-get -y install openvpn
-  echo "Set up OpenVPN keys etc." >> /home/pi/TODO-installation
 fi
 
 # install ddclient
@@ -306,8 +305,6 @@ then
   host.domain.tld
   " > /etc/ddclient.conf
   DEBIAN_FRONTEND=noninteractive apt-get -y install ddclient
-
-  echo "Configure ddclient" >> /home/pi/TODO-installation
 fi
 
 # install watchdog
@@ -320,7 +317,6 @@ then
   wget https://github.com/kevinkahn/watchdoghandler/archive/1.2.tar.gz
   tar -zxls --strip-components=1 < 1.2.tar.gz
   bash ./WDsetup.sh
-  echo "Edit watchdog yaml file as needed" >> /home/pi/TODO-installation
 fi
 
 cd /home/pi
