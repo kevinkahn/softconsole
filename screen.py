@@ -41,6 +41,7 @@ class ScreenDesc(object):
 		self.Keys = collections.OrderedDict()
 		self.WithNav = True
 		self.NodeWatch = []
+		self.VarWatch = []
 
 		utilities.LocalizeParams(self, screensection, '-', 'CharColor', 'DimTO', 'PersistTO', 'BackgroundColor',
 								 'CmdKeyCol',

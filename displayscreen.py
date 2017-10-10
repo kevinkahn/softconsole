@@ -150,13 +150,11 @@ class DisplayScreen(object):
 
 		while config.Running:  # Operational Control Loop
 
-			os.utime(config.homedir + "/.ConsoleStart",
-					 None)  # TODO maybe only do this if more that x seconds since last for performance?
+			os.utime(config.homedir + "/.ConsoleStart", None)
 
 			if not config.QH.is_alive():
 				config.Logs.Log('Queue handler died', severity=ConsoleError)
 				isyeventmonitor.CreateWSThread()
-			# exitutils.errorexit('restart')
 
 			if time.time() - config.lastheartbeat > 240:  # twice heartbeat interval
 				config.Logs.Log('Lost ISY heartbeat', severity=ConsoleError, tb=False)

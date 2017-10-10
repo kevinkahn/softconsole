@@ -49,6 +49,7 @@ class KeyScreenDesc(screen.BaseKeyScreenDesc):
 
 	def ISYEvent(self, node, value):
 		# Watched node reported change event is ("Node", addr, value, seq)
+		# todo could allow var buttons here by checking if node is string or 2-tuple
 		try:
 			K = self.subscriptionlist[node]
 		except:

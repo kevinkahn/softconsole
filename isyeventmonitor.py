@@ -86,35 +86,31 @@ class ISYEventMonitor:
 				eaction = e.pop('action', 'No action')
 				enode = e.pop('node', 'No node')
 				eInfo = e.pop('eventInfo', 'No EventInfo')
-				if config.DS.AS is not None:
-					tt = config.DS.AS.NodeWatch + config.DS.WatchNodes.keys()
-				else:
-					tt = config.DS.WatchNodes.keys()
-				if (ecode in self.reportablecodes) and (enode in tt):
-					debugPrint('DaemonCtl', time.time() - config.starttime, "Status update in stream: ", eseq, ":",
-							   prcode, " : ", enode,
-							   " : ", eInfo, " : ", eaction)
 
+				if (ecode in self.reportablecodes):
+					# Node change report
+					debugPrint('DaemonStream', time.time() - config.starttime, "Status update in stream: ", eseq, ":",
+							   prcode, " : ", enode, " : ", eInfo, " : ", eaction)
 					debugPrint('DebugSpecial', time.time() - config.starttime, "Status update in stream: ", eseq, ":",
-							   prcode, " : ", enode,
-							   " : ", eInfo, " : ", eaction)
+							   prcode, " : ", enode, " : ", eInfo, " : ", eaction)  # TODO have a specials node list
 					if eaction is dict:
 						debugPrint('DaemonStream', "V5 stream - pull up action value: ", eaction)
 						eaction = eaction["#text"]  # todo the new xmltodict will return as data['action']['#text']
 
 					if enode in config.DS.WatchNodes:
-						debugPrint('DebugSpecial', time.time() - config.starttime,
-								   formatwsitem(esid, eseq, ecode, eaction, enode, eInfo, e))
+						# alert node changed
 						debugPrint('DaemonCtl', 'ISY reports change(alert):', config.ISY.NodesByAddr[enode].name)
 						for a in config.DS.WatchNodes[enode]:
 							config.Logs.Log("Node alert fired: " + str(a), severity=ConsoleDetail)
 							notice = pygame.event.Event(config.DS.ISYAlert, node=enode, value=eaction, alert=a)
 							pygame.fastevent.post(notice)
-					else:  # don't explicity test for config.DS.AS.Nodewatch since AS may not be active yet
-						debugPrint('DaemonCtl', time.time(), "ISY reports change: ", "Key: ",
-								   config.ISY.NodesByAddr[enode].name)
-						notice = pygame.event.Event(config.DS.ISYChange, node=enode, value=eaction)
-						pygame.fastevent.post(notice)
+
+					if config.DS.AS is not None:
+						if enode in config.DS.AS.NodeWatch:
+							debugPrint('DaemonCtl', time.time() - config.starttime, "ISY reports node change(screen): ",
+									   "Key: ", config.ISY.NodesByAddr[enode].name)
+							notice = pygame.event.Event(config.DS.ISYChange, node=enode, value=eaction)
+							pygame.fastevent.post(notice)
 
 				elif (prcode == 'Trigger') and (eaction == '6'):
 					vinfo = eInfo['var']
@@ -126,18 +122,32 @@ class ISYEventMonitor:
 					if (vartype, varid) in config.DS.WatchVars.keys():
 						config.DS.WatchVarVals[vartype, varid] = varval
 						if vartype == 1:
-							debugPrint('DaemonCtl', 'Int var change: ', config.ISY.varsIntInv[varid], ' <- ', varval)
+							debugPrint('DaemonCtl', 'Int var change(alert): ', config.ISY.varsIntInv[varid], ' <- ',
+									   varval)
 						elif vartype == 2:
-							debugPrint('DaemonCtl', 'State var change: ', config.ISY.varsStateInv[varid], ' <- ',
+							debugPrint('DaemonCtl', 'State var change(alert): ', config.ISY.varsStateInv[varid], ' <- ',
 									   varval)
 						else:
 							config.Logs.Log('Bad var message:' + str(varid), severity=ConsoleError)
 
 						for a in config.DS.WatchVars[(vartype, varid)]:
 							config.Logs.Log("Var alert fired: " + str(a))
-							notice = pygame.event.Event(config.DS.ISYVar, vartype=vartype, varid=varid, value=varval,
+							notice = pygame.event.Event(config.DS.ISYVar, node=(vartype, varid), value=varval,
 														alert=a)
 							pygame.fastevent.post(notice)
+
+					if config.DS.AS is not None:
+						if (vartype, varid) in config.DS.AS.VarWatch:
+							if vartype == 1:
+								debugPrint('DaemonCtl', 'Int var change(screen): ', config.ISY.varsIntInv[varid],
+										   ' <- ', varval)
+							elif vartype == 2:
+								debugPrint('DaemonCtl', 'State var change(screen): ', config.ISY.varsStateInv[varid],
+										   ' <- ',
+										   varval)
+							notice = pygame.event.Event(config.DS.ISYChange, vartype=vartype, varid=varid, value=varval)
+							pygame.fastevent.post(notice)
+
 				elif prcode == 'Heartbeat':
 					config.lastheartbeat = time.time()
 					config.digestinginit = False
