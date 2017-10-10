@@ -139,7 +139,7 @@ class OnOffKey(ManualKeyDesc):
 			config.Logs.Log('Key Binding missing: ' + self.name, severity=ConsoleWarning)
 
 		if keytype == 'ONOFF':
-			self.Proc = self.OnOff  # todo should Proc be unified as 'action'?
+			self.Proc = self.OnOff
 		else:
 			self.Proc = self.OnKey
 

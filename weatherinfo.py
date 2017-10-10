@@ -24,8 +24,7 @@ def TreeDict(d, *args):
 	# Allow a nest of dictionaries to be accessed by a tuple of keys for easier code
 	if len(args) == 1:
 		temp = d[args[0]]
-		if isinstance(temp,
-					  basestring) and temp.isdigit():  # todo now that I spec type above is this stuff still needed
+		if isinstance(temp, basestring) and temp.isdigit():
 			temp = int(temp)
 		else:
 			try:
