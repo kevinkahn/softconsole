@@ -116,16 +116,11 @@ class WeatherScreenDesc(screen.ScreenDesc):
 			vert_off = vert_off + renderedlines[i].get_height() + s
 		pygame.display.update()
 
-	def EnterScreen(self):
-		debugPrint('Main', "Enter to screen: ", self.name)
-		self.NodeWatch = []
-		self.currentconditions = True
-
 	def InitDisplay(self, nav):
+		self.currentconditions = True
 		super(WeatherScreenDesc, self).InitDisplay(nav)
 		if self.ShowScreen(self.currentconditions) == -1:
 			config.DS.SwitchScreen(config.HomeScreen, 'Bright', 'Home', 'Weather screen error')
-		# config.DS.SwitchScreenOld(config.HomeScreen) # todo screenerror(name)
 
 	def ExitScreen(self):
 		pass

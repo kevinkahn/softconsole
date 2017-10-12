@@ -11,8 +11,6 @@ class KeyScreenDesc(screen.BaseKeyScreenDesc):
 	def __init__(self, screensection, screenname):
 		debugPrint('Screen', "New KeyScreenDesc ", screenname)
 		screen.BaseKeyScreenDesc.__init__(self, screensection, screenname)
-		self.subscriptionlist = {}
-		self.NodeWatch = []
 
 		# Build the Key objects
 		for keyname in screensection:
@@ -20,43 +18,44 @@ class KeyScreenDesc(screen.BaseKeyScreenDesc):
 				self.Keys[keyname] = keyspecs.CreateKey(self, screensection[keyname], keyname)
 
 		self.LayoutKeys()
+
+		debugPrint('Screen', "Active Subscription List for ", self.name, " will be:")
+		for i in self.NodeList:
+			debugPrint('Screen', "  Subscribe node: ", i, self.NodeList[i].name, " : ",
+					   self.NodeList[i].ISYObj.name, ' via ', self.NodeList[i].MonitorObj.name)
+		for i in self.VarsList:
+			debugPrint('Screen', "  Subscribe var: ", i, self.VarsList[i].name)
+
+
 		utilities.register_example("KeyScreenDesc", self)
 
 	def __repr__(self):
 		return screen.ScreenDesc.__repr__(self) + "\r\n     KeyScreenDesc:" + ":<" + str(self.Keys) + ">"
 
-	def EnterScreen(self):
-		self.subscriptionlist = {}
-		debugPrint('Screen', "Enter to screen: ", self.name)
-
-		for K in self.Keys.itervalues():
-			K.ScreenEntered(self)
-
-		debugPrint('Main', "Active Subscription List will be:")
-		self.NodeWatch = []
-		for i in self.subscriptionlist:
-			debugPrint('Screen', "  Subscribe: ", i, self.subscriptionlist[i].name, " : ",
-					   self.subscriptionlist[i].ISYObj.name, ' via ', self.subscriptionlist[i].MonitorObj.name)
-			self.NodeWatch.append(i)
 
 	def InitDisplay(self, nav):
-
-		states = isy.get_real_time_status(self.subscriptionlist.keys())
+		debugPrint("Screen", "Keyscreen InitDisplay: ", self.name)
 		for K in self.Keys.itervalues():
-			if isinstance(K, keyspecs.OnOffKey):
-				K.State = not (states[K.MonitorObj.address] == 0)  # K is off (false) only if state is 0
+			K.InitDisplay()
 		super(KeyScreenDesc, self).InitDisplay(nav)
 
-	def ISYEvent(self, node, value):
+	def ISYEvent(self, node=0, value=0, varid=(0, 0)):
 		# Watched node reported change event is ("Node", addr, value, seq)
-		# todo could allow var buttons here by checking if node is string or 2-tuple
-		try:
-			K = self.subscriptionlist[node]
-		except:
-			debugPrint('Screen', 'Bad key to KS - race?', self.name, str(node))
-			return  # treat as noop
-		debugPrint('Screen', 'KS ISYEvent ', K.name, str(value), str(K.State))
-		K.State = not (int(value if value.isdigit() else 0) == 0)  # K is off (false) only if state is 0
+		if node <> 0:
+			try:
+				K = self.NodeList[node]
+			except:
+				debugPrint('Screen', 'Bad key to KS - race?', self.name, str(node))
+				return  # treat as noop
+			debugPrint('Screen', 'KS ISYEvent ', K.name, str(value), str(K.State))
+			K.State = not (int(value if value.isdigit() else 0) == 0)  # K is off (false) only if state is 0
+		else:
+			try:
+				K = self.VarsList[varid]
+			except:
+				debugPrint('Screen', 'Bad var key', self.name, str(varid), self.VarsList)
+				return
+			K.Value = value
 		K.PaintKey()
 
 config.screentypes["Keypad"] = KeyScreenDesc

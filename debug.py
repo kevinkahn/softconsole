@@ -28,4 +28,5 @@ def InitFlags():
 	dbg = {}
 	for flg in DbgFlags:
 		dbg[flg] = config.ParsedConfigFile.get(flg, False)
+
 	return dbg

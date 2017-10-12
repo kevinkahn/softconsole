@@ -28,9 +28,6 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 		self.ClockRepaintEvent = ProcEventItem(id(self), 'repaintTimeTemp', self.repaintClock)
 		self.fmt = weatherinfo.WFormatter()
 
-	def EnterScreen(self):
-		self.NodeWatch = []
-
 	def InitDisplay(self, nav):
 		self.PaintBase()
 		super(TimeTempScreenDesc, self).InitDisplay(nav)

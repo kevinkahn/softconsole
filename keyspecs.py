@@ -17,6 +17,8 @@ def CreateKey(screen, screensection, keyname):
 		NewKey = RunThenKey(screen, screensection, keyname)
 	elif keytype == 'SETVAR':
 		NewKey = SetVarKey(screen, screensection, keyname)
+	elif keytype == 'SETVARVALUE':
+		NewKey = SetVarValueKey(screen, screensection, keyname)
 	else:  # unknown type
 		NewKey = BlankKey(screen, screensection, keyname)
 		config.Logs.Log('Undefined key type ' + keytype + ' for: ' + keyname, severity=ConsoleWarning)
@@ -37,6 +39,55 @@ class BlankKey(ManualKeyDesc):
 		self.label = self.label.append('(NoOp)')
 
 		utilities.register_example("BlankKey", self)
+
+
+class SetVarValueKey(ManualKeyDesc):
+	def __init__(self, screen, keysection, keyname):
+		debugPrint('Screen', "             New SetVarValue Key Desc ", keyname)
+
+		ManualKeyDesc.__init__(self, screen, keysection, keyname)
+		utilities.LocalizeParams(self, keysection, '--', VarType='undef', Var='')
+
+		try:
+			self.Proc = self.SetVarValue  # todo if not changeable?
+			if self.VarType == 'State':
+				self.VarID = (2, config.ISY.varsState[keyname])
+			elif self.VarType == 'Int':
+				self.VarID = (1, config.ISY.varsInt[keyname])
+			elif self.VarType == 'Local':
+				self.VarID = (3, config.ISY.varsLocal[keyname])
+			else:
+				config.Logs.Log('VarType not specified for key ', self.Var, ' on screen ', screen.name,
+								severity=ConsoleWarning)
+				self.VarID = (0, 0)
+				self.Proc = ErrorKey
+		except:
+			config.Logs.Log('Var key error on screen: ' + screen.name + ' Var: ' + keyname, severity=ConsoleWarning)
+			self.Proc = ErrorKey
+
+		utilities.register_example("SetVarValueKey", self)
+
+	def InitDisplay(self):
+		debugPrint("Screen", "SetVarValue Key.InitDisplay ", self.Screen.name, self.name)
+		self.Value = isy.GetVar(self.VarID)
+		super(SetVarValueKey, self).InitDisplay()
+
+	def FinishKey(self, center, size, firstfont=0, shrink=True):
+		super(SetVarValueKey, self).FinishKey(center, size, firstfont, shrink)
+		self.Screen.VarsList[self.VarID] = self
+
+	def PaintKey(self, ForceDisplay=False, DisplayState=True):
+		# extact current value from variable array
+		self.SetKeyImages(self.label + [str(self.Value)])
+		super(SetVarValueKey, self).PaintKey(ForceDisplay, DisplayState)
+
+	def SetVarValue(self, presstype):
+		# Call a screen repainter proc
+		# call reinitdisplay on enclosing screen
+		pass
+
+	# todo create a screen to allow changing the value if parameter is maleable
+
 
 class SetVarKey(ManualKeyDesc):
 	def __init__(self, screen, keysection, keyname):
@@ -101,7 +152,7 @@ class OnOffKey(ManualKeyDesc):
 	def __init__(self, screen, keysection, keyname, keytype):
 		debugPrint('Screen', "             New ", keytype, " Key Desc ", keyname)
 		utilities.LocalizeParams(self, keysection, '--', SceneProxy='', NodeName='')
-		self.MonitorObj = None  # ISY Object monitored to reflect state in the key (generally a device within a Scene) todo?
+		self.MonitorObj = None  # ISY Object monitored to reflect state in the key (generally a device within a Scene)
 		ManualKeyDesc.__init__(self, screen, keysection, keyname)
 		if keyname == '*Action*': keyname = self.NodeName  # special case for alert screen action keys that always have same name
 		if keyname in config.ISY.ScenesByName:
@@ -145,9 +196,16 @@ class OnOffKey(ManualKeyDesc):
 
 		utilities.register_example("OnOffKey", self)
 
-	def ScreenEntered(self, screen):
-		# put key on subscription for screen to watch for ISY events
-		screen.subscriptionlist[self.MonitorObj.address] = self
+	def FinishKey(self, center, size, firstfont=0, shrink=True):
+		super(OnOffKey, self).FinishKey(center, size, firstfont, shrink)
+		self.Screen.NodeList[self.MonitorObj.address] = self  # register for events for this key
+
+	def InitDisplay(self):
+		debugPrint("Screen", "OnOffKey Key.InitDisplay ", self.Screen.name, self.name)
+		state = isy.get_real_time_node_status(self.MonitorObj.address)
+		self.State = not (state == 0)  # K is off (false) only if state is 0
+		super(OnOffKey, self).InitDisplay()
+
 
 	def OnOff(self, presstype):
 		self.State = not self.State

@@ -33,7 +33,7 @@ class AlertsScreenDesc(screen.ScreenDesc):
 
 
 		self.Defer = utilities.get_timedelta(self.DeferTime)
-		self.NodeWatch = []
+
 		self.Keys = {}
 
 		self.Keys['defer'] = toucharea.ManualKeyDesc(self, 'defer', ['Defer'], self.KeyColor, self.KeyCharColorOn,
@@ -50,12 +50,13 @@ class AlertsScreenDesc(screen.ScreenDesc):
 			config.screenwidth/2, config.topborder + messageareaheight + 1.5*alertbutheight)
 			self.Keys['action'].Size = (config.screenwidth - 2*config.horizborder, alertbutheight)
 			self.Keys['action'].State = True  # for appearance only
+			self.Keys['action'].FinishKey((0, 0), (0, 0))
 		else:
 			pass
 		# no key created - just a blank spot on the alert screen
 
-		for k in self.Keys.itervalues():  # todo relook at Finish Key - can it be done as part of creation?
-			k.FinishKey((0, 0), (0, 0))
+		# for k in self.Keys.itervalues():  # todo relook at Finish Key - can it be done as part of creation?
+		# todo remove	k.FinishKey((0, 0), (0, 0))
 
 		for i in range(len(self.CharSize), len(self.Message)):
 			self.CharSize.append(self.CharSize[-1])
@@ -105,9 +106,6 @@ class AlertsScreenDesc(screen.ScreenDesc):
 		pygame.display.update()
 		self.Msg = not self.Msg
 		config.DS.Tasks.AddTask(self.BlinkEvent, self.BlinkTime)
-
-	def EnterScreen(self):
-		pass
 
 	def InitDisplay(self, nav):
 		super(AlertsScreenDesc, self).InitDisplay(nav)

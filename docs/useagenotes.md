@@ -95,7 +95,6 @@ These are screens that are triggered to appear based on a node or variable state
 New screens can be developed/deployed by subclassing screen.ScreenDesc and placing the code in the screens directory.  Screens modules have a single line of code at the module level of the form "config.screentypes[*name*] = *classname*" where *name* is the string to be used in config files to as the type value to create instances and *classname* is the name of the class defined in the module.  A screen class defines the following methods (ScreenDesc provide base level implementations that should be called if overridden):
 
 * __init__: Create a screen object based on an entry in the config file with a type equal to the type string registered in the definition of the screen.
-* EnterScreen: code to be performed just before the screen is gets displayed.  Most typically sets any ISY nodes to be watched while the screen is up.
 * InitDisplay(nav): code to display the screen.  nav are the navigation keys or None and should be passed through the the underlying InitDisplay of ScreenDesc
 * ReInitDisplay: code to redisplay the screen if it has been removed temporarily and assumes nav keys are already set.  Generally not overridden.
 * ISYEvent(node,value): A watched ISY *node* has changed to the new *value*

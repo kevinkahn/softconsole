@@ -71,6 +71,20 @@ Module Parameters:
             DimLevel
             DimTO
             PersistTO
+    HouseStatusScreenDesc
+        Local Parameters:
+            NormalOff               :  list    
+            NormalOn                :  list    
+            label                   :  list    
+        Overrideable Globals:
+            BackgroundColor
+            BrightLevel
+            CharColor
+            CmdCharCol
+            CmdKeyCol
+            DimLevel
+            DimTO
+            PersistTO
     KeyScreenDesc
         Local Parameters:
             label                   :  list    
@@ -131,6 +145,23 @@ Module Parameters:
             KeyOffOutlineColor
             KeyOnOutlineColor
             KeyOutlineOffset
+    RunThenKey
+        Local Parameters:
+            Blink                   :  int     
+            FastPress               :  int     
+            KeyRunThenName          :  str     
+            label                   :  list    
+        Overrideable Globals:
+            KeyCharColorOff
+            KeyCharColorOn
+            KeyColor
+            KeyColorOff
+            KeyColorOn
+            KeyLabelOff
+            KeyLabelOn
+            KeyOffOutlineColor
+            KeyOnOutlineColor
+            KeyOutlineOffset
     SetVarKey
         Local Parameters:
             Value                   :  int     
@@ -148,3 +179,73 @@ Module Parameters:
             KeyOffOutlineColor
             KeyOnOutlineColor
             KeyOutlineOffset
+    SetVarValueKey
+        Local Parameters:
+            Var                     :  str     
+            VarType                 :  str     
+            label                   :  list    
+        Overrideable Globals:
+            KeyCharColorOff
+            KeyCharColorOn
+            KeyColor
+            KeyColorOff
+            KeyColorOn
+            KeyLabelOff
+            KeyLabelOn
+            KeyOffOutlineColor
+            KeyOnOutlineColor
+            KeyOutlineOffset
+    ThermostatScreenDesc
+        Local Parameters:
+            label                   :  list    
+        Overrideable Globals:
+            BackgroundColor
+            BrightLevel
+            CharColor
+            CmdCharCol
+            CmdKeyCol
+            DimLevel
+            DimTO
+            KeyColor
+            KeyOffOutlineColor
+            KeyOnOutlineColor
+            KeysPerColumn
+            KeysPerRow
+            PersistTO
+    TimeTempScreenDesc
+        Local Parameters:
+            CharSize                :  list    
+            ConditionFields         :  list    
+            ConditionFormat         :  list    
+            Font                    :  str     
+            ForecastDays            :  int     
+            ForecastFields          :  list    
+            ForecastFormat          :  list    
+            SkipDays                :  int     
+            TimeFormat              :  list    
+            label                   :  list    
+            location                :  str     
+        Overrideable Globals:
+            BackgroundColor
+            BrightLevel
+            CharColor
+            CmdCharCol
+            CmdKeyCol
+            DimLevel
+            DimTO
+            PersistTO
+            WunderKey
+    WeatherScreenDesc
+        Local Parameters:
+            label                   :  list    
+            location                :  str     
+        Overrideable Globals:
+            BackgroundColor
+            BrightLevel
+            CharColor
+            CmdCharCol
+            CmdKeyCol
+            DimLevel
+            DimTO
+            PersistTO
+            WunderKey

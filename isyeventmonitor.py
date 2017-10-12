@@ -106,7 +106,7 @@ class ISYEventMonitor:
 							pygame.fastevent.post(notice)
 
 					if config.DS.AS is not None:
-						if enode in config.DS.AS.NodeWatch:
+						if enode in config.DS.AS.NodeList:
 							debugPrint('DaemonCtl', time.time() - config.starttime, "ISY reports node change(screen): ",
 									   "Key: ", config.ISY.NodesByAddr[enode].name)
 							notice = pygame.event.Event(config.DS.ISYChange, node=enode, value=eaction)
@@ -137,7 +137,7 @@ class ISYEventMonitor:
 							pygame.fastevent.post(notice)
 
 					if config.DS.AS is not None:
-						if (vartype, varid) in config.DS.AS.VarWatch:
+						if (vartype, varid) in config.DS.AS.VarsList:
 							if vartype == 1:
 								debugPrint('DaemonCtl', 'Int var change(screen): ', config.ISY.varsIntInv[varid],
 										   ' <- ', varval)

@@ -41,8 +41,8 @@ def SetUpMaintScreens():
 													  # fixed below to break a dependency loop - this is key 3
 													  ('exit', ('Exit/Restart', functools.partial(goto, Exits)))]))
 	FlagsScreens = []
-	nflags = len(
-		debug.DbgFlags) + 2  # will need key for each debug flag plus a return plus a loglevel up and loglevel down
+	nflags = len(debug.DbgFlags) + 2
+	# will need key for each debug flag plus a return plus a loglevel up and loglevel down
 	tmpDbgFlags = ["LogLevelUp", "LogLevelDown"] + debug.DbgFlags[:]  # temp copy of Flags
 	flagoverrides = fixedoverrides.copy()
 	flagoverrides.update(KeysPerColumn=debug.flagspercol, KeysPerRow=debug.flagsperrow)
@@ -185,7 +185,6 @@ class LogDisplayScreen(screen.BaseKeyScreenDesc):
 													  (config.screenwidth, config.screenheight), proc=self.NextPage),
 					 'prevpage': toucharea.TouchPoint('prevpage', (config.screenwidth/2, config.screenheight/4),
 													  (config.screenwidth, config.screenheight/2), proc=self.PrevPage)}
-		self.NodeWatch = []
 		self.name = 'Log'
 		utilities.register_example("LogDisplayScreen", self)
 
@@ -205,17 +204,13 @@ class LogDisplayScreen(screen.BaseKeyScreenDesc):
 		else:
 			config.DS.SwitchScreen(config.MaintScreen, 'Bright', 'Maint', 'Done showing log', NavKeys=False)
 
-	def EnterScreen(self):
+	def InitDisplay(self, nav):
 		debugPrint('Main', "Enter to screen: ", self.name)
+		super(LogDisplayScreen, self).InitDisplay(nav)
 		config.Logs.Log('Entering Log Screen')
 		self.item = 0
-		self.NodeWatch = []
 		self.PageStartItem = [0]
 		self.pageno = -1
-
-	def InitDisplay(self, nav):
-		super(LogDisplayScreen, self).InitDisplay(nav)
-		self.item = 0
 		self.NextPage(0)
 
 class MaintScreenDesc(screen.BaseKeyScreenDesc):
@@ -230,7 +225,6 @@ class MaintScreenDesc(screen.BaseKeyScreenDesc):
 			self.Keys[k] = NK
 		topoff = self.TitleFontSize + self.SubFontSize
 		self.LayoutKeys(topoff, config.screenheight - 2*config.topborder - topoff)
-		self.NodeWatch = []
 		self.DimTO = 60
 		self.PersistTO = 1  # setting to 0 would turn off timer and stick us here
 		utilities.register_example("MaintScreenDesc", self)
@@ -248,10 +242,8 @@ class MaintScreenDesc(screen.BaseKeyScreenDesc):
 		self.PaintKeys()
 		pygame.display.update()
 
-	def EnterScreen(self):
+	def InitDisplay(self, nav):
 		debugPrint('Main', "Enter to screen: ", self.name)
 		config.Logs.Log('Entering Maintenance Screen: ' + self.name)
-
-	def InitDisplay(self, nav):
 		super(MaintScreenDesc, self).InitDisplay(nav)
 		self.ShowScreen()

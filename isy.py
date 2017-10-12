@@ -66,17 +66,6 @@ def get_real_time_node_status(addr):
 		config.Logs.Log('Bad NodeByAddr in rt status: ', addr, severity=ConsoleError)
 	return int(devstate if devstate.isdigit() else 0)
 
-
-def get_real_time_status(addrlist):
-	# multiple calls here is substantially faster than one call for all status then selecting devices
-	# this proc assumes a device that returns a simple ST value for status
-	statusdict = {}
-	for addr in addrlist:
-		statusdict[addr] = get_real_time_node_status(addr)
-	debug.debugPrint('ISY', statusdict)
-	return statusdict
-
-
 class TreeItem(object):
 	"""
 	Provides the graph structure for the ISY representation.  Any ISY node can have a parent and children managed by

@@ -30,7 +30,7 @@ class HouseStatusScreenDesc(screen.ScreenDesc):
 		print self.NormalOff
 		checknodes = [nm for nm in config.ISY.NodesByName if ((nm in self.NormalOn) or (nm in self.NormalOff))]
 		print checknodes
-		states = isy.get_real_time_status([config.ISY.NodesByName[x].address for x in checknodes])
+		# states = isy.get_real_time_status([config.ISY.NodesByName[x].address for x in checknodes])
 		print states
 		outspecnodes = []
 		for node in states:

@@ -71,9 +71,9 @@ class ThermostatScreenDesc(screen.BaseKeyScreenDesc):
 												   center=(3*config.screenwidth/4, self.ModeButPos), size=bsize,
 												   KOn=config.KeyOffOutlineColor,
 												   proc=functools.partial(self.BumpMode, 'CLIFS', (7, 8)))
-		self.Keys['Mode'].FinishKey((0, 0), (0, 0))
-		self.Keys['Fan'].FinishKey((0, 0), (0, 0))
+
 		self.ModesPos = self.ModeButPos + bsize[1]/2 + scaleH(5)
+		self.NodeList[self.ISYObj.address] = self.Keys['Mode']  # placeholder for thermostat node
 		utilities.register_example("ThermostatScreenDesc", self)
 
 	def BumpTemp(self, setpoint, degrees, presstype):
@@ -146,10 +146,6 @@ class ThermostatScreenDesc(screen.BaseKeyScreenDesc):
 		config.screen.blit(r2, (self.Keys['Fan'].Center[0] - r2.get_width()/2, self.ModesPos))
 
 		pygame.display.update()
-
-	def EnterScreen(self):
-		debugPrint('Main', "Enter to screen: ", self.name)
-		self.NodeWatch = [self.ISYObj.address]
 
 	def InitDisplay(self, nav):
 		super(ThermostatScreenDesc, self).InitDisplay(

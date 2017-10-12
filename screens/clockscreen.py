@@ -16,7 +16,6 @@ class ClockScreenDesc(screen.ScreenDesc):
 		for i in range(len(self.CharSize), len(self.OutFormat)):
 			self.CharSize.append(self.CharSize[-1])
 		self.KeyList = None  # no touch areas active on this screen
-		self.NodeWatch = []  # no ISY node changes are of interest to this screen
 		utilities.register_example("ClockScreen", self)
 		self.ClockRepaintEvent = ProcEventItem(id(self), 'clockrepaint', self.repaintClock)
 
@@ -46,9 +45,6 @@ class ClockScreenDesc(screen.ScreenDesc):
 			vert_off = vert_off + s + l[i].get_height()
 		pygame.display.update()
 		config.DS.Tasks.AddTask(self.ClockRepaintEvent, 1)
-
-	def EnterScreen(self):
-		self.NodeWatch = []
 
 	def InitDisplay(self, nav):
 		super(ClockScreenDesc, self).InitDisplay(nav)

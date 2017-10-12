@@ -1,5 +1,12 @@
+LogLevel = 0
+Screen = True
+Main = True
+#Dispatch = True
+#DaemonCtl = True
+
+
 cfglib = cfglib
-include = auth.cfg, pdxalerts.cfg, timetempPR.cfg, timetempLQ.cfg, weathCC.cfg, timetempPDX.cfg, myclock.cfg,bathroom.cfg,upperlev.cfg,BR-kck.cfg
+include = auth.cfg, pdxalerts.cfg, timetempPR.cfg, timetempLQ.cfg, weathCC.cfg, timetempPDX.cfg, myclock.cfg,bathroom.cfg,upperlev.cfg,BR-kck.cfg,tstat.cfg
 HomeScreenName = LR1
 HomeScreenTO = 45
 DimLevel = 50
@@ -7,8 +14,8 @@ DimTO = 25
 DimIdleListNames = MyClock, Portland, Pumpkin, LaQuinta
 DimIdleListTimes =	20, 20, 20, 20
 
-MainChain = LR1,LR2, Pumpkin, Local, Upper Level
-SecondaryChain = Portland, Bathroom, BR
+MainChain = LR1,LR2, Pumpkin, Local, Upper Level, Test
+SecondaryChain = Portland, Bathroom, BR, Thermostat - Main
 
 [Variables]
     InternetUp = 1
@@ -118,7 +125,12 @@ SecondaryChain = Portland, Bathroom, BR
     [[LR Plug Dr]]
         label = Reading, Light, Door
 
-
+ [Test]
+	type = Keypad
+	label = Test
+	[[TestVar]]
+	VarType = Int
+	type = SETVARVALUE
 
 
 

@@ -1,4 +1,5 @@
 import pygame
+import debug
 
 import config
 import utilities
@@ -91,10 +92,6 @@ class ManualKeyDesc(TouchPoint):
 		self.Screen = screen
 		self.ISYObj = None  # this will get filled in by creator later - could be ISY node, ISY program
 
-	def ScreenEntered(self, screen):
-		# called when the screen containing this key is entered - allows key to know it is becoming active
-		# it can e.g., add itself to subscription list for the screen
-		pass  # default is to do nothing
 
 	def PaintKey(self, ForceDisplay=False, DisplayState=True):
 		x = self.Center[0] - self.Size[0]/2
@@ -159,6 +156,10 @@ class ManualKeyDesc(TouchPoint):
 		self.AddTitle(self.KeyOnImage, onLabel, fontchoice, self.KeyCharColorOn)
 		fontchoice = self.FindFontSize(offLabel, firstfont, shrink)
 		self.AddTitle(self.KeyOffImage, offLabel, fontchoice, self.KeyCharColorOff)
+
+	def InitDisplay(self):
+		# called for each key on a screen when it first displays - allows setting initial state for key display
+		debug.debugPrint("Screen", "Base Key.InitDisplay ", self.Screen.name, self.name)
 
 	def FinishKey(self,center,size,firstfont=0,shrink=True):
 		if size[0] <> 0: # if size is not zero then set the pos/size of the key; otherwise it was previously set in manual creation

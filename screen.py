@@ -4,6 +4,7 @@ import utilities
 import toucharea
 import collections
 from utilities import wc
+from debug import debugPrint
 
 
 def FlatenScreenLabel(label):
@@ -40,8 +41,8 @@ class ScreenDesc(object):
 		self.NavKeys = collections.OrderedDict()
 		self.Keys = collections.OrderedDict()
 		self.WithNav = True
-		self.NodeWatch = []
-		self.VarWatch = []
+		self.NodeList = {}
+		self.VarsList = {}
 
 		utilities.LocalizeParams(self, screensection, '-', 'CharColor', 'DimTO', 'PersistTO', 'BackgroundColor',
 								 'CmdKeyCol',
@@ -57,10 +58,9 @@ class ScreenDesc(object):
 		for key in self.NavKeys.itervalues():
 			key.PaintKey()
 
-	def EnterScreen(self):
-		config.Logs.Log("EnterScreen not defined: ", self.name, severity=logsupport.ConsoleError)
 
 	def InitDisplay(self, nav):
+		debugPrint("Screen", "Base Screen InitDisplay: ", self.name)
 		self.PaintBase()
 		self.NavKeys = nav
 		self.PaintKeys()

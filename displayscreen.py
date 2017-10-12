@@ -96,9 +96,9 @@ class DisplayScreen(object):
 			nav = {}
 
 		self.state = newstate
-		self.AS.EnterScreen()
 
-		debugPrint('Dispatch', "New watchlist(Main): " + str(self.AS.NodeWatch) + str(self.WatchNodes))
+		debugPrint('Dispatch', "New watchlist(Main): " + str(self.AS.NodeList) + str(self.WatchNodes))
+		print "SwitchScreen", repr(OS), repr(self.AS)
 		if OS <> self.AS: self.AS.InitDisplay(nav)
 
 	def NavPress(self, NS, press):
@@ -258,7 +258,13 @@ class DisplayScreen(object):
 
 			elif event.type == self.ISYChange:
 				debugPrint('Dispatch', 'ISY Change Event', event)
-				self.AS.ISYEvent(event.node, event.value)
+				if hasattr(event, 'node'):
+					self.AS.ISYEvent(node=event.node, value=event.value)
+				elif hasattr(event, 'vartype'):
+					self.AS.ISYEvent(varid=(event.vartype, event.varid), value=event.value)
+				else:
+					debugPrint('Dispatch', 'Bad ISYChange Event: ', event)
+					config.Logs.Log('Bad ISYChange Event ', event, severity=ConsoleWarning)
 
 			elif event.type in (self.ISYVar, self.ISYAlert):
 				evtype = 'variable' if event.type == self.ISYVar else 'node'
