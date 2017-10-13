@@ -14,12 +14,10 @@ class TouchPoint(object):
 	Represents a touchable rectangle on the screen.
 	"""
 
-	def __init__(self, name, c, s, proc=None):
-		self.Center = c
-		self.Size = s
+	def __init__(self, name, Center, Size, Proc=None):
+		self.__dict__.update({k: v for k, v in locals().items() if k != 'self'})
+		# Proc: function that gets called on touch - expects to take a single parameter which is thee type of press
 		self.Screen = None
-		self.name = name
-		self.Proc = proc  # function that gets called on touch - expects to take a single parameter which is thee type of press
 
 		utilities.register_example("TouchPoint", self)
 
