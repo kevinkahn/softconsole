@@ -27,6 +27,8 @@ def InitFlags():
 	global DbgFlags
 	dbg = {}
 	for flg in DbgFlags:
-		dbg[flg] = config.ParsedConfigFile.get(flg, False)
-
+		try:
+			dbg[flg] = config.ParsedConfigFile.get(flg, False)
+		except:
+			dbg[flg] = False
 	return dbg
