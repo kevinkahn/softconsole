@@ -32,7 +32,7 @@ class NetCmd(object):
 		vartype = alert.trigger.vartype
 		varid = alert.trigger.varid
 		varval = config.DS.WatchVarVals[(vartype, varid)]
-		isy.SetVar(vartype, varid, 0)
+		isy.SetVar((vartype, varid), 0)
 		if varval == 1:
 			config.Logs.Log('Remote restart')
 			exitutils.Exit_Options('Remote restart requested', 'Remote Restart')
