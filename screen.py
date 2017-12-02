@@ -93,7 +93,7 @@ class BaseKeyScreenDesc(ScreenDesc):
 		# Compute the positions and sizes for the Keys and store in the Key objects
 		explicitlayout = self.KeysPerColumn*self.KeysPerRow
 
-		if explicitlayout <> 0:
+		if explicitlayout != 0:
 			# user provided explicit button layout
 			if explicitlayout >= len(self.Keys):
 				# user layout provides enough space

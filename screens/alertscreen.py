@@ -55,8 +55,7 @@ class AlertsScreenDesc(screen.ScreenDesc):
 			pass
 		# no key created - just a blank spot on the alert screen
 
-		# for k in self.Keys.itervalues():  # todo relook at Finish Key - can it be done as part of creation?
-		# todo remove	k.FinishKey((0, 0), (0, 0))
+		#
 
 		for i in range(len(self.CharSize), len(self.Message)):
 			self.CharSize.append(self.CharSize[-1])

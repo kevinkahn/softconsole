@@ -25,13 +25,14 @@ fixedoverrides = {'CharColor': 'white', 'BackgroundColor': 'royalblue', 'label':
 def SetUpMaintScreens():
 	LogDisp = LogDisplayScreen()
 	Exits = MaintScreenDesc('Exits',
-							OrderedDict(
-								[('shut', ('Shutdown Console', doexit)), ('restart', ('Restart Console', doexit)),
-								 ('shutpi', (('Shutdown Pi'), doexit)), ('reboot', (('Reboot Pi'), doexit)),
-								 ('return', ('Return', None))]))  # proc filled in below due to circularity
+							OrderedDict([('shut', ('Shutdown Console', doexit)),
+										 ('restart', ('Restart Console', doexit)),
+										 ('shutpi', ('Shutdown Pi', doexit)), ('reboot', ('Reboot Pi', doexit)),
+										 ('return', ('Return', None))]))  # proc filled in below due to circularity
 	Beta = MaintScreenDesc('Versions',
-						   OrderedDict([('stable', (('Use Stable Release'), dobeta)), ('beta', (('Use Beta Release'), dobeta)),
-										('release', (('Download release'), dobeta)), ('fetch', (('Download Beta'), dobeta)),
+						   OrderedDict([('stable', ('Use Stable Release', dobeta)),
+										('beta', ('Use Beta Release', dobeta)),
+										('release', ('Download release', dobeta)), ('fetch', ('Download Beta', dobeta)),
 										('return', ('Return', None))]))  # proc filled in below due to circularity
 	config.MaintScreen = MaintScreenDesc('Maintenance',
 										 OrderedDict([('return', ('Exit Maintenance', gohome)),
