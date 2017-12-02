@@ -48,8 +48,8 @@ class ManualKeyDesc(TouchPoint):
 			# signature: ManualKeyDesc(screen, keyname, label, bcolor, charcoloron, charcoloroff, center=, size=, KOn=, KOff=, proc=)
 			# initializing from program code case
 			self.docodeinit(*args, **kwargs)
-		self.State = True
 		# todo may need to change signature if handling "holds"?
+		self.ISYObj = None  # this will get filled in by creator later - could be ISY node, ISY program
 		if self.KeyColorOff == '':
 			self.KeyColorOff = self.KeyColor
 		if self.KeyColorOn == '':
@@ -64,11 +64,13 @@ class ManualKeyDesc(TouchPoint):
 
 	def docodeinit(self, screen, keyname, label, bcolor, charcoloron, charcoloroff, center=(0, 0), size=(0, 0), KOn='',
 				   KOff='',
-				   proc=None, KCon='', KCoff='', KLon=['', ], KLoff=['', ], Blink=0):
+				   proc=None, KCon='', KCoff='', KLon=['', ], KLoff=['', ], State=True, Blink=0):
 		# NOTE: do not put defaults for KOn/KOff in signature - imports and arg parsing subtleties will cause error
 		# because of when config is imported and what walues are at that time versus at call time
 
 		TouchPoint.__init__(self, keyname, center, size, proc=proc)
+		self.Screen = screen
+		self.State = State
 		self.Screen = screen
 		self.KeyColor = bcolor
 		self.KeyColorOn = KCon
@@ -87,21 +89,20 @@ class ManualKeyDesc(TouchPoint):
 		TouchPoint.__init__(self, keyname, (0, 0), (0, 0))
 		utilities.LocalizeParams(self, keysection, '--', 'KeyColor', 'KeyOffOutlineColor', 'KeyOnOutlineColor',
 								 'KeyCharColorOn', 'KeyCharColorOff', 'KeyOutlineOffset', 'KeyColorOn', 'KeyColorOff',
-								 'KeyLabelOn', 'KeyLabelOff', label=[keyname])
+								 'KeyLabelOn', 'KeyLabelOff', FastPress=0, Verify=0, label=[keyname])
+		if self.Verify:
+			utilities.LocalizeExtra(self, keysection, '-*', GoMsg=['Proceed'], NoGoMsg=['Cancel'])
 		self.Screen = screen
-		self.ISYObj = None  # this will get filled in by creator later - could be ISY node, ISY program
+		self.State = True
 
 
 	def PaintKey(self, ForceDisplay=False, DisplayState=True):
 		x = self.Center[0] - self.Size[0]/2
 		y = self.Center[1] - self.Size[1]/2
-		if ForceDisplay:
+		if not ForceDisplay:
+			DisplayState = self.State
 			# ignore Key state and display as "DisplayState"
-			if DisplayState:
-				config.screen.blit(self.KeyOnImage, (x, y))
-			else:
-				config.screen.blit(self.KeyOffImage, (x, y))
-		elif self.State:
+		if DisplayState:
 			config.screen.blit(self.KeyOnImage, (x, y))
 		else:
 			config.screen.blit(self.KeyOffImage, (x, y))
@@ -118,11 +119,6 @@ class ManualKeyDesc(TouchPoint):
 			config.DS.Tasks.AddTask(E, .5)
 		else:
 			self.PaintKey()  # make sure to leave it in real state
-
-	def FeedbackKey(self):  # todo
-		self.PaintKey()
-
-
 
 	def FindFontSize(self,lab,firstfont,shrink):
 		lines = len(lab)

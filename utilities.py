@@ -91,7 +91,7 @@ def LogParams():
 		config.Logs.Log(p)
 
 def signal_handler(sig, frame):
-	print 'BYE', sig
+	print ('BYE', sig)
 	pygame.quit()
 	sys.exit()
 
@@ -102,7 +102,7 @@ def EarlyAbort(scrnmsg):
 	r = config.fonts.Font(40, '', True, True).render(scrnmsg, 0, wc("white"))
 	config.screen.blit(r, ((config.screenwidth - r.get_width())/2, config.screenheight*.4))
 	pygame.display.update()
-	print time.strftime('%m-%d-%y %H:%M:%S'), scrnmsg
+	print (time.strftime('%m-%d-%y %H:%M:%S'), scrnmsg)
 	time.sleep(5)
 	sys.exit(9)
 
@@ -188,8 +188,9 @@ def LocalizeParams(inst, configsection, indent, *args, **kwargs):
 	kwargs are locally defined parameters for this object and a default value which also gets added as self.xxx and
 		a value is taken from the config section if present
 	:param inst:
-	:param screensection:
-	:param args:
+	:param configsection:
+	:param indent:
+	:param args
 	:param kwargs:
 	:return:
 	"""
@@ -222,8 +223,32 @@ def LocalizeParams(inst, configsection, indent, *args, **kwargs):
 			for j, v in enumerate(val):
 				if isinstance(v, str):
 					val[j] = unicode(v)
-		if (lclval[i] <> val) and (lcllist[i] in args):
+		if (lclval[i] != val) and (lcllist[i] in args):
 			config.Logs.Log(indent + 'LParam: ' + lcllist[i] + ': ' + str(val), severity=ConsoleDetailHigh)
+		inst.__dict__[lcllist[i]] = val
+
+
+def LocalizeExtra(inst, configsection, indent, **kwargs):
+	global moddoc
+	if not inst.__class__.__name__ in moddoc:
+		moddoc[inst.__class__.__name__] = {'loc': {}, 'ovrd': set()}
+	if configsection is None:
+		configsection = {}
+	lcllist = []
+	lclval = []
+	for nametoadd in kwargs:
+		if nametoadd not in inst.__dict__:
+			lcllist.append(nametoadd)
+			lclval.append(kwargs[nametoadd])
+			moddoc[inst.__class__.__name__]['loc'][lcllist[-1]] = type(lclval[-1])
+		else:
+			config.Logs.Log('Duplicated keyword localization (internal error): ' + nametoadd)
+	for i in range(len(lcllist)):
+		val = type(lclval[i])(configsection.get(lcllist[i], lclval[i]))
+		if isinstance(val, list):
+			for j, v in enumerate(val):
+				if isinstance(v, str):
+					val[j] = unicode(v)
 		inst.__dict__[lcllist[i]] = val
 
 

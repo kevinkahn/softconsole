@@ -8,7 +8,7 @@ import os
 import string
 
 import config
-from logsupport import ConsoleWarning, ConsoleError
+from logsupport import ConsoleWarning, ConsoleError, ConsoleInfo
 
 
 class WFormatter(string.Formatter):
@@ -48,7 +48,7 @@ def TryShorten(term):
 	return term
 
 
-class WeatherInfo:
+class WeatherInfoActual(object):
 	ConditionMap = {'Time': (int, ('current_observation', 'observation_epoch')),
 					'Location': (str, ('current_observation', 'display_location', 'city')),
 					'Temp': (float, ('current_observation', 'temp_f')),
@@ -112,19 +112,22 @@ class WeatherInfo:
 				try:
 					f = urllib2.urlopen(self.url, None, 15)  # wait at most 15 seconds for weather response then timeout
 					val = f.read()
+					config.WUcount += 1
+					config.Logs.Log("Actual weather fetch for " + self.location + " WU count: " + str(config.WUcount),
+									severity=ConsoleInfo)
 				except:
 					config.Logs.Log("Error fetching weather: " + self.url + str(sys.exc_info()[0]),
 									severity=ConsoleWarning)
 					self.dumpweatherresp(val, 'none', 'fetch', '--')
 					raise
-				if val.find("keynotfound") <> -1:
-					if self.location <> "":
+				if val.find("keynotfound") != -1:
+					if self.location != "":
 						# only report once in log
 						config.Logs.Log("Bad weatherunderground key:" + self.location, severity=ConsoleError, tb=False)
 					self.location = ""
 					self.nextwebreq = time.time() + 60*60*24*300  # next web request in 300 days - i.e., never
-					raise
-				if val.find("you must supply a key") <> -1:
+					return -1
+				if val.find("you must supply a key") != -1:
 					config.Logs.Log("WeatherUnderground missed the key:" + self.location, severity=ConsoleWarning)
 					self.returnval = -1
 					self.nextwebreq = time.time()  # try this again since key didn't register or count
@@ -137,7 +140,7 @@ class WeatherInfo:
 				self.ForecastVals = []
 				self.ConditionErr = []
 				self.ForecastErr = []
-				for cond, desc in WeatherInfo.ConditionMap.iteritems():
+				for cond, desc in WeatherInfoActual.ConditionMap.iteritems():
 					try:
 						self.ConditionVals[cond] = desc[0](js(*desc[1]))
 						if desc[0] == str:
@@ -150,7 +153,7 @@ class WeatherInfo:
 					self.ForecastVals.append({})
 					self.ForecastErr.append([])
 					fs = functools.partial(TreeDict, fcst)
-					for fc, desc in WeatherInfo.ForecastDay.iteritems():
+					for fc, desc in WeatherInfoActual.ForecastDay.iteritems():
 						try:
 							self.ForecastVals[i][fc] = desc[0](fs(*desc[1]))
 							if desc[0] == str:
@@ -211,3 +214,11 @@ class WeatherInfo:
 		except:
 			self.ConditionVals['Age'] = "No readings ever retrieved"
 		return self.returnval
+
+
+def WeatherInfo(WunderKey, location):
+	if location in config.WeatherCache:
+		return config.WeatherCache[location]
+	else:
+		config.WeatherCache[location] = WeatherInfoActual(WunderKey, location)
+		return config.WeatherCache[location]

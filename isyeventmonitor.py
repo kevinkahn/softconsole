@@ -50,7 +50,6 @@ class ISYEventMonitor:
 			debugPrint('DaemonCtl', "Websocket stream opened: ", self.num, self.streamid)
 
 		def on_message(ws, message):
-			global varlist, watchlist
 			m = xmltodict.parse(message)
 
 			if 'SubscriptionResponse' in m:
@@ -87,7 +86,7 @@ class ISYEventMonitor:
 				enode = e.pop('node', 'No node')
 				eInfo = e.pop('eventInfo', 'No EventInfo')
 
-				if (ecode in self.reportablecodes):
+				if ecode in self.reportablecodes:
 					# Node change report
 					debugPrint('DaemonStream', time.time() - config.starttime, "Status update in stream: ", eseq, ":",
 							   prcode, " : ", enode, " : ", eInfo, " : ", eaction)

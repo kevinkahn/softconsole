@@ -34,7 +34,7 @@ def try_ISY_comm(urlcmd):
 				config.Logs.Log("ISY Comm UnknownErr: " + ' Cmd: ' + urlcmd, severity=ConsoleError)
 				config.Logs.Log(sys.exc_info()[1], severity=ConsoleError, tb=False)
 				raise CommsError
-			if r.status_code <> 200:
+			if r.status_code != 200:
 				config.Logs.Log('ISY Bad status:' + str(r.status_code) + ' on Cmd: ' + urlcmd, severity=ConsoleError)
 				config.Logs.Log(r.text)
 				raise CommsError
@@ -59,7 +59,7 @@ def get_real_time_node_status(addr):
 			devstate = item['@value']
 			break
 	try:
-		if config.ISY.NodesByAddr[addr].devState <> int(devstate):
+		if config.ISY.NodesByAddr[addr].devState != int(devstate):
 			config.Logs.Log("Shadow state wrong: ", addr, devstate, config.ISY.NodesByAddr[addr].devState,
 							severity=ConsoleWarning)
 	except:
@@ -126,7 +126,7 @@ class Node(Folder, OnOffItem):
 			props = [props]  # make it a list so below always works
 		for item in props:
 			if item['@id'] == 'ST':
-				if item['@value'] <> ' ':
+				if item['@value'] != ' ':
 					self.hasstatus = True
 				# no use for nodetype now
 				# device class -energy management
@@ -204,19 +204,19 @@ def GetVar(var):
 		return xmltodict.parse(text)['var']['val']
 
 
-def SetVar(vartype, varid, value):
-	if vartype == 3:
-		config.ISY.LocalVars[varid] = value
-		if (vartype, varid) in config.DS.WatchVars.keys():
-			config.DS.WatchVarVals[vartype, varid] = value
+def SetVar(var, value):
+	if var[0] == 3:
+		config.ISY.LocalVars[var[1]] = value
+		if tuple(var) in config.DS.WatchVars.keys():
+			config.DS.WatchVarVals[var[0], var[1]] = value
 
-			for a in config.DS.WatchVars[(vartype, varid)]:
+			for a in config.DS.WatchVars[tuple(var)]:
 				config.Logs.Log("Var alert fired: " + str(a))
-				notice = pygame.event.Event(config.DS.ISYVar, vartype=vartype, varid=varid, value=value, alert=a)
+				notice = pygame.event.Event(config.DS.ISYVar, vartype=var[0], varid=var[1], value=value, alert=a)
 				pygame.fastevent.post(notice)
 
 	else:
-		try_ISY_comm('/rest/vars/set/' + str(vartype) + '/' + str(varid) + '/' + str(value))
+		try_ISY_comm('/rest/vars/set/' + str(var[0]) + '/' + str(var[1]) + '/' + str(value))
 
 
 class ISY(object):
@@ -238,7 +238,7 @@ class ISY(object):
 			else:
 				node.parent = None
 				config.Logs.Log("Missing parent: " + node.name, severity=ConsoleError)
-			if node.parent <> node:  # avoid root
+			if node.parent != node:  # avoid root
 				node.parent.children.append(node)
 
 	def __init__(self, ISYsession):
@@ -293,7 +293,7 @@ class ISY(object):
 					exitutils.errorexit('reboot')
 					sys.exit(10)  # should never get here
 
-		if r.status_code <> 200:
+		if r.status_code != 200:
 			config.Logs.Log('ISY text response:', severity=ConsoleError)
 			config.Logs.Log('-----', severity=ConsoleError)
 			config.Logs.Log(r.text, severity=ConsoleError)
@@ -366,7 +366,7 @@ class ISY(object):
 		while True:
 			try:
 				r = ISYsession.get(config.ISYprefix + 'programs?subfolders=true', verify=False, timeout=3)
-				if r.status_code <> 200:
+				if r.status_code != 200:
 					config.Logs.Log('ISY bad program read' + r.text, severity=ConsoleWarning)
 					raise requests.exceptions.ConnectionError  # fake a connection error if we didn't get a good read
 				config.Logs.Log('Successful programs read: ' + str(r.status_code))
@@ -400,6 +400,13 @@ class ISY(object):
 								 self.ProgramsByAddr)
 		self.LinkChildrenParents(self.ProgramsByAddr, self.ProgramsByName, self.ProgramFoldersByAddr,
 								 self.ProgramsByAddr)
+		config.DummyProgram = Program('dummy', 0, 0)
+
+		def Noop():
+			debug.debugPrint('Main', "Dummy program invocation")
+			pass
+
+		config.DummyProgram.runThen = Noop
 
 		"""
 		Get the variables
@@ -408,7 +415,7 @@ class ISY(object):
 			try:
 				r1 = ISYsession.get(config.ISYprefix + 'vars/definitions/2', verify=False, timeout=3)
 				r2 = ISYsession.get(config.ISYprefix + 'vars/definitions/1', verify=False, timeout=3)
-				if r1.status_code <> 200 or r2.status_code <> 200:
+				if r1.status_code != 200 or r2.status_code != 200:
 					config.Logs.Log("Bad ISY var read" + r1.text + r2.text, severity=ConsoleWarning)
 					raise requests.exceptions.ConnectionError  # fake connection error on bad read
 				config.Logs.Log('Successful variable read: ' + str(r1.status_code) + '/' + str(r2.status_code))
@@ -447,6 +454,18 @@ class ISY(object):
 		utilities.register_example("ISY", self)
 		if debug.Flags['ISY']:
 			self.PrintTree(self.ProgRoot, "    ", 'Programs')
+
+	def GetVarCode(self, varsym):
+		try:
+			if varsym[0] == 'I':  # int var
+				return 1, self.varsInt[varsym[1]]
+			elif varsym[0] == 'S':  # state var
+				return 2, self.varsState[varsym[1]]
+			elif varsym[0] == 'L':  # local var
+				return 3, self.varsLocal[varsym[1]]
+			return 0, 0
+		except:
+			return 0, 0
 
 	def PrintTree(self, startpoint, indent, msg):
 		if msg is not None:

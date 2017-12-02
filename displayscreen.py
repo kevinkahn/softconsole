@@ -98,8 +98,8 @@ class DisplayScreen(object):
 		self.state = newstate
 
 		debugPrint('Dispatch', "New watchlist(Main): " + str(self.AS.NodeList) + str(self.WatchNodes))
-		print "SwitchScreen", repr(OS), repr(self.AS)
-		if OS <> self.AS: self.AS.InitDisplay(nav)
+
+		if OS != self.AS: self.AS.InitDisplay(nav)
 
 	def NavPress(self, NS, press):
 		debugPrint('Dispatch', 'Navkey: ', NS.name, self.state + '/' + self.dim)

@@ -1,18 +1,59 @@
 import screen
+import debug
 import config
 import utilities
 from utilities import wc
 import functools
 import pygame
-import fonts, debug
 from pygame import draw
 from toucharea import TouchPoint, ManualKeyDesc
+
+
+class VerifyScreen(screen.BaseKeyScreenDesc):
+
+	def __init__(self, key, gomsg, nogomsg, proc, callingscreen, bcolor, titlecolor, keycoloroff, keyol, charcolor,
+				 state):
+		debug.debugPrint('Screen', "Build Verify Screen")
+		screen.BaseKeyScreenDesc.__init__(self, {}, key.name)
+		self.DimTO = 20
+		self.PersistTO = 10
+		self.label = screen.FlatenScreenLabel(key.label)
+		self.CallingScreen = callingscreen
+		utilities.LocalizeParams(self, None, '-', TitleFontSize=40, SubFontSize=25)
+		self.Keys['yes'] = ManualKeyDesc(self, 'yes', gomsg, bcolor, keycoloroff, charcolor, State=state)
+		self.Keys['yes'].Proc = functools.partial(proc, True)
+		self.Keys['no'] = ManualKeyDesc(self, 'no', nogomsg, bcolor, keycoloroff, charcolor, State=state)
+		self.Keys['no'].Proc = functools.partial(proc, False)
+
+		topoff = self.TitleFontSize + self.SubFontSize
+		self.LayoutKeys(topoff, config.screenheight - 2*config.topborder - topoff)
+		utilities.register_example("VerifyScreen", self)
+
+	def Invoke(self):
+		# todo animation
+		config.DS.SwitchScreen(self, 'Bright', config.DS.state, 'Do Verify ' + self.name, NavKeys=False)
+
+	def ShowScreen(self):
+		self.PaintBase()
+		r = config.fonts.Font(self.TitleFontSize, '', True, True).render(self.label, 0, wc(self.CharColor))
+		rl = (config.screenwidth - r.get_width())/2
+		config.screen.blit(r, (rl, config.topborder))
+		# config.screen.blit(r, (rl, config.topborder + self.TitleFontSize))
+		self.PaintKeys()
+		pygame.display.update()
+
+	def InitDisplay(self, nav):
+		# debugPrint('Main', "Enter to screen: ", self.name)
+		config.Logs.Log('Entering Verify Screen: ' + self.name)
+		super(VerifyScreen, self).InitDisplay({})
+		self.ShowScreen()
+
 
 class ValueChangeScreen(screen.ScreenDesc):
 	# need to set no nav keys
 	@staticmethod
 	def offsetpoint(center, point):
-		return (center[0] + point[0], center[1] + point[1])
+		return center[0] + point[0], center[1] + point[1]
 
 	def CancelChange(self, presstype):
 		pass
@@ -20,7 +61,7 @@ class ValueChangeScreen(screen.ScreenDesc):
 	def AcceptChange(self, presstype):
 		pass
 
-	def ValChange(self, delta):
+	def ValChange(self, delta, presstype):
 		pass
 
 	def __init__(self, BackgroundColor, Outline, CharColor, label, initvalue, changevals, setvalueproc, returnscreen):
@@ -103,14 +144,3 @@ class ValueChangeScreen(screen.ScreenDesc):
 		pygame.display.update()
 		pass
 
-
-utilities.InitializeEnvironment()
-debug.Flags = debug.InitFlags()
-
-print "start"
-# config.screenwidth = 320
-#config.screenheight = 480
-print config.screenheight, config.screenwidth
-s = ValueChangeScreen('red', 'black', 'blue', 'Test Valchange', 7, (1, 10, 100), None, None)
-s.InitDisplay(1)
-print 'end'

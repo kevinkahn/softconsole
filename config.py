@@ -39,6 +39,9 @@ ISYprefix = ''  # holds the url prefix for rest interface
 fonts = None
 Logs = None
 LogLevel = 3
+DummyProgram = None
+WeatherCache = {}
+WUcount = 0
 
 configfilelist = {}  # list of configfiles and their timestamps
 

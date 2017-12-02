@@ -74,7 +74,7 @@ class MyScreens(object):
 				config.Logs.Log("---" + scr)
 
 		# Make sure we have screens defined
-		if config.MainChain == []:
+		if not config.MainChain:
 			config.Logs.Log("No screens defined for Main Chain", severity=ConsoleError)
 			exitutils.errorexit("shut")
 
@@ -130,7 +130,7 @@ class MyScreens(object):
 			config.HomeScreen = config.MainDict[config.MainChain[0]].screen
 		config.Logs.Log("Home Screen: " + config.HomeScreen.name)
 
-		if config.SecondaryChain <> []:
+		if config.SecondaryChain:
 			config.HomeScreen2 = config.SecondaryDict[config.SecondaryChain[0]].screen
 			config.Logs.Log("Secondary home screen: " + config.HomeScreen2.name)
 		else:

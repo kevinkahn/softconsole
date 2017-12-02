@@ -22,11 +22,13 @@ import cgitb
 import datetime
 import pygame
 
+# noinspection PyProtectedMember
 from configobj import ConfigObj, Section
 import isyeventmonitor
 
 import config
 import configobjects
+import ast
 import debug
 import displayscreen
 import globalparams
@@ -57,9 +59,9 @@ signal.signal(signal.SIGINT, handler)
 sectionget = Section.get
 
 
-def CO_get(self, key, default):
+def CO_get(self, key, default, delkey=True):
 	rtn = sectionget(self, key, default)
-	if key in self:
+	if key in self and delkey:
 		del self[key]
 	return rtn
 
@@ -180,12 +182,14 @@ pfiles = []
 cfglib = config.ParsedConfigFile.get('cfglib', '')
 if cfglib <> '':
 	cfglib += '/'
+if cfglib[0] <> '/':
+	cfglib = configdir + '/' + cfglib
 includes = config.ParsedConfigFile.get('include', [])
 while includes:
 	f = includes.pop(0)
 	if f[0] <> '/':
 		pfiles.append('+' + f)
-		f = configdir + "/" + cfglib + f
+		f = cfglib + f
 	else:
 		pfiles.append(f)
 	cfiles.append(f)
@@ -229,6 +233,7 @@ if config.personalsystem:
 if config.previousup > 0:
 	config.Logs.Log("Previous Console Lifetime: ", str(datetime.timedelta(seconds=config.previousup)))
 if config.lastup > 0:
+	config.Logs.Log("Console Last Running at: ", time.ctime(config.lastup))
 	config.Logs.Log("Previous Console Downtime: ", str(datetime.timedelta(seconds=(config.starttime - config.lastup))))
 config.Logs.Log("Main config file: ", config.configfile,
 				time.strftime(' %c', time.localtime(config.configfilelist[config.configfile])))
@@ -272,11 +277,11 @@ else:
 
 if 'Alerts' in config.ParsedConfigFile:
 	alertspec = config.ParsedConfigFile['Alerts']
-	if tmp <> None:
+	if tmp is not None:
 		alertspec.merge(tmp)
 	del config.ParsedConfigFile['Alerts']
 else:
-	if tmp <> None:
+	if tmp is not None:
 		alertspec = ConfigObj()
 		alertspec.merge(tmp)
 	else:

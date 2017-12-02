@@ -1,12 +1,12 @@
 LogLevel = 0
-Screen = True
-Main = True
+#Screen = True
+#Main = True
 #Dispatch = True
 #DaemonCtl = True
 
 
-cfglib = cfglib
-include = auth.cfg, pdxalerts.cfg, timetempPR.cfg, timetempLQ.cfg, weathCC.cfg, timetempPDX.cfg, myclock.cfg,bathroom.cfg,upperlev.cfg,BR-kck.cfg,tstat.cfg
+cfglib = "/home/pi/consolerem/example configs/cfglib"
+include = /home/pi/Console/cfglib/auth.cfg, pdxalerts.cfg, timetempPR.cfg, timetempLQ.cfg, weathCC.cfg, timetempPDX.cfg, myclock.cfg,bathroom.cfg,upperlev.cfg,BR-kck.cfg,tstat.cfg
 HomeScreenName = LR1
 HomeScreenTO = 45
 DimLevel = 50
@@ -50,6 +50,12 @@ SecondaryChain = Portland, Bathroom, BR, Thermostat - Main
 	Test = NE
 	Value = 1
 	Invoke = InternetAlertScreen
+
+    [[GetTemps]]
+    Type = Periodic
+    Interval = 20 seconds #2 minutes
+    Invoke = GetTempsToISY.SendTemps
+    Parameter = KPDX, C:Temp S:RecentTemp F:Low S:ForecastLowTemp # station,(field name, var)+  pws:KORPORTL280
 
 [InternetAlertScreen]
     type = Alert
@@ -121,9 +127,21 @@ SecondaryChain = Portland, Bathroom, BR, Thermostat - Main
     [[Main Hall]]
     [[Upper Hall]]
     [[LR Plug Win]]
-        label = Reading, Light, Window
-    [[LR Plug Dr]]
-        label = Reading, Light, Door
+        label = Test
+        type = ONBLINKRUNTHEN
+        KeyColor = green
+        KeyRunThenName = TestProcXX
+        Verify = 1
+    [[TestProg]]
+        type=RUNPROG
+        ProgramName = TestProc
+        KeyColor = green
+        Verify = 1
+        Blink = 11
+        GoMsg = Run, Program
+        label = Test, Program, Verify
+#    [[LR Plug Dr]]
+#        label = Reading, Light, Door
 
  [Test]
 	type = Keypad
