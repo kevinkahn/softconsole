@@ -1,5 +1,5 @@
 """
-Copyright 2016 Kevin Kahn
+Copyright 2016, 2017 Kevin Kahn
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -82,7 +82,7 @@ config.exdir = os.path.dirname(os.path.abspath(__file__))
 config.homedir = os.path.dirname(config.exdir)
 
 earlylog = open(config.homedir + '/Console/earlylog.log', 'w', 0)
-earlylog.write("Console start at " + time.strftime('%m-%d-%y %H:%M:%S') + '\n')
+earlylog.write("Console start at " + time.strftime('%m-%d-%y %H:%M:%S') + ' on ' + config.hostname + '\n')
 
 if os.getegid() <> 0:
 	# Not running as root
@@ -166,8 +166,8 @@ else:
 	config.configfile = config.configfilebase + "config-" + config.hostname + ".txt"
 
 if not os.path.isfile(config.configfile):
-	earlylog.write("Abort - no configuratio file\n")
-	utilities.EarlyAbort('No Configuration File')
+	earlylog.write("Abort - no configuratio file ('+config.hostname+')'\n")
+	utilities.EarlyAbort('No Configuration File (' + config.hostname + ')')
 
 config.ParsedConfigFile = ConfigObj(config.configfile)  # read the config.txt file
 
