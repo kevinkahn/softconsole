@@ -16,7 +16,7 @@ SecondaryChain = Bathroom, Upper Level, LR, OtherMain, Downstairs, Portland
 [Alerts]
 	[[Internet]]
 	Type = Periodic
-	Interval = 30 seconds
+	Interval = 60 seconds
 	Invoke = NetworkHealth.Do_Ping
 	Parameter = '8.8.8.8',InternetUp
 	[[InternetAlert]]
@@ -25,6 +25,18 @@ SecondaryChain = Bathroom, Upper Level, LR, OtherMain, Downstairs, Portland
 	Test = NE
 	Value = 1
 	Invoke = InternetAlertScreen
+
+    [[GetTempsHills]]
+    Type = Periodic
+    Interval = 20 minutes
+    Invoke = GetTempsToISY.SendTemps
+    Parameter = KORPORTL26, C:Temp S:TempHills F:Low S:ForecastLowHills # station,(field name, var)+  pws:KORPORTL26
+
+    [[GetTempsPDX]]
+    Type = Periodic
+    Interval = 20 minutes
+    Invoke = GetTempsToISY.SendTemps
+    Parameter = KPDX, C:Temp S:TempPDX F:Low S:ForecastLowPDX # station,(field name, var)+  pws:KPDX
 
 [InternetAlertScreen]
     type = Alert
