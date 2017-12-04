@@ -1,4 +1,4 @@
-LogLevel = 0
+LogLevel = 3
 #Screen = True
 #Main = True
 #Dispatch = True
@@ -137,8 +137,9 @@ SecondaryChain = Portland, Bathroom, BR, Thermostat - Main
         ProgramName = TestProc
         KeyColor = green
         Verify = 1
+        GoMsg = Yes, Do, It!
+        NoGoMsg = Oops, Never Mind!
         Blink = 11
-        GoMsg = Run, Program
         label = Test, Program, Verify
 #    [[LR Plug Dr]]
 #        label = Reading, Light, Door
