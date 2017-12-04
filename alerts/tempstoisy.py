@@ -16,7 +16,7 @@ class GetTempsToISY(object):
 		station = alert.param[0]
 		WI = weatherinfo.WeatherInfo(config.WunderKey, station)
 		if WI.FetchWeather() == -1:
-			config.Logs.Log("Weather not available in SendTemps", severity=ConsoleError)
+			config.Logs.Log("Weather not available in SendTemps(" + station + ')', severity=ConsoleError)
 			return
 		assigns = alert.param[1].split(' ')
 		for i in range(0, len(assigns), 2):
@@ -29,8 +29,9 @@ class GetTempsToISY(object):
 				exitutils.FatalError('Weather field error in SendTemps', restartopt='shut')
 
 			isyvar = config.ISY.GetVarCode(tuple(assigns[i + 1].split(':')))
-			config.Logs.Log("Temps sent to ISY: " + weathcode[0] + ':' + weathcode[1] + ' -> ' + str(weathval),
-							severity=ConsoleInfo)
+			config.Logs.Log(
+				"Temps sent to ISY(" + station + '):' + weathcode[0] + ':' + weathcode[1] + ' -> ' + str(weathval),
+				severity=ConsoleInfo)
 			if isyvar != (0, 0):
 				isy.SetVar(isyvar, int(weathval))
 			else:

@@ -30,7 +30,7 @@ SecondaryChain = Bathroom, Upper Level, LR, OtherMain, Downstairs, Portland
     Type = Periodic
     Interval = 20 minutes
     Invoke = GetTempsToISY.SendTemps
-    Parameter = KORPORTL26, C:Temp S:TempHills F:Low S:ForecastLowHills # station,(field name, var)+  pws:KORPORTL26
+    Parameter = pws:KORPORTL26, C:Temp S:TempHills F:Low S:ForecastLowHills # station,(field name, var)+  pws:KORPORTL26
 
     [[GetTempsPDX]]
     Type = Periodic
