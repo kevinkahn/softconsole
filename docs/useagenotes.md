@@ -47,15 +47,18 @@ First I admit in advance that the syntax and parsing of the config files is both
 * Some responses from weatherunderground are fairly long phrases that don't display nicely on the weather screens.  There is a file termshorten list which is a json representation of a Python dictionary that maps phrases to shorter ones for display.  It is self explanatory if you look at the examples that are prepopulated.  You can edit this as you wish to add or change phrases to be shortened.
 
 # Currently supported screens
-* Keypad: mimics the KPL.  Can support any number of buttons from 1 to 25 and will autoplace/autosize buttons in this range.  Buttons may be colored as desired.  Key types are:
+* Keypad: mimics the KPL.  Can support any number of buttons from 1 to 25 and will autoplace/autosize buttons in this range.  Parmetrs KeysPerColumn and KeysPerRow may be used to override the auto placement of the keys.  Keys may be colored as desired.  Key types are:
     * ONOFF: linked to a device or scene and supports On, Off, FastOn, FastOff behaviors
-    * RUNPROG: linked to a program to run.  It issues a RunThen on the designated program.  It supports the following modifier parameters:
-        * FastPress = 1: requires a quick double tap to activate the key.
-        * Verify = 1: displays a confirmation screen before running the program.  The messages on the confirmation screen can be customized with the GoMsg and/or NoGoMsg parameters.
-        * Blink = n: provide visual feedback when when the runthen is issued by blinking the key n times.
+    * RUNPROG: linked to a program to run.  It issues a RunThen on the designated program.  It supports the following modifier parameters:    
     * (Deprecated-use RUNPROG with modifiers) ONBLINKRUNTHEN: linked to a program.  Will blink to provide user feedback and will issue RunThen on program
     * ON: will always send an "on" command to the linked device.  This is useful for things like garage doors that use on toggles.
+    * OFF: will always send an "off" command to the linked device.
     * SETVAR: set the value of an ISY variable
+    * Modifier Parameters: The ONOFF and RUNPROG keytypes support certain parameters that modify the key behavior:
+        * Verify = 1: displays a confirmation screen before running the program.  The messages on the confirmation screen can be customized with the GoMsg and/or NoGoMsg parameters.
+        * Blink = n: provide visual feedback when when the runthen is issued by blinking the key n times.
+        * FastPress = 1: requires a quick double tap to activate the key. (Note not applicable to the ONOFF keys since there a double press corresponds to issuing a fast on or off to the device).
+     
     * Note: for scenes ONOFF will choose a device to use as a proxy for the state of the scene for purposes of the appearance of the button.  Generally this will turn out to be some other switch or KPL button that is a controller for the scene.  This can be overridden by supplying a specific device address or name to use as the proxy.
 * Clock: displays a clock formatted according to the OutFormat parameter using any of the underlying OS time formatting codes.  The character size for each line can be set individually.  If there are more lines in the format than character sizes the last size is repeated. Python standard formatting is at https://docs.python.org/2/library/time.html.  Linux (RPi) supports a somewhat richer set of codes e.g. http://linux.die.net/man/3/strftime
 * Weather: uses Weather Underground to display current conditions and forecast.  The location parameter is a WU location code - see their site for codes.  To use this screen you must have a WU key which can be gotten for free for low volume use.  

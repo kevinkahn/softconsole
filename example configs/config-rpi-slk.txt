@@ -10,6 +10,19 @@ DimHomeScreenCoverName = TimeTemp
 MainChain = BR, TimeTemp, Suzi Misc1
 SecondaryChain = Thermostat - Main, Local, Portland, Downtown, La Quinta, Suzi Misc2
 
+[Alerts]
+    [[GetTempsHills]]
+    Type = Periodic
+    Interval = 60 minutes
+    Invoke = GetTempsToISY.SendTemps
+    Parameter = pws:KORPORTL26, C:Temp S:TempHills F:Low S:ForecastLowHills # station,(field name, var)+  pws:KORPORTL26
+
+    [[GetTempsPDX]]
+    Type = Periodic
+    Interval = 60 minutes
+    Invoke = GetTempsToISY.SendTemps
+    Parameter = KPDX, C:Temp S:TempPDX F:Low S:ForecastLowPDX # station,(field name, var)+  pws:KPDX
+
 
 
 
