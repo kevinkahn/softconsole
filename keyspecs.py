@@ -22,7 +22,7 @@ def CreateKey(screen, screensection, keyname):
 
 	keytype = screensection.get('type', 'ONOFF')
 	config.Logs.Log("-Key:" + keyname, severity=ConsoleDetail)
-	if keytype in ('ONOFF', 'ON'):
+	if keytype in ('ONOFF', 'ON', 'OFF'):
 		NewKey = OnOffKey(screen, screensection, keyname, keytype)
 	elif keytype == 'SETVAR':
 		NewKey = SetVarKey(screen, screensection, keyname)
@@ -132,9 +132,10 @@ class SetVarKey(ManualKeyDesc):
 
 class RunProgram(ManualKeyDesc):
 	def __init__(self, screen, keysection, keyname):
-		utilities.LocalizeParams(self, keysection, '--', ProgramName='', Blink=0)
-		ManualKeyDesc.__init__(self, screen, keysection, keyname)
 		debugPrint('Screen', "             New RunProgram Key ", keyname)
+		utilities.LocalizeParams(self, keysection, '--', ProgramName='')
+		ManualKeyDesc.__init__(self, screen, keysection, keyname)
+
 		self.State = False
 		try:
 			self.ISYObj = config.ISY.ProgramsByName[self.ProgramName]
@@ -166,18 +167,15 @@ class RunProgram(ManualKeyDesc):
 			self.VerifyScreen.Invoke()
 		else:
 			self.ISYObj.runThen()
-			if self.Blink != 0:
-				E = eventlist.ProcEventItem(id(self.Screen), 'keyblink', functools.partial(self.BlinkKey, self.Blink))
-				# todo why dynamic, should move to a feedback call of some sort
-				config.DS.Tasks.AddTask(E, .5)
-
+			self.BlinkKey(self.Blink)
 
 class OnOffKey(ManualKeyDesc):
 	def __init__(self, screen, keysection, keyname, keytype):
 		debugPrint('Screen', "             New ", keytype, " Key Desc ", keyname)
 		utilities.LocalizeParams(self, keysection, '--', SceneProxy='', NodeName='')
-		self.MonitorObj = None  # ISY Object monitored to reflect state in the key (generally a device within a Scene)
 		ManualKeyDesc.__init__(self, screen, keysection, keyname)
+
+		self.MonitorObj = None  # ISY Object monitored to reflect state in the key (generally a device within a Scene)
 		if keyname == '*Action*': keyname = self.NodeName  # special case for alert screen action keys that always have same name
 		if keyname in config.ISY.ScenesByName:
 			self.ISYObj = config.ISY.ScenesByName[keyname]
@@ -213,10 +211,19 @@ class OnOffKey(ManualKeyDesc):
 			debugPrint('Screen', "Screen", keyname, "unbound")
 			config.Logs.Log('Key Binding missing: ' + self.name, severity=ConsoleWarning)
 
+		if self.Verify:
+			self.VerifyScreen = supportscreens.VerifyScreen(self, self.GoMsg, self.NoGoMsg, self.VerifyPressAndReturn,
+															screen, self.KeyColorOff, self.KeyCharColorOff,
+															screen.BackgroundColor, self.KeyOffOutlineColor,
+															screen.CharColor, self.State)
+
 		if keytype == 'ONOFF':
-			self.Proc = self.OnOff
+			self.KeyAction = 'OnOff'
+		elif keytype == 'ON':
+			self.KeyAction = 'On'
 		else:
-			self.Proc = self.OnKey
+			self.KeyAction = 'Off'
+		self.Proc = self.OnOffKeyPressed
 
 		utilities.register_example("OnOffKey", self)
 
@@ -230,19 +237,41 @@ class OnOffKey(ManualKeyDesc):
 		self.State = not (state == 0)  # K is off (false) only if state is 0
 		super(OnOffKey, self).InitDisplay()
 
-	def OnOff(self, presstype):
-		self.State = not self.State
-		if self.ISYObj is not None:
-			self.ISYObj.SendCommand(self.State, presstype)
+	def OnOffKeyPressed(self, presstype):
+		self.lastpresstype = presstype
+		if self.Verify:
+			self.VerifyScreen.Invoke()
 		else:
-			config.Logs.Log("Screen: " + self.name + " press unbound key: " + self.name,
-							severity=ConsoleWarning)
-		self.PaintKey()  # todo Feedback
+			if self.KeyAction == "OnOff":
+				self.State = not self.State
+			elif self.KeyAction == "On":
+				self.State = True
+			elif self.KeyAction == "Off":
+				self.State = False
 
-	def OnKey(self, presstype):
-		self.State = True
-		if self.ISYObj is not None:
-			self.ISYObj.SendCommand(True, presstype)
+			if self.ISYObj is not None:
+				self.ISYObj.SendCommand(self.State, presstype)
+				self.BlinkKey(self.Blink)
+			else:
+				config.Logs.Log("Screen: " + self.name + " press unbound key: " + self.name,
+								severity=ConsoleWarning)
+				self.BlinkKey(20)
+
+	def VerifyPressAndReturn(self, go, presstype):
+		if go:
+			if self.KeyAction == "OnOff":
+				self.State = not self.State
+			elif self.KeyAction == "On":
+				self.State = True
+			elif self.KeyAction == "Off":
+				self.State = False
+			if self.ISYObj is not None:
+				self.ISYObj.SendCommand(self.State, self.lastpresstype)
+			else:
+				config.Logs.Log("Screen: " + self.name + " press unbound key: " + self.name,
+								severity=ConsoleWarning)
+
+			config.DS.SwitchScreen(self.Screen, 'Bright', config.DS.state, 'Verify Run ' + self.Screen.name)
+			self.BlinkKey(self.Blink)
 		else:
-			config.Logs.Log("Screen: " + self.name + " press unbound key: " + self.name, severity=ConsoleWarning)
-		self.PaintKey()  # todo Feedback
+			config.DS.SwitchScreen(self.Screen, 'Bright', config.DS.state, 'Verify Run ' + self.Screen.name)

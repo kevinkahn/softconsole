@@ -89,7 +89,7 @@ class ManualKeyDesc(TouchPoint):
 		TouchPoint.__init__(self, keyname, (0, 0), (0, 0))
 		utilities.LocalizeParams(self, keysection, '--', 'KeyColor', 'KeyOffOutlineColor', 'KeyOnOutlineColor',
 								 'KeyCharColorOn', 'KeyCharColorOff', 'KeyOutlineOffset', 'KeyColorOn', 'KeyColorOff',
-								 'KeyLabelOn', 'KeyLabelOff', FastPress=0, Verify=0, label=[keyname])
+								 'KeyLabelOn', 'KeyLabelOff', FastPress=0, Verify=0, Blink=0, label=[keyname])
 		if self.Verify:
 			utilities.LocalizeExtra(self, keysection, '-*', GoMsg=['Proceed'], NoGoMsg=['Cancel'])
 		self.Screen = screen
