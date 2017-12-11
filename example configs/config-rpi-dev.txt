@@ -25,13 +25,13 @@ SecondaryChain = Portland, Bathroom, BR, Thermostat - Main
 	Type = Periodic
 	Interval = 3 hours
 	Invoke = AutoVersion.CheckUpToDate
-	[[AltVarTest]]
-	Type = StateVarChange
-	Var = tEST
-	Test = NE
-	Value = 0
-	Delay = 5 seconds
-	Invoke = TestAlert
+#	[[AltVarTest]]
+#	Type = StateVarChange
+#	Var = tEST
+#	Test = NE
+#	Value = 0
+#	Delay = 5 seconds
+#	Invoke = TestAlert
 #	[[NodeTest]]
 #	Type = NodeChange
 #	Node = Office Ceiling
@@ -115,11 +115,10 @@ SecondaryChain = Portland, Bathroom, BR, Thermostat - Main
     type = Keypad
     label = Living, Room 1
     [[Office Ceiling]]
-    type = OFF
+    type = ONOFF
 	label = Office, Ceiling
 	Verify = 1
 	Blink = 5
-	FastPress = 1
 
     [[LR Dual Spots]]
         label = Dual, Spots

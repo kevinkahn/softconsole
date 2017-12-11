@@ -274,7 +274,7 @@ def DumpDocumentation():
 	docfile.write('Class/Attribute Structure:\n')
 	docfile.write('\n')
 	mdfile = open('docs/classstruct.md', 'w')
-	mdfile.write('# Class/Attribute Structure):\n')
+	mdfile.write('# Class/Attribute Structure:\n')
 	mdfile.write('\n')
 
 	varsinuse = {}

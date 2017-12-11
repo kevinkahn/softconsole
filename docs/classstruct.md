@@ -1,7 +1,7 @@
 # Class/Attribute Structure):
 
 
-#object: [ISY, OnOffItem, TouchPoint, ScreenDesc]
+#object: [ISY, TouchPoint, OnOffItem, ScreenDesc]
 The most base type
 
 ##ISY: []
@@ -12,6 +12,7 @@ The most base type
 	
 *  FoldersByAddr
 *  FoldersByName
+*  GetVarCode
 *  LinkChildrenParents
 *  LocalVars
 *  NodeRoot
@@ -31,6 +32,82 @@ The most base type
 *  varsLocalInv
 *  varsState
 *  varsStateInv
+
+##TouchPoint: [ManualKeyDesc]
+
+	Represents a touchable rectangle on the screen.
+	
+*  AddTitle
+*  BlinkKey
+*  ButtonFontSizes
+*  Center
+*  FindFontSize
+*  FinishKey
+*  PaintKey
+*  Proc
+*  Screen
+*  SetKeyImages
+*  Size
+*  docodeinit
+*  dosectioninit
+*  proc
+*  touched
+
+##ManualKeyDesc: [SetVarKey, RunProgram, SetVarValueKey, OnOffKey]
+
+	Defines a drawn touchable rectangle on the screen that represents a key (button).  May be called with one of 2
+	signatures.  It can be called manually by code to create a key by supplying all the attributes of the key in the
+	code explicitly.  It can also be called with a config objects section in which case it will build the key from the
+	combination of the defaults for the attributes and the explicit overides found in the config.txt file section
+	that is passed in.
+	
+*  ISYObj
+*  KeyCharColorOff
+*  KeyCharColorOn
+*  KeyColor
+*  KeyColorOff
+*  KeyColorOn
+*  KeyLabelOff
+*  KeyLabelOn
+*  KeyOffOutlineColor
+*  KeyOnOutlineColor
+*  KeyOutlineOffset
+*  State
+
+##SetVarKey: []
+
+***missing***
+
+*  Blink
+*  FastPress
+*  SetVar
+*  Value
+*  Var
+*  VarID
+*  VarType
+*  Verify
+
+##RunProgram: []
+
+***missing***
+
+
+##SetVarValueKey: []
+
+***missing***
+
+*  SetVarValue
+
+##OnOffKey: []
+
+***missing***
+
+*  KeyAction
+*  MonitorObj
+*  NodeName
+*  OnOffKeyPressed
+*  SceneProxy
+*  VerifyPressAndReturn
 
 ##OnOffItem: [TreeItem]
 
@@ -84,82 +161,6 @@ The most base type
 	Represents an ISY program and provides command support to issue run commands to it.
 	
 
-##TouchPoint: [ManualKeyDesc]
-
-	Represents a touchable rectangle on the screen.
-	
-*  AddTitle
-*  BlinkKey
-*  ButtonFontSizes
-*  Center
-*  FeedbackKey
-*  FindFontSize
-*  FinishKey
-*  PaintKey
-*  Proc
-*  Screen
-*  SetKeyImages
-*  Size
-*  docodeinit
-*  dosectioninit
-*  touched
-
-##ManualKeyDesc: [SetVarKey, SetVarValueKey, RunThenKey, OnOffKey]
-
-	Defines a drawn touchable rectangle on the screen that represents a key (button).  May be called with one of 2
-	signatures.  It can be called manually by code to create a key by supplying all the attributes of the key in the
-	code explicitly.  It can also be called with a config objects section in which case it will build the key from the
-	combination of the defaults for the attributes and the explicit overides found in the config.txt file section
-	that is passed in.
-	
-*  ISYObj
-*  KeyCharColorOff
-*  KeyCharColorOn
-*  KeyColor
-*  KeyColorOff
-*  KeyColorOn
-*  KeyLabelOff
-*  KeyLabelOn
-*  KeyOffOutlineColor
-*  KeyOnOutlineColor
-*  KeyOutlineOffset
-*  State
-
-##SetVarKey: []
-
-***missing***
-
-*  SetVar
-*  Value
-*  Var
-*  VarID
-*  VarType
-
-##SetVarValueKey: []
-
-***missing***
-
-*  SetVarValue
-
-##RunThenKey: []
-
-***missing***
-
-*  Blink
-*  FastPress
-*  KeyRunThenName
-*  OnBlinkRunThen
-
-##OnOffKey: []
-
-***missing***
-
-*  MonitorObj
-*  NodeName
-*  OnKey
-*  OnOff
-*  SceneProxy
-
 ##ScreenDesc: [HouseStatusScreenDesc, TimeTempScreenDesc, BaseKeyScreenDesc, WeatherScreenDesc, AlertsScreenDesc, ClockScreenDesc]
 
 	Basic information about a screen, subclassed by all other screens to handle this information
@@ -202,7 +203,7 @@ The most base type
 ***missing***
 
 
-##BaseKeyScreenDesc: [ThermostatScreenDesc, MaintScreenDesc, LogDisplayScreen, KeyScreenDesc]
+##BaseKeyScreenDesc: [ThermostatScreenDesc, MaintScreenDesc, VerifyScreen, LogDisplayScreen, KeyScreenDesc]
 
 ***missing***
 
@@ -233,6 +234,13 @@ The most base type
 
 ***missing***
 
+
+##VerifyScreen: []
+
+***missing***
+
+*  CallingScreen
+*  Invoke
 *  SubFontSize
 *  TitleFontSize
 

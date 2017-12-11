@@ -131,8 +131,13 @@ Module Parameters:
             PersistTO
     OnOffKey
         Local Parameters:
+            Blink                   :  int     
+            FastPress               :  int     
+            GoMsg                   :  list    
+            NoGoMsg                 :  list    
             NodeName                :  str     
             SceneProxy              :  str     
+            Verify                  :  int     
             label                   :  list    
         Overrideable Globals:
             KeyCharColorOff
@@ -145,11 +150,14 @@ Module Parameters:
             KeyOffOutlineColor
             KeyOnOutlineColor
             KeyOutlineOffset
-    RunThenKey
+    RunProgram
         Local Parameters:
             Blink                   :  int     
             FastPress               :  int     
-            KeyRunThenName          :  str     
+            GoMsg                   :  list    
+            NoGoMsg                 :  list    
+            ProgramName             :  str     
+            Verify                  :  int     
             label                   :  list    
         Overrideable Globals:
             KeyCharColorOff
@@ -164,9 +172,12 @@ Module Parameters:
             KeyOutlineOffset
     SetVarKey
         Local Parameters:
+            Blink                   :  int     
+            FastPress               :  int     
             Value                   :  int     
             Var                     :  str     
             VarType                 :  str     
+            Verify                  :  int     
             label                   :  list    
         Overrideable Globals:
             KeyCharColorOff
@@ -181,8 +192,11 @@ Module Parameters:
             KeyOutlineOffset
     SetVarValueKey
         Local Parameters:
+            Blink                   :  int     
+            FastPress               :  int     
             Var                     :  str     
             VarType                 :  str     
+            Verify                  :  int     
             label                   :  list    
         Overrideable Globals:
             KeyCharColorOff
@@ -235,6 +249,22 @@ Module Parameters:
             DimTO
             PersistTO
             WunderKey
+    VerifyScreen
+        Local Parameters:
+            SubFontSize             :  int     
+            TitleFontSize           :  int     
+            label                   :  list    
+        Overrideable Globals:
+            BackgroundColor
+            BrightLevel
+            CharColor
+            CmdCharCol
+            CmdKeyCol
+            DimLevel
+            DimTO
+            KeysPerColumn
+            KeysPerRow
+            PersistTO
     WeatherScreenDesc
         Local Parameters:
             label                   :  list    
