@@ -1,2 +1,1 @@
-Efficiency improvements for setting up screens
-Deleted EnterScreen method (not needed/used)
+

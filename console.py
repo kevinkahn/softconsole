@@ -281,11 +281,9 @@ if 'Alerts' in config.ParsedConfigFile:
 		alertspec.merge(tmp)
 	del config.ParsedConfigFile['Alerts']
 else:
+	alertspec = ConfigObj()
 	if tmp is not None:
-		alertspec = ConfigObj()
 		alertspec.merge(tmp)
-	else:
-		alertspec = None
 
 if 'Variables' in config.ParsedConfigFile:
 	i = 0
