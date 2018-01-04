@@ -28,7 +28,7 @@ class GetTempsToISY(object):
 			else:
 				exitutils.FatalError('Weather field error in SendTemps', restartopt='shut')
 
-			if not isinstance(weathval,int):
+			if not (isinstance(weathval,int) or isinstance(weathval,float)):
 				config.Logs.Log("No valid weather value to send (" + station +'):'+weathcode[0]+':'+weathcode[1]+ +str(weathval),severity=ConsoleWarning)
 				return
 			isyvar = config.ISY.GetVarCode(tuple(assigns[i + 1].split(':')))
