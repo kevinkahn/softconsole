@@ -115,6 +115,8 @@ class AlertsScreenDesc(screen.ScreenDesc):
 		self.Msg = True
 		if self.BlinkTime <> 0:
 			config.DS.Tasks.AddTask(self.BlinkEvent, self.BlinkTime)
+		else:
+			config.screen.blit(self.messageimage, self.upperleft)
 
 	def ExitScreen(self):
 		config.DS.Tasks.RemoveAllGrp(id(self))
