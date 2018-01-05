@@ -117,6 +117,7 @@ class AlertsScreenDesc(screen.ScreenDesc):
 			config.DS.Tasks.AddTask(self.BlinkEvent, self.BlinkTime)
 		else:
 			config.screen.blit(self.messageimage, self.upperleft)
+            pygame.display.update()
 
 	def ExitScreen(self):
 		config.DS.Tasks.RemoveAllGrp(id(self))
