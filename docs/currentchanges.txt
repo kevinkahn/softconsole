@@ -1,1 +1,7 @@
+Generic touchscreen (7 in)
+wss
 
+
+
+fix calibrations
+try generic small screen - SDL

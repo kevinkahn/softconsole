@@ -177,7 +177,13 @@ class ISYEventMonitor:
 
 		# websocket.enableTrace(True)
 		websocket.setdefaulttimeout(240)
-		ws = websocket.WebSocketApp('ws://' + config.ISYaddr + '/rest/subscribe', on_message=on_message,
+		if config.ISYaddr.startswith('http://'):
+			wsurl = 'ws://' + config.ISYaddr[7:] + '/rest/subscribe'
+		elif config.ISYaddr.startswith('https://'):
+			wsurl = 'wss://' + config.ISYaddr[8:] + '/rest/subscribe'
+		else:
+			wsurl = 'ws://' + config.ISYaddr + '/rest/subscribe'
+		ws = websocket.WebSocketApp(wsurl, on_message=on_message,
 									on_error=on_error,
 									on_close=on_close, on_open=on_open,
 									subprotocols=['ISYSUB'], header={'Authorization': 'Basic ' + self.a})

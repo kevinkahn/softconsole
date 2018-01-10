@@ -5,7 +5,9 @@ while not ans in ('y', 'Y', 'n', 'N'):
 if ans in ('y', 'Y'):
 	go = ""
 	while not go in ('y', 'Y'):
-		ISYIP = raw_input("ISY IP address: ")
+		ISYIP = raw_input("full URL to access ISY: ")
+		if ISYIP.endswith('/'):
+			ISYIP = ISYIP[0:-1]
 		ISYUSER = raw_input("ISY user name: ")
 		ISYPWD = raw_input("ISY password: ")
 		exswitch = raw_input("Example switch to use (ISY name): ")

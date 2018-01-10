@@ -254,7 +254,10 @@ utilities.LogParams()
 """
 Set up for ISY access
 """
-config.ISYprefix = 'http://' + config.ISYaddr + '/rest/'
+if config.ISYaddr.startswith( 'http' ) :
+  config.ISYprefix = config.ISYaddr + '/rest/'
+else:
+  config.ISYprefix = 'http://' + config.ISYaddr + '/rest/'
 config.ISYrequestsession = requests.session()
 config.ISYrequestsession.auth = (config.ISYuser, config.ISYpassword)
 

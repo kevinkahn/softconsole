@@ -18,7 +18,10 @@ def try_ISY_comm(urlcmd):
 	for i in range(15):
 		try:
 			try:
-				t = 'http://' + config.ISYaddr + urlcmd
+				if config.ISYaddr.startswith( 'http' ):
+					t = config.ISYaddr + urlcmd
+				else:
+					t = 'http://' + config.ISYaddr + urlcmd
 				debug.debugPrint('ISY', '*' + t + '*')
 				r = config.ISYrequestsession.get(t, verify=False, timeout=5)
 			except requests.exceptions.ConnectTimeout:
