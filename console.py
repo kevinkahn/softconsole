@@ -239,7 +239,7 @@ config.Logs.Log("Main config file: ", config.configfile,
 				time.strftime(' %c', time.localtime(config.configfilelist[config.configfile])))
 config.Logs.Log("Including config files:")
 for p, f in zip(pfiles, cfiles):
-	config.Logs.Log("  ", p, time.strftime(' %c', time.localtime(config.starttime - config.configfilelist[f])))
+	config.Logs.Log("  ", p, time.strftime(' %c', time.localtime(config.configfilelist[f])))
 for flg, fval in debug.Flags.iteritems():
 	if fval:
 		config.Logs.Log('Debug flag ', flg, '=', fval, severity=logsupport.ConsoleWarning)

@@ -41,7 +41,7 @@ def initOS(screentype):
 		GoDim = GoDimPWM
 		GoBright = GoDimPWM
 
-
+	GoBright(100)
 
 def GoDimPWM(level):
 	wiringpi.pwmWrite(18, (level*1024)/100)
