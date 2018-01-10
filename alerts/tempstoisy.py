@@ -3,6 +3,7 @@ import config
 import exitutils
 from logsupport import ConsoleError, ConsoleInfo, ConsoleWarning
 import isy
+import exceptions
 
 
 class GetTempsToISY(object):
@@ -21,12 +22,16 @@ class GetTempsToISY(object):
 		assigns = alert.param[1].split(' ')
 		for i in range(0, len(assigns), 2):
 			weathcode = (assigns[i].split(':'))
-			if weathcode[0] == 'C':
-				weathval = WI.ConditionVals[weathcode[1]]
-			elif weathcode[0] == 'F':
-				weathval = WI.ForecastVals[0][weathcode[1]]
-			else:
-				exitutils.FatalError('Weather field error in SendTemps', restartopt='shut')
+			try:
+				if weathcode[0] == 'C':
+					weathval = WI.ConditionVals[weathcode[1]]
+				elif weathcode[0] == 'F':
+					weathval = WI.ForecastVals[0][weathcode[1]]
+				else:
+					exitutils.FatalError('Weather field error in SendTemps', restartopt='shut')
+			except exceptions.KeyError:
+				config.Logs.Log("Weather field no in WU report: "+str(weathcode),severity=ConsoleWarning)
+				return
 
 			if not (isinstance(weathval,int) or isinstance(weathval,float)):
 				config.Logs.Log("No valid weather value to send (" + station +'):'+weathcode[0]+':'+weathcode[1]+ +str(weathval),severity=ConsoleWarning)

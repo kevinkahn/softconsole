@@ -119,8 +119,13 @@ def InitializeEnvironment():
 		raise Alarm
 
 	# end hack
+	try:
+		with open(config.homedir + "/.Screentype") as f:
+			config.screentype = f.readline().rstrip('\n')
+	except:
+		config.screentype = "*Unknown*"
 
-	hw.initOS()
+	hw.initOS(config.screentype)
 	pygame.display.init()
 	config.hostname = socket.gethostname()
 	config.starttime = time.time()
@@ -129,11 +134,24 @@ def InitializeEnvironment():
 
 	config.personalsystem = os.path.isfile(config.homedir + "/homesystem")
 
-	try:
-		with open(config.homedir + "/.Screentype") as f:
-			config.screentype = f.readline().rstrip('\n')
-	except:
-		config.screentype = "*Unknown*"
+
+
+	if config.screentype == 'pi7':
+		from ft5406 import Touchscreen, TS_PRESS, TS_RELEASE
+		ts = Touchscreen()
+		def touchhandler(event,touch):
+			if event == TS_PRESS:
+				e = pygame.event.Event(pygame.MOUSEBUTTONDOWN, {'pos': (touch.x, touch.y)})
+				pygame.fastevent.post(e)
+			elif event == TS_RELEASE:
+				e = pygame.event.Event(pygame.MOUSEBUTTONUP, {'pos': (touch.x, touch.y)})
+				pygame.fastevent.post(e)
+
+		for touch in ts.touches:
+			touch.on_press = touchhandler
+			touch.on_release = touchhandler
+
+		ts.run()
 
 	if config.screenwidth > config.screenheight:
 		config.portrait = False

@@ -3,7 +3,6 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/softconsole.iml" filepath="$PROJECT_DIR$/.idea/softconsole.iml" />
-      <module fileurl="file://$PROJECT_DIR$/../watchdoghandler/.idea/watchdoghandler.iml" filepath="$PROJECT_DIR$/../watchdoghandler/.idea/watchdoghandler.iml" />
     </modules>
   </component>
 </project>

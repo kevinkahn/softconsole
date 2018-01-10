@@ -150,6 +150,7 @@ LogBanner "This is the system setup script"
 LogBanner "Connect WiFI if needed"
 read -p "Press Enter to continue"
 wget https://raw.githubusercontent.com/kevinkahn/softconsole/master/docs/installconsole.sh
+wget https://raw.githubusercontent.com/kevinkahn/softconsole/master/docs/installconsoleSDL.sh
 wget https://raw.githubusercontent.com/kevinkahn/softconsole/master/getsetupinfo.py
 chmod +x installconsole.sh
 
@@ -166,7 +167,7 @@ Get_yn VNCstdPort "Install VNC/ssh on standard port (Y/N)?"
 Get_yn Personal "Is this the developer personal system (Y/N) (bit risky to say Y if it not)?"
 Get_yn AutoConsole "Autostart console (Y/N)?"
 
-Screens="28r 28c 35r wave35 custom"
+Screens="28r 28c 35r wave35 custom pi7"
 ScreenType="--"
 
 until [ $ScreenType != "--" ]
@@ -338,6 +339,11 @@ case $ScreenType in
     ;;
   custom)
     LogBanner "No Screen Configured - do it manually for custom screen before reboot"
+    ;;
+  pi7)
+    LogBanner "7 Inch Pi Screen"
+    echo "lcd_rotate=2" >> /boot/config.txt
+    cp installconsoleSDL.sh installconsole.sh
     ;;
   wave35)
     LogBanner "Install Waveshare screen"

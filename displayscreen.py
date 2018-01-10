@@ -192,7 +192,7 @@ class DisplayScreen(object):
 					continue  # wakeup touches are otherwise ignored
 
 				# Screen was not Dim so the touch was meaningful
-				pos = (pygame.mouse.get_pos()[0], pygame.mouse.get_pos()[1])
+				pos = event.pos
 				tapcount = 1
 				pygame.time.delay(config.MultiTapTime)
 				while True:
