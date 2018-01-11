@@ -2,6 +2,6 @@ Generic touchscreen (7 in)
 wss
 
 
-
+ip addr in rc.local
 fix calibrations
 try generic small screen - SDL

@@ -1,3 +1,6 @@
+# adapted from pimoroni evdev support for the 7 inch capacitive screen
+# added support for the resistive 3.5 and maybe others that doesn't depend upon SDL 1.2
+
 import glob
 import io
 import os
@@ -21,6 +24,8 @@ EV_ABS = 3
 ABS_X = 0
 ABS_Y = 1
 
+EV_KEY = 1
+BTN_TOUCH = 330
 ABS_MT_SLOT = 0x2f  # 47 MT slot being modified
 ABS_MT_POSITION_X = 0x35  # 53 Center X of multi touch position
 ABS_MT_POSITION_Y = 0x36  # 54 Center Y of multi touch position
@@ -115,10 +120,12 @@ class Touches(list):
 
 class Touchscreen(object):
 	TOUCHSCREEN_EVDEV_NAME = 'FT5406 memory based driver'
+	TOUCHSCREEN_RESISTIVE = 'stmpe-ts'
 	EVENT_FORMAT = str('llHHi')
 	EVENT_SIZE = struct.calcsize(EVENT_FORMAT)
 
 	def __init__(self):
+		self.a = None
 		self._running = False
 		self._thread = None
 		self._f_poll = select.poll()
@@ -128,6 +135,7 @@ class Touchscreen(object):
 		self.touches = Touches([Touch(x, 0, 0) for x in range(10)])
 		self._event_queue = Queue.Queue()
 		self._touch_slot = 0
+
 
 	def _run(self):
 		self._running = True
@@ -188,12 +196,28 @@ class Touchscreen(object):
 
 		while not self._event_queue.empty():
 			event = self._event_queue.get()
+			print(event) #todo delete
 			self._event_queue.task_done()
 
 			if event.type == EV_SYN:  # Sync
 				for touch in self.touches:
 					touch.handle_events()
 				return self.touches
+
+			if event.type == EV_KEY:
+				if event.code == BTN_TOUCH:
+					self._touch_slot = 0
+					# self._current_touch.id = 1
+					if a is None:
+						self._current_touch.x = self.position.x
+						self._current_touch.y = self.position.y
+					else:
+						self._current_touch.x = (a[2] + a[0] * self.position.x + a[1] * self.position.y) / a[6]
+						self._current_touch.y = (a[5] + a[3] * self.position.x + a[4] * self.position.y) / a[6]
+					if event.value == 1:
+						self._current_touch.events.append(TS_PRESS)
+					else:
+						self._current_touch.events.append(TS_RELEASE)
 
 			if event.type == EV_ABS:  # Absolute cursor position
 				if event.code == ABS_MT_SLOT:
@@ -217,10 +241,17 @@ class Touchscreen(object):
 		return []
 
 	def _touch_device(self):
+		#return '/dev/input/touchscreen'
 		for evdev in glob.glob("/sys/class/input/event*"):
 			try:
 				with io.open(os.path.join(evdev, 'device', 'name'), 'r') as f:
-					if f.read().strip() == self.TOUCHSCREEN_EVDEV_NAME:
+					dev = f.read().strip()
+					if dev == self.TOUCHSCREEN_EVDEV_NAME:
+						return os.path.join('/dev', 'input', os.path.basename(evdev))
+					elif dev == self.TOUCHSCREEN_RESISTIVE:
+						with open('/etc/pointercal','r') as pc:
+							self.a = list(int(x) for x in next(pc).split())
+						# set to do corrections? TODO read pointercal and set a flag to correct
 						return os.path.join('/dev', 'input', os.path.basename(evdev))
 			except IOError as e:
 				if e.errno != errno.ENOENT:
@@ -236,15 +267,22 @@ if __name__ == "__main__":
 
 	pygame.init()
 	pygame.fastevent.init()
+	a = [5724, -6, -1330074, 26, 8427, -1034528, 65536]
+	b = [34, 952, 38, 943]
 
 	ts = Touchscreen()
 
 
 	def handle_event(event, touch):
+		#xx = (a[2] + a[0] * touch.x + a[1] * touch.y) / a[6]
+		#yy = (a[5] + a[3] * touch.x + a[4] * touch.y) / a[6]
+		#Xx = (touch.x - b[0]) * 320 / (b[1] - b[0])
+		#Xy = (touch.y - b[2]) * 480 / (b[3] - b[2])
 		print(["Release", "Press", "Move"][event],
 		      touch.slot,
 		      touch.x,
 		      touch.y)
+		return
 		if event == 1:
 			e = pygame.event.Event(pygame.MOUSEBUTTONDOWN, {'pos': (touch.x, touch.y)})
 			pygame.fastevent.post(e)
@@ -259,10 +297,6 @@ if __name__ == "__main__":
 		touch.on_move = handle_event
 
 	ts.run()
-
-	while True:
-		event = pygame.fastevent.wait()
-		print(event, event.pos)
 
 	try:
 		signal.pause()

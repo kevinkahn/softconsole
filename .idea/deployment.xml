@@ -9,6 +9,13 @@
           </mappings>
         </serverdata>
       </paths>
+      <paths name="DevRaw">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/consolerem" local="$PROJECT_DIR$" web="/" />
+          </mappings>
+        </serverdata>
+      </paths>
       <paths name="Development">
         <serverdata>
           <mappings>
