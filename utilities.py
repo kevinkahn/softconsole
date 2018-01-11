@@ -134,17 +134,19 @@ def InitializeEnvironment():
 
 	config.personalsystem = os.path.isfile(config.homedir + "/homesystem")
 
+	# read pointercal into list a
+	a=[]
 
-
-	if config.screentype == 'pi7':
-		from ft5406 import Touchscreen, TS_PRESS, TS_RELEASE
+	if config.screentype in ('pi7','35r'):
+		from newtouch import Touchscreen, TS_PRESS, TS_RELEASE
 		ts = Touchscreen()
 		def touchhandler(event,touch):
+			p = (touch.x,touch.y)
 			if event == TS_PRESS:
-				e = pygame.event.Event(pygame.MOUSEBUTTONDOWN, {'pos': (touch.x, touch.y)})
+				e = pygame.event.Event(pygame.MOUSEBUTTONDOWN, {'pos': p})
 				pygame.fastevent.post(e)
 			elif event == TS_RELEASE:
-				e = pygame.event.Event(pygame.MOUSEBUTTONUP, {'pos': (touch.x, touch.y)})
+				e = pygame.event.Event(pygame.MOUSEBUTTONUP, {'pos': p})
 				pygame.fastevent.post(e)
 
 		for touch in ts.touches:
