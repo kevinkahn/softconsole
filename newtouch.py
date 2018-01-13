@@ -12,6 +12,7 @@ import time
 import select
 import Queue
 import pygame
+from debug import debugPrint
 
 TOUCH_X = 0
 TOUCH_Y = 1
@@ -125,6 +126,7 @@ class Touchscreen(object):
 	EVENT_SIZE = struct.calcsize(EVENT_FORMAT)
 
 	def __init__(self):
+		self._use_multitouch = True
 		self.a = None
 		self._running = False
 		self._thread = None
@@ -196,7 +198,7 @@ class Touchscreen(object):
 
 		while not self._event_queue.empty():
 			event = self._event_queue.get()
-			print(event) #todo delete
+			debugPrint('Screen','Touch: '+str(event))#todo delete
 			self._event_queue.task_done()
 
 			if event.type == EV_SYN:  # Sync
@@ -204,11 +206,11 @@ class Touchscreen(object):
 					touch.handle_events()
 				return self.touches
 
-			if event.type == EV_KEY:
+			if event.type == EV_KEY and not self._use_multitouch:
 				if event.code == BTN_TOUCH:
 					self._touch_slot = 0
 					# self._current_touch.id = 1
-					if a is None:
+					if self.a is None:
 						self._current_touch.x = self.position.x
 						self._current_touch.y = self.position.y
 					else:
@@ -249,6 +251,7 @@ class Touchscreen(object):
 					if dev == self.TOUCHSCREEN_EVDEV_NAME:
 						return os.path.join('/dev', 'input', os.path.basename(evdev))
 					elif dev == self.TOUCHSCREEN_RESISTIVE:
+						self._use_multitouch = False
 						with open('/etc/pointercal','r') as pc:
 							self.a = list(int(x) for x in next(pc).split())
 						# set to do corrections? TODO read pointercal and set a flag to correct

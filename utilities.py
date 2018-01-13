@@ -19,6 +19,7 @@ globdoc = {}
 moddoc = {}
 paramlog = []
 exemplarobjs = collections.OrderedDict()
+from debug import debugPrint
 
 
 def wc(clr):
@@ -144,9 +145,11 @@ def InitializeEnvironment():
 			p = (touch.x,touch.y)
 			if event == TS_PRESS:
 				e = pygame.event.Event(pygame.MOUSEBUTTONDOWN, {'pos': p})
+				debugPrint('Screen','Press: '+str(p))
 				pygame.fastevent.post(e)
 			elif event == TS_RELEASE:
 				e = pygame.event.Event(pygame.MOUSEBUTTONUP, {'pos': p})
+				debugPrint('Screen', 'Release: ' + str(p))
 				pygame.fastevent.post(e)
 
 		for touch in ts.touches:
@@ -235,7 +238,7 @@ def LocalizeParams(inst, configsection, indent, *args, **kwargs):
 			moddoc[inst.__class__.__name__]['ovrd'].add(lcllist[-1])
 		else:
 			config.Logs.Log("Obj " + inst.__class__.__name__ + ' attempted import of non-existent global ' + nametoadd,
-			                severity=ConsoleError)
+							severity=ConsoleError)
 
 	for i in range(len(lcllist)):
 		val = type(lclval[i])(configsection.get(lcllist[i], lclval[i]))
