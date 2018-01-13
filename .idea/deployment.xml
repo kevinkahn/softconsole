@@ -2,21 +2,14 @@
 <project version="4">
   <component name="PublishConfigData" autoUpload="Always" serverName="Dev7" promptOnLocalOverwrite="false" exclude=".svn;.cvs;.idea;.DS_Store;.git;.hg;*.pyc" autoUploadExternalChanges="true">
     <serverData>
+      <paths name="Dev">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/consolerem" local="$PROJECT_DIR$" web="/" />
+          </mappings>
+        </serverdata>
+      </paths>
       <paths name="Dev7">
-        <serverdata>
-          <mappings>
-            <mapping deploy="/consolerem" local="$PROJECT_DIR$" web="/" />
-          </mappings>
-        </serverdata>
-      </paths>
-      <paths name="DevRaw">
-        <serverdata>
-          <mappings>
-            <mapping deploy="/consolerem" local="$PROJECT_DIR$" web="/" />
-          </mappings>
-        </serverdata>
-      </paths>
-      <paths name="Development">
         <serverdata>
           <mappings>
             <mapping deploy="/consolerem" local="$PROJECT_DIR$" web="/" />
