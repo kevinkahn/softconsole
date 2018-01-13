@@ -56,6 +56,7 @@ class SetVarValueKey(ManualKeyDesc):
 	def __init__(self, screen, keysection, keyname):
 		debugPrint('Screen', "             New SetVarValue Key Desc ", keyname)
 		self.Value = None
+		self.VarID = (0,0)
 		ManualKeyDesc.__init__(self, screen, keysection, keyname)
 		utilities.LocalizeParams(self, keysection, '--', VarType='undef', Var='')
 
@@ -229,11 +230,12 @@ class OnOffKey(ManualKeyDesc):
 
 	def FinishKey(self, center, size, firstfont=0, shrink=True):
 		super(OnOffKey, self).FinishKey(center, size, firstfont, shrink)
-		self.Screen.NodeList[self.MonitorObj.address] = self  # register for events for this key
+		if self.MonitorObj != None:
+			self.Screen.NodeList[self.MonitorObj.address] = self  # register for events for this key
 
 	def InitDisplay(self):
 		debugPrint("Screen", "OnOffKey Key.InitDisplay ", self.Screen.name, self.name)
-		state = isy.get_real_time_node_status(self.MonitorObj.address)
+		state = isy.get_real_time_obj_status(self.MonitorObj)
 		self.State = not (state == 0)  # K is off (false) only if state is 0
 		super(OnOffKey, self).InitDisplay()
 

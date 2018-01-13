@@ -250,43 +250,51 @@ config.DS = displayscreen.DisplayScreen()  # create the actual device screen and
 
 utilities.LogParams()
 
+import alerttasks
 
 """
 Set up for ISY access
 """
-if config.ISYaddr.startswith( 'http' ) :
-  config.ISYprefix = config.ISYaddr + '/rest/'
+if config.ISYaddr != '':
+	if config.ISYaddr.startswith( 'http' ) :
+	  config.ISYprefix = config.ISYaddr + '/rest/'
+	else:
+	  config.ISYprefix = 'http://' + config.ISYaddr + '/rest/'
+	config.ISYrequestsession = requests.session()
+	config.ISYrequestsession.auth = (config.ISYuser, config.ISYpassword)
+
+	config.ISY = isy.ISY(config.ISYrequestsession)
+	config.Logs.Log("Enumerated ISY Structure")
+	# todo seems odd that the following code is here and has to be skipped for null ISY case - should be in the ISY definition
+	cmdvar = 'Command.' + config.hostname.replace('-', '.')
+	if cmdvar in config.ISY.varsInt:
+		alertspeclist = ConfigObj()
+		alertspeclist['RemoteCommands2'] = {
+			'Type': 'IntVarChange', 'Var': cmdvar, 'Test': 'NE', 'Value': '0',
+			'Invoke': 'NetCmd.Command'}
+	else:
+		alertspeclist = None
 else:
-  config.ISYprefix = 'http://' + config.ISYaddr + '/rest/'
-config.ISYrequestsession = requests.session()
-config.ISYrequestsession.auth = (config.ISYuser, config.ISYpassword)
+	config.ISY = isy.ISY(None)
+	alertspeclist = None # todo see comment above
+	config.Logs.Log("No ISY Specified", severity=ConsoleWarning)
 
-config.ISY = isy.ISY(config.ISYrequestsession)
-config.Logs.Log("Enumerated ISY Structure")
-
+"""
+Set up alerts
+"""
+if 'Alerts' in config.ParsedConfigFile:
+	alertspec = config.ParsedConfigFile['Alerts']
+	if alertspeclist is not None:
+		alertspec.merge(alertspeclist)
+	del config.ParsedConfigFile['Alerts']
+else:
+	alertspec = ConfigObj()
+	if alertspeclist is not None:
+		alertspec.merge(alertspeclist)
 
 """
 Build the ISY object structure and connect the configured screens to it
 """
-import alerttasks
-
-cmdvar = 'Command.' + config.hostname.replace('-', '.')
-if cmdvar in config.ISY.varsInt:
-	tmp = ConfigObj()
-	tmp['RemoteCommands2'] = {'Type': 'IntVarChange', 'Var': cmdvar, 'Test': 'NE', 'Value': '0',
-							  'Invoke': 'NetCmd.Command'}
-else:
-	tmp = None
-
-if 'Alerts' in config.ParsedConfigFile:
-	alertspec = config.ParsedConfigFile['Alerts']
-	if tmp is not None:
-		alertspec.merge(tmp)
-	del config.ParsedConfigFile['Alerts']
-else:
-	alertspec = ConfigObj()
-	if tmp is not None:
-		alertspec.merge(tmp)
 
 if 'Variables' in config.ParsedConfigFile:
 	i = 0

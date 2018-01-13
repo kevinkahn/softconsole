@@ -151,11 +151,19 @@ def ParseAlertParams(nm, spec):
 		return None
 	# todo parse times
 	elif triggertype == 'NodeChange':  # needs node, test, status, delay
+		"""
 		n = spec.get('Node', None)
 		if n is not None:
 			Node = config.ISY.NodesByName[n].address
 		else:
 			Node = ''
+		"""
+		n = spec.get('Node', None)
+		try:
+			Node = config.ISY.NodesByName[n].address
+		except:
+			Node = ''
+			config.Logs.Log("Bad Node Spec on NodeChange alert in " + nm, severity=ConsoleWarning)
 		test = getvalid(spec, 'Test', Tests)
 		value = spec.get('Value', None)
 		delay = utilities.get_timedelta(spec.get('Delay', None))

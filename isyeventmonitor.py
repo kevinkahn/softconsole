@@ -176,17 +176,20 @@ class ISYEventMonitor:
 				config.Logs.Log("Strange item in event stream: " + str(m), severity=ConsoleWarning)
 
 		# websocket.enableTrace(True)
-		websocket.setdefaulttimeout(240)
-		if config.ISYaddr.startswith('http://'):
-			wsurl = 'ws://' + config.ISYaddr[7:] + '/rest/subscribe'
-		elif config.ISYaddr.startswith('https://'):
-			wsurl = 'wss://' + config.ISYaddr[8:] + '/rest/subscribe'
+		if config.ISYaddr != '':
+			websocket.setdefaulttimeout(240)
+			if config.ISYaddr.startswith('http://'):
+				wsurl = 'ws://' + config.ISYaddr[7:] + '/rest/subscribe'
+			elif config.ISYaddr.startswith('https://'):
+				wsurl = 'wss://' + config.ISYaddr[8:] + '/rest/subscribe'
+			else:
+				wsurl = 'ws://' + config.ISYaddr + '/rest/subscribe'
+			ws = websocket.WebSocketApp(wsurl, on_message=on_message,
+										on_error=on_error,
+										on_close=on_close, on_open=on_open,
+										subprotocols=['ISYSUB'], header={'Authorization': 'Basic ' + self.a})
+			config.lastheartbeat = time.time()
+			ws.run_forever()
+			config.Logs.Log("QH Thread " + str(self.num) + " exiting", severity=ConsoleError)
 		else:
-			wsurl = 'ws://' + config.ISYaddr + '/rest/subscribe'
-		ws = websocket.WebSocketApp(wsurl, on_message=on_message,
-									on_error=on_error,
-									on_close=on_close, on_open=on_open,
-									subprotocols=['ISYSUB'], header={'Authorization': 'Basic ' + self.a})
-		config.lastheartbeat = time.time()
-		ws.run_forever()
-		config.Logs.Log("QH Thread " + str(self.num) + " exiting", severity=ConsoleError)
+			config.Logs.Log("No ISY to talk to",severity=ConsoleWarning)

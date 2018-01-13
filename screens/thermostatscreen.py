@@ -73,7 +73,8 @@ class ThermostatScreenDesc(screen.BaseKeyScreenDesc):
 												   proc=functools.partial(self.BumpMode, 'CLIFS', (7, 8)))
 
 		self.ModesPos = self.ModeButPos + bsize[1]/2 + scaleH(5)
-		self.NodeList[self.ISYObj.address] = self.Keys['Mode']  # placeholder for thermostat node
+		if self.ISYObj != None:
+			self.NodeList[self.ISYObj.address] = self.Keys['Mode']  # placeholder for thermostat node
 		utilities.register_example("ThermostatScreenDesc", self)
 
 	def BumpTemp(self, setpoint, degrees, presstype):

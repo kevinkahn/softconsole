@@ -140,7 +140,7 @@ class DisplayScreen(object):
 			elif a.type == 'Init':
 				a.Invoke()
 
-		while config.digestinginit:
+		while config.digestinginit and config.ISYaddr != '':
 			config.Logs.Log("Waiting initial status dump")
 			time.sleep(.2)
 		with open(config.homedir + "/.ConsoleStart", "a") as f:
@@ -152,11 +152,11 @@ class DisplayScreen(object):
 
 			os.utime(config.homedir + "/.ConsoleStart", None)
 
-			if not config.QH.is_alive():
+			if not config.QH.is_alive() and config.ISYaddr != '':
 				config.Logs.Log('Queue handler died', severity=ConsoleError)
 				isyeventmonitor.CreateWSThread()
 
-			if time.time() - config.lastheartbeat > 240:  # twice heartbeat interval
+			if time.time() - config.lastheartbeat > 240 and config.ISYaddr != '':  # twice heartbeat interval
 				config.Logs.Log('Lost ISY heartbeat', severity=ConsoleError, tb=False)
 				isyeventmonitor.CreateWSThread()
 
