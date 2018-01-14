@@ -28,6 +28,18 @@ def initOS(screentype):
 		os.environ['SDL_MOUSEDEV'] = ''
 		os.environ['SDL_MOUSEDRV'] = ''
 		os.environ['SDL_VIDEODRIVER'] = 'fbcon'
+		try:
+			# if this system has the newer screen control then turn off the SMTPE control so PWM works
+			with open('/sys/class/backlight/soc:backlight/brightness', 'w') as f:
+				f.write('0')
+		except:
+			pass
+
+		wiringpi.wiringPiSetupGpio()
+		wiringpi.pinMode(18, 2)
+		wiringpi.pwmSetMode(wiringpi.PWM_MODE_MS)  # default balanced mode makes screen dark at about 853/1024
+		wiringpi.pwmWrite(18, 1024)
+		GoDim = GoDimPWM
 	else:
 		os.environ['SDL_FBDEV'] = '/dev/fb1'
 		os.environ['SDL_MOUSEDEV'] = '/dev/input/touchscreen'
