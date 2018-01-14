@@ -22,6 +22,12 @@ def initOS(screentype):
 		os.environ['SDL_VIDEODRIVER'] = 'fbcon'
 		GoDim = GoDimPi7
 		GoBright = GoDimPi7
+	elif screentype == '35r':
+		os.environ['SDL_FBDEV'] = '/dev/fb1'
+		os.environ['SDL_NOMOUSE'] = '1'
+		os.environ['SDL_MOUSEDEV'] = ''
+		os.environ['SDL_MOUSEDRV'] = ''
+		os.environ['SDL_VIDEODRIVER'] = 'fbcon'
 	else:
 		os.environ['SDL_FBDEV'] = '/dev/fb1'
 		os.environ['SDL_MOUSEDEV'] = '/dev/input/touchscreen'
