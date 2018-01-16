@@ -22,7 +22,7 @@ def initOS(screentype):
 		os.environ['SDL_VIDEODRIVER'] = 'fbcon'
 		GoDim = GoDimPi7
 		GoBright = GoDimPi7
-	elif screentype == '35r':
+	elif screentype in ('35r','28c','28r'):
 		os.environ['SDL_FBDEV'] = '/dev/fb1'
 		os.environ['SDL_NOMOUSE'] = '1'
 		os.environ['SDL_MOUSEDEV'] = ''
@@ -40,7 +40,8 @@ def initOS(screentype):
 		wiringpi.pwmSetMode(wiringpi.PWM_MODE_MS)  # default balanced mode makes screen dark at about 853/1024
 		wiringpi.pwmWrite(18, 1024)
 		GoDim = GoDimPWM
-	else:
+		GoBright = GoDimPWM
+	else: # todo delete if 28r works and waveshare works
 		os.environ['SDL_FBDEV'] = '/dev/fb1'
 		os.environ['SDL_MOUSEDEV'] = '/dev/input/touchscreen'
 		os.environ['SDL_MOUSEDRV'] = 'TSLIB'

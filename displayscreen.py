@@ -178,6 +178,7 @@ class DisplayScreen(object):
 				event = pygame.fastevent.wait()  # wait for the next event: touches, timeouts, ISY changes on note
 
 			if event.type == pygame.MOUSEBUTTONDOWN:
+				debugPrint('Touch','MouseDown'+str(event.pos))
 				# screen touch events; this includes touches to non-sensitive area of screen
 				self.SetActivityTimer(self.AS.DimTO,
 									  'Screen touch')  # refresh non-dimming in all cases including non=sensitive areas
@@ -198,6 +199,7 @@ class DisplayScreen(object):
 				while True:
 					eventx = pygame.fastevent.poll()
 					if eventx.type == pygame.MOUSEBUTTONDOWN:
+						debugPrint('Touch','Follow MouseDown'+str(event.pos))
 						tapcount += 1
 						pygame.time.delay(config.MultiTapTime)
 					elif eventx.type == pygame.NOEVENT:
@@ -205,6 +207,8 @@ class DisplayScreen(object):
 					else:
 						if eventx.type >= pygame.USEREVENT:  # it isn't a screen related event
 							self.Deferrals.append(eventx)  # defer the event until after the clicks are sorted out
+						else:
+							debugPrint('Touch','Other event '+str(eventx.type))
 						# todo add handling for hold here with checking for MOUSE UP etc.
 				if tapcount == 3:
 					# Switch screen chains

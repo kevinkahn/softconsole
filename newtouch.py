@@ -122,11 +122,15 @@ class Touches(list):
 class Touchscreen(object):
 	TOUCHSCREEN_EVDEV_NAME = 'FT5406 memory based driver'
 	TOUCHSCREEN_RESISTIVE = 'stmpe-ts'
+	TOUCHSCREEN28CAP = 'EP0110M09'
 	EVENT_FORMAT = str('llHHi')
 	EVENT_SIZE = struct.calcsize(EVENT_FORMAT)
 
 	def __init__(self):
 		self._use_multitouch = True
+		self._flipx = 0 # 0 for ok else size of x from which to subtract touch value
+		self._flipy = 0 # 0 for ok else size of y from which to subtract touch value
+		self._capscreen = True
 		self.a = None
 		self._running = False
 		self._thread = None
@@ -143,8 +147,7 @@ class Touchscreen(object):
 		self._running = True
 		while self._running:
 			self.poll()
-
-	# time.sleep(0.0001)
+			#time.sleep(0.00001)
 
 	def run(self):
 		if self._thread is not None:
@@ -198,7 +201,7 @@ class Touchscreen(object):
 
 		while not self._event_queue.empty():
 			event = self._event_queue.get()
-			debugPrint('Screen','Touch: '+str(event))#todo delete
+			debugPrint('LLTouch','Touch: '+str(event))
 			self._event_queue.task_done()
 
 			if event.type == EV_SYN:  # Sync
@@ -206,7 +209,7 @@ class Touchscreen(object):
 					touch.handle_events()
 				return self.touches
 
-			if event.type == EV_KEY and not self._use_multitouch:
+			if event.type == EV_KEY and not self._capscreen:
 				if event.code == BTN_TOUCH:
 					self._touch_slot = 0
 					# self._current_touch.id = 1
@@ -214,8 +217,8 @@ class Touchscreen(object):
 						self._current_touch.x = self.position.x
 						self._current_touch.y = self.position.y
 					else:
-						self._current_touch.x = (a[2] + a[0] * self.position.x + a[1] * self.position.y) / a[6]
-						self._current_touch.y = (a[5] + a[3] * self.position.x + a[4] * self.position.y) / a[6]
+						self._current_touch.x = (self.a[2] + self.a[0] * self.position.x + self.a[1] * self.position.y) / self.a[6]
+						self._current_touch.y = (self.a[5] + self.a[3] * self.position.x + self.a[4] * self.position.y) / self.a[6]
 					if event.value == 1:
 						self._current_touch.events.append(TS_PRESS)
 					else:
@@ -229,10 +232,16 @@ class Touchscreen(object):
 					self._current_touch.id = event.value
 
 				if event.code == ABS_MT_POSITION_X:
-					self._current_touch.x = event.value
+					tmp = event.value
+					if self._flipx != 0:
+						tmp = self._flipx - event.value
+					self._current_touch.x = tmp
 
 				if event.code == ABS_MT_POSITION_Y:
-					self._current_touch.y = event.value
+					tmp = event.value
+					if self._flipy != 0:
+						tmp = self._flipy - event.value
+					self._current_touch.y = tmp
 
 				if event.code == ABS_X:
 					self.position.x = event.value
@@ -251,10 +260,14 @@ class Touchscreen(object):
 					if dev == self.TOUCHSCREEN_EVDEV_NAME:
 						return os.path.join('/dev', 'input', os.path.basename(evdev))
 					elif dev == self.TOUCHSCREEN_RESISTIVE:
-						self._use_multitouch = False
+						self._capscreen = False
 						with open('/etc/pointercal','r') as pc:
 							self.a = list(int(x) for x in next(pc).split())
 						# set to do corrections? TODO read pointercal and set a flag to correct
+						return os.path.join('/dev', 'input', os.path.basename(evdev))
+					elif dev == self.TOUCHSCREEN28CAP:
+						self._flipx = 240
+						self._flipy = 320
 						return os.path.join('/dev', 'input', os.path.basename(evdev))
 			except IOError as e:
 				if e.errno != errno.ENOENT:

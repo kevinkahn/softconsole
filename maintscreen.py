@@ -42,7 +42,7 @@ def SetUpMaintScreens():
 													  # fixed below to break a dependency loop - this is key 3
 													  ('exit', ('Exit/Restart', functools.partial(goto, Exits)))]))
 	FlagsScreens = []
-	nflags = len(debug.DbgFlags) + 2
+	nflags = len(debug.DbgFlags) + 3
 	# will need key for each debug flag plus a return plus a loglevel up and loglevel down
 	tmpDbgFlags = ["LogLevelUp", "LogLevelDown"] + debug.DbgFlags[:]  # temp copy of Flags
 	flagoverrides = fixedoverrides.copy()
