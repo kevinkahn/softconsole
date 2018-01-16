@@ -201,7 +201,7 @@ class Touchscreen(object):
 
 		while not self._event_queue.empty():
 			event = self._event_queue.get()
-			debugPrint('LLTouch','Touch: '+str(event))
+			debugPrint('LLTouch','Touch: '+ str(event))
 			self._event_queue.task_done()
 
 			if event.type == EV_SYN:  # Sync

@@ -139,7 +139,7 @@ def InitializeEnvironment():
 	a=[]
 
 	if config.screentype in ('pi7','35r','28c'):
-		from newtouch import Touchscreen, TS_PRESS, TS_RELEASE
+		from touchhandler import Touchscreen, TS_PRESS, TS_RELEASE, TS_MOVE
 		ts = Touchscreen()
 		def touchhandler(event,touch):
 			p = (touch.x,touch.y)
@@ -151,10 +151,16 @@ def InitializeEnvironment():
 				e = pygame.event.Event(pygame.MOUSEBUTTONUP, {'pos': p})
 				debugPrint('Touch', 'Release: ' + str(p))
 				pygame.fastevent.post(e)
+			elif event == TS_MOVE:
+				e = pygame.event.Event(pygame.MOUSEMOTION, {'pos': p})
+				debugPrint('Touch', 'Motion: ' + str(p))
+				pygame.fastevent.post(e)
+
 
 		for touch in ts.touches:
 			touch.on_press = touchhandler
 			touch.on_release = touchhandler
+			touch.on_move = touchhandler
 
 		ts.run()
 

@@ -208,7 +208,7 @@ class DisplayScreen(object):
 						if eventx.type >= pygame.USEREVENT:  # it isn't a screen related event
 							self.Deferrals.append(eventx)  # defer the event until after the clicks are sorted out
 						else:
-							debugPrint('Touch','Other event '+str(eventx.type))
+							debugPrint('Touch','Other event '+ pygame.event.event_name(eventx.type) + str(eventx.type))
 						# todo add handling for hold here with checking for MOUSE UP etc.
 				if tapcount == 3:
 					# Switch screen chains
