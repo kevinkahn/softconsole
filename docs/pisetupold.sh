@@ -44,7 +44,7 @@ function info(){
     echo $2
 }
 
-function update_xorg_for_waveshare() {
+function update_xorg() {
     mkdir -p /etc/X11/xorg.conf.d
 
     cat > /etc/X11/xorg.conf.d/99-fbdev.conf <<EOF
@@ -65,14 +65,14 @@ EndSection
 EOF
 # TODO - is this relevant?
 #    libinput_path="/usr/share/X11/xorg.conf.d/60-libinput.conf"
-#    if [ -e $libinput_path ]; thenq
+#    if [ -e $libinput_path ]; then
 #        info PI-TFT "Applying Neto calibration patch:"
 #        echo "Moving ${libinput_path} to ${target_homedir}/.60-libinput.conf.bak"
 #        mv "$libinput_path" ${target_homedir}/.60-libinput.conf.bak
 #    fi
 }
 
-function update_x11profile_for_waveshare() {
+function update_x11profile() {
     fbturbo_path="/usr/share/X11/xorg.conf.d/99-fbturbo.conf"
     if [ -e $fbturbo_path ]; then
         echo "Moving ${fbturbo_path} to ${target_homedir}"
@@ -92,13 +92,13 @@ EOF
     fi
 }
 
-function update_udev_for_waveshare() {
+function update_udev() {
    cat > /etc/udev/rules.d/95-ADS7846.rules <<EOF
 SUBSYSTEM=="input", ATTRS{name}=="ADS7846 Touchscreen", ENV{DEVNAME}=="*event*", SYMLINK+="input/touchscreen"
 EOF
 }
 
-function install_console_for_waveshare() {
+function install_console() {
     if ! grep -q 'fbcon=map:10 fbcon=font:VGA8x8' /boot/cmdline.txt; then
         info PI-TFT "Updating /boot/cmdline.txt"
         sed -i 's/rootwait/rootwait fbcon=map:10 fbcon=font:VGA8x8/g' "/boot/cmdline.txt"
@@ -113,7 +113,7 @@ function install_console_for_waveshare() {
     sed -i 's/BLANK_TIME=.*/BLANK_TIME=0/g' "/etc/kbd/config"
 }
 
-function install_xserver_xorg_input_evdev_for_waveshare {
+function install_xserver-xorg-input-evdev {
 ## Debian releases after early 2017 break touch input - this will fix it
     set +e
     info PI-TFT "Checking for xserver-xorg-input-evdev:"
@@ -157,7 +157,6 @@ chmod +x installconsole.sh
 LogBanner "Set Time Zone"
 # seed the timezone dialog
 echo 'US/Pacific-New' > /etc/timezone
-dpkg-reconfigure -f noninteractive tzdata
 dpkg-reconfigure tzdata
 LogBanner "Pi User Password"
 sudo passwd pi
@@ -181,7 +180,7 @@ do
     ScreenType="--"
   fi
 done
-#Get_yn CON "Would you like the console to appear on the PiTFT display?"
+Get_yn CON "Would you like the console to appear on the PiTFT display?"
 Get_yn Reboot "Automatically reboot to continue install after system setup?"
 python getsetupinfo.py
 
@@ -325,37 +324,24 @@ cd /home/pi
 
 wget raw.githubusercontent.com/adafruit/Adafruit-PiTFT-Helper/master/adafruit-pitft-touch-cal
 wget raw.githubusercontent.com/adafruit/Adafruit-PiTFT-Helper/master/adafruit-pitft-helper
-wget https://raw.githubusercontent.com/adafruit/Adafruit-PiTFT-Helper/master/adafruit-pitft-helper2.sh
-chmod +x adafruit-pitft-helper2.sh
 chmod +x adafruit-pitft-touch-cal adafruit-pitft-helper
 
 echo $ScreenType > .Screentype
 case $ScreenType in
   28r|28c|35r)
-  case $ScreenType in
-    28r)
-    LogBanner "Run PiTFT Helper 28r"
-    echo 1 > tmp
+    case $ScreenType in
+      28r)
+        echo "28ro" > .Screentype
+        ;;
+      esac
+    LogBanner "Run PiTFT Helper"
+    echo $CON N | ./adafruit-pitft-helper -t $ScreenType
+    LogBanner "Configure the screen and calibrate"
+    # set vertical orientation
+    mv /boot/config.txt /boot/config.sav
+    sed -r 's/rotate=(90|180|270)/rotate=0/' /boot/config.sav > /boot/config.txt
+    ./adafruit-pitft-touch-cal -f -r 0 -t $ScreenType
     ;;
-    28c)
-    LogBanner "Run PiTFT Helper 28c"
-    echo 3 > tmp
-    ;;
-    35r)
-    LogBanner "Run PiTFT Helper 35r"
-    echo 4 > tmp
-    ;;
-    esac
-  cat >> tmp <<EOF
-4
-N
-N
-EOF
-  ./adafruit-pitft-helper2.sh < tmp
-  raspi-config nonint do_boot_behaviour B4 # set boot to desktop already logged in
-  cp installconsoleSDL.sh installconsole.sh
-  sed -isav s/fb0/fb1/ /usr/share/X11/xorg.conf.d/99-fbturbo.conf
-  ;;
   custom)
     LogBanner "No Screen Configured - do it manually for custom screen before reboot"
     ;;
@@ -389,23 +375,23 @@ dtoverlay=waveshare35a,rotate=0
 EOF
 
     echo "Update xorg"
-    update_xorg_for_waveshare
+    update_xorg
     echo "Update X11 Profile"
-    update_x11profile_for_waveshare
+    update_x11profile
     echo "Update udev"
-    update_udev_for_waveshare
+    update_udev
     echo "Update pointercal"
     cat > /etc/pointercal <<EOF
 5729 138 -1857350 78 8574 -2707152 65536
 EOF
 
-    #if $CON
-    #  then
-    #    echo "Updating console to PiTFT..."
-    #    install_console_for_waveshare
-    #  fi
+    if $CON
+      then
+        echo "Updating console to PiTFT..."
+        install_console
+      fi
     echo "Install xserver xorg input evdev"
-    install_xserver_xorg_input_evdev_for_waveshare
+    install_xserver-xorg-input-evdev
     echo "Finished waveshare install"
     ;;
   *)
@@ -417,8 +403,7 @@ esac
 
 mv --backup=numbered /etc/rc.local.hold /etc/rc.local
 chmod +x /etc/rc.local
-#echo "# Dummy entry to keep this file from being recreated in Stretch" > /usr/share/X11/xorg.conf.d/99-fbturbo.conf
-cat /usr/share/X11/xorg.conf.d/99-fbturbo.conf
+echo "# Dummy entry to keep this file from being recreated in Stretch" > /usr/share/X11/xorg.conf.d/99-fbturbo.conf
 
 LogBanner "Reboot now installconsole.sh will autorun as root unless aborted"
 echo "Install will set Personal $Personal and AutoConsole $AutoConsole"
