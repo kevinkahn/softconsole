@@ -12,7 +12,7 @@ class NetworkHealth(object):
 		# print dest
 		ok = False
 		with open('/dev/null', 'a') as null:
-			cmd = 'ping -c 1 -W 1 ' + dest
+			cmd = 'ping -c 1 -W 2 ' + dest
 			for i in range(4):
 				p = subprocess.call(cmd, shell=True, stdout=null, stderr=null)
 				if p == 0:

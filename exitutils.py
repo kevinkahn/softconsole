@@ -97,16 +97,13 @@ def domaintexit(ExitKey):
 	Exit(ExitCode)
 
 def errorexit(opt):
-	if opt == 'restart':
-		ExitCode = ERRORRESTART
+	if opt == ERRORRESTART:
 		Exit_Screen_Message('Error restart', 'Error', 'Restarting')
-	elif opt == 'reboot':
-		ExitCode = ERRORPIREBOOT
+	elif opt == ERRORPIREBOOT:
 		Exit_Screen_Message('Error reboot', 'Error', 'Rebooting Pi')
-	elif opt == 'shut':
-		ExitCode = ERRORDIE
+	elif opt == ERRORDIE:
 		Exit_Screen_Message('Error Shutdown', 'Error', 'Not Restarting', 'Check Log')
-	Exit(ExitCode)
+	Exit(opt)
 
 def Exit_Screen_Message(msg, scrnmsg1, scrnmsg2='', scrnmsg3=''):
 	config.screen.fill(wc("red"))
