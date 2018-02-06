@@ -78,7 +78,7 @@ class WeatherInfoActual(object):
 	def __init__(self, WunderKey, location):
 		self.nextwebreq = 0  # time of next call out to wunderground
 		self.webreqinterval = 60*30  # 30 minutes
-		self.url = 'http://api.wunderground.com/api/' + WunderKey + '/conditions/forecast/astronomy/q/' \
+		self.url = 'http://api.wunderground.com/api/' + WunderKey + '/conditions/forecast10day/astronomy/q/' \
 				   + location + '.json'
 		self.ConditionVals = {}
 		self.ForecastVals = []
