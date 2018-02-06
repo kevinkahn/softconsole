@@ -1,0 +1,29 @@
+[Unit]
+# Description could really be anything meaningful/distinct
+Description=SoftConsole
+# This should make sure the network is up
+After=network.target
+
+[Service]
+# Script needs to be executable and first line will be '#!/usr/bin/python -u'
+Type=forking
+PIDfile=/home/pi/console.pid
+RestartPreventExitStatus=11 12 13
+RestartForceExitStatus=31 32 33 34 35
+ExecStart=/home/pi/consolestable/runconsole.py
+
+WorkingDirectory=/home/pi
+# Working dirctory gets moved to consolexxx directory by runconsole.py
+# Should restart service if it is not stopped gracefully
+Restart=on-failure
+# Slows things down a little on restarts, maybe doesn't need to be so long
+RestartSec=3
+# Makes sure any output gets to syslog and named sensibly
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=softconsole
+
+[Install]
+WantedBy=multi-user.target
+# Allows the use of journalctl -u softconsole.service to view relevant logs
+Alias=softconsole.service

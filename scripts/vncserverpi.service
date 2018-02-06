@@ -1,0 +1,13 @@
+[Unit]
+Description=VNC Server in Service Mode daemon
+After=network.target
+
+[Service]
+User=pi
+ExecStart=/usr/bin/vncserver
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=always
+KillMode=process
+
+[Install]
+WantedBy=multi-user.target

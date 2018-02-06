@@ -100,11 +100,6 @@ LogBanner "Install stuff for console"
 apt-get -y install python-dev
 
 pip install --upgrade pip
-pip install configobj
-pip install webcolors
-pip install xmltodict
-pip install websocket-client
-pip install wiringpi
 
 cd /home/pi/
 LogBanner "Console Installation"
@@ -131,13 +126,10 @@ rm setupconsole.* githubutil.*
 if [ "$AutoConsole" == "Y" ]
 then
   LogBanner "Set Console to Start at Boot"
-  mv --backup=numbered /home/pi/consolestable/docs/rc.local /etc/rc.local
+  systemctl enable softconsole.service
 else
   LogBanner "Set No Console Autostart at Boot"
-  mv --backup=numbered /home/pi/consolestable/docs/rc.local-noautostart /etc/rc.local
 fi
-chmod a+x /etc/rc.local
-chown root /etc/rc.local
 
 LogBanner "Install and setup finished"
 LogBanner "Rebooting in 5 seconds"

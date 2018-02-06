@@ -152,6 +152,7 @@ read -p "Press Enter to continue"
 wget https://raw.githubusercontent.com/kevinkahn/softconsole/master/docs/installconsole.sh
 wget https://raw.githubusercontent.com/kevinkahn/softconsole/master/docs/installconsoleSDL.sh
 wget https://raw.githubusercontent.com/kevinkahn/softconsole/master/getsetupinfo.py
+wget https://raw.githubusercontent.com/kevinkahn/softconsole/master/scripts/vncserverpi.service
 chmod +x installconsole.sh
 
 LogBanner "Set Time Zone"
@@ -275,18 +276,15 @@ then
 else
   echo "VNC will be set up on its normal port"
 fi
-LogBanner "Set Virtual VNC Start in rc.local"
+LogBanner "Setup Virtual VNC Service"
 
-sed -e /^\s*exit/d /etc/rc.local > /etc/rc.local.new
-mv --backup=numbered /etc/rc.local.new /etc/rc.local
-echo "su pi -c vncserver >> /home/pi/log.txt" >> /etc/rc.local
-echo "exit 0" >> /etc/rc.local
-cp /etc/rc.local /etc/rc.local.hold # helper script below screws up rc.local
-
-
+mv /home/pi/vncserverpi.service /usr/lib/systemd/system
+systemctl enable vncserverpi.service
 systemctl enable vncserver-x11-serviced.service
 systemctl start vncserver-x11-serviced.service
 
+# Save initial rc.local to restore after helper scripts run
+cp /etc/rc.local /etc/rc.local.hold # helper script below screws up rc.local
 
 if [ "$InstallOVPN" == "Y" ]
 then
@@ -418,7 +416,7 @@ esac
 mv --backup=numbered /etc/rc.local.hold /etc/rc.local
 chmod +x /etc/rc.local
 #echo "# Dummy entry to keep this file from being recreated in Stretch" > /usr/share/X11/xorg.conf.d/99-fbturbo.conf
-cat /usr/share/X11/xorg.conf.d/99-fbturbo.conf
+#cat /usr/share/X11/xorg.conf.d/99-fbturbo.conf
 
 LogBanner "Reboot now installconsole.sh will autorun as root unless aborted"
 echo "Install will set Personal $Personal and AutoConsole $AutoConsole"
