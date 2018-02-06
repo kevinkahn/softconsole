@@ -49,7 +49,7 @@ def try_ISY_comm(urlcmd):
             config.Logs.Log("Attempting ISY retry " + str(i + 1), severity=ConsoleError, tb=False)
 
     config.Logs.Log("ISY Communications Failure", severity=ConsoleError)
-    exitutils.errorexit('reboot')
+    exitutils.errorexit(exitutils.ERRORPIREBOOT)
 
 
 def get_real_time_obj_status(obj):
@@ -294,7 +294,7 @@ class ISY(object):
         trycount = 20
         while True:
             try:
-                r = ISYsession.get(config.ISYprefix + 'nodes', verify=False, timeout=3)
+                r = ISYsession.get(config.ISYprefix + 'nodes', verify=False, timeout=5)
                 config.Logs.Log('Successful node read: ' + str(r.status_code))
                 break
             # except requests.exceptions.ConnectTimeout:
@@ -309,8 +309,8 @@ class ISY(object):
                     time.sleep(15)
                 else:
                     config.Logs.Log('No ISY response restart (nodes)')
-                    exitutils.errorexit('reboot')
-                    sys.exit(10)  # should never get here
+                    exitutils.errorexit(exitutils.ERRORPIREBOOT)
+                    config.Logs.Log('Reached unreachable code! ISY1')
 
         if r.status_code != 200:
             config.Logs.Log('ISY text response:', severity=ConsoleError)
@@ -320,9 +320,8 @@ class ISY(object):
             config.Logs.Log('Cannot access ISY - check username/password')
             config.Logs.Log('Status code: ' + str(r.status_code))
             time.sleep(10)
-            exitutils.errorexit('shut')
-            config.Ending = True
-            sys.exit(4)
+            exitutils.errorexit(exitutils.ERRORDIE)
+            config.Logs.Log('Reached unreachable code! ISY2')
 
         configdict = xmltodict.parse(r.text)['nodes']
 
@@ -385,7 +384,7 @@ class ISY(object):
         trycount = 20
         while True:
             try:
-                r = ISYsession.get(config.ISYprefix + 'programs?subfolders=true', verify=False, timeout=3)
+                r = ISYsession.get(config.ISYprefix + 'programs?subfolders=true', verify=False, timeout=5)
                 if r.status_code != 200:
                     config.Logs.Log('ISY bad program read' + r.text, severity=ConsoleWarning)
                     raise requests.exceptions.ConnectionError  # fake a connection error if we didn't get a good read
@@ -402,8 +401,8 @@ class ISY(object):
                     time.sleep(15)
                 else:
                     config.Logs.Log('No ISY response restart (programs)')
-                    exitutils.errorexit('reboot')
-                    sys.exit(12)  # should never get here
+                    exitutils.errorexit(exitutils.ERRORPIREBOOT)
+                    config.Logs.Log('Reached unreachable code! ISY3')
 
         configdict = xmltodict.parse(r.text)['programs']['program']
         for item in configdict:
@@ -450,8 +449,8 @@ class ISY(object):
                     time.sleep(15)
                 else:
                     config.Logs.Log('No ISY response restart (vars)')
-                    exitutils.errorexit('reboot')
-                    sys.exit(12)  # should never get here
+                    exitutils.errorexit(exitutils.ERRORPIREBOOT)
+                    config.Logs.Log('Reached unreachable code! ISY4')
 
         try:
             configdict = xmltodict.parse(r1.text)['CList']['e']

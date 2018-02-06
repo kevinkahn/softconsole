@@ -5,14 +5,10 @@ touch cleanexit
 echo "Consoleexit script: " $1 " - " $2 " - " $3 >> log.txt
 echo  "Option: " $1 >> log.txt
 echo  "Config: " $2 >> log.txt
-echo  "Reason: " $3 >> log.txt
+
 date >> log.txt
 case $1 in
-	shut)
-		echo Shutdown >> log.txt
-		;;
 	restart)
-		echo Restart $3 >> log.txt
 		if [ -e usebeta ]
 		then
 			cd consolebeta
@@ -26,34 +22,7 @@ case $1 in
 		nohup sudo python -u console.py $2 >> /home/pi/log.txt 2>&1 &
         echo "Starting console as process "$! >> /home/pi/log.txt
 		;;
-	shutpi)
-		echo ShutPi >> log.txt
-		date >> log.txt
-		sudo shutdown -P now >> log.txt
-		;;
-	reboot)
-	    echo REBOOT >> log.txt
-	    date >> log.txt
-	    case $3 in
-	        user)
-	            echo "User requested reboot" >> log.txt
-	            ;;
-            error)
-                echo "Error caused rebooot" >> log.txt
-                netstat -v -t -u >> log.txt
-                ping -c 3 192.168.1.1 >> log.txt
-                ifconfig >> log.txt
-                ;;
-            *)
-                echo "Unknown reboot" $3 >> log.txt
-		        netstat -v -t -u >> log.txt
-		        ping -c 3 192.168.1.1 >> log.txt
-                ifconfig >> log.txt
-                ;;
-            esac
-        echo "+++++++++++++++++++++++++++++++++++++++++++++" >> log.txt
-		sudo shutdown -r now >> log.txt
-		;;
+
 	*)
 		echo "Unknown exit" >> log.txt
 		rm cleanexit

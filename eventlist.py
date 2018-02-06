@@ -2,6 +2,8 @@ from heapq import *
 import time
 import pygame
 from debug import debugPrint
+import config
+from logsupport import ConsoleError
 
 Tasks = None
 
@@ -84,7 +86,7 @@ class EventList(object):
 		evnt.deleted = False
 		for i in self.List:
 			if i[1] == evnt:
-				print "Whoops"
+				config.Logs.Log("Event add task error", severity=ConsoleError)
 		heappush(self.List, (evnt.abstime, evnt))
 		T = self.TimeToNext()
 		debugPrint('EventList', self.RelNow(), ' Add: ', dt, evnt, T)

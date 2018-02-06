@@ -76,7 +76,7 @@ class MyScreens(object):
 		# Make sure we have screens defined
 		if not config.MainChain:
 			config.Logs.Log("No screens defined for Main Chain", severity=ConsoleError)
-			exitutils.errorexit("shut")
+			exitutils.errorexit(exitutils.ERRORDIE)
 
 		# Create the navigation keys
 		cbutwidth = (config.screenwidth - 2*config.horizborder)/2
