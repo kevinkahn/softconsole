@@ -35,12 +35,12 @@ class NetCmd(object):
 		isy.SetVar((vartype, varid), 0)
 		if varval == 1:
 			config.Logs.Log('Remote restart')
-			exitutils.Exit_Options('Remote restart requested', 'Remote Restart')
-			exitutils.Exit('restart', 'user', 0)
+			exitutils.Exit_Screen_Message('Remote restart requested', 'Remote Restart')
+			exitutils.Exit(exitutils.REMOTERESTART)
 		elif varval == 2:
 			config.Logs.Log('Remote reboot')
-			exitutils.Exit_Options('Remote reboot requested', 'Remote Reboot')
-			exitutils.Exit('reboot', 'user', 0)
+			exitutils.Exit_Screen_Message('Remote reboot requested', 'Remote Reboot')
+			exitutils.Exit(exitutils.REMOTEREBOOT)
 		elif varval == 3:
 			config.Logs.Log('Remote download stable')
 			maintscreen.fetch_stable()

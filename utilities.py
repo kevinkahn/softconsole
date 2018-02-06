@@ -21,6 +21,17 @@ paramlog = []
 exemplarobjs = collections.OrderedDict()
 from debug import debugPrint
 
+# next several lines stolen from https://stackoverflow.com/questions/39198961/pygame-init-fails-when-run-with-systemd
+# this handles some weird random SIGHUP when initializing pygame, it's really a hack to work around it
+# Not really sure what other ill effects this might have!!!
+def handler(signum, frame):
+    pass
+try:
+    signal.signal(signal.SIGHUP, handler)
+except AttributeError:
+    # Windows compatibility
+    pass
+# end SIGHUP hack
 
 def wc(clr):
 	try:
@@ -90,23 +101,6 @@ def LogParams():
 	global paramlog
 	for p in paramlog:
 		config.Logs.Log(p)
-
-def signal_handler(sig, frame):
-	print ('BYE', sig)
-	pygame.quit()
-	sys.exit()
-
-def EarlyAbort(scrnmsg):
-	config.screen.fill(wc("red"))
-	# this font is manually loaded into the fontcache to avoid log message on early abort before log is up
-	# see fonts.py
-	r = config.fonts.Font(40, '', True, True).render(scrnmsg, 0, wc("white"))
-	config.screen.blit(r, ((config.screenwidth - r.get_width())/2, config.screenheight*.4))
-	pygame.display.update()
-	print (time.strftime('%m-%d-%y %H:%M:%S'), scrnmsg)
-	time.sleep(5)
-	sys.exit(9)
-
 
 def InitializeEnvironment():
 	# this section is an unbelievable nasty hack - for some reason Pygame

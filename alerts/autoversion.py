@@ -25,7 +25,7 @@ class AutoVersion(object):
 					config.Logs.Log("Staged version installed in ", config.exdir)
 					exiting = True
 					config.Logs.Log('Restart for new version')
-					exitutils.Exit('restart', 'auto', 0)
+					exitutils.Exit(exitutils.AUTORESTART)
 			except:
 				if not exiting:
 					config.Logs.Log(

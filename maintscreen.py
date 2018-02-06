@@ -9,7 +9,7 @@ import config
 import debug
 import toucharea
 from debug import debugPrint
-from exitutils import dorealexit
+import exitutils
 from utilities import interval_str, wc
 import logsupport
 from logsupport import ConsoleWarning
@@ -114,6 +114,11 @@ def gohome(K, presstype):  # neither peram used
 def goto(screen, K, presstype):
 	config.DS.SwitchScreen(screen, 'Bright', 'Maint', 'Maint goto' + screen.name, NavKeys=False)
 
+def handleexit(K, YesKey, presstype):
+	# YesKey, presstype are ignored in this use - needed by the key press invokation for other purposes
+	exitutils.domaintexit(K.name)
+
+
 def doexit(K, presstype):
 	if K.name == 'shut':
 		verifymsg = 'Do Console Shutdown'
@@ -124,13 +129,12 @@ def doexit(K, presstype):
 	else:
 		verifymsg = 'Do Pi Reboot'
 	Verify = MaintScreenDesc('Verify',
-							 OrderedDict([('yes', (verifymsg, functools.partial(dorealexit, K))),
+							 OrderedDict([('yes', (verifymsg, functools.partial(handleexit, K))),
 										  ('no', ('Cancel', functools.partial(goto, config.MaintScreen)))]))
 	config.DS.SwitchScreen(Verify, 'Bright', 'Maint', 'Verify exit', NavKeys=False)
 
 
 def dobeta(K, presstype):
-	basedir = os.path.dirname(config.exdir)
 	K.State = not K.State
 	K.PaintKey()
 	if K.name == 'stable':
@@ -149,16 +153,16 @@ def dobeta(K, presstype):
 
 def fetch_stable():
 	basedir = os.path.dirname(config.exdir)
-	print "----------------------------------------"
+
 	try:
 		if os.path.exists(basedir + '/homesystem'):
 			# personal system
 			config.Logs.Log("New version fetch(homerelease)")
-			# print "New Version Fetch Requested (homesystem)"
+			print ("New Version Fetch Requested (homesystem)")
 			U.StageVersion(basedir + '/consolestable', 'homerelease', 'RequestedDownload')
 		else:
 			config.Logs.Log("New version fetch(currentrelease)")
-			#print "New Version Fetch Requested (currentrelease)"
+			print ("New Version Fetch Requested (currentrelease)")
 			U.StageVersion(basedir + '/consolestable', 'currentrelease', 'RequestedDownload')
 		U.InstallStagedVersion(basedir + '/consolestable')
 		config.Logs.Log("Staged version installed in consolestable")
@@ -169,8 +173,7 @@ def fetch_stable():
 def fetch_beta():
 	basedir = os.path.dirname(config.exdir)
 	config.Logs.Log("New version fetch(currentbeta)")
-	print "----------------------------------------"
-	print "New Version Fetch Requested (currentbeta)"
+	print ("New Version Fetch Requested (currentbeta)")
 	try:
 		U.StageVersion(basedir + '/consolebeta', 'currentbeta', 'RequestedDownload')
 		U.InstallStagedVersion(basedir + '/consolebeta')
