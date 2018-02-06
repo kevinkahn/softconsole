@@ -1,3 +1,5 @@
+#!/usr/bin/python -u
+# above assumes it points at python 2.7 and may not be portable
 """
 Copyright 2016, 2017 Kevin Kahn
 
@@ -28,7 +30,7 @@ import isyeventmonitor
 
 import config
 import configobjects
-import ast
+import exitutils
 import debug
 import displayscreen
 import globalparams
@@ -58,6 +60,7 @@ signal.signal(signal.SIGINT, handler)
 
 sectionget = Section.get
 
+print("Console starting in "+os.getcwd())
 
 def CO_get(self, key, default, delkey=True):
 	rtn = sectionget(self, key, default)
@@ -87,8 +90,8 @@ earlylog.write("Console start at " + time.strftime('%m-%d-%y %H:%M:%S') + ' on '
 if os.getegid() <> 0:
 	# Not running as root
 	earlylog.write("Not running as root - exit\n")
-	print "Must run as root"
-	exit(999)
+	print ("Must run as root")
+	sys.exit(exitutils.EARLYABORT)
 
 utilities.InitializeEnvironment()
 
@@ -127,7 +130,8 @@ earlylog.write(
 """
 Dynamically load class definitions for all defined screen types and link them to how configuration happens
 """
-for screentype in os.listdir(os.path.dirname(os.path.abspath(sys.argv[0])) + '/screens'):
+#for screentype in os.listdir(os.path.dirname(os.path.abspath(sys.argv[0])) + '/screens'):
+for screentype in os.listdir(os.getcwd() + '/screens'):
 	if '__' not in screentype:
 		splitname = os.path.splitext(screentype)
 		if splitname[1] == '.py':
@@ -135,7 +139,8 @@ for screentype in os.listdir(os.path.dirname(os.path.abspath(sys.argv[0])) + '/s
 
 earlylog.write("Screen types imported \n")
 
-for alertproctype in os.listdir(os.path.dirname(os.path.abspath(sys.argv[0])) + '/alerts'):
+#for alertproctype in os.listdir(os.path.dirname(os.path.abspath(sys.argv[0])) + '/alerts'):
+for alertproctype in os.listdir(os.getcwd() + '/alerts'):
 	if '__' not in alertproctype:
 		splitname = os.path.splitext(alertproctype)
 		if splitname[1] == '.py':
@@ -165,9 +170,12 @@ elif os.path.isfile(config.configfilebase + "config.txt"):
 else:
 	config.configfile = config.configfilebase + "config-" + config.hostname + ".txt"
 
+print ("Configuration file: ",config.configfile)
+
 if not os.path.isfile(config.configfile):
-	earlylog.write("Abort - no configuratio file ('+config.hostname+')'\n")
-	utilities.EarlyAbort('No Configuration File (' + config.hostname + ')')
+	print ("Abort - no configuration file found")
+	earlylog.write("Abort - no configuration file ('+config.hostname+')'\n")
+	exitutils.EarlyAbort('No Configuration File (' + config.hostname + ')')
 
 config.ParsedConfigFile = ConfigObj(config.configfile)  # read the config.txt file
 
@@ -344,8 +352,4 @@ config.DS.MainControlLoop(config.HomeScreen)
 
 # This never returns
 
-	# humidity, temperature = Adafruit_DHT.read_retry(22,4)
-	# tempF = temperature*9/5.0 +32
-	# if humidity is not None and temperature is not None:
-	#	print 'Temp={0:0.1f}*  Humidity={1:0.1f}%'.format(tempF, humidity)
 
