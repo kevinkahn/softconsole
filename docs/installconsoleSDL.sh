@@ -82,7 +82,7 @@ date >> /home/pi/prep.log
 echo "Developer system:           $Personal" >> /home/pi/prep.log
 echo "Auto start Console on boot: $AutoConsole" >> /home/pi/prep.log
 exec > >(tee -a /home/pi/prep.log)
-exec 2> >&1
+exec 2 >&1
 
 if [ $Personal == "Y" ]
 then

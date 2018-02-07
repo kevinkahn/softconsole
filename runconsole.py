@@ -21,10 +21,10 @@ if os.path.isfile('versionselector'):
 		vers = f.readline().rstrip('\n')
 	versdir = 'console' + vers
 
-print('Using directory: '+versdir)
+print('Starting using directory: '+versdir)
 os.chdir(versdir)
 
-consolepid = subprocess.Popen('console.py').pid
+consolepid = subprocess.Popen(['python','console.py']).pid
 
 with open('../console.pid','w') as f:
 	f.write(str(consolepid))
