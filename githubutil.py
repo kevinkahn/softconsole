@@ -29,7 +29,9 @@ def InstallStagedVersion(d):
 	os.rename(d + '.TMP/stagedversion', d)  # move new version into place
 	os.rename(d + '.TMP', d + '/previousversion')  # save previous version
 	os.chdir(d)
-	subprocess.call('sudo bash ' + '/scripts/upgradeprep.sh >> /home/pi/text.txt', shell=True)
+	print('Process upgrade extras script')
+	subprocess.call('sudo bash ' + './scripts/upgradeprep.sh', shell=True)
+	print('End upgrade extras script')
 	os.chdir('..')
 
 
