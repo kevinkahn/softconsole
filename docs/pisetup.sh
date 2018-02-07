@@ -206,6 +206,8 @@ then
 fi
 
 exec > >(tee -a /home/pi/earlyprep.log)
+exec 2> >&1
+
 
 LogBanner "Force WiFi to US"
 COUNTRY=US

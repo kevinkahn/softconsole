@@ -135,6 +135,7 @@ def doexit(K, presstype):
 
 
 def dobeta(K, presstype):
+	#todo fetch other tags; switch to versionselector
 	K.State = not K.State
 	K.PaintKey()
 	if K.name == 'stable':
