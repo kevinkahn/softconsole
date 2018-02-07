@@ -45,7 +45,6 @@ class Logs(object):
 				pass
 			self.disklogfile = open('Console.log', 'w')
 			os.chmod('Console.log', 0o555)
-			#sys.stdout = self.disklogfile  # todo deleteed to  let stuff go to syslog?
 			os.chdir(cwd)
 
 	def Log(self, *args, **kwargs):

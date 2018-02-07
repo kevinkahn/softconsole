@@ -21,6 +21,8 @@ case $1 in
 		rm -f /home/pi/cleanexit
 		nohup sudo python -u console.py $2 >> /home/pi/log.txt 2>&1 &
         echo "Starting console as process "$! >> /home/pi/log.txt
+        echo "Still using rc.local startup mechanism" >> /home/pi/log.txt
+        echo "Consider switching to systemd (see usagenotes)" >> /home/pi/log.txt
 		;;
 
 	*)

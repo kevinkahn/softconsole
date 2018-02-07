@@ -56,25 +56,6 @@ do
   let STARTING_UPNP_PORT=STARTING_UPNP_PORT+1
 done
 
-cd /home/pi
-echo "----------------" >>  log.txt
-date >> log.txt
-echo "---Pi Restart---" >>  log.txt
-if [ -e usebeta ] && [ -e cleanexit ]
-then
- rm cleanexit
- echo "******beta******" >>  log.txt
- cd /home/pi/consolebeta
-else
- if [ -e usebeta ]
- then
-  echo "**FALLING BACK TO STABLE**" >> log.txt
- rm -f usebeta cleanexit >> log.txt
- echo "*****stable*****" >>   log.txt
- cd /home/pi/consolestable
-fi
-nohup python -u console.py >> /home/pi/log.txt 2>&1 &
-echo "Starting console as process "$! >> /home/pi/startlog
 
 echo ${PIDS} > ${LOG_PATH}/PIDS
 echo "RC.local completed" >> /home/pi/startlog

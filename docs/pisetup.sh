@@ -63,13 +63,7 @@ Section "InputClass"
          Option "Calibration" "1155 1227 1408 1463"
 EndSection
 EOF
-# TODO - is this relevant?
-#    libinput_path="/usr/share/X11/xorg.conf.d/60-libinput.conf"
-#    if [ -e $libinput_path ]; thenq
-#        info PI-TFT "Applying Neto calibration patch:"
-#        echo "Moving ${libinput_path} to ${target_homedir}/.60-libinput.conf.bak"
-#        mv "$libinput_path" ${target_homedir}/.60-libinput.conf.bak
-#    fi
+
 }
 
 function update_x11profile_for_waveshare() {
@@ -440,7 +434,7 @@ cd /home/pi
 source .bashrc.real
 cp .bashrc .bashrc.sav
 mv -f .bashrc.real .bashrc
-sleep 10 # delay to allow X system to startup for next command (is this long enough in a Pi0) TODO
+sleep 10 # delay to allow X system to startup for next command (is this long enough in a Pi0)
 DISPLAY=:0.0 x-terminal-emulator -t "Console Install" --geometry=40x17 -e sudo bash /home/pi/doinstall.sh 2>> /home/pi/di.log
 EOF
     cat > doinstall.sh << EOF

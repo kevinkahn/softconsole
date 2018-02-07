@@ -132,6 +132,16 @@ else
   LogBanner "Set No Console Autostart at Boot"
 fi
 
+mkdir consoleinstallleftovers
+mv prep.log earlyprep.log consoleinstallleftovers
+mv adafruit* consoleinstallleftovers
+rm tmp
+rm getsetupinfo.py
+rm doinstall.sh
+mv installc* consoleinstallleftovers
+
+
+
 LogBanner "Install and setup finished"
 LogBanner "Rebooting in 5 seconds"
 for i in 5 4 3 2 1

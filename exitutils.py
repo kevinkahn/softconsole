@@ -63,13 +63,15 @@ def Exit(ecode):
 		subprocess.Popen('sudo', 'shutdown', '-P', 'now')
 	elif ecode in range(30,40):
 		# restart the console
-		pass # todo options for systemd or not
-		subprocess.Popen(
-			'nohup sudo /bin/bash -e scripts/consoleexit ' + 'restart' + ' ' + config.configfile + '>>' + config.homedir + '/log.txt 2>&1 &',
-			shell=True)
+		if os.path.exists('/etc/systemd/system/multi-user.target.wants/softconsole.service'):
+			# using systemd
+			pass
+		else:
+			config.Logs.Log('Using rc.local restart model - consider switching to systemd')
+			subprocess.Popen('nohup sudo /bin/bash -e scripts/consoleexit ' + 'restart' +
+							 ' ' + config.configfile + '>>' + config.homedir + '/log.txt 2>&1 &', shell=True)
 	elif ecode in range(40,50):
 		# reboot the pi
-		# todo if console hasn't been up for some amount of time should disable it in systemd to avoid reboot loops
 		subprocess.Popen('sudo', 'shutdown', '-r', 'now')
 	else:
 		# should never happen
