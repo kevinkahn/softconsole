@@ -1,12 +1,13 @@
-import sys, subprocess, os
+import subprocess, os
 
-if not os.path.isfile('/ust/lib/systemd/system/softconsole.service'):
+if not os.path.isfile('/usr/lib/systemd/system/softconsole.service'):
 	# softconsole not yet using systemd so do the conversion
 	pass
 	# restore rc local
 	# determine if autostart
 
 
+print('Setup systemd')
 os.chmod('runconsole.py', 0o555)
 os.chmod('console.py',0o555)
 subprocess.call('cp -f scripts/softconsole.service /usr/lib/systemd/system', shell=True)

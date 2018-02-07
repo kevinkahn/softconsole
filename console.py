@@ -60,7 +60,8 @@ signal.signal(signal.SIGINT, handler)
 
 sectionget = Section.get
 
-print("Console starting in "+os.getcwd())
+config.Console_pid = os.getpid()
+print("Console (" + str(config.Console_pid) + ") starting in "+os.getcwd())
 
 def CO_get(self, key, default, delkey=True):
 	rtn = sectionget(self, key, default)
@@ -170,7 +171,7 @@ elif os.path.isfile(config.configfilebase + "config.txt"):
 else:
 	config.configfile = config.configfilebase + "config-" + config.hostname + ".txt"
 
-print ("Configuration file: ",config.configfile)
+print ("Configuration file: " + config.configfile)
 
 if not os.path.isfile(config.configfile):
 	print ("Abort - no configuration file found")

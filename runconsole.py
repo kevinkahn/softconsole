@@ -9,7 +9,6 @@ This might make some testing scenarios easier
 
 import subprocess, os
 
-os.chdir('..')
 if os.path.isfile('usebeta'):
 	# use the beta version
 	versdir = 'consolebeta'
@@ -19,11 +18,11 @@ else:
 
 if os.path.isfile('versionselector'):
 	with open('versionselector','r') as f:
-		vers = f.readline()
+		vers = f.readline().rstrip('\n')
 	versdir = 'console' + vers
 
+print('Using directory: '+versdir)
 os.chdir(versdir)
-print('Using directory: ',versdir)
 
 consolepid = subprocess.Popen('console.py').pid
 

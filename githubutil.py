@@ -6,7 +6,7 @@ NOTE: This gets used in initial setup of console by the setup program
 """
 
 def StageVersion(vdir, tag, label):
-	print("Staging ", tag, " in ", vdir, ' because ', label)
+	print("Staging " + tag, + " in " + vdir + ' because ' + label)
 	sha = "zzz"
 	cwd = os.getcwd()
 	os.chdir(vdir)
@@ -28,7 +28,9 @@ def InstallStagedVersion(d):
 	os.rename(d, d + '.TMP')  # move active directory to temp
 	os.rename(d + '.TMP/stagedversion', d)  # move new version into place
 	os.rename(d + '.TMP', d + '/previousversion')  # save previous version
-	subprocess.call('sudo bash ' + d + '/scripts/upgradeprep.sh >> /home/pi/text.txt', shell=True)
+	os.chdir(d)
+	subprocess.call('sudo bash ' + '/scripts/upgradeprep.sh >> /home/pi/text.txt', shell=True)
+	os.chdir('..')
 
 
 def GetSHA(tag):

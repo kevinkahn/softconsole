@@ -53,27 +53,27 @@ def Exit(ecode):
 
 	config.Logs.Log("Console Exiting - Ecode: " + str(ecode))
 
-	print('Console exit with code: ', ecode, ' at ',time.strftime('%m-%d-%y %H:%M:%S'))
-	if ecode in (10,20):
+	print('Console exit with code: ' + str(ecode) + ' at ' + time.strftime('%m-%d-%y %H:%M:%S'))
+	if ecode in range(10,20):
 		# exit console without restart
 		print "Shutdown"
-	elif ecode in (20,30):
+	elif ecode in range(20,30):
 		# shutdown the pi
 		print "Shutdown the Pi"
 		subprocess.Popen('sudo', 'shutdown', '-P', 'now')
-	elif ecode in (30,40):
+	elif ecode in range(30,40):
 		# restart the console
 		pass # todo options for systemd or not
 		subprocess.Popen(
 			'nohup sudo /bin/bash -e scripts/consoleexit ' + 'restart' + ' ' + config.configfile + '>>' + config.homedir + '/log.txt 2>&1 &',
 			shell=True)
-	elif ecode in (40,50):
+	elif ecode in range(40,50):
 		# reboot the pi
 		# todo if console hasn't been up for some amount of time should disable it in systemd to avoid reboot loops
 		subprocess.Popen('sudo', 'shutdown', '-r', 'now')
 	else:
 		# should never happen
-		print('Undefined console exit code!  Code: ',ecode)
+		print('Undefined console exit code!  Code: ' + str(ecode))
 		# reboot pi?
 		pass
 
