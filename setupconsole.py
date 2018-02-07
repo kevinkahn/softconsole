@@ -36,4 +36,12 @@ print "Stage current beta release"
 U.InstallStagedVersion('consolebeta')
 print "Installed staged beta"
 
+if os.path.exists('homesystem'):
+	os.mkdir('consolecur')
+	os.chown('consolecur',piuid,pigrp)
+	U.StageVersion('consolecur', 'currenttest', 'InitialInstall')
+	print "Stage test version"
+	U.InstallStagedVersion('consolecur')
+	print "Installed test version"
+
 subprocess.call("cp -r /home/pi/consolestable/'example configs'/* /home/pi/Console", shell=True)

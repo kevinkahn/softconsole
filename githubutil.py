@@ -6,7 +6,7 @@ NOTE: This gets used in initial setup of console by the setup program
 """
 
 def StageVersion(vdir, tag, label):
-	print ("Staging ", tag, " in ", vdir, ' because ', label)
+	print("Staging ", tag, " in ", vdir, ' because ', label)
 	sha = "zzz"
 	cwd = os.getcwd()
 	os.chdir(vdir)
