@@ -176,6 +176,11 @@ do
     ScreenType="--"
   fi
 done
+if [ $ScreenType == 'pi7' ]
+then
+  Get_yn Flip7 "Flip 7 inch screen so power at top? (Y/N)"
+fi
+
 #Get_yn CON "Would you like the console to appear on the PiTFT display?"
 Get_yn Reboot "Automatically reboot to continue install after system setup?"
 python getsetupinfo.py
@@ -355,7 +360,10 @@ EOF
     ;;
   pi7)
     LogBanner "7 Inch Pi Screen"
-    echo "lcd_rotate=2" >> /boot/config.txt
+    if [ $Flip7 == 'Y' ]
+    then
+        echo "lcd_rotate=2" >> /boot/config.txt
+    fi
     cp installconsoleSDL.sh installconsole.sh
     ;;
   wave35)
