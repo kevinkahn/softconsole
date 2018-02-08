@@ -76,6 +76,7 @@ class WeatherInfoActual(object):
 				   'WindSpd': (float, ('avewind', 'mph'))}
 
 	def __init__(self, WunderKey, location):
+		self.keyok = True
 		self.nextwebreq = 0  # time of next call out to wunderground
 		self.webreqinterval = 60*30  # 30 minutes
 		self.url = 'http://api.wunderground.com/api/' + WunderKey + '/conditions/forecast10day/astronomy/q/' \
@@ -102,6 +103,8 @@ class WeatherInfoActual(object):
 			self.weathjsonfile.flush()
 
 	def FetchWeather(self):
+		if not self.keyok:
+			return -1
 		if time.time() > self.nextwebreq:
 			self.returnval = time.time()
 			parsed_json = None
@@ -125,6 +128,7 @@ class WeatherInfoActual(object):
 						# only report once in log
 						config.Logs.Log("Bad weatherunderground key:" + self.location, severity=ConsoleError, tb=False)
 					self.location = ""
+					self.keyok = False
 					self.nextwebreq = time.time() + 60*60*24*300  # next web request in 300 days - i.e., never
 					return -1
 				if val.find("you must supply a key") != -1:
