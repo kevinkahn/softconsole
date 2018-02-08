@@ -253,7 +253,7 @@ config.Logs.Log("Main config file: ", config.configfile,
 config.Logs.Log("Including config files:")
 for p, f in zip(pfiles, cfiles):
 	if config.configfilelist[f] == 0:
-		config.Logs.Log("  ", p, "No Such File", severity=ConsoleWarning)
+		config.Logs.Log("  ", p, " No Such File", severity=ConsoleWarning)
 	else:
 		config.Logs.Log("  ", p, time.strftime(' %c', time.localtime(config.configfilelist[f])))
 for flg, fval in debug.Flags.iteritems():
