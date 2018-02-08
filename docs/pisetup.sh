@@ -434,7 +434,7 @@ cd /home/pi
 source .bashrc.real
 cp .bashrc .bashrc.sav
 mv -f .bashrc.real .bashrc
-sleep 10 # delay to allow X system to startup for next command (is this long enough in a Pi0)
+sleep 15 # delay to allow X system to startup for next command (is this long enough in a Pi0)
 DISPLAY=:0.0 x-terminal-emulator -t "Console Install" --geometry=40x17 -e sudo bash /home/pi/doinstall.sh 2>> /home/pi/di.log
 EOF
     cat > doinstall.sh << EOF

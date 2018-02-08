@@ -139,6 +139,7 @@ rm tmp
 rm getsetupinfo.py
 rm doinstall.sh
 mv installc* consoleinstallleftovers
+mv di.log    consoleinstallleftovers
 
 
 

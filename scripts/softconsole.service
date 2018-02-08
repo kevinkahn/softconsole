@@ -10,8 +10,8 @@ Type=forking
 PIDfile=/home/pi/console.pid
 RestartPreventExitStatus=11 12 13
 RestartForceExitStatus=31 32 33 34 35
-ExecStart=/home/pi/consolecur/runconsole.py
-# todo change to consolestable
+ExecStartPre=/bin/sleep 5 # try not to start until system time has had a chance to update
+ExecStart=/home/pi/consolestable/runconsole.py
 
 WorkingDirectory=/home/pi
 # Working dirctory gets moved to consolexxx directory by runconsole.py
