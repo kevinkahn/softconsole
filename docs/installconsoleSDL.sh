@@ -84,10 +84,12 @@ echo "Auto start Console on boot: $AutoConsole" >> /home/pi/prep.log
 exec > >(tee -a /home/pi/prep.log)
 exec 2>&1
 
+echo stable > versionselector
+
 if [ $Personal == "Y" ]
 then
     touch homesystem
-    echo cur > versionselector  # todo delete
+    #echo cur > versionselector  # todo delete
     echo "Make Home System"
 fi
 
