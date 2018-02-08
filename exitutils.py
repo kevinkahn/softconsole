@@ -60,7 +60,7 @@ def Exit(ecode):
 	elif ecode in range(20,30):
 		# shutdown the pi
 		print "Shutdown the Pi"
-		subprocess.Popen('sudo', 'shutdown', '-P', 'now')
+		subprocess.Popen(['sudo', 'shutdown', '-P', 'now'])
 	elif ecode in range(30,40):
 		# restart the console
 		if os.path.exists('/etc/systemd/system/multi-user.target.wants/softconsole.service'):
@@ -72,7 +72,7 @@ def Exit(ecode):
 							 ' ' + config.configfile + '>>' + config.homedir + '/log.txt 2>&1 &', shell=True)
 	elif ecode in range(40,50):
 		# reboot the pi
-		subprocess.Popen('sudo', 'shutdown', '-r', 'now')
+		subprocess.Popen(['sudo', 'shutdown', '-r', 'now'])
 	else:
 		# should never happen
 		print('Undefined console exit code!  Code: ' + str(ecode))
