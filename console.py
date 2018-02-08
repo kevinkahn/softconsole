@@ -206,7 +206,11 @@ while includes:
 	includes = includes + tmpconf.get('include', [])
 	config.ParsedConfigFile.merge(tmpconf)
 	earlylog.write("Merged config file " + f + "\n")
-	config.configfilelist[f] = os.path.getmtime(f)
+	try:
+		config.configfilelist[f] = os.path.getmtime(f)
+	except:
+		earlylog.write("MISSING config file " + f + "\n")
+		config.configfilelist[f] = 0
 
 debug.Flags = debug.InitFlags()
 
@@ -248,7 +252,10 @@ config.Logs.Log("Main config file: ", config.configfile,
 				time.strftime(' %c', time.localtime(config.configfilelist[config.configfile])))
 config.Logs.Log("Including config files:")
 for p, f in zip(pfiles, cfiles):
-	config.Logs.Log("  ", p, time.strftime(' %c', time.localtime(config.configfilelist[f])))
+	if config.configfilelist[f] == 0:
+		config.Logs.Log("  ", p, "No Such File", severity=ConsoleWarning)
+	else:
+		config.Logs.Log("  ", p, time.strftime(' %c', time.localtime(config.configfilelist[f])))
 for flg, fval in debug.Flags.iteritems():
 	if fval:
 		config.Logs.Log('Debug flag ', flg, '=', fval, severity=logsupport.ConsoleWarning)
