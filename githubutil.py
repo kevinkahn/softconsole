@@ -19,6 +19,14 @@ def StageVersion(vdir, tag, label):
 	with open('versioninfo', 'w') as f:
 		f.writelines(['{0}\n'.format(tag), '{0}\n'.format(sha), label + ': ' + time.strftime('%m-%d-%y %H:%M:%S\n'),
 					  'Commit date: {0}\n'.format(cdate)])
+	try:
+		os.chmod('runconsole.py', 0o555)
+	except:
+		pass
+	try:
+		os.chmod('console.py', 0o555)
+	except:
+		pass
 	os.remove(tag + '.tar.gz')
 	os.chdir(cwd)
 
