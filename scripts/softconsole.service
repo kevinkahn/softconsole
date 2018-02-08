@@ -10,7 +10,9 @@ Type=forking
 PIDfile=/home/pi/console.pid
 RestartPreventExitStatus=11 12 13
 RestartForceExitStatus=31 32 33 34 35
-ExecStartPre=/bin/sleep 5 # try not to start until system time has had a chance to update
+
+# try not to start until system time has had a chance to update
+ExecStartPre=/bin/sleep 5
 ExecStart=/home/pi/consolecur/runconsole.py
 # todo change to consolestable
 
