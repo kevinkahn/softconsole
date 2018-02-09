@@ -8,5 +8,10 @@ targetdir = '/' + '/'.join(os.getcwd().split('/')[1:4])
 print('Dir: ' + targetdir)
 os.chmod(targetdir + '/runconsole.py', 0o555)
 os.chmod(targetdir + '/console.py',0o555)
+try:
+	os.mkdir('/usr/lib/systemd/system')
+	# make it in case it isn't already there
+except:
+	pass
 subprocess.call('cp -f ' + targetdir + '/scripts/softconsole.service /usr/lib/systemd/system', shell=True)
 subprocess.call('systemctl daemon-reload', shell=True)
