@@ -82,11 +82,14 @@ date >> /home/pi/prep.log
 echo "Developer system:           $Personal" >> /home/pi/prep.log
 echo "Auto start Console on boot: $AutoConsole" >> /home/pi/prep.log
 exec > >(tee -a /home/pi/prep.log)
+exec 2>&1
 
+echo stable > versionselector
 
 if [ $Personal == "Y" ]
 then
     touch homesystem
+    #echo cur > versionselector  # todo delete
     echo "Make Home System"
 fi
 
@@ -160,6 +163,17 @@ then
 else
   LogBanner "Set No Console Autostart at Boot"
 fi
+
+mkdir consoleinstallleftovers
+mv prep.log earlyprep.log consoleinstallleftovers
+mv adafruit* consoleinstallleftovers
+rm tmp
+rm getsetupinfo.py
+rm doinstall.sh
+mv installc* consoleinstallleftovers
+mv di.log    consoleinstallleftovers
+
+
 
 LogBanner "Install and setup finished"
 LogBanner "Rebooting in 5 seconds"
