@@ -159,7 +159,7 @@ sudo passwd pi
 LogBanner "VNC Service Password"
 vncpasswd -service
 Get_val NodeName "What name for this system?"
-Get_yn VNCstdPort "Install VNC/ssh on standard port (Y/N)?"
+Get_yn VNCstdPort "Install VNC on standard port (Y/N/alt port number)?"
 Get_yn Personal "Is this the developer personal system (Y/N) (bit risky to say Y if it not)?"
 Get_yn AutoConsole "Autostart console (Y/N)?"
 
@@ -261,28 +261,39 @@ sed -f lxfix lxterminal.conf.bak > lxterminal.conf
 
 echo "Authentication=VncAuth" >> /root/.vnc/config.d/vncserver-x11
 echo "Encryption=PreferOff" >> /root/.vnc/config.d/vncserver-x11
-su pi -c vncserver # create the Xvnc file in ~pi/.vnc/config.d so it can be modified below; until reboot vnc on 5900
-if [ $VNCstdPort != "Y" ]
-then
-  SSHDport=$(($VNCstdPort - 100))
-  VNCConsole=$(($VNCstdPort - 1))
-  echo "Console VNC will be set up on port " $VNCConsole
-  echo "Virtual VNC will be set up on port " $VNCstdPort
-  echo "sshd will be moved to port " $SSHDport
-  cp /etc/ssh/sshd_config /etc/ssh/sshd_config.sav
-  sed "/Port /s/.*/Port $SSHDport/" /etc/ssh/sshd_config.sav > /etc/ssh/sshd_config
-  echo "RfbPort=$VNCstdPort" >> /home/pi/.vnc/config.d/Xvnc
-  chown pi /home/pi/.vnc/config.d/Xvnc
-  echo "RfbPort=$VNCConsole" >> /root/.vnc/config.d/vncserver-x11
-else
-  echo "VNC will be set up on its normal port"
-fi
+su pi -c vncserver # create the Xvnc file in ~pi/.vnc/config.d so it can be modified below
+case $VNCstdPort in # if [ $VNCstdPort != "Y" ]
+  Y)
+    echo "VNC will be set up on its normal port"
+    ;;
+  N)
+    echo "No VNC will ne set up"
+    ;;
+  *)
+    SSHDport=$(($VNCstdPort - 100))
+    VNCConsole=$(($VNCstdPort - 1))
+    echo "Console VNC will be set up on port " $VNCConsole
+    echo "Virtual VNC will be set up on port " $VNCstdPort
+    echo "sshd will be moved to port " $SSHDport
+    cp /etc/ssh/sshd_config /etc/ssh/sshd_config.sav
+    sed "/Port /s/.*/Port $SSHDport/" /etc/ssh/sshd_config.sav > /etc/ssh/sshd_config
+    echo "RfbPort=$VNCstdPort" >> /home/pi/.vnc/config.d/Xvnc
+    chown pi /home/pi/.vnc/config.d/Xvnc
+    echo "RfbPort=$VNCConsole" >> /root/.vnc/config.d/vncserver-x11
+    ;;
+esac
 LogBanner "Setup Virtual VNC Service"
 
-mv /home/pi/vncserverpi.service /usr/lib/systemd/system
-systemctl enable vncserverpi.service
-systemctl enable vncserver-x11-serviced.service
-systemctl start vncserver-x11-serviced.service
+if [ $VNCstdPort == "N" ]
+then
+    echo "VNC service files installation skipped"
+else
+    echo "VNC service files installed and enabled"
+    mv /home/pi/vncserverpi.service /usr/lib/systemd/system
+    systemctl enable vncserverpi.service
+    systemctl enable vncserver-x11-serviced.service
+    systemctl start vncserver-x11-serviced.service
+fi
 
 # Save initial rc.local to restore after helper scripts run
 cp /etc/rc.local /etc/rc.local.hold # helper script below screws up rc.local
