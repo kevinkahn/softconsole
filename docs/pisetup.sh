@@ -130,9 +130,6 @@ function install_xserver_xorg_input_evdev_for_waveshare {
 
 
 
-
-
-
 if [[ "$EUID" -ne 0 ]]
 then
   echo "Must be run as root"
@@ -156,8 +153,7 @@ dpkg-reconfigure -f noninteractive tzdata
 dpkg-reconfigure tzdata
 LogBanner "Pi User Password"
 sudo passwd pi
-LogBanner "VNC Service Password"
-vncpasswd -service
+
 Get_val NodeName "What name for this system?"
 Get_yn VNCstdPort "Install VNC on standard port (Y/N/alt port number)?"
 Get_yn Personal "Is this the developer personal system (Y/N) (bit risky to say Y if it not)?"
@@ -257,19 +253,24 @@ fgcolor=#c63eef9a0c11
 cp lxterminal.conf lxterminal.conf.bak
 sed -f lxfix lxterminal.conf.bak > lxterminal.conf
 
-
-
-echo "Authentication=VncAuth" >> /root/.vnc/config.d/vncserver-x11
-echo "Encryption=PreferOff" >> /root/.vnc/config.d/vncserver-x11
-su pi -c vncserver # create the Xvnc file in ~pi/.vnc/config.d so it can be modified below
 case $VNCstdPort in # if [ $VNCstdPort != "Y" ]
   Y)
     echo "VNC will be set up on its normal port"
+    LogBanner "VNC Service Password"
+    vncpasswd -service
+    echo "Authentication=VncAuth" >> /root/.vnc/config.d/vncserver-x11
+    echo "Encryption=PreferOff" >> /root/.vnc/config.d/vncserver-x11
+    su pi -c vncserver # create the Xvnc file in ~pi/.vnc/config.d so it can be modified below
     ;;
   N)
     echo "No VNC will ne set up"
     ;;
   *)
+    LogBanner "VNC Service Password"
+    vncpasswd -service
+    echo "Authentication=VncAuth" >> /root/.vnc/config.d/vncserver-x11
+    echo "Encryption=PreferOff" >> /root/.vnc/config.d/vncserver-x11
+    su pi -c vncserver # create the Xvnc file in ~pi/.vnc/config.d so it can be modified below
     SSHDport=$(($VNCstdPort - 100))
     VNCConsole=$(($VNCstdPort - 1))
     echo "Console VNC will be set up on port " $VNCConsole
