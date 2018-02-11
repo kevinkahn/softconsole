@@ -24,6 +24,9 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 								 CenterMultiline=False, FcstCenter=False,
 								 TimeFormat=[], ConditionFields=[], ConditionFormat=[], ForecastFields=[],
 								 ForecastFormat=[], ForecastDays=1, SkipDays=0)
+		if self.ForecastDays + self.SkipDays > 10:
+			self.ForecastDays = 10 - self.SkipDays
+			config.Logs.Log("Long forecast requested; days reduced to: "+str(self.ForecastDays),severity=ConsoleWarning)
 		if self.Fcst2Column and self.FcstCenter:
 			self.Fcst2Column = False
 			config.Logs.Log("2 Column and Center can't both be true - setting 2 Column False", severity=ConsoleWarning)

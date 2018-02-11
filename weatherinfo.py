@@ -10,7 +10,7 @@ import io
 import pygame
 
 import config
-from logsupport import ConsoleWarning, ConsoleError, ConsoleInfo
+from logsupport import ConsoleWarning, ConsoleError, ConsoleDetail
 from utilities import wc
 
 ICONSPACE = 10
@@ -78,7 +78,7 @@ def TreeDict(d, *args):
 def TryShorten(term):
 	if term in config.TermShortener:
 		return config.TermShortener[term]
-	elif len(term) > 12 and term[0:3] != 'http':
+	elif len(term) > 12 and term[0:4] != 'http':
 		config.Logs.Log("Long term: " + term, severity=ConsoleWarning)
 		config.TermShortener[term] = term  # only report once
 		with open(config.exdir + '/termshortenlist.new', 'w') as f:
@@ -171,7 +171,7 @@ class WeatherInfoActual(object):
 					val = f.read()
 					config.WUcount += 1
 					config.Logs.Log("Actual weather fetch for " + self.location + " WU count: " + str(config.WUcount),
-									severity=ConsoleInfo)
+									severity=ConsoleDetail)
 				except:
 					config.Logs.Log("Error fetching weather: " + self.url + str(sys.exc_info()[0]),
 									severity=ConsoleWarning)

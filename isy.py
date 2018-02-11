@@ -6,7 +6,7 @@ import config
 import debug
 import exitutils
 import utilities
-from logsupport import ConsoleInfo, ConsoleWarning, ConsoleError
+from logsupport import ConsoleInfo, ConsoleWarning, ConsoleError, ConsoleDetailHigh
 import sys
 import traceback
 import pygame
@@ -27,16 +27,16 @@ def try_ISY_comm(urlcmd):
                 r = config.ISYrequestsession.get(t, verify=False, timeout=5)
             except requests.exceptions.ConnectTimeout:
                 config.Logs.Log("ISY Comm Timeout: " + ' Cmd: ' + '*' + urlcmd + '*', severity=ConsoleError)
-                config.Logs.Log(sys.exc_info()[1], severity=ConsoleError, tb=False)
+                config.Logs.Log(sys.exc_info()[1], severity=ConsoleDetailHigh, tb=False)
                 raise CommsError
             except requests.exceptions.ConnectionError:
                 config.Logs.Log("ISY Comm ConnErr: " + ' Cmd: ' + urlcmd, severity=ConsoleError)
-                config.Logs.Log(sys.exc_info()[1], severity=ConsoleError, tb=False)
-                traceback.print_exc()
+                config.Logs.Log(sys.exc_info()[1], severity=ConsoleDetailHigh, tb=False)
+                #traceback.print_exc()
                 raise CommsError
             except:
                 config.Logs.Log("ISY Comm UnknownErr: " + ' Cmd: ' + urlcmd, severity=ConsoleError)
-                config.Logs.Log(sys.exc_info()[1], severity=ConsoleError, tb=False)
+                config.Logs.Log(sys.exc_info()[1], severity=ConsoleDetailHigh, tb=False)
                 raise CommsError
             if r.status_code != 200:
                 config.Logs.Log('ISY Bad status:' + str(r.status_code) + ' on Cmd: ' + urlcmd, severity=ConsoleError)
@@ -432,8 +432,9 @@ class ISY(object):
         """
         while True:
             try:
-                r1 = ISYsession.get(config.ISYprefix + 'vars/definitions/2', verify=False, timeout=3)
-                r2 = ISYsession.get(config.ISYprefix + 'vars/definitions/1', verify=False, timeout=3)
+                r1 = ISYsession.get(config.ISYprefix + 'vars/definitions/2', verify=False, timeout=5)
+                r2 = ISYsession.get(config.ISYprefix + 'vars/definitions/1', verify=False, timeout=5)
+                # for some reason var reads seem to typically take longer to complete so to at 5 sec
                 if r1.status_code != 200 or r2.status_code != 200:
                     config.Logs.Log("Bad ISY var read" + r1.text + r2.text, severity=ConsoleWarning)
                     raise requests.exceptions.ConnectionError  # fake connection error on bad read

@@ -1,7 +1,7 @@
 import weatherinfo
 import config
 import exitutils
-from logsupport import ConsoleError, ConsoleInfo, ConsoleWarning
+from logsupport import ConsoleError, ConsoleInfo, ConsoleWarning, ConsoleDetail
 import isy
 import exceptions
 
@@ -39,7 +39,7 @@ class GetTempsToISY(object):
 			isyvar = config.ISY.GetVarCode(tuple(assigns[i + 1].split(':')))
 			config.Logs.Log(
 				"Temps sent to ISY(" + station + '):' + weathcode[0] + ':' + weathcode[1] + ' -> ' + str(weathval),
-				severity=ConsoleInfo)
+				severity=ConsoleDetail)
 			if isyvar != (0, 0):
 				isy.SetVar(isyvar, int(weathval))
 			else:
