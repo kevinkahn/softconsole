@@ -26,11 +26,11 @@ def try_ISY_comm(urlcmd):
                 debug.debugPrint('ISY', '*' + t + '*')
                 r = config.ISYrequestsession.get(t, verify=False, timeout=5)
             except requests.exceptions.ConnectTimeout:
-                config.Logs.Log("ISY Comm Timeout: " + ' Cmd: ' + '*' + urlcmd + '*', severity=ConsoleError)
+                config.Logs.Log("ISY Comm Timeout: " + ' Cmd: ' + '*' + urlcmd + '*', severity=ConsoleError, tb= False)
                 config.Logs.Log(sys.exc_info()[1], severity=ConsoleDetailHigh, tb=False)
                 raise CommsError
             except requests.exceptions.ConnectionError:
-                config.Logs.Log("ISY Comm ConnErr: " + ' Cmd: ' + urlcmd, severity=ConsoleError)
+                config.Logs.Log("ISY Comm ConnErr: " + ' Cmd: ' + urlcmd, severity=ConsoleError, tb = False)
                 config.Logs.Log(sys.exc_info()[1], severity=ConsoleDetailHigh, tb=False)
                 #traceback.print_exc()
                 raise CommsError

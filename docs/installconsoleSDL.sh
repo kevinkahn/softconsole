@@ -79,6 +79,7 @@ then
 fi
 
 date >> /home/pi/prep.log
+time >> /home/pi/prep.log
 echo "Developer system:           $Personal" >> /home/pi/prep.log
 echo "Auto start Console on boot: $AutoConsole" >> /home/pi/prep.log
 exec > >(tee -a /home/pi/prep.log)
@@ -145,6 +146,8 @@ mv di.log    consoleinstallleftovers
 
 
 
+date >> /home/pi/prep.log
+time >> /home/pi/prep.log
 LogBanner "Install and setup finished"
 LogBanner "Rebooting in 5 seconds"
 for i in 5 4 3 2 1
