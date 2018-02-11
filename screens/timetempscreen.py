@@ -64,7 +64,9 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 		h = h + renderedtimelabel[-1].get_height()
 
 		if self.WInfo.FetchWeather() == -1:
-			errmsg = config.fonts.Font(self.CharSize[1],self.Font).render('Weather unavailable or error')
+			errmsg1 = config.fonts.Font(self.CharSize[1],self.Font).render('Weather',0,wc(self.CharColor))
+			errmsg2 = config.fonts.Font(self.CharSize[1], self.Font).render('unavailable', 0, wc(self.CharColor))
+			errmsg3 = config.fonts.Font(self.CharSize[1], self.Font).render('or error', 0, wc(self.CharColor))
 			config.screen.fill(wc(self.BackgroundColor),
 							   pygame.Rect(0, 0, config.screenwidth, config.screenheight - config.botborder))
 			vert_off = config.topborder
@@ -72,7 +74,10 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 				horiz_off = (config.screenwidth - tmlbl.get_width()) / 2
 				config.screen.blit(tmlbl, (horiz_off, vert_off))
 				vert_off = vert_off + 20 + tmlbl.get_height()
-			config.screen.blit(errmsg,((config.screenwidth - errmsg.get_width())/2,vert_off))
+			config.screen.blit(errmsg1,((config.screenwidth - errmsg1.get_width())/2,vert_off))
+			config.screen.blit(errmsg2, ((config.screenwidth - errmsg2.get_width()) / 2, vert_off + errmsg1.get_height()))
+			config.screen.blit(errmsg3,
+							   ((config.screenwidth - errmsg3.get_width()) / 2, vert_off + 2*errmsg1.get_height()))
 		else:
 			cb = CreateWeathBlock(self.ConditionFormat,self.ConditionFields,self.WInfo.ConditionVals,config.fonts.Font(self.CharSize[-2],self.Font),self.CharColor,self.CondIcon,self.CenterMultiline)
 			h = h + cb.get_height()
