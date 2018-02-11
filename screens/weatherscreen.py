@@ -114,6 +114,7 @@ class WeatherScreenDesc(screen.ScreenDesc):
 				horiz_off = config.horizborder
 			config.screen.blit(renderedlines[i], (horiz_off, vert_off))
 			vert_off = vert_off + renderedlines[i].get_height() + s
+		#todo tmp
 		pygame.display.update()
 
 	def InitDisplay(self, nav):

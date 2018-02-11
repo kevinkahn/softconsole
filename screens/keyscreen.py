@@ -1,7 +1,6 @@
 from configobj import Section
 
 import config
-import isy
 import screen
 import utilities
 from debug import debugPrint

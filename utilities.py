@@ -100,7 +100,7 @@ def ParseParam(param):
 def LogParams():
 	global paramlog
 	for p in paramlog:
-		config.Logs.Log(p)
+		config.Logs.Log(p,severity=ConsoleDetail)
 
 def InitializeEnvironment():
 	# this section is an unbelievable nasty hack - for some reason Pygame
@@ -241,7 +241,10 @@ def LocalizeParams(inst, configsection, indent, *args, **kwargs):
 							severity=ConsoleError)
 
 	for i in range(len(lcllist)):
-		val = type(lclval[i])(configsection.get(lcllist[i], lclval[i]))
+		if isinstance(lclval[i], bool):
+			val = (configsection.get(lcllist[i], 'True' if lclval[i] else 'False') == 'True')
+		else:
+			val = type(lclval[i])(configsection.get(lcllist[i], lclval[i]))
 		if isinstance(val, list):
 			for j, v in enumerate(val):
 				if isinstance(v, str):

@@ -2,7 +2,7 @@ from configobj import Section
 
 import config
 from debug import debugPrint
-from logsupport import ConsoleWarning, ConsoleError
+from logsupport import ConsoleWarning, ConsoleError, ConsoleDetail
 import toucharea
 import functools
 import exitutils
@@ -30,7 +30,7 @@ class MyScreens(object):
 				debugPrint('Screen', "Screen of type ", tempscreentype)
 
 				if tempscreentype in config.screentypes:
-					config.Logs.Log(tempscreentype + " screen " + screenitem)
+					config.Logs.Log(tempscreentype + " screen " + screenitem, severity=ConsoleDetail)
 					NewScreen = config.screentypes[tempscreentype](thisScreen, screenitem)
 
 				else:

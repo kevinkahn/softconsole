@@ -84,7 +84,8 @@ class Logs(object):
 	def RenderLogLine(self, text, clr, pos):
 		# odd logic below is to make sure that if an unbroken item would by itself exceed line length it gets forced out
 		# thus avoiding an infinite loop
-		text = re.sub('\s\s+', ' ', text)
+
+		text = re.sub('\s\s+', ' ', text.rstrip())
 		ltext = re.split('([ :,])', text)
 		ltext.append('')
 		ptext = []

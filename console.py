@@ -39,7 +39,7 @@ import logsupport
 import maintscreen
 import utilities
 import requests
-from logsupport import ConsoleWarning
+from logsupport import ConsoleWarning, ConsoleDetail
 
 import json
 

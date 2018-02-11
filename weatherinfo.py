@@ -6,9 +6,47 @@ import urllib2
 import utilities
 import os
 import string
+import io
+import pygame
 
 import config
 from logsupport import ConsoleWarning, ConsoleError, ConsoleInfo
+from utilities import wc
+
+ICONSPACE = 10
+
+def CreateWeathBlock(Format, Fields, Vals, FcstFont, FcstColor, icon, centered):
+	rf = []
+	fh = 0
+	fw = 0
+	try:
+		for f in Format:
+			vals = [Vals[fld] for fld in Fields]
+			rf.append(FcstFont.render(WFormatter().format(f, d=vals), 0, wc(FcstColor)))
+			fh += rf[-1].get_height()
+			if rf[-1].get_width() > fw: fw = rf[-1].get_width()
+	except:
+		config.Logs.Log('TimeTemp Weather Forecast Error', severity=ConsoleWarning)
+		rf.append(FcstFont.render('Weather N/A', 0, wc(FcstColor)))
+		fh = rf[-1].get_height()*len(Format)  # force the height to always be equal even if error
+		if rf[-1].get_width() > fw: fw = rf[-1].get_width()
+	if icon:
+		totw = fw + fh + ICONSPACE
+		hoff = fh + ICONSPACE
+	else:
+		totw = fw
+		hoff = 0
+	fsfc = pygame.Surface((totw, fh))
+	fsfc.set_colorkey(wc('black'))
+	v = 0
+	if icon: fsfc.blit(pygame.transform.smoothscale(Vals['Icon'], (fh, fh)),(0, 0))
+	for l in rf:
+		if centered:
+			fsfc.blit(l,(hoff + (fw-l.get_width())/2,v))
+		else:
+			fsfc.blit(l,(hoff,v))
+		v += l.get_height()
+	return fsfc
 
 
 class WFormatter(string.Formatter):
@@ -40,12 +78,26 @@ def TreeDict(d, *args):
 def TryShorten(term):
 	if term in config.TermShortener:
 		return config.TermShortener[term]
-	elif len(term) > 12:
+	elif len(term) > 12 and term[0:3] != 'http':
 		config.Logs.Log("Long term: " + term, severity=ConsoleWarning)
 		config.TermShortener[term] = term  # only report once
 		with open(config.exdir + '/termshortenlist.new', 'w') as f:
 			json.dump(config.TermShortener, f, indent=4, separators=(',', ": "))
 	return term
+
+WeatherIconCache = {}
+
+def get_icon(url):
+	if 	WeatherIconCache.has_key(url):
+		return WeatherIconCache[url]
+	else:
+		icon_str = urllib2.urlopen(url).read()
+		icon_file = io.BytesIO(icon_str)
+		icon_gif = pygame.image.load(icon_file,'icon.gif')
+		icon_scr = pygame.Surface.convert_alpha(icon_gif)
+		icon_scr.set_colorkey(icon_gif.get_colorkey())
+		WeatherIconCache[url] = icon_scr
+		return icon_scr
 
 
 class WeatherInfoActual(object):
@@ -66,14 +118,16 @@ class WeatherInfoActual(object):
 					'MoonsetH': (int, ('moon_phase', 'moonset', 'hour')),
 					'MoonsetM': (int, ('moon_phase', 'moonset', 'minute')),
 					'MoonPct': (int, ('moon_phase', 'percentIlluminated')),
-	                'Humidity': (str, ('current_observation', 'relative_humidity'))
+	                'Humidity': (str, ('current_observation', 'relative_humidity')),
+					'Iconurl': (str, ('current_observation','icon_url'))
 					}
 	ForecastDay = {'Day': (str, ('date', 'weekday_short')),
 				   'High': (int, ('high', 'fahrenheit')),
 				   'Low': (int, ('low', 'fahrenheit')),
 				   'Sky': (str, ('conditions',)),
 				   'WindDir': (str, ('avewind', 'dir')),
-				   'WindSpd': (float, ('avewind', 'mph'))}
+				   'WindSpd': (float, ('avewind', 'mph')),
+				   'Iconurl': (str, ('icon_url',))}
 
 	def __init__(self, WunderKey, location):
 		self.keyok = True
@@ -153,6 +207,8 @@ class WeatherInfoActual(object):
 					except:
 						self.ConditionVals[cond] = None  # desc[0]('0')
 						self.ConditionErr.append(cond)
+				self.ConditionVals['Icon'] = get_icon(self.ConditionVals['Iconurl'])
+
 				for i, fcst in enumerate(fcsts):
 					self.ForecastVals.append({})
 					self.ForecastErr.append([])
@@ -167,6 +223,7 @@ class WeatherInfoActual(object):
 								fs(*desc[1])) + '*', severity=ConsoleError, tb=False)
 							self.ForecastVals[i][fc] = None  #desc[0]('0')
 							self.ForecastErr[i].append(fc)
+					self.ForecastVals[i]['Icon'] = get_icon(self.ForecastVals[i]['Iconurl'])
 				"""
 				Create synthetic fields and fix error cases
 				"""
