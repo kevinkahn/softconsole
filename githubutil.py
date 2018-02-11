@@ -51,6 +51,7 @@ def GetSHA(tag):
 			sha = i['commit']['sha']
 			url = i['commit']['url']
 			break
+		return "no current sha", "no release info"
 	r = requests.get(url)
 	d = r.json()
 	c = d['commit']['committer']['date']

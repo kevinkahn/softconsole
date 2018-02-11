@@ -15,7 +15,7 @@ class AutoVersion(object):
 			config.DS.Tasks.StartLongOp()  # todo perhaps a cleaner way to deal with long ops
 			try:  # if network is down or other error occurs just skip for now rather than blow up
 				sha, c = githubutil.GetSHA(config.versionname)
-				if sha <> config.versionsha:
+				if sha <> config.versionsha and sha <> 'no current sha':
 					config.Logs.Log('Current hub version different')
 					config.Logs.Log(
 						'Running (' + config.versionname + '): ' + config.versionsha + ' of ' + config.versioncommit)
