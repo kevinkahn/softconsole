@@ -40,6 +40,7 @@ import maintscreen
 import utilities
 import requests
 from logsupport import ConsoleWarning, ConsoleDetail
+import weatherinfo
 
 import json
 
@@ -61,6 +62,9 @@ signal.signal(signal.SIGINT, handler)
 sectionget = Section.get
 
 config.Console_pid = os.getpid()
+config.exdir = os.path.dirname(os.path.abspath(__file__))
+os.chdir(config.exdir)  # make sure we are in the directory we are executing from
+config.homedir = os.path.dirname(config.exdir)
 print("Console (" + str(config.Console_pid) + ") starting in "+os.getcwd())
 
 def CO_get(self, key, default, delkey=True):
@@ -80,10 +84,6 @@ def LogBadParams(section, name):
 		else:
 			config.Logs.Log("Bad (unused) parameter name in: ", name, " (", nm, "=", str(s), ")",
 							severity=ConsoleWarning)
-
-
-config.exdir = os.path.dirname(os.path.abspath(__file__))
-config.homedir = os.path.dirname(config.exdir)
 
 earlylog = open(config.homedir + '/Console/earlylog.log', 'w', 0)
 earlylog.write("Console start at " + time.strftime('%m-%d-%y %H:%M:%S') + ' on ' + config.hostname + '\n')
@@ -163,6 +163,13 @@ with open(config.exdir + '/termshortenlist', 'r') as f:
 		config.TermShortener = json.load(f)
 	except:
 		config.TermShortener = {}
+
+# preload weather icon cache for some common terms
+for cond in ('clear','cloudy','mostlycloudy','mostlysunny','partlycloudy','partlysunny','rain','snow','sunny','chancerain'):
+	try:
+		weatherinfo.get_icon('https://icons.wxug.com/i/c/k/' + cond + '.gif')
+	except:
+		pass
 
 if len(sys.argv) == 2:
 	config.configfile = sys.argv[1]
@@ -250,6 +257,7 @@ if config.lastup > 0:
 	config.Logs.Log("Previous Console Downtime: ", str(datetime.timedelta(seconds=(config.starttime - config.lastup))))
 config.Logs.Log("Main config file: ", config.configfile,
 				time.strftime(' %c', time.localtime(config.configfilelist[config.configfile])))
+config.Logs.Log("Default config file library: ", cfglib)
 config.Logs.Log("Including config files:")
 for p, f in zip(pfiles, cfiles):
 	if config.configfilelist[f] == 0:

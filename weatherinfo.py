@@ -15,19 +15,28 @@ from utilities import wc
 
 ICONSPACE = 10
 
-def CreateWeathBlock(Format, Fields, Vals, FcstFont, FcstColor, icon, centered):
+def CreateWeathBlock(Format, Fields, Vals, WeathFont, FontSize, WeathColor, icon, centered, extra={}):
 	rf = []
 	fh = 0
 	fw = 0
+	if isinstance(FontSize,int): FontSize = [FontSize]
+	fsize = FontSize.pop(0)
+	usefont = config.fonts.Font(fsize, WeathFont)
+	for k in extra:
+		Vals[k] = extra[k]
+
 	try:
 		for f in Format:
 			vals = [Vals[fld] for fld in Fields]
-			rf.append(FcstFont.render(WFormatter().format(f, d=vals), 0, wc(FcstColor)))
+			rf.append(usefont.render(WFormatter().format(f, d=vals), 0, wc(WeathColor)))
 			fh += rf[-1].get_height()
 			if rf[-1].get_width() > fw: fw = rf[-1].get_width()
+			if FontSize != []:
+				fsize = FontSize.pop(0)
+				usefont = config.fonts.Font(fsize, WeathFont)
 	except:
 		config.Logs.Log('TimeTemp Weather Forecast Error', severity=ConsoleWarning)
-		rf.append(FcstFont.render('Weather N/A', 0, wc(FcstColor)))
+		rf.append(usefont.render('Weather N/A', 0, wc(WeathColor)))
 		fh = rf[-1].get_height()*len(Format)  # force the height to always be equal even if error
 		if rf[-1].get_width() > fw: fw = rf[-1].get_width()
 	if icon:
@@ -46,6 +55,7 @@ def CreateWeathBlock(Format, Fields, Vals, FcstFont, FcstColor, icon, centered):
 		else:
 			fsfc.blit(l,(hoff,v))
 		v += l.get_height()
+	#pygame.draw.rect(fsfc,wc('white'),((0,0),(fsfc.get_width(),fsfc.get_height())),1)
 	return fsfc
 
 

@@ -46,6 +46,7 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 	def repaintClock(self):
 		usefulheight = config.screenheight - config.topborder - config.botborder
 		h = 0
+		spaces = 0
 		renderedtimelabel = []
 		renderedforecast  = []
 		sizeindex = 0
@@ -55,13 +56,16 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 					time.strftime(self.TimeFormat[i]), 0, wc(self.CharColor)))
 			h = h + renderedtimelabel[-1].get_height()
 			sizeindex += 1
-		renderedtimelabel.append(
-			config.fonts.Font(self.CharSize[sizeindex], self.Font).render(
-				# "{d}".format(d=self.scrlabel), 0, wc(self.CharColor)
-				self.fmt.format("{d}", d=self.scrlabel), 0, wc(self.CharColor)
+			spaces += 1
+		if int(self.CharSize[sizeindex]) != 0:
+			renderedtimelabel.append(
+				config.fonts.Font(self.CharSize[sizeindex], self.Font).render(
+					self.fmt.format("{d}", d=self.scrlabel), 0, wc(self.CharColor)
+				)
 			)
-		)
-		h = h + renderedtimelabel[-1].get_height()
+			h = h + renderedtimelabel[-1].get_height()
+			spaces += 1
+		sizeindex += 1
 
 		if self.WInfo.FetchWeather() == -1:
 			errmsg1 = config.fonts.Font(self.CharSize[1],self.Font).render('Weather',0,wc(self.CharColor))
@@ -79,38 +83,43 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 			config.screen.blit(errmsg3,
 							   ((config.screenwidth - errmsg3.get_width()) / 2, vert_off + 2*errmsg1.get_height()))
 		else:
-			cb = CreateWeathBlock(self.ConditionFormat,self.ConditionFields,self.WInfo.ConditionVals,config.fonts.Font(self.CharSize[-2],self.Font),self.CharColor,self.CondIcon,self.CenterMultiline)
+			cb = CreateWeathBlock(self.ConditionFormat,self.ConditionFields,self.WInfo.ConditionVals,self.Font,int(self.CharSize[sizeindex]),self.CharColor,self.CondIcon,self.CenterMultiline)
 			h = h + cb.get_height()
 
 			maxfcstwidth = 0
 			forecastlines = 0
+			spaces += 1
 			for dy in range(self.ForecastDays):
-				fb = CreateWeathBlock(self.ForecastFormat, self.ForecastFields, self.WInfo.ForecastVals[dy + self.SkipDays], config.fonts.Font(self.ForecastCharSize, self.Font), self.CharColor, self.FcstIcon, self.CenterMultiline)
+				fb = CreateWeathBlock(self.ForecastFormat, self.ForecastFields, self.WInfo.ForecastVals[dy + self.SkipDays], self.Font, [self.ForecastCharSize], self.CharColor, self.FcstIcon, self.CenterMultiline)
 				renderedforecast.append(fb)
 				if fb.get_width() > maxfcstwidth: maxfcstwidth = fb.get_width()
 				forecastlines += 1
 			forecastitemheight = renderedforecast[-1].get_height()
 
 			if self.Fcst2Column:
-				h = h + forecastitemheight * (self.ForecastDays + 1) / 2
+				h = h + forecastitemheight * ((self.ForecastDays + 1) / 2)
 				forecastlines = (forecastlines + 1) / 2
 				usewidth = config.screenwidth / 2
 			else:
 				h = h + forecastitemheight * self.ForecastDays
 				usewidth = config.screenwidth
 
-			s = (usefulheight - h)/(len(renderedtimelabel)+forecastlines) # not counting condition item makes divisor ok
+			s = (usefulheight - h)/(spaces + forecastlines - 1)
+			extraspace = (usefulheight - h - s*(spaces + forecastlines - 1))/(spaces)
 
 			config.screen.fill(wc(self.BackgroundColor),
 							   pygame.Rect(0, 0, config.screenwidth, config.screenheight - config.botborder))
 			vert_off = config.topborder
+			#pygame.draw.line(config.screen, wc('white'), (0, vert_off), (400, vert_off))
 			for tmlbl in renderedtimelabel:
 				horiz_off = (config.screenwidth - tmlbl.get_width())/2
 				config.screen.blit(tmlbl, (horiz_off, vert_off))
-				vert_off = vert_off + s + tmlbl.get_height()
+				vert_off = vert_off + s + tmlbl.get_height() + extraspace
+				#pygame.draw.line(config.screen, wc('white'), (0, vert_off), (400, vert_off))
 
 			config.screen.blit(cb, ((config.screenwidth - cb.get_width())/2, vert_off))
-			vert_off = vert_off + s + cb.get_height()
+			vert_off = vert_off + s + cb.get_height() + extraspace
+			#pygame.draw.line(config.screen, wc('white'), (0, vert_off), (400, vert_off))
 
 			startvert = vert_off
 			horiz_off = (usewidth - maxfcstwidth) / 2
@@ -119,10 +128,13 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 					horiz_off = (usewidth - fcst.get_width())/2
 				config.screen.blit(fcst, (horiz_off, vert_off))
 				vert_off = vert_off + s + fcst.get_height()
+				#pygame.draw.line(config.screen, wc('white'), (0, vert_off), (400, vert_off))
 				if (dy == (self.ForecastDays+1)/2 - 1) and self.Fcst2Column:
 					horiz_off = horiz_off + usewidth
 					vert_off = startvert
 
+		#pygame.draw.line(config.screen,wc('white'),(0,vert_off),(400,vert_off))
+		#pygame.draw.line(config.screen,wc('black'),(0,config.screenheight-config.botborder),(400,config.screenheight-config.botborder))
 		pygame.display.update()
 		config.DS.Tasks.AddTask(self.ClockRepaintEvent, 1)
 

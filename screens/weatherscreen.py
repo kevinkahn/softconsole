@@ -10,7 +10,12 @@ import toucharea
 from collections import OrderedDict
 
 fsizes = ((20, False, False), (30, True, False), (45, True, True))
-
+"""
+num fcst days, 1 or 2 col, format override, spacing, block center, other params from timetemp?
+default cols based on screen width > 390 use 2 col
+def fcst days based on screen height?
+for conditions where to put icon?  Center vertically? with size lesser of % of screen width % of screen height
+"""
 
 class WeatherScreenDesc(screen.ScreenDesc):
 	def __init__(self, screensection, screenname):
@@ -24,20 +29,26 @@ class WeatherScreenDesc(screen.ScreenDesc):
 		self.currentconditions = True  # show conditions or forecast
 
 		utilities.LocalizeParams(self, screensection, '-', 'WunderKey', location='')
+
 		self.scrlabel = screen.FlatenScreenLabel(self.label)
-		# entries are (fontsize, centered, formatstring, values)
-		self.errormsg = [(2, True, "{d}", self.scrlabel),
-						 (1, True, "{d}", "Weather Not Available")]
-		self.conditions = [(2, True, "{d}", self.scrlabel),
-						   (1, True, "{d[0]}", ('Location',)),
-						   (1, False, u"Now: {d[0]} {d[1]}\u00B0F", ('Sky', 'Temp')),
-						   (0, False, u"  Feels like: {d[0]}\u00B0", ('Feels',)),
-						   (1, False, "Wind {d[0]}", ('WindStr',)),
-						   (1, False, "Sunrise: {d[0]:02d}:{d[1]:02d}", ('SunriseH', 'SunriseM')),
-						   (1, False, "Sunset:  {d[0]:02d}:{d[1]:02d}", ('SunsetH', 'SunsetM')),
-						   (0, False, "Moon rise: {d[0]} set: {d[1]}", ('Moonrise', 'Moonset')),
-						   (0, False, "     {d[0]}% illuminated", ('MoonPct',)),
-						   (0, False, "will be replaced", "")]
+
+		self.errformat = "{d[0]}",'Weather Not Available'
+		self.errfields = 'LABEL',
+
+		self.headformat = "{d[0]}", "{d[1]}"
+		self.headfields = 'LABEL', 'Location'
+
+		self.footformat = "Readings as of", "{d[0]} ago",
+		self.footfields = ('Age',)
+
+		self.condformat = u"{d[0]} {d[1]}\u00B0F",u"  Feels like: {d[2]}\u00B0","Wind {d[3]}"
+		self.condfields = ('Sky', 'Temp','Feels','WindStr')
+
+		self.dayformat  = "Sunrise: {d[0]:02d}:{d[1]:02d}","Sunset:  {d[2]:02d}:{d[3]:02d}","Moon rise: {d[4]} set: {d[5]}","{d[6]}% illuminated"
+		self.dayfields  = ('SunriseH', 'SunriseM', 'SunsetH', 'SunsetM', 'Moonrise', 'Moonset', 'MoonPct')
+
+		self.fcstformat = u"{d[0]}   {d[1]}\u00B0/{d[2]}\u00B0 {d[3]}","Wind: {d[4]} at {d[5]}"
+		self.fcstfields = ('Day', 'High', 'Low', 'Sky','WindDir', 'WindSpd')
 		self.forecast = [(1, False, u"{d[0]}   {d[1]}\u00B0/{d[2]}\u00B0 {d[3]}", ('Day', 'High', 'Low', 'Sky')),
 						 (1, False, "Wind: {d[0]} at {d[1]}", ('WindDir', 'WindSpd'))]
 		self.Info = weatherinfo.WeatherInfo(self.WunderKey, self.location)
@@ -50,71 +61,68 @@ class WeatherScreenDesc(screen.ScreenDesc):
 		self.currentconditions = not self.currentconditions
 		self.ShowScreen(self.currentconditions)
 
-	def RenderScreenLines(self, recipe, values, color):
-		h = 0
-		renderedlines = []
-		centered = []
-		linetorender = ""
-		for line in recipe:
-			try:
-				if isinstance(line[3], basestring):  # handles case of a direct var e.g. label string
-					# linestr = line[2].format(d=line[3])
-					linestr = self.fmt.format(line[2], d=line[3])
-				else:
-					args = []
-					for item in line[3]:
-						args.append(values[item])
-					# linestr = line[2].format(d=args)
-					linestr = self.fmt.format(line[2], d=args)
-			except:
-				config.Logs.Log("Weather format error: " + str(line[3]), severity=logsupport.ConsoleWarning)
-				linestr = ''
-			r = config.fonts.Font(fsizes[line[0]][0], '', fsizes[line[0]][1], fsizes[line[0]][2]).render(
-				linetorender + linestr, 0, wc(color))
-			linetorender = ""
-			renderedlines.append(r)
-			centered.append(line[1])
-			h = h + r.get_height()
-		return renderedlines, centered, h
-
-
-
 	def ShowScreen(self, conditions):
 		self.ReInitDisplay()
-		usefulheight = config.screenheight - config.topborder - config.botborder
-		h = 0
-		centered = []
-		if self.Info.FetchWeather() == -1:
-			renderedlines, centered, h = self.RenderScreenLines(self.errormsg, [0], self.CharColor)
-			config.Logs.Log('Weatherscreen missing weather' + self.name, severity=logsupport.ConsoleWarning)
-		else:
-			if conditions:
-				self.conditions[-1] = (0, False, "Readings as of {d} ago", self.Info.ConditionVals['Age'])
-				renderedlines, centered, h = self.RenderScreenLines(self.conditions, self.Info.ConditionVals,
-																	self.CharColor)
-			else:
-				renderedlines = [
-					config.fonts.Font(fsizes[2][0], '', fsizes[2][1], fsizes[2][2]).render(self.scrlabel, 0,
-																						   wc(self.CharColor))]
-				centered.append(True)
-				h = h + renderedlines[0].get_height()
-				for fcst in self.Info.ForecastVals:
-					r, c, temph = self.RenderScreenLines(self.forecast, fcst, self.CharColor)
-					h += temph
-					renderedlines += r
-					centered += c
 
-		s = (usefulheight - h)/(len(renderedlines) - 1) if len(renderedlines) > 1 else 0
+		usefulheight = config.screenheight - config.topborder - config.botborder
 		vert_off = config.topborder
 
-		for i in range(len(renderedlines)):
-			if centered[i]:
-				horiz_off = (config.screenwidth - renderedlines[i].get_width())/2
+		if self.Info.FetchWeather() == -1:
+			renderedlines = [
+				weatherinfo.CreateWeathBlock(self.errformat, self.errfields, self.Info.ConditionVals, "", [45, 30],
+											 self.CharColor, False, True, extra={'LABEL': self.scrlabel})]
+			for l in renderedlines:
+				config.screen.blit(l, ((config.screenwidth - l.get_width()) / 2, vert_off))
+				vert_off = vert_off + 30
+			config.Logs.Log('Weatherscreen missing weather' + self.name, severity=logsupport.ConsoleWarning)
+		else:
+			renderedlines = [
+				weatherinfo.CreateWeathBlock(self.headformat, self.headfields, self.Info.ConditionVals, "", [50, 40],
+											 self.CharColor, False, True, extra={'LABEL': self.scrlabel})]
+			h = renderedlines[-1].get_height()
+			if conditions:
+				renderedlines.append(weatherinfo.CreateWeathBlock(self.condformat,self.condfields,self.Info.ConditionVals,"",[45,25,35],self.CharColor, True,False))
+				h = h + renderedlines[-1].get_height()
+				renderedlines.append(weatherinfo.CreateWeathBlock(self.dayformat,self.dayfields,self.Info.ConditionVals,"",30,self.CharColor, False, True))
+				h = h + renderedlines[-1].get_height()
+				renderedlines.append(weatherinfo.CreateWeathBlock(self.footformat,self.footfields,self.Info.ConditionVals,"",25,self.CharColor, False, True))
+				h = h + renderedlines[-1].get_height()
+				s = (usefulheight - h) / (len(renderedlines) - 1) if len(renderedlines) > 1 else 0
+				for l in renderedlines:
+					config.screen.blit(l, ((config.screenwidth - l.get_width())/2, vert_off))
+					vert_off = vert_off + l.get_height() + s
+
 			else:
-				horiz_off = config.horizborder
-			config.screen.blit(renderedlines[i], (horiz_off, vert_off))
-			vert_off = vert_off + renderedlines[i].get_height() + s
-		#todo tmp
+				fcstlines = 0
+				maxfcstwidth = 0
+				for fcst in self.Info.ForecastVals:
+					renderedlines.append(weatherinfo.CreateWeathBlock(self.fcstformat,self.fcstfields,fcst,"",25,self.CharColor,True,False))
+					if renderedlines[-1].get_width() > maxfcstwidth: maxfcstwidth = renderedlines[-1].get_width()
+					fcstlines += 1
+
+				if config.screenwidth > 350:
+					h = h + renderedlines[-1].get_height() * 5
+					fcstlines = (fcstlines + 1) / 2
+					usewidth = config.screenwidth / 2
+					lastfcst = 11
+				else:
+					h = h + renderedlines[-1].get_height() * 5
+					fcstlines = 5
+					usewidth = config.screenwidth
+					lastfcst = 6
+				s = (usefulheight - h) / fcstlines
+
+				config.screen.blit(renderedlines[0],((config.screenwidth - renderedlines[0].get_width())/2,vert_off))
+				vert_off = vert_off + renderedlines[0].get_height() + s
+				startvert = vert_off
+				horiz_off = (usewidth - maxfcstwidth) / 2
+				for dy, fcst in enumerate(renderedlines[1:lastfcst]):
+					config.screen.blit(fcst, (horiz_off, vert_off))
+					vert_off = vert_off + s + fcst.get_height()
+					if (dy == 4) and (config.screenwidth > 350):
+						horiz_off = horiz_off + usewidth
+						vert_off = startvert
+
 		pygame.display.update()
 
 	def InitDisplay(self, nav):

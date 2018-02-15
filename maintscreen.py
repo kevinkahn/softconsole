@@ -140,10 +140,10 @@ def dobeta(K, presstype):
 	K.PaintKey()
 	if K.name == 'stable':
 		subprocess.Popen('sudo rm /home/pi/usebeta', shell=True) #todo remove
-		subprocess.Popen('echo stable > /home/pi/versionselector')
+		subprocess.Popen('sudo echo stable > /home/pi/versionselector', shell=True)
 	elif K.name == 'beta':
 		subprocess.Popen('sudo touch /home/pi/usebeta', shell=True) #todo remove
-		subprocess.Popen('echo beta > /home/pi/versionselector')
+		subprocess.Popen('sudo echo beta > /home/pi/versionselector', shell=True)
 	elif K.name == 'fetch':
 		fetch_beta()
 	elif K.name == 'release':

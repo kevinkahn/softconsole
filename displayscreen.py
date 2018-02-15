@@ -19,7 +19,7 @@ class DisplayScreen(object):
 		debug.debugPrint("Main", "Screensize: ", config.screenwidth, config.screenheight)
 		config.Logs.Log("Screensize: " + str(config.screenwidth) + " x " + str(config.screenheight))
 		config.Logs.Log(
-			"Scaling ratio: " + "{0:.2f}".format(config.dispratioW) + ':' + "{0:.2f}".format(config.dispratioH))
+			"Scaling ratio: " + "{0:.2f} W ".format(config.dispratioW) + "{0:.2f} H".format(config.dispratioH))
 
 		self.dim = 'Bright'  # either Bright or Dim (or '' for don't change when a parameter
 		self.state = 'Home'  # one of Home, NonHome, Maint, Cover, Alert

@@ -18,10 +18,10 @@ class Fonts(object):
 	# cache is tree dir with first key as name, second as size, third as ital, fourth as bold
 	# initialize with 1 font for use in early abort messages (40,"",True,True)
 
-	def Font(self, size, face="", bold=False, italic=False):
+	def Font(self, fsize, face="", bold=False, italic=False):
 		def gennewfont():
 			return pygame.font.SysFont(name, utilities.scaleH(size), bold, italic)
-
+		size = int(fsize)
 		try:
 			return self.fontcache[face][size][italic][bold]
 		except KeyError:
