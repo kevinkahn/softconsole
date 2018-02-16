@@ -17,6 +17,8 @@ def CreateWSThread():
 	config.QH.start()
 	config.Logs.Log("ISY stream thread " + str(config.EventMonitor.num) + " started")
 
+lasterror = (0,'Init')
+
 class ISYEventMonitor:
 	def __init__(self):
 		self.a = base64.b64encode(config.ISYuser + ':' + config.ISYpassword)
@@ -33,7 +35,8 @@ class ISYEventMonitor:
 
 	def QHandler(self):
 		def on_error(ws, error):
-			config.Logs.Log("Error in WS stream " + str(self.num) + ':' + repr(error), severity=ConsoleError)
+			config.Logs.Log("Error in WS stream " + str(self.num) + ':' + repr(error), severity=ConsoleError, tb=False) #todo sometimes do the tb?
+			lasterror = error
 			debugPrint('DaemonCtl', "Websocket stream error", self.num, repr(error))
 			ws.close()
 

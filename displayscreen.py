@@ -12,6 +12,7 @@ from eventlist import AlertEventItem, ProcEventItem
 import alerttasks
 import isyeventmonitor
 import os
+import errno
 
 class DisplayScreen(object):
 	def __init__(self):
@@ -153,7 +154,16 @@ class DisplayScreen(object):
 			os.utime(config.homedir + "/.ConsoleStart", None)
 
 			if not config.QH.is_alive() and config.ISYaddr != '':
-				config.Logs.Log('Queue handler died', severity=ConsoleError)
+				config.Logs.Log('Queue handler died, last error:' + str(isyeventmonitor.lasterror), severity=ConsoleError)
+				try:
+					if isyeventmonitor.lasterror[0] == errno.ENETUNREACH:
+						# likely home network down so wait a bit
+						config.Logs.Log('Wait for likely router reboot or down',severity=ConsoleError)
+						# todo overlay a screen delay message so locked up console is understood
+						time.sleep(60)
+				except:
+					pass
+
 				isyeventmonitor.CreateWSThread()
 
 			if time.time() - config.lastheartbeat > 240 and config.ISYaddr != '':  # twice heartbeat interval
