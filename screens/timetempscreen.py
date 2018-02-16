@@ -19,17 +19,17 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 
 		screen.ScreenDesc.__init__(self, screensection, screenname)
 		utilities.LocalizeParams(self, screensection, '-', 'WunderKey', location='', CharSize=[20],
-								 Font=config.monofont,
-								 Fcst2Column=False, FcstIcon=True,CondIcon=True,
-								 CenterMultiline=False, FcstCenter=False,
+								 Font=config.monofont, FcstLayout = 'Block',
+								 FcstIcon=True,CondIcon=True,
 								 TimeFormat=[], ConditionFields=[], ConditionFormat=[], ForecastFields=[],
 								 ForecastFormat=[], ForecastDays=1, SkipDays=0)
 		if self.ForecastDays + self.SkipDays > 10:
 			self.ForecastDays = 10 - self.SkipDays
 			config.Logs.Log("Long forecast requested; days reduced to: "+str(self.ForecastDays),severity=ConsoleWarning)
-		if self.Fcst2Column and self.FcstCenter:
-			self.Fcst2Column = False
-			config.Logs.Log("2 Column and Center can't both be true - setting 2 Column False", severity=ConsoleWarning)
+		if self.FcstLayout not in ('Block','BlockCentered','LineCentered','2ColVert','2ColHoriz'):
+			config.Logs.Log('FcstLayout Param not Block, BlockCentered, LineCentered, 2ColVert, or 2ColHoriz - using "Block" for ' ,
+							screenname,severity=ConsoleWarning)
+			self.FcstLayout = "Block"
 		self.scrlabel = screen.FlatenScreenLabel(self.label)
 		self.WInfo = weatherinfo.WeatherInfo(self.WunderKey, self.location)
 		for i in range(len(self.CharSize), len(self.TimeFormat) + len(self.ConditionFormat)):
@@ -46,23 +46,31 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 	def repaintClock(self):
 		usefulheight = config.screenheight - config.topborder - config.botborder
 		h = 0
-		spaces = 0
-		renderedtimelabel = []
 		renderedforecast  = []
 		sizeindex = 0
+		renderedtime = []
+		renderedtimelabel = []
 
+
+		tw = 0
 		for i in range(len(self.TimeFormat)):
-			renderedtimelabel.append(config.fonts.Font(self.CharSize[sizeindex], self.Font).render(
+			renderedtime.append(config.fonts.Font(self.CharSize[sizeindex], self.Font).render(
 					time.strftime(self.TimeFormat[i]), 0, wc(self.CharColor)))
-			h = h + renderedtimelabel[-1].get_height()
+			h = h + renderedtime[-1].get_height()
+			if renderedtime[-1].get_width() > tw: tw = renderedtime[-1].get_width()
 			sizeindex += 1
-			spaces += 1
+		renderedtimelabel.append(pygame.Surface((tw,h)))
+		renderedtimelabel[-1].set_colorkey(wc('black'))
+		v = 0
+		for l in renderedtime:
+			renderedtimelabel[0].blit(l, (((tw - l.get_width())/ 2), v))
+			v = v + l.get_height()
+		spaces = 1
+
 		if int(self.CharSize[sizeindex]) != 0:
 			renderedtimelabel.append(
 				config.fonts.Font(self.CharSize[sizeindex], self.Font).render(
-					self.fmt.format("{d}", d=self.scrlabel), 0, wc(self.CharColor)
-				)
-			)
+					self.fmt.format("{d}", d=self.scrlabel), 0, wc(self.CharColor)))
 			h = h + renderedtimelabel[-1].get_height()
 			spaces += 1
 		sizeindex += 1
@@ -83,20 +91,25 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 			config.screen.blit(errmsg3,
 							   ((config.screenwidth - errmsg3.get_width()) / 2, vert_off + 2*errmsg1.get_height()))
 		else:
-			cb = CreateWeathBlock(self.ConditionFormat,self.ConditionFields,self.WInfo.ConditionVals,self.Font,int(self.CharSize[sizeindex]),self.CharColor,self.CondIcon,self.CenterMultiline)
+			cb = CreateWeathBlock(self.ConditionFormat,self.ConditionFields,self.WInfo.ConditionVals,self.Font,
+								  int(self.CharSize[sizeindex]),self.CharColor,self.CondIcon,
+								  self.FcstLayout == 'LineCentered')
 			h = h + cb.get_height()
 
 			maxfcstwidth = 0
 			forecastlines = 0
 			spaces += 1
 			for dy in range(self.ForecastDays):
-				fb = CreateWeathBlock(self.ForecastFormat, self.ForecastFields, self.WInfo.ForecastVals[dy + self.SkipDays], self.Font, [self.ForecastCharSize], self.CharColor, self.FcstIcon, self.CenterMultiline)
+				fb = CreateWeathBlock(self.ForecastFormat, self.ForecastFields,
+									  self.WInfo.ForecastVals[dy + self.SkipDays], self.Font,
+									  [self.ForecastCharSize], self.CharColor, self.FcstIcon,
+									  self.FcstLayout == 'LineCentered')
 				renderedforecast.append(fb)
 				if fb.get_width() > maxfcstwidth: maxfcstwidth = fb.get_width()
 				forecastlines += 1
 			forecastitemheight = renderedforecast[-1].get_height()
 
-			if self.Fcst2Column:
+			if self.FcstLayout in ('2ColVert','2ColHoriz'):
 				h = h + forecastitemheight * ((self.ForecastDays + 1) / 2)
 				forecastlines = (forecastlines + 1) / 2
 				usewidth = config.screenwidth / 2
@@ -122,16 +135,29 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 			#pygame.draw.line(config.screen, wc('white'), (0, vert_off), (400, vert_off))
 
 			startvert = vert_off
+			maxvert = startvert
+			fcstvert = renderedforecast[0].get_height()
 			horiz_off = (usewidth - maxfcstwidth) / 2
 			for dy,fcst in enumerate(renderedforecast):
-				if self.FcstCenter:
-					horiz_off = (usewidth - fcst.get_width())/2
-				config.screen.blit(fcst, (horiz_off, vert_off))
-				vert_off = vert_off + s + fcst.get_height()
-				#pygame.draw.line(config.screen, wc('white'), (0, vert_off), (400, vert_off))
-				if (dy == (self.ForecastDays+1)/2 - 1) and self.Fcst2Column:
-					horiz_off = horiz_off + usewidth
-					vert_off = startvert
+				h_off = horiz_off
+				v_off = vert_off
+				if self.FcstLayout == '2ColHoriz':
+					h_off = horiz_off + (dy % 2) * usewidth
+					vert_off = vert_off + (dy % 2) * (s + fcstvert)
+				elif self.FcstLayout == '2ColVert':
+					vert_off = vert_off + s + fcstvert
+					if (dy == (self.ForecastDays + 1) / 2 - 1):
+						horiz_off = horiz_off + usewidth
+						vert_off = startvert
+				elif self.FcstLayout in ('BlockCentered', 'LineCentered'):
+					vert_off = vert_off + s + fcstvert
+					h_off = (usewidth - fcst.get_width())/2
+				else:
+					vert_off = vert_off + s + fcstvert
+				if v_off > maxvert: maxvert = v_off
+				config.screen.blit(fcst, (h_off, v_off))
+
+			if self.FcstLayout == '2ColVert': pygame.draw.line(config.screen,wc('white'),(usewidth,startvert+fcstvert/3),(usewidth,maxvert + 2*fcstvert/3))
 
 		#pygame.draw.line(config.screen,wc('white'),(0,vert_off),(400,vert_off))
 		#pygame.draw.line(config.screen,wc('black'),(0,config.screenheight-config.botborder),(400,config.screenheight-config.botborder))

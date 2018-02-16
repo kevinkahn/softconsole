@@ -34,8 +34,10 @@ def CreateWeathBlock(Format, Fields, Vals, WeathFont, FontSize, WeathColor, icon
 			if FontSize != []:
 				fsize = FontSize.pop(0)
 				usefont = config.fonts.Font(fsize, WeathFont)
-	except:
-		config.Logs.Log('TimeTemp Weather Forecast Error', severity=ConsoleWarning)
+	except Exception as e:
+		config.Logs.Log('TimeTemp Weather Formatting Error', severity=ConsoleWarning)
+		if isinstance(e, KeyError):
+			config.Logs.Log(' No such weather field: ',e.message, severity=ConsoleWarning)
 		rf.append(usefont.render('Weather N/A', 0, wc(WeathColor)))
 		fh = rf[-1].get_height()*len(Format)  # force the height to always be equal even if error
 		if rf[-1].get_width() > fw: fw = rf[-1].get_width()
@@ -64,6 +66,8 @@ class WFormatter(string.Formatter):
 		if format_spec.endswith(('f', 'd')) and value is None:
 			return 'n/a'
 		elif value is None:
+			return 'n/a'
+		elif value == -9999.0:
 			return 'n/a'
 		else:
 			return super(WFormatter, self).format_field(value, format_spec)
