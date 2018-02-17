@@ -46,12 +46,14 @@ def InstallStagedVersion(d):
 def GetSHA(tag):
 	r = requests.get('https://api.github.com/repos/kevinkahn/softconsole/tags')
 	d = r.json()
+	sha = 'not found'
 	for i in d:
 		if i['name'] == tag:
 			sha = i['commit']['sha']
 			url = i['commit']['url']
 			break
-		return "no current sha", "no release info"
+	if sha == 'not found':
+		return 'no current sha','no release info'
 	r = requests.get(url)
 	d = r.json()
 	c = d['commit']['committer']['date']

@@ -115,10 +115,10 @@ for root, dirs, files in os.walk(config.exdir):
 
 try:
 	with open(config.exdir + '/' + 'versioninfo') as f:
-		config.versionname = f.readline()[:-1]
-		config.versionsha = f.readline()[:-1]
-		config.versiondnld = f.readline()[:-1]
-		config.versioncommit = f.readline()[:-1]
+		config.versionname = f.readline()[:-1].rstrip()
+		config.versionsha = f.readline()[:-1].rstrip()
+		config.versiondnld = f.readline()[:-1].rstrip()
+		config.versioncommit = f.readline()[:-1].rstrip()
 except:
 	config.versionname = 'none'
 	config.versionsha = 'none'

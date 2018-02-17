@@ -65,7 +65,7 @@ class NetCmd(object):
 			config.Logs.Log('Remote clear debug ', flg)
 		elif varval in range(300, 310):
 			config.LogLevel = varval - 300
-			config.Logs.Log('Remove set LogLevel to ', varval - 300)
+			config.Logs.Log('Remote set LogLevel to ', varval - 300)
 
 		else:
 			config.Logs.Log('Unknown remote command: ', varval)
