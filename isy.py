@@ -8,7 +8,7 @@ import exitutils
 import utilities
 from logsupport import ConsoleInfo, ConsoleWarning, ConsoleError, ConsoleDetailHigh
 import sys
-import traceback
+import errno
 import pygame
 
 
@@ -29,11 +29,20 @@ def try_ISY_comm(urlcmd):
                 config.Logs.Log("ISY Comm Timeout: " + ' Cmd: ' + '*' + urlcmd + '*', severity=ConsoleError, tb= False)
                 config.Logs.Log(sys.exc_info()[1], severity=ConsoleDetailHigh, tb=False)
                 raise CommsError
-            except requests.exceptions.ConnectionError:
-                config.Logs.Log("ISY Comm ConnErr: " + ' Cmd: ' + urlcmd, severity=ConsoleError, tb = False)
-                config.Logs.Log(sys.exc_info()[1], severity=ConsoleDetailHigh, tb=False)
-                #traceback.print_exc()
-                raise CommsError
+            except requests.exceptions.ConnectionError as e:
+                # todo check network unreachable and do a long wait
+				try:
+					if e[0] == errno.ENETUNREACH:
+						# probable network outage for reboot
+						config.Logs.Log("ISY Comm: Network Unreachable", tb=False)
+						time.sleep(60)
+					else:
+						config.Logs.Log("ISY Comm ConnErr: " + ' Cmd: ' + urlcmd, severity=ConsoleError, tb = False)
+						config.Logs.Log(sys.exc_info()[1], severity=ConsoleDetailHigh, tb=False)
+				except:
+					config.Logs.Log("ISY Comm ConnErr2: " + ' Cmd: ' + urlcmd, severity=ConsoleError, tb=False)
+					config.Logs.Log(sys.exc_info()[1], severity=ConsoleDetailHigh, tb=False)
+				raise CommsError
             except:
                 config.Logs.Log("ISY Comm UnknownErr: " + ' Cmd: ' + urlcmd, severity=ConsoleError)
                 config.Logs.Log(sys.exc_info()[1], severity=ConsoleDetailHigh, tb=False)
@@ -47,6 +56,7 @@ def try_ISY_comm(urlcmd):
         except CommsError:
             time.sleep(.5)
             config.Logs.Log("Attempting ISY retry " + str(i + 1), severity=ConsoleError, tb=False)
+            # todo handle network down differently timewise
 
     config.Logs.Log("ISY Communications Failure", severity=ConsoleError)
     exitutils.errorexit(exitutils.ERRORPIREBOOT)
