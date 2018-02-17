@@ -13,6 +13,12 @@ from logsupport import ConsoleWarning
 
 CreateWeathBlock = weatherinfo.CreateWeathBlock
 
+def extref(listitem, indexitem):
+	try:
+		return listitem[indexitem]
+	except IndexError:
+		return listitem[-1]
+
 class TimeTempScreenDesc(screen.ScreenDesc):
 	def __init__(self, screensection, screenname):
 		debugPrint('Screen', "New TimeTempDesc ", screenname)
@@ -32,8 +38,6 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 			self.FcstLayout = "Block"
 		self.scrlabel = screen.FlatenScreenLabel(self.label)
 		self.WInfo = weatherinfo.WeatherInfo(self.WunderKey, self.location)
-		for i in range(len(self.CharSize), len(self.TimeFormat) + len(self.ConditionFormat)):
-			self.CharSize.append(self.CharSize[-1])
 		self.ForecastCharSize = self.CharSize[-1]
 		self.ClockRepaintEvent = ProcEventItem(id(self), 'repaintTimeTemp', self.repaintClock)
 		self.fmt = weatherinfo.WFormatter()
@@ -54,7 +58,7 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 
 		tw = 0
 		for i in range(len(self.TimeFormat)):
-			renderedtime.append(config.fonts.Font(self.CharSize[sizeindex], self.Font).render(
+			renderedtime.append(config.fonts.Font(extref(self.CharSize,sizeindex), self.Font).render(
 					time.strftime(self.TimeFormat[i]), 0, wc(self.CharColor)))
 			h = h + renderedtime[-1].get_height()
 			if renderedtime[-1].get_width() > tw: tw = renderedtime[-1].get_width()
@@ -67,18 +71,18 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 			v = v + l.get_height()
 		spaces = 1
 
-		if int(self.CharSize[sizeindex]) != 0:
+		if int(extref(self.CharSize,sizeindex)) != 0:
 			renderedtimelabel.append(
-				config.fonts.Font(self.CharSize[sizeindex], self.Font).render(
+				config.fonts.Font(extref(self.CharSize, sizeindex), self.Font).render(
 					self.fmt.format("{d}", d=self.scrlabel), 0, wc(self.CharColor)))
 			h = h + renderedtimelabel[-1].get_height()
 			spaces += 1
 		sizeindex += 1
 
 		if self.WInfo.FetchWeather() == -1:
-			errmsg1 = config.fonts.Font(self.CharSize[1],self.Font).render('Weather',0,wc(self.CharColor))
-			errmsg2 = config.fonts.Font(self.CharSize[1], self.Font).render('unavailable', 0, wc(self.CharColor))
-			errmsg3 = config.fonts.Font(self.CharSize[1], self.Font).render('or error', 0, wc(self.CharColor))
+			errmsg1 = config.fonts.Font(extref(self.CharSize,1),self.Font).render('Weather',0,wc(self.CharColor))
+			errmsg2 = config.fonts.Font(extref(self.CharSize,1), self.Font).render('unavailable', 0, wc(self.CharColor))
+			errmsg3 = config.fonts.Font(extref(self.CharSize,1), self.Font).render('or error', 0, wc(self.CharColor))
 			config.screen.fill(wc(self.BackgroundColor),
 							   pygame.Rect(0, 0, config.screenwidth, config.screenheight - config.botborder))
 			vert_off = config.topborder
@@ -92,7 +96,7 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 							   ((config.screenwidth - errmsg3.get_width()) / 2, vert_off + 2*errmsg1.get_height()))
 		else:
 			cb = CreateWeathBlock(self.ConditionFormat,self.ConditionFields,self.WInfo.ConditionVals,self.Font,
-								  int(self.CharSize[sizeindex]),self.CharColor,self.CondIcon,
+								  int(extref(self.CharSize,sizeindex)),self.CharColor,self.CondIcon,
 								  self.FcstLayout == 'LineCentered')
 			h = h + cb.get_height()
 
