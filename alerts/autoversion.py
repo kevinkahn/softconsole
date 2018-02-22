@@ -32,7 +32,7 @@ class AutoVersion(object):
 					config.Logs.Log('No sha for autoversion: ',config.versionname,severity=ConsoleWarning)
 				else:
 					pass
-					config.Logs.Log('sha equal ',sha,severity=ConsoleDetail)
+					#config.Logs.Log('sha equal ',sha,severity=ConsoleDetail)
 
 			except:
 				if not exiting:

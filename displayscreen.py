@@ -156,11 +156,11 @@ class DisplayScreen(object):
 			if not config.QH.is_alive() and config.ISYaddr != '':
 				config.Logs.Log('Queue handler died, last error:' + str(isyeventmonitor.lasterror), severity=ConsoleError)
 				try:
-					if isyeventmonitor.lasterror[0] == errno.ENETUNREACH:
+					if config.EventMonitor.lasterror[0] == errno.ENETUNREACH:
 						# likely home network down so wait a bit
 						config.Logs.Log('Wait for likely router reboot or down',severity=ConsoleError)
 						# todo overlay a screen delay message so locked up console is understood
-						time.sleep(60)
+						time.sleep(120)
 				except:
 					pass
 

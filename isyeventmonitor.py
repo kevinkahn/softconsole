@@ -17,8 +17,6 @@ def CreateWSThread():
 	config.QH.start()
 	config.Logs.Log("ISY stream thread " + str(config.EventMonitor.num) + " started")
 
-lasterror = (0,'Init')
-
 class ISYEventMonitor:
 	def __init__(self):
 		self.a = base64.b64encode(config.ISYuser + ':' + config.ISYpassword)
@@ -29,6 +27,7 @@ class ISYEventMonitor:
 		self.seq = 0
 		self.num = config.QHnum
 		config.QHnum += 1
+		self.lasterror = (0,'Init')
 		debugPrint('DaemonCtl', "Queue Handler ", self.num, " started: ", self.watchstarttime)
 		self.reportablecodes = ["DON", "DFON", "DOF", "DFOF", "ST", "OL", "RR", "CLISP", "CLISPH", "CLISPC", "CLIFS",
 								"CLIMD", "CLIHUM", "CLIHCS", "BRT", "DIM"]
@@ -36,7 +35,7 @@ class ISYEventMonitor:
 	def QHandler(self):
 		def on_error(ws, error):
 			config.Logs.Log("Error in WS stream " + str(self.num) + ':' + repr(error), severity=ConsoleError, tb=False) #todo sometimes do the tb?
-			lasterror = error
+			self.lasterror = error
 			debugPrint('DaemonCtl', "Websocket stream error", self.num, repr(error))
 			ws.close()
 
