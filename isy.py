@@ -35,7 +35,7 @@ def try_ISY_comm(urlcmd):
 					if e[0] == errno.ENETUNREACH:
 						# probable network outage for reboot
 						config.Logs.Log("ISY Comm: Network Unreachable", tb=False)
-						time.sleep(60)
+						time.sleep(120)
 					else:
 						config.Logs.Log("ISY Comm ConnErr: " + ' Cmd: ' + urlcmd, severity=ConsoleError, tb = False)
 						config.Logs.Log(sys.exc_info()[1], severity=ConsoleDetailHigh, tb=False)

@@ -106,6 +106,14 @@ class DisplayScreen(object):
 		debugPrint('Dispatch', 'Navkey: ', NS.name, self.state + '/' + self.dim)
 		self.SwitchScreen(NS, 'Bright', 'NonHome', 'Nav Press')
 
+	def ResetScreenState(self):
+		pass
+		# TODO this proc needs to reestablish knowm state (home, non dim, ...) and perhaps flush the event queue, and
+		# then somehow get back into the normal flow.  Just doing a return may be sufficient for that.  Use is for
+		# dealing with places where I'd like to capture the screen for a message that the local net is down so things are
+		# unresponsive  Would a better approach be to define an urgent alert screen?  That runs afoul the need to just
+		# wait a bit for the router to come back up
+
 	def MainControlLoop(self, InitScreen):
 
 		self.ScreensDict = config.SecondaryDict.copy()
