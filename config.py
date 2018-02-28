@@ -7,6 +7,7 @@ Running = True
 Console_pid = 0
 PRESS = 0
 FASTPRESS = 1
+ecode = 0 # exit code set for main loop
 
 personalsystem = False
 hostname = ""

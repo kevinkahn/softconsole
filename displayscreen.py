@@ -336,4 +336,6 @@ class DisplayScreen(object):
 					# unknown eevent?
 					debugPrint('Dispatch', 'TASKREADY found unknown event: ', E)
 
-		config.Logs.Log('Main Loop Exit')
+		config.Logs.Log('Main Loop Exit', config.ecode)
+		os._exit(config.ecode)
+

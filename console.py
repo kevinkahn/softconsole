@@ -365,6 +365,8 @@ if config.versionname == 'development':
 Run the main console loop
 """
 config.DS.MainControlLoop(config.HomeScreen)
+config.Logs.Log("Main line exit: ",config.ecode)
+os._exit(config.ecode)
 
 # This never returns
 
