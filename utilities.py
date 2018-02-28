@@ -248,7 +248,7 @@ def LocalizeParams(inst, configsection, indent, *args, **kwargs):
 		if isinstance(val, list):
 			for j, v in enumerate(val):
 				if isinstance(v, str):
-					val[j] = unicode(v)
+					val[j] = unicode(v,'UTF-8')
 		if (lclval[i] != val) and (lcllist[i] in args):
 			config.Logs.Log(indent + 'LParam: ' + lcllist[i] + ': ' + str(val), severity=ConsoleDetailHigh)
 		inst.__dict__[lcllist[i]] = val
@@ -274,7 +274,7 @@ def LocalizeExtra(inst, configsection, indent, **kwargs):
 		if isinstance(val, list):
 			for j, v in enumerate(val):
 				if isinstance(v, str):
-					val[j] = unicode(v)
+					val[j] = unicode(v,'UTF-8')
 		inst.__dict__[lcllist[i]] = val
 
 
