@@ -80,9 +80,9 @@ def Exit(ecode):
 		pass
 
 	config.Running = False  # make sure the main loop ends even if this exit call returns
-	pygame.quit()
+	#pygame.quit()
 	config.ecode = ecode
-	sys.exit(ecode)
+	#sys.exit(ecode)
 
 def domaintexit(ExitKey):
 	if ExitKey == 'shut':
