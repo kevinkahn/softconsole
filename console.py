@@ -92,7 +92,7 @@ if os.getegid() <> 0:
 	# Not running as root
 	earlylog.write("Not running as root - exit\n")
 	print ("Must run as root")
-	sys.exit(exitutils.EARLYABORT)
+	os._exit(exitutils.EARLYABORT)
 
 utilities.InitializeEnvironment()
 

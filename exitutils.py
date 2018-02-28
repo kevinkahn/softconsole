@@ -41,7 +41,8 @@ def EarlyAbort(scrnmsg):
 	pygame.display.update()
 	print (time.strftime('%m-%d-%y %H:%M:%S'), scrnmsg)
 	time.sleep(10)
-	sys.exit(EARLYABORT)
+	pygame.quit()
+	os._exit(EARLYABORT)
 
 
 def Exit(ecode):
@@ -79,10 +80,8 @@ def Exit(ecode):
 		# reboot pi?
 		pass
 
-	config.Running = False  # make sure the main loop ends even if this exit call returns
-	#pygame.quit()
 	config.ecode = ecode
-	#sys.exit(ecode)
+	config.Running = False  # make sure the main loop ends even if this exit call returns
 
 def domaintexit(ExitKey):
 	if ExitKey == 'shut':

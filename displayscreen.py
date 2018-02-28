@@ -337,5 +337,6 @@ class DisplayScreen(object):
 					debugPrint('Dispatch', 'TASKREADY found unknown event: ', E)
 
 		config.Logs.Log('Main Loop Exit: ', config.ecode)
+		pygame.quit()
 		os._exit(config.ecode)
 
