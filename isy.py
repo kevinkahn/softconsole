@@ -14,6 +14,17 @@ import pygame
 
 class CommsError(Exception): pass
 
+def check_ISY_comm():
+	urlcmd = '/rest/time'
+	if config.ISYaddr.startswith('http'):
+		t = config.ISYaddr + urlcmd
+	else:
+		t = 'http://' + config.ISYaddr + urlcmd
+	try:
+		r = config.ISYrequestsession.get(t, verify=False, timeout=5)
+	except requests.exceptions.ConnectionError as e:
+		return e[0]
+	return 0
 
 def try_ISY_comm(urlcmd):
 	for i in range(15):
@@ -25,7 +36,7 @@ def try_ISY_comm(urlcmd):
 					t = 'http://' + config.ISYaddr + urlcmd
 				debug.debugPrint('ISY', '*' + t + '*')
 				r = config.ISYrequestsession.get(t, verify=False, timeout=5)
-			except requests.exceptions.ConnectTimeout:
+			except requests.exceptions.ConnectTimeout as e:
 				config.Logs.Log("ISY Comm Timeout: " + ' Cmd: ' + '*' + urlcmd + '*', severity=ConsoleError, tb=False)
 				config.Logs.Log(sys.exc_info()[1], severity=ConsoleDetailHigh, tb=False)
 				raise CommsError

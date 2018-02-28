@@ -162,7 +162,7 @@ class DisplayScreen(object):
 			os.utime(config.homedir + "/.ConsoleStart", None)
 
 			if not config.QH.is_alive() and config.ISYaddr != '':
-				config.Logs.Log('Queue handler died, last error:' + str(isyeventmonitor.lasterror), severity=ConsoleError)
+				config.Logs.Log('Queue handler died, last error:' + str(config.EventMonitor.lasterror), severity=ConsoleError)
 				try:
 					if config.EventMonitor.lasterror[0] == errno.ENETUNREACH:
 						# likely home network down so wait a bit
