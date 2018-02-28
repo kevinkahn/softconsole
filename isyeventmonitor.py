@@ -92,8 +92,6 @@ class ISYEventMonitor:
 					# Node change report
 					debugPrint('DaemonStream', time.time() - config.starttime, "Status update in stream: ", eseq, ":",
 							   prcode, " : ", enode, " : ", eInfo, " : ", eaction)
-					debugPrint('DebugSpecial', time.time() - config.starttime, "Status update in stream: ", eseq, ":",
-							   prcode, " : ", enode, " : ", eInfo, " : ", eaction)  # TODO have a specials node list
 					if eaction is dict:
 						debugPrint('DaemonStream', "V5 stream - pull up action value: ", eaction)
 						eaction = eaction["#text"]  # todo the new xmltodict will return as data['action']['#text']
@@ -161,9 +159,9 @@ class ISYEventMonitor:
 					config.Logs.Log("Extra info in event: " + str(e), severity=ConsoleWarning)
 				debugPrint('DaemonStream', time.time() - config.starttime,
 						   formatwsitem(esid, eseq, ecode, eaction, enode, eInfo, e))
-				if enode == '20 F9 76 1':
-					debugPrint('DebugSpecial', time.time() - config.starttime,
-							   formatwsitem(esid, eseq, ecode, eaction, enode, eInfo, e))
+#				if enode == '20 F9 76 1':
+#					debugPrint('DebugSpecial', time.time() - config.starttime,
+#							   formatwsitem(esid, eseq, ecode, eaction, enode, eInfo, e))
 				if ecode == "ERR":
 					try:
 						isynd = config.ISY.NodesByAddr[enode].name
