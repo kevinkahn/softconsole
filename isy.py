@@ -343,14 +343,16 @@ class ISY(object):
 			time.sleep(10)
 			exitutils.errorexit(exitutils.ERRORDIE)
 			config.Logs.Log('Reached unreachable code! ISY2')
-		"""
-		with open('/home/pi/Console/xml.dmp','r') as f:
-			x1 = f.readline().rstrip('\n')
-			x2 = f.readline().rstrip('\n')
-			x3 = f.readline().rstrip('\n')
-			x4 = f.readline().rstrip('\n')
-	  	"""
+
 		configdict = xmltodict.parse(r.text)['nodes']
+		if debug.Flags['ISYLoad']:
+			with open('/home/pi/Console/xml.dmp','r') as f:
+				x1 = f.readline().rstrip('\n')
+				x2 = f.readline().rstrip('\n')
+				x3 = f.readline().rstrip('\n')
+				x4 = f.readline().rstrip('\n')
+				configdict = xmltodict.parse(x1)['nodes']
+
 		if debug.Flags['ISYDump']:
 			debug.ISYDump("xml.dmp",r.text,pretty=False,new=True)
 			debug.ISYDump("struct.dmp",configdict,new=True)
@@ -394,7 +396,10 @@ class ISY(object):
 				# for now at least try to avoid nodes without properties which apparently Zwave devices may have
 		self.LinkChildrenParents(self.NodesByAddr, self.NodesByName, self.FoldersByAddr, self.NodesByAddr)
 		for fixitem in fixlist:
-			fixitem[0].pnode = self.NodesByAddr[fixitem[1]]
+			try:
+				fixitem[0].pnode = self.NodesByAddr[fixitem[1]]
+			except:
+				config.Logs.Log("Problem with processing node: ", fixitem[1], severity=ConsoleWarning)
 
 		for scene in configdict['group']:
 			memberlist = []
@@ -403,11 +408,13 @@ class ISY(object):
 				try:
 					if isinstance(m1, list):
 						for m in m1:
-							memberlist.append((int(m['@type']), self.NodesByAddr[m['#text']]))
+							naddr = m['#text']
+							memberlist.append((int(m['@type']), self.NodesByAddr[naddr]))
 					else:
-						memberlist.append((int(m1['@type']), self.NodesByAddr[m1['#text']]))
+						naddr = m1['#text']
+						memberlist.append((int(m1['@type']), self.NodesByAddr[naddr]))
 				except:
-					config.Logs.Log("Error adding member to scene: ", str(scene), severity=ConsoleWarning)
+					config.Logs.Log("Error adding member to scene: ", str(scene['name']), ' Node address: ', naddr, severity=ConsoleWarning)
 					debug.debugPrint('ISYDump','Scene: ',m1)
 
 				if 'parent' in scene:
@@ -452,6 +459,8 @@ class ISY(object):
 					exitutils.errorexit(exitutils.ERRORPIREBOOT)
 					config.Logs.Log('Reached unreachable code! ISY3')
 		configdict = xmltodict.parse(r.text)['programs']['program']
+		if debug.Flags['ISYLoad']:
+			configdict = xmltodict.parse(x2)['programs']['program']
 		if debug.Flags['ISYDump']:
 			debug.ISYDump("xml.dmp",r.text,pretty=False)
 			debug.ISYDump("struct.dmp",configdict)
@@ -506,6 +515,8 @@ class ISY(object):
 
 		try:
 			configdict = xmltodict.parse(r1.text)['CList']['e']
+			if debug.Flags['ISYLoad']:
+				configdict = xmltodict.parse(x3)['CList']['e']
 			if debug.Flags['ISYDump']:
 				debug.ISYDump("xml.dmp", r1.text, pretty=False)
 				debug.ISYDump("struct.dmp", configdict)
@@ -517,6 +528,8 @@ class ISY(object):
 			config.Logs.Log('No state variables defined')
 		try:
 			configdict = xmltodict.parse(r2.text)['CList']['e']
+			if debug.Flags['ISYLoad']:
+				configdict = xmltodict.parse(x4)['CList']['e']
 			if debug.Flags['ISYDump']:
 				debug.ISYDump("xml.dmp", r2.text, pretty=False)
 				debug.ISYDump("struct.dmp", configdict)

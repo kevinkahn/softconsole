@@ -1,7 +1,9 @@
-Generic touchscreen (7 in)
-wss
-
-
-ip addr in rc.local
-fix calibrations
-try generic small screen - SDL
+Add option to display icons on weatherscreen and timetempscreen
+Add multicolumn display options for forecasts for 7" display
+Reduce amount of logging at standard log level (moved detail to higher loglevel)
+Improved setup prompt and handling for VNC install
+More graceful handling of loss of WiFi signal to console (router rebooting)
+Add ability to dump ISY information to allow better remote support of users
+Handle unexpected bad node addresses in scenes more gracefully
+Improve handling of special characters that need unicode encoding in formats strings
+Miscellaneous bug fixes

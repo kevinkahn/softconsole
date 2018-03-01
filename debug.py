@@ -6,7 +6,7 @@ from logsupport import ConsoleDebug, ConsoleError
 
 Flags = {}
 DbgFlags = ['Main', 'DaemonCtl', 'DaemonStream', 'Screen', 'ISY', 'Dispatch', 'EventList', 'Fonts', 'DebugSpecial',
-			'QDump', 'LLTouch', 'Touch', 'ISYDump']
+			'QDump', 'LLTouch', 'Touch', 'ISYDump', 'ISYLoad']
 DebugFlagKeys = {}
 flagspercol = 3  # number of flags per maint screen
 flagsperrow = 2
