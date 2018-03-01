@@ -67,7 +67,12 @@ First I admit in advance that the syntax and parsing of the config files is both
 * Clock: displays a clock formatted according to the OutFormat parameter using any of the underlying OS time formatting codes.  The character size for each line can be set individually.  If there are more lines in the format than character sizes the last size is repeated. Python standard formatting is at https://docs.python.org/2/library/time.html.  Linux (RPi) supports a somewhat richer set of codes e.g. http://linux.die.net/man/3/strftime
 * Weather: uses Weather Underground to display current conditions and forecast.  The location parameter is a WU location code - see their site for codes.  To use this screen you must have a WU key which can be gotten for free for low volume use.  
 * Thermostat: mimics the front panel of the Insteon thermostat and provides full function equivalency.
-* Time/Temp: combined screen, nice as a sleep screen that gives current time and the weather at a single location.  Format of the screen is largely controlled by the config.txt file.
+* Time/Temp: combined screen, nice as a sleep screen that gives current time and the weather at a single location.  Format of the screen is largely controlled by the config.txt file.  The location is displayed unless you set the character size for that line to 0.  An icon can be displayed as part of the current conditions by setting CondIcon = True.  An icon canbe displayed as part of each forecast day by setting FcstIcon = True.  There are a variety of options for the display of the forecast days that can be selected by setting FcstLayout in the config file.  They are:
+    * Block: forecast items are left aligned in a block that is centered based on the longest item (1 column) 
+    * BlockCentered: forecast items are individually centered but multiline items are left aligned (1 column)
+    * LineCentered: forecast items have each individual line centered (1 column)
+    * 2ColVert: 2 column layout newspaper style days ordered down the column with a vertical line that visually splits the columns
+    * 2ColHoriz: 2 column layout with days ordered across then down
 * Alert: used to display an alarm condition - see below.
 
 # Alerts
