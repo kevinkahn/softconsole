@@ -3,6 +3,7 @@ pip install webcolors
 pip install xmltodict
 pip install websocket-client
 pip install wiringpi
+pip install paho-mqtt
 if [ -e setupsystemd.py ]
 then
     echo Initial install

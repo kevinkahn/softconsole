@@ -43,6 +43,7 @@ LogLevel = 3
 DummyProgram = None
 WeatherCache = {}
 WUcount = 0
+MQTTbrokers = {}
 
 configfilelist = {}  # list of configfiles and their timestamps
 

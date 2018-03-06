@@ -41,6 +41,7 @@ import utilities
 import requests
 from logsupport import ConsoleWarning, ConsoleDetail
 import weatherinfo
+import mqttsupport
 
 import json
 
@@ -274,6 +275,25 @@ config.DS = displayscreen.DisplayScreen()  # create the actual device screen and
 
 utilities.LogParams()
 
+"""
+Pull out non-screen sections
+"""
+for i,v in config.ParsedConfigFile.iteritems():
+	if isinstance(v, Section):
+		stype = v.get('type',None,delkey=False)
+		if stype == 'MQTT':
+			"""
+			Set up mqtt brokers
+			"""
+			config.MQTTbrokers[i] = v
+			config.MQTTbrokers[i] = mqttsupport.MQTTBroker(i, v)
+			del config.ParsedConfigFile[i]
+
+
+	"""
+	Eventually add HA and ISY sections  TODO
+	"""
+
 import alerttasks
 
 """
@@ -331,6 +351,7 @@ if 'Variables' in config.ParsedConfigFile:
 	del config.ParsedConfigFile['Variables']
 configobjects.MyScreens()
 config.Logs.Log("Linked config to ISY")
+
 
 """
 Set up the websocket thread to handle ISY stream

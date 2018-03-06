@@ -27,7 +27,17 @@ def CreateWeathBlock(Format, Fields, Vals, WeathFont, FontSize, WeathColor, icon
 
 	try:
 		for f in Format:
-			vals = [Vals[fld] for fld in Fields]
+			vals = []
+			for fld in Fields:
+				if not ':' in fld:
+					vals.append(Vals[fld])
+				else:
+					bkr, topic = string.split(fld,':',1)
+					MQvar = config.MQTTbrokers[bkr].vars[topic]
+					if MQvar.RcvTime + MQvar.Expires < time.time():
+						vals.append(None) # reading is stale
+					else:
+						vals.append(MQvar.Value)
 			rf.append(usefont.render(WFormatter().format(f, d=vals), 0, wc(WeathColor)))
 			fh += rf[-1].get_height()
 			if rf[-1].get_width() > fw: fw = rf[-1].get_width()
@@ -57,7 +67,6 @@ def CreateWeathBlock(Format, Fields, Vals, WeathFont, FontSize, WeathColor, icon
 		else:
 			fsfc.blit(l,(hoff,v))
 		v += l.get_height()
-	#pygame.draw.rect(fsfc,wc('white'),((0,0),(fsfc.get_width(),fsfc.get_height())),1)
 	return fsfc
 
 
