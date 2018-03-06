@@ -125,10 +125,10 @@ class SetVarKey(ManualKeyDesc):
 
 		utilities.register_example("SetVarKey", self)
 
-	def SetVar(self, presstype):
+        def SetVar(self, presstype):
 		isy.SetVar(self.VarID, self.Value)
+                self.BlinkKey(self.Blink)
 
-	# todo  add visual call Feedback
 
 
 class RunProgram(ManualKeyDesc):
