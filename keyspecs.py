@@ -125,18 +125,10 @@ class SetVarKey(ManualKeyDesc):
 
 		utilities.register_example("SetVarKey", self)
 
-                # SLDan added for visual feedback
-                self.Proc = self.RunKeyPress
-
-	def SetVar(self, presstype):
+        def SetVar(self, presstype):
 		isy.SetVar(self.VarID, self.Value)
-
-        # SLDan -  My attempt at adding visual feedback 
-        def RunKeyPress(self, presstype):
-            if self.FastPress and presstype != config.FASTPRESS:
-                return
-            else:
                 self.BlinkKey(self.Blink)
+
 
 
 class RunProgram(ManualKeyDesc):
