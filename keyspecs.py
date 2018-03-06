@@ -108,7 +108,7 @@ class SetVarKey(ManualKeyDesc):
 		ManualKeyDesc.__init__(self, screen, keysection, keyname)
 		utilities.LocalizeParams(self, keysection, '--', VarType='undef', Var='', Value=0)
 		try:
-			self.Proc = self.SetVar
+			self.Proc = self.SetVarKeyPressed
 			if self.VarType == 'State':
 				self.VarID = (2, config.ISY.varsState[self.Var])
 			elif self.VarType == 'Int':
@@ -125,9 +125,8 @@ class SetVarKey(ManualKeyDesc):
 
 		utilities.register_example("SetVarKey", self)
 
-        def SetVar(self, presstype):
+        def SetVarKeyPressed(self, presstype):
 		isy.SetVar(self.VarID, self.Value)
-                self.BlinkKey(self.Blink)
 
 
 
