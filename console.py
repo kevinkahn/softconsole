@@ -285,9 +285,12 @@ for i,v in config.ParsedConfigFile.iteritems():
 			"""
 			Set up mqtt brokers
 			"""
-			config.MQTTbrokers[i] = v
-			config.MQTTbrokers[i] = mqttsupport.MQTTBroker(i, v)
+			config.ValueStore[i] = mqttsupport.MQTTBroker(i, v)
 			del config.ParsedConfigFile[i]
+#		elif stype == "Locals":
+#			config.ValueStore[i] = localvarsupport.Vars(i, v)
+
+
 
 
 	"""
