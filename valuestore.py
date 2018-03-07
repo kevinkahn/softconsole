@@ -1,6 +1,7 @@
-class ValueStore(object):
+"""ss ValueStore(object):
 	GetVal
 	SetVsl
 	AutoRefresh bool
 	BlockRefresh
 	LastBlockRefresh
+"""

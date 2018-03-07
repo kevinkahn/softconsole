@@ -545,7 +545,6 @@ class ISY(object):
 			config.Logs.Log('No integer variables defined')
 		config.ValueStore['ISY'] = isyvarssupport.ISYVars('ISY',configdictS,configdictI)
 
-		config.ValueStore['ISY'].SetVal(['Int', 'AwayNonState'], 5)
 		utilities.register_example("ISY", self)
 		if debug.Flags['ISY']:
 			self.PrintTree(self.ProgRoot, "    ", 'Programs')
