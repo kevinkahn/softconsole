@@ -83,9 +83,9 @@ class WeatherScreenDesc(screen.ScreenDesc):
 			if conditions:
 				renderedlines.append(weatherinfo.CreateWeathBlock(self.condformat,self.condfields,self.Info.ConditionVals,"",[45,25,35],self.CharColor, True,False))
 				h = h + renderedlines[-1].get_height()
-				renderedlines.append(weatherinfo.CreateWeathBlock(self.dayformat,self.dayfields,self.Info.ConditionVals,"",30,self.CharColor, False, True))
+				renderedlines.append(weatherinfo.CreateWeathBlock(self.dayformat,self.dayfields,self.Info.ConditionVals,"",[30],self.CharColor, False, True))
 				h = h + renderedlines[-1].get_height()
-				renderedlines.append(weatherinfo.CreateWeathBlock(self.footformat,self.footfields,self.Info.ConditionVals,"",25,self.CharColor, False, True))
+				renderedlines.append(weatherinfo.CreateWeathBlock(self.footformat,self.footfields,self.Info.ConditionVals,"",[25],self.CharColor, False, True))
 				h = h + renderedlines[-1].get_height()
 				s = (usefulheight - h) / (len(renderedlines) - 1) if len(renderedlines) > 1 else 0
 				for l in renderedlines:
@@ -96,7 +96,7 @@ class WeatherScreenDesc(screen.ScreenDesc):
 				fcstlines = 0
 				maxfcstwidth = 0
 				for fcst in self.Info.ForecastVals:
-					renderedlines.append(weatherinfo.CreateWeathBlock(self.fcstformat,self.fcstfields,fcst,"",25,self.CharColor,True,False))
+					renderedlines.append(weatherinfo.CreateWeathBlock(self.fcstformat,self.fcstfields,fcst,"",[25],self.CharColor,True,False))
 					if renderedlines[-1].get_width() > maxfcstwidth: maxfcstwidth = renderedlines[-1].get_width()
 					fcstlines += 1
 

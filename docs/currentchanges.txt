@@ -7,3 +7,7 @@ Add ability to dump ISY information to allow better remote support of users
 Handle unexpected bad node addresses in scenes more gracefully
 Improve handling of special characters that need unicode encoding in formats strings
 Miscellaneous bug fixes
+
+mqtt
+blink setvar
+ClockSize=-1,LocationSize=-1,CondSize=[20],FcstSize=[20],

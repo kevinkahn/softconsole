@@ -19,8 +19,8 @@ def CreateWeathBlock(Format, Fields, Vals, WeathFont, FontSize, WeathColor, icon
 	rf = []
 	fh = 0
 	fw = 0
-	if isinstance(FontSize,int): FontSize = [FontSize]
-	fsize = FontSize.pop(0)
+	FS = [FontSize] if isinstance(FontSize, basestring) else FontSize[:]
+	fsize = int(FS.pop(0))
 	usefont = config.fonts.Font(fsize, WeathFont)
 	for k in extra:
 		Vals[k] = extra[k]
@@ -32,17 +32,14 @@ def CreateWeathBlock(Format, Fields, Vals, WeathFont, FontSize, WeathColor, icon
 				if not ':' in fld:
 					vals.append(Vals[fld])
 				else:
-					bkr, topic = string.split(fld,':',1)
-					MQvar = config.MQTTbrokers[bkr].vars[topic]
-					if MQvar.RcvTime + MQvar.Expires < time.time():
-						vals.append(None) # reading is stale
-					else:
-						vals.append(MQvar.Value)
+					varset, name = string.split(fld,':',1)
+					vals.append(config.ValueStore[varset].GetVal(name))
+
 			rf.append(usefont.render(WFormatter().format(f, d=vals), 0, wc(WeathColor)))
 			fh += rf[-1].get_height()
 			if rf[-1].get_width() > fw: fw = rf[-1].get_width()
-			if FontSize != []:
-				fsize = FontSize.pop(0)
+			if FS != []:
+				fsize = int(FS.pop(0))
 				usefont = config.fonts.Font(fsize, WeathFont)
 	except Exception as e:
 		config.Logs.Log('TimeTemp Weather Formatting Error', severity=ConsoleWarning)

@@ -24,11 +24,18 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 		debugPrint('Screen', "New TimeTempDesc ", screenname)
 
 		screen.ScreenDesc.__init__(self, screensection, screenname)
-		utilities.LocalizeParams(self, screensection, '-', 'WunderKey', location='', CharSize=[20],
+		utilities.LocalizeParams(self, screensection, '-', 'WunderKey', location='', CharSize=[-1],
+								 ClockSize=-1,LocationSize=-1,CondSize=[20],FcstSize=[20],
 								 Font=config.monofont, FcstLayout = 'Block',
 								 FcstIcon=True,CondIcon=True,
 								 TimeFormat=[], ConditionFields=[], ConditionFormat=[], ForecastFields=[],
 								 ForecastFormat=[], ForecastDays=1, SkipDays=0)
+		if self.CharSize != [-1]:
+			# old style
+			self.ClockSize = extref(self.CharSize, 0)
+			self.LocationSize = extref(self.CharSize, 1)
+			self.CondSize = extref(self.CharSize, 2)
+			self.FcstSize = extref(self.CharSize, 3)
 		if self.ForecastDays + self.SkipDays > 10:
 			self.ForecastDays = 10 - self.SkipDays
 			config.Logs.Log("Long forecast requested; days reduced to: "+str(self.ForecastDays),severity=ConsoleWarning)
@@ -38,7 +45,6 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 			self.FcstLayout = "Block"
 		self.scrlabel = screen.FlatenScreenLabel(self.label)
 		self.WInfo = weatherinfo.WeatherInfo(self.WunderKey, self.location)
-		self.ForecastCharSize = self.CharSize[-1]
 		self.ClockRepaintEvent = ProcEventItem(id(self), 'repaintTimeTemp', self.repaintClock)
 		self.fmt = weatherinfo.WFormatter()
 
@@ -58,7 +64,7 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 
 		tw = 0
 		for i in range(len(self.TimeFormat)):
-			renderedtime.append(config.fonts.Font(extref(self.CharSize,sizeindex), self.Font).render(
+			renderedtime.append(config.fonts.Font(self.ClockSize, self.Font).render(
 					time.strftime(self.TimeFormat[i]), 0, wc(self.CharColor)))
 			h = h + renderedtime[-1].get_height()
 			if renderedtime[-1].get_width() > tw: tw = renderedtime[-1].get_width()
@@ -71,18 +77,18 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 			v = v + l.get_height()
 		spaces = 1
 
-		if int(extref(self.CharSize,sizeindex)) != 0:
+		if self.LocationSize != 0:
 			renderedtimelabel.append(
-				config.fonts.Font(extref(self.CharSize, sizeindex), self.Font).render(
+				config.fonts.Font(self.LocationSize, self.Font).render(
 					self.fmt.format("{d}", d=self.scrlabel), 0, wc(self.CharColor)))
 			h = h + renderedtimelabel[-1].get_height()
 			spaces += 1
 		sizeindex += 1
 
 		if self.WInfo.FetchWeather() == -1:
-			errmsg1 = config.fonts.Font(extref(self.CharSize,1),self.Font).render('Weather',0,wc(self.CharColor))
-			errmsg2 = config.fonts.Font(extref(self.CharSize,1), self.Font).render('unavailable', 0, wc(self.CharColor))
-			errmsg3 = config.fonts.Font(extref(self.CharSize,1), self.Font).render('or error', 0, wc(self.CharColor))
+			errmsg1 = config.fonts.Font(self.LocationSize,self.Font).render('Weather',0,wc(self.CharColor))
+			errmsg2 = config.fonts.Font(self.LocationSize, self.Font).render('unavailable', 0, wc(self.CharColor))
+			errmsg3 = config.fonts.Font(self.LocationSize, self.Font).render('or error', 0, wc(self.CharColor))
 			config.screen.fill(wc(self.BackgroundColor),
 							   pygame.Rect(0, 0, config.screenwidth, config.screenheight - config.botborder))
 			vert_off = config.topborder
@@ -96,7 +102,7 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 							   ((config.screenwidth - errmsg3.get_width()) / 2, vert_off + 2*errmsg1.get_height()))
 		else:
 			cb = CreateWeathBlock(self.ConditionFormat,self.ConditionFields,self.WInfo.ConditionVals,self.Font,
-								  int(extref(self.CharSize,sizeindex)),self.CharColor,self.CondIcon,
+								  self.CondSize,self.CharColor,self.CondIcon,
 								  self.FcstLayout == 'LineCentered')
 			h = h + cb.get_height()
 
@@ -106,7 +112,7 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 			for dy in range(self.ForecastDays):
 				fb = CreateWeathBlock(self.ForecastFormat, self.ForecastFields,
 									  self.WInfo.ForecastVals[dy + self.SkipDays], self.Font,
-									  [self.ForecastCharSize], self.CharColor, self.FcstIcon,
+									  self.FcstSize, self.CharColor, self.FcstIcon,
 									  self.FcstLayout == 'LineCentered')
 				renderedforecast.append(fb)
 				if fb.get_width() > maxfcstwidth: maxfcstwidth = fb.get_width()

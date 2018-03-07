@@ -2,7 +2,6 @@ import paho.mqtt.client as mqtt
 import config
 from logsupport import ConsoleWarning
 from configobj import Section
-from collections import namedtuple
 import time
 
 
@@ -39,10 +38,15 @@ class MQTTBroker(object):
 				self.vars[var].RcvTime = time.time()
 				self.vars[var].Value = self.vars[var].Type(msg.payload)
 
+		def on_log(client, userdata, level, buf):
+			config.Logs.Log("MQTT Log: ",str(level)," buf: ",str(buf),severity=ConsoleWarning)
+			print time.ctime() + " MQTT Log " + str(level) + '  ' + str(buf)
+
 		self.address = configsect.get('address',None)
 		self.password = configsect.get('password',None)
 		self.name = name
 		self.vars = {}
+		self.ids = {}
 		for i,v in configsect.iteritems():
 			if isinstance(v,Section):
 				tp = v.get('TopicType', str)
@@ -52,13 +56,40 @@ class MQTTBroker(object):
 					tpcvrt = int
 				else:
 					tpcvrt = str
-				self.vars[i] = MQitem(v.get('Topic',None),tpcvrt,int(v.get('Expires',99999999999999999))) # todo pub?
+				tpc = v.get('Topic',None)
+				self.vars[i] = MQitem(tpc, tpcvrt,int(v.get('Expires',99999999999999999))) # todo pub?
+				self.ids[tpc] = i
 		self.MQTTclient = mqtt.Client(userdata=self)
 		self.MQTTclient.on_connect = on_connect
 		self.MQTTclient.on_message = on_message
 		self.MQTTclient.on_disconnect = on_disconnect
+		#self.MQTTclient.on_log = on_log
 		self.MQTTclient.connect(self.address)
 		self.MQTTclient.loop_start()
+
+	def GetVal(self,name): # make name a sequence
+		try:
+			t = self.vars[name]
+			if t.Expires + t.RcvTime < time.time():
+				# value is stale
+				return None
+			else:
+				return t.Value
+		except:
+			config.Logs.Log("(MQTT) Error accessing ",self.name, ":",name,severity=ConsoleWarning)
+
+	def GetValByID(self,id):
+		self.GetVal(self.ids[id])
+
+	def SetVal(self,name, val):
+		config.Logs.Log("Can't set MQTT subscribed var within console: ",name)
+
+	def SetValById(self,id, val):
+		config.Logs.Log("Can't set MQTT subscribed var by id within console: ", str(id))
+
+	#todo add pub support?
+
+
 
 
 
