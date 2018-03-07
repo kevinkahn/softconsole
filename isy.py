@@ -357,6 +357,7 @@ class ISY(object):
 		if debug.Flags['ISYDump']:
 			debug.ISYDump("xml.dmp",r.text,pretty=False,new=True)
 			debug.ISYDump("struct.dmp",configdict,new=True)
+			debug.ISYDump("isystream.dmp","",pretty=False,new=True)
 
 		for folder in configdict['folder']:
 			addr = folder['address']

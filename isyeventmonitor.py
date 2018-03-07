@@ -3,7 +3,8 @@ import websocket
 import xmltodict
 import config
 from logsupport import ConsoleWarning, ConsoleError, ConsoleDetail
-from debug import debugPrint, Flags
+from debug import debugPrint
+import debug
 from isycodes import EVENT_CTRL, formatwsitem
 import pygame, time
 import exitutils
@@ -53,6 +54,8 @@ class ISYEventMonitor:
 
 		def on_message(ws, message):
 			m = xmltodict.parse(message)
+			if debug.Flags['ISYDump']:
+				debug.ISYDump("isystream.dmp", message, pretty=False)
 
 			if 'SubscriptionResponse' in m:
 				sr = m['SubscriptionResponse']
