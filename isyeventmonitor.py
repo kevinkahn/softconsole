@@ -92,7 +92,7 @@ class ISYEventMonitor:
 					# Node change report
 					debugPrint('DaemonStream', time.time() - config.starttime, "Status update in stream: ", eseq, ":",
 							   prcode, " : ", enode, " : ", eInfo, " : ", eaction)
-					if eaction is dict:
+					if isinstance(eaction, dict):
 						debugPrint('DaemonStream', "V5 stream - pull up action value: ", eaction)
 						eaction = eaction["#text"]  # todo the new xmltodict will return as data['action']['#text']
 
@@ -154,9 +154,8 @@ class ISYEventMonitor:
 					config.digestinginit = False
 				else:
 					pass  # handle any other? todo
-
 				if e:
-					config.Logs.Log("Extra info in event: " + str(e), severity=ConsoleWarning)
+					config.Logs.Log("Extra info in event: "+str(ecode)+'/'+str(prcode)+'/'+str(eaction)+'/'+str(enode)+'/'+str(eInfo) + str(e), severity=ConsoleWarning)
 				debugPrint('DaemonStream', time.time() - config.starttime,
 						   formatwsitem(esid, eseq, ecode, eaction, enode, eInfo, e))
 #				if enode == '20 F9 76 1':

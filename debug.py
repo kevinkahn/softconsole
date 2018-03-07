@@ -49,4 +49,4 @@ def ISYDump(fn, item, pretty = True,new=False):
 		else:
 			if not new:
 				f.write('\n')
-			f.write(item)
+			f.write(item.encode('UTF-8'))
