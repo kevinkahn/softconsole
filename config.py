@@ -43,7 +43,9 @@ LogLevel = 3
 DummyProgram = None
 WeatherCache = {}
 WUcount = 0
-MQTTbrokers = {}
+
+ValueStore = {} # General store for named values storename:itemname accessed as ValueStore[storename].GetVal(itemname)
+				# or GetVal([itemname]) for a nested name
 
 configfilelist = {}  # list of configfiles and their timestamps
 

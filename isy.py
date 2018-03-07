@@ -10,6 +10,7 @@ from logsupport import ConsoleInfo, ConsoleWarning, ConsoleError, ConsoleDetailH
 import sys
 import errno
 import pygame
+import isyvarssupport
 
 
 class CommsError(Exception): pass
@@ -514,32 +515,36 @@ class ISY(object):
 					config.Logs.Log('Reached unreachable code! ISY4')
 
 		try:
-			configdict = xmltodict.parse(r1.text)['CList']['e']
+			configdictS = xmltodict.parse(r1.text)['CList']['e']
 			if debug.Flags['ISYLoad']:
-				configdict = xmltodict.parse(x3)['CList']['e']
+				configdictS = xmltodict.parse(x3)['CList']['e']
 			if debug.Flags['ISYDump']:
 				debug.ISYDump("xml.dmp", r1.text, pretty=False)
-				debug.ISYDump("struct.dmp", configdict)
-			for v in configdict:
+				debug.ISYDump("struct.dmp", configdictS)
+			for v in configdictS:
 				self.varsState[v['@name']] = int(v['@id'])
 				self.varsStateInv[int(v['@id'])] = v['@name']
 		except:
+			configdictS = {}
 			self.varsState['##nostatevars##'] = 0
 			config.Logs.Log('No state variables defined')
 		try:
-			configdict = xmltodict.parse(r2.text)['CList']['e']
+			configdictI = xmltodict.parse(r2.text)['CList']['e']
 			if debug.Flags['ISYLoad']:
-				configdict = xmltodict.parse(x4)['CList']['e']
+				configdictI = xmltodict.parse(x4)['CList']['e']
 			if debug.Flags['ISYDump']:
 				debug.ISYDump("xml.dmp", r2.text, pretty=False)
-				debug.ISYDump("struct.dmp", configdict)
-			for v in configdict:
+				debug.ISYDump("struct.dmp", configdictI)
+			for v in configdictI:
 				self.varsInt[v['@name']] = int(v['@id'])
 				self.varsIntInv[int(v['@id'])] = v['@name']
 		except:
+			configdictI = {}
 			self.varsInt['##nointevars##'] = 0
 			config.Logs.Log('No integer variables defined')
+		config.ValueStore['ISY'] = isyvarssupport.ISYVars('ISY',configdictS,configdictI)
 
+		config.ValueStore['ISY'].SetVal(['Int', 'AwayNonState'], 5)
 		utilities.register_example("ISY", self)
 		if debug.Flags['ISY']:
 			self.PrintTree(self.ProgRoot, "    ", 'Programs')
