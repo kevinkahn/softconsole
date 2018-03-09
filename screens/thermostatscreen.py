@@ -28,8 +28,8 @@ class ThermostatScreenDesc(screen.BaseKeyScreenDesc):
 		self.info = {}
 		self.fsize = (30, 50, 80, 160)
 
-		if screenname in config.ISY.NodesByName:
-			self.ISYObj = config.ISY.NodesByName[screenname]
+		if config.ISY.NodeExists(screenname):
+			self.ISYObj = config.ISY.GetNodeByName(screenname)
 		else:
 			self.ISYObj = None
 			config.Logs.Log("No Thermostat: " + screenname, severity=logsupport.ConsoleWarning)

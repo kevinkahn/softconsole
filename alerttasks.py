@@ -160,7 +160,7 @@ def ParseAlertParams(nm, spec):
 		"""
 		n = spec.get('Node', None)
 		try:
-			Node = config.ISY.NodesByName[n].address
+			Node = config.ISY.GetNodeByName(n).address
 		except:
 			Node = ''
 			config.Logs.Log("Bad Node Spec on NodeChange alert in " + nm, severity=ConsoleWarning)

@@ -128,6 +128,32 @@ class SetVarKey(ManualKeyDesc):
         def SetVarKeyPressed(self, presstype):
 		isy.SetVar(self.VarID, self.Value)
 
+class NewSetVarKey(ManualKeyDesc):
+	def __init__(self, screen, keysection, keyname):
+		debugPrint('Screen', "             New SetVar Key Desc ", keyname)
+
+		ManualKeyDesc.__init__(self, screen, keysection, keyname)
+		utilities.LocalizeParams(self, keysection, '--', VarType='undef', Var='', Value=0)
+		try:
+			self.Proc = self.SetVarKeyPressed
+			if self.VarType == 'State':
+				self.VarID = (2, config.ISY.varsState[self.Var])
+			elif self.VarType == 'Int':
+				self.VarID = (1, config.ISY.varsInt[self.Var])
+			elif self.VarType == 'Local':
+				self.VarID = (3, config.ISY.varsLocal[self.Var])
+			else:
+				config.Logs.Log('VarType not specified for key ', self.Var, ' on screen ', screen.name,
+								severity=ConsoleWarning)
+				self.Proc = ErrorKey
+		except:
+			config.Logs.Log('Var key error on screen: ' + screen.name + ' Var: ' + self.Var, severity=ConsoleWarning)
+			self.Proc = ErrorKey
+
+		utilities.register_example("SetVarKey", self)
+
+        def SetVarKeyPressed(self, presstype):
+		isy.SetVar(self.VarID, self.Value)
 
 
 class RunProgram(ManualKeyDesc):
@@ -177,8 +203,8 @@ class OnOffKey(ManualKeyDesc):
 
 		self.MonitorObj = None  # ISY Object monitored to reflect state in the key (generally a device within a Scene)
 		if keyname == '*Action*': keyname = self.NodeName  # special case for alert screen action keys that always have same name
-		if keyname in config.ISY.ScenesByName:
-			self.ISYObj = config.ISY.ScenesByName[keyname]
+		if config.ISY.SceneExists(keyname):
+			self.ISYObj = config.ISY.GetSceneByName(keyname)
 			if self.SceneProxy != '':
 				# explicit proxy assigned
 				if self.SceneProxy in config.ISY.NodesByAddr:
@@ -186,8 +212,8 @@ class OnOffKey(ManualKeyDesc):
 					self.MonitorObj = config.ISY.NodesByAddr[self.SceneProxy]
 					debugPrint('Screen', "Scene ", keyname, " explicit address proxying with ",
 							   self.MonitorObj.name, '(', self.SceneProxy, ')')
-				elif self.SceneProxy in config.ISY.NodesByName:
-					self.MonitorObj = config.ISY.NodesByName[self.SceneProxy]
+				elif config.ISY.NodeExists(self.SceneProxy):
+					self.MonitorObj = config.ISY.GetNodeByName(self.SceneProxy)
 					debugPrint('Screen', "Scene ", keyname, " explicit name proxying with ",
 							   self.MonitorObj.name, '(', self.MonitorObj.address, ')')
 				else:
@@ -204,8 +230,8 @@ class OnOffKey(ManualKeyDesc):
 					config.Logs.Log("No proxy for scene: " + keyname, severity=ConsoleError)
 				debugPrint('Screen', "Scene ", keyname, " default proxying with ",
 						   self.MonitorObj.name)
-		elif keyname in config.ISY.NodesByName:
-			self.ISYObj = config.ISY.NodesByName[keyname]
+		elif config.ISY.NodeExists(keyname):
+			self.ISYObj = config.ISY.GetNodeByName(keyname)
 			self.MonitorObj = self.ISYObj
 		else:
 			debugPrint('Screen', "Screen", keyname, "unbound")

@@ -11,6 +11,7 @@ import sys
 import errno
 import pygame
 import isyvarssupport
+import valuestore
 
 
 class CommsError(Exception): pass
@@ -109,6 +110,7 @@ class TreeItem(object):
 	"""
 
 	def __init__(self, name, addr, parentaddr):
+		self.fullname = ""
 		self.name = name
 		self.address = addr
 		self.parent = parentaddr  # replaced by actual obj reference at end of tree build
@@ -285,12 +287,13 @@ class ISY(object):
 		:return:
 		"""
 
-		self.NodeRoot = Folder(0, '*root*', u'0', 0, u'0')
+		self.NodeRoot = Folder(0, '', u'0', 0, u'0') # *root*
 		self.ProgRoot = None
 		self.NodesByAddr = {}
 		self.FoldersByAddr = {'0': self.NodeRoot}
 		self.ScenesByAddr = {}
 		self.NodesByName = {}
+		self.NodesByFullName = {}
 		self.ScenesByName = {}
 		self.FoldersByName = {}
 		self.ProgramFoldersByAddr = {}
@@ -431,6 +434,9 @@ class ISY(object):
 				if scene['name'] not in ('~Auto DR', 'Auto DR'):
 					config.Logs.Log('Scene with no members ', scene['name'], severity=ConsoleWarning)
 		self.LinkChildrenParents(self.ScenesByAddr, self.ScenesByName, self.FoldersByAddr, self.NodesByAddr)
+
+		self.SetFullNames(self.NodeRoot,"")
+
 		if debug.Flags['ISY']:
 			self.PrintTree(self.NodeRoot, "    ", 'Nodes')
 
@@ -543,8 +549,7 @@ class ISY(object):
 			configdictI = {}
 			self.varsInt['##nointevars##'] = 0
 			config.Logs.Log('No integer variables defined')
-		config.ValueStore['ISY'] = isyvarssupport.ISYVars('ISY',configdictS,configdictI)
-
+		valuestore.NewValueStore(isyvarssupport.ISYVars('ISY',configdictS,configdictI))
 		utilities.register_example("ISY", self)
 		if debug.Flags['ISY']:
 			self.PrintTree(self.ProgRoot, "    ", 'Programs')
@@ -560,6 +565,45 @@ class ISY(object):
 			return 0, 0
 		except:
 			return 0, 0
+
+	def SetFullNames(self, startpoint, parentname):
+		startpoint.fullname = parentname + startpoint.name
+		self.NodesByFullName[startpoint.fullname] = startpoint
+		if isinstance(startpoint, TreeItem):
+			for c in startpoint.children:
+				self.SetFullNames(c,startpoint.fullname + '/')
+
+	def GetNodeByName(self, name):
+		if name[0] == '/':
+			# use fully qualified name
+			return self.NodesByFullName[name]
+		else:
+			# use short name
+			return self.NodesByName[name]
+
+	def NodeExists(self, name):
+		if name[0] == '/':
+			return name in self.NodesByFullName
+		else:
+			return name in self.NodesByName
+
+	def SceneExists(self, name):
+		if name[0] != '/':
+			return name in self.ScenesByName
+		else:
+			for n, s in self.ScenesByName.iteritems():
+				if name == s.fullname:
+					return True
+			return False
+
+	def GetSceneByName(self,name):
+		if name[0] != '/':
+			return self.ScenesByName[name]
+		else:
+			for n, s in self.ScenesByName.iteritems():
+				if name == s.fullname:
+					return s
+			return None
 
 	def PrintTree(self, startpoint, indent, msg):
 		if msg is not None:
