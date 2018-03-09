@@ -8,6 +8,157 @@ import os
 import string
 import io
 import pygame
+import valuestore
+
+class WeatherItem(valuestore.StoreItem):
+	def __init__(self,mapinfo):
+		self.MapInfo = mapinfo
+		super(WeatherItem,self).__init__(0,0)
+
+class FcstItem(valuestore.StoreItem):
+	pass
+
+
+class WeatherVals(valuestore.ValueStore):
+	global get_icon
+	def __init__(self, name, WunderKey):
+		super(WeatherVals,self).__init__(name, refreshinterval = 60*30)
+		synthmap = {'Icon':('synthetic', get_icon, self.vars['Cond']['Iconurl']),
+					'Moonrise':('synthetic',self.fixMoon,'rise'),
+					'Moonset':('synthetic',self.fixMoon,'set')}
+		self.vars = {'Cond':{},'Fcst':[{}]}  # this is backwards - want array of values for fcst
+		self.failedfetch = False
+		self.reqinterval = 60*30 # 30 minutes
+		self.url = 'http://api.wunderground.com/api/' + WunderKey + '/conditions/forecast10day/astronomy/q/' \
+				   + name + '.json'
+		for fld, fldinfo in WeatherInfoActual.ConditionMap.iteritems():
+			self.vars['Cond'][fld] = WeatherItem(fldinfo)
+		for fld, fldinfo in synthmap:
+			self.vars['Cond'][fld[0]] = WeatherItem(fldinfo)
+		for fld, fldinfo in WeatherInfoActual.ForecastDay.iteritems():
+			self.vars['Fcst'][fld] = [] # entries in this array must be FcstItem
+			self.vars['Fcst'][fld+':tmplt']	= fldinfo
+
+	def BlockRefresh(self):
+		self.fetchtime = time.time()
+		self.failedfetch = False
+		try:
+			with urllib2.urlopen(self.url, None, 15) as f:  # wait at most 15 seconds for weather response then timeout
+				val = f.read()
+			config.WUcount += 1
+			config.Logs.Log("Actual weather fetch for " + self.location + " WU count: " + str(config.WUcount),
+							severity=ConsoleDetail)
+		except:
+			config.Logs.Log("Error fetching weather: " + self.url + str(sys.exc_info()[0]),
+							severity=ConsoleWarning)
+			self.dumpweatherresp(val, 'none', 'fetch', '--')
+			self.failedfetch = True
+			return None
+
+		if val.find("keynotfound") != -1:
+			config.BadWunderKey = True
+			# only report once in log
+			config.Logs.Log("Bad weatherunderground key:" + self.location, severity=ConsoleError, tb=False)
+			return None
+
+		if val.find("you must supply a key") != -1:
+			config.Logs.Log("WeatherUnderground missed the key:" + self.location, severity=ConsoleWarning)
+			self.fetchtime = 0  # force retry next time since this didn't register with WU
+			return None
+
+		parsed_json = json.loads(val)
+		js = functools.partial(TreeDict, parsed_json)
+		fcsts = TreeDict(parsed_json, 'forecast', 'simpleforecast', 'forecastday')
+		for cond in self.vars['Cond']:
+			try:
+				if cond.MapInfo[0] != 'synthetic':
+					cond.Value = cond.MapInfo[0](js(*cond.MapInfo[1]))
+					if cond.MapInfo[0] == str:
+						cond.Value = TryShorten(cond.Value)
+				else:
+					cond.Value = cond.MapInfo[1](cond.MapInfo[2])
+			except:
+				cond.Value = None  # set error equiv to Conderr?
+
+		# =========================================================
+
+		self.ForecastVals = []
+		self.ForecastErr = []
+
+		for i, fcst in enumerate(fcsts):
+			self.ForecastVals.append({})
+			self.ForecastErr.append([])
+			fs = functools.partial(TreeDict, fcst)
+			for fc, desc in WeatherInfoActual.ForecastDay.iteritems():
+				try:
+					self.ForecastVals[i][fc] = desc[0](fs(*desc[1]))
+					if desc[0] == str:
+						self.ForecastVals[i][fc] = TryShorten(self.ForecastVals[i][fc])
+				except:
+					config.Logs.Log("Forecast error: Day " + str(i) + ' field ' + str(fc) + ' returned *' + str(
+						fs(*desc[1])) + '*', severity=ConsoleError, tb=False)
+					self.ForecastVals[i][fc] = None  # desc[0]('0')
+					self.ForecastErr[i].append(fc)
+			self.ForecastVals[i]['Icon'] = get_icon(self.ForecastVals[i]['Iconurl'])
+		"""
+		Create synthetic fields and fix error cases
+		
+
+		# Wind not reported at station
+		if self.ConditionVals['WindMPH'] < 0:
+			self.ConditionVals['WindStr'] = 'n/a'
+		else:
+			self.ConditionVals['WindStr'] = "{d[0]}@{d[1]} gusts {d[2]}".format(
+				d=[self.ConditionVals[x] for x in ('WindDir', 'WindMPH', 'WindGust')])
+
+		if any(self.ForecastErr):
+			self.dumpweatherresp(val, parsed_json, 'forecast', self.ForecastErr)
+
+		if self.ConditionErr:
+			config.Logs.Log("Weather error: ", self.location, self.ConditionErr, severity=ConsoleWarning)
+			self.dumpweatherresp(val, parsed_json, 'condition', self.ConditionErr)
+
+	# self.returnval = -1
+	# return -1
+
+	except:
+	config.Logs.Log(
+		"Error retrieving weather" + str(sys.exc_info()[0]) + ':' + str(sys.exc_info()[1]) + ' ' + self.url,
+		severity=ConsoleError)
+	self.dumpweatherresp(val, parsed_json, 'exception', str(sys.exc_info()))
+	self.returnval = -1
+	return -1
+
+
+try:
+	self.ConditionVals['Age'] = utilities.interval_str(time.time() - self.ConditionVals['Time'])
+except:
+	self.ConditionVals['Age'] = "No readings ever retrieved"
+return self.returnval
+"""
+
+	def fixMoon(self,evnt):
+			MoonH = 'Moon'+evnt+'H'
+			MoonM = 'Moon'+evnt+'M'
+			if (self.vars['Cond'][MoonH] is None) or (self.vars['Cond'][MoonM] is None):
+				self.vars['Cond']['Moon' + evnt] = 'n/a'
+			else:
+				self.vars['Cond']['Moon' + evnt] = "{d[0]:02d}:{d[1]:02d}".format(
+					d=[self.vars['Cond'][x] for x in (MoonH, MoonM)])
+
+	def GetVal(self,name):
+		if config.BadWunderKey:
+			return None
+		if self.fetchtime + self.refreshinterval > time.time():
+			# use current values
+			if self.failedfetch:
+				return None
+			else:
+				return super(WeatherVals,self).GetVal(name)
+		else:
+			# fetch newer data
+			self.BlockRefresh()
+
 
 import config
 from logsupport import ConsoleWarning, ConsoleError, ConsoleDetail
@@ -33,7 +184,7 @@ def CreateWeathBlock(Format, Fields, Vals, WeathFont, FontSize, WeathColor, icon
 					vals.append(Vals[fld])
 				else:
 					varset, name = string.split(fld,':',1)
-					vals.append(config.ValueStore[varset].GetVal(name))
+					vals.append(valuestore.ValueStores[varset].GetVal(name))
 
 			rf.append(usefont.render(WFormatter().format(f, d=vals), 0, wc(WeathColor)))
 			fh += rf[-1].get_height()

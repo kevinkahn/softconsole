@@ -3,9 +3,10 @@ import config
 from logsupport import ConsoleWarning
 from configobj import Section
 import time
+import valuestore
 
 
-class MQitem(object):
+class MQitem(valuestore.StoreItem):
 	def __init__(self,Topic, Type, Expires):
 		self.Topic = Topic
 		self.Type  = Type
@@ -14,7 +15,7 @@ class MQitem(object):
 		self.Value = None
 
 
-class MQTTBroker(object):
+class MQTTBroker(valuestore.ValueStore):
 
 	def __init__(self, name, configsect):
 		def on_connect(client, userdata, flags, rc):
@@ -67,24 +68,13 @@ class MQTTBroker(object):
 		self.MQTTclient.connect(self.address)
 		self.MQTTclient.loop_start()
 
-	def GetVal(self,name): # make name a sequence
-		try:
-			t = self.vars[name]
-			if t.Expires + t.RcvTime < time.time():
-				# value is stale
-				return None
-			else:
-				return t.Value
-		except:
-			config.Logs.Log("(MQTT) Error accessing ",self.name, ":",name,severity=ConsoleWarning)
-
 	def GetValByID(self,id):
 		self.GetVal(self.ids[id])
 
 	def SetVal(self,name, val):
 		config.Logs.Log("Can't set MQTT subscribed var within console: ",name)
 
-	def SetValById(self,id, val):
+	def SetValByID(self,id, val):
 		config.Logs.Log("Can't set MQTT subscribed var by id within console: ", str(id))
 
 	#todo add pub support?

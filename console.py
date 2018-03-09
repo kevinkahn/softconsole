@@ -23,6 +23,7 @@ import time
 import cgitb
 import datetime
 import pygame
+import valuestore
 
 # noinspection PyProtectedMember
 from configobj import ConfigObj, Section
@@ -42,6 +43,7 @@ import requests
 from logsupport import ConsoleWarning, ConsoleDetail
 import weatherinfo
 import mqttsupport
+import localvarsupport
 
 import json
 
@@ -220,7 +222,8 @@ while includes:
 		earlylog.write("MISSING config file " + f + "\n")
 		config.configfilelist[f] = 0
 
-debug.Flags = debug.InitFlags()
+debug.Flags = debug.InitFlags() # todo delete when switched to ValStore
+valuestore.NewValueStore(localvarsupport.LocalVars('Debug',debug.DbgVars))
 
 utilities.ParseParam(globalparams)  # add global parameters to config file
 
@@ -285,13 +288,11 @@ for i,v in config.ParsedConfigFile.iteritems():
 			"""
 			Set up mqtt brokers
 			"""
-			config.ValueStore[i] = mqttsupport.MQTTBroker(i, v)
+			valuestore.NewValueStore(mqttsupport.MQTTBroker(i, v))
 			del config.ParsedConfigFile[i]
-#		elif stype == "Locals":
-#			config.ValueStore[i] = localvarsupport.Vars(i, v)
-
-
-
+		elif stype == "Locals":
+			valuestore.NewValueStore(localvarsupport.LocalVars(i,v))
+			del config.ParsedConfigFile[i]
 
 	"""
 	Eventually add HA and ISY sections  TODO
@@ -351,6 +352,7 @@ if 'Variables' in config.ParsedConfigFile:
 		config.ISY.varsLocalInv[i] = nm
 		config.Logs.Log("Local variable: " + nm + "(" + str(i) + ") = " + str(val))
 		i += 1
+#	localvarsupport.LocalVars('Local',config.ParsedConfigFile['Variables'])
 	del config.ParsedConfigFile['Variables']
 configobjects.MyScreens()
 config.Logs.Log("Linked config to ISY")

@@ -1,12 +1,18 @@
 import config
 import sys
 import mypprint
+from configobj import ConfigObj
 
 from logsupport import ConsoleDebug, ConsoleError
 
 Flags = {}
 DbgFlags = ['Main', 'DaemonCtl', 'DaemonStream', 'Screen', 'ISY', 'Dispatch', 'EventList', 'Fonts', 'DebugSpecial',
 			'QDump', 'LLTouch', 'Touch', 'ISYDump', 'ISYLoad']
+
+DbgVars = ConfigObj({"LogLevel":ConfigObj({'Value':3,'VarType':'int'})})
+for f in DbgFlags:
+	DbgVars[f] = ConfigObj({'Value':False,'VarType':'bool'})
+
 DebugFlagKeys = {}
 flagspercol = 3  # number of flags per maint screen
 flagsperrow = 2

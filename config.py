@@ -44,8 +44,6 @@ DummyProgram = None
 WeatherCache = {}
 WUcount = 0
 
-ValueStore = {} # General store for named values storename:itemname accessed as ValueStore[storename].GetVal(itemname)
-				# or GetVal([itemname]) for a nested name
 
 configfilelist = {}  # list of configfiles and their timestamps
 
@@ -102,6 +100,7 @@ DimIdleListTimes = []
 CharColor = "white"
 BackgroundColor = 'maroon'
 _WunderKey = 'none'
+BadWunderKey = False
 
 MaxLogFiles = 5  # would be nice to get these in globalparams but right now there is an ordering issue since logging starts before global sucking
 LogFontSize = 23
