@@ -1,13 +1,15 @@
 import pygame
 import config
 from debug import debugPrint
-from utilities import wc
+import valuestore
 import screen
 import logsupport
+import weatherstore
 import weatherinfo
 import utilities
 import toucharea
 from collections import OrderedDict
+from utilities import wc
 
 fsizes = ((20, False, False), (30, True, False), (45, True, True))
 """
@@ -32,26 +34,19 @@ class WeatherScreenDesc(screen.ScreenDesc):
 
 		self.scrlabel = screen.FlatenScreenLabel(self.label)
 
-		self.errformat = "{d[0]}",'Weather Not Available'
-		self.errfields = 'LABEL',
-
-		self.headformat = "{d[0]}", "{d[1]}"
-		self.headfields = 'LABEL', 'Location'
-
-		self.footformat = "Readings as of", "{d[0]} ago",
-		self.footfields = ('Age',)
-
-		self.condformat = u"{d[0]} {d[1]}\u00B0F",u"  Feels like: {d[2]}\u00B0","Wind {d[3]}"
-		self.condfields = ('Sky', 'Temp','Feels','WindStr')
+		self.condformat = u"{d[0]} {d[1]}\u00B0F",u"  Feels like: {d[2]}\u00B0","Wind {d[3]}@{d[4]} gusts {d[5]}"
+		self.condfields = list(((self.location, 'Cond', x) for x in ('Sky','Temp','Feels','WindDir', 'WindMPH', 'WindGust')))
 
 		self.dayformat  = "Sunrise: {d[0]:02d}:{d[1]:02d}","Sunset:  {d[2]:02d}:{d[3]:02d}","Moon rise: {d[4]} set: {d[5]}","{d[6]}% illuminated"
-		self.dayfields  = ('SunriseH', 'SunriseM', 'SunsetH', 'SunsetM', 'Moonrise', 'Moonset', 'MoonPct')
+		self.dayfields  = list(((self.location, 'Cond', x) for x in ('SunriseH','SunriseM','SunsetH','SunsetM','Moonrise','Moonset','MoonPct')))
+
+		self.footformat = "Readings as of", "{d[0]} ago",
+		self.footfields = ((self.location,'Cond','Age'),)
 
 		self.fcstformat = u"{d[0]}   {d[1]}\u00B0/{d[2]}\u00B0 {d[3]}","Wind: {d[4]} at {d[5]}"
-		self.fcstfields = ('Day', 'High', 'Low', 'Sky','WindDir', 'WindSpd')
-		self.forecast = [(1, False, u"{d[0]}   {d[1]}\u00B0/{d[2]}\u00B0 {d[3]}", ('Day', 'High', 'Low', 'Sky')),
-						 (1, False, "Wind: {d[0]} at {d[1]}", ('WindDir', 'WindSpd'))]
-		self.Info = weatherinfo.WeatherInfo(self.WunderKey, self.location)
+		self.fcstfields = list(((self.location, 'Fcst', x) for x in ('Day', 'High','Low', 'Sky', 'WindDir','WindSpd')))
+
+		self.store = valuestore.NewValueStore(weatherstore.WeatherVals(self.location,self.WunderKey))
 		utilities.register_example("WeatherScreenDesc", self)
 
 	def __repr__(self):
@@ -67,25 +62,25 @@ class WeatherScreenDesc(screen.ScreenDesc):
 		usefulheight = config.screenheight - config.topborder - config.botborder
 		vert_off = config.topborder
 
-		if self.Info.FetchWeather() == -1:
-			renderedlines = [
-				weatherinfo.CreateWeathBlock(self.errformat, self.errfields, self.Info.ConditionVals, "", [45, 30],
-											 self.CharColor, False, True, extra={'LABEL': self.scrlabel})]
+		if self.store.failedfetch:
+			# todo fix this error screen
+			renderedlines = [config.fonts.Font(45, "").render(self.fmt.format("{d[0]}",'Weather Not Available',
+															d=self.scrlabel), 0, wc(self.CharColor))]
 			for l in renderedlines:
 				config.screen.blit(l, ((config.screenwidth - l.get_width()) / 2, vert_off))
 				vert_off = vert_off + 30
 			config.Logs.Log('Weatherscreen missing weather' + self.name, severity=logsupport.ConsoleWarning)
 		else:
-			renderedlines = [
-				weatherinfo.CreateWeathBlock(self.headformat, self.headfields, self.Info.ConditionVals, "", [50, 40],
-											 self.CharColor, False, True, extra={'LABEL': self.scrlabel})]
-			h = renderedlines[-1].get_height()
+			renderedlines = [config.fonts.Font(50, "").render(self.fmt.format("{d}",d=self.scrlabel),0,wc(self.CharColor))]
+			renderedlines.append(config.fonts.Font(40, "").render(self.fmt.format("{d}",d=self.store.GetVal(('Cond','Location'))),0,wc(self.CharColor)))
+
+			h = renderedlines[0].get_height() + renderedlines[1].get_height()
 			if conditions:
-				renderedlines.append(weatherinfo.CreateWeathBlock(self.condformat,self.condfields,self.Info.ConditionVals,"",[45,25,35],self.CharColor, True,False))
+				renderedlines.append(weatherinfo.CreateWeathBlock(self.condformat,self.condfields,"",[45,25,35],self.CharColor, (self.location, 'Cond', 'Icon') ,False))
 				h = h + renderedlines[-1].get_height()
-				renderedlines.append(weatherinfo.CreateWeathBlock(self.dayformat,self.dayfields,self.Info.ConditionVals,"",[30],self.CharColor, False, True))
+				renderedlines.append(weatherinfo.CreateWeathBlock(self.dayformat,self.dayfields,"",[30],self.CharColor, None, True))
 				h = h + renderedlines[-1].get_height()
-				renderedlines.append(weatherinfo.CreateWeathBlock(self.footformat,self.footfields,self.Info.ConditionVals,"",[25],self.CharColor, False, True))
+				renderedlines.append(weatherinfo.CreateWeathBlock(self.footformat,self.footfields,"",[25],self.CharColor, None, True))
 				h = h + renderedlines[-1].get_height()
 				s = (usefulheight - h) / (len(renderedlines) - 1) if len(renderedlines) > 1 else 0
 				for l in renderedlines:
@@ -95,28 +90,31 @@ class WeatherScreenDesc(screen.ScreenDesc):
 			else:
 				fcstlines = 0
 				maxfcstwidth = 0
-				for fcst in self.Info.ForecastVals:
-					renderedlines.append(weatherinfo.CreateWeathBlock(self.fcstformat,self.fcstfields,fcst,"",[25],self.CharColor,True,False))
+				for i in range(10):
+					renderedlines.append(weatherinfo.CreateWeathBlock(self.fcstformat,self.fcstfields,"",[25],self.CharColor,(self.location, 'Fcst', 'Icon') ,False,day=i))
 					if renderedlines[-1].get_width() > maxfcstwidth: maxfcstwidth = renderedlines[-1].get_width()
 					fcstlines += 1
 
 				if config.screenwidth > 350:
 					h = h + renderedlines[-1].get_height() * 5
-					fcstlines = (fcstlines + 1) / 2
+					fcstlines = 2 + (fcstlines + 1) / 2
 					usewidth = config.screenwidth / 2
-					lastfcst = 11
+					lastfcst = 12
 				else:
 					h = h + renderedlines[-1].get_height() * 5
 					fcstlines = 5
 					usewidth = config.screenwidth
-					lastfcst = 6
-				s = (usefulheight - h) / fcstlines
+					lastfcst = 7
+				s = (usefulheight - h) / (fcstlines -1)
 
 				config.screen.blit(renderedlines[0],((config.screenwidth - renderedlines[0].get_width())/2,vert_off))
 				vert_off = vert_off + renderedlines[0].get_height() + s
+				config.screen.blit(renderedlines[1],
+								   ((config.screenwidth - renderedlines[1].get_width()) / 2, vert_off))
+				vert_off = vert_off + renderedlines[1].get_height() + s
 				startvert = vert_off
 				horiz_off = (usewidth - maxfcstwidth) / 2
-				for dy, fcst in enumerate(renderedlines[1:lastfcst]):
+				for dy, fcst in enumerate(renderedlines[2:lastfcst]):
 					config.screen.blit(fcst, (horiz_off, vert_off))
 					vert_off = vert_off + s + fcst.get_height()
 					if (dy == 4) and (config.screenwidth > 350):

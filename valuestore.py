@@ -1,10 +1,3 @@
-"""ss ValueStore(object):
-	GetVal
-	SetVsl
-	AutoRefresh bool
-	BlockRefresh
-	LastBlockRefresh
-"""
 import config
 from logsupport import ConsoleError, ConsoleWarning
 import time
@@ -12,9 +5,22 @@ import time
 ValueStores = {} # General store for named values storename:itemname accessed as ValueStore[storename].GetVal(itemname)
 				# or GetVal([itemname]) for a nested name
 
+def GetVal(name):
+	return ValueStores[name[0]].GetVal(name[1:])
+
+def BlockRefresh(name):
+	ValueStores[name].BlockRefresh()
 
 def NewValueStore(store):
-	ValueStores[store.name] = store
+	if store.name in ValueStores:
+		if isinstance(ValueStores[store.name],type(store)):
+			return ValueStores[store.name]
+		else:
+			config.Logs.Log("Incompatible store types for: "+store.name,severity=ConsoleError)
+			return None
+	else:
+		ValueStores[store.name] = store
+		return ValueStores[store.name]
 
 class StoreItem(object):
 	def __init__(self,initval,expires=9999999999999999):
@@ -29,18 +35,29 @@ class ValueStore(object):
 		self.refreshinterval = refreshinterval
 		pass
 
-	def GetVal(self,name):
+	def GetVal(self,name): # todo make store properties accessible also
 		try:
-			n2 = name[:] if isinstance(name,list) else [name]
+			if isinstance(name,tuple):
+				n2 = list(name)
+			elif isinstance(name,list):
+				n2 = name[:]
+			else:
+				n2 = [name]
 			t = self.vars
-			while n2 != []:
+			while len(n2) > 1:
 				t = t[n2[0]]
 				n2.pop(0)
+			if isinstance(n2[0], int):
+				# final is array
+				V = t.Value[n2[0]]
+			else:
+				t = t[n2[0]]
+				V = t.Value
 			if t.Expires + t.RcvTime < time.time():
 				# value is stale
 				return None
 			else:
-				return t.Value
+				return V
 		except:
 			config.Logs.Log("Error accessing ", self.name, ":", str(name), severity=ConsoleWarning)
 			return None

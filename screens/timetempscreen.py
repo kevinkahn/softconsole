@@ -5,7 +5,8 @@ import screen
 import utilities
 from debug import debugPrint
 from utilities import wc
-
+import valuestore
+import weatherstore
 import weatherinfo
 import pygame
 from eventlist import ProcEventItem
@@ -44,7 +45,23 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 							screenname,severity=ConsoleWarning)
 			self.FcstLayout = "Block"
 		self.scrlabel = screen.FlatenScreenLabel(self.label)
-		self.WInfo = weatherinfo.WeatherInfo(self.WunderKey, self.location)
+		self.store = valuestore.NewValueStore(weatherstore.WeatherVals(self.location,self.WunderKey))
+		self.DecodedCondFields = []
+		for f in self.ConditionFields:
+			if ':' in f:
+				self.DecodedCondFields.append(f.split(':'))
+			else:
+				self.DecodedCondFields.append((self.location,'Cond',f))
+				self.DecodedFcstFields = []
+		self.condicon = (self.location,'Cond','Icon') if self.CondIcon else None
+
+		for f in self.ForecastFields:
+			if ':' in f:
+				self.DecodedFcstFields.append(f.split(':'))
+			else:
+				self.DecodedFcstFields.append((self.location,'Fcst',f))
+		self.fcsticon = (self.location,'Fcst','Icon') if self.FcstIcon else None
+
 		self.ClockRepaintEvent = ProcEventItem(id(self), 'repaintTimeTemp', self.repaintClock)
 		self.fmt = weatherinfo.WFormatter()
 
@@ -60,6 +77,8 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 		sizeindex = 0
 		renderedtime = []
 		renderedtimelabel = []
+
+		self.store.BlockRefresh()
 
 
 		tw = 0
@@ -85,7 +104,7 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 			spaces += 1
 		sizeindex += 1
 
-		if self.WInfo.FetchWeather() == -1:
+		if self.store.failedfetch:
 			errmsg1 = config.fonts.Font(self.LocationSize,self.Font).render('Weather',0,wc(self.CharColor))
 			errmsg2 = config.fonts.Font(self.LocationSize, self.Font).render('unavailable', 0, wc(self.CharColor))
 			errmsg3 = config.fonts.Font(self.LocationSize, self.Font).render('or error', 0, wc(self.CharColor))
@@ -101,8 +120,8 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 			config.screen.blit(errmsg3,
 							   ((config.screenwidth - errmsg3.get_width()) / 2, vert_off + 2*errmsg1.get_height()))
 		else:
-			cb = CreateWeathBlock(self.ConditionFormat,self.ConditionFields,self.WInfo.ConditionVals,self.Font,
-								  self.CondSize,self.CharColor,self.CondIcon,
+			cb = CreateWeathBlock(self.ConditionFormat, self.DecodedCondFields,self.Font,
+								  self.CondSize,self.CharColor,self.condicon,
 								  self.FcstLayout == 'LineCentered')
 			h = h + cb.get_height()
 
@@ -110,10 +129,9 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 			forecastlines = 0
 			spaces += 1
 			for dy in range(self.ForecastDays):
-				fb = CreateWeathBlock(self.ForecastFormat, self.ForecastFields,
-									  self.WInfo.ForecastVals[dy + self.SkipDays], self.Font,
-									  self.FcstSize, self.CharColor, self.FcstIcon,
-									  self.FcstLayout == 'LineCentered')
+				fb = CreateWeathBlock(self.ForecastFormat, self.DecodedFcstFields,self.Font,
+									  self.FcstSize, self.CharColor, self.fcsticon,
+									  self.FcstLayout == 'LineCentered',day=dy + self.SkipDays)
 				renderedforecast.append(fb)
 				if fb.get_width() > maxfcstwidth: maxfcstwidth = fb.get_width()
 				forecastlines += 1
@@ -133,16 +151,13 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 			config.screen.fill(wc(self.BackgroundColor),
 							   pygame.Rect(0, 0, config.screenwidth, config.screenheight - config.botborder))
 			vert_off = config.topborder
-			#pygame.draw.line(config.screen, wc('white'), (0, vert_off), (400, vert_off))
 			for tmlbl in renderedtimelabel:
 				horiz_off = (config.screenwidth - tmlbl.get_width())/2
 				config.screen.blit(tmlbl, (horiz_off, vert_off))
 				vert_off = vert_off + s + tmlbl.get_height() + extraspace
-				#pygame.draw.line(config.screen, wc('white'), (0, vert_off), (400, vert_off))
 
 			config.screen.blit(cb, ((config.screenwidth - cb.get_width())/2, vert_off))
 			vert_off = vert_off + s + cb.get_height() + extraspace
-			#pygame.draw.line(config.screen, wc('white'), (0, vert_off), (400, vert_off))
 
 			startvert = vert_off
 			maxvert = startvert
@@ -169,8 +184,6 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 
 			if self.FcstLayout == '2ColVert': pygame.draw.line(config.screen,wc('white'),(usewidth,startvert+fcstvert/3),(usewidth,maxvert + 2*fcstvert/3))
 
-		#pygame.draw.line(config.screen,wc('white'),(0,vert_off),(400,vert_off))
-		#pygame.draw.line(config.screen,wc('black'),(0,config.screenheight-config.botborder),(400,config.screenheight-config.botborder))
 		pygame.display.update()
 		config.DS.Tasks.AddTask(self.ClockRepaintEvent, 1)
 
