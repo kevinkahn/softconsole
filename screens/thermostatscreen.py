@@ -81,11 +81,8 @@ class ThermostatScreenDesc(screen.BaseKeyScreenDesc):
 
 		debugPrint('Main', "Bump temp: ", setpoint, degrees)
 		debugPrint('Main', "New: ", self.info[setpoint][0] + degrees)
-		rtxt = isy.try_ISY_comm('/rest/nodes/' + self.ISYObj.address + '/set/' + setpoint + '/' + str(
-				self.info[setpoint][0] + degrees))
-		# r = config.ISYrequestsession.get(
-		#	config.ISYprefix + 'nodes/' + self.ISYObj.address + '/set/' + setpoint + '/' + str(
-		#		self.info[setpoint][0] + degrees))
+		rtxt = isy.try_ISY_comm('/rest/nodes/' + self.ISYObj.address + '/cmd/' + setpoint + '/' + str(
+				self.info[setpoint][0] + degrees)) #todo
 		self.ShowScreen()
 
 	def BumpMode(self, mode, vals, presstype):
@@ -94,9 +91,7 @@ class ThermostatScreenDesc(screen.BaseKeyScreenDesc):
 		debugPrint('Main', cv, vals[cv])
 		cv = (cv + 1)%len(vals)
 		debugPrint('Main', "new cv: ", cv)
-		rtxt = isy.try_ISY_comm('/rest/nodes/' + self.ISYObj.address + '/set/' + mode + '/' + str(vals[cv]))
-		# r = config.ISYrequestsession.get(
-		#	config.ISYprefix + 'nodes/' + self.ISYObj.address + '/set/' + mode + '/' + str(vals[cv]))
+		rtxt = isy.try_ISY_comm('/rest/nodes/' + self.ISYObj.address + '/cmd/' + mode + '/' + str(vals[cv])) #todo
 		self.ShowScreen()
 
 	def ShowScreen(self):
@@ -104,7 +99,7 @@ class ThermostatScreenDesc(screen.BaseKeyScreenDesc):
 		rtxt = isy.try_ISY_comm('/rest/nodes/' + self.ISYObj.address)
 		# r = config.ISYrequestsession.get('http://' + config.ISYaddr + '/rest/nodes/' + self.ISYObj.address,
 		#								 verify=False)  # todo check r response
-		tstatdict = xmltodict.parse(rtxt)  #r.text)
+		tstatdict = xmltodict.parse(rtxt)  #r.text) # todo what if notfound
 		# config.Logs.Log('****' + str(tstatdict)) why do we sometimes get a garbage response TODO
 		props = tstatdict["nodeInfo"]["properties"]["property"]
 

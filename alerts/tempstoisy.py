@@ -1,9 +1,10 @@
-import weatherinfo
 import config
 import exitutils
 from logsupport import ConsoleError, ConsoleInfo, ConsoleWarning, ConsoleDetail
 import isy
 import exceptions
+import valuestore
+import weatherstore
 
 
 class GetTempsToISY(object):
@@ -15,26 +16,21 @@ class GetTempsToISY(object):
 		params: Station, (Fieldspec Var)+  where Fieldspec = C|F:fieldname Var = S|I|L:name)
 		"""
 		station = alert.param[0]
-		WI = weatherinfo.WeatherInfo(config.WunderKey, station)
-		if WI.FetchWeather() == -1:
-			config.Logs.Log("Weather not available in SendTemps(" + station + ')', severity=ConsoleError)
-			return
+		WI = valuestore.NewValueStore(weatherstore.WeatherVals(station, config.WunderKey))
+
 		assigns = alert.param[1].split(' ')
 		for i in range(0, len(assigns), 2):
 			weathcode = (assigns[i].split(':'))
-			try:
-				if weathcode[0] == 'C':
-					weathval = WI.ConditionVals[weathcode[1]]
-				elif weathcode[0] == 'F':
-					weathval = WI.ForecastVals[0][weathcode[1]]
-				else:
-					exitutils.FatalError('Weather field error in SendTemps', restartopt='shut')
-			except exceptions.KeyError:
-				config.Logs.Log("Weather field no in WU report: "+str(weathcode),severity=ConsoleWarning)
-				return
+
+			if weathcode[0] == 'C':
+				weathval = WI.GetVal(('Cond',weathcode[1]))
+			elif weathcode[0] == 'F':
+				weathval = WI.GetVal(('Fcst',weathcode[1],0))
+			else:
+				exitutils.FatalError('Weather field error in SendTemps', restartopt='shut')
 
 			if not (isinstance(weathval,int) or isinstance(weathval,float)):
-				config.Logs.Log("No valid weather value to send (" + station +'):'+weathcode[0]+':'+weathcode[1]+ +str(weathval),severity=ConsoleWarning)
+				config.Logs.Log("No valid weather value to send (" + station +'):'+weathcode[0]+':'+weathcode[1] +str(weathval),severity=ConsoleWarning)
 				return
 			isyvar = config.ISY.GetVarCode(tuple(assigns[i + 1].split(':')))
 			config.Logs.Log(
