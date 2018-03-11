@@ -60,6 +60,8 @@ def try_ISY_comm(urlcmd):
 				config.Logs.Log("ISY Comm UnknownErr: " + ' Cmd: ' + urlcmd, severity=ConsoleError)
 				config.Logs.Log(sys.exc_info()[1], severity=ConsoleDetailHigh, tb=False)
 				raise CommsError
+			if r.status_code == 404: # not found
+				return 'notfound'
 			if r.status_code != 200:
 				config.Logs.Log('ISY Bad status:' + str(r.status_code) + ' on Cmd: ' + urlcmd, severity=ConsoleError)
 				config.Logs.Log(r.text)
@@ -85,7 +87,7 @@ def get_real_time_obj_status(obj):
 def get_real_time_node_status(addr):
 	if addr == '':
 		return 0  # allow for missing ISY
-	text = try_ISY_comm('/rest/status/' + addr)
+	text = try_ISY_comm('/rest/status/' + addr)  # todo what if notfound?
 	props = xmltodict.parse(text)['properties']['property']
 	if isinstance(props, dict):
 		props = [props]
@@ -239,7 +241,7 @@ def GetVar(var):
 	elif var[0] == 0:  # non-existent reference
 		return 999
 	else:
-		text = try_ISY_comm('/rest/vars/get/' + str(var[0]) + '/' + str(var[1]))
+		text = try_ISY_comm('/rest/vars/get/' + str(var[0]) + '/' + str(var[1])) # todo what if notfound
 		return xmltodict.parse(text)['var']['val']
 
 
@@ -255,7 +257,7 @@ def SetVar(var, value):
 				pygame.fastevent.post(notice)
 
 	else:
-		try_ISY_comm('/rest/vars/set/' + str(var[0]) + '/' + str(var[1]) + '/' + str(value))
+		try_ISY_comm('/rest/vars/set/' + str(var[0]) + '/' + str(var[1]) + '/' + str(value)) # todo what if notfound
 
 
 class ISY(object):

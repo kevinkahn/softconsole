@@ -157,6 +157,7 @@ class ISYEventMonitor:
 					config.digestinginit = False
 				else:
 					pass  # handle any other? todo
+				efmtact = e.pop('fmtAct','v4stream')
 				if e:
 					config.Logs.Log("Extra info in event: "+str(ecode)+'/'+str(prcode)+'/'+str(eaction)+'/'+str(enode)+'/'+str(eInfo) + str(e), severity=ConsoleWarning)
 				debugPrint('DaemonStream', time.time() - config.starttime,
