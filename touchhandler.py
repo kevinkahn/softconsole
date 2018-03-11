@@ -13,6 +13,7 @@ import select
 import Queue
 import pygame
 from debug import debugPrint
+import threadmanager
 
 TOUCH_X = 0
 TOUCH_Y = 1
@@ -148,6 +149,11 @@ class Touchscreen(object):
 		while self._running:
 			self.poll()
 			#time.sleep(0.00001)
+
+	def StartThread(self):
+		threadmanager.HelperThreads['TouchHandler'].Thread = threading.Thread(name='TouchHandler', target=self._run)
+		threadmanager.HelperThreads['TouchHandler'].Thread.setDaemon(True)
+		threadmanager.HelperThreads['TouchHandler'].Thread.start()
 
 	def run(self):
 		if self._thread is not None:

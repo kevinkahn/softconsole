@@ -13,6 +13,7 @@ import alerttasks
 import isyeventmonitor
 import os
 import errno
+import threadmanager
 
 class DisplayScreen(object):
 	def __init__(self):
@@ -116,6 +117,8 @@ class DisplayScreen(object):
 
 	def MainControlLoop(self, InitScreen):
 
+		threadmanager.StartThreads()
+
 		self.ScreensDict = config.SecondaryDict.copy()
 		self.ScreensDict.update(config.MainDict)
 
@@ -160,6 +163,8 @@ class DisplayScreen(object):
 		while config.Running:  # Operational Control Loop
 
 			os.utime(config.homedir + "/.ConsoleStart", None)
+
+			threadmanager.CheckThreads()
 
 			if not config.QH.is_alive() and config.ISYaddr != '':
 				config.Logs.Log('Queue handler died, last error:' + str(config.EventMonitor.lasterror), severity=ConsoleError)

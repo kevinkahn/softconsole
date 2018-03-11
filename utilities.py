@@ -1,11 +1,10 @@
 import collections
 import os
 import signal
-import sys
 import time
 import socket
 import webcolors
-
+import threadmanager
 # from sets import Set
 
 import pygame
@@ -156,7 +155,8 @@ def InitializeEnvironment():
 			touch.on_release = touchhandler
 			touch.on_move = touchhandler
 
-		ts.run()
+		threadmanager.HelperThreads['TouchHandler'] = threadmanager.ThreadItem('TouchHandler', ts.StartThread, ts.StartThread)
+		#ts.run()
 
 	if config.screenwidth > config.screenheight:
 		config.portrait = False

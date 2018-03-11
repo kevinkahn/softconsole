@@ -4,7 +4,8 @@ from logsupport import ConsoleWarning
 from configobj import Section
 import time
 import valuestore
-
+import threading
+import threadmanager
 
 class MQitem(valuestore.StoreItem):
 	def __init__(self,Topic, Type, Expires):
@@ -27,7 +28,7 @@ class MQTTBroker(valuestore.ValueStore):
 			config.Logs.Log("Disconnected from ", self.name, "result code: " + str(rc))
 
 		def on_message(client, userdata, msg):
-			print time.ctime() + " Received message " + str(msg.payload) + " on topic "  + msg.topic + " with QoS " + str(msg.qos)
+			#print time.ctime() + " Received message " + str(msg.payload) + " on topic "  + msg.topic + " with QoS " + str(msg.qos)
 			var = None
 			for v,d in self.vars.iteritems():
 				if d.Topic == msg.topic:
@@ -64,9 +65,21 @@ class MQTTBroker(valuestore.ValueStore):
 		self.MQTTclient.on_connect = on_connect
 		self.MQTTclient.on_message = on_message
 		self.MQTTclient.on_disconnect = on_disconnect
+		threadmanager.HelperThreads[self.name] = threadmanager.ThreadItem(self.name, self.StartThread, self.StartThread)
 		#self.MQTTclient.on_log = on_log
+		#self.MQTTclient.connect(self.address)
+		#self.MQTTclient.loop_start()
+
+	def MQTTLoop(self):
 		self.MQTTclient.connect(self.address)
-		self.MQTTclient.loop_start()
+		self.MQTTclient.loop_forever()
+		self.MQTTclient.disconnect()
+		config.Logs.Log("MQTT handler thread ended for: "+self.name,severity=ConsoleWarning)
+
+	def StartThread(self):
+		threadmanager.HelperThreads[self.name].Thread = threading.Thread(name=self.name, target= self.MQTTLoop)
+		threadmanager.HelperThreads[self.name].Thread.setDaemon(True)
+		threadmanager.HelperThreads[self.name].Thread.start()
 
 	def GetValByID(self,id):
 		self.GetVal(self.ids[id])
