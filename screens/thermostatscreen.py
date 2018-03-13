@@ -1,5 +1,5 @@
 import pygame
-import logsupport
+from logsupport import ConsoleWarning
 from pygame import gfxdraw
 
 import config
@@ -32,7 +32,7 @@ class ThermostatScreenDesc(screen.BaseKeyScreenDesc):
 			self.ISYObj = config.ISY.GetNodeByName(screenname)
 		else:
 			self.ISYObj = None
-			config.Logs.Log("No Thermostat: " + screenname, severity=logsupport.ConsoleWarning)
+			config.Logs.Log("No Thermostat: " + screenname, severity=ConsoleWarning)
 
 		self.TitleRen = config.fonts.Font(self.fsize[1]).render(screen.FlatenScreenLabel(self.label), 0,
 																wc(self.CharColor))
@@ -79,38 +79,52 @@ class ThermostatScreenDesc(screen.BaseKeyScreenDesc):
 
 	def BumpTemp(self, setpoint, degrees, presstype):
 
-		debugPrint('Main', "Bump temp: ", setpoint, degrees)
-		debugPrint('Main', "New: ", self.info[setpoint][0] + degrees)
+		debugPrint('Main', "Bump temp: ", setpoint, degrees,' to ',self.info[setpoint][0] + degrees)
 		rtxt = isy.try_ISY_comm('/rest/nodes/' + self.ISYObj.address + '/cmd/' + setpoint + '/' + str(
 				self.info[setpoint][0] + degrees)) #todo
-		self.ShowScreen()
+		#self.ShowScreen()
 
 	def BumpMode(self, mode, vals, presstype):
-		debugPrint('Main', "Bump mode: ", mode, vals)
+
 		cv = vals.index(self.info[mode][0])
-		debugPrint('Main', cv, vals[cv])
 		cv = (cv + 1)%len(vals)
-		debugPrint('Main', "new cv: ", cv)
+		debugPrint('Main', "Bump: ", mode, ' to ', cv)
 		rtxt = isy.try_ISY_comm('/rest/nodes/' + self.ISYObj.address + '/cmd/' + mode + '/' + str(vals[cv])) #todo
-		self.ShowScreen()
+		#self.ShowScreen()
 
 	def ShowScreen(self):
-		self.ReInitDisplay()
 		rtxt = isy.try_ISY_comm('/rest/nodes/' + self.ISYObj.address)
-		# r = config.ISYrequestsession.get('http://' + config.ISYaddr + '/rest/nodes/' + self.ISYObj.address,
-		#								 verify=False)  # todo check r response
-		tstatdict = xmltodict.parse(rtxt)  #r.text) # todo what if notfound
+		try:
+			tstatdict = xmltodict.parse(rtxt)
+		except:
+			config.Logs.Log("Thermostat node sent garbage: ",rtxt,severity=ConsoleWarning)
+			return
 		# config.Logs.Log('****' + str(tstatdict)) why do we sometimes get a garbage response TODO
 		props = tstatdict["nodeInfo"]["properties"]["property"]
-
+		self.oldinfo = dict(self.info)
 		self.info = {}
+		dbgStr = ''
 		for item in props:
-			debugPrint('Main', item["@id"], ":", item["@value"], ":", item["@formatted"])
+			dbgStr = dbgStr + item["@id"]+':'+item["@formatted"]+"("+item["@value"]+")  "
+#			debugPrint('Main', item["@id"]+":("+item["@value"]+"):"+item["@formatted"])
 			try:
 				self.info[item["@id"]] = (int(item['@value']), item['@formatted'])
 			except:
 				self.info[item["@id"]] = (0, item['@formatted'])
+		debugPrint('Main',dbgStr)
+		if self.oldinfo == {}:
+			self.oldinfo = dict(self.info) # handle initial case
+			updtneeded = True
+		else:
+			updtneeded = False
+		for i,val in self.info.iteritems():
+			if self.oldinfo[i] != val:
+				updtneeded = True
+				debugPrint('Main','Tstat reading change: ',i+':',self.oldinfo[i],'->',self.info[i])
 		config.screen.blit(self.TitleRen, self.TitlePos)
+		if not updtneeded:
+			return
+		self.ReInitDisplay()
 		r = config.fonts.Font(self.fsize[3], bold=True).render(u"{:4.1f}".format(self.info["ST"][0]/2), 0,
 															   wc(self.CharColor))
 		config.screen.blit(r, ((config.screenwidth - r.get_width())/2, self.TempPos))
@@ -146,6 +160,7 @@ class ThermostatScreenDesc(screen.BaseKeyScreenDesc):
 	def InitDisplay(self, nav):
 		super(ThermostatScreenDesc, self).InitDisplay(
 			nav)  # todo what actually gets returned for thermo?  needed if want to optimize showscreen
+		self.info = {} # clear any old info to force a display
 		self.ShowScreen()
 
 	def ISYEvent(self, node, value):

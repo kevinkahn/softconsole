@@ -6,6 +6,14 @@ import traceback
 wc = webcolors.name_to_rgb  # can't use the safe version from utilities due to import loop but this is only used with
 # known color names
 
+class TempLogger(object):
+	def __init__(self):
+		pass
+
+	def Log(self, *args, **kwargs):
+		print args
+
+Logs = TempLogger()
 import config
 import time
 import os
@@ -21,7 +29,13 @@ ConsoleWarning = 4
 ConsoleError = 5
 
 
-class Logs(object):
+
+
+def InitLogs(screen,dirnm):
+	Logs = Logger(screen,dirnm)
+	return Logs
+
+class Logger(object):
 	livelog = True
 	livelogpos = 0
 	log = []

@@ -2,8 +2,9 @@ import config
 import sys
 import mypprint
 from configobj import ConfigObj
+import valuestore, localvarsupport
 
-from logsupport import ConsoleDebug, ConsoleError
+from logsupport import ConsoleDebug, ConsoleError, ConsoleWarning
 
 Flags = {}
 DbgFlags = ['Main', 'DaemonCtl', 'DaemonStream', 'Screen', 'ISY', 'Dispatch', 'EventList', 'Fonts', 'DebugSpecial',
@@ -13,10 +14,18 @@ DbgVars = ConfigObj({"LogLevel":ConfigObj({'Value':3,'VarType':'int'})})
 for f in DbgFlags:
 	DbgVars[f] = ConfigObj({'Value':False,'VarType':'bool'})
 
+dbgStore = valuestore.NewValueStore(localvarsupport.LocalVars('Debug',DbgVars))
+
 DebugFlagKeys = {}
 flagspercol = 3  # number of flags per maint screen
 flagsperrow = 2
 
+def LogDebugFlags():
+	for flg in DbgFlags:
+		fval = dbgStore.GetVal(flg)
+		if fval:
+			config.Logs.Log('Debug flag ', flg, '=', fval, severity=ConsoleWarning)
+			dbgStore.SetVal('LogLevel', 0) # if a debug flag is set force Logging unless explicitly overridden
 
 def debugPrint(flag, *args):
 	global Flags, DbgFlags

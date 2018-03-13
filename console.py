@@ -229,7 +229,7 @@ utilities.ParseParam(globalparams)  # add global parameters to config file
 
 earlylog.write("Parsed globals\n")
 
-config.Logs = logsupport.Logs(config.screen, os.path.dirname(config.configfile))
+config.Logs = logsupport.InitLogs(config.screen, os.path.dirname(config.configfile))
 cgitb.enable(format='text')
 config.Logs.Log(u"Soft ISY Console")
 earlylog.write("Switched to real log\n")

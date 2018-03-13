@@ -43,7 +43,6 @@ def try_ISY_comm(urlcmd):
 				config.Logs.Log(sys.exc_info()[1], severity=ConsoleDetailHigh, tb=False)
 				raise CommsError
 			except requests.exceptions.ConnectionError as e:
-				# todo check network unreachable and do a long wait
 				try:
 					if e[0] == errno.ENETUNREACH:
 						# probable network outage for reboot
@@ -56,9 +55,10 @@ def try_ISY_comm(urlcmd):
 					config.Logs.Log("ISY Comm ConnErr2: " + ' Cmd: ' + urlcmd, severity=ConsoleError, tb=False)
 					config.Logs.Log(sys.exc_info()[1], severity=ConsoleDetailHigh, tb=False)
 				raise CommsError
-			except:
+			except Exception as e:
 				config.Logs.Log("ISY Comm UnknownErr: " + ' Cmd: ' + urlcmd, severity=ConsoleError)
-				config.Logs.Log(sys.exc_info()[1], severity=ConsoleDetailHigh, tb=False)
+				config.Logs.Log("  Exception: ",str(e))
+				config.Logs.Log(sys.exc_info()[1], severity=ConsoleDetailHigh, tb=True)
 				raise CommsError
 			if r.status_code == 404: # not found
 				return 'notfound'
@@ -71,7 +71,6 @@ def try_ISY_comm(urlcmd):
 		except CommsError:
 			time.sleep(.5)
 			config.Logs.Log("Attempting ISY retry " + str(i + 1), severity=ConsoleError, tb=False)
-			# todo handle network down differently timewise
 
 	config.Logs.Log("ISY Communications Failure", severity=ConsoleError)
 	exitutils.errorexit(exitutils.ERRORPIREBOOT)
