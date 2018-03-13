@@ -1,5 +1,5 @@
-import config
-from logsupport import ConsoleError, ConsoleWarning
+from logsupport import ConsoleError
+import logsupport
 import time
 
 ValueStores = {} # General store for named values storename:itemname accessed as ValueStore[storename].GetVal(itemname)
@@ -7,6 +7,9 @@ ValueStores = {} # General store for named values storename:itemname accessed as
 
 def GetVal(name):
 	return ValueStores[name[0]].GetVal(name[1:])
+
+def SetVal(name,val):
+	return ValueStores[name[0]].SetVal(name[1:],val)
 
 def BlockRefresh(name):
 	ValueStores[name].BlockRefresh()
@@ -16,33 +19,63 @@ def NewValueStore(store):
 		if isinstance(ValueStores[store.name],type(store)):
 			return ValueStores[store.name]
 		else:
-			config.Logs.Log("Incompatible store types for: "+store.name,severity=ConsoleError)
+			Logs.Log("Incompatible store types for: "+store.name,severity=ConsoleError)
 			return None
 	else:
 		ValueStores[store.name] = store
 		return ValueStores[store.name]
 
+'''
+Init with dict(n:(type,initval))
+			dict(n:(list,type,size,initval)
+			dict(n:dict(recursive))
+			dict(n:type)
+			list[n,],type=int,initval=None
+			None -> empty vars?
+'''
+
 class StoreItem(object):
-	def __init__(self,initval,expires=9999999999999999):
+	def __init__(self,initval, vt = None, expires=9999999999999999.0):
 		self.Value = initval
+		self.Type = type(initval) if vt == None else vt
 		self.Expires = expires
-		self.RcvTime = time.time()
+		self.SetTime = time.time()
+
+	def UpdateVal(self,val):
+		self.Value = self.Type(val)
+		self.SetTime = time.time()
+
+	def UpdateArrayVal(self,index,val):
+		if isinstance(self.Value, list):
+			if index >= len(self.Value):
+				for i in range(len(self.Value),index+1):
+					self.Value.append(None)
+			self.Value[index] = val
+		else:
+			return # todo error
+		self.SetTime = time.time()
 
 class ValueStore(object):
-	def __init__(self, name, refreshinterval = 0):
+	def __init__(self, name, refreshinterval = 0, itemtyp=StoreItem):
 		self.name = name
+		self.itemtyp = itemtyp
 		self.fetchtime = 0 # time of last block refresh if handled as such
 		self.refreshinterval = refreshinterval
-		pass
 
-	def GetVal(self,name): # todo make store properties accessible also
+
+	def _normalizename(self,name):
+		if isinstance(name, tuple):
+			return list(name)
+		elif isinstance(name, list):
+			return name[:]
+		else:
+			return [name]
+
+	def GetVal(self,name):
+		if self.refreshinterval != 0 and time.time()>self.fetchtime+self.refreshinterval:
+			self.BlockRefresh()
 		try:
-			if isinstance(name,tuple):
-				n2 = list(name)
-			elif isinstance(name,list):
-				n2 = name[:]
-			else:
-				n2 = [name]
+			n2 = self._normalizename(name)
 			t = self.vars
 			while len(n2) > 1:
 				t = t[n2[0]]
@@ -53,23 +86,62 @@ class ValueStore(object):
 			else:
 				t = t[n2[0]]
 				V = t.Value
-			if t.Expires + t.RcvTime < time.time():
+			if t.Expires + t.SetTime < time.time():
 				# value is stale
 				return None
 			else:
 				return V
 		except:
-			config.Logs.Log("Error accessing ", self.name, ":", str(name), severity=ConsoleWarning)
+			logsupport.Logs.Log("Error accessing ", self.name, ":", str(name), severity=ConsoleError)
 			return None
 
-	def GetValByID(self,id):
-		config.Logs.Log("No value store GetValByID proc: ", self.name, severity=ConsoleError)
+	def SimpleInit(self, nmlist, typ, init):
+		if self.itemtyp != StoreItem:
+			logsupport.Logs.Log("Can't SimpleInit non-simple store: ",self.name, severity=ConsoleError)
+			return # todo abort internal error
+		if isinstance(nmlist, tuple) or isinstance(nmlist, list):
+			self.vars = {}
+			for n in nmlist:
+				self.vars[n] = self.itemtyp(init,typ)
 
 	def SetVal(self,name, val):
-		config.Logs.Log("No value store SetVal proc: ", self.name, severity=ConsoleError)
+		n2 = self._normalizename(name)
+		t = self.vars
+		while len(n2) > 1:
+			if n2[0] in t:
+				t = t[n2[0]]
+				n2.pop(0)
+			else:
+				t[n2[0]] = {} if not isinstance(n2[1],int) else self.itemtyp([])
+				t = t[n2[0]]
+				n2.pop(0)
+		if isinstance(n2[0], int):
+			if isinstance(t,self.itemtyp):
+				t.UpdateArrayVal(n2[0],val)
+			elif isinstance(t,dict):
+				t = self.itemtyp([])
+				t.UpdateArrayVal(n2[0],val)
+		else:
+			if n2[0] in t:
+				# already exists
+				t[n2[0]].UpdateVal(val)
+			else:
+				t[n2[0]] = self.itemtyp(val)
 
-	def SetValByID(self,id, val):
-		config.Logs.Log("No value store SetValByID proc: ", self.name, severity=ConsoleError)
+	def Contains(self,name):
+		n2 = self._normalizename(name)
+		t = self.vars
+		try:
+			while len(n2) > 1:
+				t = t[n2[0]]
+				n2.pop(0)
+			if isinstance(n2[0], int):
+				# final is array
+				return True if n2[0] < len(t.Value) else False
+			else:
+				return True if n2[0] in t else False
+		except:
+			return False
 
 	def BlockRefresh(self):
 		pass

@@ -203,3 +203,6 @@ class WeatherVals(valuestore.ValueStore):
 			return None
 		else:
 			return super(WeatherVals,self).GetVal(name)
+
+	def SetVal(self,name,val):
+		config.Logs.Log("Setting weather item via SetVal unsupported: "+name,severity=ConsoleError)

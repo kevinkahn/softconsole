@@ -4,9 +4,8 @@ from configobj import Section
 
 class LocalVarItem(valuestore.StoreItem):
 	def __init__(self, id, tpcvrt, initval):
+		super(LocalVarItem,self).__init__(initval)
 		self.id  = id
-		self.RcvTime = time.time()
-		self.Value = initval
 		self.VarType = tpcvrt
 
 class LocalVars(valuestore.ValueStore):
@@ -31,16 +30,13 @@ class LocalVars(valuestore.ValueStore):
 				self.ids[id] = i
 				id += 1
 
-	def GetVal(self, name):  # make name a sequence
-		return self.vars[name[0]][name[1]].Value
-
 	def GetValByID(self, id):
 		return self.GetVal(self.ids[id])
 
-	def SetVal(self, name, val):
-		item = self.vars[name[0]][name[1]]
-		item.Value = val
-		item.RvcTime = time.time()
+#	def SetVal(self, name, val):
+#		item = self.vars[name[0]][name[1]]
+#		item.Value = val
+#		item.RvcTime = time.time()
 
 
 	def SetValByID(self, id, val):
