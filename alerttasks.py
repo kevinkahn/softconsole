@@ -103,10 +103,10 @@ def getvalid(spec, item, choices, default=None):
 		if i in choices:
 			return i
 		else:
-			config.Logs.Log('Choice error: ' + item + " not in " + str(choices), severity=logsupport.ConsoleWarning)
+			logsupport.Logs.Log('Choice error: ' + item + " not in " + str(choices), severity=logsupport.ConsoleWarning)
 			return None
 	else:
-		config.Logs.Log('Missing required alert parameter: ' + item, severity=ConsoleWarning)
+		logsupport.Logs.Log('Missing required alert parameter: ' + item, severity=ConsoleWarning)
 		return None
 
 
@@ -116,30 +116,30 @@ def ParseAlertParams(nm, spec):
 	t = spec.get('Invoke', None)
 	param = spec.get('Parameter', None)
 	if t is None:
-		config.Logs.Log('Missing alert proc invoke spec in ' + nm, severity=ConsoleWarning)
+		logsupport.Logs.Log('Missing alert proc invoke spec in ' + nm, severity=ConsoleWarning)
 		return None
 	nmlist = t.split('.')
 
 	if nmlist[0] in config.alertprocs:
 		if len(nmlist) <> 2:
-			config.Logs.Log('Bad alert proc spec ' + t + ' in ' + nm, severity=ConsoleWarning)
+			logsupport.Logs.Log('Bad alert proc spec ' + t + ' in ' + nm, severity=ConsoleWarning)
 			return None
 		try:
 			action = getattr(config.alertprocs[nmlist[0]], nmlist[1])
 		except:
-			config.Logs.Log('No proc ', nmlist[1], ' in ', nmlist[0], severity=ConsoleWarning)
+			logsupport.Logs.Log('No proc ', nmlist[1], ' in ', nmlist[0], severity=ConsoleWarning)
 			return None
 		actionname = t
 		fixscreen = False
 	elif nmlist[0] in config.alertscreens:
 		if len(nmlist) <> 1:
-			config.Logs.Log('Alert screen name must be unqualified in ' + nm, severity=ConsoleWarning)
+			logsupport.Logs.Log('Alert screen name must be unqualified in ' + nm, severity=ConsoleWarning)
 			return None
 		action = config.alertscreens[nmlist[0]]
 		actionname = t
 		fixscreen = True
 	else:
-		config.Logs.Log('No such action name for alert: ' + nm, severity=ConsoleWarning)
+		logsupport.Logs.Log('No such action name for alert: ' + nm, severity=ConsoleWarning)
 		return None
 	triggertype = getvalid(spec, 'Type', AlertType)
 	if triggertype == 'Periodic':
@@ -163,7 +163,7 @@ def ParseAlertParams(nm, spec):
 			Node = config.ISY.GetNodeByName(n).address
 		except:
 			Node = ''
-			config.Logs.Log("Bad Node Spec on NodeChange alert in " + nm, severity=ConsoleWarning)
+			logsupport.Logs.Log("Bad Node Spec on NodeChange alert in " + nm, severity=ConsoleWarning)
 		test = getvalid(spec, 'Test', Tests)
 		value = spec.get('Value', None)
 		delay = utilities.get_timedelta(spec.get('Delay', None))
@@ -177,10 +177,10 @@ def ParseAlertParams(nm, spec):
 			if n in VarsTypes[triggertype][1]:
 				varspec = (VarsTypes[triggertype][0], VarsTypes[triggertype][1][n])
 			else:
-				config.Logs.Log("Alert: ", nm, " var name " + n + " doesn't exist", severity=ConsoleWarning)
+				logsupport.Logs.Log("Alert: ", nm, " var name " + n + " doesn't exist", severity=ConsoleWarning)
 				return None
 		else:
-			config.Logs.Log("Alert: ", nm, " var name not specified", severity=ConsoleWarning)
+			logsupport.Logs.Log("Alert: ", nm, " var name not specified", severity=ConsoleWarning)
 			return None
 		test = getvalid(spec, 'Test', Tests)
 		value = spec.get('Value', None)
@@ -196,8 +196,8 @@ def ParseAlertParams(nm, spec):
 		trig = InitTrigger()
 		A = Alert(nm, triggertype, trig, action, actionname, param)
 
-	config.Logs.Log("Created alert: " + nm)
-	config.Logs.Log("->" + str(A), severity=ConsoleDetail)
+	logsupport.Logs.Log("Created alert: " + nm)
+	logsupport.Logs.Log("->" + str(A), severity=ConsoleDetail)
 	if fixscreen:
 		action.Alert = A
 

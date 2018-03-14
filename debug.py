@@ -39,7 +39,6 @@ def debugPrint(flag, *args):
 
 def InitFlags():
 	global DbgFlags
-	dbg = {}
 	for flg in DbgFlags:
 		dbgStore.SetVal(flg,config.ParsedConfigFile.get(flg, False))
 

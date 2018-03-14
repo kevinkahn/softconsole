@@ -40,7 +40,7 @@ import maintscreen
 import utilities
 import requests
 from logsupport import ConsoleWarning
-import weatherinfo
+import weatherfromatting
 from stores import mqttsupport, valuestore, localvarsupport
 
 import json
@@ -163,13 +163,6 @@ with open(config.exdir + '/termshortenlist', 'r') as f:
 	except:
 		config.TermShortener = {}
 
-# preload weather icon cache for some common terms
-for cond in ('clear','cloudy','mostlycloudy','mostlysunny','partlycloudy','partlysunny','rain','snow','sunny','chancerain'):
-	try:
-		weatherinfo.get_icon('https://icons.wxug.com/i/c/k/' + cond + '.gif')
-	except:
-		pass
-
 if len(sys.argv) == 2:
 	config.configfile = sys.argv[1]
 elif os.path.isfile(config.configfilebase + "config.txt"):
@@ -218,12 +211,20 @@ while includes:
 		logsupport.Logs.Log("MISSING config file " + f)
 		config.configfilelist[f] = 0
 
+debug.InitFlags()
+
 utilities.ParseParam(globalparams)  # add global parameters to config file
+
+# preload weather icon cache for some common terms
+for cond in ('clear','cloudy','mostlycloudy','mostlysunny','partlycloudy','partlysunny','rain','snow','sunny','chancerain'):
+	try:
+		weatherfromatting.get_icon('https://icons.wxug.com/i/c/k/' + cond + '.gif')
+	except:
+		pass
 
 logsupport.Logs.Log("Parsed globals")
 logsupport.Logs.Log("Switching to real log")
 logsupport.Logs = logsupport.InitLogs(config.screen, os.path.dirname(config.configfile))
-config.Logs = logsupport.Logs # todo delete
 cgitb.enable(format='text')
 logsupport.Logs.Log(u"Soft ISY Console")
 
@@ -261,12 +262,9 @@ for p, f in zip(pfiles, cfiles):
 	else:
 		logsupport.Logs.Log("  ", p, time.strftime(' %c', time.localtime(config.configfilelist[f])))
 debug.LogDebugFlags()
-#for flg, fval in debug.Flags.iteritems():
-#	if fval:
-#		logsupport.Logs.Log('Debug flag ', flg, '=', fval, severity=logsupport.ConsoleWarning)
-#		config.LogLevel = 0  # if a debug flag is set force Logging unless explicitly overridden
-config.LogLevel = int(config.ParsedConfigFile.get('LogLevel', config.LogLevel))
-logsupport.Logs.Log("Log level: ", config.LogLevel)
+
+logsupport.LogLevel = int(config.ParsedConfigFile.get('LogLevel', logsupport.LogLevel))
+logsupport.Logs.Log("Log level: ", logsupport.LogLevel)
 config.DS = displayscreen.DisplayScreen()  # create the actual device screen and touch manager
 
 utilities.LogParams()

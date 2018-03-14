@@ -36,7 +36,7 @@ class ISYEventMonitor:
 
 	def QHandler(self):
 		def on_error(ws, error):
-			config.Logs.Log("Error in WS stream " + str(self.num) + ':' + repr(error), severity=ConsoleError, tb=False) #todo sometimes do the tb?
+			logsupport.Logs.Log("Error in WS stream " + str(self.num) + ':' + repr(error), severity=ConsoleError, tb=False) #todo sometimes do the tb?
 			self.lasterror = error
 			debugPrint('DaemonCtl', "Websocket stream error", self.num, repr(error))
 			ws.close()
@@ -50,7 +50,7 @@ class ISYEventMonitor:
 			debugPrint('DaemonCtl', "Websocket stream closed", str(code), str(reason))
 
 		def on_open(ws):
-			config.Logs.Log("Websocket stream " + str(self.num) + " opened")
+			logsupport.Logs.Log("Websocket stream " + str(self.num) + " opened")
 			debugPrint('DaemonCtl', "Websocket stream opened: ", self.num, self.streamid)
 
 		def on_message(ws, message):
@@ -69,7 +69,7 @@ class ISYEventMonitor:
 
 				esid = e.pop('@sid', 'No sid')
 				if self.streamid <> esid:
-					config.Logs.Log("Unexpected event stream change: " + self.streamid + "/" + str(esid),
+					logsupport.Logs.Log("Unexpected event stream change: " + self.streamid + "/" + str(esid),
 									severity=ConsoleError, tb=False)
 					exitutils.FatalError("WS Stream ID Changed")
 
@@ -104,7 +104,7 @@ class ISYEventMonitor:
 						# alert node changed
 						debugPrint('DaemonCtl', 'ISY reports change(alert):', config.ISY.NodesByAddr[enode].name)
 						for a in config.DS.WatchNodes[enode]:
-							config.Logs.Log("Node alert fired: " + str(a), severity=ConsoleDetail)
+							logsupport.Logs.Log("Node alert fired: " + str(a), severity=ConsoleDetail)
 							notice = pygame.event.Event(config.DS.ISYAlert, node=enode, value=eaction, alert=a)
 							pygame.fastevent.post(notice)
 
@@ -134,7 +134,7 @@ class ISYEventMonitor:
 							logsupport.Logs.Log('Bad var message:' + str(varid), severity=ConsoleError)
 
 						for a in config.DS.WatchVars[(vartype, varid)]:
-							config.Logs.Log("Var alert fired: " + str(a))
+							logsupport.Logs.Log("Var alert fired: " + str(a))
 							notice = pygame.event.Event(config.DS.ISYVar, node=(vartype, varid), value=varval,
 														alert=a)
 							pygame.fastevent.post(notice)
@@ -171,7 +171,7 @@ class ISYEventMonitor:
 						isynd = config.ISY.NodesByAddr[enode].name
 					except:
 						isynd = enode
-					config.Logs.Log("ISY shows comm error for node: " + str(isynd), severity=ConsoleWarning)
+					logsupport.Logs.Log("ISY shows comm error for node: " + str(isynd), severity=ConsoleWarning)
 
 				if ecode == 'ST':
 					config.ISY.NodesByAddr[enode].devState = int(eaction)
@@ -194,6 +194,6 @@ class ISYEventMonitor:
 										subprotocols=['ISYSUB'], header={'Authorization': 'Basic ' + self.a})
 			config.lastheartbeat = time.time()
 			ws.run_forever()
-			config.Logs.Log("QH Thread " + str(self.num) + " exiting", severity=ConsoleError)
+			logsupport.Logs.Log("QH Thread " + str(self.num) + " exiting", severity=ConsoleError)
 		else:
 			logsupport.Logs.Log("No ISY to talk to",severity=ConsoleWarning)

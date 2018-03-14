@@ -1,4 +1,4 @@
-import config
+import logsupport
 from logsupport import ConsoleWarning
 
 HelperThreads = {}
@@ -13,12 +13,12 @@ class ThreadItem(object):
 def CheckThreads():
 	for T in HelperThreads.itervalues():
 		if not T.Thread.is_alive():
-			config.Logs.Log("Thread for: "+T.name+" died; restarting",severity=ConsoleWarning)
+			logsupport.Logs.Log("Thread for: "+T.name+" died; restarting",severity=ConsoleWarning)
 			T.RestartThread()
 
 def StartThreads():
 	for T in HelperThreads.itervalues():
 		T.StartThread()
-		config.Logs.Log("Starting helper thread for: ", T.name)
+		logsupport.Logs.Log("Starting helper thread for: ", T.name)
 
 

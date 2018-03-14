@@ -1,8 +1,7 @@
 import config
 import subprocess
 import isy
-from logsupport import ConsoleWarning
-
+import logsupport
 
 class NetworkHealth(object):
 	def __init__(self):
@@ -33,13 +32,13 @@ class NetworkHealth(object):
 			if not self.LastState[alert.param[0]]:
 				self.LastState[alert.param[0]] = True
 				isy.SetVar((3, config.ISY.varsLocal[alert.param[1]]), 1)
-				config.Logs.Log("Network up to: " + alert.param[0])
+				logsupport.Logs.Log("Network up to: " + alert.param[0])
 		else:
 			if self.LastState[alert.param[0]]:
 				# was up now down
 				self.LastState[alert.param[0]] = False
 				isy.SetVar((3, config.ISY.varsLocal[alert.param[1]]), 0)  # Set down seen
-				config.Logs.Log("Network down to: " + alert.param[0])
+				logsupport.Logs.Log("Network down to: " + alert.param[0])
 		config.DS.Tasks.EndLongOp()
 
 

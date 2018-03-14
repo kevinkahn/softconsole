@@ -12,6 +12,7 @@ import pygame
 import config
 import fonts
 import hw
+import logsupport
 from logsupport import ConsoleError, ConsoleDetail, ConsoleDetailHigh, ConsoleWarning
 
 globdoc = {}
@@ -36,7 +37,7 @@ def wc(clr):
 	try:
 		v = webcolors.name_to_rgb(clr)
 	except:
-		config.Logs.Log('Bad color name: ' + str(clr), severity=ConsoleWarning)
+		logsupport.Logs.Log('Bad color name: ' + str(clr), severity=ConsoleWarning)
 		v = webcolors.name_to_rgb('black')
 	return v
 
@@ -99,7 +100,7 @@ def ParseParam(param):
 def LogParams():
 	global paramlog
 	for p in paramlog:
-		config.Logs.Log(p,severity=ConsoleDetail)
+		logsupport.Logs.Log(p,severity=ConsoleDetail)
 
 def InitializeEnvironment():
 	# this section is an unbelievable nasty hack - for some reason Pygame
@@ -230,14 +231,14 @@ def LocalizeParams(inst, configsection, indent, *args, **kwargs):
 			lclval.append(kwargs[nametoadd])
 			moddoc[inst.__class__.__name__]['loc'][lcllist[-1]] = type(lclval[-1])
 		else:
-			config.Logs.Log('Duplicated keyword localization (internal error): ' + nametoadd)
+			logsupport.Logs.Log('Duplicated keyword localization (internal error): ' + nametoadd)
 	for nametoadd in args:
 		if nametoadd in config.__dict__:
 			lcllist.append(nametoadd)
 			lclval.append(config.__dict__[nametoadd])
 			moddoc[inst.__class__.__name__]['ovrd'].add(lcllist[-1])
 		else:
-			config.Logs.Log("Obj " + inst.__class__.__name__ + ' attempted import of non-existent global ' + nametoadd,
+			logsupport.Logs.Log("Obj " + inst.__class__.__name__ + ' attempted import of non-existent global ' + nametoadd,
 							severity=ConsoleError)
 
 	for i in range(len(lcllist)):
@@ -250,7 +251,7 @@ def LocalizeParams(inst, configsection, indent, *args, **kwargs):
 				if isinstance(v, str):
 					val[j] = unicode(v,'UTF-8')
 		if (lclval[i] != val) and (lcllist[i] in args):
-			config.Logs.Log(indent + 'LParam: ' + lcllist[i] + ': ' + str(val), severity=ConsoleDetailHigh)
+			logsupport.Logs.Log(indent + 'LParam: ' + lcllist[i] + ': ' + str(val), severity=ConsoleDetailHigh)
 		inst.__dict__[lcllist[i]] = val
 
 
@@ -268,7 +269,7 @@ def LocalizeExtra(inst, configsection, indent, **kwargs):
 			lclval.append(kwargs[nametoadd])
 			moddoc[inst.__class__.__name__]['loc'][lcllist[-1]] = type(lclval[-1])
 		else:
-			config.Logs.Log('Duplicated keyword localization (internal error): ' + nametoadd)
+			logsupport.Logs.Log('Duplicated keyword localization (internal error): ' + nametoadd)
 	for i in range(len(lcllist)):
 		val = type(lclval[i])(configsection.get(lcllist[i], lclval[i]))
 		if isinstance(val, list):

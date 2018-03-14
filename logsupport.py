@@ -28,6 +28,8 @@ ConsoleInfo = 3
 ConsoleWarning = 4
 ConsoleError = 5
 
+LogLevel = 3
+
 
 
 
@@ -67,7 +69,7 @@ class Logger(object):
 		"""
 		severity = kwargs.pop('severity', ConsoleInfo)
 		tb = kwargs.pop('tb', True)
-		if severity < config.LogLevel:
+		if severity < LogLevel:
 			return
 		diskonly = kwargs.pop('diskonly', False)
 		entry = "".join([unicode(i) for i in args])

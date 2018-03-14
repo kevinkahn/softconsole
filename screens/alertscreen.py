@@ -7,6 +7,7 @@ import screen
 import utilities
 from eventlist import ProcEventItem, AlertEventItem
 import keyspecs
+import logsupport
 
 
 class AlertsScreenDesc(screen.ScreenDesc):
@@ -123,10 +124,10 @@ class AlertsScreenDesc(screen.ScreenDesc):
             E = AlertEventItem(id(self), 'external deferred screen: ' + self.name, self.Alert)
             config.DS.Tasks.AddTask(E, self.Defer)
             debugPrint('Screen', 'Alert screen defer to another screen: ' + self.name)
-            config.Logs.Log("Alert screen " + self.name + " deferring")
+            logsupport.Logs.Log("Alert screen " + self.name + " deferring")
         else:
             debugPrint('Screen', 'Alert screen cause cleared: ' + self.name)
-            config.Logs.Log("Alert screen " + self.name + " cause cleared")
+            logsupport.Logs.Log("Alert screen " + self.name + " cause cleared")
 
 
 config.screentypes["Alert"] = AlertsScreenDesc

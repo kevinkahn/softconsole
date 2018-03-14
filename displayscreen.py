@@ -172,7 +172,7 @@ class DisplayScreen(object):
 				try:
 					if config.EventMonitor.lasterror[0] == errno.ENETUNREACH:
 						# likely home network down so wait a bit
-						config.Logs.Log('Wait for likely router reboot or down',severity=ConsoleError)
+						logsupport.Logs.Log('Wait for likely router reboot or down',severity=ConsoleError)
 						# todo overlay a screen delay message so locked up console is understood
 						time.sleep(120)
 				except:

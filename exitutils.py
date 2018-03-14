@@ -6,6 +6,7 @@ import time
 import pygame
 
 import config
+import logsupport
 from logsupport import ConsoleWarning, ConsoleError
 from utilities import wc, interval_str
 
@@ -47,12 +48,12 @@ def EarlyAbort(scrnmsg):
 
 def Exit(ecode):
 	consoleup = time.time() - config.starttime
-	config.Logs.Log("Console was up: ", interval_str(consoleup), severity=ConsoleWarning)
+	logsupport.Logs.Log("Console was up: ", interval_str(consoleup), severity=ConsoleWarning)
 	with open(config.homedir + "/.RelLog", "a") as f:
 		f.write('Exit ' + str(ecode) + '\n')
 	os.chdir(config.exdir)  # set cwd to be correct when dirs move underneath us so that scripts execute
 
-	config.Logs.Log("Console Exiting - Ecode: " + str(ecode))
+	logsupport.Logs.Log("Console Exiting - Ecode: " + str(ecode))
 
 	print('Console exit with code: ' + str(ecode) + ' at ' + time.strftime('%m-%d-%y %H:%M:%S'))
 	if ecode in range(10,20):
@@ -68,7 +69,7 @@ def Exit(ecode):
 			# using systemd
 			pass
 		else:
-			config.Logs.Log('Using rc.local restart model - consider switching to systemd')
+			logsupport.Logs.Log('Using rc.local restart model - consider switching to systemd')
 			subprocess.Popen('nohup sudo /bin/bash -e scripts/consoleexit ' + 'restart' +
 							 ' ' + config.configfile + '>>' + config.homedir + '/log.txt 2>&1 &', shell=True)
 	elif ecode in range(40,50):
@@ -115,13 +116,13 @@ def Exit_Screen_Message(msg, scrnmsg1, scrnmsg2='', scrnmsg3=''):
 	config.screen.blit(r, ((config.screenwidth - r.get_width())/2, config.screenheight*.4))
 	r = config.fonts.Font(40, '', True, True).render(scrnmsg3, 0, wc("white"))
 	config.screen.blit(r, ((config.screenwidth - r.get_width())/2, config.screenheight*.6))
-	config.Logs.Log(msg)
+	logsupport.Logs.Log(msg)
 	pygame.display.update()
 	time.sleep(5)
 
 
 def FatalError(msg, restartopt='restart'):
-	config.Logs.Log(msg, severity=ConsoleError, tb=False) # include traceback
+	logsupport.Logs.Log(msg, severity=ConsoleError, tb=False) # include traceback
 	Exit_Screen_Message(msg, 'Internal Error', msg)
 	if restartopt == 'restart':
 		ExitCode = ERRORRESTART

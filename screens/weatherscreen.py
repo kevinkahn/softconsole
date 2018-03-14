@@ -4,7 +4,7 @@ from debug import debugPrint
 from stores import valuestore, weatherstore
 import screen
 import logsupport
-import weatherinfo
+from weatherfromatting import CreateWeathBlock, WFormatter
 import utilities
 import toucharea
 from collections import OrderedDict
@@ -20,7 +20,7 @@ for conditions where to put icon?  Center vertically? with size lesser of % of s
 
 class WeatherScreenDesc(screen.ScreenDesc):
 	def __init__(self, screensection, screenname):
-		self.fmt = weatherinfo.WFormatter()
+		self.fmt = WFormatter()
 		debugPrint('Screen', "New WeatherScreenDesc ", screenname)
 		screen.ScreenDesc.__init__(self, screensection, screenname)
 		butsize = screen.ButSize(1, 1, 0)
@@ -75,11 +75,11 @@ class WeatherScreenDesc(screen.ScreenDesc):
 
 			h = renderedlines[0].get_height() + renderedlines[1].get_height()
 			if conditions:
-				renderedlines.append(weatherinfo.CreateWeathBlock(self.condformat,self.condfields,"",[45,25,35],self.CharColor, (self.location, 'Cond', 'Icon') ,False))
+				renderedlines.append(CreateWeathBlock(self.condformat, self.condfields, "", [45, 25, 35], self.CharColor, (self.location, 'Cond', 'Icon'), False))
 				h = h + renderedlines[-1].get_height()
-				renderedlines.append(weatherinfo.CreateWeathBlock(self.dayformat,self.dayfields,"",[30],self.CharColor, None, True))
+				renderedlines.append(CreateWeathBlock(self.dayformat, self.dayfields, "", [30], self.CharColor, None, True))
 				h = h + renderedlines[-1].get_height()
-				renderedlines.append(weatherinfo.CreateWeathBlock(self.footformat,self.footfields,"",[25],self.CharColor, None, True))
+				renderedlines.append(CreateWeathBlock(self.footformat, self.footfields, "", [25], self.CharColor, None, True))
 				h = h + renderedlines[-1].get_height()
 				s = (usefulheight - h) / (len(renderedlines) - 1) if len(renderedlines) > 1 else 0
 				for l in renderedlines:
@@ -90,7 +90,7 @@ class WeatherScreenDesc(screen.ScreenDesc):
 				fcstlines = 0
 				maxfcstwidth = 0
 				for i in range(10):
-					renderedlines.append(weatherinfo.CreateWeathBlock(self.fcstformat,self.fcstfields,"",[25],self.CharColor,(self.location, 'Fcst', 'Icon') ,False,day=i))
+					renderedlines.append(CreateWeathBlock(self.fcstformat, self.fcstfields, "", [25], self.CharColor, (self.location, 'Fcst', 'Icon'), False, day=i))
 					if renderedlines[-1].get_width() > maxfcstwidth: maxfcstwidth = renderedlines[-1].get_width()
 					fcstlines += 1
 

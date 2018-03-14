@@ -21,7 +21,7 @@ def ButLayout(butcount):
 	if butcount in range(1, 21):
 		return plan[butcount - 1]
 	else:
-		config.Logs.Log("Button layout error - too many or no buttons: " + butcount, logsupport.ConsoleError)
+		logsupport.Logs.Log("Button layout error - too many or no buttons: " + butcount, logsupport.ConsoleError)
 		return 5, 5
 
 def ButSize(bpr, bpc, height):
@@ -70,7 +70,7 @@ class ScreenDesc(object):
 		self.PaintKeys()
 
 	def ISYEvent(self, node, value):
-		config.Logs.Log("Unexpected ISY event to screen: ", self.name, severity=logsupport.ConsoleWarning)
+		logsupport.Logs.Log("Unexpected ISY event to screen: ", self.name, severity=logsupport.ConsoleWarning)
 
 	def ExitScreen(self):
 		config.DS.Tasks.RemoveAllGrp(id(self))  # by default delete all pending tasks override if screen needs to
@@ -100,7 +100,7 @@ class BaseKeyScreenDesc(ScreenDesc):
 				bpr, bpc = (self.KeysPerRow, self.KeysPerColumn)
 			else:
 				# bad user layout - go with automatic
-				config.Logs.Log('Bad explicit key layout for: ', self.name, severity=logsupport.ConsoleWarning)
+				logsupport.Logs.Log('Bad explicit key layout for: ', self.name, severity=logsupport.ConsoleWarning)
 				bpr, bpc = ButLayout(len(self.Keys))
 		else:
 			bpr, bpc = ButLayout(

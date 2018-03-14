@@ -6,13 +6,11 @@ import utilities
 from debug import debugPrint
 from utilities import wc
 from stores import valuestore, weatherstore
-import weatherinfo
+from weatherfromatting import CreateWeathBlock, WFormatter
 import pygame
 from eventlist import ProcEventItem
 import logsupport
 from logsupport import ConsoleWarning
-
-CreateWeathBlock = weatherinfo.CreateWeathBlock
 
 def extref(listitem, indexitem):
 	try:
@@ -63,7 +61,7 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 		self.fcsticon = (self.location,'Fcst','Icon') if self.FcstIcon else None
 
 		self.ClockRepaintEvent = ProcEventItem(id(self), 'repaintTimeTemp', self.repaintClock)
-		self.fmt = weatherinfo.WFormatter()
+		self.fmt = WFormatter()
 
 	def InitDisplay(self, nav):
 		self.PaintBase()

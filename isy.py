@@ -330,24 +330,24 @@ class ISY(object):
 				# is what is hosed
 				trycount -= 1
 				if trycount > 0:
-					config.Logs.Log('ISY not responding')
+					logsupport.Logs.Log('ISY not responding')
 					logsupport.Logs.Log('-ISY (nodes): ' + config.ISYprefix)
 					time.sleep(15)
 				else:
-					config.Logs.Log('No ISY response restart (nodes)')
+					logsupport.Logs.Log('No ISY response restart (nodes)')
 					exitutils.errorexit(exitutils.ERRORPIREBOOT)
 					logsupport.Logs.Log('Reached unreachable code! ISY1')
 
 		if r.status_code != 200:
-			config.Logs.Log('ISY text response:', severity=ConsoleError)
+			logsupport.Logs.Log('ISY text response:', severity=ConsoleError)
 			logsupport.Logs.Log('-----', severity=ConsoleError)
-			config.Logs.Log(r.text, severity=ConsoleError)
+			logsupport.Logs.Log(r.text, severity=ConsoleError)
 			logsupport.Logs.Log('-----', severity=ConsoleError)
-			config.Logs.Log('Cannot access ISY - check username/password')
+			logsupport.Logs.Log('Cannot access ISY - check username/password')
 			logsupport.Logs.Log('Status code: ' + str(r.status_code))
 			time.sleep(10)
 			exitutils.errorexit(exitutils.ERRORDIE)
-			config.Logs.Log('Reached unreachable code! ISY2')
+			logsupport.Logs.Log('Reached unreachable code! ISY2')
 
 		configdict = xmltodict.parse(r.text)['nodes']
 		if debug.dbgStore.GetVal('ISYLoad'):
@@ -405,7 +405,7 @@ class ISY(object):
 			try:
 				fixitem[0].pnode = self.NodesByAddr[fixitem[1]]
 			except:
-				config.Logs.Log("Problem with processing node: ", fixitem[1], severity=ConsoleWarning)
+				logsupport.Logs.Log("Problem with processing node: ", fixitem[1], severity=ConsoleWarning)
 
 		for scene in configdict['group']:
 			memberlist = []
@@ -433,7 +433,7 @@ class ISY(object):
 															p, memberlist)
 			else:
 				if scene['name'] not in ('~Auto DR', 'Auto DR'):
-					config.Logs.Log('Scene with no members ', scene['name'], severity=ConsoleWarning)
+					logsupport.Logs.Log('Scene with no members ', scene['name'], severity=ConsoleWarning)
 		self.LinkChildrenParents(self.ScenesByAddr, self.ScenesByName, self.FoldersByAddr, self.NodesByAddr)
 
 		self.SetFullNames(self.NodeRoot,"")
@@ -452,7 +452,7 @@ class ISY(object):
 				if r.status_code != 200:
 					logsupport.Logs.Log('ISY bad program read' + r.text, severity=ConsoleWarning)
 					raise requests.exceptions.ConnectionError  # fake a connection error if we didn't get a good read
-				config.Logs.Log('Successful programs read: ' + str(r.status_code))
+				logsupport.Logs.Log('Successful programs read: ' + str(r.status_code))
 				break
 			# except requests.exceptions.ConnectTimeout:
 			except:
@@ -461,12 +461,12 @@ class ISY(object):
 				trycount -= 1
 				if trycount > 0:
 					logsupport.Logs.Log('ISY not responding')
-					config.Logs.Log('-ISY(programs): ' + config.ISYprefix)
+					logsupport.Logs.Log('-ISY(programs): ' + config.ISYprefix)
 					time.sleep(15)
 				else:
 					logsupport.Logs.Log('No ISY response restart (programs)')
 					exitutils.errorexit(exitutils.ERRORPIREBOOT)
-					config.Logs.Log('Reached unreachable code! ISY3')
+					logsupport.Logs.Log('Reached unreachable code! ISY3')
 		configdict = xmltodict.parse(r.text)['programs']['program']
 		if debug.dbgStore.GetVal('ISYLoad'):
 			configdict = xmltodict.parse(x2)['programs']['program']
@@ -507,7 +507,7 @@ class ISY(object):
 				if r1.status_code != 200 or r2.status_code != 200:
 					logsupport.Logs.Log("Bad ISY var read" + r1.text + r2.text, severity=ConsoleWarning)
 					raise requests.exceptions.ConnectionError  # fake connection error on bad read
-				config.Logs.Log('Successful variable read: ' + str(r1.status_code) + '/' + str(r2.status_code))
+				logsupport.Logs.Log('Successful variable read: ' + str(r1.status_code) + '/' + str(r2.status_code))
 				break
 			except:
 				# after total power outage ISY is slower to come back than RPi so we wait testing periodically
@@ -515,12 +515,12 @@ class ISY(object):
 				trycount -= 1
 				if trycount > 0:
 					logsupport.Logs.Log('ISY not responding')
-					config.Logs.Log('-ISY(vars): ' + config.ISYprefix)
+					logsupport.Logs.Log('-ISY(vars): ' + config.ISYprefix)
 					time.sleep(15)
 				else:
 					logsupport.Logs.Log('No ISY response restart (vars)')
 					exitutils.errorexit(exitutils.ERRORPIREBOOT)
-					config.Logs.Log('Reached unreachable code! ISY4')
+					logsupport.Logs.Log('Reached unreachable code! ISY4')
 
 		try:
 			configdictS = xmltodict.parse(r1.text)['CList']['e']
@@ -549,7 +549,7 @@ class ISY(object):
 		except:
 			configdictI = {}
 			self.varsInt['##nointevars##'] = 0
-			config.Logs.Log('No integer variables defined')
+			logsupport.Logs.Log('No integer variables defined')
 		valuestore.NewValueStore(isyvarssupport.ISYVars('ISY', configdictS, configdictI))
 		utilities.register_example("ISY", self)
 		if debug.dbgStore.GetVal('ISY'):

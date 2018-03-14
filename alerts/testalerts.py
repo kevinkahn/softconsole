@@ -1,4 +1,4 @@
-import config, exitutils
+import config, exitutils, logsupport
 
 
 class testalerts(object):
@@ -10,8 +10,8 @@ class testalerts(object):
 
 	def AlertProc1(self, alert):
 		print "---------------------VC invocation", self.ct1, alert, id(alert)
-		config.Logs.Log('Alert proc test exiting')
-		config.Logs.Log('Restart for new version')
+		logsupport.Logs.Log('Alert proc test exiting')
+		logsupport.Logs.Log('Restart for new version')
 		exitutils.Exit('test', 'zzzz', 66)
 
 

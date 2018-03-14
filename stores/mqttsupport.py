@@ -23,7 +23,7 @@ class MQTTBroker(valuestore.ValueStore):
 				client.subscribe(v.Topic)
 
 		def on_disconnect(client, userdata, rc):
-			config.Logs.Log("Disconnected from ", self.name, "result code: " + str(rc))
+			logsupport.Logs.Log("Disconnected from ", self.name, "result code: " + str(rc))
 
 		def on_message(client, userdata, msg):
 			#print time.ctime() + " Received message " + str(msg.payload) + " on topic "  + msg.topic + " with QoS " + str(msg.qos)
@@ -39,7 +39,7 @@ class MQTTBroker(valuestore.ValueStore):
 				self.vars[var].Value = self.vars[var].Type(msg.payload)
 
 		def on_log(client, userdata, level, buf):
-			config.Logs.Log("MQTT Log: ",str(level)," buf: ",str(buf),severity=ConsoleWarning)
+			logsupport.Logs.Log("MQTT Log: ",str(level)," buf: ",str(buf),severity=ConsoleWarning)
 			print time.ctime() + " MQTT Log " + str(level) + '  ' + str(buf)
 
 		self.address = configsect.get('address',None)
@@ -82,7 +82,7 @@ class MQTTBroker(valuestore.ValueStore):
 		self.GetVal(self.ids[id])
 
 	def SetVal(self,name, val):
-		config.Logs.Log("Can't set MQTT subscribed var within console: ",name)
+		logsupport.Logs.Log("Can't set MQTT subscribed var within console: ",name)
 
 	def SetValByID(self,id, val):
 		logsupport.Logs.Log("Can't set MQTT subscribed var by id within console: ", str(id))

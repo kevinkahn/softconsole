@@ -78,9 +78,9 @@ def SetUpMaintScreens():
 	debug.DebugFlagKeys["LogLevelUp"].Proc = functools.partial(adjloglevel, debug.DebugFlagKeys["LogLevelUp"])
 	debug.DebugFlagKeys["LogLevelDown"].Proc = functools.partial(adjloglevel, debug.DebugFlagKeys["LogLevelDown"])
 	debug.DebugFlagKeys["LogLevelUp"].SetKeyImages(
-		("Log Detail", logsupport.LogLevels[config.LogLevel] + '(' + str(config.LogLevel) + ')', "Less"))
+		("Log Detail", logsupport.LogLevels[logsupport.LogLevel] + '(' + str(logsupport.LogLevel) + ')', "Less"))
 	debug.DebugFlagKeys["LogLevelDown"].SetKeyImages(
-		("Log Detail", logsupport.LogLevels[config.LogLevel] + '(' + str(config.LogLevel) + ')', "More"))
+		("Log Detail", logsupport.LogLevels[logsupport.LogLevel] + '(' + str(logsupport.LogLevel) + ')', "More"))
 
 	config.MaintScreen.Keys['flags'].Proc = functools.partial(goto, FlagsScreens[0], config.MaintScreen.Keys['flags'])
 	Exits.Keys['return'].Proc = functools.partial(goto, config.MaintScreen, Exits.Keys['return'])
@@ -96,18 +96,18 @@ def setdbg(K, presstype):
 
 def adjloglevel(K, presstype):
 	if K.name == "LogLevelUp":
-		if config.LogLevel < len(logsupport.LogLevels) - 1:
-			config.LogLevel += 1
+		if logsupport.LogLevel < len(logsupport.LogLevels) - 1:
+			logsupport.LogLevel += 1
 	else:
-		if config.LogLevel > 0:
-			config.LogLevel -= 1
+		if logsupport.LogLevel > 0:
+			logsupport.LogLevel -= 1
 	debug.DebugFlagKeys["LogLevelUp"].SetKeyImages(
-		("Log Detail", logsupport.LogLevels[config.LogLevel] + '(' + str(config.LogLevel) + ')', "Less"))
+		("Log Detail", logsupport.LogLevels[logsupport.LogLevel] + '(' + str(logsupport.LogLevel) + ')', "Less"))
 	debug.DebugFlagKeys["LogLevelDown"].SetKeyImages(
-		("Log Detail", logsupport.LogLevels[config.LogLevel] + '(' + str(config.LogLevel) + ')', "More"))
+		("Log Detail", logsupport.LogLevels[logsupport.LogLevel] + '(' + str(logsupport.LogLevel) + ')', "More"))
 	debug.DebugFlagKeys["LogLevelUp"].PaintKey()
 	debug.DebugFlagKeys["LogLevelDown"].PaintKey()
-	logsupport.Logs.Log("Log Level changed via ", K.name, " to ", config.LogLevel, severity=ConsoleWarning)
+	logsupport.Logs.Log("Log Level changed via ", K.name, " to ", logsupport.LogLevel, severity=ConsoleWarning)
 
 
 def gohome(K, presstype):  # neither peram used
@@ -173,7 +173,7 @@ def fetch_stable():
 		U.InstallStagedVersion(basedir + '/consolestable')
 		logsupport.Logs.Log("Staged version installed in consolestable")
 	except:
-		config.Logs.Log('Failed release download', severity=ConsoleWarning)
+		logsupport.Logs.Log('Failed release download', severity=ConsoleWarning)
 
 
 def fetch_beta():
@@ -210,7 +210,7 @@ class LogDisplayScreen(screen.BaseKeyScreenDesc):
 	def PrevPage(self, presstype):
 		if self.pageno > 0:
 			self.pageno -= 1
-			self.item = config.Logs.RenderLog(self.BackgroundColor, start=self.PageStartItem[self.pageno])
+			self.item = logsupport.Logs.RenderLog(self.BackgroundColor, start=self.PageStartItem[self.pageno])
 		else:
 			config.DS.SwitchScreen(config.MaintScreen, 'Bright', 'Maint', 'Done showing log', NavKeys=False)
 

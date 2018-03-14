@@ -6,6 +6,7 @@ import isy
 import supportscreens
 import utilities
 from debug import debugPrint
+import logsupport
 from logsupport import ConsoleWarning, ConsoleError, ConsoleDetail
 from toucharea import ManualKeyDesc
 
@@ -21,7 +22,7 @@ def CreateKey(screen, screensection, keyname):
 
 
 	keytype = screensection.get('type', 'ONOFF')
-	config.Logs.Log("-Key:" + keyname, severity=ConsoleDetail)
+	logsupport.Logs.Log("-Key:" + keyname, severity=ConsoleDetail)
 	if keytype in ('ONOFF', 'ON', 'OFF'):
 		NewKey = OnOffKey(screen, screensection, keyname, keytype)
 	elif keytype == 'SETVAR':
@@ -32,13 +33,13 @@ def CreateKey(screen, screensection, keyname):
 		NewKey = RunProgram(screen, screensection, keyname)
 	else:  # unknown type
 		NewKey = BlankKey(screen, screensection, keyname)
-		config.Logs.Log('Undefined key type ' + keytype + ' for: ' + keyname, severity=ConsoleWarning)
+		logsupport.Logs.Log('Undefined key type ' + keytype + ' for: ' + keyname, severity=ConsoleWarning)
 	return NewKey
 
 
 def ErrorKey(presstype):
 	# used to handle badly defined keys
-	config.Logs.Log('Ill-defined Key Pressed', severity=ConsoleWarning)
+	logsupport.Logs.Log('Ill-defined Key Pressed', severity=ConsoleWarning)
 
 
 class BlankKey(ManualKeyDesc):
@@ -69,12 +70,12 @@ class SetVarValueKey(ManualKeyDesc):
 			elif self.VarType == 'Local':
 				self.VarID = (3, config.ISY.varsLocal[keyname])
 			else:
-				config.Logs.Log('VarType not specified for key ', self.Var, ' on screen ', screen.name,
+				logsupport.Logs.Log('VarType not specified for key ', self.Var, ' on screen ', screen.name,
 								severity=ConsoleWarning)
 				self.VarID = (0, 0)
 				self.Proc = ErrorKey
 		except:
-			config.Logs.Log('Var key error on screen: ' + screen.name + ' Var: ' + keyname, severity=ConsoleWarning)
+			logsupport.Logs.Log('Var key error on screen: ' + screen.name + ' Var: ' + keyname, severity=ConsoleWarning)
 			self.Proc = ErrorKey
 
 		utilities.register_example("SetVarValueKey", self)
@@ -116,11 +117,11 @@ class SetVarKey(ManualKeyDesc):
 			elif self.VarType == 'Local':
 				self.VarID = (3, config.ISY.varsLocal[self.Var])
 			else:
-				config.Logs.Log('VarType not specified for key ', self.Var, ' on screen ', screen.name,
+				logsupport.Logs.Log('VarType not specified for key ', self.Var, ' on screen ', screen.name,
 								severity=ConsoleWarning)
 				self.Proc = ErrorKey
 		except:
-			config.Logs.Log('Var key error on screen: ' + screen.name + ' Var: ' + self.Var, severity=ConsoleWarning)
+			logsupport.Logs.Log('Var key error on screen: ' + screen.name + ' Var: ' + self.Var, severity=ConsoleWarning)
 			self.Proc = ErrorKey
 
 		utilities.register_example("SetVarKey", self)
@@ -143,11 +144,11 @@ class NewSetVarKey(ManualKeyDesc):
 			elif self.VarType == 'Local':
 				self.VarID = (3, config.ISY.varsLocal[self.Var])
 			else:
-				config.Logs.Log('VarType not specified for key ', self.Var, ' on screen ', screen.name,
+				logsupport.Logs.Log('VarType not specified for key ', self.Var, ' on screen ', screen.name,
 								severity=ConsoleWarning)
 				self.Proc = ErrorKey
 		except:
-			config.Logs.Log('Var key error on screen: ' + screen.name + ' Var: ' + self.Var, severity=ConsoleWarning)
+			logsupport.Logs.Log('Var key error on screen: ' + screen.name + ' Var: ' + self.Var, severity=ConsoleWarning)
 			self.Proc = ErrorKey
 
 		utilities.register_example("SetVarKey", self)
@@ -168,7 +169,7 @@ class RunProgram(ManualKeyDesc):
 		except:
 			self.ISYObj = config.DummyProgram
 			debugPrint('Screen', "Unbound program key: ", self.name)
-			config.Logs.Log("Missing Prog binding: " + self.name, severity=ConsoleWarning)
+			logsupport.Logs.Log("Missing Prog binding: " + self.name, severity=ConsoleWarning)
 		if self.Verify:
 			self.VerifyScreen = supportscreens.VerifyScreen(self, self.GoMsg, self.NoGoMsg, self.VerifyRunAndReturn,
 															screen, self.KeyColorOff, self.KeyCharColorOff,
@@ -217,7 +218,7 @@ class OnOffKey(ManualKeyDesc):
 					debugPrint('Screen', "Scene ", keyname, " explicit name proxying with ",
 							   self.MonitorObj.name, '(', self.MonitorObj.address, ')')
 				else:
-					config.Logs.Log('Bad explicit scene proxy:' + self.name, severity=ConsoleWarning)
+					logsupport.Logs.Log('Bad explicit scene proxy:' + self.name, severity=ConsoleWarning)
 			else:
 				for i in self.ISYObj.members:
 					device = i[1]
@@ -225,9 +226,9 @@ class OnOffKey(ManualKeyDesc):
 						self.MonitorObj = device
 						break
 					else:
-						config.Logs.Log('Skipping disabled/nonstatus device: ' + device.name, severity=ConsoleWarning)
+						logsupport.Logs.Log('Skipping disabled/nonstatus device: ' + device.name, severity=ConsoleWarning)
 				if self.MonitorObj is None:
-					config.Logs.Log("No proxy for scene: " + keyname, severity=ConsoleError)
+					logsupport.Logs.Log("No proxy for scene: " + keyname, severity=ConsoleError)
 				debugPrint('Screen', "Scene ", keyname, " default proxying with ",
 						   self.MonitorObj.name)
 		elif config.ISY.NodeExists(keyname):
@@ -235,7 +236,7 @@ class OnOffKey(ManualKeyDesc):
 			self.MonitorObj = self.ISYObj
 		else:
 			debugPrint('Screen', "Screen", keyname, "unbound")
-			config.Logs.Log('Key Binding missing: ' + self.name, severity=ConsoleWarning)
+			logsupport.Logs.Log('Key Binding missing: ' + self.name, severity=ConsoleWarning)
 
 		if self.Verify:
 			self.VerifyScreen = supportscreens.VerifyScreen(self, self.GoMsg, self.NoGoMsg, self.VerifyPressAndReturn,
@@ -280,7 +281,7 @@ class OnOffKey(ManualKeyDesc):
 				self.ISYObj.SendCommand(self.State, presstype)
 				self.BlinkKey(self.Blink)
 			else:
-				config.Logs.Log("Screen: " + self.name + " press unbound key: " + self.name,
+				logsupport.Logs.Log("Screen: " + self.name + " press unbound key: " + self.name,
 								severity=ConsoleWarning)
 				self.BlinkKey(20)
 
@@ -295,7 +296,7 @@ class OnOffKey(ManualKeyDesc):
 			if self.ISYObj is not None:
 				self.ISYObj.SendCommand(self.State, self.lastpresstype)
 			else:
-				config.Logs.Log("Screen: " + self.name + " press unbound key: " + self.name,
+				logsupport.Logs.Log("Screen: " + self.name + " press unbound key: " + self.name,
 								severity=ConsoleWarning)
 
 			config.DS.SwitchScreen(self.Screen, 'Bright', config.DS.state, 'Verify Run ' + self.Screen.name)

@@ -1,6 +1,7 @@
 import functools
 import pygame
 import io
+import os
 import sys
 import json
 import time
@@ -39,6 +40,7 @@ def TryShorten(term):
 	return term
 
 WeatherIconCache = {}
+WUcount = 0
 
 def get_icon(url):
 	if 	WeatherIconCache.has_key(url):
@@ -64,6 +66,7 @@ class FcstItem(valuestore.StoreItem):
 
 
 class WeatherVals(valuestore.ValueStore):
+	global WUcount
 	def __init__(self, location, WunderKey):
 		ConditionMap = {'Time': (int, ('current_observation', 'observation_epoch')),
 						'Location': (str, ('current_observation', 'display_location', 'city')),
@@ -116,6 +119,7 @@ class WeatherVals(valuestore.ValueStore):
 			self.vars['Fcst'][fld] = WeatherItem(('Fcst',fld),fldinfo)
 
 	def BlockRefresh(self):
+		global WUcount
 		if self.fetchtime + self.refreshinterval > time.time():
 			# have recent data
 			return
@@ -127,8 +131,8 @@ class WeatherVals(valuestore.ValueStore):
 			f = urllib2.urlopen(self.url, None, 15)  # wait at most 15 seconds for weather response then timeout
 			val = f.read()
 			f.close
-			config.WUcount += 1
-			config.Logs.Log("Actual weather fetch for " + self.location + "(" + str(self.fetchcount) + ')' + " WU count: " + str(config.WUcount),
+			WUcount += 1
+			logsupport.Logs.Log("Actual weather fetch for " + self.location + "(" + str(self.fetchcount) + ')' + " WU count: " + str(WUcount),
 							severity=ConsoleDetail)
 		except:
 			logsupport.Logs.Log("Error fetching weather: " + self.url + str(sys.exc_info()[0]),
@@ -140,13 +144,24 @@ class WeatherVals(valuestore.ValueStore):
 		if val.find("keynotfound") != -1:
 			config.BadWunderKey = True
 			# only report once in log
-			config.Logs.Log("Bad weatherunderground key:" + self.location, severity=ConsoleError, tb=False)
+			logsupport.Logs.Log("Bad weatherunderground key:" + self.location, severity=ConsoleError, tb=False)
 			return None
 
 		if val.find("you must supply a key") != -1:
 			logsupport.Logs.Log("WeatherUnderground missed the key:" + self.location, severity=ConsoleWarning)
 			self.fetchtime = 0  # force retry next time since this didn't register with WU
 			return None
+
+		"""
+		if config.versionname in ('development', 'homerelease'):
+			self.weathvalfile = open(os.path.dirname(config.configfile) + '/' + self.location + 'wv.log', 'w')
+			self.weathvalfile.write(self.location + ' \n==================\n')
+			self.weathvalfile.flush()
+			self.weathjsonfile = open(os.path.dirname(config.configfile) + '/' + self.location + 'wj.log', 'w')
+			self.weathjsonfile.write(self.location + '\n==================\n')
+			self.weathjsonfile.flush()
+			# dump
+		"""
 
 		parsed_json = json.loads(val)
 		js = functools.partial(TreeDict, parsed_json)
@@ -207,4 +222,16 @@ class WeatherVals(valuestore.ValueStore):
 			return super(WeatherVals,self).GetVal(name)
 
 	def SetVal(self,name,val):
-		config.Logs.Log("Setting weather item via SetVal unsupported: "+name,severity=ConsoleError)
+		logsupport.Logs.Log("Setting weather item via SetVal unsupported: "+name,severity=ConsoleError)
+
+
+
+
+	def dumpweatherresp(self, val, json, tag, param):
+		if config.versionname in ('development', 'homerelease'):
+			self.weathvalfile.write(
+				time.strftime('%H:%M:%S') + ' ' + tag + repr(param) + '\n' + repr(val) + '\n=================')
+			self.weathjsonfile.write(
+				time.strftime('%H:%M:%S') + ' ' + tag + repr(param) + '\n' + repr(json) + '\n=================')
+			self.weathvalfile.flush()
+			self.weathjsonfile.flush()
