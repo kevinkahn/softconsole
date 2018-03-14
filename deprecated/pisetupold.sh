@@ -63,7 +63,7 @@ Section "InputClass"
          Option "Calibration" "1155 1227 1408 1463"
 EndSection
 EOF
-# TODO - is this relevant?
+
 #    libinput_path="/usr/share/X11/xorg.conf.d/60-libinput.conf"
 #    if [ -e $libinput_path ]; then
 #        info PI-TFT "Applying Neto calibration patch:"

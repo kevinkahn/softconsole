@@ -51,7 +51,7 @@ Section "Device"
   Option "fbdev" "/dev/fb1"
 EndSection
 EOF
-# TODO get correct for portrait screen
+
     cat > /etc/X11/xorg.conf.d/99-calibration.conf <<EOF
 Section "InputClass"
          Identifier "calibration"
@@ -60,7 +60,7 @@ Section "InputClass"
          Option "Calibration" "3933 227 241 3893"
 EndSection
 EOF
-# TODO - is this relevant?
+# TODOx - is this relevant?
 #    libinput_path="/usr/share/X11/xorg.conf.d/60-libinput.conf"
 #    if [ -e $libinput_path ]; then
 #        info PI-TFT "Applying Neto calibration patch:"
@@ -258,7 +258,7 @@ then
   chown pi /home/pi/.vnc/config.d/Xvnc
   echo "RfbPort=$VNCConsole" >> /root/.vnc/config.d/vncserver-x11
 else
-  echo "VNC will be set up on its normal port" #TODO test this case for vnc ports
+  echo "VNC will be set up on its normal port" #TODOx test this case for vnc ports
 fi
 LogBanner "Set Virtual VNC Start in rc.local"
 
@@ -325,8 +325,8 @@ case $ScreenType in
     LogBanner "Configure the screen and calibrate"
     # set vertical orientation
     mv /boot/config.txt /boot/config.sav
-    sed -r 's/rotate=(90|180|270)/rotate=0/' /boot/config.sav > /boot/config.txt  # TODO need to pick rotation based on screen type
-    ./adafruit-pitft-touch-cal -f -r 0 -t $DisplayType # TODO needs to work for waveshare screen
+    sed -r 's/rotate=(90|180|270)/rotate=0/' /boot/config.sav > /boot/config.txt  # TODOx need to pick rotation based on screen type
+    ./adafruit-pitft-touch-cal -f -r 0 -t $DisplayType # TODOx needs to work for waveshare screen
     ;;
   custom)
     LogBanner "No Screen Configured - do it manually for custom screen before reboot"

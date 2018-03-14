@@ -7,8 +7,9 @@ import time
 import urllib2
 import utilities
 import config
-import valuestore
+from stores import valuestore
 from collections import OrderedDict
+import logsupport
 from logsupport import ConsoleWarning, ConsoleDetail, ConsoleError
 
 def TreeDict(d, *args):
@@ -31,7 +32,7 @@ def TryShorten(term):
 	if term in config.TermShortener:
 		return config.TermShortener[term]
 	elif len(term) > 12 and term[0:4] != 'http':
-		config.Logs.Log("Long term: " + term, severity=ConsoleWarning)
+		logsupport.Logs.Log("Long term: " + term, severity=ConsoleWarning)
 		config.TermShortener[term] = term  # only report once
 		with open(config.exdir + '/termshortenlist.new', 'w') as f:
 			json.dump(config.TermShortener, f, indent=4, separators=(',', ": "))
@@ -52,12 +53,12 @@ def get_icon(url):
 		return icon_scr
 
 class WeatherItem(valuestore.StoreItem):
-	def __init__(self,mapinfo):
+	def __init__(self,name, mapinfo):
 		self.MapInfo = mapinfo
-		super(WeatherItem,self).__init__(None)
+		super(WeatherItem,self).__init__(name,None)
 
 class FcstItem(valuestore.StoreItem):
-	def __init__(self,mapinfo):
+	def __init__(self,name,mapinfo):
 		self.MapInfo = mapinfo
 		super(FcstItem, self).__init__([])
 
@@ -106,13 +107,13 @@ class WeatherVals(valuestore.ValueStore):
 		self.url = 'http://api.wunderground.com/api/' + WunderKey + '/conditions/forecast10day/astronomy/q/' \
 				   + location + '.json'
 		for fld, fldinfo in ConditionMap.iteritems():
-			self.vars['Cond'][fld] = WeatherItem(fldinfo)
+			self.vars['Cond'][fld] = WeatherItem(('Cond',fld),fldinfo)
 		for fld, fldinfo in csynthmap.iteritems():
-			self.vars['Cond'][fld] = WeatherItem(fldinfo)
+			self.vars['Cond'][fld] = WeatherItem(('Cond',fld),fldinfo)
 		for fld, fldinfo in ForecastDay.iteritems():
-			self.vars['Fcst'][fld] = FcstItem(fldinfo)
+			self.vars['Fcst'][fld] = WeatherItem(('Fcst',fld),fldinfo)
 		for fld, fldinfo in fsynthmap.iteritems():
-			self.vars['Fcst'][fld] = FcstItem(fldinfo)
+			self.vars['Fcst'][fld] = WeatherItem(('Fcst',fld),fldinfo)
 
 	def BlockRefresh(self):
 		if self.fetchtime + self.refreshinterval > time.time():
@@ -130,7 +131,7 @@ class WeatherVals(valuestore.ValueStore):
 			config.Logs.Log("Actual weather fetch for " + self.location + "(" + str(self.fetchcount) + ')' + " WU count: " + str(config.WUcount),
 							severity=ConsoleDetail)
 		except:
-			config.Logs.Log("Error fetching weather: " + self.url + str(sys.exc_info()[0]),
+			logsupport.Logs.Log("Error fetching weather: " + self.url + str(sys.exc_info()[0]),
 							severity=ConsoleWarning)
 			#self.dumpweatherresp(val, 'none', 'fetch', '--')
 			self.failedfetch = True
@@ -143,7 +144,7 @@ class WeatherVals(valuestore.ValueStore):
 			return None
 
 		if val.find("you must supply a key") != -1:
-			config.Logs.Log("WeatherUnderground missed the key:" + self.location, severity=ConsoleWarning)
+			logsupport.Logs.Log("WeatherUnderground missed the key:" + self.location, severity=ConsoleWarning)
 			self.fetchtime = 0  # force retry next time since this didn't register with WU
 			return None
 
@@ -162,6 +163,7 @@ class WeatherVals(valuestore.ValueStore):
 				cond.Value = None  # set error equiv to Conderr?
 
 		for n, fcst in self.vars['Fcst'].iteritems():
+			fcst.Value = []
 			for i, fcstitem in enumerate(fcsts):
 				fs = functools.partial(TreeDict,fcstitem)
 				try:

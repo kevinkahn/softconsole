@@ -1,10 +1,9 @@
 import pygame
 import config
 from debug import debugPrint
-import valuestore
+from stores import valuestore, weatherstore
 import screen
 import logsupport
-import weatherstore
 import weatherinfo
 import utilities
 import toucharea
@@ -46,7 +45,7 @@ class WeatherScreenDesc(screen.ScreenDesc):
 		self.fcstformat = u"{d[0]}   {d[1]}\u00B0/{d[2]}\u00B0 {d[3]}","Wind: {d[4]} at {d[5]}"
 		self.fcstfields = list(((self.location, 'Fcst', x) for x in ('Day', 'High','Low', 'Sky', 'WindDir','WindSpd')))
 
-		self.store = valuestore.NewValueStore(weatherstore.WeatherVals(self.location,self.WunderKey))
+		self.store = valuestore.NewValueStore(weatherstore.WeatherVals(self.location, self.WunderKey))
 		utilities.register_example("WeatherScreenDesc", self)
 
 	def __repr__(self):
@@ -69,7 +68,7 @@ class WeatherScreenDesc(screen.ScreenDesc):
 			for l in renderedlines:
 				config.screen.blit(l, ((config.screenwidth - l.get_width()) / 2, vert_off))
 				vert_off = vert_off + 30
-			config.Logs.Log('Weatherscreen missing weather' + self.name, severity=logsupport.ConsoleWarning)
+			logsupport.Logs.Log('Weatherscreen missing weather' + self.name, severity=logsupport.ConsoleWarning)
 		else:
 			renderedlines = [config.fonts.Font(50, "").render(self.fmt.format("{d}",d=self.scrlabel),0,wc(self.CharColor))]
 			renderedlines.append(config.fonts.Font(40, "").render(self.fmt.format("{d}",d=self.store.GetVal(('Cond','Location'))),0,wc(self.CharColor)))

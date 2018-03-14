@@ -1,10 +1,9 @@
 import config
 import exitutils
-from logsupport import ConsoleError, ConsoleInfo, ConsoleWarning, ConsoleDetail
+import logsupport
+from logsupport import ConsoleWarning, ConsoleDetail
 import isy
-import exceptions
-import valuestore
-import weatherstore
+from stores import valuestore, weatherstore
 
 
 class GetTempsToISY(object):
@@ -30,10 +29,10 @@ class GetTempsToISY(object):
 				exitutils.FatalError('Weather field error in SendTemps', restartopt='shut')
 
 			if not (isinstance(weathval,int) or isinstance(weathval,float)):
-				config.Logs.Log("No valid weather value to send (" + station +'):'+weathcode[0]+':'+weathcode[1] +str(weathval),severity=ConsoleWarning)
+				logsupport.Logs.Log("No valid weather value to send (" + station +'):'+weathcode[0]+':'+weathcode[1] +str(weathval),severity=ConsoleWarning)
 				return
 			isyvar = config.ISY.GetVarCode(tuple(assigns[i + 1].split(':')))
-			config.Logs.Log(
+			logsupport.Logs.Log(
 				"Temps sent to ISY(" + station + '):' + weathcode[0] + ':' + weathcode[1] + ' -> ' + str(weathval),
 				severity=ConsoleDetail)
 			if isyvar != (0, 0):

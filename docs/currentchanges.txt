@@ -11,3 +11,6 @@ Miscellaneous bug fixes
 mqtt
 blink setvar
 ClockSize=-1,LocationSize=-1,CondSize=[20],FcstSize=[20],
+qualified vars
+internal changes
+explain stores

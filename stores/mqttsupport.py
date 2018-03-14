@@ -1,5 +1,6 @@
 import paho.mqtt.client as mqtt
 import config
+import logsupport
 from logsupport import ConsoleWarning
 from configobj import Section
 import time
@@ -8,19 +9,16 @@ import threading
 import threadmanager
 
 class MQitem(valuestore.StoreItem):
-	def __init__(self,Topic, Type, Expires):
+	def __init__(self, name, Topic, Type, Expires):
 		self.Topic = Topic
-		self.Type  = Type
-		self.RcvTime = 0
-		self.Expires = Expires
-		self.Value = None
-
+		super(MQitem,self).__init__(name, None,Type,Expires)
 
 class MQTTBroker(valuestore.ValueStore):
 
 	def __init__(self, name, configsect):
+		super(MQTTBroker,self).__init__(name,refreshinterval=0,itemtyp=MQitem)
 		def on_connect(client, userdata, flags, rc):
-			config.Logs.Log("Connected to ", self.name, " result code: " + str(rc))
+			logsupport.Logs.Log("Connected to ", self.name, " result code: " + str(rc))
 			for i, v in userdata.vars.iteritems():
 				client.subscribe(v.Topic)
 
@@ -35,9 +33,9 @@ class MQTTBroker(valuestore.ValueStore):
 					var = v
 					break
 			if var is None:
-				config.Logs.Log('Unknown topic ',msg.topic, ' from broker ',self.name,severity=ConsoleWarning)
+				logsupport.Logs.Log('Unknown topic ',msg.topic, ' from broker ',self.name,severity=ConsoleWarning)
 			else:
-				self.vars[var].RcvTime = time.time()
+				self.vars[var].SetTime = time.time()
 				self.vars[var].Value = self.vars[var].Type(msg.payload)
 
 		def on_log(client, userdata, level, buf):
@@ -46,7 +44,6 @@ class MQTTBroker(valuestore.ValueStore):
 
 		self.address = configsect.get('address',None)
 		self.password = configsect.get('password',None)
-		self.name = name
 		self.vars = {}
 		self.ids = {}
 		for i,v in configsect.iteritems():
@@ -59,7 +56,7 @@ class MQTTBroker(valuestore.ValueStore):
 				else:
 					tpcvrt = str
 				tpc = v.get('Topic',None)
-				self.vars[i] = MQitem(tpc, tpcvrt,int(v.get('Expires',99999999999999999))) # todo pub?
+				self.vars[i] = MQitem(i, tpc, tpcvrt,int(v.get('Expires',99999999999999999)))
 				self.ids[tpc] = i
 		self.MQTTclient = mqtt.Client(userdata=self)
 		self.MQTTclient.on_connect = on_connect
@@ -74,7 +71,7 @@ class MQTTBroker(valuestore.ValueStore):
 		self.MQTTclient.connect(self.address)
 		self.MQTTclient.loop_forever()
 		self.MQTTclient.disconnect()
-		config.Logs.Log("MQTT handler thread ended for: "+self.name,severity=ConsoleWarning)
+		logsupport.Logs.Log("MQTT handler thread ended for: "+self.name,severity=ConsoleWarning)
 
 	def StartThread(self):
 		threadmanager.HelperThreads[self.name].Thread = threading.Thread(name=self.name, target= self.MQTTLoop)
@@ -88,7 +85,7 @@ class MQTTBroker(valuestore.ValueStore):
 		config.Logs.Log("Can't set MQTT subscribed var within console: ",name)
 
 	def SetValByID(self,id, val):
-		config.Logs.Log("Can't set MQTT subscribed var by id within console: ", str(id))
+		logsupport.Logs.Log("Can't set MQTT subscribed var by id within console: ", str(id))
 
 	#todo add pub support?
 

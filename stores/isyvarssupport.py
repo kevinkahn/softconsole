@@ -1,5 +1,6 @@
 import time
-import valuestore
+from stores import valuestore
+
 
 class ISYVarItem(valuestore.StoreItem):
 	def __init__(self, id):

@@ -6,6 +6,7 @@ import isy
 from eventlist import EventItem, EventList
 import time
 from debug import debugPrint
+import logsupport
 from logsupport import ConsoleWarning, ConsoleError, ConsoleDetail
 from collections import OrderedDict
 from eventlist import AlertEventItem, ProcEventItem
@@ -19,8 +20,8 @@ class DisplayScreen(object):
 	def __init__(self):
 
 		debug.debugPrint("Main", "Screensize: ", config.screenwidth, config.screenheight)
-		config.Logs.Log("Screensize: " + str(config.screenwidth) + " x " + str(config.screenheight))
-		config.Logs.Log(
+		logsupport.Logs.Log("Screensize: " + str(config.screenwidth) + " x " + str(config.screenheight))
+		logsupport.Logs.Log(
 			"Scaling ratio: " + "{0:.2f} W ".format(config.dispratioW) + "{0:.2f} H".format(config.dispratioH))
 
 		self.dim = 'Bright'  # either Bright or Dim (or '' for don't change when a parameter
@@ -67,7 +68,7 @@ class DisplayScreen(object):
 			newstate = 'Home'
 		if NS == self.AS:
 			debugPrint('Dispatch', 'Null SwitchScreen: ', reason)
-			config.Logs.Log('Null switchscreen: ' + reason, severity=ConsoleWarning)
+			logsupport.Logs.Log('Null switchscreen: ' + reason, severity=ConsoleWarning)
 		if self.AS is not None and self.AS <> NS:
 			debugPrint('Dispatch', "Switch from: ", self.AS.name, " to ", NS.name, "Nav=", NavKeys, ' State=',
 					   oldstate + '/' + newstate + ':' + olddim + '/' + newdim, ' ', reason)
@@ -124,8 +125,8 @@ class DisplayScreen(object):
 
 		for a in config.Alerts.AlertsList.itervalues():
 			a.state = 'Armed'
-			config.Logs.Log("Arming " + a.type + " alert " + a.name)
-			config.Logs.Log("->" + str(a), severity=ConsoleDetail)
+			logsupport.Logs.Log("Arming " + a.type + " alert " + a.name)
+			logsupport.Logs.Log("->" + str(a), severity=ConsoleDetail)
 			if a.type in ('StateVarChange', 'IntVarChange', 'LocalVarChange'):
 				var = (a.trigger.vartype, a.trigger.varid)
 				if var in self.WatchVars:
@@ -153,7 +154,7 @@ class DisplayScreen(object):
 				a.Invoke()
 
 		while config.digestinginit and config.ISYaddr != '':
-			config.Logs.Log("Waiting initial status dump")
+			logsupport.Logs.Log("Waiting initial status dump")
 			time.sleep(.2)
 		with open(config.homedir + "/.ConsoleStart", "a") as f:
 			f.write(str(time.time()) + '\n')
@@ -167,7 +168,7 @@ class DisplayScreen(object):
 			threadmanager.CheckThreads()
 
 			if not config.QH.is_alive() and config.ISYaddr != '':
-				config.Logs.Log('Queue handler died, last error:' + str(config.EventMonitor.lasterror), severity=ConsoleError)
+				logsupport.Logs.Log('Queue handler died, last error:' + str(config.EventMonitor.lasterror), severity=ConsoleError)
 				try:
 					if config.EventMonitor.lasterror[0] == errno.ENETUNREACH:
 						# likely home network down so wait a bit
@@ -180,13 +181,13 @@ class DisplayScreen(object):
 				isyeventmonitor.CreateWSThread()
 
 			if time.time() - config.lastheartbeat > 240 and config.ISYaddr != '':  # twice heartbeat interval
-				config.Logs.Log('Lost ISY heartbeat', severity=ConsoleError, tb=False)
+				logsupport.Logs.Log('Lost ISY heartbeat', severity=ConsoleError, tb=False)
 				isyeventmonitor.CreateWSThread()
 
 			if self.Deferrals:  # an event was deferred mid screen touches - handle now
 				event = self.Deferrals.pop(0)
 				debugPrint('EventList', 'Deferred Event Pop', event)
-			elif debug.Flags['QDump']:
+			elif debug.dbgStore.GetVal('QDump'):
 				events = pygame.fastevent.get()
 				if events:
 					debugPrint('QDump', 'Time: ', time.time())
@@ -291,7 +292,7 @@ class DisplayScreen(object):
 					self.AS.ISYEvent(varid=(event.vartype, event.varid), value=event.value)
 				else:
 					debugPrint('Dispatch', 'Bad ISYChange Event: ', event)
-					config.Logs.Log('Bad ISYChange Event ', event, severity=ConsoleWarning)
+					logsupport.Logs.Log('Bad ISYChange Event ', event, severity=ConsoleWarning)
 
 			elif event.type in (self.ISYVar, self.ISYAlert):
 				evtype = 'variable' if event.type == self.ISYVar else 'node'
@@ -333,7 +334,7 @@ class DisplayScreen(object):
 						E.proc()
 				elif isinstance(E, AlertEventItem):  # delayed alert screen
 					debugPrint('Dispatch', 'Task AlertEvent fired: ', E)
-					config.Logs.Log("Alert event fired" + str(E.alert), severity=ConsoleDetail)
+					logsupport.Logs.Log("Alert event fired" + str(E.alert), severity=ConsoleDetail)
 					E.alert.Invoke()  # defered or delayed alert firing
 					if isinstance(E.alert.trigger, alerttasks.Periodictrigger):
 						self.Tasks.AddTask(E, E.alert.trigger.interval)
@@ -341,7 +342,7 @@ class DisplayScreen(object):
 					# unknown eevent?
 					debugPrint('Dispatch', 'TASKREADY found unknown event: ', E)
 
-		config.Logs.Log('Main Loop Exit: ', config.ecode)
+		logsupport.Logs.Log('Main Loop Exit: ', config.ecode)
 		pygame.quit()
 		os._exit(config.ecode)
 

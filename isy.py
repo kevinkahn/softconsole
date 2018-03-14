@@ -6,12 +6,12 @@ import config
 import debug
 import exitutils
 import utilities
-from logsupport import ConsoleInfo, ConsoleWarning, ConsoleError, ConsoleDetailHigh
+import logsupport
+from logsupport import ConsoleWarning, ConsoleError, ConsoleDetailHigh
 import sys
 import errno
 import pygame
-import isyvarssupport
-import valuestore
+from stores import valuestore, isyvarssupport
 
 
 class CommsError(Exception): pass
@@ -39,40 +39,40 @@ def try_ISY_comm(urlcmd):
 				debug.debugPrint('ISY', '*' + t + '*')
 				r = config.ISYrequestsession.get(t, verify=False, timeout=5)
 			except requests.exceptions.ConnectTimeout as e:
-				config.Logs.Log("ISY Comm Timeout: " + ' Cmd: ' + '*' + urlcmd + '*', severity=ConsoleError, tb=False)
-				config.Logs.Log(sys.exc_info()[1], severity=ConsoleDetailHigh, tb=False)
+				logsupport.Logs.Log("ISY Comm Timeout: " + ' Cmd: ' + '*' + urlcmd + '*', severity=ConsoleError, tb=False)
+				logsupport.Logs.Log(sys.exc_info()[1], severity=ConsoleDetailHigh, tb=False)
 				raise CommsError
 			except requests.exceptions.ConnectionError as e:
 				try:
 					if e[0] == errno.ENETUNREACH:
 						# probable network outage for reboot
-						config.Logs.Log("ISY Comm: Network Unreachable", tb=False)
+						logsupport.Logs.Log("ISY Comm: Network Unreachable", tb=False)
 						time.sleep(120)
 					else:
-						config.Logs.Log("ISY Comm ConnErr: " + ' Cmd: ' + urlcmd, severity=ConsoleError, tb=False)
-						config.Logs.Log(sys.exc_info()[1], severity=ConsoleDetailHigh, tb=False)
+						logsupport.Logs.Log("ISY Comm ConnErr: " + ' Cmd: ' + urlcmd, severity=ConsoleError, tb=False)
+						logsupport.Logs.Log(sys.exc_info()[1], severity=ConsoleDetailHigh, tb=False)
 				except:
-					config.Logs.Log("ISY Comm ConnErr2: " + ' Cmd: ' + urlcmd, severity=ConsoleError, tb=False)
-					config.Logs.Log(sys.exc_info()[1], severity=ConsoleDetailHigh, tb=False)
+					logsupport.Logs.Log("ISY Comm ConnErr2: " + ' Cmd: ' + urlcmd, severity=ConsoleError, tb=False)
+					logsupport.Logs.Log(sys.exc_info()[1], severity=ConsoleDetailHigh, tb=False)
 				raise CommsError
 			except Exception as e:
-				config.Logs.Log("ISY Comm UnknownErr: " + ' Cmd: ' + urlcmd, severity=ConsoleError)
-				config.Logs.Log("  Exception: ",str(e))
-				config.Logs.Log(sys.exc_info()[1], severity=ConsoleDetailHigh, tb=True)
+				logsupport.Logs.Log("ISY Comm UnknownErr: " + ' Cmd: ' + urlcmd, severity=ConsoleError)
+				logsupport.Logs.Log("  Exception: ",str(e))
+				logsupport.Logs.Log(sys.exc_info()[1], severity=ConsoleDetailHigh, tb=True)
 				raise CommsError
 			if r.status_code == 404: # not found
 				return 'notfound'
 			if r.status_code != 200:
-				config.Logs.Log('ISY Bad status:' + str(r.status_code) + ' on Cmd: ' + urlcmd, severity=ConsoleError)
-				config.Logs.Log(r.text)
+				logsupport.Logs.Log('ISY Bad status:' + str(r.status_code) + ' on Cmd: ' + urlcmd, severity=ConsoleError)
+				logsupport.Logs.Log(r.text)
 				raise CommsError
 			else:
 				return r.text
 		except CommsError:
 			time.sleep(.5)
-			config.Logs.Log("Attempting ISY retry " + str(i + 1), severity=ConsoleError, tb=False)
+			logsupport.Logs.Log("Attempting ISY retry " + str(i + 1), severity=ConsoleError, tb=False)
 
-	config.Logs.Log("ISY Communications Failure", severity=ConsoleError)
+	logsupport.Logs.Log("ISY Communications Failure", severity=ConsoleError)
 	exitutils.errorexit(exitutils.ERRORPIREBOOT)
 
 
@@ -97,10 +97,10 @@ def get_real_time_node_status(addr):
 			break
 	try:
 		if config.ISY.NodesByAddr[addr].devState != int(devstate):
-			config.Logs.Log("Shadow state wrong: ", addr, devstate, config.ISY.NodesByAddr[addr].devState,
+			logsupport.Logs.Log("Shadow state wrong: ", addr, devstate, config.ISY.NodesByAddr[addr].devState,
 							severity=ConsoleWarning)
 	except:
-		config.Logs.Log('Bad NodeByAddr in rt status: ', addr, severity=ConsoleError)
+		logsupport.Logs.Log('Bad NodeByAddr in rt status: ', addr, severity=ConsoleError)
 	return int(devstate if devstate.isdigit() else 0)
 
 
@@ -251,7 +251,7 @@ def SetVar(var, value):
 			config.DS.WatchVarVals[var[0], var[1]] = value
 
 			for a in config.DS.WatchVars[tuple(var)]:
-				config.Logs.Log("Var alert fired: " + str(a))
+				logsupport.Logs.Log("Var alert fired: " + str(a))
 				notice = pygame.event.Event(config.DS.ISYVar, vartype=var[0], varid=var[1], value=value, alert=a)
 				pygame.fastevent.post(notice)
 
@@ -277,7 +277,7 @@ class ISY(object):
 				node.parent = looklist2[node.parent]
 			else:
 				node.parent = None
-				config.Logs.Log("Missing parent: " + node.name, severity=ConsoleError)
+				logsupport.Logs.Log("Missing parent: " + node.name, severity=ConsoleError)
 			if node.parent != node:  # avoid root
 				node.parent.children.append(node)
 
@@ -321,7 +321,7 @@ class ISY(object):
 		while True:
 			try:
 				r = ISYsession.get(config.ISYprefix + 'nodes', verify=False, timeout=5)
-				config.Logs.Log('Successful node read: ' + str(r.status_code))
+				logsupport.Logs.Log('Successful node read: ' + str(r.status_code))
 				break
 			# except requests.exceptions.ConnectTimeout:
 			except:
@@ -331,26 +331,26 @@ class ISY(object):
 				trycount -= 1
 				if trycount > 0:
 					config.Logs.Log('ISY not responding')
-					config.Logs.Log('-ISY (nodes): ' + config.ISYprefix)
+					logsupport.Logs.Log('-ISY (nodes): ' + config.ISYprefix)
 					time.sleep(15)
 				else:
 					config.Logs.Log('No ISY response restart (nodes)')
 					exitutils.errorexit(exitutils.ERRORPIREBOOT)
-					config.Logs.Log('Reached unreachable code! ISY1')
+					logsupport.Logs.Log('Reached unreachable code! ISY1')
 
 		if r.status_code != 200:
 			config.Logs.Log('ISY text response:', severity=ConsoleError)
-			config.Logs.Log('-----', severity=ConsoleError)
+			logsupport.Logs.Log('-----', severity=ConsoleError)
 			config.Logs.Log(r.text, severity=ConsoleError)
-			config.Logs.Log('-----', severity=ConsoleError)
+			logsupport.Logs.Log('-----', severity=ConsoleError)
 			config.Logs.Log('Cannot access ISY - check username/password')
-			config.Logs.Log('Status code: ' + str(r.status_code))
+			logsupport.Logs.Log('Status code: ' + str(r.status_code))
 			time.sleep(10)
 			exitutils.errorexit(exitutils.ERRORDIE)
 			config.Logs.Log('Reached unreachable code! ISY2')
 
 		configdict = xmltodict.parse(r.text)['nodes']
-		if debug.Flags['ISYLoad']:
+		if debug.dbgStore.GetVal('ISYLoad'):
 			with open('/home/pi/Console/xml.dmp','r') as f:
 				x1 = f.readline().rstrip('\n')
 				x2 = f.readline().rstrip('\n')
@@ -358,7 +358,7 @@ class ISY(object):
 				x4 = f.readline().rstrip('\n')
 				configdict = xmltodict.parse(x1)['nodes']
 
-		if debug.Flags['ISYDump']:
+		if debug.dbgStore.GetVal('ISYDump'):
 			debug.ISYDump("xml.dmp",r.text,pretty=False,new=True)
 			debug.ISYDump("struct.dmp",configdict,new=True)
 			debug.ISYDump("isystream.dmp","",pretty=False,new=True)
@@ -397,7 +397,7 @@ class ISY(object):
 				fixlist.append((n, pnd))
 				self.NodesByAddr[n.address] = n
 			except:
-				config.Logs.Log("Problem with processing node: ", nm, ' Address: ', str(addr), ' Pnode: ', str(pnd),
+				logsupport.Logs.Log("Problem with processing node: ", nm, ' Address: ', str(addr), ' Pnode: ', str(pnd),
 								' ', str(flg), '/', str(enabld), '/', repr(prop), severity=ConsoleWarning)
 				# for now at least try to avoid nodes without properties which apparently Zwave devices may have
 		self.LinkChildrenParents(self.NodesByAddr, self.NodesByName, self.FoldersByAddr, self.NodesByAddr)
@@ -420,7 +420,7 @@ class ISY(object):
 						naddr = m1['#text']
 						memberlist.append((int(m1['@type']), self.NodesByAddr[naddr]))
 				except:
-					config.Logs.Log("Error adding member to scene: ", str(scene['name']), ' Node address: ', naddr, severity=ConsoleWarning)
+					logsupport.Logs.Log("Error adding member to scene: ", str(scene['name']), ' Node address: ', naddr, severity=ConsoleWarning)
 					debug.debugPrint('ISYDump','Scene: ',m1)
 
 				if 'parent' in scene:
@@ -438,7 +438,7 @@ class ISY(object):
 
 		self.SetFullNames(self.NodeRoot,"")
 
-		if debug.Flags['ISY']:
+		if debug.dbgStore.GetVal('ISY'):
 			self.PrintTree(self.NodeRoot, "    ", 'Nodes')
 
 		"""
@@ -450,7 +450,7 @@ class ISY(object):
 			try:
 				r = ISYsession.get(config.ISYprefix + 'programs?subfolders=true', verify=False, timeout=5)
 				if r.status_code != 200:
-					config.Logs.Log('ISY bad program read' + r.text, severity=ConsoleWarning)
+					logsupport.Logs.Log('ISY bad program read' + r.text, severity=ConsoleWarning)
 					raise requests.exceptions.ConnectionError  # fake a connection error if we didn't get a good read
 				config.Logs.Log('Successful programs read: ' + str(r.status_code))
 				break
@@ -460,17 +460,17 @@ class ISY(object):
 				# Eventually we try rebooting just in case our own network is what is hosed
 				trycount -= 1
 				if trycount > 0:
-					config.Logs.Log('ISY not responding')
+					logsupport.Logs.Log('ISY not responding')
 					config.Logs.Log('-ISY(programs): ' + config.ISYprefix)
 					time.sleep(15)
 				else:
-					config.Logs.Log('No ISY response restart (programs)')
+					logsupport.Logs.Log('No ISY response restart (programs)')
 					exitutils.errorexit(exitutils.ERRORPIREBOOT)
 					config.Logs.Log('Reached unreachable code! ISY3')
 		configdict = xmltodict.parse(r.text)['programs']['program']
-		if debug.Flags['ISYLoad']:
+		if debug.dbgStore.GetVal('ISYLoad'):
 			configdict = xmltodict.parse(x2)['programs']['program']
-		if debug.Flags['ISYDump']:
+		if debug.dbgStore.GetVal('ISYDump'):
 			debug.ISYDump("xml.dmp",r.text,pretty=False)
 			debug.ISYDump("struct.dmp",configdict)
 
@@ -505,7 +505,7 @@ class ISY(object):
 				r2 = ISYsession.get(config.ISYprefix + 'vars/definitions/1', verify=False, timeout=5)
 				# for some reason var reads seem to typically take longer to complete so to at 5 sec
 				if r1.status_code != 200 or r2.status_code != 200:
-					config.Logs.Log("Bad ISY var read" + r1.text + r2.text, severity=ConsoleWarning)
+					logsupport.Logs.Log("Bad ISY var read" + r1.text + r2.text, severity=ConsoleWarning)
 					raise requests.exceptions.ConnectionError  # fake connection error on bad read
 				config.Logs.Log('Successful variable read: ' + str(r1.status_code) + '/' + str(r2.status_code))
 				break
@@ -514,19 +514,19 @@ class ISY(object):
 				# Eventually we try rebooting just in case our own network is what is hosed
 				trycount -= 1
 				if trycount > 0:
-					config.Logs.Log('ISY not responding')
+					logsupport.Logs.Log('ISY not responding')
 					config.Logs.Log('-ISY(vars): ' + config.ISYprefix)
 					time.sleep(15)
 				else:
-					config.Logs.Log('No ISY response restart (vars)')
+					logsupport.Logs.Log('No ISY response restart (vars)')
 					exitutils.errorexit(exitutils.ERRORPIREBOOT)
 					config.Logs.Log('Reached unreachable code! ISY4')
 
 		try:
 			configdictS = xmltodict.parse(r1.text)['CList']['e']
-			if debug.Flags['ISYLoad']:
+			if debug.dbgStore.GetVal('ISYLoad'):
 				configdictS = xmltodict.parse(x3)['CList']['e']
-			if debug.Flags['ISYDump']:
+			if debug.dbgStore.GetVal('ISYDump'):
 				debug.ISYDump("xml.dmp", r1.text, pretty=False)
 				debug.ISYDump("struct.dmp", configdictS)
 			for v in configdictS:
@@ -535,7 +535,7 @@ class ISY(object):
 		except:
 			configdictS = {}
 			self.varsState['##nostatevars##'] = 0
-			config.Logs.Log('No state variables defined')
+			logsupport.Logs.Log('No state variables defined')
 		try:
 			configdictI = xmltodict.parse(r2.text)['CList']['e']
 			if debug.Flags['ISYLoad']:
@@ -550,9 +550,9 @@ class ISY(object):
 			configdictI = {}
 			self.varsInt['##nointevars##'] = 0
 			config.Logs.Log('No integer variables defined')
-		valuestore.NewValueStore(isyvarssupport.ISYVars('ISY',configdictS,configdictI))
+		valuestore.NewValueStore(isyvarssupport.ISYVars('ISY', configdictS, configdictI))
 		utilities.register_example("ISY", self)
-		if debug.Flags['ISY']:
+		if debug.dbgStore.GetVal('ISY'):
 			self.PrintTree(self.ProgRoot, "    ", 'Programs')
 
 	def GetVarCode(self, varsym):

@@ -9,9 +9,9 @@ wc = webcolors.name_to_rgb  # can't use the safe version from utilities due to i
 class TempLogger(object):
 	def __init__(self):
 		pass
-
 	def Log(self, *args, **kwargs):
-		print args
+		entry = "".join([unicode(i) for i in args])
+		print time.strftime('%m-%d-%y %H:%M:%S') + " " + entry.encode('ascii', errors='backslashreplace')
 
 Logs = TempLogger()
 import config

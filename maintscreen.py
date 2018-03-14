@@ -45,11 +45,13 @@ def SetUpMaintScreens():
 	nflags = len(debug.DbgFlags) + 3
 	# will need key for each debug flag plus a return plus a loglevel up and loglevel down
 	tmpDbgFlags = ["LogLevelUp", "LogLevelDown"] + debug.DbgFlags[:]  # temp copy of Flags
+	flagspercol = config.screenheight / 120
+	flagsperrow = config.screenwidth / 120
 	flagoverrides = fixedoverrides.copy()
-	flagoverrides.update(KeysPerColumn=debug.flagspercol, KeysPerRow=debug.flagsperrow)
+	flagoverrides.update(KeysPerColumn=flagspercol, KeysPerRow=flagsperrow)
 	while nflags > 0:
-		thisscrn = min(nflags, debug.flagspercol*debug.flagsperrow)
-		nflags = nflags - debug.flagspercol*debug.flagsperrow + 1
+		thisscrn = min(nflags, flagspercol*flagsperrow)
+		nflags = nflags - flagspercol*flagsperrow + 1
 		tmp = OrderedDict()
 		for i in range(thisscrn - 1):  # leave space for next or return
 			flg = tmpDbgFlags.pop(0)
@@ -60,17 +62,18 @@ def SetUpMaintScreens():
 		else:
 			tmp['return'] = ('Return', functools.partial(goto, config.MaintScreen))
 		FlagsScreens.append(MaintScreenDesc('Flags', tmp, overrides=flagoverrides))
-		FlagsScreens[-1].KeysPerColumn = debug.flagspercol
-		FlagsScreens[-1].KeysPerRow = debug.flagsperrow
+		FlagsScreens[-1].KeysPerColumn = flagspercol
+		FlagsScreens[-1].KeysPerRow = flagsperrow
 
 	for i in range(len(FlagsScreens) - 1):
 		FlagsScreens[i].Keys['next'].Proc = functools.partial(goto, FlagsScreens[i + 1], FlagsScreens[i].Keys['next'])
 
+
 	for s in FlagsScreens:
 		debug.DebugFlagKeys.update(s.Keys)
 		for kn, k in s.Keys.iteritems():
-			if kn in debug.Flags:
-				k.State = debug.Flags[k.name]
+			if kn in debug.DbgFlags:
+				k.State = debug.dbgStore.GetVal(k.name)
 				k.Proc = functools.partial(setdbg, k)
 	debug.DebugFlagKeys["LogLevelUp"].Proc = functools.partial(adjloglevel, debug.DebugFlagKeys["LogLevelUp"])
 	debug.DebugFlagKeys["LogLevelDown"].Proc = functools.partial(adjloglevel, debug.DebugFlagKeys["LogLevelDown"])
@@ -85,10 +88,10 @@ def SetUpMaintScreens():
 
 
 def setdbg(K, presstype):
-	debug.Flags[K.name] = not debug.Flags[K.name]
-	K.State = debug.Flags[K.name]
+	debug.dbgStore.SetVal(K.name,not debug.dbgStore.GetVal(K.name))
+	K.State = not K.State
 	K.PaintKey()
-	config.Logs.Log("Debug flag ", K.name, ' = ', K.State, severity=ConsoleWarning)
+	logsupport.Logs.Log("Debug flag ", K.name, ' = ', K.State, severity=ConsoleWarning)
 
 
 def adjloglevel(K, presstype):
@@ -104,7 +107,7 @@ def adjloglevel(K, presstype):
 		("Log Detail", logsupport.LogLevels[config.LogLevel] + '(' + str(config.LogLevel) + ')', "More"))
 	debug.DebugFlagKeys["LogLevelUp"].PaintKey()
 	debug.DebugFlagKeys["LogLevelDown"].PaintKey()
-	config.Logs.Log("Log Level changed via ", K.name, " to ", config.LogLevel, severity=ConsoleWarning)
+	logsupport.Logs.Log("Log Level changed via ", K.name, " to ", config.LogLevel, severity=ConsoleWarning)
 
 
 def gohome(K, presstype):  # neither peram used
@@ -160,29 +163,29 @@ def fetch_stable():
 	try:
 		if os.path.exists(basedir + '/homesystem'):
 			# personal system
-			config.Logs.Log("New version fetch(homerelease)")
+			logsupport.Logs.Log("New version fetch(homerelease)")
 			print ("New Version Fetch Requested (homesystem)")
 			U.StageVersion(basedir + '/consolestable', 'homerelease', 'RequestedDownload')
 		else:
-			config.Logs.Log("New version fetch(currentrelease)")
+			logsupport.Logs.Log("New version fetch(currentrelease)")
 			print ("New Version Fetch Requested (currentrelease)")
 			U.StageVersion(basedir + '/consolestable', 'currentrelease', 'RequestedDownload')
 		U.InstallStagedVersion(basedir + '/consolestable')
-		config.Logs.Log("Staged version installed in consolestable")
+		logsupport.Logs.Log("Staged version installed in consolestable")
 	except:
 		config.Logs.Log('Failed release download', severity=ConsoleWarning)
 
 
 def fetch_beta():
 	basedir = os.path.dirname(config.exdir)
-	config.Logs.Log("New version fetch(currentbeta)")
+	logsupport.Logs.Log("New version fetch(currentbeta)")
 	print ("New Version Fetch Requested (currentbeta)")
 	try:
 		U.StageVersion(basedir + '/consolebeta', 'currentbeta', 'RequestedDownload')
 		U.InstallStagedVersion(basedir + '/consolebeta')
-		config.Logs.Log("Staged version installed in consolebeta")
+		logsupport.Logs.Log("Staged version installed in consolebeta")
 	except:
-		config.Logs.Log('Failed beta download', severity=ConsoleWarning)
+		logsupport.Logs.Log('Failed beta download', severity=ConsoleWarning)
 
 
 class LogDisplayScreen(screen.BaseKeyScreenDesc):
@@ -198,7 +201,7 @@ class LogDisplayScreen(screen.BaseKeyScreenDesc):
 	def NextPage(self, presstype):
 		if self.item >= 0:
 			self.pageno += 1
-			self.item = config.Logs.RenderLog(self.BackgroundColor, start=self.item)
+			self.item = logsupport.Logs.RenderLog(self.BackgroundColor, start=self.item)
 			if self.pageno + 1 == len(self.PageStartItem):
 				self.PageStartItem.append(self.item)
 		else:
@@ -214,7 +217,7 @@ class LogDisplayScreen(screen.BaseKeyScreenDesc):
 	def InitDisplay(self, nav):
 		debugPrint('Main', "Enter to screen: ", self.name)
 		super(LogDisplayScreen, self).InitDisplay(nav)
-		config.Logs.Log('Entering Log Screen')
+		logsupport.Logs.Log('Entering Log Screen')
 		self.item = 0
 		self.PageStartItem = [0]
 		self.pageno = -1
@@ -251,6 +254,6 @@ class MaintScreenDesc(screen.BaseKeyScreenDesc):
 
 	def InitDisplay(self, nav):
 		debugPrint('Main', "Enter to screen: ", self.name)
-		config.Logs.Log('Entering Maintenance Screen: ' + self.name)
+		logsupport.Logs.Log('Entering Maintenance Screen: ' + self.name)
 		super(MaintScreenDesc, self).InitDisplay(nav)
 		self.ShowScreen()

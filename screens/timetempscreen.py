@@ -5,11 +5,11 @@ import screen
 import utilities
 from debug import debugPrint
 from utilities import wc
-import valuestore
-import weatherstore
+from stores import valuestore, weatherstore
 import weatherinfo
 import pygame
 from eventlist import ProcEventItem
+import logsupport
 from logsupport import ConsoleWarning
 
 CreateWeathBlock = weatherinfo.CreateWeathBlock
@@ -39,13 +39,13 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 			self.FcstSize = extref(self.CharSize, 3)
 		if self.ForecastDays + self.SkipDays > 10:
 			self.ForecastDays = 10 - self.SkipDays
-			config.Logs.Log("Long forecast requested; days reduced to: "+str(self.ForecastDays),severity=ConsoleWarning)
+			logsupport.Logs.Log("Long forecast requested; days reduced to: "+str(self.ForecastDays),severity=ConsoleWarning)
 		if self.FcstLayout not in ('Block','BlockCentered','LineCentered','2ColVert','2ColHoriz'):
-			config.Logs.Log('FcstLayout Param not Block, BlockCentered, LineCentered, 2ColVert, or 2ColHoriz - using "Block" for ' ,
+			logsupport.Logs.Log('FcstLayout Param not Block, BlockCentered, LineCentered, 2ColVert, or 2ColHoriz - using "Block" for ' ,
 							screenname,severity=ConsoleWarning)
 			self.FcstLayout = "Block"
 		self.scrlabel = screen.FlatenScreenLabel(self.label)
-		self.store = valuestore.NewValueStore(weatherstore.WeatherVals(self.location,self.WunderKey))
+		self.store = valuestore.NewValueStore(weatherstore.WeatherVals(self.location, self.WunderKey))
 		self.DecodedCondFields = []
 		for f in self.ConditionFields:
 			if ':' in f:

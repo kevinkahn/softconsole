@@ -8,8 +8,10 @@ ValueStores = {} # General store for named values storename:itemname accessed as
 def GetVal(name):
 	return ValueStores[name[0]].GetVal(name[1:])
 
-def SetVal(name,val):
+def SetVal(name,val, attribute=None):
 	return ValueStores[name[0]].SetVal(name[1:],val)
+
+#todo getAttr(name) getbyAttr(attr) gets value, name
 
 def BlockRefresh(name):
 	ValueStores[name].BlockRefresh()
@@ -19,27 +21,20 @@ def NewValueStore(store):
 		if isinstance(ValueStores[store.name],type(store)):
 			return ValueStores[store.name]
 		else:
-			Logs.Log("Incompatible store types for: "+store.name,severity=ConsoleError)
+			logsupport.Logs.Log("Incompatible store types for: "+store.name,severity=ConsoleError)
 			return None
 	else:
 		ValueStores[store.name] = store
 		return ValueStores[store.name]
 
-'''
-Init with dict(n:(type,initval))
-			dict(n:(list,type,size,initval)
-			dict(n:dict(recursive))
-			dict(n:type)
-			list[n,],type=int,initval=None
-			None -> empty vars?
-'''
-
 class StoreItem(object):
-	def __init__(self,initval, vt = None, expires=9999999999999999.0):
+	def __init__(self, name, initval, vt = None, expires=9999999999999999.0, attribute=None):
 		self.Value = initval
 		self.Type = type(initval) if vt == None else vt
 		self.Expires = expires
 		self.SetTime = time.time()
+		self.Attribute = attribute
+		self.name = name
 
 	def UpdateVal(self,val):
 		self.Value = self.Type(val)
@@ -102,7 +97,7 @@ class ValueStore(object):
 		if isinstance(nmlist, tuple) or isinstance(nmlist, list):
 			self.vars = {}
 			for n in nmlist:
-				self.vars[n] = self.itemtyp(init,typ)
+				self.vars[n] = self.itemtyp(n,init,typ)
 
 	def SetVal(self,name, val):
 		n2 = self._normalizename(name)
@@ -126,7 +121,7 @@ class ValueStore(object):
 				# already exists
 				t[n2[0]].UpdateVal(val)
 			else:
-				t[n2[0]] = self.itemtyp(val)
+				t[n2[0]] = self.itemtyp(name,val)
 
 	def Contains(self,name):
 		n2 = self._normalizename(name)

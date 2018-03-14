@@ -1,4 +1,5 @@
 import pygame
+import logsupport
 from logsupport import ConsoleWarning
 from pygame import gfxdraw
 
@@ -32,7 +33,7 @@ class ThermostatScreenDesc(screen.BaseKeyScreenDesc):
 			self.ISYObj = config.ISY.GetNodeByName(screenname)
 		else:
 			self.ISYObj = None
-			config.Logs.Log("No Thermostat: " + screenname, severity=ConsoleWarning)
+			logsupport.Logs.Log("No Thermostat: " + screenname, severity=ConsoleWarning)
 
 		self.TitleRen = config.fonts.Font(self.fsize[1]).render(screen.FlatenScreenLabel(self.label), 0,
 																wc(self.CharColor))
@@ -81,25 +82,22 @@ class ThermostatScreenDesc(screen.BaseKeyScreenDesc):
 
 		debugPrint('Main', "Bump temp: ", setpoint, degrees,' to ',self.info[setpoint][0] + degrees)
 		rtxt = isy.try_ISY_comm('/rest/nodes/' + self.ISYObj.address + '/cmd/' + setpoint + '/' + str(
-				self.info[setpoint][0] + degrees)) #todo
-		#self.ShowScreen()
+				self.info[setpoint][0] + degrees))
 
 	def BumpMode(self, mode, vals, presstype):
 
 		cv = vals.index(self.info[mode][0])
 		cv = (cv + 1)%len(vals)
 		debugPrint('Main', "Bump: ", mode, ' to ', cv)
-		rtxt = isy.try_ISY_comm('/rest/nodes/' + self.ISYObj.address + '/cmd/' + mode + '/' + str(vals[cv])) #todo
-		#self.ShowScreen()
+		rtxt = isy.try_ISY_comm('/rest/nodes/' + self.ISYObj.address + '/cmd/' + mode + '/' + str(vals[cv]))
 
 	def ShowScreen(self):
 		rtxt = isy.try_ISY_comm('/rest/nodes/' + self.ISYObj.address)
 		try:
 			tstatdict = xmltodict.parse(rtxt)
 		except:
-			config.Logs.Log("Thermostat node sent garbage: ",rtxt,severity=ConsoleWarning)
+			logsupport.Logs.Log("Thermostat node sent garbage: ",rtxt,severity=ConsoleWarning)
 			return
-		# config.Logs.Log('****' + str(tstatdict)) why do we sometimes get a garbage response TODO
 		props = tstatdict["nodeInfo"]["properties"]["property"]
 		self.oldinfo = dict(self.info)
 		self.info = {}
@@ -128,7 +126,7 @@ class ThermostatScreenDesc(screen.BaseKeyScreenDesc):
 		r = config.fonts.Font(self.fsize[3], bold=True).render(u"{:4.1f}".format(self.info["ST"][0]/2), 0,
 															   wc(self.CharColor))
 		config.screen.blit(r, ((config.screenwidth - r.get_width())/2, self.TempPos))
-		if isinstance(self.info["CLIHCS"][0], int):  # todo now redundant given I force to 0 above
+		if isinstance(self.info["CLIHCS"][0], int):
 			r = config.fonts.Font(self.fsize[0]).render(("Idle", "Heating", "Cooling")[self.info["CLIHCS"][0]], 0,
 													wc(self.CharColor))
 		else:
@@ -139,8 +137,6 @@ class ThermostatScreenDesc(screen.BaseKeyScreenDesc):
 			wc(self.CharColor))
 		config.screen.blit(r, ((config.screenwidth - r.get_width())/2, self.SPPos))
 		config.screen.blit(self.AdjButSurf, (0, self.AdjButTops))
-		# self.Keys['Mode'].PaintKey() # todo also painting in reinit and in init - should sort out
-		#self.Keys['Fan'].PaintKey()
 		try:
 			r1 = config.fonts.Font(self.fsize[1]).render(
 				('Off', 'Heat', 'Cool', 'Auto', 'Fan', 'Prog Auto', 'Prog Heat', 'Prog Cool')[self.info["CLIMD"][0]], 0,

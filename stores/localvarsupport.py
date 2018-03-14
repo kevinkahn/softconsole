@@ -1,5 +1,4 @@
-import time
-import valuestore
+from stores import valuestore
 from configobj import Section
 
 class LocalVarItem(valuestore.StoreItem):

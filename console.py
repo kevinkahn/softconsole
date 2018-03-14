@@ -1,7 +1,7 @@
 #!/usr/bin/python -u
 # above assumes it points at python 2.7 and may not be portable
 """
-Copyright 2016, 2017 Kevin Kahn
+Copyright 2016, 2017, 2018 Kevin Kahn
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -23,7 +23,6 @@ import time
 import cgitb
 import datetime
 import pygame
-import valuestore
 
 # noinspection PyProtectedMember
 from configobj import ConfigObj, Section
@@ -40,23 +39,22 @@ import logsupport
 import maintscreen
 import utilities
 import requests
-from logsupport import ConsoleWarning, ConsoleDetail
+from logsupport import ConsoleWarning
 import weatherinfo
-import mqttsupport
-import localvarsupport
+from stores import mqttsupport, valuestore, localvarsupport
 
 import json
 
 
 def handler(signum, frame):
 	if signum in (signal.SIGTERM, signal.SIGINT):
-		config.Logs.Log("Console received a termination signal ", str(signum), " - Exiting")
+		logsupport.Logs.Log("Console received a termination signal ", str(signum), " - Exiting")
 		time.sleep(1)
 		pygame.display.quit()
 		pygame.quit()
 		os._exit(0)
 	else:
-		config.Logs.Log("Console received signal " + str(signum) + " Ignoring")
+		logsupport.Logs.Log("Console received signal " + str(signum) + " Ignoring")
 
 
 signal.signal(signal.SIGTERM, handler)
@@ -68,7 +66,7 @@ config.Console_pid = os.getpid()
 config.exdir = os.path.dirname(os.path.abspath(__file__))
 os.chdir(config.exdir)  # make sure we are in the directory we are executing from
 config.homedir = os.path.dirname(config.exdir)
-print("Console (" + str(config.Console_pid) + ") starting in "+os.getcwd())
+logsupport.Logs.Log("Console (" + str(config.Console_pid) + ") starting in "+os.getcwd())
 
 def CO_get(self, key, default, delkey=True):
 	rtn = sectionget(self, key, default)
@@ -85,28 +83,26 @@ def LogBadParams(section, name):
 		if isinstance(s, Section):
 			LogBadParams(s, nm)
 		else:
-			config.Logs.Log("Bad (unused) parameter name in: ", name, " (", nm, "=", str(s), ")",
+			logsupport.Logs.Log("Bad (unused) parameter name in: ", name, " (", nm, "=", str(s), ")",
 							severity=ConsoleWarning)
 
-earlylog = open(config.homedir + '/Console/earlylog.log', 'w', 0)
-earlylog.write("Console start at " + time.strftime('%m-%d-%y %H:%M:%S') + ' on ' + config.hostname + '\n')
 
 if os.getegid() <> 0:
 	# Not running as root
-	earlylog.write("Not running as root - exit\n")
+	logsupport.Logs.Log("Not running as root - exit")
 	print ("Must run as root")
 	os._exit(exitutils.EARLYABORT)
 
 utilities.InitializeEnvironment()
 
-earlylog.write('Environment initialized\n')
+logsupport.Logs.Log('Environment initialized on host '+ config.hostname)
 
 
 lastfn = ""
 lastmod = 0
 config.Console_pid = os.getpid()
 
-earlylog.write('Exdir: ' + config.exdir + '  Pid: ' + str(config.Console_pid) + '\n')
+logsupport.Logs.Log('Exdir: ' + config.exdir + '  Pid: ' + str(config.Console_pid))
 
 for root, dirs, files in os.walk(config.exdir):
 	for fname in files:
@@ -128,8 +124,8 @@ except:
 	config.versiondnld = 'none'
 	config.versioncommit = 'none'
 
-earlylog.write(
-	'Version/Sha/Dnld/Commit: ' + config.versionname + ' ' + config.versionsha + ' ' + config.versiondnld + ' ' + config.versioncommit + '\n')
+logsupport.Logs.Log(
+	'Version/Sha/Dnld/Commit: ' + config.versionname + ' ' + config.versionsha + ' ' + config.versiondnld + ' ' + config.versioncommit)
 
 """
 Dynamically load class definitions for all defined screen types and link them to how configuration happens
@@ -141,7 +137,7 @@ for screentype in os.listdir(os.getcwd() + '/screens'):
 		if splitname[1] == '.py':
 			importlib.import_module('screens.' + splitname[0])
 
-earlylog.write("Screen types imported \n")
+logsupport.Logs.Log("Screen types imported")
 
 #for alertproctype in os.listdir(os.path.dirname(os.path.abspath(sys.argv[0])) + '/alerts'):
 for alertproctype in os.listdir(os.getcwd() + '/alerts'):
@@ -150,12 +146,12 @@ for alertproctype in os.listdir(os.getcwd() + '/alerts'):
 		if splitname[1] == '.py':
 			importlib.import_module('alerts.' + splitname[0])
 
-earlylog.write("Alert Proc types imported\n")
+logsupport.Logs.Log("Alert Proc types imported")
 
 for n in config.alertprocs:
 	config.alertprocs[n] = config.alertprocs[n]()  # instantiate an instance of each alert class
 
-earlylog.write("Alert classes instantiated\n")
+logsupport.Logs.Log("Alert classes instantiated")
 
 """
 Initialize the Console
@@ -181,16 +177,16 @@ elif os.path.isfile(config.configfilebase + "config.txt"):
 else:
 	config.configfile = config.configfilebase + "config-" + config.hostname + ".txt"
 
-print ("Configuration file: " + config.configfile)
+logsupport.Logs.Log("Configuration file: " + config.configfile)
 
 if not os.path.isfile(config.configfile):
 	print ("Abort - no configuration file found")
-	earlylog.write("Abort - no configuration file ('+config.hostname+')'\n")
+	logsupport.Logs.Log('Abort - no configuration file ('+config.hostname+')')
 	exitutils.EarlyAbort('No Configuration File (' + config.hostname + ')')
 
 config.ParsedConfigFile = ConfigObj(config.configfile)  # read the config.txt file
 
-earlylog.write("Parsed base config file\n")
+logsupport.Logs.Log("Parsed base config file")
 
 configdir = os.path.dirname(config.configfile)
 
@@ -215,65 +211,62 @@ while includes:
 	tmpconf = ConfigObj(f)
 	includes = includes + tmpconf.get('include', [])
 	config.ParsedConfigFile.merge(tmpconf)
-	earlylog.write("Merged config file " + f + "\n")
+	logsupport.Logs.Log("Merged config file " + f)
 	try:
 		config.configfilelist[f] = os.path.getmtime(f)
 	except:
-		earlylog.write("MISSING config file " + f + "\n")
+		logsupport.Logs.Log("MISSING config file " + f)
 		config.configfilelist[f] = 0
-
-debug.Flags = debug.InitFlags() # todo delete when switched to ValStore
-valuestore.NewValueStore(localvarsupport.LocalVars('Debug',debug.DbgVars))
 
 utilities.ParseParam(globalparams)  # add global parameters to config file
 
-earlylog.write("Parsed globals\n")
-
-config.Logs = logsupport.InitLogs(config.screen, os.path.dirname(config.configfile))
+logsupport.Logs.Log("Parsed globals")
+logsupport.Logs.Log("Switching to real log")
+logsupport.Logs = logsupport.InitLogs(config.screen, os.path.dirname(config.configfile))
+config.Logs = logsupport.Logs # todo delete
 cgitb.enable(format='text')
-config.Logs.Log(u"Soft ISY Console")
-earlylog.write("Switched to real log\n")
-earlylog.close()
-os.remove(config.homedir + '/Console/earlylog.log')
-config.Logs.Log(u"  \u00A9 Kevin Kahn 2016, 2017")
-config.Logs.Log("Software under Apache 2.0 License")
-config.Logs.Log("Version Information:")
-config.Logs.Log(" Run from: ", config.exdir)
-config.Logs.Log(" Last mod: ", lastfn)
-config.Logs.Log(" Mod at: ", time.ctime(lastmod))
-config.Logs.Log(" Tag: ", config.versionname)
-config.Logs.Log(" Sha: ", config.versionsha)
-config.Logs.Log(" How: ", config.versiondnld)
-config.Logs.Log(" Version date: ", config.versioncommit)
-config.Logs.Log("Start time: ", time.ctime(config.starttime))
+logsupport.Logs.Log(u"Soft ISY Console")
+
+logsupport.Logs.Log(u"  \u00A9 Kevin Kahn 2016, 2017")
+logsupport.Logs.Log("Software under Apache 2.0 License")
+logsupport.Logs.Log("Version Information:")
+logsupport.Logs.Log(" Run from: ", config.exdir)
+logsupport.Logs.Log(" Last mod: ", lastfn)
+logsupport.Logs.Log(" Mod at: ", time.ctime(lastmod))
+logsupport.Logs.Log(" Tag: ", config.versionname)
+logsupport.Logs.Log(" Sha: ", config.versionsha)
+logsupport.Logs.Log(" How: ", config.versiondnld)
+logsupport.Logs.Log(" Version date: ", config.versioncommit)
+logsupport.Logs.Log("Start time: ", time.ctime(config.starttime))
 with open(config.homedir + "/.ConsoleStart", "w") as f:
 	f.write(str(config.starttime) + '\n')
-config.Logs.Log("Console Starting  pid: ", config.Console_pid)
-config.Logs.Log("Host name: ", config.hostname)
-config.Logs.Log("Screen type: ", config.screentype)
-config.Logs.Log("Screen Orientation: ", ("Landscape", "Portrait")[config.portrait])
+logsupport.Logs.Log("Console Starting  pid: ", config.Console_pid)
+logsupport.Logs.Log("Host name: ", config.hostname)
+logsupport.Logs.Log("Screen type: ", config.screentype)
+logsupport.Logs.Log("Screen Orientation: ", ("Landscape", "Portrait")[config.portrait])
 if config.personalsystem:
-	config.Logs.Log("Personal System")
+	logsupport.Logs.Log("Personal System")
 if config.previousup > 0:
-	config.Logs.Log("Previous Console Lifetime: ", str(datetime.timedelta(seconds=config.previousup)))
+	logsupport.Logs.Log("Previous Console Lifetime: ", str(datetime.timedelta(seconds=config.previousup)))
 if config.lastup > 0:
-	config.Logs.Log("Console Last Running at: ", time.ctime(config.lastup))
-	config.Logs.Log("Previous Console Downtime: ", str(datetime.timedelta(seconds=(config.starttime - config.lastup))))
-config.Logs.Log("Main config file: ", config.configfile,
+	logsupport.Logs.Log("Console Last Running at: ", time.ctime(config.lastup))
+	logsupport.Logs.Log("Previous Console Downtime: ", str(datetime.timedelta(seconds=(config.starttime - config.lastup))))
+logsupport.Logs.Log("Main config file: ", config.configfile,
 				time.strftime(' %c', time.localtime(config.configfilelist[config.configfile])))
-config.Logs.Log("Default config file library: ", cfglib)
-config.Logs.Log("Including config files:")
+logsupport.Logs.Log("Default config file library: ", cfglib)
+logsupport.Logs.Log("Including config files:")
 for p, f in zip(pfiles, cfiles):
 	if config.configfilelist[f] == 0:
-		config.Logs.Log("  ", p, " No Such File", severity=ConsoleWarning)
+		logsupport.Logs.Log("  ", p, " No Such File", severity=ConsoleWarning)
 	else:
-		config.Logs.Log("  ", p, time.strftime(' %c', time.localtime(config.configfilelist[f])))
-for flg, fval in debug.Flags.iteritems():
-	if fval:
-		config.Logs.Log('Debug flag ', flg, '=', fval, severity=logsupport.ConsoleWarning)
-		config.LogLevel = 0  # if a debug flag is set force Logging unless explicitly overridden
+		logsupport.Logs.Log("  ", p, time.strftime(' %c', time.localtime(config.configfilelist[f])))
+debug.LogDebugFlags()
+#for flg, fval in debug.Flags.iteritems():
+#	if fval:
+#		logsupport.Logs.Log('Debug flag ', flg, '=', fval, severity=logsupport.ConsoleWarning)
+#		config.LogLevel = 0  # if a debug flag is set force Logging unless explicitly overridden
 config.LogLevel = int(config.ParsedConfigFile.get('LogLevel', config.LogLevel))
-config.Logs.Log("Log level: ", config.LogLevel)
+logsupport.Logs.Log("Log level: ", config.LogLevel)
 config.DS = displayscreen.DisplayScreen()  # create the actual device screen and touch manager
 
 utilities.LogParams()
@@ -291,7 +284,7 @@ for i,v in config.ParsedConfigFile.iteritems():
 			valuestore.NewValueStore(mqttsupport.MQTTBroker(i, v))
 			del config.ParsedConfigFile[i]
 		elif stype == "Locals":
-			valuestore.NewValueStore(localvarsupport.LocalVars(i,v))
+			valuestore.NewValueStore(localvarsupport.LocalVars(i, v))
 			del config.ParsedConfigFile[i]
 
 	"""
@@ -312,7 +305,7 @@ if config.ISYaddr != '':
 	config.ISYrequestsession.auth = (config.ISYuser, config.ISYpassword)
 
 	config.ISY = isy.ISY(config.ISYrequestsession)
-	config.Logs.Log("Enumerated ISY Structure")
+	logsupport.Logs.Log("Enumerated ISY Structure")
 	# todo seems odd that the following code is here and has to be skipped for null ISY case - should be in the ISY definition
 	cmdvar = 'Command.' + config.hostname.replace('-', '.')
 	if cmdvar in config.ISY.varsInt:
@@ -325,7 +318,7 @@ if config.ISYaddr != '':
 else:
 	config.ISY = isy.ISY(None)
 	alertspeclist = None # todo see comment above
-	config.Logs.Log("No ISY Specified", severity=ConsoleWarning)
+	logsupport.Logs.Log("No ISY Specified", severity=ConsoleWarning)
 
 """
 Set up alerts
@@ -350,12 +343,12 @@ if 'Variables' in config.ParsedConfigFile:
 		config.ISY.LocalVars.append(int(val))
 		config.ISY.varsLocal[nm] = i
 		config.ISY.varsLocalInv[i] = nm
-		config.Logs.Log("Local variable: " + nm + "(" + str(i) + ") = " + str(val))
+		logsupport.Logs.Log("Local variable: " + nm + "(" + str(i) + ") = " + str(val))
 		i += 1
 #	localvarsupport.LocalVars('Local',config.ParsedConfigFile['Variables'])
 	del config.ParsedConfigFile['Variables']
 configobjects.MyScreens()
-config.Logs.Log("Linked config to ISY")
+logsupport.Logs.Log("Linked config to ISY")
 
 
 """
@@ -367,15 +360,15 @@ isyeventmonitor.CreateWSThread()
 Build the alerts structures
 """
 config.Alerts = alerttasks.Alerts(alertspec)
-config.Logs.Log("Alerts established")
+logsupport.Logs.Log("Alerts established")
 
 """
 Set up the Maintenance Screen
 """
-config.Logs.Log("Built Maintenance Screen")
+logsupport.Logs.Log("Built Maintenance Screen")
 maintscreen.SetUpMaintScreens()
 
-config.Logs.livelog = False  # turn off logging to the screen and give user a moment to scan
+logsupport.Logs.livelog = False  # turn off logging to the screen and give user a moment to scan
 time.sleep(2)
 
 LogBadParams(config.ParsedConfigFile, "Globals")
@@ -391,7 +384,7 @@ if config.versionname == 'development':
 Run the main console loop
 """
 config.DS.MainControlLoop(config.HomeScreen)
-config.Logs.Log("Main line exit: ",config.ecode)
+logsupport.Logs.Log("Main line exit: ",config.ecode)
 pygame.quit()
 os._exit(config.ecode)
 

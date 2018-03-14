@@ -2,6 +2,7 @@ import base64
 import websocket
 import xmltodict
 import config
+import logsupport
 from logsupport import ConsoleWarning, ConsoleError, ConsoleDetail
 from debug import debugPrint
 import debug
@@ -16,7 +17,7 @@ def CreateWSThread():
 	config.QH = threading.Thread(name='QH', target=config.EventMonitor.QHandler)
 	config.QH.setDaemon(True)
 	config.QH.start()
-	config.Logs.Log("ISY stream thread " + str(config.EventMonitor.num) + " started")
+	logsupport.Logs.Log("ISY stream thread " + str(config.EventMonitor.num) + " started")
 
 class ISYEventMonitor:
 	def __init__(self):
@@ -43,7 +44,7 @@ class ISYEventMonitor:
 		# exitutils.FatalError("websocket stream error")
 
 		def on_close(ws, code, reason):
-			config.Logs.Log("Websocket stream " + str(self.num) + " closed: " + str(code) + ' : ' + str(reason),
+			logsupport.Logs.Log("Websocket stream " + str(self.num) + " closed: " + str(code) + ' : ' + str(reason),
 							severity=ConsoleError,
 							tb=False)
 			debugPrint('DaemonCtl', "Websocket stream closed", str(code), str(reason))
@@ -54,14 +55,14 @@ class ISYEventMonitor:
 
 		def on_message(ws, message):
 			m = xmltodict.parse(message)
-			if debug.Flags['ISYDump']:
+			if debug.dbgStore.GetVal('ISYDump'):
 				debug.ISYDump("isystream.dmp", message, pretty=False)
 
 			if 'SubscriptionResponse' in m:
 				sr = m['SubscriptionResponse']
 				if self.streamid <> sr['SID']:
 					self.streamid = sr['SID']
-					config.Logs.Log("Opened event stream: " + self.streamid, severity=ConsoleWarning)
+					logsupport.Logs.Log("Opened event stream: " + self.streamid, severity=ConsoleWarning)
 
 			elif 'Event' in m:
 				e = m['Event']
@@ -74,7 +75,7 @@ class ISYEventMonitor:
 
 				eseq = int(e.pop('@seqnum', -99))
 				if self.seq <> eseq:
-					config.Logs.Log("Event mismatch - Expected: " + str(self.seq) + " Got: " + str(eseq),
+					logsupport.Logs.Log("Event mismatch - Expected: " + str(self.seq) + " Got: " + str(eseq),
 									severity=ConsoleWarning)
 					# indicates a missed event - so should rebase the data?
 					self.seq = eseq + 1
@@ -130,7 +131,7 @@ class ISYEventMonitor:
 							debugPrint('DaemonCtl', 'State var change(alert): ', config.ISY.varsStateInv[varid], ' <- ',
 									   varval)
 						else:
-							config.Logs.Log('Bad var message:' + str(varid), severity=ConsoleError)
+							logsupport.Logs.Log('Bad var message:' + str(varid), severity=ConsoleError)
 
 						for a in config.DS.WatchVars[(vartype, varid)]:
 							config.Logs.Log("Var alert fired: " + str(a))
@@ -159,7 +160,7 @@ class ISYEventMonitor:
 					pass  # handle any other? todo
 				efmtact = e.pop('fmtAct','v4stream')
 				if e:
-					config.Logs.Log("Extra info in event: "+str(ecode)+'/'+str(prcode)+'/'+str(eaction)+'/'+str(enode)+'/'+str(eInfo) + str(e), severity=ConsoleWarning)
+					logsupport.Logs.Log("Extra info in event: "+str(ecode)+'/'+str(prcode)+'/'+str(eaction)+'/'+str(enode)+'/'+str(eInfo) + str(e), severity=ConsoleWarning)
 				debugPrint('DaemonStream', time.time() - config.starttime,
 						   formatwsitem(esid, eseq, ecode, eaction, enode, eInfo, e))
 #				if enode == '20 F9 76 1':
@@ -176,7 +177,7 @@ class ISYEventMonitor:
 					config.ISY.NodesByAddr[enode].devState = int(eaction)
 
 			else:
-				config.Logs.Log("Strange item in event stream: " + str(m), severity=ConsoleWarning)
+				logsupport.Logs.Log("Strange item in event stream: " + str(m), severity=ConsoleWarning)
 
 		# websocket.enableTrace(True)
 		if config.ISYaddr != '':
@@ -195,4 +196,4 @@ class ISYEventMonitor:
 			ws.run_forever()
 			config.Logs.Log("QH Thread " + str(self.num) + " exiting", severity=ConsoleError)
 		else:
-			config.Logs.Log("No ISY to talk to",severity=ConsoleWarning)
+			logsupport.Logs.Log("No ISY to talk to",severity=ConsoleWarning)
