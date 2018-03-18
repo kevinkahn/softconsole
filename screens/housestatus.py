@@ -1,15 +1,15 @@
 from utilities import wc
 import config
 import pygame
-from debug import debugPrint
+import debug
 import screen
 import utilities
-import isy
+
 
 
 class HouseStatusScreenDesc(screen.ScreenDesc):
 	def __init__(self, screensection, screenname):
-		debugPrint('Screen', "Build House Status Screen")
+		debug.debugPrint('Screen', "Build House Status Screen")
 		screen.ScreenDesc.__init__(self, screensection, screenname)  # no extra cmd keys
 		utilities.LocalizeParams(self, screensection, '-', NormalOn=[], NormalOff=[])
 		checklist = [nm for nm in config.ISY.NodesByName if

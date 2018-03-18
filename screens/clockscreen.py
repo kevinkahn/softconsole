@@ -2,7 +2,7 @@ from utilities import wc
 import config
 import time
 import pygame
-from debug import debugPrint
+import debug
 import screen
 import utilities
 from eventlist import ProcEventItem
@@ -10,7 +10,7 @@ from eventlist import ProcEventItem
 
 class ClockScreenDesc(screen.ScreenDesc):
 	def __init__(self, screensection, screenname):
-		debugPrint('Screen', "Build Clock Screen")
+		debug.debugPrint('Screen', "Build Clock Screen")
 		screen.ScreenDesc.__init__(self, screensection, screenname)
 		utilities.LocalizeParams(self, screensection, '-', CharSize=[20], Font=config.monofont, OutFormat=[])
 		for i in range(len(self.CharSize), len(self.OutFormat)):

@@ -3,7 +3,7 @@ import time
 import config
 import screen
 import utilities
-from debug import debugPrint
+import debug
 from utilities import wc
 from stores import valuestore, weatherstore
 from weatherfromatting import CreateWeathBlock, WFormatter
@@ -20,7 +20,7 @@ def extref(listitem, indexitem):
 
 class TimeTempScreenDesc(screen.ScreenDesc):
 	def __init__(self, screensection, screenname):
-		debugPrint('Screen', "New TimeTempDesc ", screenname)
+		debug.debugPrint('Screen', "New TimeTempDesc ", screenname)
 
 		screen.ScreenDesc.__init__(self, screensection, screenname)
 		utilities.LocalizeParams(self, screensection, '-', 'WunderKey', location='', CharSize=[-1],

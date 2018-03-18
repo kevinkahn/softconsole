@@ -5,7 +5,7 @@ from pygame import gfxdraw
 
 import config
 import isy
-from debug import debugPrint
+import debug
 import screen
 import xmltodict
 import toucharea
@@ -23,7 +23,7 @@ def trifromtop(h, v, n, size, c, invert):
 
 class ThermostatScreenDesc(screen.BaseKeyScreenDesc):
 	def __init__(self, screensection, screenname):
-		debugPrint('Screen', "New ThermostatScreenDesc ", screenname)
+		debug.debugPrint('Screen', "New ThermostatScreenDesc ", screenname)
 		screen.BaseKeyScreenDesc.__init__(self, screensection, screenname)
 		utilities.LocalizeParams(self, screensection, '-', 'KeyColor', 'KeyOffOutlineColor', 'KeyOnOutlineColor')
 		self.info = {}
@@ -80,7 +80,7 @@ class ThermostatScreenDesc(screen.BaseKeyScreenDesc):
 
 	def BumpTemp(self, setpoint, degrees, presstype):
 
-		debugPrint('Main', "Bump temp: ", setpoint, degrees,' to ',self.info[setpoint][0] + degrees)
+		debug.debugPrint('Main', "Bump temp: ", setpoint, degrees,' to ',self.info[setpoint][0] + degrees)
 		rtxt = isy.try_ISY_comm('/rest/nodes/' + self.ISYObj.address + '/cmd/' + setpoint + '/' + str(
 				self.info[setpoint][0] + degrees))
 
@@ -88,7 +88,7 @@ class ThermostatScreenDesc(screen.BaseKeyScreenDesc):
 
 		cv = vals.index(self.info[mode][0])
 		cv = (cv + 1)%len(vals)
-		debugPrint('Main', "Bump: ", mode, ' to ', cv)
+		debug.debugPrint('Main', "Bump: ", mode, ' to ', cv)
 		rtxt = isy.try_ISY_comm('/rest/nodes/' + self.ISYObj.address + '/cmd/' + mode + '/' + str(vals[cv]))
 
 	def ShowScreen(self):
@@ -104,12 +104,12 @@ class ThermostatScreenDesc(screen.BaseKeyScreenDesc):
 		dbgStr = ''
 		for item in props:
 			dbgStr = dbgStr + item["@id"]+':'+item["@formatted"]+"("+item["@value"]+")  "
-#			debugPrint('Main', item["@id"]+":("+item["@value"]+"):"+item["@formatted"])
+#			debug.debugPrint('Main', item["@id"]+":("+item["@value"]+"):"+item["@formatted"])
 			try:
 				self.info[item["@id"]] = (int(item['@value']), item['@formatted'])
 			except:
 				self.info[item["@id"]] = (0, item['@formatted'])
-		debugPrint('Main',dbgStr)
+		debug.debugPrint('Main',dbgStr)
 		if self.oldinfo == {}:
 			self.oldinfo = dict(self.info) # handle initial case
 			updtneeded = True
@@ -118,7 +118,7 @@ class ThermostatScreenDesc(screen.BaseKeyScreenDesc):
 		for i,val in self.info.iteritems():
 			if self.oldinfo[i] != val:
 				updtneeded = True
-				debugPrint('Main','Tstat reading change: ',i+':',self.oldinfo[i],'->',self.info[i])
+				debug.debugPrint('Main','Tstat reading change: ',i+':',self.oldinfo[i],'->',self.info[i])
 		config.screen.blit(self.TitleRen, self.TitlePos)
 		if not updtneeded:
 			return

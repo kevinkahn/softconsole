@@ -3,12 +3,12 @@ from configobj import Section
 import config
 import screen
 import utilities
-from debug import debugPrint
+import debug
 import keyspecs
 
 class KeyScreenDesc(screen.BaseKeyScreenDesc):
 	def __init__(self, screensection, screenname):
-		debugPrint('Screen', "New KeyScreenDesc ", screenname)
+		debug.debugPrint('Screen', "New KeyScreenDesc ", screenname)
 		screen.BaseKeyScreenDesc.__init__(self, screensection, screenname)
 
 		# Build the Key objects
@@ -18,12 +18,12 @@ class KeyScreenDesc(screen.BaseKeyScreenDesc):
 
 		self.LayoutKeys()
 
-		debugPrint('Screen', "Active Subscription List for ", self.name, " will be:")
+		debug.debugPrint('Screen', "Active Subscription List for ", self.name, " will be:")
 		for i in self.NodeList:
-			debugPrint('Screen', "  Subscribe node: ", i, self.NodeList[i].name, " : ",
+			debug.debugPrint('Screen', "  Subscribe node: ", i, self.NodeList[i].name, " : ",
 					   self.NodeList[i].ISYObj.name, ' via ', self.NodeList[i].MonitorObj.name)
 		for i in self.VarsList:
-			debugPrint('Screen', "  Subscribe var: ", i, self.VarsList[i].name)
+			debug.debugPrint('Screen', "  Subscribe var: ", i, self.VarsList[i].name)
 
 
 		utilities.register_example("KeyScreenDesc", self)
@@ -33,7 +33,7 @@ class KeyScreenDesc(screen.BaseKeyScreenDesc):
 
 
 	def InitDisplay(self, nav):
-		debugPrint("Screen", "Keyscreen InitDisplay: ", self.name)
+		debug.debugPrint("Screen", "Keyscreen InitDisplay: ", self.name)
 		for K in self.Keys.itervalues():
 			K.InitDisplay()
 		super(KeyScreenDesc, self).InitDisplay(nav)
@@ -44,15 +44,15 @@ class KeyScreenDesc(screen.BaseKeyScreenDesc):
 			try:
 				K = self.NodeList[node]
 			except:
-				debugPrint('Screen', 'Bad key to KS - race?', self.name, str(node))
+				debug.debugPrint('Screen', 'Bad key to KS - race?', self.name, str(node))
 				return  # treat as noop
-			debugPrint('Screen', 'KS ISYEvent ', K.name, str(value), str(K.State))
+			debug.debugPrint('Screen', 'KS ISYEvent ', K.name, str(value), str(K.State))
 			K.State = not (int(value if value.isdigit() else 0) == 0)  # K is off (false) only if state is 0
 		else:
 			try:
 				K = self.VarsList[varid]
 			except:
-				debugPrint('Screen', 'Bad var key', self.name, str(varid), self.VarsList)
+				debug.debugPrint('Screen', 'Bad var key', self.name, str(varid), self.VarsList)
 				return
 			K.Value = value
 		K.PaintKey()

@@ -2,7 +2,7 @@ from utilities import wc
 import config
 import toucharea
 import pygame
-from debug import debugPrint
+import debug
 import screen
 import utilities
 from eventlist import ProcEventItem, AlertEventItem
@@ -13,7 +13,7 @@ import logsupport
 class AlertsScreenDesc(screen.ScreenDesc):
     # noinspection PyDictCreation
     def __init__(self, screensection, screenname):
-        debugPrint('Screen', "Build Alerts Screen")
+        debug.debugPrint('Screen', "Build Alerts Screen")
 
         screen.ScreenDesc.__init__(self, screensection, screenname)
         utilities.LocalizeParams(self, screensection, '-', 'KeyColor', 'KeyCharColorOn', 'KeyCharColorOff',
@@ -89,7 +89,7 @@ class AlertsScreenDesc(screen.ScreenDesc):
         utilities.register_example("AlertsScreen", self)
 
     def DeferAction(self, presstype):
-        debugPrint('Screen', 'Alertscreen manual defer: ' + self.name)
+        debug.debugPrint('Screen', 'Alertscreen manual defer: ' + self.name)
         config.DS.Tasks.RemoveAllGrp(id(self))
         E = AlertEventItem(id(self), 'self deferred screen: ' + self.name, self.Alert)
         config.DS.Tasks.AddTask(E, self.Defer)
@@ -123,10 +123,10 @@ class AlertsScreenDesc(screen.ScreenDesc):
         if self.Alert.trigger.IsTrue():  # if the trigger condition is still true requeue post deferral
             E = AlertEventItem(id(self), 'external deferred screen: ' + self.name, self.Alert)
             config.DS.Tasks.AddTask(E, self.Defer)
-            debugPrint('Screen', 'Alert screen defer to another screen: ' + self.name)
+            debug.debugPrint('Screen', 'Alert screen defer to another screen: ' + self.name)
             logsupport.Logs.Log("Alert screen " + self.name + " deferring")
         else:
-            debugPrint('Screen', 'Alert screen cause cleared: ' + self.name)
+            debug.debugPrint('Screen', 'Alert screen cause cleared: ' + self.name)
             logsupport.Logs.Log("Alert screen " + self.name + " cause cleared")
 
 

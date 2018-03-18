@@ -1,6 +1,6 @@
 import pygame
 import config
-from debug import debugPrint
+import debug
 from stores import valuestore, weatherstore
 import screen
 import logsupport
@@ -21,7 +21,7 @@ for conditions where to put icon?  Center vertically? with size lesser of % of s
 class WeatherScreenDesc(screen.ScreenDesc):
 	def __init__(self, screensection, screenname):
 		self.fmt = WFormatter()
-		debugPrint('Screen', "New WeatherScreenDesc ", screenname)
+		debug.debugPrint('Screen', "New WeatherScreenDesc ", screenname)
 		screen.ScreenDesc.__init__(self, screensection, screenname)
 		butsize = screen.ButSize(1, 1, 0)
 		self.Keys = OrderedDict({'condorfcst': toucharea.TouchPoint('condorfcst', (
