@@ -8,11 +8,10 @@ import errno
 import struct
 from collections import namedtuple
 import threading
-import time
 import select
 import Queue
 import pygame
-from debug import debugPrint
+import debug
 import threadmanager
 
 TOUCH_X = 0
@@ -207,7 +206,7 @@ class Touchscreen(object):
 
 		while not self._event_queue.empty():
 			event = self._event_queue.get()
-			debugPrint('LLTouch','Touch: '+ str(event))
+			debug.debugPrint('LLTouch','Touch: '+ str(event))
 			self._event_queue.task_done()
 
 			if event.type == EV_SYN:  # Sync

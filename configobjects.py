@@ -1,7 +1,7 @@
 from configobj import Section
 
 import config
-from debug import debugPrint
+import debug
 import logsupport
 from logsupport import ConsoleWarning, ConsoleError, ConsoleDetail
 import toucharea
@@ -20,7 +20,7 @@ class MyScreens(object):
 
 		thisconfig = config.ParsedConfigFile
 
-		debugPrint('Screen', "Process Configuration File")
+		debug.debugPrint('Screen', "Process Configuration File")
 
 		for screenitem in thisconfig:
 			NewScreen = None
@@ -28,7 +28,7 @@ class MyScreens(object):
 				thisScreen = thisconfig[screenitem]
 				# its a screen
 				tempscreentype = thisScreen.get("type", "unspec")
-				debugPrint('Screen', "Screen of type ", tempscreentype)
+				debug.debugPrint('Screen', "Screen of type ", tempscreentype)
 
 				if tempscreentype in config.screentypes:
 					logsupport.Logs.Log(tempscreentype + " screen " + screenitem, severity=ConsoleDetail)

@@ -1,5 +1,5 @@
 import paho.mqtt.client as mqtt
-import config
+import debug
 import logsupport
 from logsupport import ConsoleWarning
 from configobj import Section
@@ -9,9 +9,9 @@ import threading
 import threadmanager
 
 class MQitem(valuestore.StoreItem):
-	def __init__(self, name, Topic, Type, Expires):
+	def __init__(self, name, Topic, Type, Expires, Store):
 		self.Topic = Topic
-		super(MQitem,self).__init__(name, None,Type,Expires)
+		super(MQitem,self).__init__(name, None, store = Store, vt = Type,Expires = Expires)
 
 class MQTTBroker(valuestore.ValueStore):
 
@@ -37,6 +37,7 @@ class MQTTBroker(valuestore.ValueStore):
 			else:
 				self.vars[var].SetTime = time.time()
 				self.vars[var].Value = self.vars[var].Type(msg.payload)
+				debug.debugPrint('StoreTrack', "Store(mqtt): ", self.name, ':', var, ' Value: ', self.vars[var].Value)
 
 		def on_log(client, userdata, level, buf):
 			logsupport.Logs.Log("MQTT Log: ",str(level)," buf: ",str(buf),severity=ConsoleWarning)
@@ -56,7 +57,7 @@ class MQTTBroker(valuestore.ValueStore):
 				else:
 					tpcvrt = str
 				tpc = v.get('Topic',None)
-				self.vars[i] = MQitem(i, tpc, tpcvrt,int(v.get('Expires',99999999999999999)))
+				self.vars[i] = MQitem(i, tpc, tpcvrt,int(v.get('Expires',99999999999999999)),self)
 				self.ids[tpc] = i
 		self.MQTTclient = mqtt.Client(userdata=self)
 		self.MQTTclient.on_connect = on_connect

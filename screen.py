@@ -4,7 +4,7 @@ import utilities
 import toucharea
 import collections
 from utilities import wc
-from debug import debugPrint
+import debug
 
 
 def FlatenScreenLabel(label):
@@ -60,7 +60,7 @@ class ScreenDesc(object):
 
 
 	def InitDisplay(self, nav):
-		debugPrint("Screen", "Base Screen InitDisplay: ", self.name)
+		debug.debugPrint("Screen", "Base Screen InitDisplay: ", self.name)
 		self.PaintBase()
 		self.NavKeys = nav
 		self.PaintKeys()

@@ -15,6 +15,8 @@ Copyright 2016, 2017, 2018 Kevin Kahn
    See the License for the specific language governing permissions and
    limitations under the License.
 """
+import debug
+import config
 import importlib
 import os
 import sys
@@ -28,10 +30,10 @@ import pygame
 from configobj import ConfigObj, Section
 import isyeventmonitor
 
-import config
+
 import configobjects
 import exitutils
-import debug
+
 import displayscreen
 import globalparams
 import isy
@@ -60,7 +62,6 @@ def handler(signum, frame):
 signal.signal(signal.SIGTERM, handler)
 signal.signal(signal.SIGINT, handler)
 
-sectionget = Section.get
 
 config.Console_pid = os.getpid()
 config.exdir = os.path.dirname(os.path.abspath(__file__))
@@ -68,13 +69,12 @@ os.chdir(config.exdir)  # make sure we are in the directory we are executing fro
 config.homedir = os.path.dirname(config.exdir)
 logsupport.Logs.Log("Console (" + str(config.Console_pid) + ") starting in "+os.getcwd())
 
+sectionget = Section.get
 def CO_get(self, key, default, delkey=True):
 	rtn = sectionget(self, key, default)
 	if key in self and delkey:
 		del self[key]
 	return rtn
-
-
 Section.get = CO_get
 
 
@@ -86,7 +86,6 @@ def LogBadParams(section, name):
 			logsupport.Logs.Log("Bad (unused) parameter name in: ", name, " (", nm, "=", str(s), ")",
 							severity=ConsoleWarning)
 
-
 if os.getegid() <> 0:
 	# Not running as root
 	logsupport.Logs.Log("Not running as root - exit")
@@ -96,7 +95,6 @@ if os.getegid() <> 0:
 utilities.InitializeEnvironment()
 
 logsupport.Logs.Log('Environment initialized on host '+ config.hostname)
-
 
 lastfn = ""
 lastmod = 0
@@ -211,7 +209,7 @@ while includes:
 		logsupport.Logs.Log("MISSING config file " + f)
 		config.configfilelist[f] = 0
 
-debug.InitFlags()
+debug.InitFlags(config.ParsedConfigFile)
 
 utilities.ParseParam(globalparams)  # add global parameters to config file
 
@@ -336,14 +334,18 @@ Build the ISY object structure and connect the configured screens to it
 """
 
 if 'Variables' in config.ParsedConfigFile:
+	valuestore.NewValueStore(localvarsupport.LocalVars('LocalVars',config.ParsedConfigFile['Variables']))
 	i = 0
+	tn = ['LocalVars','']
 	for nm, val in config.ParsedConfigFile['Variables'].iteritems():
 		config.ISY.LocalVars.append(int(val))
 		config.ISY.varsLocal[nm] = i
 		config.ISY.varsLocalInv[i] = nm
 		logsupport.Logs.Log("Local variable: " + nm + "(" + str(i) + ") = " + str(val))
+		tn[1] = nm
+		valuestore.SetVal(tn, val)
+		valuestore.SetAttr(tn, (3, i))
 		i += 1
-#	localvarsupport.LocalVars('Local',config.ParsedConfigFile['Variables'])
 	del config.ParsedConfigFile['Variables']
 configobjects.MyScreens()
 logsupport.Logs.Log("Linked config to ISY")
@@ -377,10 +379,12 @@ Dump documentation if development version
 if config.versionname == 'development':
 	utilities.DumpDocumentation()
 
+valuestore.BlockRefresh('ISY')  # todo delete
 
 """
 Run the main console loop
 """
+valuestore.ValueStores['ISY'].CheckValsUpToDate()
 config.DS.MainControlLoop(config.HomeScreen)
 logsupport.Logs.Log("Main line exit: ",config.ecode)
 pygame.quit()

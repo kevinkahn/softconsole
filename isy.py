@@ -241,10 +241,12 @@ def GetVar(var):
 		return 999
 	else:
 		text = try_ISY_comm('/rest/vars/get/' + str(var[0]) + '/' + str(var[1])) # todo what if notfound
-		return xmltodict.parse(text)['var']['val']
+		val = int(xmltodict.parse(text)['var']['val'])
+		valuestore.SetValByAttr('ISY',var,val) #todo eventually make this pick up name from the hub name
+		return val
 
 
-def SetVar(var, value):
+def SetVar(var, value):  # todo convert local to store model with alert; use attr of local as notice info but how to set notice and what if more than one cares
 	if var[0] == 3:
 		config.ISY.LocalVars[var[1]] = value
 		if tuple(var) in config.DS.WatchVars.keys():
@@ -281,7 +283,7 @@ class ISY(object):
 			if node.parent != node:  # avoid root
 				node.parent.children.append(node)
 
-	def __init__(self, ISYsession):
+	def __init__(self, ISYsession, ISYname='ISY'):
 		"""
 		Get and parse the ISY configuration to set up an internal analog of its structure
 		:param ISYsession:
@@ -357,6 +359,10 @@ class ISY(object):
 				x3 = f.readline().rstrip('\n')
 				x4 = f.readline().rstrip('\n')
 				configdict = xmltodict.parse(x1)['nodes']
+		else:
+			x2=''
+			x3=''
+			x4=''
 
 		if debug.dbgStore.GetVal('ISYDump'):
 			debug.ISYDump("xml.dmp",r.text,pretty=False,new=True)
@@ -522,6 +528,7 @@ class ISY(object):
 					exitutils.errorexit(exitutils.ERRORPIREBOOT)
 					logsupport.Logs.Log('Reached unreachable code! ISY4')
 
+		Vars = valuestore.NewValueStore(isyvarssupport.ISYVars(ISYname))
 		try:
 			configdictS = xmltodict.parse(r1.text)['CList']['e']
 			if debug.dbgStore.GetVal('ISYLoad'):
@@ -530,27 +537,28 @@ class ISY(object):
 				debug.ISYDump("xml.dmp", r1.text, pretty=False)
 				debug.ISYDump("struct.dmp", configdictS)
 			for v in configdictS:
+				Vars.SetVal(('State',v['@name']),None)
+				Vars.SetAttr(('State',v['@name']),(2,int(v['@id'])))
 				self.varsState[v['@name']] = int(v['@id'])
 				self.varsStateInv[int(v['@id'])] = v['@name']
 		except:
-			configdictS = {}
 			self.varsState['##nostatevars##'] = 0
 			logsupport.Logs.Log('No state variables defined')
 		try:
 			configdictI = xmltodict.parse(r2.text)['CList']['e']
-			if debug.Flags['ISYLoad']:
+			if debug.dbgStore.GetVal('ISYLoad'):
 				configdictI = xmltodict.parse(x4)['CList']['e']
-			if debug.Flags['ISYDump']:
+			if debug.dbgStore.GetVal('ISYDump'):
 				debug.ISYDump("xml.dmp", r2.text, pretty=False)
 				debug.ISYDump("struct.dmp", configdictI)
 			for v in configdictI:
+				Vars.SetVal(('Int',v['@name']),None)
+				Vars.SetAttr(('Int',v['@name']),(1,int(v['@id'])))
 				self.varsInt[v['@name']] = int(v['@id'])
 				self.varsIntInv[int(v['@id'])] = v['@name']
 		except:
-			configdictI = {}
 			self.varsInt['##nointevars##'] = 0
 			logsupport.Logs.Log('No integer variables defined')
-		valuestore.NewValueStore(isyvarssupport.ISYVars('ISY', configdictS, configdictI))
 		utilities.register_example("ISY", self)
 		if debug.dbgStore.GetVal('ISY'):
 			self.PrintTree(self.ProgRoot, "    ", 'Programs')
@@ -561,7 +569,7 @@ class ISY(object):
 				return 1, self.varsInt[varsym[1]]
 			elif varsym[0] == 'S':  # state var
 				return 2, self.varsState[varsym[1]]
-			elif varsym[0] == 'L':  # local var
+			elif varsym[0] == 'L':  # local var  todo change to store reference to LocalVar:
 				return 3, self.varsLocal[varsym[1]]
 			return 0, 0
 		except:

@@ -5,7 +5,6 @@ import hw
 import isy
 from eventlist import EventItem, EventList
 import time
-from debug import debugPrint
 import logsupport
 from logsupport import ConsoleWarning, ConsoleError, ConsoleDetail
 from collections import OrderedDict
@@ -59,7 +58,7 @@ class DisplayScreen(object):
 
 	def SetActivityTimer(self, timeinsecs, dbgmsg):
 		pygame.time.set_timer(self.ACTIVITYTIMER, timeinsecs*1000)  #todo .type deleted
-		debugPrint('Dispatch', 'Set activity timer: ', timeinsecs, ' ', dbgmsg)
+		debug.debugPrint('Dispatch', 'Set activity timer: ', timeinsecs, ' ', dbgmsg)
 
 	def SwitchScreen(self, NS, newdim, newstate, reason, NavKeys=True):
 		oldstate = self.state
@@ -67,10 +66,10 @@ class DisplayScreen(object):
 		if NS == config.HomeScreen:  # always force home state on move to actual home screen
 			newstate = 'Home'
 		if NS == self.AS:
-			debugPrint('Dispatch', 'Null SwitchScreen: ', reason)
+			debug.debugPrint('Dispatch', 'Null SwitchScreen: ', reason)
 			logsupport.Logs.Log('Null switchscreen: ' + reason, severity=ConsoleWarning)
 		if self.AS is not None and self.AS <> NS:
-			debugPrint('Dispatch', "Switch from: ", self.AS.name, " to ", NS.name, "Nav=", NavKeys, ' State=',
+			debug.debugPrint('Dispatch', "Switch from: ", self.AS.name, " to ", NS.name, "Nav=", NavKeys, ' State=',
 					   oldstate + '/' + newstate + ':' + olddim + '/' + newdim, ' ', reason)
 			self.AS.ExitScreen()
 		OS = self.AS
@@ -100,12 +99,12 @@ class DisplayScreen(object):
 
 		self.state = newstate
 
-		debugPrint('Dispatch', "New watchlist(Main): " + str(self.AS.NodeList) + str(self.WatchNodes))
+		debug.debugPrint('Dispatch', "New watchlist(Main): " + str(self.AS.NodeList) + str(self.WatchNodes))
 
 		if OS != self.AS: self.AS.InitDisplay(nav)
 
 	def NavPress(self, NS, press):
-		debugPrint('Dispatch', 'Navkey: ', NS.name, self.state + '/' + self.dim)
+		debug.debugPrint('Dispatch', 'Navkey: ', NS.name, self.state + '/' + self.dim)
 		self.SwitchScreen(NS, 'Bright', 'NonHome', 'Nav Press')
 
 	def ResetScreenState(self):
@@ -129,7 +128,7 @@ class DisplayScreen(object):
 			logsupport.Logs.Log("->" + str(a), severity=ConsoleDetail)
 			if a.type in ('StateVarChange', 'IntVarChange', 'LocalVarChange'):
 				var = (a.trigger.vartype, a.trigger.varid)
-				if var in self.WatchVars:
+				if var in self.WatchVars:  # todo move to store model - can do once when alerts are created then not here
 					self.WatchVars[var].append(a)
 				else:
 					self.WatchVars[var] = [a]
@@ -186,23 +185,23 @@ class DisplayScreen(object):
 
 			if self.Deferrals:  # an event was deferred mid screen touches - handle now
 				event = self.Deferrals.pop(0)
-				debugPrint('EventList', 'Deferred Event Pop', event)
+				debug.debugPrint('EventList', 'Deferred Event Pop', event)
 			elif debug.dbgStore.GetVal('QDump'):
 				events = pygame.fastevent.get()
 				if events:
-					debugPrint('QDump', 'Time: ', time.time())
+					debug.debugPrint('QDump', 'Time: ', time.time())
 					for e in events:
 						self.Deferrals.append(e)
-						debugPrint('QDump', e, e.type)
+						debug.debugPrint('QDump', e, e.type)
 					else:
-						debugPrint('QDump', "Empty queue")
+						debug.debugPrint('QDump', "Empty queue")
 						time.sleep(0.01)
 				event = self.NOEVENT
 			else:
 				event = pygame.fastevent.wait()  # wait for the next event: touches, timeouts, ISY changes on note
 
 			if event.type == pygame.MOUSEBUTTONDOWN:
-				debugPrint('Touch','MouseDown'+str(event.pos))
+				debug.debugPrint('Touch','MouseDown'+str(event.pos))
 				# screen touch events; this includes touches to non-sensitive area of screen
 				self.SetActivityTimer(self.AS.DimTO,
 									  'Screen touch')  # refresh non-dimming in all cases including non=sensitive areas
@@ -223,7 +222,7 @@ class DisplayScreen(object):
 				while True:
 					eventx = pygame.fastevent.poll()
 					if eventx.type == pygame.MOUSEBUTTONDOWN:
-						debugPrint('Touch','Follow MouseDown'+str(event.pos))
+						debug.debugPrint('Touch','Follow MouseDown'+str(event.pos))
 						tapcount += 1
 						pygame.time.delay(config.MultiTapTime)
 					elif eventx.type == pygame.NOEVENT:
@@ -232,7 +231,7 @@ class DisplayScreen(object):
 						if eventx.type >= pygame.USEREVENT:  # it isn't a screen related event
 							self.Deferrals.append(eventx)  # defer the event until after the clicks are sorted out
 						else:
-							debugPrint('Touch','Other event '+ pygame.event.event_name(eventx.type) + str(eventx.type))
+							debug.debugPrint('Touch','Other event '+ pygame.event.event_name(eventx.type) + str(eventx.type))
 						# todo add handling for hold here with checking for MOUSE UP etc.
 				if tapcount == 3:
 					# Switch screen chains
@@ -262,7 +261,7 @@ class DisplayScreen(object):
 						K.Proc(config.PRESS)  # same action whether single or double tap
 
 			elif event.type == self.ACTIVITYTIMER:  # todo .type:
-				debugPrint('Dispatch', 'Activity timer fired State=', self.state, '/', self.dim)
+				debug.debugPrint('Dispatch', 'Activity timer fired State=', self.state, '/', self.dim)
 
 				if self.dim == 'Bright':
 					self.Dim()
@@ -282,42 +281,42 @@ class DisplayScreen(object):
 							config.DimIdleList = config.DimIdleList[1:] + config.DimIdleList[:1]
 							config.DimIdleTimes = config.DimIdleTimes[1:] + config.DimIdleTimes[:1]
 					else:  # Maint or Alert - todo?
-						debugPrint('Dispatch', 'TO while in: ', self.state)
+						debug.debugPrint('Dispatch', 'TO while in: ', self.state)
 
 			elif event.type == self.ISYChange:
-				debugPrint('Dispatch', 'ISY Change Event', event)
+				debug.debugPrint('Dispatch', 'ISY Change Event', event)
 				if hasattr(event, 'node'):
 					self.AS.ISYEvent(node=event.node, value=event.value)
 				elif hasattr(event, 'vartype'):
 					self.AS.ISYEvent(varid=(event.vartype, event.varid), value=event.value)
 				else:
-					debugPrint('Dispatch', 'Bad ISYChange Event: ', event)
+					debug.debugPrint('Dispatch', 'Bad ISYChange Event: ', event)
 					logsupport.Logs.Log('Bad ISYChange Event ', event, severity=ConsoleWarning)
 
 			elif event.type in (self.ISYVar, self.ISYAlert):
 				evtype = 'variable' if event.type == self.ISYVar else 'node'
-				debugPrint('Dispatch', 'ISY ', evtype, ' change', event)
+				debug.debugPrint('Dispatch', 'ISY ', evtype, ' change', event)
 				alert = event.alert
 				if alert.state == 'Armed' and alert.trigger.IsTrue():  # alert condition holds
 					if alert.trigger.delay <> 0:  # delay invocation
 						alert.state = 'Delayed'
-						debugPrint('Dispatch', "Post with delay:", alert.name, alert.trigger.delay)
+						debug.debugPrint('Dispatch', "Post with delay:", alert.name, alert.trigger.delay)
 						E = AlertEventItem(id(alert), 'delayed' + evtype, alert)
 						self.Tasks.AddTask(E, alert.trigger.delay)
 					else:  # invoke now
-						debugPrint('Dispatch', "Invoke: ", alert.name)
+						debug.debugPrint('Dispatch', "Invoke: ", alert.name)
 						alert.Invoke()  # either calls a proc or enters a screen and adjusts alert state appropriately
 				elif alert.state == 'Active' and not alert.trigger.IsTrue():  # alert condition has cleared and screen is up
-					debugPrint('Dispatch', 'Active alert cleared', alert.name)
+					debug.debugPrint('Dispatch', 'Active alert cleared', alert.name)
 					alert.state = 'Armed'  # just rearm the alert
 					self.SwitchScreen(config.HomeScreen, 'Dim', 'Home', 'Cleared alert')
 				elif ((alert.state == 'Delayed') or (alert.state == 'Deferred')) and not alert.trigger.IsTrue():
 					# condition changed under a pending action (screen or proc) so just cancel and rearm
-					debugPrint('Dispatch', 'Delayed event cleared before invoke', alert.name)
+					debug.debugPrint('Dispatch', 'Delayed event cleared before invoke', alert.name)
 					alert.state = 'Armed'
 					self.Tasks.RemoveAllGrp(id(alert))
 				else:
-					debugPrint('Dispatch', 'ISYVar/ISYAlert passing: ', alert.state, alert.trigger.IsTrue(), event,
+					debug.debugPrint('Dispatch', 'ISYVar/ISYAlert passing: ', alert.state, alert.trigger.IsTrue(), event,
 							   alert)
 				# Armed and false: irrelevant report
 				# Active and true: extaneous report
@@ -326,21 +325,21 @@ class DisplayScreen(object):
 			elif event.type == self.Tasks.TASKREADY.type:
 				E = self.Tasks.PopTask()
 				if E is None:
-					debugPrint('Dispatch', 'Empty Task Event fired')
+					debug.debugPrint('Dispatch', 'Empty Task Event fired')
 					continue  # some deleted task cleared
 				if isinstance(E, ProcEventItem):  # internal proc fired
-					debugPrint('Dispatch', 'Task ProcEvent fired: ', E)
+					debug.debugPrint('Dispatch', 'Task ProcEvent fired: ', E)
 					if callable(E.proc):
 						E.proc()
 				elif isinstance(E, AlertEventItem):  # delayed alert screen
-					debugPrint('Dispatch', 'Task AlertEvent fired: ', E)
+					debug.debugPrint('Dispatch', 'Task AlertEvent fired: ', E)
 					logsupport.Logs.Log("Alert event fired" + str(E.alert), severity=ConsoleDetail)
 					E.alert.Invoke()  # defered or delayed alert firing
 					if isinstance(E.alert.trigger, alerttasks.Periodictrigger):
 						self.Tasks.AddTask(E, E.alert.trigger.interval)
 				else:
 					# unknown eevent?
-					debugPrint('Dispatch', 'TASKREADY found unknown event: ', E)
+					debug.debugPrint('Dispatch', 'TASKREADY found unknown event: ', E)
 
 		logsupport.Logs.Log('Main Loop Exit: ', config.ecode)
 		pygame.quit()

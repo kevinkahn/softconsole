@@ -4,6 +4,7 @@ from configobjects import Section
 import screen
 from logsupport import ConsoleWarning, ConsoleDetail
 import isy
+from stores import valuestore
 
 Tests = ('EQ', 'NE')
 AlertType = ('NodeChange', 'StateVarChange', 'IntVarChange', 'LocalVarChange', 'Periodic', 'TOD', 'External', 'Init')
@@ -55,6 +56,21 @@ class NodeChgtrigger(object):
 		return 'Node ' + self.nodeaddress + ' status ' + self.test + ' ' + str(self.value) + ' delayed ' + str(
 			self.delay) + ' seconds'
 
+class VarChangeTrigger(object): # todo
+	def __init__(self, var, params):
+		self.var = var
+		self.test = params[0]
+		self.value = params[1]
+		self.delay = params[2]
+
+	def IsTrue(self):
+		val = valuestore.GetVal(self.var)
+		if self.test == 'EQ':
+			return int(val) == int(self.value)
+		elif self.test == 'NE':
+			return int(val) <> int(self.value)
+		else:
+			exitutils.FatalError('VarChgtriggerIsTrue') # validate at creation todo
 
 class VarChgtrigger(object):
 	def __init__(self, var, test, value, delay):
@@ -111,6 +127,13 @@ def getvalid(spec, item, choices, default=None):
 
 
 def ParseAlertParams(nm, spec):
+	def comparams(spec):
+		test = getvalid(spec, 'Test', Tests) # todo validate test values
+		value = spec.get('Value', None)
+		delay = utilities.get_timedelta(spec.get('Delay', None))
+		return test, value, delay
+
+
 	VarsTypes = {'StateVarChange': (2, config.ISY.varsState), 'IntVarChange': (1, config.ISY.varsInt),
 				 'LocalVarChange': (3, config.ISY.varsLocal)}
 	t = spec.get('Invoke', None)
@@ -164,11 +187,14 @@ def ParseAlertParams(nm, spec):
 		except:
 			Node = ''
 			logsupport.Logs.Log("Bad Node Spec on NodeChange alert in " + nm, severity=ConsoleWarning)
-		test = getvalid(spec, 'Test', Tests)
-		value = spec.get('Value', None)
-		delay = utilities.get_timedelta(spec.get('Delay', None))
+		test, value, delay = comparams(spec)
 		trig = NodeChgtrigger(Node, test, value, delay)
 		# todo check nones
+		A = Alert(nm, triggertype, trig, action, actionname, param)
+
+	elif triggertype == 'VarChange': # new format value change todo
+		n = spec.get('Var', None).split(':')
+		trig = VarChangeTrigger(n,comparams(spec))
 		A = Alert(nm, triggertype, trig, action, actionname, param)
 
 	elif triggertype in ('StateVarChange', 'IntVarChange', 'LocalVarChange'):  # needs var, test, value, delay
@@ -182,11 +208,9 @@ def ParseAlertParams(nm, spec):
 		else:
 			logsupport.Logs.Log("Alert: ", nm, " var name not specified", severity=ConsoleWarning)
 			return None
-		test = getvalid(spec, 'Test', Tests)
-		value = spec.get('Value', None)
+		test, value, delay = comparams(spec)
 		if (test is None) or (value is None):
 			return None
-		delay = utilities.get_timedelta(spec.get('Delay', None))
 		trig = VarChgtrigger(varspec, test, value, delay)
 		A = Alert(nm, triggertype, trig, action, actionname, param)
 	elif triggertype == 'External':

@@ -5,7 +5,7 @@ import eventlist
 import isy
 import supportscreens
 import utilities
-from debug import debugPrint
+import debug
 import logsupport
 from logsupport import ConsoleWarning, ConsoleError, ConsoleDetail
 from toucharea import ManualKeyDesc
@@ -44,7 +44,7 @@ def ErrorKey(presstype):
 
 class BlankKey(ManualKeyDesc):
 	def __init__(self, screen, keysection, keyname):
-		debugPrint('Screen', "             New Blank Key Desc ", keyname)
+		debug.debugPrint('Screen', "             New Blank Key Desc ", keyname)
 		ManualKeyDesc.__init__(self, screen, keysection, keyname)
 		self.Proc = ErrorKey
 		self.State = False
@@ -55,7 +55,7 @@ class BlankKey(ManualKeyDesc):
 
 class SetVarValueKey(ManualKeyDesc):
 	def __init__(self, screen, keysection, keyname):
-		debugPrint('Screen', "             New SetVarValue Key Desc ", keyname)
+		debug.debugPrint('Screen', "             New SetVarValue Key Desc ", keyname)
 		self.Value = None
 		self.VarID = (0,0)
 		ManualKeyDesc.__init__(self, screen, keysection, keyname)
@@ -81,7 +81,7 @@ class SetVarValueKey(ManualKeyDesc):
 		utilities.register_example("SetVarValueKey", self)
 
 	def InitDisplay(self):
-		debugPrint("Screen", "SetVarValue Key.InitDisplay ", self.Screen.name, self.name)
+		debug.debugPrint("Screen", "SetVarValue Key.InitDisplay ", self.Screen.name, self.name)
 		self.Value = isy.GetVar(self.VarID)
 		super(SetVarValueKey, self).InitDisplay()
 
@@ -104,7 +104,7 @@ class SetVarValueKey(ManualKeyDesc):
 
 class SetVarKey(ManualKeyDesc):
 	def __init__(self, screen, keysection, keyname):
-		debugPrint('Screen', "             New SetVar Key Desc ", keyname)
+		debug.debugPrint('Screen', "             New SetVar Key Desc ", keyname)
 
 		ManualKeyDesc.__init__(self, screen, keysection, keyname)
 		utilities.LocalizeParams(self, keysection, '--', VarType='undef', Var='', Value=0)
@@ -131,7 +131,7 @@ class SetVarKey(ManualKeyDesc):
 
 class NewSetVarKey(ManualKeyDesc):
 	def __init__(self, screen, keysection, keyname):
-		debugPrint('Screen', "             New SetVar Key Desc ", keyname)
+		debug.debugPrint('Screen', "             New SetVar Key Desc ", keyname)
 
 		ManualKeyDesc.__init__(self, screen, keysection, keyname)
 		utilities.LocalizeParams(self, keysection, '--', VarType='undef', Var='', Value=0)
@@ -159,7 +159,7 @@ class NewSetVarKey(ManualKeyDesc):
 
 class RunProgram(ManualKeyDesc):
 	def __init__(self, screen, keysection, keyname):
-		debugPrint('Screen', "             New RunProgram Key ", keyname)
+		debug.debugPrint('Screen', "             New RunProgram Key ", keyname)
 		utilities.LocalizeParams(self, keysection, '--', ProgramName='')
 		ManualKeyDesc.__init__(self, screen, keysection, keyname)
 
@@ -168,7 +168,7 @@ class RunProgram(ManualKeyDesc):
 			self.ISYObj = config.ISY.ProgramsByName[self.ProgramName]
 		except:
 			self.ISYObj = config.DummyProgram
-			debugPrint('Screen', "Unbound program key: ", self.name)
+			debug.debugPrint('Screen', "Unbound program key: ", self.name)
 			logsupport.Logs.Log("Missing Prog binding: " + self.name, severity=ConsoleWarning)
 		if self.Verify:
 			self.VerifyScreen = supportscreens.VerifyScreen(self, self.GoMsg, self.NoGoMsg, self.VerifyRunAndReturn,
@@ -198,7 +198,7 @@ class RunProgram(ManualKeyDesc):
 
 class OnOffKey(ManualKeyDesc):
 	def __init__(self, screen, keysection, keyname, keytype):
-		debugPrint('Screen', "             New ", keytype, " Key Desc ", keyname)
+		debug.debugPrint('Screen', "             New ", keytype, " Key Desc ", keyname)
 		utilities.LocalizeParams(self, keysection, '--', SceneProxy='', NodeName='')
 		ManualKeyDesc.__init__(self, screen, keysection, keyname)
 
@@ -211,11 +211,11 @@ class OnOffKey(ManualKeyDesc):
 				if self.SceneProxy in config.ISY.NodesByAddr:
 					# address given
 					self.MonitorObj = config.ISY.NodesByAddr[self.SceneProxy]
-					debugPrint('Screen', "Scene ", keyname, " explicit address proxying with ",
+					debug.debugPrint('Screen', "Scene ", keyname, " explicit address proxying with ",
 							   self.MonitorObj.name, '(', self.SceneProxy, ')')
 				elif config.ISY.NodeExists(self.SceneProxy):
 					self.MonitorObj = config.ISY.GetNodeByName(self.SceneProxy)
-					debugPrint('Screen', "Scene ", keyname, " explicit name proxying with ",
+					debug.debugPrint('Screen', "Scene ", keyname, " explicit name proxying with ",
 							   self.MonitorObj.name, '(', self.MonitorObj.address, ')')
 				else:
 					logsupport.Logs.Log('Bad explicit scene proxy:' + self.name, severity=ConsoleWarning)
@@ -229,13 +229,13 @@ class OnOffKey(ManualKeyDesc):
 						logsupport.Logs.Log('Skipping disabled/nonstatus device: ' + device.name, severity=ConsoleWarning)
 				if self.MonitorObj is None:
 					logsupport.Logs.Log("No proxy for scene: " + keyname, severity=ConsoleError)
-				debugPrint('Screen', "Scene ", keyname, " default proxying with ",
+				debug.debugPrint('Screen', "Scene ", keyname, " default proxying with ",
 						   self.MonitorObj.name)
 		elif config.ISY.NodeExists(keyname):
 			self.ISYObj = config.ISY.GetNodeByName(keyname)
 			self.MonitorObj = self.ISYObj
 		else:
-			debugPrint('Screen', "Screen", keyname, "unbound")
+			debug.debugPrint('Screen', "Screen", keyname, "unbound")
 			logsupport.Logs.Log('Key Binding missing: ' + self.name, severity=ConsoleWarning)
 
 		if self.Verify:
@@ -260,7 +260,7 @@ class OnOffKey(ManualKeyDesc):
 			self.Screen.NodeList[self.MonitorObj.address] = self  # register for events for this key
 
 	def InitDisplay(self):
-		debugPrint("Screen", "OnOffKey Key.InitDisplay ", self.Screen.name, self.name)
+		debug.debugPrint("Screen", "OnOffKey Key.InitDisplay ", self.Screen.name, self.name)
 		state = isy.get_real_time_obj_status(self.MonitorObj)
 		self.State = not (state == 0)  # K is off (false) only if state is 0
 		super(OnOffKey, self).InitDisplay()

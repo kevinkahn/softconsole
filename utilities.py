@@ -14,12 +14,12 @@ import fonts
 import hw
 import logsupport
 from logsupport import ConsoleError, ConsoleDetail, ConsoleDetailHigh, ConsoleWarning
+import debug
 
 globdoc = {}
 moddoc = {}
 paramlog = []
 exemplarobjs = collections.OrderedDict()
-from debug import debugPrint
 
 # next several lines stolen from https://stackoverflow.com/questions/39198961/pygame-init-fails-when-run-with-systemd
 # this handles some weird random SIGHUP when initializing pygame, it's really a hack to work around it
@@ -139,15 +139,15 @@ def InitializeEnvironment():
 			p = (touch.x,touch.y)
 			if event == TS_PRESS:
 				e = pygame.event.Event(pygame.MOUSEBUTTONDOWN, {'pos': p})
-				debugPrint('Touch','Press: '+str(p))
+				debug.debugPrint('Touch','Press: '+str(p))
 				pygame.fastevent.post(e)
 			elif event == TS_RELEASE:
 				e = pygame.event.Event(pygame.MOUSEBUTTONUP, {'pos': p})
-				debugPrint('Touch', 'Release: ' + str(p))
+				debug.debugPrint('Touch', 'Release: ' + str(p))
 				pygame.fastevent.post(e)
 			elif event == TS_MOVE:
 				e = pygame.event.Event(pygame.MOUSEMOTION, {'pos': p})
-				debugPrint('Touch', 'Motion: ' + str(p))
+				debug.debugPrint('Touch', 'Motion: ' + str(p))
 				pygame.fastevent.post(e)
 
 

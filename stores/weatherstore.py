@@ -1,4 +1,5 @@
 import functools
+import debug
 import pygame
 import io
 import os
@@ -55,9 +56,9 @@ def get_icon(url):
 		return icon_scr
 
 class WeatherItem(valuestore.StoreItem):
-	def __init__(self,name, mapinfo):
+	def __init__(self,name, mapinfo, Store):
 		self.MapInfo = mapinfo
-		super(WeatherItem,self).__init__(name,None)
+		super(WeatherItem,self).__init__(name,None,store=Store)
 
 class FcstItem(valuestore.StoreItem):
 	def __init__(self,name,mapinfo):
@@ -103,20 +104,22 @@ class WeatherVals(valuestore.ValueStore):
 					'Moonrise':('synthetic',self.fixMoon,'rise'),
 					'Moonset':('synthetic',self.fixMoon,'set'),
 					'Age':('synthetic',self.setAge,'')}
-		fsynthmap = {'Icon':('synthetic', self.geticon, 'Fcst')}
+		fsynthmap = {'Icon':('synthetic', self.geticon, 'Fcst')}  # if other forecast synthetics defined then code below won't work
+		# because it doesn't factor in the day of the forecast any place. Probably need to pass as parameter to the procedure
+		# defined here in the map.  Don't need to for the icon only because it is handled as a special case below
 		self.failedfetch = False
 		self.location = location
 		self.name = location
 		self.url = 'http://api.wunderground.com/api/' + WunderKey + '/conditions/forecast10day/astronomy/q/' \
 				   + location + '.json'
 		for fld, fldinfo in ConditionMap.iteritems():
-			self.vars['Cond'][fld] = WeatherItem(('Cond',fld),fldinfo)
+			self.vars['Cond'][fld] = WeatherItem(('Cond',fld),fldinfo,self)
 		for fld, fldinfo in csynthmap.iteritems():
-			self.vars['Cond'][fld] = WeatherItem(('Cond',fld),fldinfo)
+			self.vars['Cond'][fld] = WeatherItem(('Cond',fld),fldinfo,self)
 		for fld, fldinfo in ForecastDay.iteritems():
-			self.vars['Fcst'][fld] = WeatherItem(('Fcst',fld),fldinfo)
+			self.vars['Fcst'][fld] = WeatherItem(('Fcst',fld),fldinfo,self)
 		for fld, fldinfo in fsynthmap.iteritems():
-			self.vars['Fcst'][fld] = WeatherItem(('Fcst',fld),fldinfo)
+			self.vars['Fcst'][fld] = WeatherItem(('Fcst',fld),fldinfo,self)
 
 	def BlockRefresh(self):
 		global WUcount
@@ -178,14 +181,13 @@ class WeatherVals(valuestore.ValueStore):
 				cond.Value = None  # set error equiv to Conderr?
 
 		for n, fcst in self.vars['Fcst'].iteritems():
-			fcst.Value = []
+			fcst.Value = valuestore.StoreList(fcst)
 			for i, fcstitem in enumerate(fcsts):
 				fs = functools.partial(TreeDict,fcstitem)
 				try:
 					if fcst.MapInfo[0] != 'synthetic':
-						fcst.Value.append(fcst.MapInfo[0](fs(*fcst.MapInfo[1])))
-						if fcst.MapInfo[0] == str:
-							fcst.Value[-1] = TryShorten(fcst.Value[-1])
+						itemval = fcst.MapInfo[0](fs(*fcst.MapInfo[1]))
+						fcst.Value.append(itemval if fcst.MapInfo[0] != str else TryShorten(itemval))
 					else:
 						fcst.Value.append(fcst.MapInfo[1](fcst.MapInfo[2], day=i))
 				except:

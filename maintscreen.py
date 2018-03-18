@@ -6,9 +6,8 @@ from collections import OrderedDict
 import pygame
 
 import config
-import debug
 import toucharea
-from debug import debugPrint
+import debug
 import exitutils
 from utilities import interval_str, wc
 import logsupport
@@ -87,7 +86,7 @@ def SetUpMaintScreens():
 	Beta.Keys['return'].Proc = functools.partial(goto, config.MaintScreen, Beta.Keys['return'])
 
 
-def setdbg(K, presstype):
+def setdbg(K, presstype):  # todo needs dynamic repaint
 	debug.dbgStore.SetVal(K.name,not debug.dbgStore.GetVal(K.name))
 	K.State = not K.State
 	K.PaintKey()
@@ -215,7 +214,7 @@ class LogDisplayScreen(screen.BaseKeyScreenDesc):
 			config.DS.SwitchScreen(config.MaintScreen, 'Bright', 'Maint', 'Done showing log', NavKeys=False)
 
 	def InitDisplay(self, nav):
-		debugPrint('Main', "Enter to screen: ", self.name)
+		debug.debugPrint('Main', "Enter to screen: ", self.name)
 		super(LogDisplayScreen, self).InitDisplay(nav)
 		logsupport.Logs.Log('Entering Log Screen')
 		self.item = 0
@@ -225,7 +224,7 @@ class LogDisplayScreen(screen.BaseKeyScreenDesc):
 
 class MaintScreenDesc(screen.BaseKeyScreenDesc):
 	def __init__(self, name, keys, overrides=fixedoverrides):
-		debugPrint('Screen', "Build Maintenance Screen")
+		debug.debugPrint('Screen', "Build Maintenance Screen")
 		screen.BaseKeyScreenDesc.__init__(self, overrides, name)
 		utilities.LocalizeParams(self, None, '-', TitleFontSize=40, SubFontSize=25)
 		for k, kt in keys.iteritems():
@@ -253,7 +252,7 @@ class MaintScreenDesc(screen.BaseKeyScreenDesc):
 		pygame.display.update()
 
 	def InitDisplay(self, nav):
-		debugPrint('Main', "Enter to screen: ", self.name)
+		debug.debugPrint('Main', "Enter to screen: ", self.name)
 		logsupport.Logs.Log('Entering Maintenance Screen: ' + self.name)
 		super(MaintScreenDesc, self).InitDisplay(nav)
 		self.ShowScreen()

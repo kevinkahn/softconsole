@@ -1,36 +1,46 @@
-import time
+import debug
+import xmltodict
 from stores import valuestore
+import isy
 
-
-class ISYVarItem(valuestore.StoreItem):
-	def __init__(self, id):
-		self.id  = id
-		self.RcvTime = 0
-		self.Value = None
 
 class ISYVars(valuestore.ValueStore):
-	def __init__(self, name, vS, vI):
-		self.name = name
-		self.vars = {"State":{},"Int":{}}
-		self.ids = {}
-		for v in vS:
-			self.vars["State"][v['@name']] = ISYVarItem(v['@id'])
-			self.ids[(2,int(v['@id']))] = ('State',v['@name'])
-		for v in vI:
-			self.vars["Int"][v['@name']] = ISYVarItem(v['@id'])
-			self.ids[(1,int(v['@id']))] = ('Int',v['@name'])
+	def __init__(self, name):
+		super(ISYVars,self).__init__(name)
 
-	def GetVal(self, name):  # make name a sequence ToDo use general seq code
-		return self.vars[name[0]][name[1]].Value
+	def GetVal(self, name, forceactual=True):
+		V =  super(ISYVars,self).GetVal(name)
+		if forceactual == False:
+			return V
+		if V is None:
+			# lazy load
+			attr = self.GetAttr(name)
+			text = isy.try_ISY_comm('/rest/vars/get/' + str(attr[0]) + '/' + str(attr[1]))  # todo what if notfound
+			V = int(xmltodict.parse(text)['var']['val'])
+			super(ISYVars, self).SetVal(name, V)
+		return V
 
-	def GetValByID(self, id):
-		return self.GetVal(self.ids[id])
+	def GetValByAttr(self, attr):
+		V = super(ISYVars,self).GetValByAttr(attr)
+		if V is None:
+			text = isy.try_ISY_comm('/rest/vars/get/' + str(attr[0]) + '/' + str(attr[1]))  # todo what if notfound
+			V = int(xmltodict.parse(text)['var']['val'])
 
-	def SetVal(self, name, val):
-		item = self.vars[name[0]][name[1]]
-		item.Value = val
-		item.RvcTime = time.time()
+	def BlockRefresh(self):
+
+		for v in self.items():
+			#print v, self.GetVal(v)
+			self.GetVal(v)
+
+	def CheckValsUpToDate(self):
+		for v in self.items():
+			goodcheck = True
+			l = self.GetVal(v,forceactual=False)
+			r = self.GetVal(v)
+			if l != r:
+				debug.debugPrint('StoreTrack','ISY Value Mismatch: (ISY) ',r,' (Local) ', l)
+				goodcheck = False
+		if goodcheck:
+			debug.debugPrint('StoreTrack', 'ISY Value Check OK')
 
 
-	def SetValByID(self, id, val):
-		self.SetVal(self.ids[id], val)

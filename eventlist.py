@@ -1,7 +1,7 @@
 from heapq import *
 import time
 import pygame
-from debug import debugPrint
+import debug
 import logsupport
 from logsupport import ConsoleError
 
@@ -37,7 +37,7 @@ class ProcEventItem(EventItem):
 	def __init__(self, gpid, name, proc):
 		EventItem.__init__(self, gpid, name)
 		self.proc = proc
-		debugPrint('EventList', ' Proc Item Created: ', self)
+		debug.debugPrint('EventList', ' Proc Item Created: ', self)
 
 	def __repr__(self):
 		return EventItem.__repr__(self) + ' Proc: ' + repr(self.proc)
@@ -47,7 +47,7 @@ class AlertEventItem(EventItem):
 	def __init__(self, gpid, name, alert):
 		EventItem.__init__(self, gpid, name)
 		self.alert = alert
-		debugPrint('EventList', ' Alert Item Created: ', self)
+		debug.debugPrint('EventList', ' Alert Item Created: ', self)
 
 	def __repr__(self):
 		return EventItem.__repr__(self) + ' Alert: ' + repr(self.alert)
@@ -89,26 +89,26 @@ class EventList(object):
 				logsupport.Logs.Log("Event add task error", severity=ConsoleError)
 		heappush(self.List, (evnt.abstime, evnt))
 		T = self.TimeToNext()
-		debugPrint('EventList', self.RelNow(), ' Add: ', dt, evnt, T)
-		# debugPrint('EventList', self.RelNow(), ' Add: ', dt, item,T,self.PrettyList(self.List))
+		debug.debugPrint('EventList', self.RelNow(), ' Add: ', dt, evnt, T)
+		# debug.debugPrint('EventList', self.RelNow(), ' Add: ', dt, item,T,self.PrettyList(self.List))
 		pygame.time.set_timer(self.TASKREADY.type, T)
 
 	def RemoveTask(self, evnt):
-		debugPrint('EventList', self.RelNow(), ' Remove: ', evnt)
+		debug.debugPrint('EventList', self.RelNow(), ' Remove: ', evnt)
 		self.finder[id(evnt)].deleted = True
 
 	def _TopItem(self):
 		try:
 			acttime, evnt = self.List[0]
 			while evnt.deleted is True:
-				debugPrint('EventList', "PRE", self.List)
-				debugPrint('EventList', self.RelNow(), ' Flush deleted: ', evnt)
+				debug.debugPrint('EventList', "PRE", self.List)
+				debug.debugPrint('EventList', self.RelNow(), ' Flush deleted: ', evnt)
 				heappop(self.List)
-				debugPrint('EventList', "POST", self.List)
+				debug.debugPrint('EventList', "POST", self.List)
 				try:
 					del self.finder[id(evnt)]
 				except:
-					debugPrint('EventList', self.RelNow(), 'Extra delete?', evnt)
+					debug.debugPrint('EventList', self.RelNow(), 'Extra delete?', evnt)
 				acttime, evnt = self.List[0]
 			return acttime, evnt
 		except IndexError:
@@ -132,7 +132,7 @@ class EventList(object):
 				del self.finder[id(I)]
 				nextdelay = self.TimeToNext()
 				pygame.time.set_timer(self.TASKREADY.type, nextdelay)
-				debugPrint('EventList', self.RelNow(), ' Pop: ', I, ' Nextdelay: ', nextdelay)
+				debug.debugPrint('EventList', self.RelNow(), ' Pop: ', I, ' Nextdelay: ', nextdelay)
 				return I
 			else:  # we are early for some reason so just repost a wakeup
 				'''
@@ -142,11 +142,11 @@ class EventList(object):
 				is set by the second of the 2 close events.
 				'''
 				pygame.time.set_timer(self.TASKREADY.type, int(round(DiffToSched*1000 + .5)))
-				debugPrint('EventList', self.RelNow(), ' Early wake: ', DiffToSched, self.PrettyList(self.List))
+				debug.debugPrint('EventList', self.RelNow(), ' Early wake: ', DiffToSched, self.PrettyList(self.List))
 				return None
 		else:
 			pygame.time.set_timer(self.TASKREADY.type, 0)  # there is no next item
-			debugPrint('EventList', self.RelNow(), ' Clear timer on list empty')
+			debug.debugPrint('EventList', self.RelNow(), ' Clear timer on list empty')
 			return None
 
 	def RemoveAllGrp(self, gpid):
