@@ -4,13 +4,12 @@ from stores import valuestore, localvarsupport
 import logsupport
 from logsupport import ConsoleDebug, ConsoleError, ConsoleWarning
 
-debugPrint = None
-
 def debugPrintNull(flag, *args):
 	return
 
 def debugPrintEarly(flag,*args):
-	print "Early debug call", flag, args
+	#print "Early debug call", flag, args
+	return
 
 def debugPrintReal(flag, *args):
 	global Flags, debugPrint
