@@ -25,6 +25,7 @@ import time
 import cgitb
 import datetime
 import pygame
+import alerttasks
 
 # noinspection PyProtectedMember
 from configobj import ConfigObj, Section
@@ -146,8 +147,8 @@ for alertproctype in os.listdir(os.getcwd() + '/alerts'):
 
 logsupport.Logs.Log("Alert Proc types imported")
 
-for n in config.alertprocs:
-	config.alertprocs[n] = config.alertprocs[n]()  # instantiate an instance of each alert class
+for n in alerttasks.alertprocs:
+	alerttasks.alertprocs[n] = alerttasks.alertprocs[n]()  # instantiate an instance of each alert class
 
 logsupport.Logs.Log("Alert classes instantiated")
 
@@ -364,24 +365,26 @@ logsupport.Logs.Log("Alerts established")
 """
 Set up the Maintenance Screen
 """
-logsupport.Logs.Log("Built Maintenance Screen")
 maintscreen.SetUpMaintScreens()
+logsupport.Logs.Log("Built Maintenance Screen")
 
 logsupport.Logs.livelog = False  # turn off logging to the screen and give user a moment to scan
-time.sleep(2)
+#time.sleep(2)
 
 LogBadParams(config.ParsedConfigFile, "Globals")
 LogBadParams(alertspec, "Alerts")
 """
 Dump documentation if development version
 """
-if config.versionname == 'development':
-	utilities.DumpDocumentation()
+#if config.versionname == 'development':
+#	utilities.DumpDocumentation()
 
 """
 Run the main console loop
 """
-valuestore.ValueStores['ISY'].CheckValsUpToDate()
+for n in alerttasks.monitoredvars: # make sure vars used in alerts are updated to starting values
+	valuestore.GetVal(n)
+
 config.DS.MainControlLoop(config.HomeScreen)
 logsupport.Logs.Log("Main line exit: ",config.ecode)
 pygame.quit()

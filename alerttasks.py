@@ -7,6 +7,10 @@ import isy
 from stores import valuestore
 import pygame
 import debug
+from screens import alertscreen
+
+alertprocs = {}  # set by modules from alerts directory
+monitoredvars = []
 
 Tests = ('EQ', 'NE')
 AlertType = ('NodeChange', 'VarChange', 'StateVarChange', 'IntVarChange', 'LocalVarChange', 'Periodic', 'TOD', 'External', 'Init')
@@ -77,7 +81,7 @@ class VarChangeTrigger(object):
 		elif self.test == 'NE':
 			return int(val) <> int(self.value)
 		else:
-			logsupport.Logs.Log('Bad test in IsTrue',self.test,severity-ConsoleError)
+			logsupport.Logs.Log('Bad test in IsTrue',self.test,severity=ConsoleError)
 			return False # shouldn't happen
 
 	def __repr__(self):
@@ -109,6 +113,7 @@ def getvalid(spec, item, choices, default=None):
 
 
 def ParseAlertParams(nm, spec):
+	global alertprocs, monitoredvars
 	def comparams(spec):
 		test = getvalid(spec, 'Test', Tests)
 		value = spec.get('Value', None)
@@ -124,22 +129,22 @@ def ParseAlertParams(nm, spec):
 		return None
 	nmlist = t.split('.')
 
-	if nmlist[0] in config.alertprocs:
+	if nmlist[0] in alertprocs:
 		if len(nmlist) <> 2:
 			logsupport.Logs.Log('Bad alert proc spec ' + t + ' in ' + nm, severity=ConsoleWarning)
 			return None
 		try:
-			action = getattr(config.alertprocs[nmlist[0]], nmlist[1])
+			action = getattr(alertprocs[nmlist[0]], nmlist[1])
 		except:
 			logsupport.Logs.Log('No proc ', nmlist[1], ' in ', nmlist[0], severity=ConsoleWarning)
 			return None
 		actionname = t
 		fixscreen = False
-	elif nmlist[0] in config.alertscreens:
+	elif nmlist[0] in alertscreen.alertscreens:
 		if len(nmlist) <> 1:
 			logsupport.Logs.Log('Alert screen name must be unqualified in ' + nm, severity=ConsoleWarning)
 			return None
-		action = config.alertscreens[nmlist[0]]
+		action = alertscreen.alertscreens[nmlist[0]]
 		actionname = t
 		fixscreen = True
 	else:
@@ -179,6 +184,7 @@ def ParseAlertParams(nm, spec):
 		if n is None:
 			logsupport.Logs.Log("Alert: ", nm, " var name " + n + " doesn't exist", severity=ConsoleWarning)
 			return None
+		monitoredvars.append(n)
 		trig = VarChangeTrigger(n,comparams(spec))
 		A = Alert(nm, 'VarChange', trig, action, actionname, param)
 		valuestore.AddAlert(n, (VarChanged, A))
@@ -188,6 +194,7 @@ def ParseAlertParams(nm, spec):
 		if n is None:
 			logsupport.Logs.Log("Alert: ", nm, " var name " + n + " doesn't exist", severity=ConsoleWarning)
 			return None
+		monitoredvars.append(n)
 		trig = VarChangeTrigger(n,comparams(spec))
 		A = Alert(nm, triggertype, trig, action, actionname, param)
 		valuestore.AddAlert(n,(VarChanged, A))

@@ -3,6 +3,7 @@ import exitutils
 import logsupport
 from logsupport import ConsoleWarning, ConsoleDetail
 from stores import valuestore, weatherstore
+import alerttasks
 
 
 class GetTempsToISY(object):
@@ -40,4 +41,4 @@ class GetTempsToISY(object):
 
 
 
-config.alertprocs["GetTempsToISY"] = GetTempsToISY
+alerttasks.alertprocs["GetTempsToISY"] = GetTempsToISY

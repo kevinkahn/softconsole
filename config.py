@@ -1,6 +1,4 @@
 screentypes = {}  # set by each module for screens of the type that module creates (see last line in any XxxScreen module
-alertprocs = {}  # set by modules from alerts directory
-alertscreens = {}
 
 starttime = 0
 Running = True

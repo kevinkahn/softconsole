@@ -1,4 +1,4 @@
-import config, exitutils, logsupport
+import alerttasks, exitutils, logsupport
 
 
 class testalerts(object):
@@ -24,4 +24,4 @@ class testalerts(object):
 	# param is the object that caused the alert if one exists (device or var)
 
 
-config.alertprocs["testalerts"] = testalerts
+alerttasks.alertprocs["testalerts"] = testalerts

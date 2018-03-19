@@ -4,6 +4,7 @@ import exitutils
 import sys
 import logsupport
 from logsupport import ConsoleWarning, ConsoleDetail
+import alerttasks
 
 class AutoVersion(object):
 	def __init__(self):
@@ -45,4 +46,4 @@ class AutoVersion(object):
 			logsupport.Logs.Log("Auto version found special version running: ",config.versionname)
 
 
-config.alertprocs["AutoVersion"] = AutoVersion
+alerttasks.alertprocs["AutoVersion"] = AutoVersion

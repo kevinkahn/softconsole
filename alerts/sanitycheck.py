@@ -1,5 +1,4 @@
-import debug
-import config
+import alerttasks
 from stores import valuestore
 
 class CheckIntegrity(object):
@@ -13,4 +12,4 @@ class CheckIntegrity(object):
 
 
 
-config.alertprocs["CheckIntegrity"] = CheckIntegrity
+alerttasks.alertprocs["CheckIntegrity"] = CheckIntegrity

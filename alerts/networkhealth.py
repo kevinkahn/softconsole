@@ -1,6 +1,6 @@
 import config
 import subprocess
-import isy
+import alerttasks
 import logsupport
 from stores import valuestore
 
@@ -44,4 +44,4 @@ class NetworkHealth(object):
 		config.DS.Tasks.EndLongOp()
 
 
-config.alertprocs["NetworkHealth"] = NetworkHealth
+alerttasks.alertprocs["NetworkHealth"] = NetworkHealth

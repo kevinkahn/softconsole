@@ -247,8 +247,9 @@ def GetVar(var):
 
 def ISYVarChanged(storeitem, old, new, param, modifier):
 	if not modifier: #  only send to ISY if change didn't originate there
+		val = int(new) # ISY V4 only allows integer variable values - may change in V5
 		varid = storeitem.Attribute
-		try_ISY_comm('/rest/vars/set/' + str(varid[0]) + '/' + str(varid[1]) + '/' + str(new))  # todo what if notfound
+		try_ISY_comm('/rest/vars/set/' + str(varid[0]) + '/' + str(varid[1]) + '/' + str(val))  # todo what if notfound
 
 class ISY(object):
 	"""

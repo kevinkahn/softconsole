@@ -1,4 +1,3 @@
-import config
 import alerttasks
 import debug
 import subprocess
@@ -93,4 +92,4 @@ class NetCmd(object):
 		pass
 
 
-config.alertprocs["NetCmd"] = NetCmd
+alerttasks.alertprocs["NetCmd"] = NetCmd
