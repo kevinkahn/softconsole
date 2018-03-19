@@ -2,12 +2,14 @@ import config, utilities, logsupport
 import exitutils
 from configobjects import Section
 import screen
-from logsupport import ConsoleWarning, ConsoleDetail
+from logsupport import ConsoleWarning, ConsoleDetail, ConsoleError
 import isy
 from stores import valuestore
+import pygame
+import debug
 
 Tests = ('EQ', 'NE')
-AlertType = ('NodeChange', 'StateVarChange', 'IntVarChange', 'LocalVarChange', 'Periodic', 'TOD', 'External', 'Init')
+AlertType = ('NodeChange', 'VarChange', 'StateVarChange', 'IntVarChange', 'LocalVarChange', 'Periodic', 'TOD', 'External', 'Init')
 
 class Alert(object):
 	def __init__(self, nm, type, trigger, action, actionname, param):
@@ -32,7 +34,7 @@ class Alert(object):
 			targtype = 'Screen'
 		else:
 			targtype = 'Proc'
-		return self.name + ': ' + self.type + ' Alert (' + self.state + ') Triggered: ' + repr(
+		return self.name + ': ' + self.type + ' Alert (' + self.state + ') Trigger: ' + repr(
 			self.trigger) + ' Invoke: ' + targtype + ':' + self.actionname
 
 
@@ -56,7 +58,12 @@ class NodeChgtrigger(object):
 		return 'Node ' + self.nodeaddress + ' status ' + self.test + ' ' + str(self.value) + ' delayed ' + str(
 			self.delay) + ' seconds'
 
-class VarChangeTrigger(object): # todo
+def VarChanged(storeitem, old, new, param, modifier):
+	debug.debugPrint('DaemonCtl','Var changed ',storeitem.name,' from ',old,' to ',new)
+	notice = pygame.event.Event(config.DS.ISYVar, alert=param)
+	pygame.fastevent.post(notice)
+
+class VarChangeTrigger(object):
 	def __init__(self, var, params):
 		self.var = var
 		self.test = params[0]
@@ -70,36 +77,11 @@ class VarChangeTrigger(object): # todo
 		elif self.test == 'NE':
 			return int(val) <> int(self.value)
 		else:
-			exitutils.FatalError('VarChgtriggerIsTrue') # validate at creation todo
-
-class VarChgtrigger(object):
-	def __init__(self, var, test, value, delay):
-		self.vartype = var[0]
-		self.varid = var[1]
-		self.test = test
-		self.value = value
-		self.delay = delay
-		self.VT = ('UNKN', 'Integer', 'State', 'Local')
-		if self.vartype == 1:
-			self.name = config.ISY.varsIntInv[int(self.varid)]
-		elif self.vartype == 2:
-			self.name = config.ISY.varsStateInv[int(self.varid)]
-		elif self.vartype == 3:
-			self.name = config.ISY.varsLocalInv[int(self.varid)]
+			logsupport.Logs.Log('Bad test in IsTrue',self.test,severity-ConsoleError)
+			return False # shouldn't happen
 
 	def __repr__(self):
-		return str(self.VT[self.vartype]) + ' variable ' + self.name + '(' + str(
-			self.varid) + ') ' + self.test + ' ' + str(self.value) + ' delayed ' + str(self.delay) + ' seconds'
-
-	def IsTrue(self):
-		val = config.DS.WatchVarVals[(self.vartype, self.varid)]
-		if self.test == 'EQ':
-			return int(val) == int(self.value)
-		elif self.test == 'NE':
-			return int(val) <> int(self.value)
-		else:
-			exitutils.FatalError('VarChgtriggerIsTrue')
-
+		return ' Variable ' + valuestore.ExternalizeVarName(self.var) + ' ' + self.test + ' ' + str(self.value) + ' delayed ' + str(self.delay) + ' seconds'
 
 class InitTrigger(object):
 	def __init__(self):
@@ -120,22 +102,21 @@ def getvalid(spec, item, choices, default=None):
 			return i
 		else:
 			logsupport.Logs.Log('Choice error: ' + item + " not in " + str(choices), severity=logsupport.ConsoleWarning)
-			return None
+			exitutils.errorexit(exitutils.ERRORDIE)
 	else:
 		logsupport.Logs.Log('Missing required alert parameter: ' + item, severity=ConsoleWarning)
-		return None
+		exitutils.errorexit(exitutils.ERRORDIE)
 
 
 def ParseAlertParams(nm, spec):
 	def comparams(spec):
-		test = getvalid(spec, 'Test', Tests) # todo validate test values
+		test = getvalid(spec, 'Test', Tests)
 		value = spec.get('Value', None)
 		delay = utilities.get_timedelta(spec.get('Delay', None))
 		return test, value, delay
 
 
-	VarsTypes = {'StateVarChange': (2, config.ISY.varsState), 'IntVarChange': (1, config.ISY.varsInt),
-				 'LocalVarChange': (3, config.ISY.varsLocal)}
+	VarsTypes = {'StateVarChange': ('ISY','State'), 'IntVarChange': ('ISY','Int'), 'LocalVarChange': ('LocalVars',)}
 	t = spec.get('Invoke', None)
 	param = spec.get('Parameter', None)
 	if t is None:
@@ -191,34 +172,34 @@ def ParseAlertParams(nm, spec):
 		trig = NodeChgtrigger(Node, test, value, delay)
 		# todo check nones
 		A = Alert(nm, triggertype, trig, action, actionname, param)
+	elif triggertype in ('StateChange','IntVarChange', 'LocalVarChange'):
+		n = VarsTypes[triggertype] + (spec.get('Var', ''),)
+		logsupport.Logs.Log("Deprecated alert trigger ", triggertype, ' used - change to use VarChange ',n,
+							severity=ConsoleWarning)
+		if n is None:
+			logsupport.Logs.Log("Alert: ", nm, " var name " + n + " doesn't exist", severity=ConsoleWarning)
+			return None
+		trig = VarChangeTrigger(n,comparams(spec))
+		A = Alert(nm, 'VarChange', trig, action, actionname, param)
+		valuestore.AddAlert(n, (VarChanged, A))
 
-	elif triggertype == 'VarChange': # new format value change todo
+	elif triggertype == 'VarChange':
 		n = spec.get('Var', None).split(':')
+		if n is None:
+			logsupport.Logs.Log("Alert: ", nm, " var name " + n + " doesn't exist", severity=ConsoleWarning)
+			return None
 		trig = VarChangeTrigger(n,comparams(spec))
 		A = Alert(nm, triggertype, trig, action, actionname, param)
+		valuestore.AddAlert(n,(VarChanged, A))
 
-	elif triggertype in ('StateVarChange', 'IntVarChange', 'LocalVarChange'):  # needs var, test, value, delay
-		n = spec.get('Var', None)
-		if n is not None:
-			if n in VarsTypes[triggertype][1]:
-				varspec = (VarsTypes[triggertype][0], VarsTypes[triggertype][1][n])
-			else:
-				logsupport.Logs.Log("Alert: ", nm, " var name " + n + " doesn't exist", severity=ConsoleWarning)
-				return None
-		else:
-			logsupport.Logs.Log("Alert: ", nm, " var name not specified", severity=ConsoleWarning)
-			return None
-		test, value, delay = comparams(spec)
-		if (test is None) or (value is None):
-			return None
-		trig = VarChgtrigger(varspec, test, value, delay)
-		A = Alert(nm, triggertype, trig, action, actionname, param)
 	elif triggertype == 'External':
 		pass  # todo external?
 		return None
 	elif triggertype == 'Init':  # Trigger once at start up passing in the configobj spec
 		trig = InitTrigger()
 		A = Alert(nm, triggertype, trig, action, actionname, param)
+	else:
+		logsupport.Logs.Log("Internal triggertype error",severity=ConsoleError)
 
 	logsupport.Logs.Log("Created alert: " + nm)
 	logsupport.Logs.Log("->" + str(A), severity=ConsoleDetail)

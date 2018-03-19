@@ -303,14 +303,16 @@ if config.ISYaddr != '':
 	config.ISY = isy.ISY(config.ISYrequestsession)
 	logsupport.Logs.Log("Enumerated ISY Structure")
 	# todo seems odd that the following code is here and has to be skipped for null ISY case - should be in the ISY definition
-	cmdvar = 'Command.' + config.hostname.replace('-', '.')
-	if cmdvar in config.ISY.varsInt:
-		alertspeclist = ConfigObj()
-		alertspeclist['RemoteCommands2'] = {
-			'Type': 'IntVarChange', 'Var': cmdvar, 'Test': 'NE', 'Value': '0',
-			'Invoke': 'NetCmd.Command'}
-	else:
-		alertspeclist = None
+	cmdvar = valuestore.InternalizeVarName('ISY:Int:Command.' + config.hostname.replace('-', '.'))
+	alertspeclist = None
+	for k in valuestore.ValueStores['ISY'].items():
+		if k == tuple(cmdvar[1:]):
+			alertspeclist = ConfigObj()
+			alertspeclist['RemoteCommands2'] = {
+				'Type': 'VarChange', 'Var': valuestore.ExternalizeVarName(cmdvar), 'Test': 'NE', 'Value': '0',
+				'Invoke': 'NetCmd.Command'}
+			break
+
 else:
 	config.ISY = isy.ISY(None)
 	alertspeclist = None # todo see comment above
@@ -338,9 +340,6 @@ if 'Variables' in config.ParsedConfigFile:
 	i = 0
 	tn = ['LocalVars','']
 	for nm, val in config.ParsedConfigFile['Variables'].iteritems():
-		config.ISY.LocalVars.append(int(val))
-		config.ISY.varsLocal[nm] = i
-		config.ISY.varsLocalInv[i] = nm
 		logsupport.Logs.Log("Local variable: " + nm + "(" + str(i) + ") = " + str(val))
 		tn[1] = nm
 		valuestore.SetVal(tn, val)
@@ -378,8 +377,6 @@ Dump documentation if development version
 """
 if config.versionname == 'development':
 	utilities.DumpDocumentation()
-
-valuestore.BlockRefresh('ISY')  # todo delete
 
 """
 Run the main console loop
