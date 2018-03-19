@@ -4,8 +4,8 @@ import debug
 import subprocess
 import maintscreen
 import exitutils
-import isy
 import logsupport
+from stores import valuestore
 from logsupport import ConsoleWarning
 
 
@@ -28,12 +28,14 @@ class NetCmd(object):
 
 	#	@staticmethod
 	def Command(self, alert):
-		if not isinstance(alert.trigger, alerttasks.VarChgtrigger):
+		if not isinstance(alert.trigger, alerttasks.VarChangeTrigger):
 			logsupport.Logs.Log('Net Command not triggered by variable', severity=ConsoleWarning)
-		vartype = alert.trigger.vartype
-		varid = alert.trigger.varid
-		varval = config.DS.WatchVarVals[(vartype, varid)]
-		isy.SetVar((vartype, varid), 0)
+		varval = valuestore.GetVal(alert.trigger.var)
+		#vartype = alert.trigger.vartype
+		#varid = alert.trigger.varid
+		#varval = config.DS.WatchVarVals[(vartype, varid)]
+		valuestore.SetVal(alert.trigger.var, 0)
+		#isy.SetVar((vartype, varid), 0)
 		if varval == 1:
 			logsupport.Logs.Log('Remote restart')
 			exitutils.Exit_Screen_Message('Remote restart requested', 'Remote Restart')
@@ -56,16 +58,14 @@ class NetCmd(object):
 			subprocess.Popen('sudo touch /home/pi/usebeta', shell=True)
 		elif varval in range(100, 100 + len(debug.DbgFlags)):
 			flg = debug.DbgFlags[varval - 100]
-			debug.Flags[flg] = True
-			debug.DebugFlagKeys[flg].State = True
+			valuestore.SetVal(('Debug',flg), True)
 			logsupport.Logs.Log('Remote set debug ', flg)
 		elif varval in range(200, 200 + len(debug.DbgFlags)):
 			flg = debug.DbgFlags[varval - 200]
-			debug.Flags[flg] = False
-			debug.DebugFlagKeys[flg].State = False
+			valuestore.SetVal(('Debug', flg), False)
 			logsupport.Logs.Log('Remote clear debug ', flg)
 		elif varval in range(300, 310):
-			logsupport.LogLevel = varval - 300
+			valuestore.SetVal(('Debug','LogLevel'), varval - 300)
 			logsupport.Logs.Log('Remote set LogLevel to ', varval - 300)
 
 		else:

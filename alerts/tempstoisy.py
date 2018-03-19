@@ -2,7 +2,6 @@ import config
 import exitutils
 import logsupport
 from logsupport import ConsoleWarning, ConsoleDetail
-import isy
 from stores import valuestore, weatherstore
 
 
@@ -31,14 +30,14 @@ class GetTempsToISY(object):
 			if not (isinstance(weathval,int) or isinstance(weathval,float)):
 				logsupport.Logs.Log("No valid weather value to send (" + station +'):'+weathcode[0]+':'+weathcode[1] +str(weathval),severity=ConsoleWarning)
 				return
-			isyvar = config.ISY.GetVarCode(tuple(assigns[i + 1].split(':')))
+			isyv = list(assigns[i + 1].split(':'))
+			if isyv[0] == 'S': isyv[0] = 'State'
+			if isyv[0] == 'I': isyv[0] = 'Int'
+			valuestore.SetVal(isyv,int(weathval))
 			logsupport.Logs.Log(
 				"Temps sent to ISY(" + station + '):' + weathcode[0] + ':' + weathcode[1] + ' -> ' + str(weathval),
 				severity=ConsoleDetail)
-			if isyvar != (0, 0):
-				isy.SetVar(isyvar, int(weathval))
-			else:
-				exitutils.FatalError('Variable name error in SendTemps', restartopt='shut')
+
 
 
 config.alertprocs["GetTempsToISY"] = GetTempsToISY

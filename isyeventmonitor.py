@@ -123,7 +123,8 @@ class ISYEventMonitor:
 						varval = int(vinfo['val'])
 						debug.debugPrint('DaemonCtl', 'Var change:', ('Unkn', 'Integer', 'State')[vartype], ' variable ', varid,
 								   ' set to ', varval)
-						valuestore.SetValByAttr('ISY',(vartype,varid),varval)  #todo valuesstore
+						valuestore.SetValByAttr('ISY',(vartype,varid),varval, modifier=True)
+						'''
 						if (vartype, varid) in config.DS.WatchVars.keys():
 							config.DS.WatchVarVals[vartype, varid] = varval
 							if vartype == 1:
@@ -140,6 +141,7 @@ class ISYEventMonitor:
 								notice = pygame.event.Event(config.DS.ISYVar, node=(vartype, varid), value=varval,
 															alert=a)
 								pygame.fastevent.post(notice)
+						'''
 
 						if config.DS.AS is not None:
 							if (vartype, varid) in config.DS.AS.VarsList:
@@ -159,7 +161,7 @@ class ISYEventMonitor:
 					elif prcode == 'Billing':
 						config.digestinginit = False
 					else:
-						pass  # handle any other? todo
+						pass  # handle any other?
 					efmtact = e.pop('fmtAct','v4stream')
 					if e:
 						logsupport.Logs.Log("Extra info in event: "+str(ecode)+'/'+str(prcode)+'/'+str(eaction)+'/'+str(enode)+'/'+str(eInfo) + str(e), severity=ConsoleWarning)

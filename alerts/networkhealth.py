@@ -33,15 +33,13 @@ class NetworkHealth(object):
 		if self.RobustPing(alert.param[0]):
 			if not self.LastState[alert.param[0]]:
 				self.LastState[alert.param[0]] = True
-				isy.SetVar((3, config.ISY.varsLocal[var[1]]), 1)
 				valuestore.SetVal(var,1)
 				logsupport.Logs.Log("Network up to: " + alert.param[0])
 		else:
 			if self.LastState[alert.param[0]]:
 				# was up now down
 				self.LastState[alert.param[0]] = False
-				valuestore.SetVal(var, 0)
-				isy.SetVar((3, config.ISY.varsLocal[var[1]]), 0)  # Set down seen
+				valuestore.SetVal(var, 0) # Set down seen
 				logsupport.Logs.Log("Network down to: " + alert.param[0])
 		config.DS.Tasks.EndLongOp()
 

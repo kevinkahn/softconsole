@@ -11,7 +11,6 @@ import logsupport
 
 
 class AlertsScreenDesc(screen.ScreenDesc):
-    # noinspection PyDictCreation
     def __init__(self, screensection, screenname):
         debug.debugPrint('Screen', "Build Alerts Screen")
 

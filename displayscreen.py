@@ -29,9 +29,6 @@ class DisplayScreen(object):
 		# Central Task List
 		self.Tasks = EventList()
 		self.WatchNodes = {}  # Nodes that should be watched for changes (key is node address, value is [alerts]
-		# todo if ever possible to delete alerts then need id per comment on vars
-		self.WatchVars = {}  # Variables that should be watched for changes (key is (vartype,varid) value is [alerts]
-		# todo if watches could be dynamic then delete needs to pass in the alert to id which to delete
 		self.Deferrals = []
 		self.WatchVarVals = {}  # most recent reported watched variable values
 
@@ -126,9 +123,12 @@ class DisplayScreen(object):
 			a.state = 'Armed'
 			logsupport.Logs.Log("Arming " + a.type + " alert " + a.name)
 			logsupport.Logs.Log("->" + str(a), severity=ConsoleDetail)
+
 			if a.type in ('StateVarChange', 'IntVarChange', 'LocalVarChange'):
+				print '**********NO*********' # todo
+				'''
 				var = (a.trigger.vartype, a.trigger.varid)
-				if var in self.WatchVars:  # todo move to store model - can do once when alerts are created then not here
+				if var in self.WatchVars: 
 					self.WatchVars[var].append(a)
 				else:
 					self.WatchVars[var] = [a]
@@ -136,6 +136,7 @@ class DisplayScreen(object):
 				if a.trigger.IsTrue():
 					notice = pygame.event.Event(self.ISYVar, alert=a)
 					pygame.fastevent.post(notice)
+				'''
 			elif a.type == 'Periodic':
 				E = AlertEventItem(id(a), a.name, a)
 				self.Tasks.AddTask(E, a.trigger.interval)

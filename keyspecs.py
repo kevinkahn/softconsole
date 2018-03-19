@@ -9,7 +9,7 @@ import debug
 import logsupport
 from logsupport import ConsoleWarning, ConsoleError, ConsoleDetail
 from toucharea import ManualKeyDesc
-
+from stores import valuestore
 
 def CreateKey(screen, screensection, keyname):
 	if screensection.get('type', 'ONOFF', delkey=False) == 'RUNTHEN':
@@ -54,29 +54,15 @@ class BlankKey(ManualKeyDesc):
 
 
 class SetVarValueKey(ManualKeyDesc):
+	# This is a key that brings up a sub screen that allows buttons to change the value of the var explicitly
 	def __init__(self, screen, keysection, keyname):
 		debug.debugPrint('Screen', "             New SetVarValue Key Desc ", keyname)
 		self.Value = None
 		self.VarID = (0,0)
 		ManualKeyDesc.__init__(self, screen, keysection, keyname)
-		utilities.LocalizeParams(self, keysection, '--', VarType='undef', Var='')
-
-		try:
-			self.Proc = self.SetVarValue  # todo if not changeable?
-			if self.VarType == 'State':
-				self.VarID = (2, config.ISY.varsState[keyname])
-			elif self.VarType == 'Int':
-				self.VarID = (1, config.ISY.varsInt[keyname])
-			elif self.VarType == 'Local':
-				self.VarID = (3, config.ISY.varsLocal[keyname])
-			else:
-				logsupport.Logs.Log('VarType not specified for key ', self.Var, ' on screen ', screen.name,
-								severity=ConsoleWarning)
-				self.VarID = (0, 0)
-				self.Proc = ErrorKey
-		except:
-			logsupport.Logs.Log('Var key error on screen: ' + screen.name + ' Var: ' + keyname, severity=ConsoleWarning)
-			self.Proc = ErrorKey
+		utilities.LocalizeParams(self, keysection, '--', Var='')
+		self.VarName = self.Var.split(':')
+		self.Proc = self.SetVarValue
 
 		utilities.register_example("SetVarValueKey", self)
 
@@ -102,60 +88,45 @@ class SetVarValueKey(ManualKeyDesc):
 	# todo create a screen to allow changing the value if parameter is maleable
 
 
+class VarKey(ManualKeyDesc):
+	def __init__(self, screen, keysection, keyname):
+		debug.debugPrint('Screen',"              New Var Key ", keyname)
+		ManualKeyDesc.__init__(self, screen, keysection, keyname)
+		utilities.LocalizeParams(self, keysection, '--', Var='', Appearance='', PushSeq='')
+		# Appearance condition:color:'Label', todo
+
 class SetVarKey(ManualKeyDesc):
 	def __init__(self, screen, keysection, keyname):
 		debug.debugPrint('Screen', "             New SetVar Key Desc ", keyname)
-
 		ManualKeyDesc.__init__(self, screen, keysection, keyname)
 		utilities.LocalizeParams(self, keysection, '--', VarType='undef', Var='', Value=0)
 		try:
 			self.Proc = self.SetVarKeyPressed
-			if self.VarType == 'State':
-				self.VarID = (2, config.ISY.varsState[self.Var])
-			elif self.VarType == 'Int':
-				self.VarID = (1, config.ISY.varsInt[self.Var])
-			elif self.VarType == 'Local':
-				self.VarID = (3, config.ISY.varsLocal[self.Var])
-			else:
-				logsupport.Logs.Log('VarType not specified for key ', self.Var, ' on screen ', screen.name,
+			if self.VarType != 'undef': # todo del later
+
+				if self.VarType == 'State':
+					self.VarName = ('ISY','State',self.Var)
+				elif self.VarType == 'Int':
+					self.VarName = ('ISY', 'Int', self.Var)
+				elif self.VarType == 'Local':
+					self.VarName = ('LocalVars', self.Var)
+				else:
+					logsupport.Logs.Log('VarType not specified for key ', self.Var, ' on screen ', screen.name,
 								severity=ConsoleWarning)
-				self.Proc = ErrorKey
-		except:
+					self.Proc = ErrorKey
+				logsupport.Logs.Log('VarKey definition using depreacted VarKey ', self.VarType, ' change to ',
+									valuestore.ExternalizeVarName(self.VarName), severity=ConsoleWarning)
+			else:
+				self.VarName = self.Var.split(':')
+		except Exception as e:
 			logsupport.Logs.Log('Var key error on screen: ' + screen.name + ' Var: ' + self.Var, severity=ConsoleWarning)
 			self.Proc = ErrorKey
 
 		utilities.register_example("SetVarKey", self)
 
-        def SetVarKeyPressed(self, presstype):
-		isy.SetVar(self.VarID, self.Value)
-
-class NewSetVarKey(ManualKeyDesc):
-	def __init__(self, screen, keysection, keyname):
-		debug.debugPrint('Screen', "             New SetVar Key Desc ", keyname)
-
-		ManualKeyDesc.__init__(self, screen, keysection, keyname)
-		utilities.LocalizeParams(self, keysection, '--', VarType='undef', Var='', Value=0)
-		try:
-			self.Proc = self.SetVarKeyPressed
-			if self.VarType == 'State':
-				self.VarID = (2, config.ISY.varsState[self.Var])
-			elif self.VarType == 'Int':
-				self.VarID = (1, config.ISY.varsInt[self.Var])
-			elif self.VarType == 'Local':
-				self.VarID = (3, config.ISY.varsLocal[self.Var])
-			else:
-				logsupport.Logs.Log('VarType not specified for key ', self.Var, ' on screen ', screen.name,
-								severity=ConsoleWarning)
-				self.Proc = ErrorKey
-		except:
-			logsupport.Logs.Log('Var key error on screen: ' + screen.name + ' Var: ' + self.Var, severity=ConsoleWarning)
-			self.Proc = ErrorKey
-
-		utilities.register_example("SetVarKey", self)
-
-        def SetVarKeyPressed(self, presstype):
-		isy.SetVar(self.VarID, self.Value)
-
+	def SetVarKeyPressed(self, presstype):
+		valuestore.SetVal(self.VarName,self.Value)
+		self.BlinkKey(self.Blink)
 
 class RunProgram(ManualKeyDesc):
 	def __init__(self, screen, keysection, keyname):

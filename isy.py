@@ -245,21 +245,10 @@ def GetVar(var):
 		valuestore.SetValByAttr('ISY',var,val) #todo eventually make this pick up name from the hub name
 		return val
 
-
-def SetVar(var, value):  # todo convert local to store model with alert; use attr of local as notice info but how to set notice and what if more than one cares
-	if var[0] == 3:
-		config.ISY.LocalVars[var[1]] = value
-		if tuple(var) in config.DS.WatchVars.keys():
-			config.DS.WatchVarVals[var[0], var[1]] = value
-
-			for a in config.DS.WatchVars[tuple(var)]:
-				logsupport.Logs.Log("Var alert fired: " + str(a))
-				notice = pygame.event.Event(config.DS.ISYVar, vartype=var[0], varid=var[1], value=value, alert=a)
-				pygame.fastevent.post(notice)
-
-	else:
-		try_ISY_comm('/rest/vars/set/' + str(var[0]) + '/' + str(var[1]) + '/' + str(value)) # todo what if notfound
-
+def ISYVarChanged(storeitem, old, new, param, modifier):
+	if not modifier: #  only send to ISY if change didn't originate there
+		varid = storeitem.Attribute
+		try_ISY_comm('/rest/vars/set/' + str(varid[0]) + '/' + str(varid[1]) + '/' + str(new))  # todo what if notfound
 
 class ISY(object):
 	"""
@@ -303,13 +292,6 @@ class ISY(object):
 		self.ProgramsByAddr = {}
 		self.ProgramsByName = {}
 		self.ProgramFoldersByName = {}
-		self.varsState = {}
-		self.varsStateInv = {}
-		self.varsInt = {}
-		self.varsIntInv = {}
-		self.varsLocal = {}
-		self.varsLocalInv = {}
-		self.LocalVars = []
 
 		if ISYsession is None:
 			# No ISY provided return empty structure
@@ -539,10 +521,8 @@ class ISY(object):
 			for v in configdictS:
 				Vars.SetVal(('State',v['@name']),None)
 				Vars.SetAttr(('State',v['@name']),(2,int(v['@id'])))
-				self.varsState[v['@name']] = int(v['@id'])
-				self.varsStateInv[int(v['@id'])] = v['@name']
+				Vars.AddAlert(('State',v['@name']),ISYVarChanged)
 		except:
-			self.varsState['##nostatevars##'] = 0
 			logsupport.Logs.Log('No state variables defined')
 		try:
 			configdictI = xmltodict.parse(r2.text)['CList']['e']
@@ -554,26 +534,13 @@ class ISY(object):
 			for v in configdictI:
 				Vars.SetVal(('Int',v['@name']),None)
 				Vars.SetAttr(('Int',v['@name']),(1,int(v['@id'])))
-				self.varsInt[v['@name']] = int(v['@id'])
-				self.varsIntInv[int(v['@id'])] = v['@name']
+				Vars.AddAlert(('Int', v['@name']), ISYVarChanged)
 		except:
-			self.varsInt['##nointevars##'] = 0
 			logsupport.Logs.Log('No integer variables defined')
+		Vars.LockStore()
 		utilities.register_example("ISY", self)
 		if debug.dbgStore.GetVal('ISY'):
 			self.PrintTree(self.ProgRoot, "    ", 'Programs')
-
-	def GetVarCode(self, varsym):
-		try:
-			if varsym[0] == 'I':  # int var
-				return 1, self.varsInt[varsym[1]]
-			elif varsym[0] == 'S':  # state var
-				return 2, self.varsState[varsym[1]]
-			elif varsym[0] == 'L':  # local var  todo change to store reference to LocalVar:
-				return 3, self.varsLocal[varsym[1]]
-			return 0, 0
-		except:
-			return 0, 0
 
 	def SetFullNames(self, startpoint, parentname):
 		startpoint.fullname = parentname + startpoint.name

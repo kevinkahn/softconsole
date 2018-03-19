@@ -62,7 +62,6 @@ class WeatherScreenDesc(screen.ScreenDesc):
 		vert_off = config.topborder
 
 		if self.store.failedfetch:
-			# todo fix this error screen
 			renderedlines = [config.fonts.Font(45, "").render(self.fmt.format("{d[0]}",'Weather Not Available',
 															d=self.scrlabel), 0, wc(self.CharColor))]
 			for l in renderedlines:

@@ -38,16 +38,14 @@ dbgStore = valuestore.NewValueStore(valuestore.ValueStore('Debug'))
 dbgStore.SimpleInit(DbgFlags,False)
 valuestore.SetVal(('Debug','LogLevel'),3)
 
-def OptimizeDebug(store, old, new):
+def OptimizeDebug(store, old, new, param, modifier):
 	global debugPrint
 	flgCount = 0
 	for f in dbgStore:
 		if f.name[0] != 'LogLevel' and f.Value: flgCount += 1
 	if flgCount > 0:
-		print "Set real debug", flgCount #todo del
 		debugPrint = debugPrintReal
 	else:
-		print "Set dummy debug"  #todo del
 		debugPrint = debugPrintNull
 
 def LogDebugFlags():
@@ -67,10 +65,8 @@ def InitFlags(sect):
 		dbgStore.AddAlert(flg,OptimizeDebug)
 	dbgStore.AddAlert('StoresDump',StoresDump)
 	if flgCount > 0:
-		print "Set init real debug", flgCount  # todo del
 		debugPrint = debugPrintReal
 	else:
-		print "Set init dummy debug"  # todo del
 		debugPrint = debugPrintNull
 
 
@@ -86,7 +82,7 @@ def ISYDump(fn, item, pretty = True,new=False):
 				f.write('\n')
 			f.write(item.encode('UTF-8'))
 
-def StoresDump(store,old,new):
+def StoresDump(store,old,new,param):
 	if not new: return
 	for store in valuestore.ValueStores.itervalues():
 		for i in store.items():
