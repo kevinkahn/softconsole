@@ -14,3 +14,5 @@ ClockSize=-1,LocationSize=-1,CondSize=[20],FcstSize=[20],
 qualified vars
 internal changes
 explain stores
+full names
+deprecated StateVarChange, IntVarChange, LocalVarChange
