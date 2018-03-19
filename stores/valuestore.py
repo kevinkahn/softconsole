@@ -6,6 +6,17 @@ import debug
 ValueStores = {} # General store for named values storename:itemname accessed as ValueStore[storename].GetVal(itemname)
 				# or GetVal([itemname]) for a nested name
 
+def _normalizename(name):
+	if isinstance(name, tuple):
+		return list(name)
+	elif isinstance(name, list):
+		return name[:]
+	elif isinstance(name, str):
+		return name.split(':')
+	else:
+		logsupport.Logs.Log("Normalize name got strange input: ", name, severity=ConsoleError)
+		return [name]
+
 def InternalizeVarName(name):
 	return name.split(':')
 
@@ -24,25 +35,30 @@ def PrettyVarName(store,name):
 	return p
 
 def GetVal(name):
-	return ValueStores[name[0]].GetVal(name[1:])
+	n = _normalizename(name)
+	return ValueStores[n[0]].GetVal(n[1:])
 
-def SetVal(name,val):
-	return ValueStores[name[0]].SetVal(name[1:],val)
+def SetVal(name,val, modifier = None):
+	n = _normalizename(name)
+	return ValueStores[n[0]].SetVal(n[1:],val, modifier)
 
 def GetAttr(name):
-	return ValueStores[name[0].GetAttr(name[1:])]
+	n = _normalizename(name)
+	return ValueStores[n[0].GetAttr(n[1:])]
 
 def AddAlert(name,a):
-	return ValueStores[name[0]].AddAlert(name[1:],a)
+	n = _normalizename(name)
+	return ValueStores[n[0]].AddAlert(n[1:],a)
 
 def SetAttr(name,attr):
-	return ValueStores[name[0]].SetAttr(name[1:],attr)
+	n = _normalizename(name)
+	return ValueStores[n[0]].SetAttr(n[1:],attr)
 
 def GetValByAttr(name, attr):
 	return ValueStores[name].GetValByAttr(attr)
 
-def SetValByAttr(name, attr, val):
-	return ValueStores[name].SetValByAttr(attr,val)
+def SetValByAttr(name, attr, val, modifier = None):
+	return ValueStores[name].SetValByAttr(attr,val,modifier)
 
 def BlockRefresh(name):
 	ValueStores[name].BlockRefresh()
@@ -139,13 +155,17 @@ class ValueStore(object):
 		self.vars = {}
 		self.attrs = {}
 		self.attrnames = {}
+		self.locked = False
 
 	def _normalizename(self,name):
-		if isinstance(name, tuple):
-			return list(name)
-		elif isinstance(name, list):
+		if isinstance(name, list):
 			return name[:]
+		elif isinstance(name, tuple):
+			return list(name)
+		elif isinstance(name, str):
+			return name.split(':')
 		else:
+			logsupport.Logs.Log("Normalize name got strange input: ",name,severity=ConsoleError)
 			return [name]
 
 	def _accessitem(self,n2):
@@ -153,10 +173,14 @@ class ValueStore(object):
 		while len(n2) > 1:
 			t = t[n2[0]]
 			n2.pop(0)
-		if isinstance(n2[0], int):
-			return (t, n2[0])
-		else:
+		try:
+			indx = int(n2[0])
+			return (t, indx)
+		except:
 			return (t[n2[0]], None)
+
+	def LockStore(self):
+		self.locked = True
 
 	def GetVal(self,name):
 		if self.refreshinterval != 0 and time.time()>self.fetchtime+self.refreshinterval:
@@ -196,6 +220,8 @@ class ValueStore(object):
 
 	def AddAlert(self,name,a):
 		try:
+			if not isinstance(a,tuple):
+				a = (a,None)
 			n = self._normalizename(name)
 			item, index = self._accessitem(n)
 			if index is None:
@@ -237,7 +263,7 @@ class ValueStore(object):
 			for n in nmlist:
 				self.vars[n] = self.itemtyp(n, init, store=self)
 
-	def SetVal(self,name, val):
+	def SetVal(self,name, val, modifier = None):
 		n2 = self._normalizename(name)
 		n = n2[:]
 		t = self.vars
@@ -246,6 +272,9 @@ class ValueStore(object):
 				t = t[n2[0]]
 				n2.pop(0)
 			else:
+				if self.locked:
+					logsupport.Logs.Log('Attempt to add element to locked store',self.name,n)
+					return
 				t[n2[0]] = {} if not isinstance(n2[1],int) else self.itemtyp(StoreList(t),val,store=self) # todo test
 				t = t[n2[0]]
 				n2.pop(0)
@@ -253,12 +282,16 @@ class ValueStore(object):
 			if isinstance(t,self.itemtyp):
 				oldval = t.Value[n2[0]]
 				t.UpdateArrayVal(n2[0],val)
-			elif isinstance(t,dict):
+			else: # need to create an itemtyp here since t is a dict presumably empty as temporary part of creating multilevel
 				oldval = None
+				if self.locked:
+					logsupport.Logs.Log('Attempt to add element to locked store',self.name,n)
+					return
 				t = self.itemtyp(n2, StoreList(t),parent=self)
 				t.UpdateArrayVal(n2[0],val)
-			for notify in t.Alerts:
-				notify(t,oldval,val,n2[0])
+			if val != oldval: # todo notify for array values? test whether this equality is what is wanted for arrays
+				for notify in t.Alerts:
+					notify[0](t,oldval,val,n2[0],notify[1],modifier)
 		else:
 			if n2[0] in t:
 				oldval = t[n2[0]].Value
@@ -267,11 +300,16 @@ class ValueStore(object):
 			else:
 				oldval = None
 				t[n2[0]] = self.itemtyp(n,val,store=self)
-			for notify in t[n2[0]].Alerts:
-				notify(t[n2[0]],oldval,val)
+			if val != oldval:
+				for notify in t[n2[0]].Alerts:
+					notify[0](t[n2[0]],oldval,val,notify[1],modifier)
 
-	def SetValByAttr(self, attr, val):
-		self.attrs[attr].Value = val if self.attrs[attr].Type is None else self.attrs[attr].Type(val)
+	def SetValByAttr(self, attr, val, modifier = None):
+		storeitem = self.attrs[attr]
+		oldval = storeitem.Value
+		storeitem.Value = val if storeitem.Type is None else storeitem.Type(val)
+		for notify in storeitem.Alerts:
+			notify[0](storeitem,oldval,val,notify[1], modifier)
 
 	def items(self, parents=(), d=None):
 		if d is None: d = self.vars
