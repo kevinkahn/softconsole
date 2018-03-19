@@ -20,6 +20,7 @@ import config
 import importlib
 import os
 import sys
+import hw
 import signal
 import time
 import cgitb
@@ -52,7 +53,7 @@ import json
 def handler(signum, frame):
 	if signum in (signal.SIGTERM, signal.SIGINT):
 		logsupport.Logs.Log("Console received a termination signal ", str(signum), " - Exiting")
-		time.sleep(1)
+		hw.GoBright()
 		pygame.display.quit()
 		pygame.quit()
 		os._exit(0)

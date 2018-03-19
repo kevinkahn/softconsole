@@ -141,7 +141,7 @@ class ISYEventMonitor:
 								notice = pygame.event.Event(config.DS.ISYVar, node=(vartype, varid), value=varval,
 															alert=a)
 								pygame.fastevent.post(notice)
-						'''
+						
 
 						if config.DS.AS is not None:
 							if (vartype, varid) in config.DS.AS.VarsList:
@@ -154,6 +154,7 @@ class ISYEventMonitor:
 											   varval)
 								notice = pygame.event.Event(config.DS.ISYChange, vartype=vartype, varid=varid, value=varval)
 								pygame.fastevent.post(notice)
+						'''
 
 					elif prcode == 'Heartbeat':
 						config.lastheartbeat = time.time()

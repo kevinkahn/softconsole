@@ -2,7 +2,6 @@ import pygame
 import config
 import debug
 import hw
-import isy
 from eventlist import EventItem, EventList
 import time
 import logsupport
@@ -288,8 +287,8 @@ class DisplayScreen(object):
 				debug.debugPrint('Dispatch', 'ISY Change Event', event)
 				if hasattr(event, 'node'):
 					self.AS.ISYEvent(node=event.node, value=event.value)
-				elif hasattr(event, 'vartype'):
-					self.AS.ISYEvent(varid=(event.vartype, event.varid), value=event.value)
+				elif hasattr(event, 'varinfo'):
+					self.AS.ISYEvent(varinfo=event.varinfo)
 				else:
 					debug.debugPrint('Dispatch', 'Bad ISYChange Event: ', event)
 					logsupport.Logs.Log('Bad ISYChange Event ', event, severity=ConsoleWarning)

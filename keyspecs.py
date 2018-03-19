@@ -1,5 +1,5 @@
 import functools
-
+import pygame
 import config
 import eventlist
 import isy
@@ -10,6 +10,14 @@ import logsupport
 from logsupport import ConsoleWarning, ConsoleError, ConsoleDetail
 from toucharea import ManualKeyDesc
 from stores import valuestore
+import shlex
+
+def KeyWithVarChanged(storeitem, old, new, param, modifier):
+	debug.debugPrint('DaemonCtl','Var changed for key ',storeitem.name,' from ',old,' to ',new)
+	notice = pygame.event.Event(config.DS.ISYChange, varinfo=param)
+	pygame.fastevent.post(notice)
+	pass
+
 
 def CreateKey(screen, screensection, keyname):
 	if screensection.get('type', 'ONOFF', delkey=False) == 'RUNTHEN':
@@ -25,6 +33,8 @@ def CreateKey(screen, screensection, keyname):
 	logsupport.Logs.Log("-Key:" + keyname, severity=ConsoleDetail)
 	if keytype in ('ONOFF', 'ON', 'OFF'):
 		NewKey = OnOffKey(screen, screensection, keyname, keytype)
+	elif keytype == 'VARKEY':
+		NewKey = VarKey(screen, screensection, keyname)
 	elif keytype == 'SETVAR':
 		NewKey = SetVarKey(screen, screensection, keyname)
 	elif keytype == 'SETVARVALUE':
@@ -89,11 +99,66 @@ class SetVarValueKey(ManualKeyDesc):
 
 
 class VarKey(ManualKeyDesc):
+
+	class DistOpt(object):
+		def __init__(self,chooser,color,label):
+			self.Chooser = chooser
+			self.Color = color
+			self.Label = label.split(';')
+
 	def __init__(self, screen, keysection, keyname):
 		debug.debugPrint('Screen',"              New Var Key ", keyname)
 		ManualKeyDesc.__init__(self, screen, keysection, keyname)
-		utilities.LocalizeParams(self, keysection, '--', Var='', Appearance='', PushSeq='')
-		# Appearance condition:color:'Label', todo
+		utilities.LocalizeParams(self, keysection, '--', Var='', Appearance=[], ValueSeq=[])
+		valuestore.AddAlert(self.Var, (KeyWithVarChanged,(keyname,self.Var)))
+		if self.ValueSeq != []:
+			self.Proc = self.VarKeyPressed
+			t = []
+			for n in self.ValueSeq: t.append(int(n))
+			self.ValueSeq = t
+		self.displayoptions = []
+		self.oldval = None
+		self.State = False
+		for item in self.Appearance:
+			desc = shlex.split(item)
+			rng = desc[0].split(':')
+			chooser = (int(rng[0]),int(rng[0])) if len(rng) == 1 else (int(rng[0]),int(rng[1]))
+			clr = desc[1]
+			lab = self.label if len(desc) < 3 else desc[2]
+			self.displayoptions.append(self.DistOpt(chooser,clr,lab))
+
+	def PaintKey(self, ForceDisplay=False, DisplayState=True):
+		# create the images here dynamically then let lower methods do display, blink etc.
+		val = valuestore.GetVal(self.Var)
+		if self.oldval <> val:
+			self.oldval = val
+			oncolor = utilities.wc(self.KeyColorOn)
+			offcolor = utilities.wc(self.KeyColorOff)
+			lab = []
+			for i in self.displayoptions:
+				if val >= i.Chooser[0] and val <= i.Chooser[1]:
+					lab = i.Label[:]
+
+					oncolor = utilities.tint(i.Color)
+					offcolor = utilities.wc(i.Color)
+					break
+			if lab == []: lab = self.KeyLabelOn[:]
+			lab2 = []
+			for line in lab:
+				lab2.append(line.replace('$', str(val)))
+			self.BuildKey(oncolor, offcolor)
+			self.SetKeyImages(lab2, lab2, 0, True)
+			if self.Blink != 0: self.ScheduleBlinkKey(self.Blink)
+		super(VarKey,self).PaintKey(ForceDisplay,DisplayState)
+
+	def VarKeyPressed(self, presstype):
+		try:
+			i = self.ValueSeq.index(valuestore.GetVal(self.Var))
+		except ValueError:
+			i = len(self.ValueSeq) - 1
+		valuestore.SetVal(self.Var, self.ValueSeq[(i+1)%len(self.ValueSeq)])
+
+
 
 class SetVarKey(ManualKeyDesc):
 	def __init__(self, screen, keysection, keyname):

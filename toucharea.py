@@ -36,7 +36,6 @@ class ManualKeyDesc(TouchPoint):
 	that is passed in.
 	"""
 
-	# noinspection PyMissingConstructor
 	def __init__(self, *args, **kwargs):
 		# alternate creation signatures
 		self.ButtonFontSizes = (31, 28, 25, 22, 20, 18, 16)
@@ -84,6 +83,7 @@ class ManualKeyDesc(TouchPoint):
 		self.ISYObj = None
 		self.KeyOnOutlineColor = config.KeyOnOutlineColor if KOn == '' else KOn
 		self.KeyOffOutlineColor = config.KeyOffOutlineColor if KOff == '' else KOff
+		self.Blink = Blink
 
 	def dosectioninit(self, screen, keysection, keyname):
 		TouchPoint.__init__(self, keyname, (0, 0), (0, 0))
@@ -107,6 +107,11 @@ class ManualKeyDesc(TouchPoint):
 		else:
 			config.screen.blit(self.KeyOffImage, (x, y))
 		pygame.display.update()
+
+	def ScheduleBlinkKey(self, cycle):
+		E = eventlist.ProcEventItem(id(self.Screen), 'keyblink',
+									functools.partial(self.BlinkKey, cycle))
+		config.DS.Tasks.AddTask(E, .5)
 
 	def BlinkKey(self, cycle):
 		if cycle > 0:
@@ -156,26 +161,30 @@ class ManualKeyDesc(TouchPoint):
 		# called for each key on a screen when it first displays - allows setting initial state for key display
 		debug.debugPrint("Screen", "Base Key.InitDisplay ", self.Screen.name, self.name)
 
-	def FinishKey(self,center,size,firstfont=0,shrink=True):
-		if size[0] <> 0: # if size is not zero then set the pos/size of the key; otherwise it was previously set in manual creation
-			self.Center = center
-			self.Size = size
-
+	def BuildKey(self,coloron,coloroff):
 		buttonsmaller = (self.Size[0] - scaleW(6), self.Size[1] - scaleH(6))
 
 		# create image of ON key
 		self.KeyOnImageBase = pygame.Surface(self.Size)
-		pygame.draw.rect(self.KeyOnImageBase, wc(self.KeyColorOn), ((0, 0), self.Size), 0)
+		pygame.draw.rect(self.KeyOnImageBase, coloron, ((0, 0), self.Size), 0)
 		bord = self.KeyOutlineOffset
 		pygame.draw.rect(self.KeyOnImageBase, wc(self.KeyOnOutlineColor), ((scaleW(bord), scaleH(bord)), buttonsmaller),
 						 bord)
 
 		# create image of OFF key
 		self.KeyOffImageBase = pygame.Surface(self.Size)
-		pygame.draw.rect(self.KeyOffImageBase, wc(self.KeyColorOff), ((0, 0), self.Size), 0)
+		pygame.draw.rect(self.KeyOffImageBase, coloroff, ((0, 0), self.Size), 0)
 		bord = self.KeyOutlineOffset
 		pygame.draw.rect(self.KeyOffImageBase, wc(self.KeyOffOutlineColor),
 						 ((scaleW(bord), scaleH(bord)), buttonsmaller), bord)
+
+	def FinishKey(self,center,size,firstfont=0,shrink=True):
+		if size[0] <> 0: # if size is not zero then set the pos/size of the key; otherwise it was previously set in manual creation
+			self.Center = center
+			self.Size = size
+
+		self.BuildKey(wc(self.KeyColorOn),wc(self.KeyColorOff))
+
 		# dull the OFF key
 		s = pygame.Surface(self.Size)
 		s.set_alpha(150)

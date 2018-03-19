@@ -41,6 +41,11 @@ def wc(clr):
 		v = webcolors.name_to_rgb('black')
 	return v
 
+def tint(clr):
+	tint_factor = .25
+	r, g, b = wc(clr)
+	return(r + (255 - r) * tint_factor, g + (255 - g) * tint_factor, b + (255 - b) * tint_factor)
+
 
 class clsstruct:
 	def __init__(self, nm):

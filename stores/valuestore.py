@@ -225,7 +225,8 @@ class ValueStore(object):
 			n = self._normalizename(name)
 			item, index = self._accessitem(n)
 			if index is None:
-				item.Alerts.append(a)
+				if a not in item.Alerts: # don't add twice
+					item.Alerts.append(a)
 			else:
 				logsupport.Logs.Log("Can't set alert on array element for ", self.name)
 		except Exception as e:

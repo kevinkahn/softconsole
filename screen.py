@@ -69,7 +69,7 @@ class ScreenDesc(object):
 		self.PaintBase()
 		self.PaintKeys()
 
-	def ISYEvent(self, node, value):
+	def ISYEvent(self, node=0, value=0, varinfo = ()):
 		logsupport.Logs.Log("Unexpected ISY event to screen: ", self.name, severity=logsupport.ConsoleWarning)
 
 	def ExitScreen(self):

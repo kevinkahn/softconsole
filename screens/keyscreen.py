@@ -38,7 +38,7 @@ class KeyScreenDesc(screen.BaseKeyScreenDesc):
 			K.InitDisplay()
 		super(KeyScreenDesc, self).InitDisplay(nav)
 
-	def ISYEvent(self, node=0, value=0, varid=(0, 0)):
+	def ISYEvent(self, node=0, value=0, varinfo = ()):
 		# Watched node reported change event is ("Node", addr, value, seq)
 		if node <> 0:
 			try:
@@ -50,11 +50,11 @@ class KeyScreenDesc(screen.BaseKeyScreenDesc):
 			K.State = not (int(value if value.isdigit() else 0) == 0)  # K is off (false) only if state is 0
 		else:
 			try:
-				K = self.VarsList[varid]
+				# varinfo is (keyname, varname)
+				K = self.Keys[varinfo[0]]
 			except:
-				debug.debugPrint('Screen', 'Bad var key', self.name, str(varid), self.VarsList)
+				debug.debugPrint('Screen', 'Bad var key', self.name, str(varinfo))
 				return
-			K.Value = value
 		K.PaintKey()
 
 config.screentypes["Keypad"] = KeyScreenDesc
