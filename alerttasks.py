@@ -177,7 +177,7 @@ def ParseAlertParams(nm, spec):
 		trig = NodeChgtrigger(Node, test, value, delay)
 		# todo check nones
 		A = Alert(nm, triggertype, trig, action, actionname, param)
-	elif triggertype in ('StateChange','IntVarChange', 'LocalVarChange'):
+	elif triggertype in ('StateVarChange','IntVarChange', 'LocalVarChange'):
 		n = VarsTypes[triggertype] + (spec.get('Var', ''),)
 		logsupport.Logs.Log("Deprecated alert trigger ", triggertype, ' used - change to use VarChange ',n,
 							severity=ConsoleWarning)
