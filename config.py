@@ -62,7 +62,6 @@ botborder = 80
 cmdvertspace = 10  # this is the space around the top/bot of  cmd button within the bot border
 
 # Operational global navigation roots
-CurrentScreen = None
 HomeScreen = None
 HomeScreen2 = None
 MaintScreen = None
@@ -75,18 +74,21 @@ ExtraDict = {}
 # _____________________________
 
 # Global Defaults Settable in config.txt in Console
+sysStore = None
+
+sysvals = {
+	'DimLevel':10, 'BrightLevel':100, 'MultiTapTime':400
+	}
+
 ISYaddr = ""
 ISYuser = ""
 _ISYpassword = ""
 HomeScreenName = ""
-HomeScreenTO = 60
-DimLevel = 10
-BrightLevel = 100
+#HomeScreenTO = 60
 DimTO = 20
 PersistTO = 20
 CmdKeyCol = "red"
 CmdCharCol = "white"
-MultiTapTime = 400
 DimHomeScreenCoverName = ""
 DimIdleListNames = []
 DimIdleListTimes = []

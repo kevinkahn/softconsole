@@ -64,6 +64,7 @@ def handler(signum, frame):
 signal.signal(signal.SIGTERM, handler)
 signal.signal(signal.SIGINT, handler)
 
+config.sysStore = valuestore.NewValueStore(valuestore.ValueStore('System'))
 
 config.Console_pid = os.getpid()
 config.exdir = os.path.dirname(os.path.abspath(__file__))
@@ -214,6 +215,8 @@ while includes:
 debug.InitFlags(config.ParsedConfigFile)
 
 utilities.ParseParam(globalparams)  # add global parameters to config file
+for nm, val in config.sysvals.iteritems():
+	config.sysStore.SetVal(nm,type(val)(config.ParsedConfigFile.get(nm,val)))
 
 # preload weather icon cache for some common terms
 for cond in ('clear','cloudy','mostlycloudy','mostlysunny','partlycloudy','partlysunny','rain','snow','sunny','chancerain'):
@@ -268,6 +271,8 @@ logsupport.Logs.Log("Log level: ", logsupport.LogLevel)
 config.DS = displayscreen.DisplayScreen()  # create the actual device screen and touch manager
 
 utilities.LogParams()
+for i in config.sysStore:
+	logsupport.Logs.Log('SysParam: ' + valuestore.ExternalizeVarName(i.name) + ": " + str(i.Value))
 
 """
 Pull out non-screen sections

@@ -97,7 +97,7 @@ def get_real_time_node_status(addr):
 			break
 	try:
 		if config.ISY.NodesByAddr[addr].devState != int(devstate):
-			logsupport.Logs.Log("Shadow state wrong: ", addr, devstate, config.ISY.NodesByAddr[addr].devState,
+			logsupport.Logs.Log("Shadow state wrong: ", config.ISY.NodesByAddr[addr].fullname, ' (', addr, ') Real State: ', devstate, ' Shadow State: ', config.ISY.NodesByAddr[addr].devState,
 							severity=ConsoleWarning)
 	except:
 		logsupport.Logs.Log('Bad NodeByAddr in rt status: ', addr, severity=ConsoleError)

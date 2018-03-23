@@ -46,11 +46,11 @@ class DisplayScreen(object):
 
 	def Dim(self):
 		self.dim = 'Dim'
-		hw.GoDim(self.AS.DimLevel)
+		hw.GoDim(config.sysStore.GetVal('DimLevel'))
 
 	def Brighten(self):
 		self.dim = 'Bright'
-		hw.GoBright(self.AS.BrightLevel)
+		hw.GoBright(config.sysStore.GetVal('BrightLevel'))
 
 	def SetActivityTimer(self, timeinsecs, dbgmsg):
 		pygame.time.set_timer(self.ACTIVITYTIMER, timeinsecs*1000)  #todo .type deleted
@@ -218,13 +218,13 @@ class DisplayScreen(object):
 				# Screen was not Dim so the touch was meaningful
 				pos = event.pos
 				tapcount = 1
-				pygame.time.delay(config.MultiTapTime)
+				pygame.time.delay(config.sysStore.GetVal('MultiTapTime'))
 				while True:
 					eventx = pygame.fastevent.poll()
 					if eventx.type == pygame.MOUSEBUTTONDOWN:
 						debug.debugPrint('Touch','Follow MouseDown'+str(event.pos))
 						tapcount += 1
-						pygame.time.delay(config.MultiTapTime)
+						pygame.time.delay(config.sysStore.GetVal('MultiTapTime'))
 					elif eventx.type == pygame.NOEVENT:
 						break
 					else:

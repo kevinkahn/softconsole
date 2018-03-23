@@ -8,6 +8,7 @@ disklogging = True
 touchdevice = True
 GoDim = None
 GoBright = None
+lastlevel = 100
 
 # This version of hw uses the real hw pwm for screen dimming - much better appearance
 

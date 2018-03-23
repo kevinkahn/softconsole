@@ -45,8 +45,7 @@ class ScreenDesc(object):
 		self.VarsList = {}
 
 		utilities.LocalizeParams(self, screensection, '-', 'CharColor', 'DimTO', 'PersistTO', 'BackgroundColor',
-								 'CmdKeyCol',
-								 'CmdCharCol', 'DimLevel', 'BrightLevel', label=[screenname])
+								 'CmdKeyCol', 'CmdCharCol', label=[screenname])
 		self.Subscreens = {}  # support easy switching to subscreens - name:subscreen
 
 		utilities.register_example('ScreenDesc', self)
