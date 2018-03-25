@@ -4,6 +4,7 @@ pip install xmltodict
 pip install websocket-client
 pip install wiringpi
 pip install paho-mqtt
+pip install dateutil
 if [ -e setupsystemd.py ]
 then
     echo Initial install

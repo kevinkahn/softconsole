@@ -219,6 +219,8 @@ class ValueStore(object):
 			logsupport.Logs.Log("Attribute setting error", self.name, " new attr: ", attr)
 
 	def AddAlert(self,name,a):
+		# alert is proc to be called with signature (storeitem, old, new, param, chgsource)
+		# a is passed in here as either just the proc or a 2-tuple (proc, param)
 		try:
 			if not isinstance(a,tuple):
 				a = (a,None)
@@ -239,6 +241,7 @@ class ValueStore(object):
 			if index is None:
 				if item.Type is None:
 					item.Type = type
+					item.Value = type(item.Value)
 				else:
 					logsupport.Logs.Log("Type already set for ", self.name, " new type: ", type)
 			else:
@@ -264,9 +267,11 @@ class ValueStore(object):
 			for n in nmlist:
 				self.vars[n] = self.itemtyp(n, init, store=self)
 
-	def SetVal(self,name, val, modifier = None):
+	def SetVal(self,name, val, modifier = None): # modifier can be set by the caller if who caused the Val change is significant to any alerts
+		# currently only isyvarchange uses to avoid looping by changing the value as a result of an ISY message causing a send
+		# of the change back to the ISY
 		n2 = self._normalizename(name)
-		n = n2[:]
+		n = n2[:] # copy the name for filling in new item if needed
 		t = self.vars
 		while len(n2) > 1:
 			if n2[0] in t:
@@ -279,31 +284,40 @@ class ValueStore(object):
 				t[n2[0]] = {} if not isinstance(n2[1],int) else self.itemtyp(StoreList(t),val,store=self) # todo test
 				t = t[n2[0]]
 				n2.pop(0)
+		# at this point n2 is last piece of name and t dict holding pointer to last piece of name (itemtype) or itemtype with array value
 		if isinstance(n2[0], int):
+			# name is an array reference
 			if isinstance(t,self.itemtyp):
+				# if have an itemtyp then Value is an array
 				oldval = t.Value[n2[0]]
 				t.UpdateArrayVal(n2[0],val)
-			else: # need to create an itemtyp here since t is a dict presumably empty as temporary part of creating multilevel
+			else:
+				# need to create itemtyp here since t is a dict presumably empty as temporary part of creating multilevel
 				oldval = None
 				if self.locked:
 					logsupport.Logs.Log('Attempt to add element to locked store',self.name,n)
 					return
 				t = self.itemtyp(n2, StoreList(t),parent=self)
 				t.UpdateArrayVal(n2[0],val)
-			if val != oldval: # todo notify for array values? test whether this equality is what is wanted for arrays
-				for notify in t.Alerts:
-					notify[0](t,oldval,val,n2[0],notify[1],modifier)
+			if t.Value[n2[0]] != oldval: # for array need the element indexed by n2[0]
+				for notify in t.Alerts: # notify doesn't get sent the index - is this an issue ever?  could use modifier for that?
+					notify[0](t,oldval,t.Value[n2[0]],notify[1],modifier)
 		else:
+			# name has symbolic last part - not an array
 			if n2[0] in t:
-				oldval = t[n2[0]].Value
+				# item already exists so update it
+				t = t[n2[0]]
+				oldval = t.Value
 				# already exists
-				t[n2[0]].UpdateVal(val)
+				t.UpdateVal(val)
 			else:
+				# item doesn't exsit yet so create it
 				oldval = None
 				t[n2[0]] = self.itemtyp(n,val,store=self)
-			if val != oldval:
-				for notify in t[n2[0]].Alerts:
-					notify[0](t[n2[0]],oldval,val,notify[1],modifier)
+				t = t[n2[0]]
+			if t.Value != oldval:
+				for notify in t.Alerts:
+					notify[0](t,oldval,t.Value,notify[1],modifier)
 
 	def SetValByAttr(self, attr, val, modifier = None):
 		storeitem = self.attrs[attr]
