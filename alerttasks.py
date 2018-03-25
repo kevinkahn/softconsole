@@ -8,6 +8,8 @@ from stores import valuestore
 import pygame
 import debug
 from screens import alertscreen
+from datetime import datetime
+from dateutil.parser import parse
 
 alertprocs = {}  # set by modules from alerts directory
 monitoredvars = []
@@ -92,12 +94,31 @@ class InitTrigger(object):
 		pass
 
 class Periodictrigger(object):
-	def __init__(self, interval):
+	def __init__(self, periodic, interval,timeslist):
+		self.periodic = periodic
 		self.interval = interval
+		self.timeslist = timeslist
+
+	def NextInterval(self):
+		if self.periodic:
+			return self.interval
+		else:
+			now = datetime.now()
+			seconds_since_midnight = (now - now.replace(hour=0, minute=0, second=0, microsecond=0)).total_seconds()
+			for schedtime in self.timeslist:
+				#print 'Check ', seconds_since_midnight, schedtime
+				if seconds_since_midnight < schedtime - 2: # 2 seconds of slop to avoid rescheduling for immediate execution
+					#print "Next ", schedtime - seconds_since_midnight
+					return schedtime - seconds_since_midnight
+			# no times left for today
+			#print 'Tomorrow ', 24*3600 - seconds_since_midnight + self.timeslist[0]
+			return 24*3600 - seconds_since_midnight + self.timeslist[0]
 
 	def __repr__(self):
-		return 'Every ' + str(self.interval) + ' seconds'
-
+		if self.periodic:
+			return 'Every ' + str(self.interval) + ' seconds'
+		else:
+			return 'At ' + str(self.timeslist) + ' seconds past midnight'
 
 def getvalid(spec, item, choices, default=None):
 	i = spec.get(item, default)
@@ -154,19 +175,26 @@ def ParseAlertParams(nm, spec):
 	if triggertype == 'Periodic':
 		# parse time specs
 		interval = utilities.get_timedelta(spec.get('Interval', None))
-		A = Alert(nm, triggertype, Periodictrigger(interval), action, actionname, param)
-	elif triggertype == 'TOD':
-		pass
-		return None
-	# todo parse times
+		secfrommid = []
+		at = spec.get('At', '*unspec*')
+		periodic = False
+		if interval == 0 and at == '*unspec*':
+			logsupport.Logs.Log("Periodic trigger must specify interval or time(s): ", nm, severity=ConsoleWarning)
+			return None
+		if interval != 0:
+			periodic = True
+		if at != '*unspec*':
+			if periodic:
+				logsupport.Logs.Log("Periodic trigger cannot specify both interval and time(s): ", nm, severity=ConsoleWarning)
+				return None
+			if isinstance(at,str): at = [at]
+			for t in at:
+				tm = parse(t,ignoretz=True)
+				secfrommid.append(tm.hour*3600 + tm.minute*60 + tm.second)
+			secfrommid.sort()
+		A = Alert(nm, triggertype, Periodictrigger(periodic, interval, secfrommid), action, actionname, param)
+
 	elif triggertype == 'NodeChange':  # needs node, test, status, delay
-		"""
-		n = spec.get('Node', None)
-		if n is not None:
-			Node = config.ISY.NodesByName[n].address
-		else:
-			Node = ''
-		"""
 		n = spec.get('Node', None)
 		try:
 			Node = config.ISY.GetNodeByName(n).address
