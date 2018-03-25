@@ -123,20 +123,8 @@ class DisplayScreen(object):
 			logsupport.Logs.Log("Arming " + a.type + " alert " + a.name)
 			logsupport.Logs.Log("->" + str(a), severity=ConsoleDetail)
 
-			if a.type in ('StateVarChange', 'IntVarChange', 'LocalVarChange'):
-				print '**********NO*********' # todo
-				'''
-				var = (a.trigger.vartype, a.trigger.varid)
-				if var in self.WatchVars: 
-					self.WatchVars[var].append(a)
-				else:
-					self.WatchVars[var] = [a]
-				self.WatchVarVals[var] = isy.GetVar(var)
-				if a.trigger.IsTrue():
-					notice = pygame.event.Event(self.ISYVar, alert=a)
-					pygame.fastevent.post(notice)
-				'''
-			elif a.type == 'Periodic':
+			# Note: VarChange alerts don't need setup because the store has an alert proc
+			if a.type == 'Periodic':
 				E = AlertEventItem(id(a), a.name, a)
 				self.Tasks.AddTask(E, a.trigger.NextInterval())
 			elif a.type == 'NodeChange':
@@ -149,6 +137,8 @@ class DisplayScreen(object):
 					pygame.fastevent.post(notice)
 			elif a.type == 'Init':
 				a.Invoke()
+			else:
+				logsupport.Logs.Log("Internal error - unknown alert type: ", a.type, ' for ', a.name, severity=ConsoleError)
 
 		while config.digestinginit and config.ISYaddr != '':
 			logsupport.Logs.Log("Waiting initial status dump")

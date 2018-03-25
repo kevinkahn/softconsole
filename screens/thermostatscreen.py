@@ -154,8 +154,7 @@ class ThermostatScreenDesc(screen.BaseKeyScreenDesc):
 		pygame.display.update()
 
 	def InitDisplay(self, nav):
-		super(ThermostatScreenDesc, self).InitDisplay(
-			nav)  # todo what actually gets returned for thermo?  needed if want to optimize showscreen
+		super(ThermostatScreenDesc, self).InitDisplay(nav)
 		self.info = {} # clear any old info to force a display
 		self.ShowScreen()
 

@@ -143,7 +143,8 @@ class StoreItem(object):
 					self.Value.append(None)
 			self.Value[index] = val if self.Type is None else self.Type(val)
 		else:
-			return # todo error
+			logsupport.Logs.Log("Internal error - attempt to set array val on non-array ",self.name,severity= ConsoleError)
+			return
 		self.SetTime = time.time()
 
 class ValueStore(object):
@@ -261,7 +262,7 @@ class ValueStore(object):
 	def SimpleInit(self, nmlist, init):
 		if self.itemtyp != StoreItem:
 			logsupport.Logs.Log("Can't SimpleInit non-simple store: ",self.name, severity=ConsoleError)
-			return # todo abort internal error
+			return
 		if isinstance(nmlist, tuple) or isinstance(nmlist, list):
 			self.vars = {}
 			for n in nmlist:

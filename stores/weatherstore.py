@@ -81,7 +81,7 @@ class WeatherVals(valuestore.ValueStore):
 						'SunriseM': (int, ('sun_phase', 'sunrise', 'minute')),
 						'SunsetH': (int, ('sun_phase', 'sunset', 'hour')),
 						'SunsetM': (int, ('sun_phase', 'sunset', 'minute')),
-						'MoonriseH': (int, ('moon_phase', 'moonrise', 'hour')),  # todo intstr
+						'MoonriseH': (int, ('moon_phase', 'moonrise', 'hour')),
 						'MoonriseM': (int, ('moon_phase', 'moonrise', 'minute')),
 						'MoonsetH': (int, ('moon_phase', 'moonset', 'hour')),
 						'MoonsetM': (int, ('moon_phase', 'moonset', 'minute')),

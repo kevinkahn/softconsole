@@ -29,7 +29,7 @@ class NetworkHealth(object):
 		var = valuestore.InternalizeVarName(alert.param[1])
 		if alert.param[0] not in self.LastState:
 			self.LastState[alert.param[0]] = True  # assume up to start
-		config.DS.Tasks.StartLongOp()  # todo perhaps a cleaner way to deal with long ops
+		config.DS.Tasks.StartLongOp()
 		if self.RobustPing(alert.param[0]):
 			if not self.LastState[alert.param[0]]:
 				self.LastState[alert.param[0]] = True

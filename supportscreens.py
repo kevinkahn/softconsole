@@ -31,7 +31,6 @@ class VerifyScreen(screen.BaseKeyScreenDesc):
 		utilities.register_example("VerifyScreen", self)
 
 	def Invoke(self):
-		# todo animation
 		config.DS.SwitchScreen(self, 'Bright', config.DS.state, 'Do Verify ' + self.name, NavKeys=False)
 
 	def ShowScreen(self):

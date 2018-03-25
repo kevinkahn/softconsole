@@ -203,7 +203,6 @@ def ParseAlertParams(nm, spec):
 			logsupport.Logs.Log("Bad Node Spec on NodeChange alert in " + nm, severity=ConsoleWarning)
 		test, value, delay = comparams(spec)
 		trig = NodeChgtrigger(Node, test, value, delay)
-		# todo check nones
 		A = Alert(nm, triggertype, trig, action, actionname, param)
 	elif triggertype in ('StateVarChange','IntVarChange', 'LocalVarChange'):
 		n = VarsTypes[triggertype] + (spec.get('Var', ''),)
@@ -228,7 +227,7 @@ def ParseAlertParams(nm, spec):
 		valuestore.AddAlert(n,(VarChanged, A))
 
 	elif triggertype == 'External':
-		pass  # todo external?
+		pass
 		return None
 	elif triggertype == 'Init':  # Trigger once at start up passing in the configobj spec
 		trig = InitTrigger()

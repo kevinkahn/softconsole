@@ -88,7 +88,6 @@ class MQTTBroker(valuestore.ValueStore):
 	def SetValByID(self,id, val):
 		logsupport.Logs.Log("Can't set MQTT subscribed var by id within console: ", str(id))
 
-	#todo add pub support?
 
 
 
