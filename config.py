@@ -1,3 +1,5 @@
+import hw
+
 screentypes = {}  # set by each module for screens of the type that module creates (see last line in any XxxScreen module
 
 starttime = 0
@@ -77,7 +79,7 @@ ExtraDict = {}
 sysStore = None
 
 sysvals = {
-	'DimLevel':10, 'BrightLevel':100, 'MultiTapTime':400
+	'DimLevel':(int,10,(hw.ResetScreenLevel, True)), 'BrightLevel':(int,100,(hw.ResetScreenLevel, False)), 'MultiTapTime':(int,400,None)
 	}
 
 ISYaddr = ""

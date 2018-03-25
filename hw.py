@@ -1,28 +1,49 @@
 import os
-
 import wiringpi
-
-import config
 
 disklogging = True
 touchdevice = True
-GoDim = None
 GoBright = None
-lastlevel = 100
+IsDim = False
+PWMDim = True
 
 # This version of hw uses the real hw pwm for screen dimming - much better appearance
 
+def GoDim(level):
+	global IsDim, PWMDim
+	IsDim = True
+	if PWMDim:
+		GoDimPWM(level)
+	else:
+		GoDimPi7(level)
+
+def GoBright(level):
+	global IsDim, PWMDim
+	IsDim = False
+	if PWMDim:
+		GoDimPWM(level)
+	else:
+		GoDimPi7(level)
+
+def ResetScreenLevel(storeitem, old, val, dim, unusedsrc):
+	global IsDim
+	if IsDim and dim:
+		# screen is dim - reset its level
+		GoDim(val)
+	elif not IsDim and not dim:
+		# screen is bright and bright level reset - reset its level
+		GoDim(val)
+
 
 def initOS(screentype):
-	global GoDim, GoBright
+	global PWMDim
 	if screentype == 'pi7':
 		os.environ['SDL_FBDEV'] = '/dev/fb0'
 		os.environ['SDL_NOMOUSE'] = '1'
 		os.environ['SDL_MOUSEDEV'] = ''
 		os.environ['SDL_MOUSEDRV'] = ''
 		os.environ['SDL_VIDEODRIVER'] = 'fbcon'
-		GoDim = GoDimPi7
-		GoBright = GoDimPi7
+		PWMDim = False
 	elif screentype in ('35r','28c','28r'):
 		os.environ['SDL_FBDEV'] = '/dev/fb1'
 		os.environ['SDL_NOMOUSE'] = '1'
@@ -40,8 +61,7 @@ def initOS(screentype):
 		wiringpi.pinMode(18, 2)
 		wiringpi.pwmSetMode(wiringpi.PWM_MODE_MS)  # default balanced mode makes screen dark at about 853/1024
 		wiringpi.pwmWrite(18, 1024)
-		GoDim = GoDimPWM
-		GoBright = GoDimPWM
+		PWMDim = True
 	else: # todo delete if 28r works and waveshare works
 		os.environ['SDL_FBDEV'] = '/dev/fb1'
 		os.environ['SDL_MOUSEDEV'] = '/dev/input/touchscreen'
@@ -58,8 +78,7 @@ def initOS(screentype):
 		wiringpi.pinMode(18, 2)
 		wiringpi.pwmSetMode(wiringpi.PWM_MODE_MS)  # default balanced mode makes screen dark at about 853/1024
 		wiringpi.pwmWrite(18, 1024)
-		GoDim = GoDimPWM
-		GoBright = GoDimPWM
+		PWMDim = True
 
 	GoBright(100)
 

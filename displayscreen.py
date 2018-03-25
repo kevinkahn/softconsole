@@ -46,11 +46,11 @@ class DisplayScreen(object):
 
 	def Dim(self):
 		self.dim = 'Dim'
-		hw.GoDim(config.sysStore.GetVal('DimLevel'))
+		hw.GoDim(int(config.sysStore.GetVal('DimLevel'))) # todo why this returning str?
 
 	def Brighten(self):
 		self.dim = 'Bright'
-		hw.GoBright(config.sysStore.GetVal('BrightLevel'))
+		hw.GoBright(int(config.sysStore.GetVal('BrightLevel')))
 
 	def SetActivityTimer(self, timeinsecs, dbgmsg):
 		pygame.time.set_timer(self.ACTIVITYTIMER, timeinsecs*1000)  #todo .type deleted
@@ -138,9 +138,7 @@ class DisplayScreen(object):
 				'''
 			elif a.type == 'Periodic':
 				E = AlertEventItem(id(a), a.name, a)
-				self.Tasks.AddTask(E, a.trigger.interval)
-			elif a.type == 'TOD':
-				pass  # schedule next occurrence todo
+				self.Tasks.AddTask(E, a.trigger.NextInterval())
 			elif a.type == 'NodeChange':
 				if a.trigger.nodeaddress in self.WatchNodes:
 					self.WatchNodes[a.trigger.nodeaddress].append(a)
@@ -154,7 +152,7 @@ class DisplayScreen(object):
 
 		while config.digestinginit and config.ISYaddr != '':
 			logsupport.Logs.Log("Waiting initial status dump")
-			time.sleep(.2)
+			time.sleep(.5)
 		with open(config.homedir + "/.ConsoleStart", "a") as f:
 			f.write(str(time.time()) + '\n')
 		if config.Running:  # allow for a very early restart request from things like autoversion
@@ -331,12 +329,12 @@ class DisplayScreen(object):
 					debug.debugPrint('Dispatch', 'Task ProcEvent fired: ', E)
 					if callable(E.proc):
 						E.proc()
-				elif isinstance(E, AlertEventItem):  # delayed alert screen
+				elif isinstance(E, AlertEventItem):
 					debug.debugPrint('Dispatch', 'Task AlertEvent fired: ', E)
 					logsupport.Logs.Log("Alert event fired" + str(E.alert), severity=ConsoleDetail)
-					E.alert.Invoke()  # defered or delayed alert firing
+					E.alert.Invoke()  # defered or delayed or scheduled alert firing
 					if isinstance(E.alert.trigger, alerttasks.Periodictrigger):
-						self.Tasks.AddTask(E, E.alert.trigger.interval)
+						self.Tasks.AddTask(E, E.alert.trigger.NextInterval())
 				else:
 					# unknown eevent?
 					debug.debugPrint('Dispatch', 'TASKREADY found unknown event: ', E)
