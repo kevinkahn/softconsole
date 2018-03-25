@@ -45,7 +45,7 @@ import utilities
 import requests
 from logsupport import ConsoleWarning
 import weatherfromatting
-from stores import mqttsupport, valuestore, localvarsupport
+from stores import mqttsupport, valuestore, localvarsupport, sysstore
 
 import json
 
@@ -53,7 +53,7 @@ import json
 def handler(signum, frame):
 	if signum in (signal.SIGTERM, signal.SIGINT):
 		logsupport.Logs.Log("Console received a termination signal ", str(signum), " - Exiting")
-		hw.GoBright()
+		hw.GoBright(100)
 		pygame.display.quit()
 		pygame.quit()
 		os._exit(0)
@@ -64,7 +64,7 @@ def handler(signum, frame):
 signal.signal(signal.SIGTERM, handler)
 signal.signal(signal.SIGINT, handler)
 
-config.sysStore = valuestore.NewValueStore(valuestore.ValueStore('System'))
+config.sysStore = valuestore.NewValueStore(sysstore.SystemStore('System'))
 
 config.Console_pid = os.getpid()
 config.exdir = os.path.dirname(os.path.abspath(__file__))
@@ -216,7 +216,8 @@ debug.InitFlags(config.ParsedConfigFile)
 
 utilities.ParseParam(globalparams)  # add global parameters to config file
 for nm, val in config.sysvals.iteritems():
-	config.sysStore.SetVal(nm,type(val)(config.ParsedConfigFile.get(nm,val)))
+	config.sysStore.SetVal([nm],val[0](config.ParsedConfigFile.get(nm,val[1])))
+	if val[2] is not None: config.sysStore.AddAlert(nm,val[2])
 
 # preload weather icon cache for some common terms
 for cond in ('clear','cloudy','mostlycloudy','mostlysunny','partlycloudy','partlysunny','rain','snow','sunny','chancerain'):

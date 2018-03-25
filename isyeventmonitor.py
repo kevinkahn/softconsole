@@ -179,6 +179,10 @@ class ISYEventMonitor:
 						logsupport.Logs.Log("ISY shows comm error for node: " + str(isynd), severity=ConsoleWarning)
 
 					if ecode == 'ST':
+						if enode == "20 51 B2 1":
+							print "Off Ceil Set: " + str(eaction)
+						if eaction < 0:
+							print "Strange node set: "+str(enode)+' '+str(eaction)
 						config.ISY.NodesByAddr[enode].devState = int(eaction)
 
 				else:
