@@ -57,7 +57,7 @@ class ManualKeyDesc(TouchPoint):
 			self.KeyLabelOn = self.label
 		if self.KeyLabelOff == ['', ]:
 			self.KeyLabelOff = self.label
-		if self.Size[0] <> 0:  # this key can be imaged now since it has a size
+		if self.Size[0] != 0:  # this key can be imaged now since it has a size
 			self.FinishKey((0, 0), (0, 0))
 		utilities.register_example("ManualKeyDesc", self)
 
@@ -179,7 +179,7 @@ class ManualKeyDesc(TouchPoint):
 						 ((scaleW(bord), scaleH(bord)), buttonsmaller), bord)
 
 	def FinishKey(self,center,size,firstfont=0,shrink=True):
-		if size[0] <> 0: # if size is not zero then set the pos/size of the key; otherwise it was previously set in manual creation
+		if size[0] != 0: # if size is not zero then set the pos/size of the key; otherwise it was previously set in manual creation
 			self.Center = center
 			self.Size = size
 

@@ -3,7 +3,6 @@ import wiringpi
 
 disklogging = True
 touchdevice = True
-GoBright = None
 IsDim = False
 PWMDim = True
 

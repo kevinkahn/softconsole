@@ -11,7 +11,7 @@ class TempLogger(object):
 		pass
 	def Log(self, *args, **kwargs):
 		entry = "".join([unicode(i) for i in args])
-		print time.strftime('%m-%d-%y %H:%M:%S') + " " + entry.encode('ascii', errors='backslashreplace')
+		print(time.strftime('%m-%d-%y %H:%M:%S') + " " + entry.encode('ascii', errors='backslashreplace'))
 
 Logs = TempLogger()
 import config

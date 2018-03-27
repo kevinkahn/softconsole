@@ -11,13 +11,13 @@ class ThreadItem(object):
 		self.Thread = None
 
 def CheckThreads():
-	for T in HelperThreads.itervalues():
+	for T in HelperThreads.values():
 		if not T.Thread.is_alive():
 			logsupport.Logs.Log("Thread for: "+T.name+" died; restarting",severity=ConsoleWarning)
 			T.RestartThread()
 
 def StartThreads():
-	for T in HelperThreads.itervalues():
+	for T in HelperThreads.values():
 		T.StartThread()
 		logsupport.Logs.Log("Starting helper thread for: ", T.name)
 

@@ -34,13 +34,13 @@ class KeyScreenDesc(screen.BaseKeyScreenDesc):
 
 	def InitDisplay(self, nav):
 		debug.debugPrint("Screen", "Keyscreen InitDisplay: ", self.name)
-		for K in self.Keys.itervalues():
+		for K in self.Keys.values():
 			K.InitDisplay()
 		super(KeyScreenDesc, self).InitDisplay(nav)
 
 	def ISYEvent(self, node=0, value=0, varinfo = ()):
 		# Watched node reported change event is ("Node", addr, value, seq)
-		if node <> 0:
+		if node != 0:
 			try:
 				K = self.NodeList[node]
 			except:

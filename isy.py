@@ -261,7 +261,7 @@ class ISY(object):
 	@staticmethod
 	def LinkChildrenParents(nodelist, listbyname, looklist1, looklist2):
 
-		for node in nodelist.itervalues():
+		for node in nodelist.values():
 			listbyname[node.name] = node
 			if node.parent in looklist1:
 				node.parent = looklist1[node.parent]  # replace address with actual object
@@ -568,7 +568,7 @@ class ISY(object):
 		if name[0] != '/':
 			return name in self.ScenesByName
 		else:
-			for n, s in self.ScenesByName.iteritems():
+			for n, s in self.ScenesByName.items():
 				if name == s.fullname:
 					return True
 			return False
@@ -577,7 +577,7 @@ class ISY(object):
 		if name[0] != '/':
 			return self.ScenesByName[name]
 		else:
-			for n, s in self.ScenesByName.iteritems():
+			for n, s in self.ScenesByName.items():
 				if name == s.fullname:
 					return s
 			return None

@@ -58,10 +58,10 @@ def Exit(ecode):
 	print('Console exit with code: ' + str(ecode) + ' at ' + time.strftime('%m-%d-%y %H:%M:%S'))
 	if ecode in range(10,20):
 		# exit console without restart
-		print "Shutdown"
+		print("Shutdown")
 	elif ecode in range(20,30):
 		# shutdown the pi
-		print "Shutdown the Pi"
+		print("Shutdown the Pi")
 		subprocess.Popen(['sudo', 'shutdown', '-P', 'now'])
 	elif ecode in range(30,40):
 		# restart the console

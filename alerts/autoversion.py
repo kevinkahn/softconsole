@@ -19,7 +19,7 @@ class AutoVersion(object):
 			try:  # if network is down or other error occurs just skip for now rather than blow up
 				sha, c = githubutil.GetSHA(config.versionname)
 				#logsupport.Logs.Log('sha: ',sha, ' cvshha: ',config.versionsha,severity=ConsoleDetail)
-				if sha <> config.versionsha and sha <> 'no current sha':
+				if sha != config.versionsha and sha != 'no current sha':
 					logsupport.Logs.Log('Current hub version different')
 					logsupport.Logs.Log(
 						'Running (' + config.versionname + '): ' + config.versionsha + ' of ' + config.versioncommit)

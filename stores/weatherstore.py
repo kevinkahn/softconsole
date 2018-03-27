@@ -112,13 +112,13 @@ class WeatherVals(valuestore.ValueStore):
 		self.name = location
 		self.url = 'http://api.wunderground.com/api/' + WunderKey + '/conditions/forecast10day/astronomy/q/' \
 				   + location + '.json'
-		for fld, fldinfo in ConditionMap.iteritems():
+		for fld, fldinfo in ConditionMap.items():
 			self.vars['Cond'][fld] = WeatherItem(('Cond',fld),fldinfo,self)
-		for fld, fldinfo in csynthmap.iteritems():
+		for fld, fldinfo in csynthmap.items():
 			self.vars['Cond'][fld] = WeatherItem(('Cond',fld),fldinfo,self)
-		for fld, fldinfo in ForecastDay.iteritems():
+		for fld, fldinfo in ForecastDay.items():
 			self.vars['Fcst'][fld] = WeatherItem(('Fcst',fld),fldinfo,self)
-		for fld, fldinfo in fsynthmap.iteritems():
+		for fld, fldinfo in fsynthmap.items():
 			self.vars['Fcst'][fld] = WeatherItem(('Fcst',fld),fldinfo,self)
 
 	def BlockRefresh(self):
@@ -169,7 +169,7 @@ class WeatherVals(valuestore.ValueStore):
 		parsed_json = json.loads(val)
 		js = functools.partial(TreeDict, parsed_json)
 		fcsts = TreeDict(parsed_json, 'forecast', 'simpleforecast', 'forecastday')
-		for n, cond in self.vars['Cond'].iteritems():
+		for n, cond in self.vars['Cond'].items():
 			try:
 				if cond.MapInfo[0] != 'synthetic':
 					cond.Value = cond.MapInfo[0](js(*cond.MapInfo[1]))
@@ -180,7 +180,7 @@ class WeatherVals(valuestore.ValueStore):
 			except:
 				cond.Value = None  # set error equiv to Conderr?
 
-		for n, fcst in self.vars['Fcst'].iteritems():
+		for n, fcst in self.vars['Fcst'].items():
 			fcst.Value = valuestore.StoreList(fcst)
 			for i, fcstitem in enumerate(fcsts):
 				fs = functools.partial(TreeDict,fcstitem)

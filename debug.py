@@ -84,7 +84,7 @@ def ISYDump(fn, item, pretty = True,new=False):
 
 def StoresDump(store,old,new,param):
 	if not new: return
-	for store in valuestore.ValueStores.itervalues():
+	for store in valuestore.ValueStores.values():
 		for i in store.items():
-			print store.name, i,store.GetVal(i)
+			print (store.name + str(i)+str(store.GetVal(i)))
 	dbgStore.SetVal('StoresDump',False)

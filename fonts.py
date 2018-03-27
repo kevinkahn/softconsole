@@ -25,7 +25,7 @@ class Fonts(object):
 		try:
 			return self.fontcache[face][size][italic][bold]
 		except KeyError:
-			name = face if face <> "" else None
+			name = face if face != "" else None
 			if face not in self.fontcache:
 				self.fontcache[face] = {size: {italic: {bold: gennewfont()}}}
 			else:
@@ -39,6 +39,6 @@ class Fonts(object):
 							self.fontcache[face][size][italic][bold] = gennewfont()
 						else:
 							pass  # log this - should never get here
-			debug.debugPrint('Fonts', 'New font: ', face if face <> "" else '-Sys-', ' :', size, (' b', ' B')[bold],
+			debug.debugPrint('Fonts', 'New font: ', face if face != "" else '-Sys-', ' :', size, (' b', ' B')[bold],
 							 (' i', ' I')[italic])
 			return self.fontcache[face][size][italic][bold]

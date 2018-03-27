@@ -130,7 +130,7 @@ class VarKey(ManualKeyDesc):
 	def PaintKey(self, ForceDisplay=False, DisplayState=True):
 		# create the images here dynamically then let lower methods do display, blink etc.
 		val = valuestore.GetVal(self.Var)
-		if self.oldval <> val:
+		if self.oldval != val:
 			self.oldval = val
 			oncolor = utilities.wc(self.KeyColorOn)
 			offcolor = utilities.wc(self.KeyColorOff)

@@ -70,7 +70,7 @@ def SetUpMaintScreens():
 
 	for s in FlagsScreens:
 		debug.DebugFlagKeys.update(s.Keys)
-		for kn, k in s.Keys.iteritems():
+		for kn, k in s.Keys.items():
 			if kn in debug.DbgFlags:
 				k.State = debug.dbgStore.GetVal(k.name)
 				k.Proc = functools.partial(setdbg, k)
@@ -227,7 +227,7 @@ class MaintScreenDesc(screen.BaseKeyScreenDesc):
 		debug.debugPrint('Screen', "Build Maintenance Screen")
 		screen.BaseKeyScreenDesc.__init__(self, overrides, name)
 		utilities.LocalizeParams(self, None, '-', TitleFontSize=40, SubFontSize=25)
-		for k, kt in keys.iteritems():
+		for k, kt in keys.items():
 			NK = toucharea.ManualKeyDesc(self, k, [kt[0]], 'gold', 'black', 'red', KOn='black', KOff='red')
 			if kt[1] is not None:
 				NK.Proc = functools.partial(kt[1], NK)

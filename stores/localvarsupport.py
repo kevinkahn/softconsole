@@ -5,7 +5,7 @@ class LocalVars(valuestore.ValueStore):
 	def __init__(self, name, configsect):
 		super(LocalVars, self).__init__(name)
 		id = 0
-		for i, v in configsect.iteritems():
+		for i, v in configsect.items():
 			if isinstance(v, Section):
 				tp = v.get('VarType', 'int')
 				if tp == 'float':

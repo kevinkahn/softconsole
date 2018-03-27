@@ -82,14 +82,14 @@ Section.get = CO_get
 
 
 def LogBadParams(section, name):
-	for nm, s in section.iteritems():
+	for nm, s in section.items():
 		if isinstance(s, Section):
 			LogBadParams(s, nm)
 		else:
 			logsupport.Logs.Log("Bad (unused) parameter name in: ", name, " (", nm, "=", str(s), ")",
 							severity=ConsoleWarning)
 
-if os.getegid() <> 0:
+if os.getegid() != 0:
 	# Not running as root
 	logsupport.Logs.Log("Not running as root - exit")
 	print ("Must run as root")
@@ -189,14 +189,14 @@ config.configfilelist[config.configfile] = os.path.getmtime(config.configfile)
 cfiles = []
 pfiles = []
 cfglib = config.ParsedConfigFile.get('cfglib', '')
-if cfglib <> '':
+if cfglib != '':
 	cfglib += '/'
-if cfglib[0] <> '/':
+if cfglib[0] != '/':
 	cfglib = configdir + '/' + cfglib
 includes = config.ParsedConfigFile.get('include', [])
 while includes:
 	f = includes.pop(0)
-	if f[0] <> '/':
+	if f[0] != '/':
 		pfiles.append('+' + f)
 		f = cfglib + f
 	else:
@@ -215,7 +215,7 @@ while includes:
 debug.InitFlags(config.ParsedConfigFile)
 
 utilities.ParseParam(globalparams)  # add global parameters to config file
-for nm, val in config.sysvals.iteritems():
+for nm, val in config.sysvals.items():
 	config.sysStore.SetVal([nm],val[0](config.ParsedConfigFile.get(nm,val[1])))
 	if val[2] is not None: config.sysStore.AddAlert(nm,val[2])
 
@@ -278,7 +278,7 @@ for i in config.sysStore:
 """
 Pull out non-screen sections
 """
-for i,v in config.ParsedConfigFile.iteritems():
+for i,v in config.ParsedConfigFile.items():
 	if isinstance(v, Section):
 		stype = v.get('type',None,delkey=False)
 		if stype == 'MQTT':
@@ -347,7 +347,7 @@ if 'Variables' in config.ParsedConfigFile:
 	valuestore.NewValueStore(localvarsupport.LocalVars('LocalVars',config.ParsedConfigFile['Variables']))
 	i = 0
 	tn = ['LocalVars','']
-	for nm, val in config.ParsedConfigFile['Variables'].iteritems():
+	for nm, val in config.ParsedConfigFile['Variables'].items():
 		logsupport.Logs.Log("Local variable: " + nm + "(" + str(i) + ") = " + str(val))
 		tn[1] = nm
 		valuestore.SetVal(tn, val)

@@ -5,43 +5,43 @@ import subprocess
 
 # Set up directories
 
-if os.getegid() <> 0:
+if os.getegid() != 0:
 	# Not running as root
-	print "Must run as root"
+	print("Must run as root")
 	exit(999)
 
-print "*** Setupconsole ***"
+print("*** Setupconsole ***")
 piuid = pwd.getpwnam('pi')[2]
 pigrp = grp.getgrnam('pi')[2]
 for pdir in ('Console', 'consolestable', 'consolebeta', 'consolerem'):
 	try:
 		os.mkdir(pdir)
-		print "Created: ", pdir
+		print("Created: "+ str(pdir))
 	except:
-		print "Already present: ", pdir
+		print("Already present: "+ str(pdir))
 	os.chown(pdir, piuid, pigrp)
 
 if os.path.exists('homesystem'):
 	# personal system
 	U.StageVersion('consolestable', 'homerelease', 'InitialInstall')
-	print "Stage homerelease as stable"
+	print("Stage homerelease as stable")
 else:
 	U.StageVersion('consolestable', 'currentrelease', 'InitialInstall')
-	print "Stage standard stable release"
+	print("Stage standard stable release")
 U.InstallStagedVersion('consolestable')
-print "Installed staged stable"
+print("Installed staged stable")
 
 U.StageVersion('consolebeta', 'currentbeta', 'InitialInstall')
-print "Stage current beta release"
+print("Stage current beta release")
 U.InstallStagedVersion('consolebeta')
-print "Installed staged beta"
+print("Installed staged beta")
 
 if os.path.exists('homesystem'):
 	os.mkdir('consolecur')
 	os.chown('consolecur',piuid,pigrp)
 	U.StageVersion('consolecur', 'currenttest', 'InitialInstall')
-	print "Stage test version"
+	print("Stage test version")
 	U.InstallStagedVersion('consolecur')
-	print "Installed test version"
+	print("Installed test version")
 
 subprocess.call("cp -r /home/pi/consolestable/'example configs'/* /home/pi/Console", shell=True)

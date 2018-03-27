@@ -26,20 +26,20 @@ class HouseStatusScreenDesc(screen.ScreenDesc):
 
 		# stop any watching for device stream
 		config.toDaemon.put([])
-		print self.NormalOn
-		print self.NormalOff
+		print(self.NormalOn)
+		print(self.NormalOff)
 		checknodes = [nm for nm in config.ISY.NodesByName if ((nm in self.NormalOn) or (nm in self.NormalOff))]
-		print checknodes
+		print(checknodes)
 		# states = isy.get_real_time_status([config.ISY.NodesByName[x].address for x in checknodes])
-		print states
+		print(states)
 		outspecnodes = []
 		for node in states:
 			nodename = config.ISY.NodesByAddr[node]
 			if ((nodename in self.NormalOn) and (states[node] == 0)) or (
-						(nodename in self.NormalOff) and (states[node] <> 0)):
+						(nodename in self.NormalOff) and (states[node] != 0)):
 				outspecnodes.append(node)
 		for node in outspecnodes:
-			print node, config.ISY.NodesByAddr[node].name, states[node]
+			print(node, config.ISY.NodesByAddr[node].name, states[node])
 
 		self.PaintBase()
 

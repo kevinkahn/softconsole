@@ -150,7 +150,7 @@ class MyScreens(object):
 			logsupport.Logs.Log("Error specifying idle screens - check config", severity=ConsoleWarning)
 
 		# handle deprecated DimHomeScreenCoverName
-		if config.DimHomeScreenCoverName <> "" and not config.DimIdleList:
+		if config.DimHomeScreenCoverName != "" and not config.DimIdleList:
 			if config.DimHomeScreenCoverName in config.MainChain:
 				config.DimIdleList.append(config.MainDict[config.DimHomeScreenCoverName].screen)
 				config.DimIdleTimes.append(1000000)
@@ -161,6 +161,6 @@ class MyScreens(object):
 			logsupport.Logs.Log("No Dim Home Screen Cover Set")
 
 		logsupport.Logs.Log("Not on screen list and not cover screen:")
-		for nm, scr in config.ExtraDict.iteritems():
+		for nm, scr in config.ExtraDict.items():
 			if (not isinstance(scr.screen, config.screentypes["Alert"])) and (not scr.screen in config.DimIdleList):
 				logsupport.Logs.Log("---" + nm, severity=ConsoleWarning)

@@ -311,7 +311,7 @@ def DumpDocumentation():
 
 	varsinuse = {}
 	olditems = []
-	for i, scr in exemplarobjs.iteritems():
+	for i, scr in exemplarobjs.items():
 		varsinuse[i] = [x for x in scr if not x.startswith('_') and x not in olditems]
 		olditems += [x for x in scr if not x.startswith('_')]
 
@@ -335,7 +335,7 @@ def DumpDocumentation():
 		for i in r.members:
 			docwrite(i, ind + '    ', '##')
 
-	for c in clslst.itervalues():
+	for c in clslst.values():
 		for n in c.membernms:
 			c.members.append(clslst[n])
 	r = clslst['object']

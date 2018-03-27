@@ -329,7 +329,7 @@ class ValueStore(object):
 
 	def items(self, parents=(), d=None):
 		if d is None: d = self.vars
-		for n, i in d.iteritems():
+		for n, i in d.items():
 			if isinstance(i, dict):
 				np = parents + (n,)
 				for b in self.items(parents=np, d=i):

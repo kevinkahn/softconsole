@@ -151,7 +151,7 @@ class EventList(object):
 
 	def RemoveAllGrp(self, gpid):
 		# remove all events where screen is this screen
-		for e in self.finder.itervalues():
+		for e in self.finder.values():
 			if e.gpid == gpid:
 				self.RemoveTask(e)
 

@@ -64,7 +64,7 @@ class DisplayScreen(object):
 		if NS == self.AS:
 			debug.debugPrint('Dispatch', 'Null SwitchScreen: ', reason)
 			logsupport.Logs.Log('Null switchscreen: ' + reason, severity=ConsoleWarning)
-		if self.AS is not None and self.AS <> NS:
+		if self.AS is not None and self.AS != NS:
 			debug.debugPrint('Dispatch', "Switch from: ", self.AS.name, " to ", NS.name, "Nav=", NavKeys, ' State=',
 					   oldstate + '/' + newstate + ':' + olddim + '/' + newdim, ' ', reason)
 			self.AS.ExitScreen()
@@ -118,7 +118,7 @@ class DisplayScreen(object):
 		self.ScreensDict = config.SecondaryDict.copy()
 		self.ScreensDict.update(config.MainDict)
 
-		for a in config.Alerts.AlertsList.itervalues():
+		for a in config.Alerts.AlertsList.values():
 			a.state = 'Armed'
 			logsupport.Logs.Log("Arming " + a.type + " alert " + a.name)
 			logsupport.Logs.Log("->" + str(a), severity=ConsoleDetail)
@@ -223,7 +223,7 @@ class DisplayScreen(object):
 						# todo add handling for hold here with checking for MOUSE UP etc.
 				if tapcount == 3:
 					# Switch screen chains
-					if config.HomeScreen <> config.HomeScreen2:  # only do if there is a real secondary chain
+					if config.HomeScreen != config.HomeScreen2:  # only do if there is a real secondary chain
 						if self.Chain == 0:
 							self.Chain = 1
 							self.SwitchScreen(config.HomeScreen2, 'Bright', 'NonHome', 'Chain switch to secondary')
@@ -237,14 +237,14 @@ class DisplayScreen(object):
 					self.SwitchScreen(config.MaintScreen, 'Bright', 'Maint', 'Tap to maintenance', NavKeys=False)
 					continue
 
-				for K in self.AS.Keys.itervalues():
+				for K in self.AS.Keys.values():
 					if K.touched(pos):
 						if tapcount == 1:
 							K.Proc(config.PRESS)
 						else:
 							K.Proc(config.FASTPRESS)
 
-				for K in self.AS.NavKeys.itervalues():
+				for K in self.AS.NavKeys.values():
 					if K.touched(pos):
 						K.Proc(config.PRESS)  # same action whether single or double tap
 
@@ -286,7 +286,7 @@ class DisplayScreen(object):
 				debug.debugPrint('Dispatch', 'ISY ', evtype, ' change', event)
 				alert = event.alert
 				if alert.state == 'Armed' and alert.trigger.IsTrue():  # alert condition holds
-					if alert.trigger.delay <> 0:  # delay invocation
+					if alert.trigger.delay != 0:  # delay invocation
 						alert.state = 'Delayed'
 						debug.debugPrint('Dispatch', "Post with delay:", alert.name, alert.trigger.delay)
 						E = AlertEventItem(id(alert), 'delayed' + evtype, alert)

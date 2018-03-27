@@ -51,10 +51,10 @@ class ScreenDesc(object):
 		utilities.register_example('ScreenDesc', self)
 
 	def PaintKeys(self):
-		for key in self.Keys.itervalues():
+		for key in self.Keys.values():
 			if type(key) is not toucharea.TouchPoint:
 				key.PaintKey()
-		for key in self.NavKeys.itervalues():
+		for key in self.NavKeys.values():
 			key.PaintKey()
 
 
@@ -116,5 +116,5 @@ class BaseKeyScreenDesc(ScreenDesc):
 		for i in range(bpc):
 			vpos.append(config.topborder + extraOffset + (.5 + i)*buttonsize[1])
 
-		for i, (kn, key) in enumerate(self.Keys.iteritems()):
+		for i, (kn, key) in enumerate(self.Keys.items()):
 			key.FinishKey((hpos[i%bpr], vpos[i//bpr]), buttonsize)

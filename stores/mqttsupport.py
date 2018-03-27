@@ -19,7 +19,7 @@ class MQTTBroker(valuestore.ValueStore):
 		super(MQTTBroker,self).__init__(name,refreshinterval=0,itemtyp=MQitem)
 		def on_connect(client, userdata, flags, rc):
 			logsupport.Logs.Log("Connected to ", self.name, " result code: " + str(rc))
-			for i, v in userdata.vars.iteritems():
+			for i, v in userdata.vars.items():
 				client.subscribe(v.Topic)
 
 		def on_disconnect(client, userdata, rc):
@@ -28,7 +28,7 @@ class MQTTBroker(valuestore.ValueStore):
 		def on_message(client, userdata, msg):
 			#print time.ctime() + " Received message " + str(msg.payload) + " on topic "  + msg.topic + " with QoS " + str(msg.qos)
 			var = None
-			for v,d in self.vars.iteritems():
+			for v,d in self.vars.items():
 				if d.Topic == msg.topic:
 					var = v
 					break
@@ -41,13 +41,13 @@ class MQTTBroker(valuestore.ValueStore):
 
 		def on_log(client, userdata, level, buf):
 			logsupport.Logs.Log("MQTT Log: ",str(level)," buf: ",str(buf),severity=ConsoleWarning)
-			print time.ctime() + " MQTT Log " + str(level) + '  ' + str(buf)
+			#print time.ctime() + " MQTT Log " + str(level) + '  ' + str(buf)
 
 		self.address = configsect.get('address',None)
 		self.password = configsect.get('password',None)
 		self.vars = {}
 		self.ids = {}
-		for i,v in configsect.iteritems():
+		for i,v in configsect.items():
 			if isinstance(v,Section):
 				tp = v.get('TopicType', str)
 				if tp == 'float':

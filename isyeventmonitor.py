@@ -61,7 +61,7 @@ class ISYEventMonitor:
 
 				if 'SubscriptionResponse' in m:
 					sr = m['SubscriptionResponse']
-					if self.streamid <> sr['SID']:
+					if self.streamid != sr['SID']:
 						self.streamid = sr['SID']
 						logsupport.Logs.Log("Opened event stream: " + self.streamid, severity=ConsoleWarning)
 
@@ -69,13 +69,13 @@ class ISYEventMonitor:
 					e = m['Event']
 
 					esid = e.pop('@sid', 'No sid')
-					if self.streamid <> esid:
+					if self.streamid != esid:
 						logsupport.Logs.Log("Unexpected event stream change: " + self.streamid + "/" + str(esid),
 										severity=ConsoleError, tb=False)
 						exitutils.FatalError("WS Stream ID Changed")
 
 					eseq = int(e.pop('@seqnum', -99))
-					if self.seq <> eseq:
+					if self.seq != eseq:
 						logsupport.Logs.Log("Event mismatch - Expected: " + str(self.seq) + " Got: " + str(eseq),
 										severity=ConsoleWarning)
 						# indicates a missed event - so should rebase the data?
@@ -180,15 +180,15 @@ class ISYEventMonitor:
 
 					if ecode == 'ST':
 						if enode == "20 51 B2 1":
-							print "Off Ceil Set: " + str(eaction)
+							print("Off Ceil Set: " + str(eaction))
 						if eaction < 0:
-							print "Strange node set: "+str(enode)+' '+str(eaction)
+							print("Strange node set: "+str(enode)+' '+str(eaction))
 						config.ISY.NodesByAddr[enode].devState = int(eaction)
 
 				else:
 					logsupport.Logs.Log("Strange item in event stream: " + str(m), severity=ConsoleWarning)
 			except Exception as e:
-				print e
+				print(e)
 				logsupport.Logs.Log("Exception in QH on message: ",e)
 
 

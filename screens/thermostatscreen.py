@@ -49,7 +49,7 @@ class ThermostatScreenDesc(screen.BaseKeyScreenDesc):
 
 		for i in range(4):
 			gfxdraw.filled_trigon(self.AdjButSurf, *trifromtop(centerspacing, arrowsize/2, i + 1, arrowsize,
-															   wc(("red", "blue", "red", "blue")[i]), i%2 <> 0))
+															   wc(("red", "blue", "red", "blue")[i]), i%2 != 0))
 			self.Keys['temp' + str(i)] = toucharea.TouchPoint('temp' + str(i),
 															  (centerspacing*(i + 1), self.AdjButTops + arrowsize/2),
 															  (arrowsize*1.2, arrowsize*1.2),
@@ -115,7 +115,7 @@ class ThermostatScreenDesc(screen.BaseKeyScreenDesc):
 			updtneeded = True
 		else:
 			updtneeded = False
-		for i,val in self.info.iteritems():
+		for i,val in self.info.items():
 			if self.oldinfo[i] != val:
 				updtneeded = True
 				debug.debugPrint('Main','Tstat reading change: ',i+':',self.oldinfo[i],'->',self.info[i])

@@ -9,14 +9,14 @@ class testalerts(object):
 		pass
 
 	def AlertProc1(self, alert):
-		print "---------------------VC invocation", self.ct1, alert, id(alert)
+		print ("---------------------VC invocation"+ str(self.ct1)+str(alert)+str(id(alert)))
 		logsupport.Logs.Log('Alert proc test exiting')
 		logsupport.Logs.Log('Restart for new version')
 		exitutils.Exit('test', 'zzzz', 66)
 
 
 	def AlertProc2(self, alert):
-		print "=====================VC alt incovation", self.ct2, alert, id(alert)
+		print ("=====================VC alt incovation"+str(self.ct2)+str(alert)+str(id(alert)))
 		self.ct2 += 1
 
 	# Invoked when the specified event or time occurs

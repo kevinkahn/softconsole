@@ -56,7 +56,7 @@ class NodeChgtrigger(object):
 		if self.test == 'EQ':
 			return int(val) == int(self.value)
 		elif self.test == 'NE':
-			return int(val) <> int(self.value)
+			return int(val) != int(self.value)
 		else:
 			exitutils.FatalError('VarChgtriggerIsTrue')
 
@@ -81,7 +81,7 @@ class VarChangeTrigger(object):
 		if self.test == 'EQ':
 			return int(val) == int(self.value)
 		elif self.test == 'NE':
-			return int(val) <> int(self.value)
+			return int(val) != int(self.value)
 		else:
 			logsupport.Logs.Log('Bad test in IsTrue',self.test,severity=ConsoleError)
 			return False # shouldn't happen
@@ -151,7 +151,7 @@ def ParseAlertParams(nm, spec):
 	nmlist = t.split('.')
 
 	if nmlist[0] in alertprocs:
-		if len(nmlist) <> 2:
+		if len(nmlist) != 2:
 			logsupport.Logs.Log('Bad alert proc spec ' + t + ' in ' + nm, severity=ConsoleWarning)
 			return None
 		try:
@@ -162,7 +162,7 @@ def ParseAlertParams(nm, spec):
 		actionname = t
 		fixscreen = False
 	elif nmlist[0] in alertscreen.alertscreens:
-		if len(nmlist) <> 1:
+		if len(nmlist) != 1:
 			logsupport.Logs.Log('Alert screen name must be unqualified in ' + nm, severity=ConsoleWarning)
 			return None
 		action = alertscreen.alertscreens[nmlist[0]]
