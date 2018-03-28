@@ -16,9 +16,9 @@ import functools
 
 def trifromtop(h, v, n, size, c, invert):
 	if invert:
-		return h*n, v + size/2, h*n - size/2, v - size/2, h*n + size/2, v - size/2, c
+		return h*n, v + size//2, h*n - size//2, v - size//2, h*n + size//2, v - size//2, c
 	else:
-		return h*n, v - size/2, h*n - size/2, v + size/2, h*n + size/2, v + size/2, c
+		return h*n, v - size//2, h*n - size//2, v + size//2, h*n + size//2, v + size//2, c
 
 
 class ThermostatScreenDesc(screen.BaseKeyScreenDesc):
@@ -37,21 +37,21 @@ class ThermostatScreenDesc(screen.BaseKeyScreenDesc):
 
 		self.TitleRen = config.fonts.Font(self.fsize[1]).render(screen.FlatenScreenLabel(self.label), 0,
 																wc(self.CharColor))
-		self.TitlePos = ((config.screenwidth - self.TitleRen.get_width())/2, config.topborder)
+		self.TitlePos = ((config.screenwidth - self.TitleRen.get_width())//2, config.topborder)
 		self.TempPos = config.topborder + self.TitleRen.get_height()
 		self.StatePos = self.TempPos + config.fonts.Font(self.fsize[3]).get_linesize() - scaleH(20)
 		self.SPPos = self.StatePos + scaleH(25)
 		self.AdjButSurf = pygame.Surface((config.screenwidth, scaleH(40)))
 		self.AdjButTops = self.SPPos + config.fonts.Font(self.fsize[2]).get_linesize() - scaleH(5)
-		centerspacing = config.screenwidth/5
+		centerspacing = config.screenwidth//5
 		self.AdjButSurf.fill(wc(self.BackgroundColor))
 		arrowsize = scaleH(40)  # pixel
 
 		for i in range(4):
-			gfxdraw.filled_trigon(self.AdjButSurf, *trifromtop(centerspacing, arrowsize/2, i + 1, arrowsize,
+			gfxdraw.filled_trigon(self.AdjButSurf, *trifromtop(centerspacing, arrowsize//2, i + 1, arrowsize,
 															   wc(("red", "blue", "red", "blue")[i]), i%2 != 0))
 			self.Keys['temp' + str(i)] = toucharea.TouchPoint('temp' + str(i),
-															  (centerspacing*(i + 1), self.AdjButTops + arrowsize/2),
+															  (centerspacing*(i + 1), self.AdjButTops + arrowsize//2),
 															  (arrowsize*1.2, arrowsize*1.2),
 															  proc=functools.partial(self.BumpTemp,
 																					 ('CLISPH', 'CLISPH', 'CLISPC', 'CLISPC')[i],
@@ -63,17 +63,17 @@ class ThermostatScreenDesc(screen.BaseKeyScreenDesc):
 
 		self.Keys['Mode'] = toucharea.ManualKeyDesc(self, "Mode", ["Mode"],
 													self.KeyColor, self.CharColor, self.CharColor,
-													center=(config.screenwidth/4, self.ModeButPos), size=bsize,
+													center=(config.screenwidth//4, self.ModeButPos), size=bsize,
 													KOn=config.KeyOffOutlineColor,
 													proc=functools.partial(self.BumpMode, 'CLIMD', range(8)))
 
 		self.Keys['Fan'] = toucharea.ManualKeyDesc(self, "Fan", ["Fan"],
 												   self.KeyColor, self.CharColor, self.CharColor,
-												   center=(3*config.screenwidth/4, self.ModeButPos), size=bsize,
+												   center=(3*config.screenwidth//4, self.ModeButPos), size=bsize,
 												   KOn=config.KeyOffOutlineColor,
 												   proc=functools.partial(self.BumpMode, 'CLIFS', (7, 8)))
 
-		self.ModesPos = self.ModeButPos + bsize[1]/2 + scaleH(5)
+		self.ModesPos = self.ModeButPos + bsize[1]//2 + scaleH(5)
 		if self.ISYObj != None:
 			self.NodeList[self.ISYObj.address] = self.Keys['Mode']  # placeholder for thermostat node
 		utilities.register_example("ThermostatScreenDesc", self)
@@ -123,19 +123,19 @@ class ThermostatScreenDesc(screen.BaseKeyScreenDesc):
 		if not updtneeded:
 			return
 		self.ReInitDisplay()
-		r = config.fonts.Font(self.fsize[3], bold=True).render(u"{:4.1f}".format(self.info["ST"][0]/2), 0,
+		r = config.fonts.Font(self.fsize[3], bold=True).render(u"{:4.1f}".format(self.info["ST"][0]//2), 0,
 															   wc(self.CharColor))
-		config.screen.blit(r, ((config.screenwidth - r.get_width())/2, self.TempPos))
+		config.screen.blit(r, ((config.screenwidth - r.get_width())//2, self.TempPos))
 		if isinstance(self.info["CLIHCS"][0], int):
 			r = config.fonts.Font(self.fsize[0]).render(("Idle", "Heating", "Cooling")[self.info["CLIHCS"][0]], 0,
 													wc(self.CharColor))
 		else:
 			r = config.fonts.Font(self.fsize[0]).render("n/a", 0, wc(self.CharColor))
-		config.screen.blit(r, ((config.screenwidth - r.get_width())/2, self.StatePos))
+		config.screen.blit(r, ((config.screenwidth - r.get_width())//2, self.StatePos))
 		r = config.fonts.Font(self.fsize[2]).render(
-			"{:2d}    {:2d}".format(self.info["CLISPH"][0]/2, self.info["CLISPC"][0]/2), 0,
+			"{:2d}    {:2d}".format(self.info["CLISPH"][0]//2, self.info["CLISPC"][0]//2), 0,
 			wc(self.CharColor))
-		config.screen.blit(r, ((config.screenwidth - r.get_width())/2, self.SPPos))
+		config.screen.blit(r, ((config.screenwidth - r.get_width())//2, self.SPPos))
 		config.screen.blit(self.AdjButSurf, (0, self.AdjButTops))
 		try:
 			r1 = config.fonts.Font(self.fsize[1]).render(
@@ -148,8 +148,8 @@ class ThermostatScreenDesc(screen.BaseKeyScreenDesc):
 														 wc(self.CharColor))
 		except:
 			r2 = config.fonts.Font(self.fsize[1]).render('---', 0, wc(self.CharColor))
-		config.screen.blit(r1, (self.Keys['Mode'].Center[0] - r1.get_width()/2, self.ModesPos))
-		config.screen.blit(r2, (self.Keys['Fan'].Center[0] - r2.get_width()/2, self.ModesPos))
+		config.screen.blit(r1, (self.Keys['Mode'].Center[0] - r1.get_width()//2, self.ModesPos))
+		config.screen.blit(r2, (self.Keys['Fan'].Center[0] - r2.get_width()//2, self.ModesPos))
 
 		pygame.display.update()
 

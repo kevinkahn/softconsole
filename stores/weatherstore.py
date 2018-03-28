@@ -1,12 +1,10 @@
 import functools
-import debug
 import pygame
 import io
-import os
 import sys
 import json
 import time
-import urllib2
+import requests
 import utilities
 import config
 from stores import valuestore
@@ -18,7 +16,7 @@ def TreeDict(d, *args):
 	# Allow a nest of dictionaries to be accessed by a tuple of keys for easier code
 	if len(args) == 1:
 		temp = d[args[0]]
-		if isinstance(temp, basestring) and temp.isdigit():
+		if isinstance(temp, str) and temp.isdigit():
 			temp = int(temp)
 		else:
 			try:
@@ -47,7 +45,8 @@ def get_icon(url):
 	if 	WeatherIconCache.has_key(url):
 		return WeatherIconCache[url]
 	else:
-		icon_str = urllib2.urlopen(url).read()
+		r = requests.get(url)
+		icon_str = r.content
 		icon_file = io.BytesIO(icon_str)
 		icon_gif = pygame.image.load(icon_file,'icon.gif')
 		icon_scr = pygame.Surface.convert_alpha(icon_gif)
@@ -131,9 +130,11 @@ class WeatherVals(valuestore.ValueStore):
 		self.failedfetch = False
 		self.fetchcount += 1
 		try:
-			f = urllib2.urlopen(self.url, None, 15)  # wait at most 15 seconds for weather response then timeout
-			val = f.read()
-			f.close
+			r = requests.get(self.url,timeout=15)
+			#f = urllib2.urlopen(self.url, None, 15)  # wait at most 15 seconds for weather response then timeout
+			#val = f.read()
+			#f.close
+			val = r.content
 			WUcount += 1
 			logsupport.Logs.Log("Actual weather fetch for " + self.location + "(" + str(self.fetchcount) + ')' + " WU count: " + str(WUcount),
 							severity=ConsoleDetail)

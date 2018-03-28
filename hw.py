@@ -86,7 +86,7 @@ def GoDimPWM(level):
 
 def GoDimPi7(level):
 	with open('/sys/devices/platform/rpi_backlight/backlight/rpi_backlight/brightness', 'w') as f:
-		f.write(str(level*255/100))
+		f.write(str(level*255//100))
 
 
 

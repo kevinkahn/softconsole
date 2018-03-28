@@ -4,7 +4,7 @@ import logsupport
 from logsupport import ConsoleWarning
 from configobj import Section
 import time
-import valuestore
+from stores import valuestore
 import threading
 import threadmanager
 
@@ -75,9 +75,10 @@ class MQTTBroker(valuestore.ValueStore):
 		logsupport.Logs.Log("MQTT handler thread ended for: "+self.name,severity=ConsoleWarning)
 
 	def StartThread(self):
-		threadmanager.HelperThreads[self.name].Thread = threading.Thread(name=self.name, target= self.MQTTLoop)
-		threadmanager.HelperThreads[self.name].Thread.setDaemon(True)
-		threadmanager.HelperThreads[self.name].Thread.start()
+		T = threading.Thread(name=self.name, target= self.MQTTLoop)
+		T.setDaemon(True)
+		T.start()
+		return T
 
 	def GetValByID(self,id):
 		self.GetVal(self.ids[id])

@@ -38,10 +38,11 @@ import sys as _sys
 import warnings
 from collections import OrderedDict
 
-try:
-    from cStringIO import StringIO as _StringIO
-except ImportError:
-    from StringIO import StringIO as _StringIO
+from io import StringIO as _StringIO
+#try:
+#    from cStringIO import StringIO as _StringIO
+#except ImportError:
+#    from StringIO import StringIO as _StringIO
 
 __all__ = ["pprint","pformat","isreadable","isrecursive","saferepr",
            "PrettyPrinter"]
@@ -152,7 +153,7 @@ class PrettyPrinter:
             if r == OrderedDict.__repr__:
                 pref = "OD"
             else:
-				pref = ""
+                pref = ""
             write(pref+'{')
             if self._indent_per_level > 1:
                 write((self._indent_per_level - 1) * ' ')

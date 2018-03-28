@@ -1,6 +1,5 @@
 # adapted from pimoroni evdev support for the 7 inch capacitive screen
 # added support for the resistive 3.5 and maybe others that doesn't depend upon SDL 1.2
-
 import glob
 import io
 import os
@@ -9,7 +8,7 @@ import struct
 from collections import namedtuple
 import threading
 import select
-import Queue
+import queue as Queue
 import pygame
 import debug
 import threadmanager
@@ -150,13 +149,14 @@ class Touchscreen(object):
 			#time.sleep(0.00001)
 
 	def StartThread(self):
-		threadmanager.HelperThreads['TouchHandler'].Thread = threading.Thread(name='TouchHandler', target=self._run)
-		threadmanager.HelperThreads['TouchHandler'].Thread.setDaemon(True)
-		threadmanager.HelperThreads['TouchHandler'].Thread.start()
+		T = threading.Thread(name='TouchHandler', target=self._run)
+		T.setDaemon(True)
+		T.start()
+		return T
 
-	def run(self):
-		if self._thread is not None:
-			return
+#	def run(self):
+#		if self._thread is not None:
+#			return
 
 		self._thread = threading.Thread(target=self._run)
 		self._thread.setDaemon(True)
@@ -317,7 +317,7 @@ if __name__ == "__main__":
 		touch.on_release = handle_event
 		touch.on_move = handle_event
 
-	ts.run()
+#	ts.run()
 
 	try:
 		signal.pause()

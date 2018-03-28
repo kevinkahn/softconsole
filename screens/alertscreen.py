@@ -114,7 +114,7 @@ class AlertsScreenDesc(screen.ScreenDesc):
 		self.PaintKeys()
 		pygame.display.update()
 		self.Msg = True
-		if self.BlinkTime <> 0:
+		if self.BlinkTime != 0:
 			config.DS.Tasks.AddTask(self.BlinkEvent, self.BlinkTime)
 		else:
 			config.screen.blit(self.messageimage, self.upperleft)
