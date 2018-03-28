@@ -28,10 +28,7 @@ import datetime
 import pygame
 import alerttasks
 
-# noinspection PyProtectedMember
 from configobj import ConfigObj, Section
-import isyeventmonitor
-
 
 import configobjects
 import exitutils
@@ -52,13 +49,13 @@ import json
 
 def handler(signum, frame):
 	if signum in (signal.SIGTERM, signal.SIGINT):
-		logsupport.Logs.Log("Console received a termination signal ", str(signum), " - Exiting")
+		logsupport.Logs.Log(u"Console received a termination signal ", str(signum), u" - Exiting")
 		hw.GoBright(100)
 		pygame.display.quit()
 		pygame.quit()
 		os._exit(0)
 	else:
-		logsupport.Logs.Log("Console received signal " + str(signum) + " Ignoring")
+		logsupport.Logs.Log(u"Console received signal " + str(signum) + u" Ignoring")
 
 
 signal.signal(signal.SIGTERM, handler)
@@ -70,7 +67,7 @@ config.Console_pid = os.getpid()
 config.exdir = os.path.dirname(os.path.abspath(__file__))
 os.chdir(config.exdir)  # make sure we are in the directory we are executing from
 config.homedir = os.path.dirname(config.exdir)
-logsupport.Logs.Log("Console (" + str(config.Console_pid) + ") starting in "+os.getcwd())
+logsupport.Logs.Log(u"Console (" + str(config.Console_pid) + u") starting in "+os.getcwd())
 
 sectionget = Section.get
 def CO_get(self, key, default, delkey=True):
@@ -86,47 +83,47 @@ def LogBadParams(section, name):
 		if isinstance(s, Section):
 			LogBadParams(s, nm)
 		else:
-			logsupport.Logs.Log("Bad (unused) parameter name in: ", name, " (", nm, "=", str(s), ")",
+			logsupport.Logs.Log(u"Bad (unused) parameter name in: ", name, u" (", nm, u"=", str(s), u")",
 							severity=ConsoleWarning)
 
 if os.getegid() != 0:
 	# Not running as root
-	logsupport.Logs.Log("Not running as root - exit")
-	print ("Must run as root")
+	logsupport.Logs.Log(u"Not running as root - exit")
+	print (u"Must run as root")
 	os._exit(exitutils.EARLYABORT)
 
 utilities.InitializeEnvironment()
 
-logsupport.Logs.Log('Environment initialized on host '+ config.hostname)
+logsupport.Logs.Log(u'Environment initialized on host '+ config.hostname)
 
-lastfn = ""
+lastfn = u""
 lastmod = 0
 config.Console_pid = os.getpid()
 
-logsupport.Logs.Log('Exdir: ' + config.exdir + '  Pid: ' + str(config.Console_pid))
+logsupport.Logs.Log(u'Exdir: ' + config.exdir + u'  Pid: ' + str(config.Console_pid))
 
 for root, dirs, files in os.walk(config.exdir):
 	for fname in files:
-		if fname.endswith(".py"):
+		if fname.endswith(u".py"):
 			fn = os.path.join(root, fname)
 			if os.path.getmtime(fn) > lastmod:
 				lastmod = os.path.getmtime(fn)
 				lastfn = fn
 
 try:
-	with open(config.exdir + '/' + 'versioninfo') as f:
+	with open(config.exdir + u'/' + u'versioninfo') as f:
 		config.versionname = f.readline()[:-1].rstrip()
 		config.versionsha = f.readline()[:-1].rstrip()
 		config.versiondnld = f.readline()[:-1].rstrip()
 		config.versioncommit = f.readline()[:-1].rstrip()
 except:
-	config.versionname = 'none'
-	config.versionsha = 'none'
-	config.versiondnld = 'none'
-	config.versioncommit = 'none'
+	config.versionname = u'none'
+	config.versionsha = u'none'
+	config.versiondnld = u'none'
+	config.versioncommit = u'none'
 
 logsupport.Logs.Log(
-	'Version/Sha/Dnld/Commit: ' + config.versionname + ' ' + config.versionsha + ' ' + config.versiondnld + ' ' + config.versioncommit)
+	u'Version/Sha/Dnld/Commit: ' + config.versionname + u' ' + config.versionsha + u' ' + config.versiondnld + u' ' + config.versioncommit)
 
 """
 Dynamically load class definitions for all defined screen types and link them to how configuration happens
@@ -327,7 +324,7 @@ else:
 	logsupport.Logs.Log("No ISY Specified", severity=ConsoleWarning)
 
 """
-Set up alerts
+Set up alerts and local variables
 """
 if 'Alerts' in config.ParsedConfigFile:
 	alertspec = config.ParsedConfigFile['Alerts']
@@ -338,10 +335,6 @@ else:
 	alertspec = ConfigObj()
 	if alertspeclist is not None:
 		alertspec.merge(alertspeclist)
-
-"""
-Build the ISY object structure and connect the configured screens to it
-"""
 
 if 'Variables' in config.ParsedConfigFile:
 	valuestore.NewValueStore(localvarsupport.LocalVars('LocalVars',config.ParsedConfigFile['Variables']))
@@ -354,14 +347,14 @@ if 'Variables' in config.ParsedConfigFile:
 		valuestore.SetAttr(tn, (3, i))
 		i += 1
 	del config.ParsedConfigFile['Variables']
+
+
+"""
+Build the ISY object structure and connect the configured screens to it
+"""
+
 configobjects.MyScreens()
 logsupport.Logs.Log("Linked config to ISY")
-
-
-"""
-Set up the websocket thread to handle ISY stream
-"""
-isyeventmonitor.CreateWSThread()
 
 """
 Build the alerts structures

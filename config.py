@@ -16,12 +16,6 @@ portrait = True
 lastup = 0  # last time upstatus known
 previousup = 0  # previous lifetime
 
-EventMonitor = None
-QH = None
-QHnum = 1
-lastheartbeat = 0
-digestinginit = True
-
 monofont = "notomono"  # gets reset to "droidsansmono" if noto not present to support pre Stretch
 
 # Global pointers
@@ -86,7 +80,6 @@ ISYaddr = ""
 ISYuser = ""
 _ISYpassword = ""
 HomeScreenName = ""
-#HomeScreenTO = 60
 DimTO = 20
 PersistTO = 20
 CmdKeyCol = "red"

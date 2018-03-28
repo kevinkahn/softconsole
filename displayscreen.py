@@ -123,7 +123,6 @@ class DisplayScreen(object):
 			logsupport.Logs.Log("Arming " + a.type + " alert " + a.name)
 			logsupport.Logs.Log("->" + str(a), severity=ConsoleDetail)
 
-			# Note: VarChange alerts don't need setup because the store has an alert proc
 			if a.type == 'Periodic':
 				E = AlertEventItem(id(a), a.name, a)
 				self.Tasks.AddTask(E, a.trigger.NextInterval())
@@ -135,14 +134,14 @@ class DisplayScreen(object):
 				if a.trigger.IsTrue():
 					notice = pygame.event.Event(config.DS.ISYAlert, alert=a)
 					pygame.fastevent.post(notice)
+			elif a.type == 'VarChange':
+				# Note: VarChange alerts don't need setup because the store has an alert proc
+				pass
 			elif a.type == 'Init':
 				a.Invoke()
 			else:
-				logsupport.Logs.Log("Internal error - unknown alert type: ", a.type, ' for ', a.name, severity=ConsoleError)
+				logsupport.Logs.Log("Internal error - unknown alert type: ", a.type, ' for ', a.name, severity=ConsoleError, tb=False)
 
-		while config.digestinginit and config.ISYaddr != '':
-			logsupport.Logs.Log("Waiting initial status dump")
-			time.sleep(.5)
 		with open(config.homedir + "/.ConsoleStart", "a") as f:
 			f.write(str(time.time()) + '\n')
 		if config.Running:  # allow for a very early restart request from things like autoversion
@@ -153,7 +152,7 @@ class DisplayScreen(object):
 			os.utime(config.homedir + "/.ConsoleStart", None)
 
 			threadmanager.CheckThreads()
-
+			'''
 			if not config.QH.is_alive() and config.ISYaddr != '':
 				logsupport.Logs.Log('Queue handler died, last error:' + str(config.EventMonitor.lasterror), severity=ConsoleError)
 				try:
@@ -170,6 +169,7 @@ class DisplayScreen(object):
 			if time.time() - config.lastheartbeat > 240 and config.ISYaddr != '':  # twice heartbeat interval
 				logsupport.Logs.Log('Lost ISY heartbeat', severity=ConsoleError, tb=False)
 				isyeventmonitor.CreateWSThread()
+			'''
 
 			if self.Deferrals:  # an event was deferred mid screen touches - handle now
 				event = self.Deferrals.pop(0)

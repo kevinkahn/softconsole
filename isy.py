@@ -10,7 +10,7 @@ import logsupport
 from logsupport import ConsoleWarning, ConsoleError, ConsoleDetailHigh
 import sys
 import errno
-import pygame
+import isyeventmonitor, threadmanager
 from stores import valuestore, isyvarssupport
 
 
@@ -279,7 +279,7 @@ class ISY(object):
 		:param ISYsession:
 		:return:
 		"""
-
+		self.hubname = 'ISYx'
 		self.NodeRoot = Folder(0, '', u'0', 0, u'0') # *root*
 		self.ProgRoot = None
 		self.NodesByAddr = {}
@@ -542,6 +542,12 @@ class ISY(object):
 		utilities.register_example("ISY", self)
 		if debug.dbgStore.GetVal('ISY'):
 			self.PrintTree(self.ProgRoot, "    ", 'Programs')
+
+		self.isyEM = isyeventmonitor.ISYEventMonitor(self.hubname)
+
+		threadmanager.HelperThreads[self.hubname] = threadmanager.ThreadItem(self.hubname, self.isyEM.StartQHThread, self.isyEM.RestartQHThread)
+
+
 
 	def SetFullNames(self, startpoint, parentname):
 		startpoint.fullname = parentname + startpoint.name

@@ -10,48 +10,84 @@ import pygame, time
 import exitutils
 import threading
 from stores import valuestore
+import errno
 
 
+'''
 def CreateWSThread():
 	config.EventMonitor = ISYEventMonitor()
 	config.QH = threading.Thread(name='QH', target=config.EventMonitor.QHandler)
 	config.QH.setDaemon(True)
 	config.QH.start()
-	logsupport.Logs.Log("ISY stream thread " + str(config.EventMonitor.num) + " started")
+	logsupport.Logs.Log("ISY stream thread " + str(config.EventMonitor.num) + " started"
+'''
 
 class ISYEventMonitor:
-	def __init__(self):
-		self.a = base64.b64encode(config.ISYuser + ':' + config.ISYpassword)
+	def __init__(self, nm):
+		self.hubname = nm
+		self.QHnum = 1
+		self.a = base64.b64encode((config.ISYuser + ':' + config.ISYpassword).encode('utf-8'))
 		self.watchstarttime = time.time()
 		self.watchlist = []
 		self.varlist = []
 		self.streamid = "unset"
 		self.seq = 0
-		self.num = config.QHnum
-		config.QHnum += 1
+		self.lastheartbeat = 0
+		self.digestinginput = True
+		#self.num = config.QHnum
+
 		self.lasterror = (0,'Init')
-		debug.debugPrint('DaemonCtl', "Queue Handler ", self.num, " started: ", self.watchstarttime)
+		debug.debugPrint('DaemonCtl', "Queue Handler ", self.QHnum, " started: ", self.watchstarttime)
 		self.reportablecodes = ["DON", "DFON", "DOF", "DFOF", "ST", "OL", "RR", "CLISP", "CLISPH", "CLISPC", "CLIFS",
 								"CLIMD", "CLIHUM", "CLIHCS", "BRT", "DIM"]
 
+	def reinit(self):
+		self.watchstarttime = time.time()
+		self.watchlist = []
+		self.varlist = []
+		self.QHnum += 1
+
+	def StartQHThread(self):
+		T = threading.Thread(name=self.hubname, target=self.QHandler)
+		T.setDaemon(True)
+		T.start()
+		logsupport.Logs.Log("ISY stream thread " + str(self.QHnum) + " setup")
+		while self.digestinginput:
+			logsupport.Logs.Log("Waiting initial status dump")
+			time.sleep(0.5)
+		return T
+
+	def RestartQHThread(self):
+		logsupport.Logs.Log('Queue handler died, last error:' + str(self.lasterror),severity=ConsoleError)
+		try:
+			if self.lasterror[0] == errno.ENETUNREACH:
+				# likely home network down so wait a bit
+				logsupport.Logs.Log('Wait for likely router reboot or down', severity=ConsoleError)
+				# todo overlay a screen delay message so locked up console is understood
+				time.sleep(120)
+		except:
+			pass
+		self.reinit()
+		return self.StartQHThread()
+
 	def QHandler(self):
 		def on_error(ws, error):
-			logsupport.Logs.Log("Error in WS stream " + str(self.num) + ':' + repr(error), severity=ConsoleError, tb=False) #todo sometimes do the tb?
+			logsupport.Logs.Log("Error in WS stream " + str(self.QHnum) + ':' + repr(error), severity=ConsoleError, tb=False) #todo sometimes do the tb?
 			self.lasterror = error
-			debug.debugPrint('DaemonCtl', "Websocket stream error", self.num, repr(error))
+			debug.debugPrint('DaemonCtl', "Websocket stream error", self.QHnum, repr(error))
 			ws.close()
 
 		# exitutils.FatalError("websocket stream error")
 
 		def on_close(ws, code, reason):
-			logsupport.Logs.Log("Websocket stream " + str(self.num) + " closed: " + str(code) + ' : ' + str(reason),
+			logsupport.Logs.Log("Websocket stream " + str(self.QHnum) + " closed: " + str(code) + ' : ' + str(reason),
 							severity=ConsoleError,
 							tb=False)
 			debug.debugPrint('DaemonCtl', "Websocket stream closed", str(code), str(reason))
 
 		def on_open(ws):
-			logsupport.Logs.Log("Websocket stream " + str(self.num) + " opened")
-			debug.debugPrint('DaemonCtl', "Websocket stream opened: ", self.num, self.streamid)
+			logsupport.Logs.Log("Websocket stream " + str(self.QHnum) + " opened")
+			debug.debugPrint('DaemonCtl', "Websocket stream opened: ", self.QHnum, self.streamid)
 
 		def on_message(ws, message):
 			try:
@@ -157,10 +193,10 @@ class ISYEventMonitor:
 						'''
 
 					elif prcode == 'Heartbeat':
-						config.lastheartbeat = time.time()
-						config.digestinginit = False
+						self.lastheartbeat = time.time()
+						self.digestinginput = False
 					elif prcode == 'Billing':
-						config.digestinginit = False
+						self.digestinginput = False
 					else:
 						pass  # handle any other?
 					efmtact = e.pop('fmtAct','v4stream')
@@ -168,9 +204,7 @@ class ISYEventMonitor:
 						logsupport.Logs.Log("Extra info in event: "+str(ecode)+'/'+str(prcode)+'/'+str(eaction)+'/'+str(enode)+'/'+str(eInfo) + str(e), severity=ConsoleWarning)
 					debug.debugPrint('DaemonStream', time.time() - config.starttime,
 							   formatwsitem(esid, eseq, ecode, eaction, enode, eInfo, e))
-	#				if enode == '20 F9 76 1':
-	#					debug.debugPrint('DebugSpecial', time.time() - config.starttime,
-	#							   formatwsitem(esid, eseq, ecode, eaction, enode, eInfo, e))
+
 					if ecode == "ERR":
 						try:
 							isynd = config.ISY.NodesByAddr[enode].name
@@ -193,20 +227,21 @@ class ISYEventMonitor:
 
 
 		# websocket.enableTrace(True)
-		if config.ISYaddr != '':
-			websocket.setdefaulttimeout(240)
-			if config.ISYaddr.startswith('http://'):
-				wsurl = 'ws://' + config.ISYaddr[7:] + '/rest/subscribe'
-			elif config.ISYaddr.startswith('https://'):
-				wsurl = 'wss://' + config.ISYaddr[8:] + '/rest/subscribe'
-			else:
-				wsurl = 'ws://' + config.ISYaddr + '/rest/subscribe'
-			ws = websocket.WebSocketApp(wsurl, on_message=on_message,
-										on_error=on_error,
-										on_close=on_close, on_open=on_open,
-										subprotocols=['ISYSUB'], header={'Authorization': 'Basic ' + self.a})
-			config.lastheartbeat = time.time()
-			ws.run_forever()
-			logsupport.Logs.Log("QH Thread " + str(self.num) + " exiting", severity=ConsoleError)
+		websocket.setdefaulttimeout(240)
+		#websocket.setdefaulttimeout(240) todo
+		if config.ISYaddr.startswith('http://'):
+			wsurl = 'ws://' + config.ISYaddr[7:] + '/rest/subscribe'
+		elif config.ISYaddr.startswith('https://'):
+			wsurl = 'wss://' + config.ISYaddr[8:] + '/rest/subscribe'
 		else:
-			logsupport.Logs.Log("No ISY to talk to",severity=ConsoleWarning)
+			wsurl = 'ws://' + config.ISYaddr + '/rest/subscribe'
+		ws = websocket.WebSocketApp(wsurl, on_message=on_message,
+									on_error=on_error,
+									on_close=on_close, on_open=on_open,
+									subprotocols=['ISYSUB'], header={b'Authorization': b'Basic ' + self.a})
+
+		self.digestinginput = True
+		self.lastheartbeat = time.time()
+		ws.run_forever()
+		logsupport.Logs.Log("QH Thread " + str(self.QHnum) + " exiting", severity=ConsoleError)
+
