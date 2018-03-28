@@ -10,15 +10,20 @@ class ThreadItem(object):
 		self.RestartThread = restart
 		self.Thread = None
 
+	def StopThread(self):
+		self.Thread.stop()
+
 def CheckThreads():
 	for T in HelperThreads.values():
 		if not T.Thread.is_alive():
 			logsupport.Logs.Log("Thread for: "+T.name+" died; restarting",severity=ConsoleWarning)
-			T.RestartThread()
+			T.Thread = T.RestartThread(T)
 
 def StartThreads():
 	for T in HelperThreads.values():
-		T.StartThread()
 		logsupport.Logs.Log("Starting helper thread for: ", T.name)
+		T.Thread = T.StartThread()
+
+
 
 
