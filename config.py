@@ -67,6 +67,9 @@ DimIdleTimes = []
 MainDict = {}  # map: name:screen
 SecondaryDict = {}
 ExtraDict = {}
+MainChain = []
+SecondaryChain = []
+ExtraChain = []
 # _____________________________
 
 # Global Defaults Settable in config.txt in Console
@@ -78,7 +81,7 @@ sysvals = {
 
 ISYaddr = ""
 ISYuser = ""
-_ISYpassword = ""
+ISYpassword = ""
 HomeScreenName = ""
 DimTO = 20
 PersistTO = 20
@@ -89,7 +92,7 @@ DimIdleListNames = []
 DimIdleListTimes = []
 CharColor = "white"
 BackgroundColor = 'maroon'
-_WunderKey = 'none'
+WunderKey = 'none'
 BadWunderKey = False
 
 MaxLogFiles = 5  # would be nice to get these in globalparams but right now there is an ordering issue since logging starts before global sucking

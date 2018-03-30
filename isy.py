@@ -16,18 +16,6 @@ from stores import valuestore, isyvarssupport
 
 class CommsError(Exception): pass
 
-def check_ISY_comm():
-	urlcmd = '/rest/time'
-	if config.ISYaddr.startswith('http'):
-		t = config.ISYaddr + urlcmd
-	else:
-		t = 'http://' + config.ISYaddr + urlcmd
-	try:
-		r = config.ISYrequestsession.get(t, verify=False, timeout=5)
-	except requests.exceptions.ConnectionError as e:
-		return e[0]
-	return 0
-
 def try_ISY_comm(urlcmd):
 	for i in range(15):
 		try:
@@ -41,8 +29,10 @@ def try_ISY_comm(urlcmd):
 			except requests.exceptions.ConnectTimeout as e:
 				logsupport.Logs.Log("ISY Comm Timeout: " + ' Cmd: ' + '*' + urlcmd + '*', severity=ConsoleError, tb=False)
 				logsupport.Logs.Log(sys.exc_info()[1], severity=ConsoleDetailHigh, tb=False)
+				logsupport.Logs.Log("Exc: ",e, severity=ConsoleDetailHigh, tb=False)
 				raise CommsError
 			except requests.exceptions.ConnectionError as e:
+				# noinspection PyBroadException
 				try:
 					if e[0] == errno.ENETUNREACH:
 						# probable network outage for reboot
@@ -99,7 +89,7 @@ def get_real_time_node_status(addr):
 		if config.ISY.NodesByAddr[addr].devState != int(devstate):
 			logsupport.Logs.Log("Shadow state wrong: ", config.ISY.NodesByAddr[addr].fullname, ' (', addr, ') Real State: ', devstate, ' Shadow State: ', config.ISY.NodesByAddr[addr].devState,
 							severity=ConsoleWarning)
-	except:
+	except KeyError:
 		logsupport.Logs.Log('Bad NodeByAddr in rt status: ', addr, severity=ConsoleError)
 	return int(devstate if devstate.isdigit() else 0)
 
@@ -130,7 +120,7 @@ class OnOffItem(object):
 	def SendCommand(self, state, presstype):
 		selcmd = (('DOF', 'DFOF'), ('DON', 'DFON'))
 		debug.debugPrint('ISY', "OnOff sent: ", selcmd[state][presstype], ' to ', self.name)
-		text = try_ISY_comm('/rest/nodes/' + self.address + '/cmd/' + selcmd[state][presstype])
+		try_ISY_comm('/rest/nodes/' + self.address + '/cmd/' + selcmd[state][presstype])
 
 
 class Folder(TreeItem):
@@ -245,6 +235,7 @@ def GetVar(var):
 		valuestore.SetValByAttr('ISY',var,val) #todo eventually make this pick up name from the hub name
 		return val
 
+# noinspection PyUnusedLocal
 def ISYVarChanged(storeitem, old, new, param, chgsource):
 	if not chgsource: #  only send to ISY if change didn't originate there
 		val = int(new) # ISY V4 only allows integer variable values - may change in V5
@@ -304,11 +295,11 @@ class ISY(object):
 
 		trycount = 20
 		while True:
+			# noinspection PyBroadException
 			try:
 				r = ISYsession.get(config.ISYprefix + 'nodes', verify=False, timeout=5)
 				logsupport.Logs.Log('Successful node read: ' + str(r.status_code))
 				break
-			# except requests.exceptions.ConnectTimeout:
 			except:
 				# after total power outage ISY is slower to come back than RPi so
 				# we wait testing periodically.  Eventually we try rebooting just in case our own network
@@ -366,15 +357,16 @@ class ISY(object):
 		for node in configdict['node']:
 			parentaddr = str(0)
 			ptyp = 3
+			flg = 'unknown'
+			nm = 'unknown'
+			addr = 'unknown'
+			enabld = 'unknown'
+			prop = 'unknown'
+			pnd = 'unknown'
 			if 'parent' in node:
 				ptyp = int(node['parent']['@type'])
 				parentaddr = node['parent']['#text']
-				flg = 'unknown'
-				nm = 'unknown'
-				addr = 'unknown'
-				enabld = 'unknown'
-				prop = 'unknown'
-				pnd = 'unknown'
+			# noinspection PyBroadException
 			try:
 				flg = node['@flag']
 				nm = node['name']
@@ -391,6 +383,7 @@ class ISY(object):
 				# for now at least try to avoid nodes without properties which apparently Zwave devices may have
 		self.LinkChildrenParents(self.NodesByAddr, self.NodesByName, self.FoldersByAddr, self.NodesByAddr)
 		for fixitem in fixlist:
+			# noinspection PyBroadException
 			try:
 				fixitem[0].pnode = self.NodesByAddr[fixitem[1]]
 			except:
@@ -400,6 +393,8 @@ class ISY(object):
 			memberlist = []
 			if scene['members'] is not None:
 				m1 = scene['members']['link']
+				naddr = ''
+				# noinspection PyBroadException
 				try:
 					if isinstance(m1, list):
 						for m in m1:
@@ -436,6 +431,7 @@ class ISY(object):
 
 		trycount = 20
 		while True:
+			# noinspection PyBroadException
 			try:
 				r = ISYsession.get(config.ISYprefix + 'programs?subfolders=true', verify=False, timeout=5)
 				if r.status_code != 200:
@@ -489,6 +485,7 @@ class ISY(object):
 		Get the variables
 		"""
 		while True:
+			# noinspection PyBroadException
 			try:
 				r1 = ISYsession.get(config.ISYprefix + 'vars/definitions/2', verify=False, timeout=5)
 				r2 = ISYsession.get(config.ISYprefix + 'vars/definitions/1', verify=False, timeout=5)
@@ -512,6 +509,7 @@ class ISY(object):
 					logsupport.Logs.Log('Reached unreachable code! ISY4')
 
 		Vars = valuestore.NewValueStore(isyvarssupport.ISYVars(ISYname))
+		# noinspection PyBroadException
 		try:
 			configdictS = xmltodict.parse(r1.text)['CList']['e']
 			if debug.dbgStore.GetVal('ISYLoad'):
@@ -525,6 +523,7 @@ class ISY(object):
 				Vars.AddAlert(('State',v['@name']),ISYVarChanged)
 		except:
 			logsupport.Logs.Log('No state variables defined')
+		# noinspection PyBroadException
 		try:
 			configdictI = xmltodict.parse(r2.text)['CList']['e']
 			if debug.dbgStore.GetVal('ISYLoad'):
@@ -544,9 +543,7 @@ class ISY(object):
 			self.PrintTree(self.ProgRoot, "    ", 'Programs')
 
 		self.isyEM = isyeventmonitor.ISYEventMonitor(self.hubname)
-
-		threadmanager.HelperThreads[self.hubname] = threadmanager.ThreadItem(self.hubname, self.isyEM.StartQHThread, self.isyEM.RestartQHThread)
-
+		threadmanager.SetUpHelperThread(self.hubname,self.isyEM.QHandler,prerestart=self.isyEM.PreRestartQHThread,poststart=self.isyEM.PostStartQHThread)
 
 
 	def SetFullNames(self, startpoint, parentname):

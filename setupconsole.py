@@ -14,6 +14,7 @@ print("*** Setupconsole ***")
 piuid = pwd.getpwnam('pi')[2]
 pigrp = grp.getgrnam('pi')[2]
 for pdir in ('Console', 'consolestable', 'consolebeta', 'consolerem'):
+	# noinspection PyBroadException
 	try:
 		os.mkdir(pdir)
 		print("Created: "+ str(pdir))

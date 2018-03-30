@@ -8,6 +8,7 @@ targetdir = '/' + '/'.join(os.getcwd().split('/')[1:4])
 print('Dir: ' + targetdir)
 os.chmod(targetdir + '/runconsole.py', 0o555)
 os.chmod(targetdir + '/console.py',0o555)
+# noinspection PyBroadException
 try:
 	os.mkdir('/usr/lib/systemd/system')
 	# make it in case it isn't already there

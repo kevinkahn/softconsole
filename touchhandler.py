@@ -6,12 +6,10 @@ import os
 import errno
 import struct
 from collections import namedtuple
-import threading
 import select
 import queue as Queue
 import pygame
 import debug
-import threadmanager
 
 TOUCH_X = 0
 TOUCH_Y = 1
@@ -53,11 +51,11 @@ class Touch(object):
 
 	@property
 	def position(self):
-		return (self.x, self.y)
+		return self.x, self.y
 
 	@property
 	def last_position(self):
-		return (self.last_x, self.last_y)
+		return self.last_x, self.last_y
 
 	@property
 	def valid(self):
@@ -115,7 +113,7 @@ class Touch(object):
 class Touches(list):
 	@property
 	def valid(self):
-		return [touch for touch in self if touch.valid]
+		return [tch for tch in self if tch.valid]
 
 
 class Touchscreen(object):
@@ -148,19 +146,8 @@ class Touchscreen(object):
 			self.poll()
 			#time.sleep(0.00001)
 
-	def StartThread(self):
-		T = threading.Thread(name='TouchHandler', target=self._run)
-		T.setDaemon(True)
-		T.start()
-		return T
-
-#	def run(self):
-#		if self._thread is not None:
-#			return
-
-		self._thread = threading.Thread(target=self._run)
-		self._thread.setDaemon(True)
-		self._thread.start()
+	def run(self):
+		self._run()
 
 	def stop(self):
 		if self._thread is None:
@@ -195,8 +182,8 @@ class Touchscreen(object):
 
 	def _get_pending_events(self):
 		for event in self._lazy_read():
-			(tv_sec, tv_usec, type, code, value) = struct.unpack(self.EVENT_FORMAT, event)
-			self._event_queue.put(TouchEvent(tv_sec + (tv_usec / 1000000), type, code, value))
+			(tv_sec, tv_usec, ttype, code, value) = struct.unpack(self.EVENT_FORMAT, event)
+			self._event_queue.put(TouchEvent(tv_sec + (tv_usec / 1000000), ttype, code, value))
 
 	def _wait_for_events(self, timeout=2):
 		return self._f_poll.poll(timeout)
@@ -210,8 +197,8 @@ class Touchscreen(object):
 			self._event_queue.task_done()
 
 			if event.type == EV_SYN:  # Sync
-				for touch in self.touches:
-					touch.handle_events()
+				for tch in self.touches:
+					tch.handle_events()
 				return self.touches
 
 			if event.type == EV_KEY and not self._capscreen:
@@ -294,21 +281,22 @@ if __name__ == "__main__":
 	ts = Touchscreen()
 
 
-	def handle_event(event, touch):
+	def handle_event(event, tch):
 		#xx = (a[2] + a[0] * touch.x + a[1] * touch.y) / a[6]
 		#yy = (a[5] + a[3] * touch.x + a[4] * touch.y) / a[6]
 		#Xx = (touch.x - b[0]) * 320 / (b[1] - b[0])
 		#Xy = (touch.y - b[2]) * 480 / (b[3] - b[2])
 		print(["Release", "Press", "Move"][event],
-		      touch.slot,
-		      touch.x,
-		      touch.y)
+			  tch.slot,
+			  tch.x,
+			  tch.y)
 		return
+		# noinspection PyUnreachableCode
 		if event == 1:
-			e = pygame.event.Event(pygame.MOUSEBUTTONDOWN, {'pos': (touch.x, touch.y)})
+			e = pygame.event.Event(pygame.MOUSEBUTTONDOWN, {'pos': (tch.x, tch.y)})
 			pygame.fastevent.post(e)
 		elif event == 0:
-			e = pygame.event.Event(pygame.MOUSEBUTTONUP, {'pos': (touch.x, touch.y)})
+			e = pygame.event.Event(pygame.MOUSEBUTTONUP, {'pos': (tch.x, tch.y)})
 			pygame.fastevent.post(e)
 
 

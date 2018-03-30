@@ -107,7 +107,7 @@ class EventList(object):
 				debug.debugPrint('EventList', "POST", self.List)
 				try:
 					del self.finder[id(evnt)]
-				except:
+				except KeyError:
 					debug.debugPrint('EventList', self.RelNow(), 'Extra delete?', evnt)
 				acttime, evnt = self.List[0]
 			return acttime, evnt

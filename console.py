@@ -7,7 +7,7 @@ Copyright 2016, 2017, 2018 Kevin Kahn
    you may not use this file except in compliance with the License.
    You may obtain a copy of the License at
 
-       http://www.apache.org/licenses/LICENSE-2.0
+	   http://www.apache.org/licenses/LICENSE-2.0
 
    Unless required by applicable law or agreed to in writing, software
    distributed under the License is distributed on an "AS IS" BASIS,
@@ -15,44 +15,44 @@ Copyright 2016, 2017, 2018 Kevin Kahn
    See the License for the specific language governing permissions and
    limitations under the License.
 """
-import debug
-import config
-import importlib
-import os
-import sys
-import hw
-import signal
-import time
 import cgitb
 import datetime
-import pygame
-import alerttasks
+import importlib
+import json
+import os
+import signal
+import sys
+import time
 
+import pygame
+import requests
+# noinspection PyProtectedMember
 from configobj import ConfigObj, Section
 
+import alerttasks
+import config
 import configobjects
-import exitutils
-
+import debug
 import displayscreen
+import exitutils
 import globalparams
+import hw
 import isy
 import logsupport
 import maintscreen
 import utilities
-import requests
 from logsupport import ConsoleWarning
-import weatherfromatting
 from stores import mqttsupport, valuestore, localvarsupport, sysstore
 
-import json
 
-
+# noinspection PyUnusedLocal
 def handler(signum, frame):
 	if signum in (signal.SIGTERM, signal.SIGINT):
 		logsupport.Logs.Log(u"Console received a termination signal ", str(signum), u" - Exiting")
 		hw.GoBright(100)
 		pygame.display.quit()
 		pygame.quit()
+		# noinspection PyProtectedMember
 		os._exit(0)
 	else:
 		logsupport.Logs.Log(u"Console received signal " + str(signum) + u" Ignoring")
@@ -67,34 +67,40 @@ config.Console_pid = os.getpid()
 config.exdir = os.path.dirname(os.path.abspath(__file__))
 os.chdir(config.exdir)  # make sure we are in the directory we are executing from
 config.homedir = os.path.dirname(config.exdir)
-logsupport.Logs.Log(u"Console (" + str(config.Console_pid) + u") starting in "+os.getcwd())
+logsupport.Logs.Log(u"Console (" + str(config.Console_pid) + u") starting in " + os.getcwd())
 
 sectionget = Section.get
+
+
 def CO_get(self, key, default, delkey=True):
 	rtn = sectionget(self, key, default)
 	if key in self and delkey:
 		del self[key]
 	return rtn
+
+
 Section.get = CO_get
 
 
 def LogBadParams(section, name):
-	for nm, s in section.items():
+	for thisnm, s in section.items():
 		if isinstance(s, Section):
-			LogBadParams(s, nm)
+			LogBadParams(s, thisnm)
 		else:
-			logsupport.Logs.Log(u"Bad (unused) parameter name in: ", name, u" (", nm, u"=", str(s), u")",
-							severity=ConsoleWarning)
+			logsupport.Logs.Log(u"Bad (unused) parameter name in: ", name, u" (", thisnm, u"=", str(s), u")",
+								severity=ConsoleWarning)
+
 
 if os.getegid() != 0:
 	# Not running as root
 	logsupport.Logs.Log(u"Not running as root - exit")
 	print (u"Must run as root")
+	# noinspection PyProtectedMember
 	os._exit(exitutils.EARLYABORT)
 
 utilities.InitializeEnvironment()
 
-logsupport.Logs.Log(u'Environment initialized on host '+ config.hostname)
+logsupport.Logs.Log(u'Environment initialized on host ' + config.hostname)
 
 lastfn = u""
 lastmod = 0
@@ -116,7 +122,7 @@ try:
 		config.versionsha = f.readline()[:-1].rstrip()
 		config.versiondnld = f.readline()[:-1].rstrip()
 		config.versioncommit = f.readline()[:-1].rstrip()
-except:
+except (IOError, ValueError):
 	config.versionname = u'none'
 	config.versionsha = u'none'
 	config.versiondnld = u'none'
@@ -128,7 +134,7 @@ logsupport.Logs.Log(
 """
 Dynamically load class definitions for all defined screen types and link them to how configuration happens
 """
-#for screentype in os.listdir(os.path.dirname(os.path.abspath(sys.argv[0])) + '/screens'):
+# for screentype in os.listdir(os.path.dirname(os.path.abspath(sys.argv[0])) + '/screens'):
 for screentype in os.listdir(os.getcwd() + '/screens'):
 	if '__' not in screentype:
 		splitname = os.path.splitext(screentype)
@@ -137,7 +143,7 @@ for screentype in os.listdir(os.getcwd() + '/screens'):
 
 logsupport.Logs.Log("Screen types imported")
 
-#for alertproctype in os.listdir(os.path.dirname(os.path.abspath(sys.argv[0])) + '/alerts'):
+# for alertproctype in os.listdir(os.path.dirname(os.path.abspath(sys.argv[0])) + '/alerts'):
 for alertproctype in os.listdir(os.getcwd() + '/alerts'):
 	if '__' not in alertproctype:
 		splitname = os.path.splitext(alertproctype)
@@ -156,6 +162,7 @@ Initialize the Console
 """
 
 with open(config.exdir + '/termshortenlist', 'r') as f:
+	# noinspection PyBroadException
 	try:
 		config.TermShortener = json.load(f)
 	except:
@@ -172,7 +179,7 @@ logsupport.Logs.Log("Configuration file: " + config.configfile)
 
 if not os.path.isfile(config.configfile):
 	print ("Abort - no configuration file found")
-	logsupport.Logs.Log('Abort - no configuration file ('+config.hostname+')')
+	logsupport.Logs.Log('Abort - no configuration file (' + config.hostname + ')')
 	exitutils.EarlyAbort('No Configuration File (' + config.hostname + ')')
 
 config.ParsedConfigFile = ConfigObj(config.configfile)  # read the config.txt file
@@ -203,6 +210,7 @@ while includes:
 	includes = includes + tmpconf.get('include', [])
 	config.ParsedConfigFile.merge(tmpconf)
 	logsupport.Logs.Log("Merged config file " + f)
+	# noinspection PyBroadException
 	try:
 		config.configfilelist[f] = os.path.getmtime(f)
 	except:
@@ -213,15 +221,8 @@ debug.InitFlags(config.ParsedConfigFile)
 
 utilities.ParseParam(globalparams)  # add global parameters to config file
 for nm, val in config.sysvals.items():
-	config.sysStore.SetVal([nm],val[0](config.ParsedConfigFile.get(nm,val[1])))
-	if val[2] is not None: config.sysStore.AddAlert(nm,val[2])
-
-# preload weather icon cache for some common terms
-for cond in ('clear','cloudy','mostlycloudy','mostlysunny','partlycloudy','partlysunny','rain','snow','sunny','chancerain'):
-	try:
-		weatherfromatting.get_icon('https://icons.wxug.com/i/c/k/' + cond + '.gif')
-	except:
-		pass
+	config.sysStore.SetVal([nm], val[0](config.ParsedConfigFile.get(nm, val[1])))
+	if val[2] is not None: config.sysStore.AddAlert(nm, val[2])
 
 logsupport.Logs.Log("Parsed globals")
 logsupport.Logs.Log("Switching to real log")
@@ -252,9 +253,10 @@ if config.previousup > 0:
 	logsupport.Logs.Log("Previous Console Lifetime: ", str(datetime.timedelta(seconds=config.previousup)))
 if config.lastup > 0:
 	logsupport.Logs.Log("Console Last Running at: ", time.ctime(config.lastup))
-	logsupport.Logs.Log("Previous Console Downtime: ", str(datetime.timedelta(seconds=(config.starttime - config.lastup))))
+	logsupport.Logs.Log("Previous Console Downtime: ",
+						str(datetime.timedelta(seconds=(config.starttime - config.lastup))))
 logsupport.Logs.Log("Main config file: ", config.configfile,
-				time.strftime(' %c', time.localtime(config.configfilelist[config.configfile])))
+					time.strftime(' %c', time.localtime(config.configfilelist[config.configfile])))
 logsupport.Logs.Log("Default config file library: ", cfglib)
 logsupport.Logs.Log("Including config files:")
 for p, f in zip(pfiles, cfiles):
@@ -275,9 +277,10 @@ for i in config.sysStore:
 """
 Pull out non-screen sections
 """
-for i,v in config.ParsedConfigFile.items():
+for i, v in config.ParsedConfigFile.items():
 	if isinstance(v, Section):
-		stype = v.get('type',None,delkey=False)
+		# noinspection PyArgumentList
+		stype = v.get('type', None, delkey=False)
 		if stype == 'MQTT':
 			"""
 			Set up mqtt brokers
@@ -295,13 +298,13 @@ for i,v in config.ParsedConfigFile.items():
 import alerttasks
 
 """
-Set up for ISY access
+Set up for ISY access (todo - should move to inside ISY class stuff)
 """
 if config.ISYaddr != '':
-	if config.ISYaddr.startswith( 'http' ) :
-	  config.ISYprefix = config.ISYaddr + '/rest/'
+	if config.ISYaddr.startswith('http'):
+		config.ISYprefix = config.ISYaddr + '/rest/'
 	else:
-	  config.ISYprefix = 'http://' + config.ISYaddr + '/rest/'
+		config.ISYprefix = 'http://' + config.ISYaddr + '/rest/'
 	config.ISYrequestsession = requests.session()
 	config.ISYrequestsession.auth = (config.ISYuser, config.ISYpassword)
 
@@ -320,7 +323,7 @@ if config.ISYaddr != '':
 
 else:
 	config.ISY = isy.ISY(None)
-	alertspeclist = None # todo see comment above
+	alertspeclist = None  # todo see comment above
 	logsupport.Logs.Log("No ISY Specified", severity=ConsoleWarning)
 
 """
@@ -337,9 +340,9 @@ else:
 		alertspec.merge(alertspeclist)
 
 if 'Variables' in config.ParsedConfigFile:
-	valuestore.NewValueStore(localvarsupport.LocalVars('LocalVars',config.ParsedConfigFile['Variables']))
+	valuestore.NewValueStore(localvarsupport.LocalVars('LocalVars', config.ParsedConfigFile['Variables']))
 	i = 0
-	tn = ['LocalVars','']
+	tn = ['LocalVars', '']
 	for nm, val in config.ParsedConfigFile['Variables'].items():
 		logsupport.Logs.Log("Local variable: " + nm + "(" + str(i) + ") = " + str(val))
 		tn[1] = nm
@@ -347,7 +350,6 @@ if 'Variables' in config.ParsedConfigFile:
 		valuestore.SetAttr(tn, (3, i))
 		i += 1
 	del config.ParsedConfigFile['Variables']
-
 
 """
 Build the ISY object structure and connect the configured screens to it
@@ -369,27 +371,26 @@ maintscreen.SetUpMaintScreens()
 logsupport.Logs.Log("Built Maintenance Screen")
 
 logsupport.Logs.livelog = False  # turn off logging to the screen and give user a moment to scan
-#time.sleep(2)
+# time.sleep(2)
 
 LogBadParams(config.ParsedConfigFile, "Globals")
 LogBadParams(alertspec, "Alerts")
 """
 Dump documentation if development version
 """
-#if config.versionname == 'development':
+# if config.versionname == 'development':
 #	utilities.DumpDocumentation()
 
 """
 Run the main console loop
 """
-for n in alerttasks.monitoredvars: # make sure vars used in alerts are updated to starting values
+for n in alerttasks.monitoredvars:  # make sure vars used in alerts are updated to starting values
 	valuestore.GetVal(n)
 
 config.DS.MainControlLoop(config.HomeScreen)
-logsupport.Logs.Log("Main line exit: ",config.ecode)
+logsupport.Logs.Log("Main line exit: ", config.ecode)
 pygame.quit()
+# noinspection PyProtectedMember
 os._exit(config.ecode)
 
 # This never returns
-
-

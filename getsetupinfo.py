@@ -1,5 +1,10 @@
+from __future__ import print_function
 
 ans = ""
+ISYIP = ""
+ISYUSER = ""
+ISYPWD = ""
+exswitch = ""
 while not ans in ('y', 'Y', 'n', 'N'):
 	ans = raw_input("Set up minimal example system?")
 if ans in ('y', 'Y'):
@@ -11,10 +16,10 @@ if ans in ('y', 'Y'):
 		ISYUSER = raw_input("ISY user name: ")
 		ISYPWD = raw_input("ISY password: ")
 		exswitch = raw_input("Example switch to use (ISY name): ")
-		print "IP:      ", ISYIP
-		print "USER:    ", ISYUSER
-		print "PASSWORD:", ISYPWD
-		print "SWITCH:  ", "[[" + exswitch + "]]"
+		print("IP:      " + ISYIP)
+		print("USER:    " + ISYUSER)
+		print("PASSWORD:" + ISYPWD)
+		print("SWITCH:  " + "[[" + exswitch + "]]")
 		go = raw_input("OK? (y/n)")
 	with open('/home/pi/Consoleauth', "w") as f:
 		cfg = ("ISYaddr = " + ISYIP,

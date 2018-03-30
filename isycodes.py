@@ -51,17 +51,17 @@ EVENT_CTRL = {
 
 
 def formatwsitem(sid, seq, code, action, node, info, extra):
-	paddr = 'zzzzz'
+	# noinspection PyBroadException
 	try:
 		if action is None:
 			action = 'NONE'
 		if node is None:
 			node = 'NONE'
 		if info is None:
-			info = 'NONE'
+			info = {'NONE'}
 		try:
 			isynd = config.ISY.NodesByAddr[node].name
-		except:
+		except (KeyError, AttributeError):
 			isynd = node
 		pretty = ' ' + sid + '/' + str(seq) + ' '
 		EC = EVENT_CTRL[code]

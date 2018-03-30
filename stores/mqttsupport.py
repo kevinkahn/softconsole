@@ -2,10 +2,10 @@ import paho.mqtt.client as mqtt
 import debug
 import logsupport
 from logsupport import ConsoleWarning
+# noinspection PyProtectedMember
 from configobj import Section
 import time
 from stores import valuestore
-import threading
 import threadmanager
 
 class MQitem(valuestore.StoreItem):
@@ -17,14 +17,18 @@ class MQTTBroker(valuestore.ValueStore):
 
 	def __init__(self, name, configsect):
 		super(MQTTBroker,self).__init__(name,refreshinterval=0,itemtyp=MQitem)
+
+		# noinspection PyUnusedLocal
 		def on_connect(client, userdata, flags, rc):
 			logsupport.Logs.Log("Connected to ", self.name, " result code: " + str(rc))
 			for i, v in userdata.vars.items():
 				client.subscribe(v.Topic)
 
+		# noinspection PyUnusedLocal
 		def on_disconnect(client, userdata, rc):
 			logsupport.Logs.Log("Disconnected from ", self.name, "result code: " + str(rc))
 
+		# noinspection PyUnusedLocal
 		def on_message(client, userdata, msg):
 			#print time.ctime() + " Received message " + str(msg.payload) + " on topic "  + msg.topic + " with QoS " + str(msg.qos)
 			var = None
@@ -39,6 +43,7 @@ class MQTTBroker(valuestore.ValueStore):
 				self.vars[var].Value = self.vars[var].Type(msg.payload)
 				debug.debugPrint('StoreTrack', "Store(mqtt): ", self.name, ':', var, ' Value: ', self.vars[var].Value)
 
+		# noinspection PyUnusedLocal
 		def on_log(client, userdata, level, buf):
 			logsupport.Logs.Log("MQTT Log: ",str(level)," buf: ",str(buf),severity=ConsoleWarning)
 			#print time.ctime() + " MQTT Log " + str(level) + '  ' + str(buf)
@@ -47,23 +52,23 @@ class MQTTBroker(valuestore.ValueStore):
 		self.password = configsect.get('password',None)
 		self.vars = {}
 		self.ids = {}
-		for i,v in configsect.items():
-			if isinstance(v,Section):
-				tp = v.get('TopicType', str)
+		for itemname,value in configsect.items():
+			if isinstance(value,Section):
+				tp = value.get('TopicType', str)
 				if tp == 'float':
 					tpcvrt = float
 				elif tp == 'int':
 					tpcvrt = int
 				else:
 					tpcvrt = str
-				tpc = v.get('Topic',None)
-				self.vars[i] = MQitem(i, tpc, tpcvrt,int(v.get('Expires',99999999999999999)),self)
-				self.ids[tpc] = i
+				tpc = value.get('Topic',None)
+				self.vars[itemname] = MQitem(itemname, tpc, tpcvrt,int(value.get('Expires',99999999999999999)),self)
+				self.ids[tpc] = itemname
 		self.MQTTclient = mqtt.Client(userdata=self)
 		self.MQTTclient.on_connect = on_connect
 		self.MQTTclient.on_message = on_message
 		self.MQTTclient.on_disconnect = on_disconnect
-		threadmanager.HelperThreads[self.name] = threadmanager.ThreadItem(self.name, self.StartThread, self.StartThread)
+		threadmanager.SetUpHelperThread(self.name,self.MQTTLoop)
 		#self.MQTTclient.on_log = on_log
 		#self.MQTTclient.connect(self.address)
 		#self.MQTTclient.loop_start()
@@ -74,20 +79,16 @@ class MQTTBroker(valuestore.ValueStore):
 		self.MQTTclient.disconnect()
 		logsupport.Logs.Log("MQTT handler thread ended for: "+self.name,severity=ConsoleWarning)
 
-	def StartThread(self):
-		T = threading.Thread(name=self.name, target= self.MQTTLoop)
-		T.setDaemon(True)
-		T.start()
-		return T
+	def GetValByID(self, lclid):
+		self.GetVal(self.ids[lclid])
 
-	def GetValByID(self,id):
-		self.GetVal(self.ids[id])
-
-	def SetVal(self,name, val):
+	def SetVal(self,name, val, modifier = None):
 		logsupport.Logs.Log("Can't set MQTT subscribed var within console: ",name)
 
-	def SetValByID(self,id, val):
-		logsupport.Logs.Log("Can't set MQTT subscribed var by id within console: ", str(id))
+	# noinspection PyUnusedLocal
+	@staticmethod
+	def SetValByID(lclid, val):
+		logsupport.Logs.Log("Can't set MQTT subscribed var by id within console: ", str(lclid))
 
 
 

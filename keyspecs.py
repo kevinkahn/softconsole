@@ -12,8 +12,10 @@ from toucharea import ManualKeyDesc
 from stores import valuestore
 import shlex
 
+# noinspection PyUnusedLocal
 def KeyWithVarChanged(storeitem, old, new, param, modifier):
 	debug.debugPrint('DaemonCtl','Var changed for key ',storeitem.name,' from ',old,' to ',new)
+	# noinspection PyArgumentList
 	notice = pygame.event.Event(config.DS.ISYChange, varinfo=param)
 	pygame.fastevent.post(notice)
 	pass
@@ -46,7 +48,7 @@ def CreateKey(screen, screensection, keyname):
 		logsupport.Logs.Log('Undefined key type ' + keytype + ' for: ' + keyname, severity=ConsoleWarning)
 	return NewKey
 
-
+# noinspection PyUnusedLocal
 def ErrorKey(presstype):
 	# used to handle badly defined keys
 	logsupport.Logs.Log('Ill-defined Key Pressed', severity=ConsoleWarning)
@@ -66,6 +68,8 @@ class BlankKey(ManualKeyDesc):
 class SetVarValueKey(ManualKeyDesc):
 	# This is a key that brings up a sub screen that allows buttons to change the value of the var explicitly
 	def __init__(self, screen, keysection, keyname):
+		self.Var = ''
+
 		debug.debugPrint('Screen', "             New SetVarValue Key Desc ", keyname)
 		self.Value = None
 		self.VarID = (0,0)
@@ -107,11 +111,15 @@ class VarKey(ManualKeyDesc):
 			self.Label = label.split(';')
 
 	def __init__(self, screen, keysection, keyname):
+		self.Var = ''
+		self.Appearance = []
+		self.ValueSeq = []
+
 		debug.debugPrint('Screen',"              New Var Key ", keyname)
 		ManualKeyDesc.__init__(self, screen, keysection, keyname)
 		utilities.LocalizeParams(self, keysection, '--', Var='', Appearance=[], ValueSeq=[])
 		valuestore.AddAlert(self.Var, (KeyWithVarChanged,(keyname,self.Var)))
-		if self.ValueSeq != []:
+		if self.ValueSeq:
 			self.Proc = self.VarKeyPressed
 			t = []
 			for n in self.ValueSeq: t.append(int(n))
@@ -136,13 +144,13 @@ class VarKey(ManualKeyDesc):
 			offcolor = utilities.wc(self.KeyColorOff)
 			lab = []
 			for i in self.displayoptions:
-				if val >= i.Chooser[0] and val <= i.Chooser[1]:
+				if i.Chooser[0] <= val <= i.Chooser[1]:
 					lab = i.Label[:]
 
 					oncolor = utilities.tint(i.Color)
 					offcolor = utilities.wc(i.Color)
 					break
-			if lab == []: lab = self.KeyLabelOn[:]
+			if not lab: lab = self.KeyLabelOn[:]
 			lab2 = []
 			for line in lab:
 				lab2.append(line.replace('$', str(val)))
@@ -151,6 +159,7 @@ class VarKey(ManualKeyDesc):
 			if self.Blink != 0: self.ScheduleBlinkKey(self.Blink)
 		super(VarKey,self).PaintKey(ForceDisplay,DisplayState)
 
+	# noinspection PyUnusedLocal
 	def VarKeyPressed(self, presstype):
 		try:
 			i = self.ValueSeq.index(valuestore.GetVal(self.Var))
@@ -162,6 +171,10 @@ class VarKey(ManualKeyDesc):
 
 class SetVarKey(ManualKeyDesc):
 	def __init__(self, screen, keysection, keyname):
+		self.VarType = ''
+		self.Var = ''
+		self.Value = 0
+
 		debug.debugPrint('Screen', "             New SetVar Key Desc ", keyname)
 		ManualKeyDesc.__init__(self, screen, keysection, keyname)
 		utilities.LocalizeParams(self, keysection, '--', VarType='undef', Var='', Value=0)
@@ -185,16 +198,19 @@ class SetVarKey(ManualKeyDesc):
 				self.VarName = self.Var.split(':')
 		except Exception as e:
 			logsupport.Logs.Log('Var key error on screen: ' + screen.name + ' Var: ' + self.Var, severity=ConsoleWarning)
+			logsupport.Logs.Log('Excpt: ',str(e))
 			self.Proc = ErrorKey
 
 		utilities.register_example("SetVarKey", self)
 
+	# noinspection PyUnusedLocal
 	def SetVarKeyPressed(self, presstype):
 		valuestore.SetVal(self.VarName,self.Value)
 		self.BlinkKey(self.Blink)
 
 class RunProgram(ManualKeyDesc):
 	def __init__(self, screen, keysection, keyname):
+		self.ProgramName = ''
 		debug.debugPrint('Screen', "             New RunProgram Key ", keyname)
 		utilities.LocalizeParams(self, keysection, '--', ProgramName='')
 		ManualKeyDesc.__init__(self, screen, keysection, keyname)
@@ -202,17 +218,17 @@ class RunProgram(ManualKeyDesc):
 		self.State = False
 		try:
 			self.ISYObj = config.ISY.ProgramsByName[self.ProgramName]
-		except:
+		except KeyError:
 			self.ISYObj = config.DummyProgram
 			debug.debugPrint('Screen', "Unbound program key: ", self.name)
 			logsupport.Logs.Log("Missing Prog binding: " + self.name, severity=ConsoleWarning)
 		if self.Verify:
 			self.VerifyScreen = supportscreens.VerifyScreen(self, self.GoMsg, self.NoGoMsg, self.VerifyRunAndReturn,
-															screen, self.KeyColorOff, self.KeyCharColorOff,
-															screen.BackgroundColor, self.KeyOffOutlineColor,
-															screen.CharColor, self.State)
+															screen, self.KeyCharColorOff,
+															screen.BackgroundColor, screen.CharColor, self.State)
 		self.Proc = self.RunKeyPressed
 
+	# noinspection PyUnusedLocal
 	def VerifyRunAndReturn(self, go, presstype):
 		if go:
 			self.ISYObj.runThen()
@@ -234,9 +250,13 @@ class RunProgram(ManualKeyDesc):
 
 class OnOffKey(ManualKeyDesc):
 	def __init__(self, screen, keysection, keyname, keytype):
+		self.SceneProxy = ''
+		self.NodeName = ''
+
 		debug.debugPrint('Screen', "             New ", keytype, " Key Desc ", keyname)
 		utilities.LocalizeParams(self, keysection, '--', SceneProxy='', NodeName='')
 		ManualKeyDesc.__init__(self, screen, keysection, keyname)
+		self.lastpresstype = 0
 
 		self.MonitorObj = None  # ISY Object monitored to reflect state in the key (generally a device within a Scene)
 		if keyname == '*Action*': keyname = self.NodeName  # special case for alert screen action keys that always have same name
@@ -276,9 +296,8 @@ class OnOffKey(ManualKeyDesc):
 
 		if self.Verify:
 			self.VerifyScreen = supportscreens.VerifyScreen(self, self.GoMsg, self.NoGoMsg, self.VerifyPressAndReturn,
-															screen, self.KeyColorOff, self.KeyCharColorOff,
-															screen.BackgroundColor, self.KeyOffOutlineColor,
-															screen.CharColor, self.State)
+															screen, self.KeyColorOff,
+															screen.BackgroundColor, screen.CharColor, self.State)
 
 		if keytype == 'ONOFF':
 			self.KeyAction = 'OnOff'
@@ -292,7 +311,7 @@ class OnOffKey(ManualKeyDesc):
 
 	def FinishKey(self, center, size, firstfont=0, shrink=True):
 		super(OnOffKey, self).FinishKey(center, size, firstfont, shrink)
-		if self.MonitorObj != None:
+		if self.MonitorObj is not None:
 			self.Screen.NodeList[self.MonitorObj.address] = self  # register for events for this key
 
 	def InitDisplay(self):
@@ -321,6 +340,7 @@ class OnOffKey(ManualKeyDesc):
 								severity=ConsoleWarning)
 				self.BlinkKey(20)
 
+	# noinspection PyUnusedLocal
 	def VerifyPressAndReturn(self, go, presstype):
 		if go:
 			if self.KeyAction == "OnOff":

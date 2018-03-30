@@ -1,10 +1,14 @@
-from utilities import wc
 import config
 import pygame
 import debug
 import screen
 import utilities
+import pygame
 
+import config
+import debug
+import screen
+import utilities
 
 
 class HouseStatusScreenDesc(screen.ScreenDesc):

@@ -25,16 +25,12 @@ class NetCmd(object):
 	def __init__(self):
 		pass
 
-	#	@staticmethod
-	def Command(self, alert):
+	@staticmethod
+	def Command(alert):
 		if not isinstance(alert.trigger, alerttasks.VarChangeTrigger):
 			logsupport.Logs.Log('Net Command not triggered by variable', severity=ConsoleWarning)
 		varval = valuestore.GetVal(alert.trigger.var)
-		#vartype = alert.trigger.vartype
-		#varid = alert.trigger.varid
-		#varval = config.DS.WatchVarVals[(vartype, varid)]
 		valuestore.SetVal(alert.trigger.var, 0)
-		#isy.SetVar((vartype, varid), 0)
 		if varval == 1:
 			logsupport.Logs.Log('Remote restart')
 			exitutils.Exit_Screen_Message('Remote restart requested', 'Remote Restart')

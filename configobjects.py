@@ -1,3 +1,4 @@
+# noinspection PyProtectedMember
 from configobj import Section
 
 import config
@@ -35,7 +36,8 @@ class MyScreens(object):
 					NewScreen = config.screentypes[tempscreentype](thisScreen, screenitem)
 
 				else:
-					logsupport.Logs.Log("Screentype error" + screenitem + " type " + tempscreentype, severity=ConsoleWarning)
+					logsupport.Logs.Log("Screentype error " + screenitem + " type " + tempscreentype, severity=ConsoleWarning)
+					del thisconfig[screenitem]
 					pass
 			if NewScreen is not None:
 				if NewScreen.name in config.MainChain:
@@ -138,6 +140,7 @@ class MyScreens(object):
 			config.HomeScreen2 = config.HomeScreen
 			logsupport.Logs.Log("No secondary screen chain")  # just point secondary at main
 
+		# noinspection PyBroadException
 		try:
 			for sn, st in zip(config.DimIdleListNames, config.DimIdleListTimes):
 				for l, d in zip((config.MainChain, config.SecondaryChain, config.ExtraChain),

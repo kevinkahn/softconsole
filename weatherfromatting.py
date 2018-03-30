@@ -12,27 +12,28 @@ def CreateWeathBlock(Format, Fields, WeathFont, FontSize, WeathColor, icon, cent
 	rf = []
 	fh = 0
 	fw = 0
-	FS = [FontSize] if isinstance(FontSize, basestring) else FontSize[:]
+	FS = FontSize[:] if isinstance(FontSize, list) else [FontSize]
 	fsize = int(FS.pop(0))
 	usefont = config.fonts.Font(fsize, WeathFont)
 
+	fld = ''
+	vals = []
+	iconref = []
 	try:
-		vals = []
 		for fld in Fields:
 			if day == -1:
 				vals.append(valuestore.GetVal(fld))
 			else:
 				vals.append(valuestore.GetVal(fld + (day,)))
 	except Exception as e:
-		logsupport.Logs.Log('Weather Block field access error: '+str(fld))
+		logsupport.Logs.Log('Weather Block field access error: '+str(fld)+' Exc: '+str(e))
 
 	try:
 		for f in Format:
-
 			rf.append(usefont.render(WFormatter().format(f, d=vals), 0, wc(WeathColor)))
 			fh += rf[-1].get_height()
 			if rf[-1].get_width() > fw: fw = rf[-1].get_width()
-			if FS != []:
+			if FS:
 				fsize = int(FS.pop(0))
 				usefont = config.fonts.Font(fsize, WeathFont)
 	except Exception as e:
@@ -52,6 +53,7 @@ def CreateWeathBlock(Format, Fields, WeathFont, FontSize, WeathColor, icon, cent
 	fsfc = pygame.Surface((totw, fh))
 	fsfc.set_colorkey(wc('black'))
 	v = 0
+	# noinspection PyBroadException
 	try:
 		if icon is not None: fsfc.blit(pygame.transform.smoothscale(valuestore.ValueStores[icon[0]].GetVal(iconref), (fh, fh)), (0, 0))
 	except:

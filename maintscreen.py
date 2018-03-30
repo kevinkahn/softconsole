@@ -85,14 +85,14 @@ def SetUpMaintScreens():
 	Exits.Keys['return'].Proc = functools.partial(goto, config.MaintScreen, Exits.Keys['return'])
 	Beta.Keys['return'].Proc = functools.partial(goto, config.MaintScreen, Beta.Keys['return'])
 
-
+# noinspection PyUnusedLocal
 def setdbg(K, presstype):  # todo needs dynamic repaint
 	debug.dbgStore.SetVal(K.name,not debug.dbgStore.GetVal(K.name))
 	K.State = not K.State
 	K.PaintKey()
 	logsupport.Logs.Log("Debug flag ", K.name, ' = ', K.State, severity=ConsoleWarning)
 
-
+# noinspection PyUnusedLocal
 def adjloglevel(K, presstype):
 	if K.name == "LogLevelUp":
 		if logsupport.LogLevel < len(logsupport.LogLevels) - 1:
@@ -108,19 +108,20 @@ def adjloglevel(K, presstype):
 	debug.DebugFlagKeys["LogLevelDown"].PaintKey()
 	logsupport.Logs.Log("Log Level changed via ", K.name, " to ", logsupport.LogLevel, severity=ConsoleWarning)
 
-
+# noinspection PyUnusedLocal
 def gohome(K, presstype):  # neither peram used
 	config.DS.SwitchScreen(config.HomeScreen, 'Bright', 'Home', 'Maint exit', NavKeys=True)
 
+# noinspection PyUnusedLocal
+def goto(newscreen, K, presstype):
+	config.DS.SwitchScreen(newscreen, 'Bright', 'Maint', 'Maint goto' + newscreen.name, NavKeys=False)
 
-def goto(screen, K, presstype):
-	config.DS.SwitchScreen(screen, 'Bright', 'Maint', 'Maint goto' + screen.name, NavKeys=False)
-
+# noinspection PyUnusedLocal
 def handleexit(K, YesKey, presstype):
 	# YesKey, presstype are ignored in this use - needed by the key press invokation for other purposes
 	exitutils.domaintexit(K.name)
 
-
+# noinspection PyUnusedLocal
 def doexit(K, presstype):
 	if K.name == 'shut':
 		verifymsg = 'Do Console Shutdown'
@@ -135,7 +136,7 @@ def doexit(K, presstype):
 										  ('no', ('Cancel', functools.partial(goto, config.MaintScreen)))]))
 	config.DS.SwitchScreen(Verify, 'Bright', 'Maint', 'Verify exit', NavKeys=False)
 
-
+# noinspection PyUnusedLocal
 def dobeta(K, presstype):
 	#todo fetch other tags; switch to versionselector
 	K.State = not K.State
@@ -159,6 +160,7 @@ def dobeta(K, presstype):
 def fetch_stable():
 	basedir = os.path.dirname(config.exdir)
 
+	# noinspection PyBroadException
 	try:
 		if os.path.exists(basedir + '/homesystem'):
 			# personal system
@@ -179,6 +181,7 @@ def fetch_beta():
 	basedir = os.path.dirname(config.exdir)
 	logsupport.Logs.Log("New version fetch(currentbeta)")
 	print ("New Version Fetch Requested (currentbeta)")
+	# noinspection PyBroadException
 	try:
 		U.StageVersion(basedir + '/consolebeta', 'currentbeta', 'RequestedDownload')
 		U.InstallStagedVersion(basedir + '/consolebeta')
@@ -189,6 +192,9 @@ def fetch_beta():
 
 class LogDisplayScreen(screen.BaseKeyScreenDesc):
 	def __init__(self):
+		self.item = 0
+		self.pageno = -1
+		self.PageStartItem = [0]
 		screen.BaseKeyScreenDesc.__init__(self, None, 'LOG')
 		self.Keys = {'nextpage': toucharea.TouchPoint('nextpage', (config.screenwidth/2, 3*config.screenheight/4),
 													  (config.screenwidth, config.screenheight), proc=self.NextPage),
@@ -197,6 +203,7 @@ class LogDisplayScreen(screen.BaseKeyScreenDesc):
 		self.name = 'Log'
 		utilities.register_example("LogDisplayScreen", self)
 
+	# noinspection PyUnusedLocal
 	def NextPage(self, presstype):
 		if self.item >= 0:
 			self.pageno += 1
@@ -206,6 +213,7 @@ class LogDisplayScreen(screen.BaseKeyScreenDesc):
 		else:
 			config.DS.SwitchScreen(config.MaintScreen, 'Bright', 'Maint', 'Done showing log', NavKeys=False)
 
+	# noinspection PyUnusedLocal
 	def PrevPage(self, presstype):
 		if self.pageno > 0:
 			self.pageno -= 1
@@ -224,6 +232,9 @@ class LogDisplayScreen(screen.BaseKeyScreenDesc):
 
 class MaintScreenDesc(screen.BaseKeyScreenDesc):
 	def __init__(self, name, keys, overrides=fixedoverrides):
+		self.TitleFontSize = 0
+		self.SubFontSize = 0
+
 		debug.debugPrint('Screen', "Build Maintenance Screen")
 		screen.BaseKeyScreenDesc.__init__(self, overrides, name)
 		utilities.LocalizeParams(self, None, '-', TitleFontSize=40, SubFontSize=25)

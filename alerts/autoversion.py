@@ -6,16 +6,20 @@ import logsupport
 from logsupport import ConsoleWarning, ConsoleDetail
 import alerttasks
 
+
+# noinspection PyUnusedLocal
 class AutoVersion(object):
 	def __init__(self):
 		pass
 
 	# @staticmethod
-	def CheckUpToDate(self, alert):
+	@staticmethod
+	def CheckUpToDate(alert):
 		exiting = False
 		if config.versionname not in ('none', 'development'):  # skip if we don't know what is running
 			config.DS.Tasks.StartLongOp()
 			logsupport.Logs.Log("Autoversion found named version running: ",config.versionname, severity=ConsoleDetail)
+			# noinspection PyBroadException
 			try:  # if network is down or other error occurs just skip for now rather than blow up
 				sha, c = githubutil.GetSHA(config.versionname)
 				#logsupport.Logs.Log('sha: ',sha, ' cvshha: ',config.versionsha,severity=ConsoleDetail)

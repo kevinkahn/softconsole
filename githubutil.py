@@ -7,7 +7,6 @@ NOTE: This gets used in initial setup of console by the setup program
 
 def StageVersion(vdir, tag, label):
 	print("Staging " + tag + " in " + vdir + ' because ' + label)
-	sha = "zzz"
 	cwd = os.getcwd()
 	os.chdir(vdir)
 	shutil.rmtree('stagedversion', True)
@@ -19,10 +18,12 @@ def StageVersion(vdir, tag, label):
 	with open('versioninfo', 'w') as f:
 		f.writelines(['{0}\n'.format(tag), '{0}\n'.format(sha), label + ': ' + time.strftime('%m-%d-%y %H:%M:%S\n'),
 					  'Commit date: {0}\n'.format(cdate)])
+	# noinspection PyBroadException
 	try:
 		os.chmod('runconsole.py', 0o555)
 	except:
 		pass
+	# noinspection PyBroadException
 	try:
 		os.chmod('console.py', 0o555)
 	except:
@@ -47,6 +48,7 @@ def GetSHA(tag):
 	r = requests.get('https://api.github.com/repos/kevinkahn/softconsole/tags')
 	d = r.json()
 	sha = 'not found'
+	url = 'none'
 	for i in d:
 		if i['name'] == tag:
 			sha = i['commit']['sha']

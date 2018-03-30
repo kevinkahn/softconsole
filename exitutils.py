@@ -1,6 +1,5 @@
 import os
 import subprocess
-import sys
 import time
 
 import pygame
@@ -43,6 +42,7 @@ def EarlyAbort(scrnmsg):
 	print (time.strftime('%m-%d-%y %H:%M:%S'), scrnmsg)
 	time.sleep(10)
 	pygame.quit()
+	# noinspection PyProtectedMember
 	os._exit(EARLYABORT)
 
 
@@ -97,6 +97,9 @@ def domaintexit(ExitKey):
 	elif ExitKey == 'reboot':
 		ExitCode = MAINTPIREBOOT
 		Exit_Screen_Message("Reboot Pi Requested", "Maintenance Request", "Rebooting Pi")
+	else:
+		ExitCode = MAINTRESTART
+		Exit_Screen_Message("Unknown Exit Requested", "Maintenance Error", "Trying a Restart")
 	Exit(ExitCode)
 
 def errorexit(opt):

@@ -12,7 +12,7 @@ class testalerts(object):
 		print ("---------------------VC invocation"+ str(self.ct1)+str(alert)+str(id(alert)))
 		logsupport.Logs.Log('Alert proc test exiting')
 		logsupport.Logs.Log('Restart for new version')
-		exitutils.Exit('test', 'zzzz', 66)
+		exitutils.Exit(66)
 
 
 	def AlertProc2(self, alert):

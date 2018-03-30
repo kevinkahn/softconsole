@@ -12,8 +12,10 @@ import logsupport
 
 class VerifyScreen(screen.BaseKeyScreenDesc):
 
-	def __init__(self, key, gomsg, nogomsg, proc, callingscreen, bcolor, titlecolor, keycoloroff, keyol, charcolor,
-				 state):
+	def __init__(self, key, gomsg, nogomsg, proc, callingscreen, bcolor, keycoloroff, charcolor, state):
+		self.TitleFontSize=0
+		self.SubFontSize=0
+
 		debug.debugPrint('Screen', "Build Verify Screen")
 		screen.BaseKeyScreenDesc.__init__(self, {}, key.name)
 		self.DimTO = 20
@@ -49,7 +51,7 @@ class VerifyScreen(screen.BaseKeyScreenDesc):
 		self.ShowScreen()
 
 
-class ValueChangeScreen(screen.ScreenDesc):
+class ValueChangeScreen(screen.ScreenDesc): # todo may need to call super class
 	# need to set no nav keys
 	@staticmethod
 	def offsetpoint(center, point):
@@ -64,8 +66,17 @@ class ValueChangeScreen(screen.ScreenDesc):
 	def ValChange(self, delta, presstype):
 		pass
 
+	# noinspection PyMissingConstructor
 	def __init__(self, BackgroundColor, Outline, CharColor, label, initvalue, changevals, setvalueproc, returnscreen):
-		self.__dict__.update({k: v for k, v in locals().items() if k != 'self'})
+		self.BackgroundColor = BackgroundColor
+		self.Outline = Outline
+		self.CharColor = CharColor
+		self.label = label
+		self.initvalue = initvalue
+		self.changevals = changevals
+		self.setvalueproc = setvalueproc
+		self.returnscreen = returnscreen
+
 		self.name = "VALUECHANGESCREEN"
 		self.Value = initvalue
 		self.Keys = {}

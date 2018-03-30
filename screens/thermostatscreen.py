@@ -23,10 +23,13 @@ def trifromtop(h, v, n, size, c, invert):
 
 class ThermostatScreenDesc(screen.BaseKeyScreenDesc):
 	def __init__(self, screensection, screenname):
+		self.KeyColor = ''
+
 		debug.debugPrint('Screen', "New ThermostatScreenDesc ", screenname)
 		screen.BaseKeyScreenDesc.__init__(self, screensection, screenname)
 		utilities.LocalizeParams(self, screensection, '-', 'KeyColor', 'KeyOffOutlineColor', 'KeyOnOutlineColor')
 		self.info = {}
+		self.oldinfo = {}
 		self.fsize = (30, 50, 80, 160)
 
 		if config.ISY.NodeExists(screenname):
@@ -74,25 +77,26 @@ class ThermostatScreenDesc(screen.BaseKeyScreenDesc):
 												   proc=functools.partial(self.BumpMode, 'CLIFS', (7, 8)))
 
 		self.ModesPos = self.ModeButPos + bsize[1]//2 + scaleH(5)
-		if self.ISYObj != None:
+		if self.ISYObj is not None:
 			self.NodeList[self.ISYObj.address] = self.Keys['Mode']  # placeholder for thermostat node
 		utilities.register_example("ThermostatScreenDesc", self)
 
+	# noinspection PyUnusedLocal
 	def BumpTemp(self, setpoint, degrees, presstype):
-
 		debug.debugPrint('Main', "Bump temp: ", setpoint, degrees,' to ',self.info[setpoint][0] + degrees)
-		rtxt = isy.try_ISY_comm('/rest/nodes/' + self.ISYObj.address + '/cmd/' + setpoint + '/' + str(
+		isy.try_ISY_comm('/rest/nodes/' + self.ISYObj.address + '/cmd/' + setpoint + '/' + str(
 				self.info[setpoint][0] + degrees))
 
+	# noinspection PyUnusedLocal
 	def BumpMode(self, mode, vals, presstype):
-
 		cv = vals.index(self.info[mode][0])
 		cv = (cv + 1)%len(vals)
 		debug.debugPrint('Main', "Bump: ", mode, ' to ', cv)
-		rtxt = isy.try_ISY_comm('/rest/nodes/' + self.ISYObj.address + '/cmd/' + mode + '/' + str(vals[cv]))
+		isy.try_ISY_comm('/rest/nodes/' + self.ISYObj.address + '/cmd/' + mode + '/' + str(vals[cv]))
 
 	def ShowScreen(self):
 		rtxt = isy.try_ISY_comm('/rest/nodes/' + self.ISYObj.address)
+		# noinspection PyBroadException
 		try:
 			tstatdict = xmltodict.parse(rtxt)
 		except:
@@ -105,6 +109,7 @@ class ThermostatScreenDesc(screen.BaseKeyScreenDesc):
 		for item in props:
 			dbgStr = dbgStr + item["@id"]+':'+item["@formatted"]+"("+item["@value"]+")  "
 #			debug.debugPrint('Main', item["@id"]+":("+item["@value"]+"):"+item["@formatted"])
+			# noinspection PyBroadException
 			try:
 				self.info[item["@id"]] = (int(item['@value']), item['@formatted'])
 			except:
@@ -137,12 +142,14 @@ class ThermostatScreenDesc(screen.BaseKeyScreenDesc):
 			wc(self.CharColor))
 		config.screen.blit(r, ((config.screenwidth - r.get_width())//2, self.SPPos))
 		config.screen.blit(self.AdjButSurf, (0, self.AdjButTops))
+		# noinspection PyBroadException
 		try:
 			r1 = config.fonts.Font(self.fsize[1]).render(
 				('Off', 'Heat', 'Cool', 'Auto', 'Fan', 'Prog Auto', 'Prog Heat', 'Prog Cool')[self.info["CLIMD"][0]], 0,
 				wc(self.CharColor))
 		except:
 			r1 = config.fonts.Font(self.fsize[1]).render('---', 0, wc(self.CharColor))
+		# noinspection PyBroadException
 		try:
 			r2 = config.fonts.Font(self.fsize[1]).render(('On', 'Auto')[self.info["CLIFS"][0] - 7], 0,
 														 wc(self.CharColor))

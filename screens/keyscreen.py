@@ -1,3 +1,4 @@
+# noinspection PyProtectedMember
 from configobj import Section
 
 import config
@@ -38,9 +39,10 @@ class KeyScreenDesc(screen.BaseKeyScreenDesc):
 			K.InitDisplay()
 		super(KeyScreenDesc, self).InitDisplay(nav)
 
-	def ISYEvent(self, node=0, value=0, varinfo = ()):
+	def ISYEvent(self, node=0, value='', varinfo = ()):
 		# Watched node reported change event is ("Node", addr, value, seq)
 		if node != 0:
+			# noinspection PyBroadException
 			try:
 				K = self.NodeList[node]
 			except:
@@ -49,6 +51,7 @@ class KeyScreenDesc(screen.BaseKeyScreenDesc):
 			debug.debugPrint('Screen', 'KS ISYEvent ', K.name, str(value), str(K.State))
 			K.State = not (int(value if value.isdigit() else 0) == 0)  # K is off (false) only if state is 0
 		else:
+			# noinspection PyBroadException
 			try:
 				# varinfo is (keyname, varname)
 				K = self.Keys[varinfo[0]]

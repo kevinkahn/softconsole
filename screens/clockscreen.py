@@ -10,6 +10,10 @@ from eventlist import ProcEventItem
 
 class ClockScreenDesc(screen.ScreenDesc):
 	def __init__(self, screensection, screenname):
+		self.CharSize=[0]
+		self.Font=''
+		self.OutFormat=[]
+
 		debug.debugPrint('Screen', "Build Clock Screen")
 		screen.ScreenDesc.__init__(self, screensection, screenname)
 		utilities.LocalizeParams(self, screensection, '-', CharSize=[20], Font=config.monofont, OutFormat=[])

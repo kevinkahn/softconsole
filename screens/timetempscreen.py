@@ -19,7 +19,28 @@ def extref(listitem, indexitem):
 		return listitem[-1]
 
 class TimeTempScreenDesc(screen.ScreenDesc):
+
 	def __init__(self, screensection, screenname):
+		self.Font = None
+		self.ClockSize = -1
+		self.LocationSize=-1
+		self.ConditionFormat = []
+		self.ConditionFields = []
+		self.CondSize = []
+		self.CondIcon = True
+		self.TimeFormat = []
+		self.ForecastFormat = []
+		self.ForecastFields = []
+		self.ForecastDays=1
+		self.FcstSize = []
+		self.FcstLayout = 'Block'
+		self.FcstIcon = True
+		self.WunderKey = ''
+		self.location = ''
+		self.SkipDays = 0
+		self.CharSize = None # type: list
+
+
 		debug.debugPrint('Screen', "New TimeTempDesc ", screenname)
 
 		screen.ScreenDesc.__init__(self, screensection, screenname)
@@ -144,7 +165,7 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 				usewidth = config.screenwidth
 
 			s = (usefulheight - h)/(spaces + forecastlines - 1)
-			extraspace = (usefulheight - h - s*(spaces + forecastlines - 1))/(spaces)
+			extraspace = (usefulheight - h - s*(spaces + forecastlines - 1))/spaces
 
 			config.screen.fill(wc(self.BackgroundColor),
 							   pygame.Rect(0, 0, config.screenwidth, config.screenheight - config.botborder))
@@ -169,7 +190,7 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 					vert_off = vert_off + (dy % 2) * (s + fcstvert)
 				elif self.FcstLayout == '2ColVert':
 					vert_off = vert_off + s + fcstvert
-					if (dy == (self.ForecastDays + 1) / 2 - 1):
+					if dy == (self.ForecastDays + 1) / 2 - 1:
 						horiz_off = horiz_off + usewidth
 						vert_off = startvert
 				elif self.FcstLayout in ('BlockCentered', 'LineCentered'):

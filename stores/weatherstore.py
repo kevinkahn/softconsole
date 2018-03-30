@@ -59,12 +59,6 @@ class WeatherItem(valuestore.StoreItem):
 		self.MapInfo = mapinfo
 		super(WeatherItem,self).__init__(name,None,store=Store)
 
-class FcstItem(valuestore.StoreItem):
-	def __init__(self,name,mapinfo):
-		self.MapInfo = mapinfo
-		super(FcstItem, self).__init__([])
-
-
 class WeatherVals(valuestore.ValueStore):
 	global WUcount
 	def __init__(self, location, WunderKey):
@@ -129,6 +123,7 @@ class WeatherVals(valuestore.ValueStore):
 		self.fetchtime = time.time()
 		self.failedfetch = False
 		self.fetchcount += 1
+		# noinspection PyBroadException
 		try:
 			r = requests.get(self.url,timeout=15)
 			#f = urllib2.urlopen(self.url, None, 15)  # wait at most 15 seconds for weather response then timeout
@@ -171,6 +166,7 @@ class WeatherVals(valuestore.ValueStore):
 		js = functools.partial(TreeDict, parsed_json)
 		fcsts = TreeDict(parsed_json, 'forecast', 'simpleforecast', 'forecastday')
 		for n, cond in self.vars['Cond'].items():
+			# noinspection PyBroadException
 			try:
 				if cond.MapInfo[0] != 'synthetic':
 					cond.Value = cond.MapInfo[0](js(*cond.MapInfo[1]))
@@ -185,6 +181,7 @@ class WeatherVals(valuestore.ValueStore):
 			fcst.Value = valuestore.StoreList(fcst)
 			for i, fcstitem in enumerate(fcsts):
 				fs = functools.partial(TreeDict,fcstitem)
+				# noinspection PyBroadException
 				try:
 					if fcst.MapInfo[0] != 'synthetic':
 						itemval = fcst.MapInfo[0](fs(*fcst.MapInfo[1]))
@@ -200,7 +197,9 @@ class WeatherVals(valuestore.ValueStore):
 		else:
 			return get_icon(self.vars[n]['Iconurl'].Value[day])
 
+	# noinspection PyUnusedLocal
 	def setAge(self,junk):
+		# noinspection PyBroadException
 		try:
 			return utilities.interval_str(time.time() - self.vars['Cond']['Time'].Value)
 		except:
@@ -224,12 +223,12 @@ class WeatherVals(valuestore.ValueStore):
 		else:
 			return super(WeatherVals,self).GetVal(name)
 
-	def SetVal(self,name,val):
+	def SetVal(self,name,val,modifier=None):
 		logsupport.Logs.Log("Setting weather item via SetVal unsupported: "+name,severity=ConsoleError)
 
 
 
-
+	'''
 	def dumpweatherresp(self, val, json, tag, param):
 		if config.versionname in ('development', 'homerelease'):
 			self.weathvalfile.write(
@@ -238,3 +237,4 @@ class WeatherVals(valuestore.ValueStore):
 				time.strftime('%H:%M:%S') + ' ' + tag + repr(param) + '\n' + repr(json) + '\n=================')
 			self.weathvalfile.flush()
 			self.weathjsonfile.flush()
+	'''

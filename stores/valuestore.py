@@ -28,7 +28,7 @@ def ExternalizeVarName(name):
 
 def PrettyVarName(store,name):
 	p = store
-	if isinstance(name,basestring):
+	if isinstance(name,str):
 		name = [name]
 	for i in name:
 		p = p + ':' + str(i)
@@ -130,7 +130,7 @@ class StoreItem(object):
 		del self._Value
 
 	def UpdateVal(self,val):
-		if val == None:
+		if val is None:
 			self.Value = None
 		else:
 			self.Value = val if self.Type is None else self.Type(val)
@@ -158,7 +158,8 @@ class ValueStore(object):
 		self.attrnames = {}
 		self.locked = False
 
-	def _normalizename(self,name):
+	@staticmethod
+	def _normalizename(name):
 		if isinstance(name, list):
 			return name[:]
 		elif isinstance(name, tuple):
@@ -174,11 +175,12 @@ class ValueStore(object):
 		while len(n2) > 1:
 			t = t[n2[0]]
 			n2.pop(0)
+		# noinspection PyBroadException
 		try:
 			indx = int(n2[0])
-			return (t, indx)
+			return t, indx
 		except:
-			return (t[n2[0]], None)
+			return t[n2[0]], None
 
 	def LockStore(self):
 		self.locked = True
@@ -186,6 +188,7 @@ class ValueStore(object):
 	def GetVal(self,name):
 		if self.refreshinterval != 0 and time.time()>self.fetchtime+self.refreshinterval:
 			self.BlockRefresh()
+		# noinspection PyBroadException
 		try:
 			n2 = self._normalizename(name)
 			item, index = self._accessitem(n2)
@@ -204,6 +207,7 @@ class ValueStore(object):
 		return self.attrs[attr].Value
 
 	def SetAttr(self,name,attr):
+		# noinspection PyBroadException
 		try:
 			n = self._normalizename(name)
 			item, index = self._accessitem(n)
@@ -235,22 +239,24 @@ class ValueStore(object):
 		except Exception as e:
 			logsupport.Logs.Log("Alert add error", self.name, " Exception: ", e)
 
-	def SetType(self,name,type):
+	def SetType(self, name, vtype):
+		# noinspection PyBroadException
 		try:
 			n = self._normalizename(name)
 			item, index = self._accessitem(n)
 			if index is None:
 				if item.Type is None:
-					item.Type = type
-					item.Value = type(item.Value)
+					item.Type = vtype
+					item.Value = vtype(item.Value)
 				else:
-					logsupport.Logs.Log("Type already set for ", self.name, " new type: ", type)
+					logsupport.Logs.Log("Type already set for ", self.name, " new type: ", vtype)
 			else:
-				logsupport.Logs.Log("Can't set Type on array element for ", self.name, " new type: ", type)
+				logsupport.Logs.Log("Can't set Type on array element for ", self.name, " new type: ", vtype)
 		except:
-			logsupport.Logs.Log("Type setting error", self.name, " new type: ", type)
+			logsupport.Logs.Log("Type setting error", self.name, " new type: ", vtype)
 
 	def GetAttr(self,name):
+		# noinspection PyBroadException
 		try:
 			n2 = self._normalizename(name)
 			item, index = self._accessitem(n2)
@@ -298,6 +304,7 @@ class ValueStore(object):
 				if self.locked:
 					logsupport.Logs.Log('Attempt to add element to locked store',self.name,n)
 					return
+				# noinspection PyArgumentList
 				t = self.itemtyp(n2, StoreList(t),parent=self)
 				t.UpdateArrayVal(n2[0],val)
 			if t.Value[n2[0]] != oldval: # for array need the element indexed by n2[0]
@@ -338,8 +345,14 @@ class ValueStore(object):
 				yield (parents + (n,))
 
 	def __iter__(self):
-		self.iternames = self.vars.keys()
+		self.iternames = list(self.vars)
 		return self
+
+	def __next__(self): #todo both nexts?
+		try:
+			return self.vars[self.iternames.pop(0)]
+		except IndexError:
+			raise StopIteration
 
 	def next(self):
 		try:
@@ -352,6 +365,7 @@ class ValueStore(object):
 	def Contains(self,name):
 		n2 = self._normalizename(name)
 		t = self.vars
+		# noinspection PyBroadException
 		try:
 			while len(n2) > 1:
 				t = t[n2[0]]

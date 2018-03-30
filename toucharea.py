@@ -15,7 +15,10 @@ class TouchPoint(object):
 	"""
 
 	def __init__(self, name, Center, Size, proc=None):
-		self.__dict__.update({k: v for k, v in locals().items() if k != 'self'})
+		self.name = name
+		self.Size = Size
+		self.Center = Center
+		#self.__dict__.update({k: v for k, v in locals().items() if k != 'self'}) todo remove
 
 		self.Screen = None
 		self.Proc = proc  # function that gets called on touch - expects to take a single parameter which is thee type of press
@@ -36,7 +39,29 @@ class ManualKeyDesc(TouchPoint):
 	that is passed in.
 	"""
 
+	# noinspection PyMissingConstructor
 	def __init__(self, *args, **kwargs):
+		self.State = True
+		self.Verify = False
+		self.GoMsg = ['']
+		self.NoGoMsg =['']
+		self.FastPress = False
+		self.KeyColor = ''
+		self.KeyColorOn = ''
+		self.KeyColorOff = ''
+		self.KeyCharColorOn = ''
+		self.KeyCharColorOff = ''
+		self.KeyOutlineOffset = config.KeyOutlineOffset
+		self.label = ''
+		self.KeyOnOutlineColor = ''
+		self.KeyOffOutlineColor = ''
+		self.Blink = 0
+		self.KeyOnImage = None # type: pygame.Surface
+		self.KeyOffImage = None # type: pygame.Surface
+		self.KeyOnImageBase = None # type: pygame.Surface
+		self.KeyOffImageBase = None # type: pygame.Surface
+
+
 		# alternate creation signatures
 		self.ButtonFontSizes = (31, 28, 25, 22, 20, 18, 16)
 		if len(args) == 3:
@@ -62,8 +87,7 @@ class ManualKeyDesc(TouchPoint):
 		utilities.register_example("ManualKeyDesc", self)
 
 	def docodeinit(self, screen, keyname, label, bcolor, charcoloron, charcoloroff, center=(0, 0), size=(0, 0), KOn='',
-				   KOff='',
-				   proc=None, KCon='', KCoff='', KLon=['', ], KLoff=['', ], State=True, Blink=0):
+				   KOff='', proc=None, KCon='', KCoff='', KLon=('', ), KLoff=('', ), State=True, Blink=0):
 		# NOTE: do not put defaults for KOn/KOff in signature - imports and arg parsing subtleties will cause error
 		# because of when config is imported and what walues are at that time versus at call time
 
@@ -74,11 +98,10 @@ class ManualKeyDesc(TouchPoint):
 		self.KeyColor = bcolor
 		self.KeyColorOn = KCon
 		self.KeyColorOff = KCoff
-		self.KeyLabelOn = KLon
-		self.KeyLabelOff = KLoff
+		self.KeyLabelOn = list(KLon)
+		self.KeyLabelOff = list(KLoff)
 		self.KeyCharColorOn = charcoloron
 		self.KeyCharColorOff = charcoloroff
-		self.KeyOutlineOffset = config.KeyOutlineOffset
 		self.label = label
 		self.ISYObj = None
 		self.KeyOnOutlineColor = config.KeyOnOutlineColor if KOn == '' else KOn
@@ -91,7 +114,7 @@ class ManualKeyDesc(TouchPoint):
 								 'KeyCharColorOn', 'KeyCharColorOff', 'KeyOutlineOffset', 'KeyColorOn', 'KeyColorOff',
 								 'KeyLabelOn', 'KeyLabelOff', FastPress=0, Verify=0, Blink=0, label=[keyname])
 		if self.Verify:
-			utilities.LocalizeExtra(self, keysection, '-*', GoMsg=['Proceed'], NoGoMsg=['Cancel'])
+			utilities.LocalizeExtra(self, keysection, GoMsg=['Proceed'], NoGoMsg=['Cancel'])
 		self.Screen = screen
 		self.State = True
 

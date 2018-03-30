@@ -1,13 +1,13 @@
+import Queue
+import errno
 import glob
 import io
 import os
-import errno
-import struct
-from collections import namedtuple
-import threading
-import time
 import select
-import Queue
+import struct
+import threading
+from collections import namedtuple
+
 import pygame
 
 TOUCH_X = 0
@@ -48,11 +48,11 @@ class Touch(object):
 
 	@property
 	def position(self):
-		return (self.x, self.y)
+		return self.x, self.y
 
 	@property
 	def last_position(self):
-		return (self.last_x, self.last_y)
+		return self.last_x, self.last_y
 
 	@property
 	def valid(self):
@@ -232,7 +232,6 @@ class Touchscreen(object):
 
 
 if __name__ == "__main__":
-	import signal
 
 	pygame.init()
 	pygame.fastevent.init()

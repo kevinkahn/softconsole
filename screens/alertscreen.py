@@ -15,6 +15,16 @@ class AlertsScreenDesc(screen.ScreenDesc):
 	global alertscreens
 	def __init__(self, screensection, screenname):
 		global alertscreens
+		self.KeyColor = ''
+		self.KeyCharColorOn = ''
+		self.KeyCharColorOff = ''
+		self.CharSize = [0]
+		self.Message = []
+		self.MessageBack = ''
+		self.DeferTime = ''
+		self.BlinkTime = 0
+		self.Font = ''
+
 		debug.debugPrint('Screen', "Build Alerts Screen")
 
 		screen.ScreenDesc.__init__(self, screensection, screenname)
@@ -36,14 +46,14 @@ class AlertsScreenDesc(screen.ScreenDesc):
 
 		self.Defer = utilities.get_timedelta(self.DeferTime)
 
-		self.Keys = {}
+		self.Keys = {'defer': toucharea.ManualKeyDesc(self, 'defer', ['Defer'], self.KeyColor, self.KeyCharColorOn,
+													  self.KeyCharColorOff,
+													  center=(config.screenwidth / 2,
+															  config.topborder + messageareaheight + 0.5 * alertbutheight),
+													  size=(
+													  config.screenwidth - 2 * config.horizborder, alertbutheight),
+													  proc=self.DeferAction)}
 
-		self.Keys['defer'] = toucharea.ManualKeyDesc(self, 'defer', ['Defer'], self.KeyColor, self.KeyCharColorOn,
-													 self.KeyCharColorOff,
-													 center=(config.screenwidth / 2,
-															 config.topborder + messageareaheight + 0.5 * alertbutheight),
-													 size=(config.screenwidth - 2 * config.horizborder, alertbutheight),
-													 proc=self.DeferAction)
 		if 'Action' in screensection:
 			action = screensection['Action']
 			self.Keys['action'] = keyspecs.CreateKey(self, action, '*Action*')
@@ -90,6 +100,7 @@ class AlertsScreenDesc(screen.ScreenDesc):
 		self.PersistTO = 0
 		utilities.register_example("AlertsScreen", self)
 
+	# noinspection PyUnusedLocal
 	def DeferAction(self, presstype):
 		debug.debugPrint('Screen', 'Alertscreen manual defer: ' + self.name)
 		config.DS.Tasks.RemoveAllGrp(id(self))

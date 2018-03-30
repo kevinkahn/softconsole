@@ -1,34 +1,42 @@
-import sys
-import mypprint
-from stores import valuestore, localvarsupport
-import logsupport
-from logsupport import ConsoleDebug, ConsoleError, ConsoleWarning
+from __future__ import print_function
+from __future__ import print_function
+from __future__ import print_function
+from __future__ import print_function
 
+import logsupport
+import mypprint
+from logsupport import ConsoleDebug, ConsoleError, ConsoleWarning
+from stores import valuestore
+
+
+# noinspection PyUnusedLocal
 def debugPrintNull(flag, *args):
 	return
 
+# noinspection PyUnusedLocal
 def debugPrintEarly(flag,*args):
 	#print "Early debug call", flag, args
 	return
 
 def debugPrintReal(flag, *args):
-	global Flags, debugPrint
+	global debugPrint
 
 	flg = dbgStore.GetVal(flag)
 
 	if flg is not None:
 		if flg:
+			# noinspection PyBroadException
 			try:
-				print >> sys.stderr, flag, '-> ',
+				print(flag, '-> ')
 				for arg in args:
-					print >> sys.stderr, arg,
-				print >> sys.stderr
+					print(arg)
+				print()
 				if logsupport.Logs is not None:
 					logsupport.Logs.Log(flag, '-> ', *args, severity=ConsoleDebug, diskonly=True)
 			except:
 				logsupport.Logs.Log("Internal debug print error: ", flag, ' ', repr(args), severity=ConsoleError)
 	else:
-		print >> sys.stderr, "DEBUG FLAG NAME ERROR", flag
+		print("DEBUG FLAG NAME ERROR", flag)
 
 debugPrint = debugPrintEarly
 DbgFlags = ['Main', 'DaemonCtl', 'DaemonStream', 'Screen', 'ISY', 'Dispatch', 'EventList', 'Fonts', 'DebugSpecial',
@@ -38,6 +46,7 @@ dbgStore = valuestore.NewValueStore(valuestore.ValueStore('Debug'))
 dbgStore.SimpleInit(DbgFlags,False)
 valuestore.SetVal(('Debug','LogLevel'),3)
 
+# noinspection PyUnusedLocal
 def OptimizeDebug(store, old, new, param, modifier):
 	global debugPrint
 	flgCount = 0
@@ -82,6 +91,7 @@ def ISYDump(fn, item, pretty = True,new=False):
 				f.write('\n')
 			f.write(item.encode('UTF-8'))
 
+# noinspection PyUnusedLocal
 def StoresDump(store,old,new,param):
 	if not new: return
 	for store in valuestore.ValueStores.values():

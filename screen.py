@@ -37,6 +37,14 @@ class ScreenDesc(object):
 	"""
 
 	def __init__(self, screensection, screenname):
+		self.CharColor = None
+		self.DimTO = 0
+		self.PersistTO = 0
+		self.BackgroundColor = None
+		self.CmdKeyCol = None
+		self.CmdCharCol = None
+		self.label = None # type: list
+
 		self.name = screenname
 		self.NavKeys = collections.OrderedDict()
 		self.Keys = collections.OrderedDict()
@@ -82,6 +90,9 @@ class ScreenDesc(object):
 
 class BaseKeyScreenDesc(ScreenDesc):
 	def __init__(self, screensection, screenname):
+		self.KeysPerColumn = 0
+		self.KeysPerRow = 0
+
 		ScreenDesc.__init__(self, screensection, screenname)
 		utilities.LocalizeParams(self, screensection, '-', 'KeysPerColumn', 'KeysPerRow')
 		self.buttonsperrow = -1

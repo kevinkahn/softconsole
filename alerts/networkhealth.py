@@ -8,7 +8,8 @@ class NetworkHealth(object):
 	def __init__(self):
 		self.LastState = {}
 
-	def RobustPing(self, dest):
+	@staticmethod
+	def RobustPing(dest):
 		# print dest
 		ok = False
 		with open('/dev/null', 'a') as null:
@@ -22,7 +23,6 @@ class NetworkHealth(object):
 					pass
 		return ok
 
-	# @staticmethod
 	def Do_Ping(self, alert):
 		# expects parameter = ipaddr,variable name (local)
 		# set variable name to 0 if ipaddr was accessible and now is not

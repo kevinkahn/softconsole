@@ -8,13 +8,15 @@ class AssignVar(object):
 	def __init__(self):
 		pass
 
-	def Assign(self, alert):
+	@staticmethod
+	def Assign(alert):
 		"""
 		params: Var Var, . . .
 		"""
 		params = (alert.param,) if isinstance(alert.param, str) else alert.param
 		for p in params:
 			item = p.split('=')
+			# noinspection PyBroadException
 			try:
 				val = float(item[1].strip())
 			except:

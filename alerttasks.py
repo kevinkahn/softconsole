@@ -18,10 +18,10 @@ Tests = ('EQ', 'NE')
 AlertType = ('NodeChange', 'VarChange', 'StateVarChange', 'IntVarChange', 'LocalVarChange', 'Periodic', 'TOD', 'External', 'Init')
 
 class Alert(object):
-	def __init__(self, nm, type, trigger, action, actionname, param):
+	def __init__(self, nm, atype, trigger, action, actionname, param):
 		self.name = nm
 		self.state = 'Idle'
-		self.type = type
+		self.type = atype
 		self.trigger = trigger
 		self.actiontarget = action
 		self.actionname = actionname
@@ -64,8 +64,11 @@ class NodeChgtrigger(object):
 		return 'Node ' + self.nodeaddress + ' status ' + self.test + ' ' + str(self.value) + ' delayed ' + str(
 			self.delay) + ' seconds'
 
+
+# noinspection PyUnusedLocal
 def VarChanged(storeitem, old, new, param, modifier):
 	debug.debugPrint('DaemonCtl','Var changed ',storeitem.name,' from ',old,' to ',new)
+	# noinspection PyArgumentList
 	notice = pygame.event.Event(config.DS.ISYVar, alert=param)
 	pygame.fastevent.post(notice)
 
@@ -135,11 +138,11 @@ def getvalid(spec, item, choices, default=None):
 
 def ParseAlertParams(nm, spec):
 	global alertprocs, monitoredvars
-	def comparams(spec):
-		test = getvalid(spec, 'Test', Tests)
-		value = spec.get('Value', None)
-		delay = utilities.get_timedelta(spec.get('Delay', None))
-		return test, value, delay
+	def comparams(cspec):
+		ctest = getvalid(cspec, 'Test', Tests)
+		cvalue = cspec.get('Value', None)
+		cdelay = utilities.get_timedelta(cspec.get('Delay', None))
+		return ctest, cvalue, cdelay
 
 
 	VarsTypes = {'StateVarChange': ('ISY','State'), 'IntVarChange': ('ISY','Int'), 'LocalVarChange': ('LocalVars',)}
@@ -154,6 +157,7 @@ def ParseAlertParams(nm, spec):
 		if len(nmlist) != 2:
 			logsupport.Logs.Log('Bad alert proc spec ' + t + ' in ' + nm, severity=ConsoleWarning)
 			return None
+		# noinspection PyBroadException
 		try:
 			action = getattr(alertprocs[nmlist[0]], nmlist[1])
 		except:
@@ -196,6 +200,7 @@ def ParseAlertParams(nm, spec):
 
 	elif triggertype == 'NodeChange':  # needs node, test, status, delay
 		n = spec.get('Node', None)
+		# noinspection PyBroadException
 		try:
 			Node = config.ISY.GetNodeByName(n).address
 		except:
@@ -206,10 +211,10 @@ def ParseAlertParams(nm, spec):
 		A = Alert(nm, triggertype, trig, action, actionname, param)
 	elif triggertype in ('StateVarChange','IntVarChange', 'LocalVarChange'):
 		n = VarsTypes[triggertype] + (spec.get('Var', ''),)
-		logsupport.Logs.Log("Deprecated alert trigger ", triggertype, ' used - change to use VarChange ',n,
+		logsupport.Logs.Log("Deprecated alert trigger ", triggertype, ' used - change to use VarChange ',valuestore.ExternalizeVarName(n),
 							severity=ConsoleWarning)
 		if n is None:
-			logsupport.Logs.Log("Alert: ", nm, " var name " + n + " doesn't exist", severity=ConsoleWarning)
+			logsupport.Logs.Log("Alert: ", nm, " var name doesn't exist", severity=ConsoleWarning)
 			return None
 		monitoredvars.append(n)
 		trig = VarChangeTrigger(n,comparams(spec))
@@ -219,7 +224,7 @@ def ParseAlertParams(nm, spec):
 	elif triggertype == 'VarChange':
 		n = spec.get('Var', None).split(':')
 		if n is None:
-			logsupport.Logs.Log("Alert: ", nm, " var name " + n + " doesn't exist", severity=ConsoleWarning)
+			logsupport.Logs.Log("Alert: ", nm, " var name doesn't exist", severity=ConsoleWarning)
 			return None
 		monitoredvars.append(n)
 		trig = VarChangeTrigger(n,comparams(spec))
@@ -234,6 +239,7 @@ def ParseAlertParams(nm, spec):
 		A = Alert(nm, triggertype, trig, action, actionname, param)
 	else:
 		logsupport.Logs.Log("Internal triggertype error",severity=ConsoleError)
+		A = None
 
 	logsupport.Logs.Log("Created alert: " + nm)
 	logsupport.Logs.Log("->" + str(A), severity=ConsoleDetail)

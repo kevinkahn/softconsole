@@ -24,6 +24,7 @@ def GoBright(level):
 	else:
 		GoDimPi7(level)
 
+# noinspection PyUnusedLocal
 def ResetScreenLevel(storeitem, old, val, dim, unusedsrc):
 	global IsDim
 	if IsDim and dim:
@@ -34,6 +35,7 @@ def ResetScreenLevel(storeitem, old, val, dim, unusedsrc):
 		GoDim(val)
 
 
+# noinspection PyBroadException
 def initOS(screentype):
 	global PWMDim
 	if screentype == 'pi7':

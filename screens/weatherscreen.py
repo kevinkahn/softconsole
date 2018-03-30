@@ -20,6 +20,9 @@ for conditions where to put icon?  Center vertically? with size lesser of % of s
 
 class WeatherScreenDesc(screen.ScreenDesc):
 	def __init__(self, screensection, screenname):
+		self.location = ''
+		self.WunderKey = ''
+
 		self.fmt = WFormatter()
 		debug.debugPrint('Screen', "New WeatherScreenDesc ", screenname)
 		screen.ScreenDesc.__init__(self, screensection, screenname)
@@ -51,6 +54,7 @@ class WeatherScreenDesc(screen.ScreenDesc):
 	def __repr__(self):
 		return screen.ScreenDesc.__repr__(self) + "\r\n     WeatherScreenDesc:" + str(self.CharColor)
 
+	# noinspection PyUnusedLocal
 	def CondOrFcst(self, press):
 		self.currentconditions = not self.currentconditions
 		self.ShowScreen(self.currentconditions)
@@ -69,8 +73,10 @@ class WeatherScreenDesc(screen.ScreenDesc):
 				vert_off = vert_off + 30
 			logsupport.Logs.Log('Weatherscreen missing weather' + self.name, severity=logsupport.ConsoleWarning)
 		else:
-			renderedlines = [config.fonts.Font(50, "").render(self.fmt.format("{d}",d=self.scrlabel),0,wc(self.CharColor))]
-			renderedlines.append(config.fonts.Font(40, "").render(self.fmt.format("{d}",d=self.store.GetVal(('Cond','Location'))),0,wc(self.CharColor)))
+			renderedlines = [
+				config.fonts.Font(50, "").render(self.fmt.format("{d}", d=self.scrlabel), 0, wc(self.CharColor)),
+				config.fonts.Font(40, "").render(self.fmt.format("{d}", d=self.store.GetVal(('Cond', 'Location'))), 0,
+												 wc(self.CharColor))]
 
 			h = renderedlines[0].get_height() + renderedlines[1].get_height()
 			if conditions:

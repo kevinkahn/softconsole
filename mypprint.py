@@ -54,27 +54,27 @@ _len = len
 _type = type
 
 
-def pprint(object, stream=None, indent=1, width=80, depth=None):
+def pprint(obj, stream=None, indent=1, width=80, depth=None):
     """Pretty-print a Python object to a stream [default is sys.stdout]."""
     printer = PrettyPrinter(
         stream=stream, indent=indent, width=width, depth=depth)
-    printer.pprint(object)
+    printer.pprint(obj)
 
-def pformat(object, indent=1, width=80, depth=None):
+def pformat(obj, indent=1, width=80, depth=None):
     """Format a Python object into a pretty-printed representation."""
-    return PrettyPrinter(indent=indent, width=width, depth=depth).pformat(object)
+    return PrettyPrinter(indent=indent, width=width, depth=depth).pformat(obj)
 
-def saferepr(object):
+def saferepr(obj):
     """Version of repr() which can handle recursive data structures."""
-    return _safe_repr(object, {}, None, 0)[0]
+    return _safe_repr(obj, {}, None, 0)[0]
 
-def isreadable(object):
+def isreadable(obj):
     """Determine if saferepr(object) is readable by eval()."""
-    return _safe_repr(object, {}, None, 0)[1]
+    return _safe_repr(obj, {}, None, 0)[1]
 
-def isrecursive(object):
+def isrecursive(obj):
     """Determine if object requires a recursive representation."""
-    return _safe_repr(object, {}, None, 0)[2]
+    return _safe_repr(obj, {}, None, 0)[2]
 
 def _sorted(iterable):
     with warnings.catch_warnings():
@@ -115,32 +115,33 @@ class PrettyPrinter:
         else:
             self._stream = _sys.stdout
 
-    def pprint(self, object):
-        self._format(object, self._stream, 0, 0, {}, 0)
+    def pprint(self, obj):
+        self._format(obj, self._stream, 0, 0, {}, 0)
         self._stream.write("\n")
 
-    def pformat(self, object):
+    def pformat(self, obj):
         sio = _StringIO()
-        self._format(object, sio, 0, 0, {}, 0)
+        self._format(obj, sio, 0, 0, {}, 0)
         return sio.getvalue()
 
-    def isrecursive(self, object):
-        return self.format(object, {}, 0, 0)[2]
+    def isrecursive(self, obj):
+        return self.format(obj, {}, 0, 0)[2]
 
-    def isreadable(self, object):
-        s, readable, recursive = self.format(object, {}, 0, 0)
+    def isreadable(self, obj):
+        s, readable, recursive = self.format(obj, {}, 0, 0)
         return readable and not recursive
 
-    def _format(self, object, stream, indent, allowance, context, level):
+    # noinspection PyUnusedLocal
+    def _format(self, obj, stream, indent, allowance, context, level):
         level = level + 1
-        objid = _id(object)
+        objid = _id(obj)
         if objid in context:
-            stream.write(_recursion(object))
+            stream.write(_recursion(obj))
             self._recursive = True
             self._readable = False
             return
-        rep = self._repr(object, context, level - 1)
-        typ = _type(object)
+        rep = self._repr(obj, context, level - 1)
+        typ = _type(obj)
         sepLines = _len(rep) > (self._width - 1 - indent - allowance)
         write = stream.write
 
@@ -157,11 +158,11 @@ class PrettyPrinter:
             write(pref+'{')
             if self._indent_per_level > 1:
                 write((self._indent_per_level - 1) * ' ')
-            length = _len(object)
+            length = _len(obj)
             if length:
                 context[objid] = 1
                 indent = indent + self._indent_per_level
-                items = _sorted(object.items())
+                items = _sorted(obj.items())
                 key, ent = items[0]
                 rep = self._repr(key, context, level)
                 write(rep)
@@ -187,7 +188,7 @@ class PrettyPrinter:
             (issubclass(typ, set) and r is set.__repr__) or
             (issubclass(typ, frozenset) and r is frozenset.__repr__)
            ):
-            length = _len(object)
+            length = _len(obj)
             if issubclass(typ, list):
                 write('[')
                 endchar = ']'
@@ -202,16 +203,16 @@ class PrettyPrinter:
                 write('([')
                 endchar = '])'
                 indent += len(typ.__name__) + 1
-                object = _sorted(object)
+                obj = _sorted(obj)
             if self._indent_per_level > 1 and sepLines:
                 write((self._indent_per_level - 1) * ' ')
             if length:
                 context[objid] = 1
                 indent = indent + self._indent_per_level
-                self._format(object[0], stream, indent, allowance + 1,
+                self._format(obj[0], stream, indent, allowance + 1,
                              context, level)
                 if length > 1:
-                    for ent in object[1:]:
+                    for ent in obj[1:]:
                         if sepLines:
                             write(',\n' + ' '*indent)
                         else:
@@ -227,31 +228,32 @@ class PrettyPrinter:
 
         write(rep)
 
-    def _repr(self, object, context, level):
-        repr, readable, recursive = self.format(object, context.copy(),
-                                                self._depth, level)
+    def _repr(self, obj, context, level):
+        rpr, readable, recursive = self.format(obj, context.copy(),
+                                               self._depth, level)
         if not readable:
             self._readable = False
         if recursive:
             self._recursive = True
-        return repr
+        return rpr
 
-    def format(self, object, context, maxlevels, level):
+    @staticmethod
+    def format(obj, context, maxlevels, level):
         """Format object for a specific context, returning a string
         and flags indicating whether the representation is 'readable'
         and whether the object represents a recursive construct.
         """
-        return _safe_repr(object, context, maxlevels, level)
+        return _safe_repr(obj, context, maxlevels, level)
 
 
 # Return triple (repr_string, isreadable, isrecursive).
 
-def _safe_repr(object, context, maxlevels, level):
-    typ = _type(object)
+def _safe_repr(obj, context, maxlevels, level):
+    typ = _type(obj)
     if typ is str:
         if 'locale' not in _sys.modules:
-            return repr(object), True, False
-        if "'" in object and '"' not in object:
+            return repr(obj), True, False
+        if "'" in obj and '"' not in obj:
             closure = '"'
             quotes = {'"': '\\"'}
         else:
@@ -260,7 +262,7 @@ def _safe_repr(object, context, maxlevels, level):
         qget = quotes.get
         sio = _StringIO()
         write = sio.write
-        for char in object:
+        for char in obj:
             if char.isalpha():
                 write(char)
             else:
@@ -270,21 +272,22 @@ def _safe_repr(object, context, maxlevels, level):
     r = getattr(typ, "__repr__", None)
     if issubclass(typ, dict) and r in (dict.__repr__, OrderedDict.__repr__):
         pref = 'OD' if r == OrderedDict.__repr__ else ''
-        if not object:
+        if not obj:
             return pref + "{}", True, False
-        objid = _id(object)
+        objid = _id(obj)
         if maxlevels and level >= maxlevels:
             return pref+"{...}", False, objid in context
         if objid in context:
-            return _recursion(object), False, True
+            return _recursion(obj), False, True
         context[objid] = 1
         readable = True
         recursive = False
         components = []
         append = components.append
         level += 1
+        # noinspection PyShadowingNames
         saferepr = _safe_repr
-        for k, v in _sorted(object.items()):
+        for k, v in _sorted(obj.items()):
             krepr, kreadable, krecur = saferepr(k, context, maxlevels, level)
             vrepr, vreadable, vrecur = saferepr(v, context, maxlevels, level)
             append("%s: %s" % (krepr, vrepr))
@@ -297,27 +300,27 @@ def _safe_repr(object, context, maxlevels, level):
     if (issubclass(typ, list) and r is list.__repr__) or \
        (issubclass(typ, tuple) and r is tuple.__repr__):
         if issubclass(typ, list):
-            if not object:
+            if not obj:
                 return "[]", True, False
-            format = "[%s]"
-        elif _len(object) == 1:
-            format = "(%s,)"
+            fmt = "[%s]"
+        elif _len(obj) == 1:
+            fmt = "(%s,)"
         else:
-            if not object:
+            if not obj:
                 return "()", True, False
-            format = "(%s)"
-        objid = _id(object)
+            fmt = "(%s)"
+        objid = _id(obj)
         if maxlevels and level >= maxlevels:
-            return format % "...", False, objid in context
+            return fmt % "...", False, objid in context
         if objid in context:
-            return _recursion(object), False, True
+            return _recursion(obj), False, True
         context[objid] = 1
         readable = True
         recursive = False
         components = []
         append = components.append
         level += 1
-        for o in object:
+        for o in obj:
             orepr, oreadable, orecur = _safe_repr(o, context, maxlevels, level)
             append(orepr)
             if not oreadable:
@@ -325,26 +328,26 @@ def _safe_repr(object, context, maxlevels, level):
             if orecur:
                 recursive = True
         del context[objid]
-        return format % _commajoin(components), readable, recursive
+        return fmt % _commajoin(components), readable, recursive
 
-    rep = repr(object)
+    rep = repr(obj)
     return rep, (rep and not rep.startswith('<')), False
 
 
-def _recursion(object):
+def _recursion(obj):
     return ("<Recursion on %s with id=%s>"
-            % (_type(object).__name__, _id(object)))
+            % (_type(obj).__name__, _id(obj)))
 
 
-def _perfcheck(object=None):
+def _perfcheck(obj=None):
     import time
-    if object is None:
-        object = [("string", (1, 2), [3, 4], {5: 6, 7: 8})] * 100000
+    if obj is None:
+        obj = [("string", (1, 2), [3, 4], {5: 6, 7: 8})] * 100000
     p = PrettyPrinter()
     t1 = time.time()
-    _safe_repr(object, {}, None, 0)
+    _safe_repr(obj, {}, None, 0)
     t2 = time.time()
-    p.pformat(object)
+    p.pformat(obj)
     t3 = time.time()
     print("_safe_repr:"+str(t2 - t1))
     print("pformat:"+ str(t3 - t2))

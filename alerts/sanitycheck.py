@@ -5,7 +5,9 @@ class CheckIntegrity(object):
 	def __init__(self):
 		pass
 
-	def CheckISYVars(self, alert):
+	# noinspection PyUnusedLocal
+	@staticmethod
+	def CheckISYVars(alert):
 		valuestore.ValueStores['ISY'].CheckValsUpToDate()
 
 

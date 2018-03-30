@@ -1,18 +1,19 @@
+import os
+import time
+from collections import OrderedDict
+
 import pygame
+
+import alerttasks
 import config
 import debug
 import hw
-from eventlist import EventItem, EventList
-import time
 import logsupport
-from logsupport import ConsoleWarning, ConsoleError, ConsoleDetail
-from collections import OrderedDict
-from eventlist import AlertEventItem, ProcEventItem
-import alerttasks
-import isyeventmonitor
-import os
-import errno
 import threadmanager
+from eventlist import AlertEventItem, ProcEventItem
+from eventlist import EventList
+from logsupport import ConsoleWarning, ConsoleError, ConsoleDetail
+
 
 class DisplayScreen(object):
 	def __init__(self):
@@ -38,6 +39,7 @@ class DisplayScreen(object):
 		self.ISYChange = pygame.USEREVENT + 2  # Node state change in a current screen watched node on the ISY
 		self.ISYAlert = pygame.USEREVENT + 3  # Mpde state change in watched node for alerts
 		self.ISYVar = pygame.USEREVENT + 4  # Var value change for a watched variable on ISY
+		# noinspection PyArgumentList
 		self.NOEVENT = pygame.event.Event(pygame.NOEVENT)
 
 		self.AS = None  # Active Screen
@@ -99,6 +101,7 @@ class DisplayScreen(object):
 
 		if OS != self.AS: self.AS.InitDisplay(nav)
 
+	# noinspection PyUnusedLocal
 	def NavPress(self, NS, press):
 		debug.debugPrint('Dispatch', 'Navkey: ', NS.name, self.state + '/' + self.dim)
 		self.SwitchScreen(NS, 'Bright', 'NonHome', 'Nav Press')
@@ -132,6 +135,7 @@ class DisplayScreen(object):
 				else:
 					self.WatchNodes[a.trigger.nodeaddress] = [a]
 				if a.trigger.IsTrue():
+					# noinspection PyArgumentList
 					notice = pygame.event.Event(config.DS.ISYAlert, alert=a)
 					pygame.fastevent.post(notice)
 			elif a.type == 'VarChange':
@@ -166,7 +170,7 @@ class DisplayScreen(object):
 
 				isyeventmonitor.CreateWSThread()
 
-			if time.time() - config.lastheartbeat > 240 and config.ISYaddr != '':  # twice heartbeat interval
+			if time.time() - config.lastheartbeat > 240 and config.ISYaddr != '':  # twice heartbeat interval  todo - put heartbeat logic back in!
 				logsupport.Logs.Log('Lost ISY heartbeat', severity=ConsoleError, tb=False)
 				isyeventmonitor.CreateWSThread()
 			'''
@@ -331,5 +335,6 @@ class DisplayScreen(object):
 
 		logsupport.Logs.Log('Main Loop Exit: ', config.ecode)
 		pygame.quit()
+		# noinspection PyProtectedMember
 		os._exit(config.ecode)
 

@@ -25,18 +25,19 @@ exemplarobjs = collections.OrderedDict()
 # this handles some weird random SIGHUP when initializing pygame, it's really a hack to work around it
 # Not really sure what other ill effects this might have!!!
 def handler(signum, frame):
-    pass
+	print('Systemd signal hack raised', signum, repr(frame))
+	pass
 try:
-    signal.signal(signal.SIGHUP, handler)
+	signal.signal(signal.SIGHUP, handler)
 except AttributeError:
-    # Windows compatibility
-    pass
+	# Windows compatibility
+	pass
 # end SIGHUP hack
 
 def wc(clr):
 	try:
 		v = webcolors.name_to_rgb(clr)
-	except:
+	except ValueError:
 		logsupport.Logs.Log('Bad color name: ' + str(clr), severity=ConsoleWarning)
 		v = webcolors.name_to_rgb('black')
 	return v
@@ -44,7 +45,7 @@ def wc(clr):
 def tint(clr):
 	tint_factor = .25
 	r, g, b = wc(clr)
-	return(r + (255 - r) * tint_factor, g + (255 - g) * tint_factor, b + (255 - b) * tint_factor)
+	return r + (255 - r) * tint_factor, g + (255 - g) * tint_factor, b + (255 - b) * tint_factor
 
 
 class clsstruct:
@@ -116,13 +117,14 @@ def InitializeEnvironment():
 		pass
 
 	def alarm_handler(signum, frame):
+		print('Hack alarm raised',signum,repr(frame))
 		raise Alarm
 
 	# end hack
 	try:
 		with open(config.homedir + "/.Screentype") as f:
 			config.screentype = f.readline().rstrip('\n')
-	except:
+	except IOError:
 		config.screentype = "*Unknown*"
 
 	hw.initOS(config.screentype)
@@ -133,9 +135,6 @@ def InitializeEnvironment():
 	config.screenwidth, config.screenheight = (pygame.display.Info().current_w, pygame.display.Info().current_h)
 
 	config.personalsystem = os.path.isfile(config.homedir + "/homesystem")
-
-	# read pointercal into list a
-	a=[]
 
 	if config.screentype in ('pi7','35r','28c'):
 		from touchhandler import Touchscreen, TS_PRESS, TS_RELEASE, TS_MOVE
@@ -156,13 +155,12 @@ def InitializeEnvironment():
 				pygame.fastevent.post(e)
 
 
-		for touch in ts.touches:
-			touch.on_press = touchhandler
-			touch.on_release = touchhandler
-			touch.on_move = touchhandler
+		for touchtyp in ts.touches:
+			touchtyp.on_press = touchhandler
+			touchtyp.on_release = touchhandler
+			touchtyp.on_move = touchhandler
 
-		threadmanager.HelperThreads['TouchHandler'] = threadmanager.ThreadItem('TouchHandler', ts.StartThread, ts.StartThread)
-		#ts.run()
+		threadmanager.SetUpHelperThread('TouchHandler',ts.run)
 
 	if config.screenwidth > config.screenheight:
 		config.portrait = False
@@ -173,7 +171,7 @@ def InitializeEnvironment():
 			lastrealstart = float(f.readline())
 		config.previousup = config.lastup - lastrealstart
 		prevsetup = lastrealstart - laststart
-	except:
+	except (IOError, ValueError):
 		config.previousup = -1
 		config.lastup = -1
 		prevsetup = -1
@@ -232,11 +230,15 @@ def LocalizeParams(inst, configsection, indent, *args, **kwargs):
 	lclval = []
 	for nametoadd in kwargs:
 		if nametoadd not in inst.__dict__:
+			logsupport.Logs.Log('Adding keyword without previous definition(internal anomoly): ', nametoadd)
 			lcllist.append(nametoadd)
 			lclval.append(kwargs[nametoadd])
 			moddoc[inst.__class__.__name__]['loc'][lcllist[-1]] = type(lclval[-1])
 		else:
-			logsupport.Logs.Log('Duplicated keyword localization (internal error): ' + nametoadd)
+			lcllist.append(nametoadd)
+			lclval.append(kwargs[nametoadd])
+			moddoc[inst.__class__.__name__]['loc'][lcllist[-1]] = type(lclval[-1])
+			#logsupport.Logs.Log('Duplicated keyword localization (internal error): ' + nametoadd)
 	for nametoadd in args:
 		if nametoadd in config.__dict__:
 			lcllist.append(nametoadd)
@@ -254,13 +256,13 @@ def LocalizeParams(inst, configsection, indent, *args, **kwargs):
 		if isinstance(val, list):
 			for j, v in enumerate(val):
 				if isinstance(v, str):
-					val[j] = unicode(v,'UTF-8')
+					val[j] = v.decode(encoding='UTF-8')#unicode(v,'UTF-8')
 		if (lclval[i] != val) and (lcllist[i] in args):
 			logsupport.Logs.Log(indent + 'LParam: ' + lcllist[i] + ': ' + str(val), severity=ConsoleDetailHigh)
 		inst.__dict__[lcllist[i]] = val
 
 
-def LocalizeExtra(inst, configsection, indent, **kwargs):
+def LocalizeExtra(inst, configsection, **kwargs):
 	global moddoc
 	if not inst.__class__.__name__ in moddoc:
 		moddoc[inst.__class__.__name__] = {'loc': {}, 'ovrd': set()}
@@ -270,19 +272,21 @@ def LocalizeExtra(inst, configsection, indent, **kwargs):
 	lclval = []
 	for nametoadd in kwargs:
 		if nametoadd not in inst.__dict__:
+			logsupport.Logs.Log('Adding extra keyword without previous definition(internal anomoly): ', nametoadd)
 			lcllist.append(nametoadd)
 			lclval.append(kwargs[nametoadd])
 			moddoc[inst.__class__.__name__]['loc'][lcllist[-1]] = type(lclval[-1])
 		else:
-			logsupport.Logs.Log('Duplicated keyword localization (internal error): ' + nametoadd)
+			lcllist.append(nametoadd)
+			lclval.append(kwargs[nametoadd])
+			moddoc[inst.__class__.__name__]['loc'][lcllist[-1]] = type(lclval[-1])
 	for i in range(len(lcllist)):
 		val = type(lclval[i])(configsection.get(lcllist[i], lclval[i]))
 		if isinstance(val, list):
 			for j, v in enumerate(val):
 				if isinstance(v, str):
-					val[j] = unicode(v,'UTF-8')
+					val[j] = v.decode(encoding='UTF-8')#unicode(v,'UTF-8')
 		inst.__dict__[lcllist[i]] = val
-
 
 
 def DumpDocumentation():
@@ -315,25 +319,25 @@ def DumpDocumentation():
 		varsinuse[i] = [x for x in scr if not x.startswith('_') and x not in olditems]
 		olditems += [x for x in scr if not x.startswith('_')]
 
-	def scrublowers(r):
+	def scrublowers(ritem):
 		lower = []
-		rtn = list(r.members)
-		for i in r.members:
-			lower += scrublowers(i)
-		r.members = [x for x in r.members if x not in lower]
+		rtn = list(ritem.members)
+		for mem in ritem.members:
+			lower += scrublowers(mem)
+		ritem.members = [xitem for xitem in ritem.members if xitem not in lower]
 		return rtn
 
-	def docwrite(r, ind, md):
-		docfile.write(ind + r.name + ': [' + ', '.join([n.name for n in r.members]) + ']\n')
-		mdfile.write('\n' + md + r.name + ': [' + ', '.join([n.name for n in r.members]) + ']\n')
-		docfile.write(ind + (doclst[r.name] if not doclst[r.name] is None else "***missing***") + '\n')
-		mdfile.write((doclst[r.name] if not doclst[r.name] is None else "\n***missing***\n") + '\n')
-		if r.name in varsinuse:
-			for v in varsinuse[r.name]:
+	def docwrite(ritem, ind, md):
+		docfile.write(ind + ritem.name + ': [' + ', '.join([n2.name for n2 in ritem.members]) + ']\n')
+		mdfile.write('\n' + md + ritem.name + ': [' + ', '.join([n2.name for n2 in ritem.members]) + ']\n')
+		docfile.write(ind + (doclst[ritem.name] if not doclst[ritem.name] is None else "***missing***") + '\n')
+		mdfile.write((doclst[ritem.name] if not doclst[ritem.name] is None else "\n***missing***\n") + '\n')
+		if ritem.name in varsinuse:
+			for v in varsinuse[ritem.name]:
 				docfile.write(ind + '  ' + v + '\n')
 				mdfile.write('*  ' + v + '\n')
-		for i in r.members:
-			docwrite(i, ind + '    ', '##')
+		for mem in ritem.members:
+			docwrite(mem, ind + '    ', '##')
 
 	for c in clslst.values():
 		for n in c.membernms:

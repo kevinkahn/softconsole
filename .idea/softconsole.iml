@@ -1,8 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <module type="PYTHON_MODULE" version="4">
   <component name="NewModuleRootManager">
-    <content url="file://$MODULE_DIR$" />
-    <orderEntry type="jdk" jdkName="Remote Python 3.5.3 (sftp://pi@rpi-dev7:8623/home/pi/python3-sudo.sh)" jdkType="Python SDK" />
+    <content url="file://$MODULE_DIR$">
+      <excludeFolder url="file://$MODULE_DIR$/FuturesEtc" />
+      <excludeFolder url="file://$MODULE_DIR$/deprecated" />
+    </content>
+    <orderEntry type="jdk" jdkName="Remote Python 2.7.13 (sftp://pi@rpi-dev7:8623/home/pi/python-sudo.sh)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
   </component>
   <component name="TestRunnerService">

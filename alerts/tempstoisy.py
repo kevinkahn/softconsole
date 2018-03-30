@@ -10,7 +10,8 @@ class GetTempsToISY(object):
 	def __init__(self):
 		pass
 
-	def SendTemps(self, alert):
+	@staticmethod
+	def SendTemps(alert):
 		"""
 		params: Station, (Fieldspec Var)+  where Fieldspec = C|F:fieldname Var = S|I|L:name)
 		"""
@@ -26,6 +27,7 @@ class GetTempsToISY(object):
 			elif weathcode[0] == 'F':
 				weathval = WI.GetVal(('Fcst',weathcode[1],0))
 			else:
+				weathval = '' # to supress warning on log msg below
 				exitutils.FatalError('Weather field error in SendTemps', restartopt='shut')
 
 			if not (isinstance(weathval,int) or isinstance(weathval,float)):
