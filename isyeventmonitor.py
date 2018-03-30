@@ -215,7 +215,7 @@ class ISYEventMonitor:
 					if ecode == 'ST':
 						if enode == "20 51 B2 1":
 							print("Off Ceil Set: " + str(eaction))
-						if eaction < 0:
+						if int(eaction) < 0:
 							print("Strange node set: "+str(enode)+' '+str(eaction))
 						config.ISY.NodesByAddr[enode].devState = int(eaction)
 
@@ -226,9 +226,8 @@ class ISYEventMonitor:
 				logsupport.Logs.Log("Exception in QH on message: ", E)
 
 
-		websocket.enableTrace(True)
-		websocket.setdefaulttimeout(20)
-		#websocket.setdefaulttimeout(240) todo
+		#websocket.enableTrace(True)
+		websocket.setdefaulttimeout(30)
 		if config.ISYaddr.startswith('http://'):
 			wsurl = 'ws://' + config.ISYaddr[7:] + '/rest/subscribe'
 		elif config.ISYaddr.startswith('https://'):
@@ -240,7 +239,7 @@ class ISYEventMonitor:
 				ws = websocket.WebSocketApp(wsurl, on_message=on_message,
 										on_error=on_error,
 										on_close=on_close, on_open=on_open,
-										subprotocols=['ISYSUB'], header={b'Authorization': b'Basic ' + self.a})
+										subprotocols=['ISYSUB'], header={'Authorization': 'Basic ' + self.a.decode('ascii')})
 				break
 			except AttributeError as e:
 				logsupport.Logs.Log("Problem starting WS handler - retrying: ",repr(e))

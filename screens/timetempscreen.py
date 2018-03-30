@@ -157,9 +157,9 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 			forecastitemheight = renderedforecast[-1].get_height()
 
 			if self.FcstLayout in ('2ColVert','2ColHoriz'):
-				h = h + forecastitemheight * ((self.ForecastDays + 1) / 2)
-				forecastlines = (forecastlines + 1) / 2
-				usewidth = config.screenwidth / 2
+				h = h + forecastitemheight * ((self.ForecastDays + 1) // 2)
+				forecastlines = (forecastlines + 1) // 2
+				usewidth = config.screenwidth // 2
 			else:
 				h = h + forecastitemheight * self.ForecastDays
 				usewidth = config.screenwidth
@@ -171,17 +171,17 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 							   pygame.Rect(0, 0, config.screenwidth, config.screenheight - config.botborder))
 			vert_off = config.topborder
 			for tmlbl in renderedtimelabel:
-				horiz_off = (config.screenwidth - tmlbl.get_width())/2
+				horiz_off = (config.screenwidth - tmlbl.get_width())//2
 				config.screen.blit(tmlbl, (horiz_off, vert_off))
 				vert_off = vert_off + s + tmlbl.get_height() + extraspace
 
-			config.screen.blit(cb, ((config.screenwidth - cb.get_width())/2, vert_off))
+			config.screen.blit(cb, ((config.screenwidth - cb.get_width())//2, vert_off))
 			vert_off = vert_off + s + cb.get_height() + extraspace
 
 			startvert = vert_off
 			maxvert = startvert
 			fcstvert = renderedforecast[0].get_height()
-			horiz_off = (usewidth - maxfcstwidth) / 2
+			horiz_off = (usewidth - maxfcstwidth) // 2
 			for dy,fcst in enumerate(renderedforecast):
 				h_off = horiz_off
 				v_off = vert_off
@@ -190,18 +190,18 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 					vert_off = vert_off + (dy % 2) * (s + fcstvert)
 				elif self.FcstLayout == '2ColVert':
 					vert_off = vert_off + s + fcstvert
-					if dy == (self.ForecastDays + 1) / 2 - 1:
+					if dy == (self.ForecastDays + 1) // 2 - 1:
 						horiz_off = horiz_off + usewidth
 						vert_off = startvert
 				elif self.FcstLayout in ('BlockCentered', 'LineCentered'):
 					vert_off = vert_off + s + fcstvert
-					h_off = (usewidth - fcst.get_width())/2
+					h_off = (usewidth - fcst.get_width())//2
 				else:
 					vert_off = vert_off + s + fcstvert
 				if v_off > maxvert: maxvert = v_off
 				config.screen.blit(fcst, (h_off, v_off))
 
-			if self.FcstLayout == '2ColVert': pygame.draw.line(config.screen,wc('white'),(usewidth,startvert+fcstvert/3),(usewidth,maxvert + 2*fcstvert/3))
+			if self.FcstLayout == '2ColVert': pygame.draw.line(config.screen,wc('white'),(usewidth,startvert+fcstvert//3),(usewidth,maxvert + 2*fcstvert/3))
 
 		pygame.display.update()
 		config.DS.Tasks.AddTask(self.ClockRepaintEvent, 1)

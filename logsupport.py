@@ -13,14 +13,17 @@ class TempLogger(object):
 	# noinspection PyUnusedLocal
 	@staticmethod
 	def Log(*args, **kwargs):
-		entry = "".join([unicode(i) for i in args])
-		print(time.strftime('%m-%d-%y %H:%M:%S') + " " + entry.encode('ascii', errors='backslashreplace'))
+		#entry = "".join([unicode(i) for i in args])
+		entry = "".join([str(i) for i in args])
+		if not isinstance(entry, str): entry =  entry.encode('UTF-8', errors='backslashreplace')
+		print(time.strftime('%m-%d-%y %H:%M:%S') + " " + entry)
 
 Logs = TempLogger()
 import config
 import time
 import os
 import re
+import types
 from hw import disklogging
 
 LogLevels = ('Debug', 'DetailHigh', 'Detail', 'Info', 'Warning', 'Error')
@@ -33,7 +36,11 @@ ConsoleError = 5
 
 LogLevel = 3
 
-
+def StringLike(obj):
+	try:
+		return isinstance(obj, basestring)
+	except NameError:
+		return isinstance(obj, str)
 
 
 def InitLogs(screen,dirnm):
@@ -75,13 +82,23 @@ class Logger(object):
 		if severity < LogLevel:
 			return
 		diskonly = kwargs.pop('diskonly', False)
-		entry = "".join([unicode(i) for i in args])
+		#entry = "".join([unicode(i) for i in args])
+		entry = ''
+		for i in args:
+			if StringLike(i):
+				if not isinstance(i, str):
+					entry = entry + i.encode('UTF-8', errors='backslashreplace')
+				else:
+					entry = entry + i
+			else:
+				entry = entry + str(i)
+
+		#entry = "".join([str(i) for i in args])
 		if not diskonly:
 			self.log.append((severity, entry))
 		if disklogging:
 			self.disklogfile.write(time.strftime('%m-%d-%y %H:%M:%S')
-								   + ' Sev: ' + str(severity) + " " + entry.encode('ascii',
-																				   errors='backslashreplace') + '\n')
+								   + ' Sev: ' + str(severity) + " " + entry + '\n')
 			if severity == ConsoleError and tb:
 				# traceback.print_stack(file=self.disklogfile)
 				frames = traceback.extract_tb(sys.exc_info()[2])
@@ -100,10 +117,14 @@ class Logger(object):
 				self.livelogpos = 0
 			pygame.display.update()
 
-	def RenderLogLine(self, text, clr, pos):
+	def RenderLogLine(self, itext, clr, pos):
 		# odd logic below is to make sure that if an unbroken item would by itself exceed line length it gets forced out
 		# thus avoiding an infinite loop
-
+		if isinstance(itext, str):
+			try:
+				text = itext.decode(encoding='UTF-8')  # unicode(v,'UTF-8')
+			except AttributeError:
+				text = itext
 		text = re.sub('\s\s+', ' ', text.rstrip())
 		ltext = re.split('([ :,])', text)
 		ltext.append('')

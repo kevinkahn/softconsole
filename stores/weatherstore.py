@@ -42,7 +42,7 @@ WeatherIconCache = {}
 WUcount = 0
 
 def get_icon(url):
-	if 	WeatherIconCache.has_key(url):
+	if 	url in WeatherIconCache:
 		return WeatherIconCache[url]
 	else:
 		r = requests.get(url)
@@ -129,7 +129,7 @@ class WeatherVals(valuestore.ValueStore):
 			#f = urllib2.urlopen(self.url, None, 15)  # wait at most 15 seconds for weather response then timeout
 			#val = f.read()
 			#f.close
-			val = r.content
+			val = r.text
 			WUcount += 1
 			logsupport.Logs.Log("Actual weather fetch for " + self.location + "(" + str(self.fetchcount) + ')' + " WU count: " + str(WUcount),
 							severity=ConsoleDetail)

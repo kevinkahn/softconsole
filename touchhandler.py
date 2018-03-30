@@ -7,7 +7,7 @@ import errno
 import struct
 from collections import namedtuple
 import select
-import queue as Queue
+import queue
 import pygame
 import debug
 
@@ -136,7 +136,7 @@ class Touchscreen(object):
 		self._f_poll.register(self._f_device, select.POLLIN)
 		self.position = Touch(0, 0, 0)
 		self.touches = Touches([Touch(x, 0, 0) for x in range(10)])
-		self._event_queue = Queue.Queue()
+		self._event_queue = queue.Queue()
 		self._touch_slot = 0
 
 

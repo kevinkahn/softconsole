@@ -1,4 +1,5 @@
 from __future__ import print_function
+from future.builtins.misc import input
 
 ans = ""
 ISYIP = ""
@@ -6,21 +7,21 @@ ISYUSER = ""
 ISYPWD = ""
 exswitch = ""
 while not ans in ('y', 'Y', 'n', 'N'):
-	ans = raw_input("Set up minimal example system?")
+	ans = input("Set up minimal example system?")
 if ans in ('y', 'Y'):
 	go = ""
 	while not go in ('y', 'Y'):
-		ISYIP = raw_input("full URL to access ISY: ")
+		ISYIP = input("full URL to access ISY: ")
 		if ISYIP.endswith('/'):
 			ISYIP = ISYIP[0:-1]
-		ISYUSER = raw_input("ISY user name: ")
-		ISYPWD = raw_input("ISY password: ")
-		exswitch = raw_input("Example switch to use (ISY name): ")
+		ISYUSER = input("ISY user name: ")
+		ISYPWD = input("ISY password: ")
+		exswitch = input("Example switch to use (ISY name): ")
 		print("IP:      " + ISYIP)
 		print("USER:    " + ISYUSER)
 		print("PASSWORD:" + ISYPWD)
 		print("SWITCH:  " + "[[" + exswitch + "]]")
-		go = raw_input("OK? (y/n)")
+		go = input("OK? (y/n)")
 	with open('/home/pi/Consoleauth', "w") as f:
 		cfg = ("ISYaddr = " + ISYIP,
 			   "ISYuser = " + ISYUSER,
