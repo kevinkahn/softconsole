@@ -52,6 +52,7 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 								 ForecastFormat=[], ForecastDays=1, SkipDays=0)
 		if self.CharSize != [-1]:
 			# old style
+			logsupport.Logs.Log("TimeTemp screen CharSize parameter deprecated, change to specific block size parameters", severity=ConsoleWarning)
 			self.ClockSize = extref(self.CharSize, 0)
 			self.LocationSize = extref(self.CharSize, 1)
 			self.CondSize = extref(self.CharSize, 2)
