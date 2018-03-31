@@ -12,12 +12,18 @@ def StageVersion(vdir, tag, label):
 	shutil.rmtree('stagedversion', True)
 	os.mkdir('stagedversion')
 	os.chdir('stagedversion')
-	subprocess.call('wget https://github.com/kevinkahn/softconsole/archive/' + tag + '.tar.gz', shell=True)
-	subprocess.call('tar -zxls --strip-components=1 < ' + tag + '.tar.gz', shell=True)
-	sha, cdate = GetSHA(tag)
-	with open('versioninfo', 'w') as f:
-		f.writelines(['{0}\n'.format(tag), '{0}\n'.format(sha), label + ': ' + time.strftime('%m-%d-%y %H:%M:%S\n'),
-					  'Commit date: {0}\n'.format(cdate)])
+	if tag == '*live*':
+		subprocess.call('wget https://github.com/kevinkahn/softconsole/tarball/master', shell=True)
+		subprocess.call('tar -zxls --strip-components=1 < master', shell=True)
+		os.remove('master')
+	else:
+		subprocess.call('wget https://github.com/kevinkahn/softconsole/archive/' + tag + '.tar.gz', shell=True)
+		subprocess.call('tar -zxls --strip-components=1 < ' + tag + '.tar.gz', shell=True)
+		sha, cdate = GetSHA(tag)
+		with open('versioninfo', 'w') as f:
+			f.writelines(['{0}\n'.format(tag), '{0}\n'.format(sha), label + ': ' + time.strftime('%m-%d-%y %H:%M:%S\n'),
+						  'Commit date: {0}\n'.format(cdate)])
+		os.remove(tag + '.tar.gz')
 	# noinspection PyBroadException
 	try:
 		os.chmod('runconsole.py', 0o555)
@@ -28,7 +34,7 @@ def StageVersion(vdir, tag, label):
 		os.chmod('console.py', 0o555)
 	except:
 		pass
-	os.remove(tag + '.tar.gz')
+
 	os.chdir(cwd)
 
 

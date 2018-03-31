@@ -44,5 +44,10 @@ if os.path.exists('homesystem'):
 	print("Stage test version")
 	U.InstallStagedVersion('consolecur')
 	print("Installed test version")
+	U.StageVersion('consolerem', '*live*', 'InitialInstall')
+	print("Stage live development version")
+	U.InstallStagedVersion('consolerem')
+	print("Installed live development version")
+
 
 subprocess.call("cp -r /home/pi/consolestable/'example configs'/* /home/pi/Console", shell=True)
