@@ -140,6 +140,8 @@ cd /home/pi
 LogBanner "This is the system setup script"
 LogBanner "Connect WiFI if needed"
 read -p "Press Enter to continue"
+pip install future
+pip3 install future
 wget https://raw.githubusercontent.com/kevinkahn/softconsole/master/docs/installconsole.sh
 wget https://raw.githubusercontent.com/kevinkahn/softconsole/master/docs/installconsoleSDL.sh
 wget https://raw.githubusercontent.com/kevinkahn/softconsole/master/getsetupinfo.py
