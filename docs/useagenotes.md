@@ -59,6 +59,25 @@ The console has a general notion of stored values that some of the screens and a
 
 Stores are created for ISY variables (ISY:State:<varname> and ISY:Int:<varname>), local variables (LocalVar:<varname>), the WU stations, any MQTT brokers (<brokername>:<varname>), and console debug flags (Debug:<flagname>).  There is also a System store (entries of the form System:DimLevel) that holds some global system parameters that may be displayed or changed at runtime (currently mainly the DimLevel and BrightLevel values).  Store values may be referenced on weather and timetemp screens, in alerts, and alert screen actions.  There is also an **assignvar** alert (referenced as AssignVar.Assign) that may be used to assign a literal or another variable value to a store element.  An example of its use is to change the dim level of the screen at certain times of day.
 
+# MQTT Broker Reference
+The console can subscribe to an MQTT broker and get variables updated via that route.  To do this create a separate section named as you with for each MQTT broker you wish to subscribe to.  Provide parameters that specify its type as MQTT, its address, password (if needed), and then a sequence of subsections each of which names a variable to be subscribed to.  These sections have parameters Topic, TopicType, and Expires that describe how the value will be stored in the console.  If Expires is left out then values will be valid forever, otherwise they will disappear after the listed number of seconds.
+
+For example, the following might subscribe to a broker running in the house to which local sensors publish the current temperature and humidity on the patio.  One can then reference the current patio temperature on, for example, a timetempscreen, as myBroker:PatioTemp.  If the sensor stops posting for over 2 minutes then the console will show no value.
+```
+    [myBroker]
+            type = MQTT
+            address = server.house
+            password = foobar
+            [[PatioTemp]]
+            Topic = Patio/Temp
+            TopicType = float
+            Expires = 120
+            [[PatioHum]]
+            Topic = Patio/Hum
+            TopicType = float
+            Expires = 120
+```
+
 # Currently supported screens
 * Keypad: mimics the KPL.  Can support any number of buttons from 1 to 25 and will autoplace/autosize buttons in this range.  Parmetrs KeysPerColumn and KeysPerRow may be used to override the auto placement of the keys.  Keys may be colored as desired.  Key types are:
     * ONOFF: linked to a device or scene and supports On, Off, FastOn, FastOff behaviors
