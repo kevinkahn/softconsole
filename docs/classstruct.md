@@ -1,8 +1,35 @@
 # Class/Attribute Structure:
 
 
-#object: [TouchPoint, TreeItem, ScreenDesc]
+#object: [ISY, TouchPoint, OnOffItem, ScreenDesc]
 The most base type
+
+##ISY: []
+
+	Singleton object (1 per console) that represents the ISY system as a whole and provides roots to its structures
+	and useful directories to its nodes/programs.  Provides a debug method to dump the constructed graph.
+	Note current limitation: assumes non-conflicting names at the leaves.  Qualified name support is a future addition.
+	
+*  FoldersByAddr
+*  FoldersByName
+*  GetNodeByName
+*  GetSceneByName
+*  LinkChildrenParents
+*  NodeExists
+*  NodeRoot
+*  NodesByAddr
+*  NodesByFullName
+*  NodesByName
+*  PrintTree
+*  ProgRoot
+*  ProgramFoldersByAddr
+*  ProgramFoldersByName
+*  ProgramsByAddr
+*  ProgramsByName
+*  SceneExists
+*  ScenesByAddr
+*  ScenesByName
+*  SetFullNames
 
 ##TouchPoint: [ManualKeyDesc]
 
@@ -51,10 +78,10 @@ The most base type
 
 *  Blink
 *  FastPress
-*  SetVar
+*  SetVarKeyPressed
 *  Value
 *  Var
-*  VarID
+*  VarName
 *  VarType
 *  Verify
 
@@ -68,6 +95,7 @@ The most base type
 ***missing***
 
 *  SetVarValue
+*  VarID
 
 ##OnOffKey: []
 
@@ -80,22 +108,58 @@ The most base type
 *  SceneProxy
 *  VerifyPressAndReturn
 
-##TreeItem: [Folder]
+##OnOffItem: [TreeItem]
+
+	Provides command handling for nodes that can be sent on/off faston/fastoff commands.
+	
+
+##TreeItem: [Folder, Scene, ProgramFolder]
 
 	Provides the graph structure for the ISY representation.  Any ISY node can have a parent and children managed by
 	this class.  The class also holds identity information, namely name and addr
 	
 *  address
 *  children
+*  fullname
 *  name
 *  parent
+*  runThen
 
-##Folder: []
+##Folder: [Node]
 
 	Represents and ISY node/scene folder.
 	
+*  SendCommand
 *  flag
 *  parenttype
+
+##Node: []
+
+	Represents and ISY device node.
+	
+*  devState
+*  enabled
+*  hasstatus
+*  pnode
+
+##Scene: []
+
+	Represents an ISY scene.
+	
+*  members
+*  obj
+*  proxy
+
+##ProgramFolder: [Program]
+
+	Represents an ISY program folder (ISY keeps the node and program folders separately)
+	
+*  status
+
+##Program: []
+
+	Represents an ISY program and provides command support to issue run commands to it.
+	
 
 ##ScreenDesc: [HouseStatusScreenDesc, TimeTempScreenDesc, BaseKeyScreenDesc, WeatherScreenDesc, AlertsScreenDesc, ClockScreenDesc]
 
@@ -197,16 +261,20 @@ The most base type
 ***missing***
 
 *  CondOrFcst
-*  Info
-*  RenderScreenLines
 *  WunderKey
-*  conditions
+*  condfields
+*  condformat
 *  currentconditions
-*  errormsg
+*  dayfields
+*  dayformat
+*  fcstfields
+*  fcstformat
 *  fmt
-*  forecast
+*  footfields
+*  footformat
 *  location
 *  scrlabel
+*  store
 
 ##AlertsScreenDesc: []
 

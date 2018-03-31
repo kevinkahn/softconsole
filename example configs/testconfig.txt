@@ -1,0 +1,209 @@
+
+LogLevel = 3
+
+#Screen = True
+#Main = True
+#Dispatch = True
+#DaemonCtl = True
+#ISYDump = True
+#ISYLoad = True
+#StoreTrack = True
+
+cfglib = "/home/pi/consolerem/example configs/cfglib"
+include = /home/pi/Console/cfglib/auth.cfg, timetempLQ7.cfg, timetempLQ.cfg, weathCC.cfg, timetempPDX.cfg, myclock.cfg,bathroom.cfg,upperlev.cfg,BR-kck.cfg,tstat.cfg
+HomeScreenName = LR1
+DimLevel = 25
+DimTO = 25
+DimIdleListNames = MyClock, Portland, Pumpkin, LaQuinta
+DimIdleListTimes =	20, 20, 20, 20
+
+MainChain = LR1,LR2, LQTTbig, Local, Upper Level, Test
+SecondaryChain = Portland, Bathroom, BR, /Utility Devices/Thermostat - Main
+
+[Variables]
+    InternetUp = 1
+
+[MQTT]
+	type = MQTT
+	address = rpi-dev7.pgawhome
+	[[PatioTemp]]
+	Topic = Patio/Temp
+	TopicType = float
+	Expires = 120
+	[[PatioHum]]
+	Topic = Patio/Hum
+	TopicType = float
+	Expires = 120
+
+[Alerts]
+	[[PeriodicTest]]
+	Type = Periodic
+	#Interval = 60 seconds
+	At = 8:18pm,9:29,11:55pm, 1am, 6:55am
+	Invoke = MakeLogEntry.Log
+	Parameter = "Testing"
+	[[AdjustScreenDim]]
+	Type = Periodic
+	At = 11:00pm
+	Invoke = AssignVar.Assign
+	Parameter = System:DimLevel = 8
+	[[AdjustScreenDimUp]]
+	Type = Periodic
+	At = 6:30am
+	Invoke = AssignVar.Assign
+	Parameter = System:DimLevel = 35
+
+	[[AutoVersion]]
+	Type = Periodic
+	Interval = 3 hours
+	Invoke = AutoVersion.CheckUpToDate
+	[[SanityCheck]]
+	Type = Periodic
+	Interval = 1 hour
+	Invoke = CheckIntegrity.CheckISYVars
+	[[AltVarTest]]
+	Type = VarChange
+	Var = ISY:State:tEST
+	Test = NE
+	Value = 0
+	Delay = 5 seconds
+	Invoke = TestAlert
+#	[[NodeTest]]
+#	Type = NodeChange
+#	Node = Office Ceiling
+#	Test = NE
+#	Value = 0
+#	Delay = 5 seconds
+#	Invoke = NodeTest
+	[[Internet]]
+	Type = Periodic
+	Interval = 600 seconds
+	Invoke = NetworkHealth.Do_Ping
+	Parameter = '8.8.8.8',LocalVars:InternetUp
+	[[InternetAlert]]
+	Type = LocalVarChange
+	Var = InternetUp
+	Test = NE
+	Value = 1
+	Invoke = InternetAlertScreen
+
+#	[[TransferTemps]]
+#	Type = Periodic
+#	Interval = 10 seconds
+#	Invoke = AssignVar.Assign
+#	Parameter = ISY:State:tEST = KPDX:Cond:Temp, ISY:Int:TestVar= 5
+
+#    [[GetTemps]]
+#    Type = Periodic
+#    Interval = 20 seconds #2 minutes
+#    Invoke = GetTempsToISY.SendTemps
+#    Parameter = pws:KORPORTL26, C:Temp S:tEST F:Low S:tEST # station,(field name, var)+  pws:KORPORTL280
+
+[InternetAlertScreen]
+    type = Alert
+    BackgroundColor = black
+	MessageBack = green
+	CharColor = navyblue
+	Message = Internet, Down
+	CharSize = 30,
+	DeferTime = 10
+	BlinkTime = 1
+	KeyColor = maroon
+	[[Action]]
+		type = SETVAR
+		Var = InternetUp
+		VarType = Local
+		label = Acknowledge, Outage
+
+[NodeTest]
+	type = Alert
+	BackgroundColor = black
+	MessageBack = green
+	CharColor = navyblue
+	Message = Test, Node, Ceiling, On
+	CharSize = 30,
+	DeferTime = 10
+	BlinkTime = 1
+	KeyColor = maroon
+	[[Action]]
+		type = ONOFF
+		NodeName = Office Ceiling
+		label = Clear, Test Condition
+		
+
+[TestAlert]
+	type = Alert
+	BackgroundColor = royalblue
+	MessageBack = red
+	CharColor = black
+	Message = "Test", "Variable", "tEST","Set"
+	CharSize = 30, 30, 40, 30
+	DeferTime = 10 seconds
+	BlinkTime = 2
+	KeyColor = maroon
+	[[Action]]
+		type = SETVAR
+		VarType = State
+		Var = tEST
+		KeyColor = Maroon
+		label = Clear tEST,
+
+[HouseStat]
+    type = Status
+    NormalOff = Pucks, Downlights, Kitchen Dimmer, Office Ceiling
+    NormalOn = Main Hall, Landscape, LR Dual Spots
+
+[LR1]
+    type = Keypad
+    label = Living, Room 1
+    [[Office Ceiling]]
+    type = ONOFF
+	label = Office, Ceiling
+	Verify = 1
+	Blink = 5
+
+    [[LR Dual Spots]]
+        label = Dual, Spots
+    [[LR Pict Spot]]
+        label = Art Spot,
+    [[TestVarKey]]
+	label = Error in Value, $
+        type = VARKEY
+	Var = ISY:State:tEST
+	Blink = 4
+	ValueSeq = 0,1,3,6
+	KeyCharColorOn = royalblue
+	Appearance = 0 green 'All good',1:2 yellow 'Probably; good; $',3:99 red 'Not so hot $'
+ [LR2]
+    type = Keypad
+    label = Living, Room 2   
+    [[Main Hall]]
+    [[Upper Hall]]
+    [[LR Plug Win]]
+        label = Test
+        type = RUNPROG
+        KeyColor = green
+        ProgramName = TestProcXX
+        Verify = 1
+    [[TestProg]]
+        type=RUNPROG
+        ProgramName = TestProc
+        KeyColor = green
+        Verify = 1
+        GoMsg = Yes, Do, It!
+        NoGoMsg = Oops, Never Mind!
+        Blink = 11
+        label = Test, Program, Verify
+#    [[LR Plug Dr]]
+#        label = Reading, Light, Door
+
+# [Test]
+#	type = Keypad
+#	label = Test
+#	[[TestVar]]
+#	VarType = Int
+#	type = SETVARVALUE
+
+
+
+

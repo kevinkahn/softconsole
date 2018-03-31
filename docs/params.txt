@@ -195,7 +195,6 @@ Module Parameters:
             Blink                   :  int     
             FastPress               :  int     
             Var                     :  str     
-            VarType                 :  str     
             Verify                  :  int     
             label                   :  list    
         Overrideable Globals:
@@ -229,12 +228,19 @@ Module Parameters:
     TimeTempScreenDesc
         Local Parameters:
             CharSize                :  list    
+            ClockSize               :  int     
+            CondIcon                :  bool    
+            CondSize                :  list    
             ConditionFields         :  list    
             ConditionFormat         :  list    
+            FcstIcon                :  bool    
+            FcstLayout              :  str     
+            FcstSize                :  list    
             Font                    :  str     
             ForecastDays            :  int     
             ForecastFields          :  list    
             ForecastFormat          :  list    
+            LocationSize            :  int     
             SkipDays                :  int     
             TimeFormat              :  list    
             label                   :  list    
