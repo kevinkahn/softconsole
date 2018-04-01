@@ -224,7 +224,7 @@ class WeatherVals(valuestore.ValueStore):
 			return super(WeatherVals,self).GetVal(name)
 
 	def SetVal(self,name,val,modifier=None):
-		logsupport.Logs.Log("Setting weather item via SetVal unsupported: "+name,severity=ConsoleError)
+		logsupport.Logs.Log("Setting weather item via SetVal unsupported: "+str(name),severity=ConsoleError)
 
 
 

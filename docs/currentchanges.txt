@@ -1,22 +1,4 @@
-Add option to display icons on weatherscreen and timetempscreen
-Add multicolumn display options for forecasts for 7" display
-Reduce amount of logging at standard log level (moved detail to higher loglevel)
-Improved setup prompt and handling for VNC install
-More graceful handling of loss of WiFi signal to console (router rebooting)
-Add ability to dump ISY information to allow better remote support of users
-Handle unexpected bad node addresses in scenes more gracefully
-Improve handling of special characters that need unicode encoding in formats strings
-Miscellaneous bug fixes
+A new version of the softconsole (V2.8) is now available.  This version has some sizeable internal structural changes and so may have some residual bugs but I have tested it as well as I can at this point.  It adds a number of new capabilities (all of which are documented in the useage notes).  It now supports subscribing to one (or multiple) MQTT servers for information that can then be displayed as part of screens or can be pushed to an ISY variable.  While this is primarily to allow local non-ISY information to be added to screens it can be used as a quick way to connect your MQTT server to your ISY.  The way ISY variables, local softconsole variables, weather underground data, MQTT subscription values, debug flags, and even some system configuration values are handled has been unified in a common store format that allows any of these values to be displayed on screens that allow such references or copied or changed when that makes sense.  For details read the section of the useagenotes on "stores".  ISY node names can now be referenced as fully qualified rather than just by a their simple node name thus allowing the same node name to be used in different parts of the house.  Periodic alerts can now be triggered at specific times of the day as well as on a regular time cycle.  There is a new type of "key" that can be defined on a key screen that can reflect the value of an ISY (or any other, e.g. weather) variable with different colors.  This allows creating "status" screens that show such things as house or environment status with easily observed colors.  E.g., external temperature below freezing, heat running, etc. can be visually portrayed.  This type of key also can be used to sequence through setting a corresponging ISY variable to a set of values with color change as the feedback.  There are also minor bug fixes and small changes in how some parameters are set, with all user visible items documented in the useage notes.  Deprecated paramter settings will now cause warnings in the log file to alert that these items will permanently change in the future and should be updated when convenient.  Finally, for the programming types among you the code base is now compatible with both Python2 (which is what it currently installs and runs under) and Python3 (which is the new version of the language).  With Python2 support planned to end some new libraries are only being build to be Python3 compatible and I wanted to be able to use these in the future.
 
-mqtt
-blink setvar
-ClockSize=-1,LocationSize=-1,CondSize=[20],FcstSize=[20],
-qualified vars
-internal changes
-explain stores
-full names
-deprecated StateVarChange, IntVarChange, LocalVarChange
-at time alerts
-assign alert
-varkey improvements
-timetemp size parameters
+
+
