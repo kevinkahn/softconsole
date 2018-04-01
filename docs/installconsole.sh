@@ -176,6 +176,7 @@ mv di.log    consoleinstallleftovers
 
 
 LogBanner "Install and setup finished"
+rm -f /home/pi/CONSOLEINSTALLRUNNING
 LogBanner "Rebooting in 5 seconds"
 for i in 5 4 3 2 1
 do

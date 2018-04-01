@@ -140,6 +140,7 @@ cd /home/pi
 LogBanner "This is the system setup script"
 LogBanner "Connect WiFI if needed"
 read -p "Press Enter to continue"
+LogBanner "Install Python2/3 Compatibility Support"
 pip install future
 pip3 install future
 wget https://raw.githubusercontent.com/kevinkahn/softconsole/master/docs/installconsole.sh
@@ -147,6 +148,8 @@ wget https://raw.githubusercontent.com/kevinkahn/softconsole/master/docs/install
 wget https://raw.githubusercontent.com/kevinkahn/softconsole/master/getsetupinfo.py
 wget https://raw.githubusercontent.com/kevinkahn/softconsole/master/scripts/vncserverpi.service
 chmod +x installconsole.sh
+# fix bug in adafruit install script as of 3/31/2018
+echo "deb http://mirrordirector.raspbian.org/raspbian/ stretch main contrib non-free rpi firmware" >> /etc/apt/sources.list/raspi.list
 
 LogBanner "Set Time Zone"
 # seed the timezone dialog
@@ -337,10 +340,8 @@ fi
 cd /home/pi
 
 wget https://raw.githubusercontent.com/adafruit/Adafruit-PiTFT-Helper/master/adafruit-pitft-touch-cal
-wget https://raw.githubusercontent.com/adafruit/Adafruit-PiTFT-Helper/master/adafruit-pitft-helper
-wget https://raw.githubusercontent.com/adafruit/Adafruit-PiTFT-Helper/master/adafruit-pitft-helper2.sh
-chmod +x adafruit-pitft-helper2.sh
-chmod +x adafruit-pitft-touch-cal adafruit-pitft-helper
+https://raw.githubusercontent.com/adafruit/Raspberry-Pi-Installer-Scripts/master/adafruit-pitft.sh
+chmod +x adafruit-pitft-touch-cal adafruit-pitft.sh
 
 echo $ScreenType > .Screentype
 case $ScreenType in
@@ -364,7 +365,7 @@ case $ScreenType in
 N
 N
 EOF
-  ./adafruit-pitft-helper2.sh < tmp
+  ./adafruit-pitft.sh < tmp
   raspi-config nonint do_boot_behaviour B4 # set boot to desktop already logged in
   cp installconsoleSDL.sh installconsole.sh
   sed -isav s/fb0/fb1/ /usr/share/X11/xorg.conf.d/99-fbturbo.conf
@@ -456,6 +457,8 @@ cd /home/pi
 source .bashrc.real
 cp .bashrc .bashrc.sav
 mv -f .bashrc.real .bashrc
+touch /home/pi/CONSOLEINSTALLRUNNING
+#sudo bash /home/pi/doinstall.sh > /home/pi/di3.log 2>> /home/pi/di2.log
 sleep 15 # delay to allow X system to startup for next command (is this long enough in a Pi0)
 DISPLAY=:0.0 x-terminal-emulator -t "Console Install" --geometry=40x17 -e sudo bash /home/pi/doinstall.sh 2>> /home/pi/di.log
 EOF
