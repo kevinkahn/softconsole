@@ -148,7 +148,7 @@ wget https://raw.githubusercontent.com/kevinkahn/softconsole/master/docs/install
 wget https://raw.githubusercontent.com/kevinkahn/softconsole/master/getsetupinfo.py
 wget https://raw.githubusercontent.com/kevinkahn/softconsole/master/scripts/vncserverpi.service
 chmod +x installconsole.sh
-# fix bug in adafruit install script as of 3/31/2018
+# fix issue in adafruit install script as of 3/31/2018
 echo "deb http://mirrordirector.raspbian.org/raspbian/ stretch main contrib non-free rpi firmware" >> /etc/apt/sources.list/raspi.list
 
 LogBanner "Set Time Zone"
@@ -340,7 +340,7 @@ fi
 cd /home/pi
 
 wget https://raw.githubusercontent.com/adafruit/Adafruit-PiTFT-Helper/master/adafruit-pitft-touch-cal
-https://raw.githubusercontent.com/adafruit/Raspberry-Pi-Installer-Scripts/master/adafruit-pitft.sh
+wget https://raw.githubusercontent.com/adafruit/Raspberry-Pi-Installer-Scripts/master/adafruit-pitft.sh
 chmod +x adafruit-pitft-touch-cal adafruit-pitft.sh
 
 echo $ScreenType > .Screentype

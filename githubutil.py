@@ -15,6 +15,7 @@ def StageVersion(vdir, tag, label):
 	if tag == '*live*':
 		subprocess.call('wget https://github.com/kevinkahn/softconsole/tarball/master', shell=True)
 		subprocess.call('tar -zxls --strip-components=1 < master', shell=True)
+		subprocess.call('chown -R pi: *', shell=True)
 		os.remove('master')
 	else:
 		subprocess.call('wget https://github.com/kevinkahn/softconsole/archive/' + tag + '.tar.gz', shell=True)

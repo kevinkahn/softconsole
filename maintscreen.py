@@ -44,8 +44,8 @@ def SetUpMaintScreens():
 	nflags = len(debug.DbgFlags) + 3
 	# will need key for each debug flag plus a return plus a loglevel up and loglevel down
 	tmpDbgFlags = ["LogLevelUp", "LogLevelDown"] + debug.DbgFlags[:]  # temp copy of Flags
-	flagspercol = config.screenheight / 120
-	flagsperrow = config.screenwidth / 120
+	flagspercol = config.screenheight // 120
+	flagsperrow = config.screenwidth // 120
 	flagoverrides = fixedoverrides.copy()
 	flagoverrides.update(KeysPerColumn=flagspercol, KeysPerRow=flagsperrow)
 	while nflags > 0:

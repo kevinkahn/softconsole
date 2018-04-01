@@ -84,7 +84,7 @@ def initOS(screentype):
 	GoBright(100)
 
 def GoDimPWM(level):
-	wiringpi.pwmWrite(18, (level*1024)/100)
+	wiringpi.pwmWrite(18, int((level*1024)//100))
 
 def GoDimPi7(level):
 	with open('/sys/devices/platform/rpi_backlight/backlight/rpi_backlight/brightness', 'w') as f:
