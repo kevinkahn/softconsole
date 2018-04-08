@@ -72,9 +72,10 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 				self.DecodedCondFields.append(f.split(':'))
 			else:
 				self.DecodedCondFields.append((self.location,'Cond',f))
-				self.DecodedFcstFields = []
+
 		self.condicon = (self.location,'Cond','Icon') if self.CondIcon else None
 
+		self.DecodedFcstFields = []
 		for f in self.ForecastFields:
 			if ':' in f:
 				self.DecodedFcstFields.append(f.split(':'))

@@ -20,12 +20,14 @@ class KeyScreenDesc(screen.BaseKeyScreenDesc):
 		self.LayoutKeys()
 
 		debug.debugPrint('Screen', "Active Subscription List for ", self.name, " will be:")
-		for i in self.NodeList:
-			debug.debugPrint('Screen', "  Subscribe node: ", i, self.NodeList[i].name, " : ",
-					   self.NodeList[i].ISYObj.name, ' via ', self.NodeList[i].MonitorObj.name)
-		for i in self.VarsList:
-			debug.debugPrint('Screen', "  Subscribe var: ", i, self.VarsList[i].name)
+		for h, l in self.HubInterestList.items():
+			for i, j in l.items():
+				debug.debugPrint('Screen', "  Subscribe on hub " + h + " node: " + i + ' ' + j.name + ":" +
+								 j.ControlObj.name + ' via ' + j.DisplayObj.name)
 
+		#for i in self.NodeList:
+		#	debug.debugPrint('Screen', "  Subscribe node: ", i, self.NodeList[i].name, " : ",
+		#			   self.NodeList[i].ControlObj.name, ' via ', self.NodeList[i].DisplayObj.name)
 
 		utilities.register_example("KeyScreenDesc", self)
 
@@ -39,12 +41,12 @@ class KeyScreenDesc(screen.BaseKeyScreenDesc):
 			K.InitDisplay()
 		super(KeyScreenDesc, self).InitDisplay(nav)
 
-	def ISYEvent(self, node=0, value='', varinfo = ()):
+	def ISYEvent(self, hub='', node=0, value='', varinfo = ()):
 		# Watched node reported change event is ("Node", addr, value, seq)
 		if node != 0:
 			# noinspection PyBroadException
 			try:
-				K = self.NodeList[node]
+				K = self.HubInterestList[hub][node]
 			except:
 				debug.debugPrint('Screen', 'Bad key to KS - race?', self.name, str(node))
 				return  # treat as noop
