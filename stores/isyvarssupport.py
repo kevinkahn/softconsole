@@ -5,8 +5,9 @@ import isy
 
 
 class ISYVars(valuestore.ValueStore):
-	def __init__(self, name):
-		super(ISYVars,self).__init__(name)
+	def __init__(self, isy):
+		super(ISYVars,self).__init__(isy.name)
+		self.isy = isy
 
 	def GetVal(self, name, forceactual=True):
 		V =  super(ISYVars,self).GetVal(name)
@@ -15,7 +16,7 @@ class ISYVars(valuestore.ValueStore):
 		if V is None:
 			# lazy load
 			attr = self.GetAttr(name)
-			text = isy.try_ISY_comm('/rest/vars/get/' + str(attr[0]) + '/' + str(attr[1]))  # todo what if notfound
+			text = self.isy.try_ISY_comm('vars/get/' + str(attr[0]) + '/' + str(attr[1]))  # todo what if notfound
 			V = int(xmltodict.parse(text)['var']['val'])
 			super(ISYVars, self).SetVal(name, V)
 		return V
@@ -23,7 +24,7 @@ class ISYVars(valuestore.ValueStore):
 	def GetValByAttr(self, attr):
 		V = super(ISYVars,self).GetValByAttr(attr)
 		if V is None: # why would val not be in attrlist of store already?
-			text = isy.try_ISY_comm('/rest/vars/get/' + str(attr[0]) + '/' + str(attr[1]))  # todo what if notfound
+			text = self.isy.try_ISY_comm('vars/get/' + str(attr[0]) + '/' + str(attr[1]))  # todo what if notfound
 			V = int(xmltodict.parse(text)['var']['val'])
 		return V
 

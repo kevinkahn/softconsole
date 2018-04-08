@@ -13,96 +13,23 @@ import errno
 import isyeventmonitor, threadmanager
 from stores import valuestore, isyvarssupport
 
-
 class CommsError(Exception): pass
 
-def try_ISY_comm(urlcmd):
-	for i in range(15):
-		try:
-			try:
-				if config.ISYaddr.startswith('http'):
-					t = config.ISYaddr + urlcmd
-				else:
-					t = 'http://' + config.ISYaddr + urlcmd
-				debug.debugPrint('ISY', '*' + t + '*')
-				r = config.ISYrequestsession.get(t, verify=False, timeout=5)
-			except requests.exceptions.ConnectTimeout as e:
-				logsupport.Logs.Log("ISY Comm Timeout: " + ' Cmd: ' + '*' + urlcmd + '*', severity=ConsoleError, tb=False)
-				logsupport.Logs.Log(sys.exc_info()[1], severity=ConsoleDetailHigh, tb=False)
-				logsupport.Logs.Log("Exc: ",e, severity=ConsoleDetailHigh, tb=False)
-				raise CommsError
-			except requests.exceptions.ConnectionError as e:
-				# noinspection PyBroadException
-				try:
-					if e[0] == errno.ENETUNREACH:
-						# probable network outage for reboot
-						logsupport.Logs.Log("ISY Comm: Network Unreachable", tb=False)
-						time.sleep(120)
-					else:
-						logsupport.Logs.Log("ISY Comm ConnErr: " + ' Cmd: ' + urlcmd, severity=ConsoleError, tb=False)
-						logsupport.Logs.Log(sys.exc_info()[1], severity=ConsoleDetailHigh, tb=False)
-				except:
-					logsupport.Logs.Log("ISY Comm ConnErr2: " + ' Cmd: ' + urlcmd, severity=ConsoleError, tb=False)
-					logsupport.Logs.Log(sys.exc_info()[1], severity=ConsoleDetailHigh, tb=False)
-				raise CommsError
-			except Exception as e:
-				logsupport.Logs.Log("ISY Comm UnknownErr: " + ' Cmd: ' + urlcmd, severity=ConsoleError)
-				logsupport.Logs.Log("  Exception: ",str(e))
-				logsupport.Logs.Log(sys.exc_info()[1], severity=ConsoleDetailHigh, tb=True)
-				raise CommsError
-			if r.status_code == 404: # not found
-				return 'notfound'
-			if r.status_code != 200:
-				logsupport.Logs.Log('ISY Bad status:' + str(r.status_code) + ' on Cmd: ' + urlcmd, severity=ConsoleError)
-				logsupport.Logs.Log(r.text)
-				raise CommsError
-			else:
-				return r.text
-		except CommsError:
-			time.sleep(.5)
-			logsupport.Logs.Log("Attempting ISY retry " + str(i + 1), severity=ConsoleError, tb=False)
 
-	logsupport.Logs.Log("ISY Communications Failure", severity=ConsoleError)
-	exitutils.errorexit(exitutils.ERRORPIREBOOT)
+class ISYNode(object):
+	def __init__(self, Hub,name):
+		self.Hub = Hub
+		self.name = name
+		self.fullname = ""
 
-
-def get_real_time_obj_status(obj):
-	if obj is not None:
-		return get_real_time_node_status(obj.address)
-	else:
-		return 0
-
-
-def get_real_time_node_status(addr):
-	if addr == '':
-		return 0  # allow for missing ISY
-	text = try_ISY_comm('/rest/status/' + addr)  # todo what if notfound?
-	props = xmltodict.parse(text)['properties']['property']
-	if isinstance(props, dict):
-		props = [props]
-	devstate = 0
-	for item in props:
-		if item['@id'] == "ST":
-			devstate = item['@value']
-			break
-	try:
-		if config.ISY.NodesByAddr[addr].devState != int(devstate):
-			logsupport.Logs.Log("Shadow state wrong: ", config.ISY.NodesByAddr[addr].fullname, ' (', addr, ') Real State: ', devstate, ' Shadow State: ', config.ISY.NodesByAddr[addr].devState,
-							severity=ConsoleWarning)
-	except KeyError:
-		logsupport.Logs.Log('Bad NodeByAddr in rt status: ', addr, severity=ConsoleError)
-	return int(devstate if devstate.isdigit() else 0)
-
-
-class TreeItem(object):
+class TreeItem(ISYNode):
 	"""
 	Provides the graph structure for the ISY representation.  Any ISY node can have a parent and children managed by
 	this class.  The class also holds identity information, namely name and addr
 	"""
 
-	def __init__(self, name, addr, parentaddr):
-		self.fullname = ""
-		self.name = name
+	def __init__(self, hub, name, addr, parentaddr):
+		super(TreeItem,self).__init__(hub, name)
 		self.address = addr
 		self.parent = parentaddr  # replaced by actual obj reference at end of tree build
 		self.children = []
@@ -112,7 +39,7 @@ class TreeItem(object):
 		return 'Tree Item: ' + self.name + '/' + self.address + ' ' + str(len(self.children)) + ' children'
 
 
-class OnOffItem(object):
+class OnOffItem(ISYNode):
 	"""
 	Provides command handling for nodes that can be sent on/off faston/fastoff commands.
 	"""
@@ -120,7 +47,7 @@ class OnOffItem(object):
 	def SendCommand(self, state, presstype):
 		selcmd = (('DOF', 'DFOF'), ('DON', 'DFON'))
 		debug.debugPrint('ISY', "OnOff sent: ", selcmd[state][presstype], ' to ', self.name)
-		try_ISY_comm('/rest/nodes/' + self.address + '/cmd/' + selcmd[state][presstype])
+		self.Hub.try_ISY_comm('nodes/' + self.address + '/cmd/' + selcmd[state][presstype])
 
 
 class Folder(TreeItem):
@@ -128,8 +55,8 @@ class Folder(TreeItem):
 	Represents and ISY node/scene folder.
 	"""
 
-	def __init__(self, flag, name, addr, parenttyp, parentaddr):
-		TreeItem.__init__(self, name, addr, parentaddr)
+	def __init__(self, hub, flag, name, addr, parenttyp, parentaddr):
+		TreeItem.__init__(self, hub, name, addr, parentaddr)
 		self.flag = flag
 		self.parenttype = parenttyp
 		utilities.register_example("Folder", self)
@@ -143,8 +70,8 @@ class Node(Folder, OnOffItem):
 	Represents and ISY device node.
 	"""
 
-	def __init__(self, flag, name, addr, parenttyp, parentaddr, enabled, props):
-		Folder.__init__(self, flag, name, addr, parenttyp, parentaddr)
+	def __init__(self, hub, flag, name, addr, parenttyp, parentaddr, enabled, props):
+		Folder.__init__(self, hub, flag, name, addr, parenttyp, parentaddr)
 		self.pnode = None  # for things like KPLs
 		self.enabled = enabled == "true"
 		self.hasstatus = False
@@ -170,12 +97,12 @@ class Scene(TreeItem, OnOffItem):
 	Represents an ISY scene.
 	"""
 
-	def __init__(self, flag, name, addr, parenttyp, parent, members):
+	def __init__(self, hub, flag, name, addr, parenttyp, parent, members):
 		"""
 
 		:rtype: Scene
 		"""
-		TreeItem.__init__(self, name, addr, parent)
+		TreeItem.__init__(self, hub, name, addr, parent)
 		self.flag = flag
 		self.parenttype = parenttyp
 		# self.devGroup = devGroup
@@ -194,8 +121,8 @@ class ProgramFolder(TreeItem):
 	Represents an ISY program folder (ISY keeps the node and program folders separately)
 	"""
 
-	def __init__(self, nm, itemid, pid):
-		TreeItem.__init__(self, nm, itemid, pid)
+	def __init__(self, hub, nm, itemid, pid):
+		TreeItem.__init__(self, hub, nm, itemid, pid)
 		self.status = False
 		# not using lastRunTime, lastFinishTime
 		utilities.register_example("ProgramFolder", self)
@@ -209,69 +136,45 @@ class Program(ProgramFolder):
 	Represents an ISY program and provides command support to issue run commands to it.
 	"""
 
-	def __init__(self, nm, itemid, pid):
-		ProgramFolder.__init__(self, nm, itemid, pid)
+	def __init__(self, hub, nm, itemid, pid):
+		ProgramFolder.__init__(self, hub, nm, itemid, pid)
 		# not using enabled, runAtStartup,running
 		utilities.register_example("Program", self)
 
 	def runThen(self):
 		debug.debugPrint('ISY', "runThen sent to ", self.name)
-		url = config.ISYprefix + 'programs/' + self.address + '/runThen'
-		r = config.ISYrequestsession.get(url)
+		url = self.Hub.ISYprefix + 'programs/' + self.address + '/runThen'
+		r = self.Hub.ISYrequestsession.get(url)
 		return r
 
 	def __repr__(self):
 		return 'Program: ' + TreeItem.__repr__(self) + ' '
 
-
-def GetVar(var):
-	if var[0] == 3:  # Local var
-		return config.ISY.LocalVars[var[1]]
-	elif var[0] == 0:  # non-existent reference
-		return 999
-	else:
-		text = try_ISY_comm('/rest/vars/get/' + str(var[0]) + '/' + str(var[1])) # todo what if notfound
-		val = int(xmltodict.parse(text)['var']['val'])
-		valuestore.SetValByAttr('ISY',var,val) #todo eventually make this pick up name from the hub name
-		return val
-
-# noinspection PyUnusedLocal
-def ISYVarChanged(storeitem, old, new, param, chgsource):
-	if not chgsource: #  only send to ISY if change didn't originate there
-		val = int(new) # ISY V4 only allows integer variable values - may change in V5
-		varid = storeitem.Attribute
-		try_ISY_comm('/rest/vars/set/' + str(varid[0]) + '/' + str(varid[1]) + '/' + str(val))  # todo what if notfound
-
 class ISY(object):
 	"""
-	Singleton object (1 per console) that represents the ISY system as a whole and provides roots to its structures
+	Representation of an ISY system as a whole and provides roots to its structures
 	and useful directories to its nodes/programs.  Provides a debug method to dump the constructed graph.
 	Note current limitation: assumes non-conflicting names at the leaves.  Qualified name support is a future addition.
 	"""
 
-	@staticmethod
-	def LinkChildrenParents(nodelist, listbyname, looklist1, looklist2):
+	def __init__(self, name, isyaddr, user, pwd):
 
-		for node in nodelist.values():
-			listbyname[node.name] = node
-			if node.parent in looklist1:
-				node.parent = looklist1[node.parent]  # replace address with actual object
-			elif node.parent in looklist2:
-				node.parent = looklist2[node.parent]
-			else:
-				node.parent = None
-				logsupport.Logs.Log("Missing parent: " + node.name, severity=ConsoleError)
-			if node.parent != node:  # avoid root
-				node.parent.children.append(node)
+		if isyaddr == '' or user == '':
+			logsupport.Logs.Log("ISY id info missing:  addr: ", isyaddr, " user: ", user, severity=ConsoleError)
+			return  #todo should fatal
 
-	def __init__(self, ISYsession, ISYname='ISY'):
-		"""
-		Get and parse the ISY configuration to set up an internal analog of its structure
-		:param ISYsession:
-		:return:
-		"""
-		self.hubname = 'ISYx'
-		self.NodeRoot = Folder(0, '', u'0', 0, u'0') # *root*
+		if isyaddr.startswith('http'):
+			self.ISYprefix = isyaddr + '/rest/'
+		else:
+			self.ISYprefix = 'http://' + isyaddr + '/rest/'
+		self.ISYrequestsession = requests.session()
+		self.ISYrequestsession.auth = (user, pwd)
+
+		self.name = name
+		self.addr = isyaddr
+		self.user = user
+		self.password = pwd
+		self.NodeRoot = Folder(self, 0, '', u'0', 0, u'0') # *root*
 		self.ProgRoot = None
 		self.NodesByAddr = {}
 		self.FoldersByAddr = {'0': self.NodeRoot}
@@ -285,19 +188,17 @@ class ISY(object):
 		self.ProgramsByName = {}
 		self.ProgramFoldersByName = {}
 
-		if ISYsession is None:
-			# No ISY provided return empty structure
-			return
 
 		"""
 		Build the Folder/Node/Scene tree
 		"""
+		logsupport.Logs.Log("Create Structure for ISY hub: ", name, ' at ', isyaddr, ' for user ', user)
 
 		trycount = 20
 		while True:
 			# noinspection PyBroadException
 			try:
-				r = ISYsession.get(config.ISYprefix + 'nodes', verify=False, timeout=5)
+				r = self.ISYrequestsession.get(self.ISYprefix + 'nodes', verify=False, timeout=5)
 				logsupport.Logs.Log('Successful node read: ' + str(r.status_code))
 				break
 			except:
@@ -306,8 +207,8 @@ class ISY(object):
 				# is what is hosed
 				trycount -= 1
 				if trycount > 0:
-					logsupport.Logs.Log('ISY not responding')
-					logsupport.Logs.Log('-ISY (nodes): ' + config.ISYprefix)
+					logsupport.Logs.Log('Hub not responding: ',self.name)
+					logsupport.Logs.Log('-ISY (nodes): ' + self.ISYprefix)
 					time.sleep(15)
 				else:
 					logsupport.Logs.Log('No ISY response restart (nodes)')
@@ -315,7 +216,7 @@ class ISY(object):
 					logsupport.Logs.Log('Reached unreachable code! ISY1')
 
 		if r.status_code != 200:
-			logsupport.Logs.Log('ISY text response:', severity=ConsoleError)
+			logsupport.Logs.Log('Hub (' + self.name + ') text response:', severity=ConsoleError)
 			logsupport.Logs.Log('-----', severity=ConsoleError)
 			logsupport.Logs.Log(r.text, severity=ConsoleError)
 			logsupport.Logs.Log('-----', severity=ConsoleError)
@@ -350,8 +251,8 @@ class ISY(object):
 			if 'parent' in folder:
 				ptyp = int(folder['parent']['@type'])
 				parentaddr = folder['parent']['#text']
-			self.FoldersByAddr[addr] = Folder(folder['@flag'], folder['name'], str(addr), ptyp, parentaddr)
-		self.LinkChildrenParents(self.FoldersByAddr, self.FoldersByName, self.FoldersByAddr, self.NodesByAddr)
+			self.FoldersByAddr[addr] = Folder(self, folder['@flag'], folder['name'], str(addr), ptyp, parentaddr)
+		self._LinkChildrenParents(self.FoldersByAddr, self.FoldersByName, self.FoldersByAddr, self.NodesByAddr)
 
 		fixlist = []
 		for node in configdict['node']:
@@ -374,14 +275,14 @@ class ISY(object):
 				enabld = node['enabled']
 				pnd = node['pnode']
 				prop = node['property']
-				n = Node(flg, nm, addr, ptyp, parentaddr, enabld, prop)
+				n = Node(self, flg, nm, addr, ptyp, parentaddr, enabld, prop)
 				fixlist.append((n, pnd))
 				self.NodesByAddr[n.address] = n
 			except:
 				logsupport.Logs.Log("Problem with processing node: ", nm, ' Address: ', str(addr), ' Pnode: ', str(pnd),
 								' ', str(flg), '/', str(enabld), '/', repr(prop), severity=ConsoleWarning)
 				# for now at least try to avoid nodes without properties which apparently Zwave devices may have
-		self.LinkChildrenParents(self.NodesByAddr, self.NodesByName, self.FoldersByAddr, self.NodesByAddr)
+		self._LinkChildrenParents(self.NodesByAddr, self.NodesByName, self.FoldersByAddr, self.NodesByAddr)
 		for fixitem in fixlist:
 			# noinspection PyBroadException
 			try:
@@ -413,14 +314,14 @@ class ISY(object):
 				else:
 					ptyp = 0
 					p = '0'
-				self.ScenesByAddr[scene['address']] = Scene(scene['@flag'], scene['name'], str(scene['address']), ptyp,
+				self.ScenesByAddr[scene['address']] = Scene(self, scene['@flag'], scene['name'], str(scene['address']), ptyp,
 															p, memberlist)
 			else:
 				if scene['name'] not in ('~Auto DR', 'Auto DR'):
 					logsupport.Logs.Log('Scene with no members ', scene['name'], severity=ConsoleWarning)
-		self.LinkChildrenParents(self.ScenesByAddr, self.ScenesByName, self.FoldersByAddr, self.NodesByAddr)
+		self._LinkChildrenParents(self.ScenesByAddr, self.ScenesByName, self.FoldersByAddr, self.NodesByAddr)
 
-		self.SetFullNames(self.NodeRoot,"")
+		self._SetFullNames(self.NodeRoot, "")
 
 		if debug.dbgStore.GetVal('ISY'):
 			self.PrintTree(self.NodeRoot, "    ", 'Nodes')
@@ -433,9 +334,9 @@ class ISY(object):
 		while True:
 			# noinspection PyBroadException
 			try:
-				r = ISYsession.get(config.ISYprefix + 'programs?subfolders=true', verify=False, timeout=5)
+				r = self.ISYrequestsession.get(self.ISYprefix + 'programs?subfolders=true', verify=False, timeout=5)
 				if r.status_code != 200:
-					logsupport.Logs.Log('ISY bad program read' + r.text, severity=ConsoleWarning)
+					logsupport.Logs.Log('Hub (' + self.name + ') bad program read' + r.text, severity=ConsoleWarning)
 					raise requests.exceptions.ConnectionError  # fake a connection error if we didn't get a good read
 				logsupport.Logs.Log('Successful programs read: ' + str(r.status_code))
 				break
@@ -445,13 +346,12 @@ class ISY(object):
 				# Eventually we try rebooting just in case our own network is what is hosed
 				trycount -= 1
 				if trycount > 0:
-					logsupport.Logs.Log('ISY not responding')
-					logsupport.Logs.Log('-ISY(programs): ' + config.ISYprefix)
+					logsupport.Logs.Log('Hub not responding: ', self.name)
+					logsupport.Logs.Log('-ISY(programs): ' + self.ISYprefix)
 					time.sleep(15)
 				else:
 					logsupport.Logs.Log('No ISY response restart (programs)')
 					exitutils.errorexit(exitutils.ERRORPIREBOOT)
-					logsupport.Logs.Log('Reached unreachable code! ISY3')
 		configdict = xmltodict.parse(r.text)['programs']['program']
 		if debug.dbgStore.GetVal('ISYLoad'):
 			configdict = xmltodict.parse(x2)['programs']['program']
@@ -462,18 +362,18 @@ class ISY(object):
 		for item in configdict:
 			if item['@id'] == '0001':
 				# Program Root
-				self.ProgRoot = ProgramFolder(item['name'], '0001', '0001')
+				self.ProgRoot = ProgramFolder(self, item['name'], '0001', '0001')
 				self.ProgramFoldersByAddr['0001'] = self.ProgRoot
 			else:
 				if item['@folder'] == 'true':
-					self.ProgramFoldersByAddr[item['@id']] = ProgramFolder(item['name'], item['@id'], item['@parentId'])
+					self.ProgramFoldersByAddr[item['@id']] = ProgramFolder(self, item['name'], item['@id'], item['@parentId'])
 				else:
-					self.ProgramsByAddr[item['@id']] = Program(item['name'], item['@id'], item['@parentId'])
-		self.LinkChildrenParents(self.ProgramFoldersByAddr, self.ProgramFoldersByName, self.ProgramFoldersByAddr,
-								 self.ProgramsByAddr)
-		self.LinkChildrenParents(self.ProgramsByAddr, self.ProgramsByName, self.ProgramFoldersByAddr,
-								 self.ProgramsByAddr)
-		config.DummyProgram = Program('dummy', 0, 0)
+					self.ProgramsByAddr[item['@id']] = Program(self, item['name'], item['@id'], item['@parentId'])
+		self._LinkChildrenParents(self.ProgramFoldersByAddr, self.ProgramFoldersByName, self.ProgramFoldersByAddr,
+								  self.ProgramsByAddr)
+		self._LinkChildrenParents(self.ProgramsByAddr, self.ProgramsByName, self.ProgramFoldersByAddr,
+								  self.ProgramsByAddr)
+		config.DummyProgram = Program(self, 'dummy', 0, 0)
 
 		def Noop():
 			debug.debugPrint('Main', "Dummy program invocation")
@@ -487,8 +387,8 @@ class ISY(object):
 		while True:
 			# noinspection PyBroadException
 			try:
-				r1 = ISYsession.get(config.ISYprefix + 'vars/definitions/2', verify=False, timeout=5)
-				r2 = ISYsession.get(config.ISYprefix + 'vars/definitions/1', verify=False, timeout=5)
+				r1 = self.ISYrequestsession.get(self.ISYprefix + 'vars/definitions/2', verify=False, timeout=5)
+				r2 = self.ISYrequestsession.get(self.ISYprefix + 'vars/definitions/1', verify=False, timeout=5)
 				# for some reason var reads seem to typically take longer to complete so to at 5 sec
 				if r1.status_code != 200 or r2.status_code != 200:
 					logsupport.Logs.Log("Bad ISY var read" + r1.text + r2.text, severity=ConsoleWarning)
@@ -500,15 +400,15 @@ class ISY(object):
 				# Eventually we try rebooting just in case our own network is what is hosed
 				trycount -= 1
 				if trycount > 0:
-					logsupport.Logs.Log('ISY not responding')
-					logsupport.Logs.Log('-ISY(vars): ' + config.ISYprefix)
+					logsupport.Logs.Log('Hub not responding: ', self.name)
+					logsupport.Logs.Log('-ISY(vars): ' + self.ISYprefix)
 					time.sleep(15)
 				else:
 					logsupport.Logs.Log('No ISY response restart (vars)')
 					exitutils.errorexit(exitutils.ERRORPIREBOOT)
 					logsupport.Logs.Log('Reached unreachable code! ISY4')
 
-		Vars = valuestore.NewValueStore(isyvarssupport.ISYVars(ISYname))
+		Vars = valuestore.NewValueStore(isyvarssupport.ISYVars(self))
 		# noinspection PyBroadException
 		try:
 			configdictS = xmltodict.parse(r1.text)['CList']['e']
@@ -520,7 +420,7 @@ class ISY(object):
 			for v in configdictS:
 				Vars.SetVal(('State',v['@name']),None)
 				Vars.SetAttr(('State',v['@name']),(2,int(v['@id'])))
-				Vars.AddAlert(('State',v['@name']),ISYVarChanged)
+				Vars.AddAlert(('State',v['@name']),self._ISYVarChanged)
 		except:
 			logsupport.Logs.Log('No state variables defined')
 		# noinspection PyBroadException
@@ -534,26 +434,179 @@ class ISY(object):
 			for v in configdictI:
 				Vars.SetVal(('Int',v['@name']),None)
 				Vars.SetAttr(('Int',v['@name']),(1,int(v['@id'])))
-				Vars.AddAlert(('Int', v['@name']), ISYVarChanged)
+				Vars.AddAlert(('Int', v['@name']), self._ISYVarChanged)
 		except:
 			logsupport.Logs.Log('No integer variables defined')
+
+		'''
+		Add command varibles if needed
+		'''
+		cmdvar = valuestore.InternalizeVarName(self.name+':Int:Command.' + config.hostname.replace('-', '.'))
+		self.alertspeclist = {}
+		for k in valuestore.ValueStores[self.name].items():
+			if k == tuple(cmdvar[1:]):
+				self.alertspeclist['RemoteCommands-'+self.name] = {
+					'Type': 'VarChange', 'Var': valuestore.ExternalizeVarName(cmdvar), 'Test': 'NE', 'Value': '0',
+					'Invoke': 'NetCmd.Command'}
+				break
+
 		Vars.LockStore()
 		utilities.register_example("ISY", self)
 		if debug.dbgStore.GetVal('ISY'):
 			self.PrintTree(self.ProgRoot, "    ", 'Programs')
 
-		self.isyEM = isyeventmonitor.ISYEventMonitor(self.hubname)
-		threadmanager.SetUpHelperThread(self.hubname,self.isyEM.QHandler,prerestart=self.isyEM.PreRestartQHThread,poststart=self.isyEM.PostStartQHThread)
+		self.isyEM = isyeventmonitor.ISYEventMonitor(self)
+		threadmanager.SetUpHelperThread(self.name,self.isyEM.QHandler,prerestart=self.isyEM.PreRestartQHThread,poststart=self.isyEM.PostStartQHThread)
+		logsupport.Logs.Log("Finished creating Structure for ISY hub: ", name)
 
+	# noinspection PyUnusedLocal
+	def _ISYVarChanged(self, storeitem, old, new, param, chgsource):
+		if not chgsource:  # only send to ISY if change didn't originate there
+			val = int(new)  # ISY V4 only allows integer variable values - may change in V5
+			varid = storeitem.Attribute
+			txt = self.try_ISY_comm('vars/set/' + str(varid[0]) + '/' + str(varid[1]) + '/' + str(val))  # todo what if notfound
 
-	def SetFullNames(self, startpoint, parentname):
+	def try_ISY_comm(self, urlcmd):
+		for i in range(15):
+			try:
+				try:
+					r = self.ISYrequestsession.get(self.ISYprefix + urlcmd, verify=False, timeout=5)
+				except requests.exceptions.ConnectTimeout as e:
+					logsupport.Logs.Log("ISY Comm Timeout: " + ' Cmd: ' + '*' + urlcmd + '*', severity=ConsoleError,
+										tb=False)
+					logsupport.Logs.Log(sys.exc_info()[1], severity=ConsoleDetailHigh, tb=False)
+					logsupport.Logs.Log("Exc: ", e, severity=ConsoleDetailHigh, tb=False)
+					raise CommsError
+				except requests.exceptions.ConnectionError as e:
+					# noinspection PyBroadException
+					try:
+						if e[0] == errno.ENETUNREACH:
+							# probable network outage for reboot
+							logsupport.Logs.Log("ISY Comm: Network Unreachable", tb=False)
+							time.sleep(120)
+						else:
+							logsupport.Logs.Log("ISY Comm ConnErr: " + ' Cmd: ' + urlcmd, severity=ConsoleError,
+												tb=False)
+							logsupport.Logs.Log(sys.exc_info()[1], severity=ConsoleDetailHigh, tb=False)
+					except:
+						logsupport.Logs.Log("ISY Comm ConnErr2: " + ' Cmd: ' + urlcmd, severity=ConsoleError, tb=False)
+						logsupport.Logs.Log(sys.exc_info()[1], severity=ConsoleDetailHigh, tb=False)
+					raise CommsError
+				except Exception as e:
+					logsupport.Logs.Log("ISY Comm UnknownErr: " + ' Cmd: ' + urlcmd, severity=ConsoleError)
+					logsupport.Logs.Log("  Exception: ", str(e))
+					logsupport.Logs.Log(sys.exc_info()[1], severity=ConsoleDetailHigh, tb=True)
+					raise CommsError
+				if r.status_code == 404:  # not found
+					return 'notfound'
+				if r.status_code != 200:
+					logsupport.Logs.Log('Hub (' + self.name +') Bad status:' + str(r.status_code) + ' on Cmd: ' + urlcmd,
+										severity=ConsoleError)
+					logsupport.Logs.Log(r.text)
+					raise CommsError
+				else:
+					return r.text
+			except CommsError:
+				time.sleep(.5)
+				logsupport.Logs.Log("Attempting ISY retry " + str(i + 1), severity=ConsoleError, tb=False)
+
+		logsupport.Logs.Log("ISY Communications Failure", severity=ConsoleError)
+		exitutils.errorexit(exitutils.ERRORPIREBOOT)
+
+	def _get_real_time_node_status(self, addr):
+		text = self.try_ISY_comm('status/' + addr)  # todo what if notfound?
+		props = xmltodict.parse(text)['properties']['property']
+		if isinstance(props, dict):
+			props = [props]
+		devstate = 0
+		for item in props:
+			if item['@id'] == "ST":
+				devstate = item['@value']
+				break
+		try:
+			localstate = self.NodesByAddr[addr].devState
+			if localstate != int(devstate):
+				logsupport.Logs.Log("Shadow state wrong: ", self.NodesByAddr[addr].fullname, ' (', addr,
+									') Real State: ', devstate, ' Shadow State: ',localstate,'/',
+									self.NodesByAddr[addr].devState,
+									severity=ConsoleWarning)
+				time.sleep(.2)
+				logsupport.Logs.Log("Shadow state wrong2: ", self.NodesByAddr[addr].fullname, ' (', addr,
+									') Real State: ', devstate, ' Shadow State: ',localstate,'/',
+									self.NodesByAddr[addr].devState,
+									severity=ConsoleWarning)
+		except KeyError:
+			logsupport.Logs.Log('Bad NodeByAddr in rt status: ', addr, severity=ConsoleError)
+		return int(devstate if devstate.isdigit() else 0)
+
+	@staticmethod
+	def _LinkChildrenParents(nodelist, listbyname, looklist1, looklist2):
+
+		for node in nodelist.values():
+			listbyname[node.name] = node
+			if node.parent in looklist1:
+				node.parent = looklist1[node.parent]  # replace address with actual object
+			elif node.parent in looklist2:
+				node.parent = looklist2[node.parent]
+			else:
+				node.parent = None
+				logsupport.Logs.Log("Missing parent: " + node.name, severity=ConsoleError)
+			if node.parent != node:  # avoid root
+				node.parent.children.append(node)
+
+	def GetNode(self, name, proxy=''):
+		# return (Control Obj, Monitor Obj)
+		ISYObj = self._GetSceneByName(name)
+		if ISYObj is not None:
+			MObj = None
+			if proxy != '':
+				# explicit proxy assigned
+				if proxy in self.NodesByAddr:
+					# address given
+					MObj = self.NodesByAddr[proxy]
+					debug.debugPrint('Screen', "Scene ", name, " explicit address proxying with ", MObj.name, '(', proxy, ')')
+				elif self._NodeExists(proxy):
+					MObj = self._GetNodeByName(proxy)
+					debug.debugPrint('Screen', "Scene ", name, " explicit name proxying with ",
+							   MObj.name, '(', MObj.address, ')')
+				else:
+					logsupport.Logs.Log('Bad explicit scene proxy:' + proxy + ' for '+ name, severity=ConsoleWarning)
+					return None, None
+			else:
+				for i in ISYObj.members:
+					device = i[1]
+					if device.enabled and device.hasstatus:
+						MObj = device
+						break
+					else:
+						logsupport.Logs.Log('Skipping disabled/nonstatus device: ' + device.name, severity=ConsoleWarning)
+				if MObj is None:
+					logsupport.Logs.Log("No proxy for scene: " + name, severity=ConsoleError)
+				debug.debugPrint('Screen', "Scene ", name, " default proxying with ", MObj.name)
+			return ISYObj, MObj
+		elif self._NodeExists(name):
+			ISYObj = self._GetNodeByName(name)
+			return ISYObj, ISYObj
+		else:
+			return None, None
+
+	def SendPress(self, ControlObj, presstype):
+		pass # return success?
+
+	def GetCurrentStatus(self,MonitorNode):
+		if MonitorNode is not None:
+			return self._get_real_time_node_status(MonitorNode.address)
+		else:
+			return 0
+
+	def _SetFullNames(self, startpoint, parentname):
 		startpoint.fullname = parentname + startpoint.name
 		self.NodesByFullName[startpoint.fullname] = startpoint
 		if isinstance(startpoint, TreeItem):
 			for c in startpoint.children:
-				self.SetFullNames(c,startpoint.fullname + '/')
+				self._SetFullNames(c, startpoint.fullname + '/')
 
-	def GetNodeByName(self, name):
+	def _GetNodeByName(self, name):
 		if name[0] == '/':
 			# use fully qualified name
 			return self.NodesByFullName[name]
@@ -561,24 +614,18 @@ class ISY(object):
 			# use short name
 			return self.NodesByName[name]
 
-	def NodeExists(self, name):
+	def _NodeExists(self, name):
 		if name[0] == '/':
 			return name in self.NodesByFullName
 		else:
 			return name in self.NodesByName
 
-	def SceneExists(self, name):
+	def _GetSceneByName(self,name):
 		if name[0] != '/':
-			return name in self.ScenesByName
-		else:
-			for n, s in self.ScenesByName.items():
-				if name == s.fullname:
-					return True
-			return False
-
-	def GetSceneByName(self,name):
-		if name[0] != '/':
-			return self.ScenesByName[name]
+			if name in self.ScenesByName:
+				return self.ScenesByName[name]
+			else:
+				return None
 		else:
 			for n, s in self.ScenesByName.items():
 				if name == s.fullname:

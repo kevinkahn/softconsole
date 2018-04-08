@@ -2,12 +2,11 @@ import functools
 import pygame
 import config
 import eventlist
-import isy
 import supportscreens
 import utilities
 import debug
 import logsupport
-from logsupport import ConsoleWarning, ConsoleError, ConsoleDetail
+from logsupport import ConsoleWarning, ConsoleDetail
 from toucharea import ManualKeyDesc
 from stores import valuestore
 import shlex
@@ -72,22 +71,19 @@ class SetVarValueKey(ManualKeyDesc):
 
 		debug.debugPrint('Screen', "             New SetVarValue Key Desc ", keyname)
 		self.Value = None
-		self.VarID = (0,0)
 		ManualKeyDesc.__init__(self, screen, keysection, keyname)
 		utilities.LocalizeParams(self, keysection, '--', Var='')
-		self.VarName = self.Var.split(':')
 		self.Proc = self.SetVarValue
 
 		utilities.register_example("SetVarValueKey", self)
 
 	def InitDisplay(self):
 		debug.debugPrint("Screen", "SetVarValue Key.InitDisplay ", self.Screen.name, self.name)
-		self.Value = isy.GetVar(self.VarID)
+		self.Value = valuestore.GetVal(self.Var)
 		super(SetVarValueKey, self).InitDisplay()
 
 	def FinishKey(self, center, size, firstfont=0, shrink=True):
 		super(SetVarValueKey, self).FinishKey(center, size, firstfont, shrink)
-		self.Screen.VarsList[self.VarID] = self
 
 	def PaintKey(self, ForceDisplay=False, DisplayState=True):
 		# extact current value from variable array
@@ -183,9 +179,9 @@ class SetVarKey(ManualKeyDesc):
 			if self.VarType != 'undef': # todo del later
 
 				if self.VarType == 'State':
-					self.VarName = ('ISY','State',self.Var)
+					self.VarName = (config.defaulthub.name,'State',self.Var) # use default hub for each of these 2
 				elif self.VarType == 'Int':
-					self.VarName = ('ISY', 'Int', self.Var)
+					self.VarName = (config.defaulthub.name, 'Int', self.Var)
 				elif self.VarType == 'Local':
 					self.VarName = ('LocalVars', self.Var)
 				else:
@@ -214,10 +210,10 @@ class RunProgram(ManualKeyDesc):
 		debug.debugPrint('Screen', "             New RunProgram Key ", keyname)
 		utilities.LocalizeParams(self, keysection, '--', ProgramName='')
 		ManualKeyDesc.__init__(self, screen, keysection, keyname)
-
+		self.Hub = screen.DefaultHub # todo
 		self.State = False
 		try:
-			self.ISYObj = config.ISY.ProgramsByName[self.ProgramName]
+			self.ISYObj = self.Hub.ProgramsByName[self.ProgramName]
 		except KeyError:
 			self.ISYObj = config.DummyProgram
 			debug.debugPrint('Screen', "Unbound program key: ", self.name)
@@ -252,45 +248,19 @@ class OnOffKey(ManualKeyDesc):
 	def __init__(self, screen, keysection, keyname, keytype):
 		self.SceneProxy = ''
 		self.NodeName = ''
+		self.Hub = screen.DefaultHub # todo
+		self.ControlObj = None # object on which to make operation calls
+		self.DisplayObj = None # object whose state is reflected in key
 
 		debug.debugPrint('Screen', "             New ", keytype, " Key Desc ", keyname)
 		utilities.LocalizeParams(self, keysection, '--', SceneProxy='', NodeName='')
 		ManualKeyDesc.__init__(self, screen, keysection, keyname)
 		self.lastpresstype = 0
 
-		self.MonitorObj = None  # ISY Object monitored to reflect state in the key (generally a device within a Scene)
-		if keyname == '*Action*': keyname = self.NodeName  # special case for alert screen action keys that always have same name
-		if config.ISY.SceneExists(keyname):
-			self.ISYObj = config.ISY.GetSceneByName(keyname)
-			if self.SceneProxy != '':
-				# explicit proxy assigned
-				if self.SceneProxy in config.ISY.NodesByAddr:
-					# address given
-					self.MonitorObj = config.ISY.NodesByAddr[self.SceneProxy]
-					debug.debugPrint('Screen', "Scene ", keyname, " explicit address proxying with ",
-							   self.MonitorObj.name, '(', self.SceneProxy, ')')
-				elif config.ISY.NodeExists(self.SceneProxy):
-					self.MonitorObj = config.ISY.GetNodeByName(self.SceneProxy)
-					debug.debugPrint('Screen', "Scene ", keyname, " explicit name proxying with ",
-							   self.MonitorObj.name, '(', self.MonitorObj.address, ')')
-				else:
-					logsupport.Logs.Log('Bad explicit scene proxy:' + self.name, severity=ConsoleWarning)
-			else:
-				for i in self.ISYObj.members:
-					device = i[1]
-					if device.enabled and device.hasstatus:
-						self.MonitorObj = device
-						break
-					else:
-						logsupport.Logs.Log('Skipping disabled/nonstatus device: ' + device.name, severity=ConsoleWarning)
-				if self.MonitorObj is None:
-					logsupport.Logs.Log("No proxy for scene: " + keyname, severity=ConsoleError)
-				debug.debugPrint('Screen', "Scene ", keyname, " default proxying with ",
-						   self.MonitorObj.name)
-		elif config.ISY.NodeExists(keyname):
-			self.ISYObj = config.ISY.GetNodeByName(keyname)
-			self.MonitorObj = self.ISYObj
-		else:
+		if keyname == '*Action*': keyname = self.NodeName  # special case for alert screen action keys that always have same name todo - can nodename ever be explicitly set otherwise?
+		self.ControlObj, self.DisplayObj = self.Hub.GetNode(keyname,self.SceneProxy)
+
+		if self.ControlObj is None:
 			debug.debugPrint('Screen', "Screen", keyname, "unbound")
 			logsupport.Logs.Log('Key Binding missing: ' + self.name, severity=ConsoleWarning)
 
@@ -311,12 +281,12 @@ class OnOffKey(ManualKeyDesc):
 
 	def FinishKey(self, center, size, firstfont=0, shrink=True):
 		super(OnOffKey, self).FinishKey(center, size, firstfont, shrink)
-		if self.MonitorObj is not None:
-			self.Screen.NodeList[self.MonitorObj.address] = self  # register for events for this key
+		if self.DisplayObj is not None:
+			self.Screen.AddToHubInterestList(self.Hub,self.DisplayObj.address,self)
 
 	def InitDisplay(self):
 		debug.debugPrint("Screen", "OnOffKey Key.InitDisplay ", self.Screen.name, self.name)
-		state = isy.get_real_time_obj_status(self.MonitorObj)
+		state = self.Hub.GetCurrentStatus(self.DisplayObj)  #isy.get_real_time_obj_status(self.DisplayObj)
 		self.State = not (state == 0)  # K is off (false) only if state is 0
 		super(OnOffKey, self).InitDisplay()
 
@@ -332,8 +302,8 @@ class OnOffKey(ManualKeyDesc):
 			elif self.KeyAction == "Off":
 				self.State = False
 
-			if self.ISYObj is not None:
-				self.ISYObj.SendCommand(self.State, presstype)
+			if self.ControlObj is not None:
+				self.ControlObj.SendCommand(self.State, presstype)
 				self.BlinkKey(self.Blink)
 			else:
 				logsupport.Logs.Log("Screen: " + self.name + " press unbound key: " + self.name,
@@ -349,8 +319,8 @@ class OnOffKey(ManualKeyDesc):
 				self.State = True
 			elif self.KeyAction == "Off":
 				self.State = False
-			if self.ISYObj is not None:
-				self.ISYObj.SendCommand(self.State, self.lastpresstype)
+			if self.ControlObj is not None:
+				self.ControlObj.SendCommand(self.State, self.lastpresstype)
 			else:
 				logsupport.Logs.Log("Screen: " + self.name + " press unbound key: " + self.name,
 								severity=ConsoleWarning)

@@ -1,10 +1,10 @@
 import pygame
 import logsupport
-from logsupport import ConsoleWarning
+from logsupport import ConsoleWarning, ConsoleError
 from pygame import gfxdraw
+import isy # only to test that the hub for this is an ISY hub
 
 import config
-import isy
 import debug
 import screen
 import xmltodict
@@ -31,12 +31,14 @@ class ThermostatScreenDesc(screen.BaseKeyScreenDesc):
 		self.info = {}
 		self.oldinfo = {}
 		self.fsize = (30, 50, 80, 160)
-
-		if config.ISY.NodeExists(screenname):
-			self.ISYObj = config.ISY.GetNodeByName(screenname)
+		if isinstance(self.DefaultHub,isy.ISY):
+			self.isy = self.DefaultHub
+			self.ISYObj = self.isy.GetNode(screenname)[0]  # use ControlObj (0)
+			if self.ISYObj is None:
+				logsupport.Logs.Log("No Thermostat: " + screenname, severity=ConsoleWarning)
 		else:
+			logsupport.Logs.Log("Thermostat screen only works with ISY hub", severity=ConsoleError)
 			self.ISYObj = None
-			logsupport.Logs.Log("No Thermostat: " + screenname, severity=ConsoleWarning)
 
 		self.TitleRen = config.fonts.Font(self.fsize[1]).render(screen.FlatenScreenLabel(self.label), 0,
 																wc(self.CharColor))
@@ -78,13 +80,13 @@ class ThermostatScreenDesc(screen.BaseKeyScreenDesc):
 
 		self.ModesPos = self.ModeButPos + bsize[1]//2 + scaleH(5)
 		if self.ISYObj is not None:
-			self.NodeList[self.ISYObj.address] = self.Keys['Mode']  # placeholder for thermostat node
+			self.HubInterestList[self.isy.name] = {self.ISYObj.address: self.Keys['Mode']} # placeholder for thermostat node
 		utilities.register_example("ThermostatScreenDesc", self)
 
 	# noinspection PyUnusedLocal
 	def BumpTemp(self, setpoint, degrees, presstype):
 		debug.debugPrint('Main', "Bump temp: ", setpoint, degrees,' to ',self.info[setpoint][0] + degrees)
-		isy.try_ISY_comm('/rest/nodes/' + self.ISYObj.address + '/cmd/' + setpoint + '/' + str(
+		self.isy.try_ISY_comm('nodes/' + self.ISYObj.address + '/cmd/' + setpoint + '/' + str(
 				self.info[setpoint][0] + degrees))
 
 	# noinspection PyUnusedLocal
@@ -92,10 +94,10 @@ class ThermostatScreenDesc(screen.BaseKeyScreenDesc):
 		cv = vals.index(self.info[mode][0])
 		cv = (cv + 1)%len(vals)
 		debug.debugPrint('Main', "Bump: ", mode, ' to ', cv)
-		isy.try_ISY_comm('/rest/nodes/' + self.ISYObj.address + '/cmd/' + mode + '/' + str(vals[cv]))
+		self.isy.try_ISY_comm('nodes/' + self.ISYObj.address + '/cmd/' + mode + '/' + str(vals[cv]))
 
 	def ShowScreen(self):
-		rtxt = isy.try_ISY_comm('/rest/nodes/' + self.ISYObj.address)
+		rtxt = self.isy.try_ISY_comm('nodes/' + self.ISYObj.address)
 		# noinspection PyBroadException
 		try:
 			tstatdict = xmltodict.parse(rtxt)
@@ -165,7 +167,7 @@ class ThermostatScreenDesc(screen.BaseKeyScreenDesc):
 		self.info = {} # clear any old info to force a display
 		self.ShowScreen()
 
-	def ISYEvent(self, node=0, value=0, varinfo = ()):
+	def ISYEvent(self, hub = '', node=0, value=0, varinfo = ()):
 		self.ShowScreen()
 
 config.screentypes["Thermostat"] = ThermostatScreenDesc

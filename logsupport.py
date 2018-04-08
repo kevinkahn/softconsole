@@ -101,6 +101,8 @@ class Logger(object):
 								   + ' Sev: ' + str(severity) + " " + entry + '\n')
 			if severity == ConsoleError and tb:
 				# traceback.print_stack(file=self.disklogfile)
+				for line in traceback.format_stack():
+					print(line.strip())
 				frames = traceback.extract_tb(sys.exc_info()[2])
 				for f in frames:
 					fname, lineno, fn, text = f

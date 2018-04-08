@@ -1,9 +1,5 @@
 # Global Defaults Settable in config.txt in Console
-ISYaddr = ""
-ISYuser = ""
-_ISYpassword = ""
 HomeScreenName = ""
-#HomeScreenTO = 60
 DimTO = 20
 PersistTO = 20
 CmdKeyCol = "red"

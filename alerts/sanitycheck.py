@@ -1,4 +1,5 @@
 import alerttasks
+import config
 from stores import valuestore
 
 class CheckIntegrity(object):
@@ -8,7 +9,7 @@ class CheckIntegrity(object):
 	# noinspection PyUnusedLocal
 	@staticmethod
 	def CheckISYVars(alert):
-		valuestore.ValueStores['ISY'].CheckValsUpToDate()
+		valuestore.ValueStores[config.defaultISYname].CheckValsUpToDate() #todo param for ISY to sanity check
 
 
 

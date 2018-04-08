@@ -25,11 +25,9 @@ import sys
 import time
 
 import pygame
-import requests
 # noinspection PyProtectedMember
 from configobj import ConfigObj, Section
 
-import alerttasks
 import config
 import configobjects
 import debug
@@ -43,6 +41,7 @@ import maintscreen
 import utilities
 from logsupport import ConsoleWarning
 from stores import mqttsupport, valuestore, localvarsupport, sysstore
+import alerttasks
 
 
 # noinspection PyUnusedLocal
@@ -132,9 +131,13 @@ logsupport.Logs.Log(
 	u'Version/Sha/Dnld/Commit: ' + config.versionname + u' ' + config.versionsha + u' ' + config.versiondnld + u' ' + config.versioncommit)
 
 """
+Set up hub types (ultimately should be dynamic like below; need to account for Py2/3 compat
+"""
+config.hubtypes = {'ISY':isy.ISY,"HAss":'ha'}
+
+"""
 Dynamically load class definitions for all defined screen types and link them to how configuration happens
 """
-# for screentype in os.listdir(os.path.dirname(os.path.abspath(sys.argv[0])) + '/screens'):
 for screentype in os.listdir(os.getcwd() + '/screens'):
 	if '__' not in screentype:
 		splitname = os.path.splitext(screentype)
@@ -219,7 +222,9 @@ while includes:
 
 debug.InitFlags(config.ParsedConfigFile)
 
-utilities.ParseParam(globalparams)  # add global parameters to config file
+
+
+utilities.ParseParam(globalparams, config.ParsedConfigFile)  # add global parameters to config file
 for nm, val in config.sysvals.items():
 	config.sysStore.SetVal([nm], val[0](config.ParsedConfigFile.get(nm, val[1])))
 	if val[2] is not None: config.sysStore.AddAlert(nm, val[2])
@@ -276,6 +281,17 @@ for i in config.sysStore:
 	logsupport.Logs.Log('SysParam: ' + valuestore.ExternalizeVarName(i.name) + ": " + str(i.Value))
 
 """
+Fake an ISY Hub section if old style auth present
+"""
+if "ISYaddr" in config.ParsedConfigFile:
+	logsupport.Logs.Log("Converting ISYaddr parameter style to hub named: ", config.defaultISYname)
+	tmp = {"addr":config.ParsedConfigFile.get("ISYaddr",""),
+					 "password":config.ParsedConfigFile.get("ISYpassword",""),
+					 "user":config.ParsedConfigFile.get("ISYuser",""),
+					 "type":"ISY"}
+	config.ParsedConfigFile[config.defaultISYname] = tmp
+
+"""
 Pull out non-screen sections
 """
 for i, v in config.ParsedConfigFile.items():
@@ -291,54 +307,44 @@ for i, v in config.ParsedConfigFile.items():
 		elif stype == "Locals":
 			valuestore.NewValueStore(localvarsupport.LocalVars(i, v))
 			del config.ParsedConfigFile[i]
+		elif stype == "ISY":
+			config.Hubs[i] = isy.ISY(i, v.get('addr',''), v.get('user',''), v.get('password',''))
+			del config.ParsedConfigFile[i]
 
-	"""
-	Eventually add HA and ISY sections  TODO
-	"""
+config.defaulthubname = config.ParsedConfigFile.get('DefaultHub','')
 
-import alerttasks
-
-"""
-Set up for ISY access (todo - should move to inside ISY class stuff)
-"""
-if config.ISYaddr != '':
-	if config.ISYaddr.startswith('http'):
-		config.ISYprefix = config.ISYaddr + '/rest/'
+if config.defaulthubname == '':  # todo handle no hub case for screen testing
+	if len(config.Hubs) == 1:
+		config.defaulthubname = list(config.Hubs.keys())[0]
+		config.defaulthub = config.Hubs[config.defaulthubname] # grab the only element
+		logsupport.Logs.Log("Default (only) hub is: ", config.defaulthubname)
 	else:
-		config.ISYprefix = 'http://' + config.ISYaddr + '/rest/'
-	config.ISYrequestsession = requests.session()
-	config.ISYrequestsession.auth = (config.ISYuser, config.ISYpassword)
-
-	config.ISY = isy.ISY(config.ISYrequestsession)
-	logsupport.Logs.Log("Enumerated ISY Structure")
-	# todo seems odd that the following code is here and has to be skipped for null ISY case - should be in the ISY definition
-	cmdvar = valuestore.InternalizeVarName('ISY:Int:Command.' + config.hostname.replace('-', '.'))
-	alertspeclist = None
-	for k in valuestore.ValueStores['ISY'].items():
-		if k == tuple(cmdvar[1:]):
-			alertspeclist = ConfigObj()
-			alertspeclist['RemoteCommands2'] = {
-				'Type': 'VarChange', 'Var': valuestore.ExternalizeVarName(cmdvar), 'Test': 'NE', 'Value': '0',
-				'Invoke': 'NetCmd.Command'}
-			break
-
+		logsupport.Logs.Log("No default Hub specified", severity=ConsoleWarning)
+		config.defaulthub = None
 else:
-	config.ISY = isy.ISY(None)
-	alertspeclist = None  # todo see comment above
-	logsupport.Logs.Log("No ISY Specified", severity=ConsoleWarning)
+	try:
+		config.defaulthub = config.Hubs[config.defaulthubname]
+		logsupport.Logs.Log("Default hub is: ", config.defaulthubname)
+	except KeyError:
+		logsupport.Logs.Log("Specified default Hub doesn't exist", severity=ConsoleWarning)
+		config.defaulthub = None
+
+
 
 """
 Set up alerts and local variables
 """
+alertspeclist = {}
+for n, hub in config.Hubs.items():
+	alertspeclist.update(hub.alertspeclist)
+
 if 'Alerts' in config.ParsedConfigFile:
 	alertspec = config.ParsedConfigFile['Alerts']
-	if alertspeclist is not None:
-		alertspec.merge(alertspeclist)
 	del config.ParsedConfigFile['Alerts']
 else:
 	alertspec = ConfigObj()
-	if alertspeclist is not None:
-		alertspec.merge(alertspeclist)
+
+alertspec.merge(alertspeclist)
 
 if 'Variables' in config.ParsedConfigFile:
 	valuestore.NewValueStore(localvarsupport.LocalVars('LocalVars', config.ParsedConfigFile['Variables']))

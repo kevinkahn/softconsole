@@ -36,7 +36,7 @@ class GetTempsToISY(object):
 			isyv = list(assigns[i + 1].split(':'))
 			if isyv[0] == 'S': isyv[0] = 'State'
 			if isyv[0] == 'I': isyv[0] = 'Int'
-			valuestore.SetVal(['ISY']+isyv,int(weathval))
+			valuestore.SetVal([config.defaultISYname]+isyv,int(weathval))
 			logsupport.Logs.Log(
 				"Temps sent to ISY(" + station + '):' + weathcode[0] + ':' + weathcode[1] + ' -> ' + str(weathval),
 				severity=ConsoleDetail)

@@ -14,7 +14,7 @@ def _normalizename(name):
 	elif isinstance(name, str):
 		return name.split(':')
 	else:
-		logsupport.Logs.Log("Normalize name got strange input: ", name, severity=ConsoleError)
+		logsupport.Logs.Log("Normalize name got strange input: ", name, severity=ConsoleError, tb=True)
 		return [name]
 
 def InternalizeVarName(name):
@@ -36,22 +36,40 @@ def PrettyVarName(store,name):
 
 def GetVal(name):
 	n = _normalizename(name)
+	if not n[0] in ValueStores:
+		logsupport.Logs.Log("(Generic GetVal) No store named: ",n[0],severity=ConsoleError, tb=True)
+		return None
 	return ValueStores[n[0]].GetVal(n[1:])
 
 def SetVal(name,val, modifier = None):
 	n = _normalizename(name)
+	if not n[0] in ValueStores:
+		logsupport.Logs.Log("(Generic SetVal) No store named: ",n[0],severity=ConsoleError, tb=True)
+		return None
 	return ValueStores[n[0]].SetVal(n[1:],val, modifier)
 
 def GetAttr(name):
 	n = _normalizename(name)
+	if not n[0] in ValueStores:
+		logsupport.Logs.Log("(Generic GetAttr) No store named: ",n[0],severity=ConsoleError, tb=True)
+		return None
 	return ValueStores[n[0].GetAttr(n[1:])]
+
+def GetNameFromAttr(name, attr):
+		return ValueStores[name].GetNameFromAttr(attr)
 
 def AddAlert(name,a):
 	n = _normalizename(name)
+	if not n[0] in ValueStores:
+		logsupport.Logs.Log("(Generic AddAlert) No store named: ",n[0],severity=ConsoleError, tb=True)
+		return None
 	return ValueStores[n[0]].AddAlert(n[1:],a)
 
 def SetAttr(name,attr):
 	n = _normalizename(name)
+	if not n[0] in ValueStores:
+		logsupport.Logs.Log("(Generic SetAttr) No store named: ",n[0],severity=ConsoleError, tb=True)
+		return None
 	return ValueStores[n[0]].SetAttr(n[1:],attr)
 
 def GetValByAttr(name, attr):
@@ -205,6 +223,9 @@ class ValueStore(object):
 
 	def GetValByAttr(self, attr):
 		return self.attrs[attr].Value
+
+	def GetNameFromAttr(self, attr):
+		return self.attrs[attr].name
 
 	def SetAttr(self,name,attr):
 		# noinspection PyBroadException

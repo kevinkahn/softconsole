@@ -18,8 +18,6 @@ class TouchPoint(object):
 		self.name = name
 		self.Size = Size
 		self.Center = Center
-		#self.__dict__.update({k: v for k, v in locals().items() if k != 'self'}) todo remove
-
 		self.Screen = None
 		self.Proc = proc  # function that gets called on touch - expects to take a single parameter which is thee type of press
 
@@ -73,7 +71,7 @@ class ManualKeyDesc(TouchPoint):
 			# initializing from program code case
 			self.docodeinit(*args, **kwargs)
 		# todo may need to change signature if handling "holds"?
-		self.ISYObj = None  # this will get filled in by creator later - could be ISY node, ISY program
+		#self.ISYObj = None  # this will get filled in by creator later - could be ISY node, ISY program
 		if self.KeyColorOff == '':
 			self.KeyColorOff = self.KeyColor
 		if self.KeyColorOn == '':
@@ -103,7 +101,7 @@ class ManualKeyDesc(TouchPoint):
 		self.KeyCharColorOn = charcoloron
 		self.KeyCharColorOff = charcoloroff
 		self.label = label
-		self.ISYObj = None
+		#self.ISYObj = None
 		self.KeyOnOutlineColor = config.KeyOnOutlineColor if KOn == '' else KOn
 		self.KeyOffOutlineColor = config.KeyOffOutlineColor if KOff == '' else KOff
 		self.Blink = Blink

@@ -7,6 +7,7 @@ import logsupport
 import mypprint
 from logsupport import ConsoleDebug, ConsoleError, ConsoleWarning
 from stores import valuestore
+import traceback
 
 
 # noinspection PyUnusedLocal
@@ -20,17 +21,20 @@ def debugPrintEarly(flag,*args):
 
 def debugPrintReal(flag, *args):
 	global debugPrint
-
+	tb = False  # todo how to pass a kw param with extra positionals?
 	flg = dbgStore.GetVal(flag)
 
 	if flg is not None:
 		if flg:
 			# noinspection PyBroadException
 			try:
-				print(flag, '-> ')
+				print(flag, '-> ', end='')
 				for arg in args:
-					print(arg)
+					print(arg, end='')
 				print()
+				if tb:
+					for line in traceback.format_stack():
+						print(line.strip())
 				if logsupport.Logs is not None:
 					logsupport.Logs.Log(flag, '-> ', *args, severity=ConsoleDebug, diskonly=True)
 			except:

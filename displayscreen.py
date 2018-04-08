@@ -97,7 +97,7 @@ class DisplayScreen(object):
 
 		self.state = newstate
 
-		debug.debugPrint('Dispatch', "New watchlist(Main): " + str(self.AS.NodeList) + str(self.WatchNodes))
+		debug.debugPrint('Dispatch', "New watchlist(Main): " + str(self.AS.HubInterestList) + str(self.WatchNodes))
 
 		if OS != self.AS: self.AS.InitDisplay(nav)
 
@@ -156,24 +156,6 @@ class DisplayScreen(object):
 			os.utime(config.homedir + "/.ConsoleStart", None)
 
 			threadmanager.CheckThreads()
-			'''
-			if not config.QH.is_alive() and config.ISYaddr != '':
-				logsupport.Logs.Log('Queue handler died, last error:' + str(config.EventMonitor.lasterror), severity=ConsoleError)
-				try:
-					if config.EventMonitor.lasterror[0] == errno.ENETUNREACH:
-						# likely home network down so wait a bit
-						logsupport.Logs.Log('Wait for likely router reboot or down',severity=ConsoleError)
-						# todo overlay a screen delay message so locked up console is understood
-						time.sleep(120)
-				except:
-					pass
-
-				isyeventmonitor.CreateWSThread()
-
-			if time.time() - config.lastheartbeat > 240 and config.ISYaddr != '':  # twice heartbeat interval  todo - put heartbeat logic back in!
-				logsupport.Logs.Log('Lost ISY heartbeat', severity=ConsoleError, tb=False)
-				isyeventmonitor.CreateWSThread()
-			'''
 
 			if self.Deferrals:  # an event was deferred mid screen touches - handle now
 				event = self.Deferrals.pop(0)
@@ -278,7 +260,7 @@ class DisplayScreen(object):
 			elif event.type == self.ISYChange:
 				debug.debugPrint('Dispatch', 'ISY Change Event', event)
 				if hasattr(event, 'node'):
-					self.AS.ISYEvent(node=event.node, value=event.value)
+					self.AS.ISYEvent(hub=event.hub, node=event.node, value=event.value)
 				elif hasattr(event, 'varinfo'):
 					self.AS.ISYEvent(varinfo=event.varinfo)
 				else:

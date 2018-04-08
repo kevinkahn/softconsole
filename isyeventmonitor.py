@@ -11,28 +11,18 @@ import exitutils
 from stores import valuestore
 import errno
 
-
-'''
-def CreateWSThread():
-	config.EventMonitor = ISYEventMonitor()
-	config.QH = threading.Thread(name='QH', target=config.EventMonitor.QHandler)
-	config.QH.setDaemon(True)
-	config.QH.start()
-	logsupport.Logs.Log("ISY stream thread " + str(config.EventMonitor.num) + " started"
-'''
-
-class ISYEventMonitor:
-	def __init__(self, nm):
-		self.hubname = nm
+class ISYEventMonitor(object):
+	def __init__(self, thisISY):
+		self.isy = thisISY
+		self.hubname = thisISY.name
 		self.QHnum = 1
-		self.a = base64.b64encode((config.ISYuser + ':' + config.ISYpassword).encode('utf-8'))
+		self.a = base64.b64encode((self.isy.user + ':' + self.isy.password).encode('utf-8'))
 		self.watchstarttime = time.time()
 		self.watchlist = []
 		self.streamid = "unset"
 		self.seq = 0
 		self.lastheartbeat = 0
 		self.digestinginput = True
-		#self.num = config.QHnum
 
 		self.lasterror = (0,'Init')
 		debug.debugPrint('DaemonCtl', "Queue Handler ", self.QHnum, " started: ", self.watchstarttime)
@@ -137,60 +127,31 @@ class ISYEventMonitor:
 
 						if enode in config.DS.WatchNodes:
 							# alert node changed
-							debug.debugPrint('DaemonCtl', 'ISY reports change(alert):', config.ISY.NodesByAddr[enode].name)
-							for a in config.DS.WatchNodes[enode]:
+							debug.debugPrint('DaemonCtl', 'ISY reports change(alert):', self.isy.NodesByAddr[enode].name)
+							for a in config.DS.WatchNodes[enode]: # todo this  watchlist need fixing for multihubs
 								logsupport.Logs.Log("Node alert fired: " + str(a), severity=ConsoleDetail)
 								# noinspection PyArgumentList
 								notice = pygame.event.Event(config.DS.ISYAlert, node=enode, value=eaction, alert=a)
 								pygame.fastevent.post(notice)
 
 						if config.DS.AS is not None:
-							if enode in config.DS.AS.NodeList:
-								debug.debugPrint('DaemonCtl', time.time() - config.starttime, "ISY reports node change(screen): ",
-										   "Key: ", config.ISY.NodesByAddr[enode].name)
-								# noinspection PyArgumentList
-								notice = pygame.event.Event(config.DS.ISYChange, node=enode, value=eaction)
-								pygame.fastevent.post(notice)
+							if self.isy.name in config.DS.AS.HubInterestList:
+								if enode in config.DS.AS.HubInterestList[self.isy.name]:
+										debug.debugPrint('DaemonCtl', time.time() - config.starttime, "ISY reports node change(screen): ",
+												   "Key: ", self.isy.NodesByAddr[enode].name)
+										# noinspection PyArgumentList
+										notice = pygame.event.Event(config.DS.ISYChange, hub=self.isy.name, node=enode, value=eaction)
+										pygame.fastevent.post(notice)
 
 					elif (prcode == 'Trigger') and (eaction == '6'):
 						vinfo = eInfo['var']
 						vartype = int(vinfo['@type'])
 						varid = int(vinfo['@id'])
 						varval = int(vinfo['val'])
+						debug.debugPrint('DaemonCtl', 'Var change: ', valuestore.GetNameFromAttr(self.hubname,(vartype,varid)),' set to ', varval)
 						debug.debugPrint('DaemonCtl', 'Var change:', ('Unkn', 'Integer', 'State')[vartype], ' variable ', varid,
 								   ' set to ', varval)
-						valuestore.SetValByAttr('ISY',(vartype,varid),varval, modifier=True)
-						'''
-						if (vartype, varid) in config.DS.WatchVars.keys():
-							config.DS.WatchVarVals[vartype, varid] = varval
-							if vartype == 1:
-								debug.debugPrint('DaemonCtl', 'Int var change(alert): ', config.ISY.varsIntInv[varid], ' <- ',
-										   varval)
-							elif vartype == 2:
-								debug.debugPrint('DaemonCtl', 'State var change(alert): ', config.ISY.varsStateInv[varid], ' <- ',
-										   varval)
-							else:
-								logsupport.Logs.Log('Bad var message:' + str(varid), severity=ConsoleError)
-
-							for a in config.DS.WatchVars[(vartype, varid)]:
-								logsupport.Logs.Log("Var alert fired: " + str(a))
-								notice = pygame.event.Event(config.DS.ISYVar, node=(vartype, varid), value=varval,
-															alert=a)
-								pygame.fastevent.post(notice)
-						
-
-						if config.DS.AS is not None:
-							if (vartype, varid) in config.DS.AS.VarsList:
-								if vartype == 1:
-									debug.debugPrint('DaemonCtl', 'Int var change(screen): ', config.ISY.varsIntInv[varid],
-											   ' <- ', varval)
-								elif vartype == 2:
-									debug.debugPrint('DaemonCtl', 'State var change(screen): ', config.ISY.varsStateInv[varid],
-											   ' <- ',
-											   varval)
-								notice = pygame.event.Event(config.DS.ISYChange, vartype=vartype, varid=varid, value=varval)
-								pygame.fastevent.post(notice)
-						'''
+						valuestore.SetValByAttr(self.hubname,(vartype,varid),varval, modifier=True)
 
 					elif prcode == 'Heartbeat':
 						self.lastheartbeat = time.time()
@@ -203,21 +164,19 @@ class ISYEventMonitor:
 					if E:
 						logsupport.Logs.Log("Extra info in event: " + str(ecode) +'/' + str(prcode) +'/' + str(eaction) +'/' + str(enode) +'/' + str(eInfo) + str(E), severity=ConsoleWarning)
 					debug.debugPrint('DaemonStream', time.time() - config.starttime,
-									 formatwsitem(esid, eseq, ecode, eaction, enode, eInfo, E))
+									 formatwsitem(esid, eseq, ecode, eaction, enode, eInfo, E, self.isy))
 
 					if ecode == "ERR":
 						try:
-							isynd = config.ISY.NodesByAddr[enode].name
+							isynd = self.isy.NodesByAddr[enode].name
 						except (KeyError, AttributeError):
 							isynd = enode
 						logsupport.Logs.Log("ISY shows comm error for node: " + str(isynd), severity=ConsoleWarning)
 
 					if ecode == 'ST':
-						if enode == "20 51 B2 1":
-							print("Off Ceil Set: " + str(eaction))
 						if int(eaction) < 0:
 							print("Strange node set: "+str(enode)+' '+str(eaction))
-						config.ISY.NodesByAddr[enode].devState = int(eaction)
+						self.isy.NodesByAddr[enode].devState = int(eaction)
 
 				else:
 					logsupport.Logs.Log("Strange item in event stream: " + str(m), severity=ConsoleWarning)
@@ -228,12 +187,12 @@ class ISYEventMonitor:
 
 		#websocket.enableTrace(True)
 		websocket.setdefaulttimeout(30)
-		if config.ISYaddr.startswith('http://'):
-			wsurl = 'ws://' + config.ISYaddr[7:] + '/rest/subscribe'
-		elif config.ISYaddr.startswith('https://'):
-			wsurl = 'wss://' + config.ISYaddr[8:] + '/rest/subscribe'
+		if self.isy.addr.startswith('http://'):
+			wsurl = 'ws://' + self.isy.addr[7:] + '/rest/subscribe'
+		elif self.isy.addr.startswith('https://'):
+			wsurl = 'wss://' + self.isy.addr[8:] + '/rest/subscribe'
 		else:
-			wsurl = 'ws://' + config.ISYaddr + '/rest/subscribe'
+			wsurl = 'ws://' +self.isy.addr + '/rest/subscribe'
 		while True:
 			try:
 				ws = websocket.WebSocketApp(wsurl, on_message=on_message,

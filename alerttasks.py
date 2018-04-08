@@ -45,14 +45,14 @@ class Alert(object):
 
 
 class NodeChgtrigger(object):
-	def __init__(self, addr, test, value, delay):
-		self.nodeaddress = addr
+	def __init__(self, node, test, value, delay):
+		self.node = node
 		self.test = test
 		self.value = value
 		self.delay = delay
 
 	def IsTrue(self):
-		val = isy.get_real_time_node_status(self.nodeaddress)
+		val = self.node.Hub.GetCurrentStatus(self.node)  # the realtime update should be hidden in the hub todo
 		if self.test == 'EQ':
 			return int(val) == int(self.value)
 		elif self.test == 'NE':
@@ -61,7 +61,7 @@ class NodeChgtrigger(object):
 			exitutils.FatalError('VarChgtriggerIsTrue')
 
 	def __repr__(self):
-		return 'Node ' + self.nodeaddress + ' status ' + self.test + ' ' + str(self.value) + ' delayed ' + str(
+		return 'Node ' + self.self.node.addr + ' status ' + self.test + ' ' + str(self.value) + ' delayed ' + str(
 			self.delay) + ' seconds'
 
 
@@ -145,7 +145,7 @@ def ParseAlertParams(nm, spec):
 		return ctest, cvalue, cdelay
 
 
-	VarsTypes = {'StateVarChange': ('ISY','State'), 'IntVarChange': ('ISY','Int'), 'LocalVarChange': ('LocalVars',)}
+	VarsTypes = {'StateVarChange': (config.defaultISYname,'State'), 'IntVarChange': (config.defaultISYname,'Int'), 'LocalVarChange': ('LocalVars',)}
 	t = spec.get('Invoke', None)
 	param = spec.get('Parameter', None)
 	if t is None:
@@ -201,10 +201,11 @@ def ParseAlertParams(nm, spec):
 	elif triggertype == 'NodeChange':  # needs node, test, status, delay
 		n = spec.get('Node', None)
 		# noinspection PyBroadException
+		hub = config.defaulthub #todo handle param for non default hub
 		try:
-			Node = config.ISY.GetNodeByName(n).address
+			Node = hub.GetNode(n)[1]  # use MonitorObj (1)
 		except:
-			Node = ''
+			Node = None
 			logsupport.Logs.Log("Bad Node Spec on NodeChange alert in " + nm, severity=ConsoleWarning)
 		test, value, delay = comparams(spec)
 		trig = NodeChgtrigger(Node, test, value, delay)

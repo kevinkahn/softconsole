@@ -1,5 +1,6 @@
 import config
 import logsupport
+from logsupport import ConsoleError, ConsoleWarning
 import utilities
 import toucharea
 import collections
@@ -21,7 +22,7 @@ def ButLayout(butcount):
 	if butcount in range(1, 21):
 		return plan[butcount - 1]
 	else:
-		logsupport.Logs.Log("Button layout error - too many or no buttons: " + butcount, logsupport.ConsoleError)
+		logsupport.Logs.Log("Button layout error - too many or no buttons: " + butcount, ConsoleError)
 		return 5, 5
 
 def ButSize(bpr, bpc, height):
@@ -44,17 +45,21 @@ class ScreenDesc(object):
 		self.CmdKeyCol = None
 		self.CmdCharCol = None
 		self.label = None # type: list
+		self.DefaultHubName = config.defaulthubname
+		self.DefaultHub = None
 
 		self.name = screenname
 		self.NavKeys = collections.OrderedDict()
 		self.Keys = collections.OrderedDict()
 		self.WithNav = True
-		self.NodeList = {}
-		self.VarsList = {}
+		self.HubInterestList = {} # one entry per hub, each entry is a dict mapping addr to Node
 
 		utilities.LocalizeParams(self, screensection, '-', 'CharColor', 'DimTO', 'PersistTO', 'BackgroundColor',
-								 'CmdKeyCol', 'CmdCharCol', label=[screenname])
-		self.Subscreens = {}  # support easy switching to subscreens - name:subscreen
+								 'CmdKeyCol', 'CmdCharCol', label=[screenname],DefaultHub=config.defaulthubname)
+		try:
+			self.DefaultHub = config.Hubs[self.DefaultHubName]
+		except KeyError:
+			logsupport.Logs.Log("Bad default hub name for screen: ",screenname,severity=ConsoleError)
 
 		utilities.register_example('ScreenDesc', self)
 
@@ -65,6 +70,11 @@ class ScreenDesc(object):
 		for key in self.NavKeys.values():
 			key.PaintKey()
 
+	def AddToHubInterestList(self,hub,item,value):
+		if hub.name in self.HubInterestList:
+			self.HubInterestList[hub.name][item]=value
+		else:
+			self.HubInterestList[hub.name] = {item:value}
 
 	def InitDisplay(self, nav):
 		debug.debugPrint("Screen", "Base Screen InitDisplay: ", self.name)
@@ -76,8 +86,8 @@ class ScreenDesc(object):
 		self.PaintBase()
 		self.PaintKeys()
 
-	def ISYEvent(self, node=0, value=0, varinfo = ()):
-		logsupport.Logs.Log("Unexpected ISY event to screen: ", self.name, severity=logsupport.ConsoleWarning)
+	def ISYEvent(self, hub= '', node=0, value=0, varinfo = ()):
+		logsupport.Logs.Log("Unexpected ISY event to screen: ", self.name, severity=ConsoleWarning)
 
 	def ExitScreen(self):
 		config.DS.Tasks.RemoveAllGrp(id(self))  # by default delete all pending tasks override if screen needs to
@@ -93,8 +103,10 @@ class BaseKeyScreenDesc(ScreenDesc):
 		self.KeysPerColumn = 0
 		self.KeysPerRow = 0
 
+
 		ScreenDesc.__init__(self, screensection, screenname)
 		utilities.LocalizeParams(self, screensection, '-', 'KeysPerColumn', 'KeysPerRow')
+
 		self.buttonsperrow = -1
 		self.buttonspercol = -1
 		utilities.register_example('BaseKeyScreenDesc', self)
@@ -110,7 +122,7 @@ class BaseKeyScreenDesc(ScreenDesc):
 				bpr, bpc = (self.KeysPerRow, self.KeysPerColumn)
 			else:
 				# bad user layout - go with automatic
-				logsupport.Logs.Log('Bad explicit key layout for: ', self.name, severity=logsupport.ConsoleWarning)
+				logsupport.Logs.Log('Bad explicit key layout for: ', self.name, severity=ConsoleWarning)
 				bpr, bpc = ButLayout(len(self.Keys))
 		else:
 			bpr, bpc = ButLayout(

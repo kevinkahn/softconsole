@@ -2,6 +2,12 @@ import hw
 
 screentypes = {}  # set by each module for screens of the type that module creates (see last line in any XxxScreen module
 
+hubtypes = {}
+Hubs = {}
+defaulthub = None
+defaulthubname = ""
+defaultISYname = 'ISY'
+
 starttime = 0
 Running = True
 Console_pid = 0
@@ -21,8 +27,7 @@ monofont = "notomono"  # gets reset to "droidsansmono" if noto not present to su
 # Global pointers
 exdir = ''
 homedir = ''
-ISYrequestsession = None  # handle for requests to ISY via the request interface
-ISY = None  # Root of structure representing the ISY - filled in from ISY
+
 screen = None  # pygame screen to blit on etc
 backlight = None  # GPIO instance of pin 18
 DS = None  # GlDaemobal Display Screen handles running the button presses and touch recognition
@@ -30,7 +35,6 @@ Alerts = []
 ParsedConfigFile = None  # config.txt internal version
 configfilebase = "/home/pi/Console/"  # default location of configfile, can be overridden by arg1.
 configfile = ""
-ISYprefix = ''  # holds the url prefix for rest interface
 fonts = None
 DummyProgram = None
 
@@ -79,9 +83,6 @@ sysvals = {
 	'DimLevel':(int,10,(hw.ResetScreenLevel, True)), 'BrightLevel':(int,100,(hw.ResetScreenLevel, False)), 'MultiTapTime':(int,400,None)
 	}
 
-ISYaddr = ""
-ISYuser = ""
-ISYpassword = ""
 HomeScreenName = ""
 DimTO = 20
 PersistTO = 20

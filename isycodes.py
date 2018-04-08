@@ -50,7 +50,7 @@ EVENT_CTRL = {
 }
 
 
-def formatwsitem(sid, seq, code, action, node, info, extra):
+def formatwsitem(sid, seq, code, action, node, info, extra, hub):
 	# noinspection PyBroadException
 	try:
 		if action is None:
@@ -60,7 +60,7 @@ def formatwsitem(sid, seq, code, action, node, info, extra):
 		if info is None:
 			info = {'NONE'}
 		try:
-			isynd = config.ISY.NodesByAddr[node].name
+			isynd = hub.NodesByAddr[node].name
 		except (KeyError, AttributeError):
 			isynd = node
 		pretty = ' ' + sid + '/' + str(seq) + ' '
@@ -89,7 +89,7 @@ def formatwsitem(sid, seq, code, action, node, info, extra):
 			else:
 				stat = ''
 			paddr = str("0x%0.4X"%int(info['id'], 16))[2:]
-			return pretty + 'ProgRun ' + config.ISY.ProgramsByAddr[paddr].name + runinfo + stat + other
+			return pretty + 'ProgRun ' + hub.ProgramsByAddr[paddr].name + runinfo + stat + other
 		elif EC == "System Status":
 			return pretty + "System Status " + ('Not Busy', 'Busy', 'Idle', 'Safe Mode')[int(action)]
 		else:
