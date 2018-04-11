@@ -22,12 +22,13 @@ class ISYEventMonitor(object):
 		self.streamid = "unset"
 		self.seq = 0
 		self.lastheartbeat = 0
+		self.hbcount = 0
 		self.digestinginput = True
 
 		self.lasterror = (0,'Init')
 		debug.debugPrint('DaemonCtl', "Queue Handler ", self.QHnum, " started: ", self.watchstarttime)
-		self.reportablecodes = ["DON", "DFON", "DOF", "DFOF", "ST", "OL", "RR", "CLISP", "CLISPH", "CLISPC", "CLIFS",
-								"CLIMD", "CLIHUM", "CLIHCS", "BRT", "DIM"]
+		self.reportablecodes = ["DON", "DFON", "DOF", "DFOF", "ST", "CLISP", "CLISPH", "CLISPC", "CLIFS",
+								"CLIMD", "CLIHUM", "CLIHCS", "BRT", "DIM"] # "RR", "OL",
 
 	def reinit(self):
 		self.watchstarttime = time.time()
@@ -41,6 +42,7 @@ class ISYEventMonitor(object):
 		while self.digestinginput:
 			logsupport.Logs.Log("Waiting initial status dump")
 			time.sleep(0.5)
+		logsupport.Logs.Log("ISY initial status streamed ", self.seq, " items")
 
 	def PreRestartQHThread(self):
 		try:
@@ -51,16 +53,39 @@ class ISYEventMonitor(object):
 				time.sleep(120)
 			elif self.lasterror[0] == errno.ETIMEDOUT:
 				logsupport.Logs.Log('Timeout on WS - delay to allow possible ISY or router reboot',severity=ConsoleError, tb=False)
+				logsupport.Logs.Log('Original error report: '+repr(self.lasterror))
 				time.sleep(15)
+				# todo - bug in websocket that results in attribute error for errno.WSEACONNECTIONREFUSED check
 			else:
 				logsupport.Logs.Log('Unexpected error on WS stream: ',repr(self.lasterror), severity=ConsoleError, tb=False)
 		except Exception as e:
 			logsupport.Logs.Log('PreRestartQH internal error ',e)
 		self.reinit()
 
+	def _NormalizeState(self,stateval):
+		t = stateval
+		try:
+			if isinstance(stateval, unicode):
+				t = str(stateval)
+		except:
+			pass
+		if isinstance(t, str):
+			return int(t) if t.isdigit() else 0
+		return t
+
 	def QHandler(self):
 		def on_error(qws, error):
 			logsupport.Logs.Log("Error in WS stream " + str(self.QHnum) + ':' + repr(error), severity=ConsoleError, tb=False)
+			try:
+				if error == TimeoutError: # Py3
+					error = (errno.ETIMEDOUT,"Converted Py3 Timeout")
+			except:
+				pass
+			try:
+				if error == AttributeError: # Py2 websocket debug todo
+					error = (errno.ETIMEDOUT,"Websock bug catch")
+			except:
+				pass
 			self.lasterror = error
 			debug.debugPrint('DaemonCtl', "Websocket stream error", self.QHnum, repr(error))
 			qws.close()
@@ -102,7 +127,7 @@ class ISYEventMonitor(object):
 					if self.seq != eseq:
 						logsupport.Logs.Log("Event mismatch - Expected: " + str(self.seq) + " Got: " + str(eseq),
 										severity=ConsoleWarning)
-						# indicates a missed event - so should rebase the data?
+						# indicates a missed event - so should rebase the data? todo
 						self.seq = eseq + 1
 					else:
 						self.seq += 1
@@ -131,7 +156,7 @@ class ISYEventMonitor(object):
 							for a in config.DS.WatchNodes[enode]: # todo this  watchlist need fixing for multihubs
 								logsupport.Logs.Log("Node alert fired: " + str(a), severity=ConsoleDetail)
 								# noinspection PyArgumentList
-								notice = pygame.event.Event(config.DS.ISYAlert, node=enode, value=eaction, alert=a)
+								notice = pygame.event.Event(config.DS.ISYAlert, node=enode, value=self._NormalizeState(eaction), alert=a)
 								pygame.fastevent.post(notice)
 
 						if config.DS.AS is not None:
@@ -140,7 +165,7 @@ class ISYEventMonitor(object):
 										debug.debugPrint('DaemonCtl', time.time() - config.starttime, "ISY reports node change(screen): ",
 												   "Key: ", self.isy.NodesByAddr[enode].name)
 										# noinspection PyArgumentList
-										notice = pygame.event.Event(config.DS.ISYChange, hub=self.isy.name, node=enode, value=eaction)
+										notice = pygame.event.Event(config.DS.HubNodeChange, hub=self.isy.name, node=enode, value=self._NormalizeState(eaction))
 										pygame.fastevent.post(notice)
 
 					elif (prcode == 'Trigger') and (eaction == '6'):
@@ -154,8 +179,11 @@ class ISYEventMonitor(object):
 						valuestore.SetValByAttr(self.hubname,(vartype,varid),varval, modifier=True)
 
 					elif prcode == 'Heartbeat':
+						if self.hbcount > 0:
+							# wait 2 heartbeats
+							self.digestinginput = False
 						self.lastheartbeat = time.time()
-						self.digestinginput = False
+						self.hbcount += 1
 					elif prcode == 'Billing':
 						self.digestinginput = False
 					else:
@@ -176,7 +204,10 @@ class ISYEventMonitor(object):
 					if ecode == 'ST':
 						if int(eaction) < 0:
 							print("Strange node set: "+str(enode)+' '+str(eaction))
-						self.isy.NodesByAddr[enode].devState = int(eaction)
+						node = self.isy.NodesByAddr[enode]
+						debug.debugPrint('ISYchg', 'ISY Node: ', node.name, ' state change from: ', node.devState,
+										 ' to: ', int(eaction))
+						node.devState = int(eaction)
 
 				else:
 					logsupport.Logs.Log("Strange item in event stream: " + str(m), severity=ConsoleWarning)

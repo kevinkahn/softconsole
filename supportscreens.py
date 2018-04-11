@@ -12,12 +12,13 @@ import logsupport
 
 class VerifyScreen(screen.BaseKeyScreenDesc):
 
-	def __init__(self, key, gomsg, nogomsg, proc, callingscreen, bcolor, keycoloroff, charcolor, state):
+	def __init__(self, key, gomsg, nogomsg, proc, callingscreen, bcolor, keycoloroff, charcolor, state, interestlist):
 		self.TitleFontSize=0
 		self.SubFontSize=0
 
 		debug.debugPrint('Screen', "Build Verify Screen")
-		screen.BaseKeyScreenDesc.__init__(self, {}, key.name)
+		screen.BaseKeyScreenDesc.__init__(self, {}, key.name+' Verify')
+		self.HubInterestList = interestlist
 		self.DimTO = 20
 		self.PersistTO = 10
 		self.label = screen.FlatenScreenLabel(key.label)

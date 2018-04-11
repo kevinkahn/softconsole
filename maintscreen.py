@@ -73,6 +73,7 @@ def SetUpMaintScreens():
 		for kn, k in s.Keys.items():
 			if kn in debug.DbgFlags:
 				k.State = debug.dbgStore.GetVal(k.name)
+				debug.dbgStore.AddAlert(k.name,(syncKeytoStore, k))
 				k.Proc = functools.partial(setdbg, k)
 	debug.DebugFlagKeys["LogLevelUp"].Proc = functools.partial(adjloglevel, debug.DebugFlagKeys["LogLevelUp"])
 	debug.DebugFlagKeys["LogLevelDown"].Proc = functools.partial(adjloglevel, debug.DebugFlagKeys["LogLevelDown"])
@@ -85,10 +86,14 @@ def SetUpMaintScreens():
 	Exits.Keys['return'].Proc = functools.partial(goto, config.MaintScreen, Exits.Keys['return'])
 	Beta.Keys['return'].Proc = functools.partial(goto, config.MaintScreen, Beta.Keys['return'])
 
+def syncKeytoStore(storeitem, old, new, key, chgsource):
+	key.State = new
+
 # noinspection PyUnusedLocal
 def setdbg(K, presstype):  # todo needs dynamic repaint
-	debug.dbgStore.SetVal(K.name,not debug.dbgStore.GetVal(K.name))
-	K.State = not K.State
+	st = debug.dbgStore.GetVal(K.name)
+	debug.dbgStore.SetVal(K.name,not st)
+	K.State = not st
 	K.PaintKey()
 	logsupport.Logs.Log("Debug flag ", K.name, ' = ', K.State, severity=ConsoleWarning)
 

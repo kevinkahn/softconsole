@@ -41,8 +41,10 @@ class KeyScreenDesc(screen.BaseKeyScreenDesc):
 			K.InitDisplay()
 		super(KeyScreenDesc, self).InitDisplay(nav)
 
-	def ISYEvent(self, hub='', node=0, value='', varinfo = ()):
+	def NodeEvent(self, hub='', node=0, value=0, varinfo = ()):
 		# Watched node reported change event is ("Node", addr, value, seq)
+		print('HUB',hub,node,type(value), value)  # todo del
+		assert isinstance(value,int)
 		if node != 0:
 			# noinspection PyBroadException
 			try:
@@ -51,7 +53,7 @@ class KeyScreenDesc(screen.BaseKeyScreenDesc):
 				debug.debugPrint('Screen', 'Bad key to KS - race?', self.name, str(node))
 				return  # treat as noop
 			debug.debugPrint('Screen', 'KS ISYEvent ', K.name, str(value), str(K.State))
-			K.State = not (int(value if value.isdigit() else 0) == 0)  # K is off (false) only if state is 0
+			K.State = not (value == 0)  # K is off (false) only if state is 0
 		else:
 			# noinspection PyBroadException
 			try:

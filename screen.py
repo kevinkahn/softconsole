@@ -45,7 +45,6 @@ class ScreenDesc(object):
 		self.CmdKeyCol = None
 		self.CmdCharCol = None
 		self.label = None # type: list
-		self.DefaultHubName = config.defaulthubname
 		self.DefaultHub = None
 
 		self.name = screenname
@@ -57,7 +56,7 @@ class ScreenDesc(object):
 		utilities.LocalizeParams(self, screensection, '-', 'CharColor', 'DimTO', 'PersistTO', 'BackgroundColor',
 								 'CmdKeyCol', 'CmdCharCol', label=[screenname],DefaultHub=config.defaulthubname)
 		try:
-			self.DefaultHub = config.Hubs[self.DefaultHubName]
+			self.DefaultHub = config.Hubs[self.DefaultHub]
 		except KeyError:
 			logsupport.Logs.Log("Bad default hub name for screen: ",screenname,severity=ConsoleError)
 
@@ -86,7 +85,7 @@ class ScreenDesc(object):
 		self.PaintBase()
 		self.PaintKeys()
 
-	def ISYEvent(self, hub= '', node=0, value=0, varinfo = ()):
+	def NodeEvent(self, hub='', node=0, value=0, varinfo = ()):
 		logsupport.Logs.Log("Unexpected ISY event to screen: ", self.name, severity=ConsoleWarning)
 
 	def ExitScreen(self):

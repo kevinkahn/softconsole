@@ -46,7 +46,7 @@ class OnOffItem(ISYNode):
 
 	def SendCommand(self, state, presstype):
 		selcmd = (('DOF', 'DFOF'), ('DON', 'DFON'))
-		debug.debugPrint('ISY', "OnOff sent: ", selcmd[state][presstype], ' to ', self.name)
+		debug.debugPrint('ISYdbg', "OnOff sent: ", selcmd[state][presstype], ' to ', self.name)
 		self.Hub.try_ISY_comm('nodes/' + self.address + '/cmd/' + selcmd[state][presstype])
 
 
@@ -142,7 +142,7 @@ class Program(ProgramFolder):
 		utilities.register_example("Program", self)
 
 	def runThen(self):
-		debug.debugPrint('ISY', "runThen sent to ", self.name)
+		debug.debugPrint('ISYdbg', "runThen sent to ", self.name)
 		url = self.Hub.ISYprefix + 'programs/' + self.address + '/runThen'
 		r = self.Hub.ISYrequestsession.get(url)
 		return r
@@ -323,7 +323,7 @@ class ISY(object):
 
 		self._SetFullNames(self.NodeRoot, "")
 
-		if debug.dbgStore.GetVal('ISY'):
+		if debug.dbgStore.GetVal('ISYdbg'):
 			self.PrintTree(self.NodeRoot, "    ", 'Nodes')
 
 		"""
@@ -452,7 +452,7 @@ class ISY(object):
 
 		Vars.LockStore()
 		utilities.register_example("ISY", self)
-		if debug.dbgStore.GetVal('ISY'):
+		if debug.dbgStore.GetVal('ISYdbg'):
 			self.PrintTree(self.ProgRoot, "    ", 'Programs')
 
 		self.isyEM = isyeventmonitor.ISYEventMonitor(self)
@@ -524,7 +524,7 @@ class ISY(object):
 				devstate = item['@value']
 				break
 		try:
-			localstate = self.NodesByAddr[addr].devState
+			localstate = self.NodesByAddr[addr].devState #todo remove to go with full shadow states plus periodic sanity, also correct stream restart on miss
 			if localstate != int(devstate):
 				logsupport.Logs.Log("Shadow state wrong: ", self.NodesByAddr[addr].fullname, ' (', addr,
 									') Real State: ', devstate, ' Shadow State: ',localstate,'/',
@@ -537,7 +537,7 @@ class ISY(object):
 									severity=ConsoleWarning)
 		except KeyError:
 			logsupport.Logs.Log('Bad NodeByAddr in rt status: ', addr, severity=ConsoleError)
-		return int(devstate if devstate.isdigit() else 0)
+		return int(devstate if devstate.isdigit() else 0)  # todo use _normalize?
 
 	@staticmethod
 	def _LinkChildrenParents(nodelist, listbyname, looklist1, looklist2):
@@ -599,6 +599,13 @@ class ISY(object):
 		else:
 			return 0
 
+	def StatesDump(self):
+		for n, nd in self.NodesByFullName.items():
+			if hasattr(nd,'devState'):
+				print('Node(', type(nd), '): ', n, ' -> ', nd.devState, type(nd.devState))
+			else:
+				print('Node(', type(nd), '): ', n, ' has no devState')
+
 	def _SetFullNames(self, startpoint, parentname):
 		startpoint.fullname = parentname + startpoint.name
 		self.NodesByFullName[startpoint.fullname] = startpoint
@@ -634,9 +641,9 @@ class ISY(object):
 
 	def PrintTree(self, startpoint, indent, msg):
 		if msg is not None:
-			debug.debugPrint('ISY', 'Graph for ', msg)
+			debug.debugPrint('ISYdbg', 'Graph for ', msg)
 		if isinstance(startpoint, Scene):
-			debug.debugPrint('ISY', indent + startpoint.__repr__())
+			debug.debugPrint('ISYdbg', indent + startpoint.__repr__())
 			for m in startpoint.members:
 				if m[0] == 16:
 					sR = 'R'
@@ -644,10 +651,10 @@ class ISY(object):
 					sR = 'C'
 				else:
 					sR = 'X'
-				debug.debugPrint('ISY', indent + "-" + sR + "--" + (m[1].__repr__()))
+				debug.debugPrint('ISYdbg', indent + "-" + sR + "--" + (m[1].__repr__()))
 		elif isinstance(startpoint, TreeItem):
-			debug.debugPrint('ISY', indent + startpoint.__repr__())
+			debug.debugPrint('ISYdbg', indent + startpoint.__repr__())
 			for c in startpoint.children:
 				self.PrintTree(c, indent + "....", None)
 		else:
-			debug.debugPrint('ISY', "Funny thing in tree ", startpoint.__repr__)
+			debug.debugPrint('ISYdbg', "Funny thing in tree ", startpoint.__repr__)

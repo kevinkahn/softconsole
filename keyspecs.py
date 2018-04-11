@@ -15,10 +15,8 @@ import shlex
 def KeyWithVarChanged(storeitem, old, new, param, modifier):
 	debug.debugPrint('DaemonCtl','Var changed for key ',storeitem.name,' from ',old,' to ',new)
 	# noinspection PyArgumentList
-	notice = pygame.event.Event(config.DS.ISYChange, varinfo=param)
+	notice = pygame.event.Event(config.DS.HubNodeChange, hub='*VARSTORE*', varinfo=param)
 	pygame.fastevent.post(notice)
-	pass
-
 
 def CreateKey(screen, screensection, keyname):
 	if screensection.get('type', 'ONOFF', delkey=False) == 'RUNTHEN':
@@ -221,7 +219,7 @@ class RunProgram(ManualKeyDesc):
 		if self.Verify:
 			self.VerifyScreen = supportscreens.VerifyScreen(self, self.GoMsg, self.NoGoMsg, self.VerifyRunAndReturn,
 															screen, self.KeyCharColorOff,
-															screen.BackgroundColor, screen.CharColor, self.State)
+															screen.BackgroundColor, screen.CharColor, self.State, screen.HubInterestList)
 		self.Proc = self.RunKeyPressed
 
 	# noinspection PyUnusedLocal
@@ -267,7 +265,7 @@ class OnOffKey(ManualKeyDesc):
 		if self.Verify:
 			self.VerifyScreen = supportscreens.VerifyScreen(self, self.GoMsg, self.NoGoMsg, self.VerifyPressAndReturn,
 															screen, self.KeyColorOff,
-															screen.BackgroundColor, screen.CharColor, self.State)
+															screen.BackgroundColor, screen.CharColor, self.State, screen.HubInterestList)
 
 		if keytype == 'ONOFF':
 			self.KeyAction = 'OnOff'

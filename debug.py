@@ -1,7 +1,4 @@
 from __future__ import print_function
-from __future__ import print_function
-from __future__ import print_function
-from __future__ import print_function
 
 import logsupport
 import mypprint
@@ -43,8 +40,8 @@ def debugPrintReal(flag, *args):
 		print("DEBUG FLAG NAME ERROR", flag)
 
 debugPrint = debugPrintEarly
-DbgFlags = ['Main', 'DaemonCtl', 'DaemonStream', 'Screen', 'ISY', 'Dispatch', 'EventList', 'Fonts', 'DebugSpecial',
-			'QDump', 'LLTouch', 'Touch', 'ISYDump', 'ISYLoad', 'StoreTrack', 'StoresDump']
+DbgFlags = ['Main', 'DaemonCtl', 'DaemonStream', 'Screen', 'ISYdbg', 'ISYchg', 'HASSgeneral', 'HASSchg', 'Dispatch', 'EventList', 'Fonts', 'DebugSpecial',
+			'QDump', 'LLTouch', 'Touch', 'ISYDump', 'ISYLoad', 'StoreTrack', 'StoresDump', 'StatesDump']
 DebugFlagKeys = {}
 dbgStore = valuestore.NewValueStore(valuestore.ValueStore('Debug'))
 dbgStore.SimpleInit(DbgFlags,False)
@@ -93,7 +90,7 @@ def ISYDump(fn, item, pretty = True,new=False):
 		else:
 			if not new:
 				f.write('\n')
-			f.write(item.encode('UTF-8'))
+			f.write(item)
 
 # noinspection PyUnusedLocal
 def StoresDump(store,old,new,param):

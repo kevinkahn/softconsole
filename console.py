@@ -43,6 +43,11 @@ from logsupport import ConsoleWarning
 from stores import mqttsupport, valuestore, localvarsupport, sysstore
 import alerttasks
 
+config.hubtypes['ISY'] = isy.ISY
+if sys.version_info[0] == 3:
+	import hasshub
+	config.hubtypes['HASS'] = hasshub.HA
+
 
 # noinspection PyUnusedLocal
 def handler(signum, frame):
@@ -130,10 +135,6 @@ except (IOError, ValueError):
 logsupport.Logs.Log(
 	u'Version/Sha/Dnld/Commit: ' + config.versionname + u' ' + config.versionsha + u' ' + config.versiondnld + u' ' + config.versioncommit)
 
-"""
-Set up hub types (ultimately should be dynamic like below; need to account for Py2/3 compat
-"""
-config.hubtypes = {'ISY':isy.ISY,"HAss":'ha'}
 
 """
 Dynamically load class definitions for all defined screen types and link them to how configuration happens
@@ -307,9 +308,10 @@ for i, v in config.ParsedConfigFile.items():
 		elif stype == "Locals":
 			valuestore.NewValueStore(localvarsupport.LocalVars(i, v))
 			del config.ParsedConfigFile[i]
-		elif stype == "ISY":
-			config.Hubs[i] = isy.ISY(i, v.get('addr',''), v.get('user',''), v.get('password',''))
-			del config.ParsedConfigFile[i]
+		for hubtyp, pkg in config.hubtypes.items():
+			if stype == hubtyp:
+				config.Hubs[i] = pkg(i, v.get('addr',''), v.get('user',''), v.get('password',''))
+				del config.ParsedConfigFile[i]
 
 config.defaulthubname = config.ParsedConfigFile.get('DefaultHub','')
 

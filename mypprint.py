@@ -78,9 +78,7 @@ def isrecursive(obj):
 
 def _sorted(iterable):
     with warnings.catch_warnings():
-        if _sys.py3kwarning:
-            warnings.filterwarnings("ignore", "comparing unequal types "
-                                    "not supported", DeprecationWarning)
+
         return sorted(iterable)
 
 class PrettyPrinter:

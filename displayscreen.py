@@ -36,7 +36,7 @@ class DisplayScreen(object):
 		# self.ACTIVITYTIMER = pygame.event.Event(
 		#	pygame.USEREVENT + 1)  # screen activity timing (Dimming, persistence etc)
 		self.ACTIVITYTIMER = pygame.USEREVENT + 1
-		self.ISYChange = pygame.USEREVENT + 2  # Node state change in a current screen watched node on the ISY
+		self.HubNodeChange = pygame.USEREVENT + 2  # Node state change in a current screen watched node on the ISY
 		self.ISYAlert = pygame.USEREVENT + 3  # Mpde state change in watched node for alerts
 		self.ISYVar = pygame.USEREVENT + 4  # Var value change for a watched variable on ISY
 		# noinspection PyArgumentList
@@ -154,6 +154,11 @@ class DisplayScreen(object):
 		while config.Running:  # Operational Control Loop
 
 			os.utime(config.homedir + "/.ConsoleStart", None)
+			if debug.dbgStore.GetVal('StatesDump'):
+				debug.dbgStore.SetVal('StatesDump',False)
+				for h, hub in config.Hubs.items():
+					print('States dump for hub: ',h)
+					hub.StatesDump()
 
 			threadmanager.CheckThreads()
 
@@ -257,15 +262,15 @@ class DisplayScreen(object):
 					else:  # Maint or Alert - todo?
 						debug.debugPrint('Dispatch', 'TO while in: ', self.state)
 
-			elif event.type == self.ISYChange:
+			elif event.type == self.HubNodeChange:
 				debug.debugPrint('Dispatch', 'ISY Change Event', event)
 				if hasattr(event, 'node'):
-					self.AS.ISYEvent(hub=event.hub, node=event.node, value=event.value)
+					self.AS.NodeEvent(hub=event.hub, node=event.node, value=event.value)
 				elif hasattr(event, 'varinfo'):
-					self.AS.ISYEvent(varinfo=event.varinfo)
+					self.AS.NodeEvent(varinfo=event.varinfo)
 				else:
-					debug.debugPrint('Dispatch', 'Bad ISYChange Event: ', event)
-					logsupport.Logs.Log('Bad ISYChange Event ', event, severity=ConsoleWarning)
+					debug.debugPrint('Dispatch', 'Bad Node Change Event: ', event)
+					logsupport.Logs.Log('Bad Node Change Event ', event, severity=ConsoleWarning)
 
 			elif event.type in (self.ISYVar, self.ISYAlert):
 				evtype = 'variable' if event.type == self.ISYVar else 'node'
