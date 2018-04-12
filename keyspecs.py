@@ -18,6 +18,20 @@ def KeyWithVarChanged(storeitem, old, new, param, modifier):
 	notice = pygame.event.Event(config.DS.HubNodeChange, hub='*VARSTORE*', varinfo=param)
 	pygame.fastevent.post(notice)
 
+def _resolvekeyname(kn,DefHub):
+	t = kn.split(':')
+	if len(t) == 1:
+		return t[0], DefHub
+	elif len(t) == 2:
+		try:
+			return t[1], config.Hubs[t[0]]
+		except KeyError:
+			logsupport.Logs.Log("Bad qualified node name for key: " + kn, severity = ConsoleWarning)
+			return "*none*", DefHub
+	else:
+		logsupport.Logs.Log("Ill formed keyname: ", kn)
+		return '*none*', DefHub
+
 def CreateKey(screen, screensection, keyname):
 	if screensection.get('type', 'ONOFF', delkey=False) == 'RUNTHEN':
 		screensection['type'] = 'RUNPROG'
@@ -93,7 +107,7 @@ class SetVarValueKey(ManualKeyDesc):
 		# call reinitdisplay on enclosing screen
 		pass
 
-	# todo create a screen to allow changing the value if parameter is maleable
+	# Future create a screen to allow changing the value if parameter is maleable
 
 
 class VarKey(ManualKeyDesc):
@@ -174,7 +188,7 @@ class SetVarKey(ManualKeyDesc):
 		utilities.LocalizeParams(self, keysection, '--', VarType='undef', Var='', Value=0)
 		try:
 			self.Proc = self.SetVarKeyPressed
-			if self.VarType != 'undef': # todo del later
+			if self.VarType != 'undef': # deprecate
 
 				if self.VarType == 'State':
 					self.VarName = (config.defaulthub.name,'State',self.Var) # use default hub for each of these 2
@@ -202,30 +216,38 @@ class SetVarKey(ManualKeyDesc):
 		valuestore.SetVal(self.VarName,self.Value)
 		self.BlinkKey(self.Blink)
 
+class DummyProgram(object):
+	def __init__(self,kn, hn, pn):
+		self.keyname = kn
+		self.hubname = hn
+		self.programname = pn
+
+	def RunProgram(self):
+		logsupport.Logs.Log("Pressed unbound program key: " + self.keyname + " for hub: " + self.hubname + " program: " + self.programname)
+
 class RunProgram(ManualKeyDesc):
-	def __init__(self, screen, keysection, keyname):
+	def __init__(self, screen, keysection, kn):
+		keyname, self.Hub = _resolvekeyname(kn,screen.DefaultHub)
+
 		self.ProgramName = ''
 		debug.debugPrint('Screen', "             New RunProgram Key ", keyname)
 		utilities.LocalizeParams(self, keysection, '--', ProgramName='')
 		ManualKeyDesc.__init__(self, screen, keysection, keyname)
-		self.Hub = screen.DefaultHub # todo
 		self.State = False
-		try:
-			self.ISYObj = self.Hub.ProgramsByName[self.ProgramName]
-		except KeyError:
-			self.ISYObj = config.DummyProgram
-			debug.debugPrint('Screen', "Unbound program key: ", self.name)
-			logsupport.Logs.Log("Missing Prog binding: " + self.name, severity=ConsoleWarning)
+		self.Program = self.Hub.GetProgram(self.ProgramName)
+		if self.Program is None:
+			self.Program = DummyProgram(keyname,self.Hub.name,self.ProgramName)
+			logsupport.Logs.Log("Missing Prog binding Key: " + keyname + " Hub: " + self.Hub.name + " Program: " + self.ProgramName, severity=ConsoleWarning)
 		if self.Verify:
 			self.VerifyScreen = supportscreens.VerifyScreen(self, self.GoMsg, self.NoGoMsg, self.VerifyRunAndReturn,
-															screen, self.KeyCharColorOff,
+															screen, self.KeyColorOff,
 															screen.BackgroundColor, screen.CharColor, self.State, screen.HubInterestList)
 		self.Proc = self.RunKeyPressed
 
 	# noinspection PyUnusedLocal
 	def VerifyRunAndReturn(self, go, presstype):
 		if go:
-			self.ISYObj.runThen()
+			self.Program.RunProgram()
 			config.DS.SwitchScreen(self.Screen, 'Bright', config.DS.state, 'Verify Run ' + self.Screen.name)
 			if self.Blink != 0:
 				E = eventlist.ProcEventItem(id(self.Screen), 'keyblink', functools.partial(self.BlinkKey, self.Blink))
@@ -239,14 +261,14 @@ class RunProgram(ManualKeyDesc):
 		if self.Verify:
 			self.VerifyScreen.Invoke()
 		else:
-			self.ISYObj.runThen()
+			self.Program.RunProgram()
 			self.BlinkKey(self.Blink)
 
 class OnOffKey(ManualKeyDesc):
-	def __init__(self, screen, keysection, keyname, keytype):
+	def __init__(self, screen, keysection, kn, keytype):
 		self.SceneProxy = ''
 		self.NodeName = ''
-		self.Hub = screen.DefaultHub # todo
+		keyname, self.Hub = _resolvekeyname(kn, screen.DefaultHub)
 		self.ControlObj = None # object on which to make operation calls
 		self.DisplayObj = None # object whose state is reflected in key
 
@@ -284,7 +306,10 @@ class OnOffKey(ManualKeyDesc):
 
 	def InitDisplay(self):
 		debug.debugPrint("Screen", "OnOffKey Key.InitDisplay ", self.Screen.name, self.name)
-		state = self.Hub.GetCurrentStatus(self.DisplayObj)  #isy.get_real_time_obj_status(self.DisplayObj)
+		state = self.Hub.GetCurrentStatus(self.DisplayObj)
+		if state is None:
+			logsupport.Logs.Log("No state available for  key: " + self.name + ' on screen: ' + self.Screen.name, severity=ConsoleWarning)
+			state = 0
 		self.State = not (state == 0)  # K is off (false) only if state is 0
 		super(OnOffKey, self).InitDisplay()
 
@@ -301,7 +326,7 @@ class OnOffKey(ManualKeyDesc):
 				self.State = False
 
 			if self.ControlObj is not None:
-				self.ControlObj.SendCommand(self.State, presstype)
+				self.ControlObj.SendOnOffCommand(self.State, presstype)
 				self.BlinkKey(self.Blink)
 			else:
 				logsupport.Logs.Log("Screen: " + self.name + " press unbound key: " + self.name,
@@ -318,7 +343,7 @@ class OnOffKey(ManualKeyDesc):
 			elif self.KeyAction == "Off":
 				self.State = False
 			if self.ControlObj is not None:
-				self.ControlObj.SendCommand(self.State, self.lastpresstype)
+				self.ControlObj.SendOnOffCommand(self.State, self.lastpresstype)
 			else:
 				logsupport.Logs.Log("Screen: " + self.name + " press unbound key: " + self.name,
 								severity=ConsoleWarning)

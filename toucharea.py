@@ -19,6 +19,7 @@ class TouchPoint(object):
 		self.Size = Size
 		self.Center = Center
 		self.Screen = None
+		self.ControlObj = None
 		self.Proc = proc  # function that gets called on touch - expects to take a single parameter which is thee type of press
 
 		utilities.register_example("TouchPoint", self)
@@ -70,16 +71,11 @@ class ManualKeyDesc(TouchPoint):
 			# signature: ManualKeyDesc(screen, keyname, label, bcolor, charcoloron, charcoloroff, center=, size=, KOn=, KOff=, proc=)
 			# initializing from program code case
 			self.docodeinit(*args, **kwargs)
-		# todo may need to change signature if handling "holds"?
-		#self.ISYObj = None  # this will get filled in by creator later - could be ISY node, ISY program
+		# Future may need to change signature if handling "holds"?
 		if self.KeyColorOff == '':
 			self.KeyColorOff = self.KeyColor
 		if self.KeyColorOn == '':
 			self.KeyColorOn = self.KeyColor
-		if self.KeyLabelOn == ['', ]:
-			self.KeyLabelOn = self.label
-		if self.KeyLabelOff == ['', ]:
-			self.KeyLabelOff = self.label
 		if self.Size[0] != 0:  # this key can be imaged now since it has a size
 			self.FinishKey((0, 0), (0, 0))
 		utilities.register_example("ManualKeyDesc", self)
@@ -101,7 +97,6 @@ class ManualKeyDesc(TouchPoint):
 		self.KeyCharColorOn = charcoloron
 		self.KeyCharColorOff = charcoloroff
 		self.label = label
-		#self.ISYObj = None
 		self.KeyOnOutlineColor = config.KeyOnOutlineColor if KOn == '' else KOn
 		self.KeyOffOutlineColor = config.KeyOffOutlineColor if KOff == '' else KOff
 		self.Blink = Blink
@@ -110,7 +105,7 @@ class ManualKeyDesc(TouchPoint):
 		TouchPoint.__init__(self, keyname, (0, 0), (0, 0))
 		utilities.LocalizeParams(self, keysection, '--', 'KeyColor', 'KeyOffOutlineColor', 'KeyOnOutlineColor',
 								 'KeyCharColorOn', 'KeyCharColorOff', 'KeyOutlineOffset', 'KeyColorOn', 'KeyColorOff',
-								 'KeyLabelOn', 'KeyLabelOff', FastPress=0, Verify=0, Blink=0, label=[keyname])
+								 'KeyLabelOn', 'KeyLabelOff', FastPress=0, Verify=0, Blink=0, label=[''])
 		if self.Verify:
 			utilities.LocalizeExtra(self, keysection, GoMsg=['Proceed'], NoGoMsg=['Cancel'])
 		self.Screen = screen
@@ -203,6 +198,16 @@ class ManualKeyDesc(TouchPoint):
 		if size[0] != 0: # if size is not zero then set the pos/size of the key; otherwise it was previously set in manual creation
 			self.Center = center
 			self.Size = size
+		if self.label == ['']:
+			try:
+				if self.ControlObj.FriendlyName != '':
+					self.label = [self.ControlObj.FriendlyName]
+			except AttributeError:
+				self.label = [self.name]
+		if self.KeyLabelOn == ['', ]:
+			self.KeyLabelOn = self.label
+		if self.KeyLabelOff == ['', ]:
+			self.KeyLabelOff = self.label
 
 		self.BuildKey(wc(self.KeyColorOn),wc(self.KeyColorOff))
 

@@ -41,7 +41,7 @@ class Alert(object):
 		else:
 			targtype = 'Proc'
 		return self.name + ': ' + self.type + ' Alert (' + self.state + ') Trigger: ' + repr(
-			self.trigger) + ' Invoke: ' + targtype + ':' + self.actionname
+			self.trigger) + ' Invoke: ' + targtype + ':' + self.actionname + str(self.actiontarget)
 
 
 class NodeChgtrigger(object):
@@ -52,7 +52,10 @@ class NodeChgtrigger(object):
 		self.delay = delay
 
 	def IsTrue(self):
-		val = self.node.Hub.GetCurrentStatus(self.node)  # the realtime update should be hidden in the hub todo
+		val = self.node.Hub.GetCurrentStatus(self.node)
+		if val is None:
+			logsupport.Logs.Log("No state available in alert for: " + self.node.name)
+			val = 999999
 		if self.test == 'EQ':
 			return int(val) == int(self.value)
 		elif self.test == 'NE':
@@ -61,7 +64,8 @@ class NodeChgtrigger(object):
 			exitutils.FatalError('VarChgtriggerIsTrue')
 
 	def __repr__(self):
-		return 'Node ' + self.self.node.addr + ' status ' + self.test + ' ' + str(self.value) + ' delayed ' + str(
+		naddr = "*NONE*" if self.node is None else self.node.address
+		return 'Node ' + naddr + ' status ' + self.test + ' ' + str(self.value) + ' delayed ' + str(
 			self.delay) + ' seconds'
 
 
@@ -199,15 +203,18 @@ def ParseAlertParams(nm, spec):
 		A = Alert(nm, triggertype, Periodictrigger(periodic, interval, secfrommid), action, actionname, param)
 
 	elif triggertype == 'NodeChange':  # needs node, test, status, delay
-		n = spec.get('Node', None)
-		# noinspection PyBroadException
-		hub = config.defaulthub #todo handle param for non default hub
-		try:
-			Node = hub.GetNode(n)[1]  # use MonitorObj (1)
-		except:
-			Node = None
-			logsupport.Logs.Log("Bad Node Spec on NodeChange alert in " + nm, severity=ConsoleWarning)
+		n = spec.get('Node', '').split(':')
+		if len(n) == 1:
+			nd = n[0] # unqualified node - use default hub
+			hub = config.defaulthub
+		else:
+			nd = n[1]
+			hub = config.Hubs[n[0]]
+		Node = hub.GetNode(nd, nd)[1]  # use MonitorObj (1)
 		test, value, delay = comparams(spec)
+		if Node is None:
+			logsupport.Logs.Log("Bad Node Spec on NodeChange alert in " + nm, severity=ConsoleWarning)
+			return None
 		trig = NodeChgtrigger(Node, test, value, delay)
 		A = Alert(nm, triggertype, trig, action, actionname, param)
 	elif triggertype in ('StateVarChange','IntVarChange', 'LocalVarChange'):

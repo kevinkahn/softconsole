@@ -57,8 +57,8 @@ class EventList(object):
 		self.BaseTime = 0
 		self.List = []
 		self.finder = {}
-		self.TASKREADY = pygame.event.Event(pygame.USEREVENT,
-											{})  # todo think this could just be the int constant and remove .type below where used
+		self.TASKREADY = pygame.event.Event(pygame.USEREVENT,{})
+		# todo think this could just be the int constant and remove .type below where used
 
 	def StartLongOp(self):
 		pygame.time.set_timer(self.TASKREADY.type, 0)
@@ -154,4 +154,5 @@ class EventList(object):
 		for e in self.finder.values():
 			if e.gpid == gpid:
 				self.RemoveTask(e)
+
 

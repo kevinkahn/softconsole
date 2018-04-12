@@ -310,7 +310,7 @@ for i, v in config.ParsedConfigFile.items():
 			del config.ParsedConfigFile[i]
 		for hubtyp, pkg in config.hubtypes.items():
 			if stype == hubtyp:
-				config.Hubs[i] = pkg(i, v.get('addr',''), v.get('user',''), v.get('password',''))
+				config.Hubs[i] = pkg(i, v.get('address',''), v.get('user',''), v.get('password',''))
 				del config.ParsedConfigFile[i]
 
 config.defaulthubname = config.ParsedConfigFile.get('DefaultHub','')
@@ -365,7 +365,7 @@ Build the ISY object structure and connect the configured screens to it
 """
 
 configobjects.MyScreens()
-logsupport.Logs.Log("Linked config to ISY")
+logsupport.Logs.Log("Linked config to Hubs")
 
 """
 Build the alerts structures
@@ -387,8 +387,8 @@ LogBadParams(alertspec, "Alerts")
 """
 Dump documentation if development version
 """
-# if config.versionname == 'development':
-#	utilities.DumpDocumentation()
+if config.versionname == 'development':
+	utilities.DumpDocumentation()
 
 """
 Run the main console loop

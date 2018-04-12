@@ -11,7 +11,13 @@ import exitutils
 from stores import valuestore
 import errno
 
+
+class ISYEMInternalError(Exception):
+	pass
+
 class ISYEventMonitor(object):
+
+
 	def __init__(self, thisISY):
 		self.isy = thisISY
 		self.hubname = thisISY.name
@@ -24,6 +30,7 @@ class ISYEventMonitor(object):
 		self.lastheartbeat = 0
 		self.hbcount = 0
 		self.digestinginput = True
+		self.AlertNodes = {}
 
 		self.lasterror = (0,'Init')
 		debug.debugPrint('DaemonCtl', "Queue Handler ", self.QHnum, " started: ", self.watchstarttime)
@@ -37,7 +44,6 @@ class ISYEventMonitor(object):
 		self.QHnum += 1
 
 	def PostStartQHThread(self):
-		# todo - should heartbeat logic go here somehow - maybe a proc called back in the daemon code?
 		logsupport.Logs.Log("ISY stream thread " + str(self.QHnum) + " setup")
 		while self.digestinginput:
 			logsupport.Logs.Log("Waiting initial status dump")
@@ -46,13 +52,16 @@ class ISYEventMonitor(object):
 
 	def PreRestartQHThread(self):
 		try:
+			if self.lasterror == TimeoutError:
+				logsupport.Logs.Log('(TimeoutError) Wait for likely router reboot or down', severity=ConsoleError)
+				time.sleep(120)
 			if self.lasterror[0] == errno.ENETUNREACH:
 				# likely home network down so wait a bit
-				logsupport.Logs.Log('Wait for likely router reboot or down', severity=ConsoleError)
+				logsupport.Logs.Log('(NETUNREACH) Wait for likely router reboot or down', severity=ConsoleError)
 				# todo overlay a screen delay message so locked up console is understood
 				time.sleep(120)
 			elif self.lasterror[0] == errno.ETIMEDOUT:
-				logsupport.Logs.Log('Timeout on WS - delay to allow possible ISY or router reboot',severity=ConsoleError, tb=False)
+				logsupport.Logs.Log('(errno TIMEOUT) Timeout on WS - delay to allow possible ISY or router reboot',severity=ConsoleError, tb=False)
 				logsupport.Logs.Log('Original error report: '+repr(self.lasterror))
 				time.sleep(15)
 				# todo - bug in websocket that results in attribute error for errno.WSEACONNECTIONREFUSED check
@@ -127,8 +136,7 @@ class ISYEventMonitor(object):
 					if self.seq != eseq:
 						logsupport.Logs.Log("Event mismatch - Expected: " + str(self.seq) + " Got: " + str(eseq),
 										severity=ConsoleWarning)
-						# indicates a missed event - so should rebase the data? todo
-						self.seq = eseq + 1
+						raise ISYEMInternalError
 					else:
 						self.seq += 1
 
@@ -150,10 +158,10 @@ class ISYEventMonitor(object):
 							debug.debugPrint('DaemonStream', "V5 stream - pull up action value: ", eaction)
 							eaction = eaction["#text"]  # todo the new xmltodict will return as data['action']['#text']
 
-						if enode in config.DS.WatchNodes:
+						if enode in self.AlertNodes:
 							# alert node changed
 							debug.debugPrint('DaemonCtl', 'ISY reports change(alert):', self.isy.NodesByAddr[enode].name)
-							for a in config.DS.WatchNodes[enode]: # todo this  watchlist need fixing for multihubs
+							for a in self.AlertNodes[enode]:
 								logsupport.Logs.Log("Node alert fired: " + str(a), severity=ConsoleDetail)
 								# noinspection PyArgumentList
 								notice = pygame.event.Event(config.DS.ISYAlert, node=enode, value=self._NormalizeState(eaction), alert=a)

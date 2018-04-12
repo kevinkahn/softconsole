@@ -43,7 +43,7 @@ class KeyScreenDesc(screen.BaseKeyScreenDesc):
 
 	def NodeEvent(self, hub='', node=0, value=0, varinfo = ()):
 		# Watched node reported change event is ("Node", addr, value, seq)
-		print('HUB',hub,node,type(value), value)  # todo del
+		#print('HUB',hub,node,type(value), value)
 		assert isinstance(value,int)
 		if node != 0:
 			# noinspection PyBroadException

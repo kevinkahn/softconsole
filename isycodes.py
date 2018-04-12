@@ -1,5 +1,3 @@
-import config
-
 EVENT_CTRL = {
 	"_0": "Heartbeat",
 	"_1": "Trigger",
@@ -50,6 +48,8 @@ EVENT_CTRL = {
 }
 
 
+AlertNodes = {}
+
 def formatwsitem(sid, seq, code, action, node, info, extra, hub):
 	# noinspection PyBroadException
 	try:
@@ -89,7 +89,7 @@ def formatwsitem(sid, seq, code, action, node, info, extra, hub):
 			else:
 				stat = ''
 			paddr = str("0x%0.4X"%int(info['id'], 16))[2:]
-			return pretty + 'ProgRun ' + hub.ProgramsByAddr[paddr].name + runinfo + stat + other
+			return pretty + 'ProgRun ' + hub._ProgramsByAddr[paddr].name + runinfo + stat + other
 		elif EC == "System Status":
 			return pretty + "System Status " + ('Not Busy', 'Busy', 'Idle', 'Safe Mode')[int(action)]
 		else:

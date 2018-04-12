@@ -28,7 +28,6 @@ class DisplayScreen(object):
 
 		# Central Task List
 		self.Tasks = EventList()
-		self.WatchNodes = {}  # Nodes that should be watched for changes (key is node address, value is [alerts]
 		self.Deferrals = []
 		self.WatchVarVals = {}  # most recent reported watched variable values
 
@@ -48,7 +47,7 @@ class DisplayScreen(object):
 
 	def Dim(self):
 		self.dim = 'Dim'
-		hw.GoDim(int(config.sysStore.GetVal('DimLevel'))) # todo why this returning str?
+		hw.GoDim(int(config.sysStore.GetVal('DimLevel')))
 
 	def Brighten(self):
 		self.dim = 'Bright'
@@ -97,7 +96,7 @@ class DisplayScreen(object):
 
 		self.state = newstate
 
-		debug.debugPrint('Dispatch', "New watchlist(Main): " + str(self.AS.HubInterestList) + str(self.WatchNodes))
+		debug.debugPrint('Dispatch', "New watchlist(Main): " + str(self.AS.HubInterestList))
 
 		if OS != self.AS: self.AS.InitDisplay(nav)
 
@@ -130,10 +129,7 @@ class DisplayScreen(object):
 				E = AlertEventItem(id(a), a.name, a)
 				self.Tasks.AddTask(E, a.trigger.NextInterval())
 			elif a.type == 'NodeChange':
-				if a.trigger.nodeaddress in self.WatchNodes:
-					self.WatchNodes[a.trigger.nodeaddress].append(a)
-				else:
-					self.WatchNodes[a.trigger.nodeaddress] = [a]
+				a.trigger.node.Hub.SetAlertWatch(a.trigger.node, a)
 				if a.trigger.IsTrue():
 					# noinspection PyArgumentList
 					notice = pygame.event.Event(config.DS.ISYAlert, alert=a)
@@ -211,7 +207,7 @@ class DisplayScreen(object):
 							self.Deferrals.append(eventx)  # defer the event until after the clicks are sorted out
 						else:
 							debug.debugPrint('Touch','Other event '+ pygame.event.event_name(eventx.type) + str(eventx.type))
-						# todo add handling for hold here with checking for MOUSE UP etc.
+						# Future add handling for hold here with checking for MOUSE UP etc.
 				if tapcount == 3:
 					# Switch screen chains
 					if config.HomeScreen != config.HomeScreen2:  # only do if there is a real secondary chain
@@ -293,7 +289,7 @@ class DisplayScreen(object):
 					# condition changed under a pending action (screen or proc) so just cancel and rearm
 					debug.debugPrint('Dispatch', 'Delayed event cleared before invoke', alert.name)
 					alert.state = 'Armed'
-					self.Tasks.RemoveAllGrp(id(alert))
+					self.Tasks.RemoveAllGrp(id(alert.actiontarget))#  id(alert))
 				else:
 					debug.debugPrint('Dispatch', 'ISYVar/ISYAlert passing: ', alert.state, alert.trigger.IsTrue(), event,
 							   alert)

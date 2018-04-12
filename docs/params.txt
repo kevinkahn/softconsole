@@ -1,20 +1,14 @@
 Global Parameters:
     BackgroundColor                 :  str       maroon
-    BrightLevel                     :  int       100
     CharColor                       :  str       white
     CmdCharCol                      :  str       white
     CmdKeyCol                       :  str       red
     DimHomeScreenCoverName          :  str       
     DimIdleListNames                :  list      []
     DimIdleListTimes                :  list      []
-    DimLevel                        :  int       10
     DimTO                           :  int       20
     ExtraChain                      :  list      []
     HomeScreenName                  :  str       
-    HomeScreenTO                    :  int       60
-    ISYaddr                         :  str       
-    ISYpassword                     :  str       
-    ISYuser                         :  str       
     KeyCharColorOff                 :  str       black
     KeyCharColorOn                  :  str       white
     KeyColor                        :  str       aqua
@@ -30,7 +24,6 @@ Global Parameters:
     LogFontSize                     :  int       23
     MainChain                       :  list      []
     MaxLogFiles                     :  int       5
-    MultiTapTime                    :  int       400
     PersistTO                       :  int       20
     SecondaryChain                  :  list      []
     WunderKey                       :  str       none
@@ -39,6 +32,7 @@ Module Parameters:
         Local Parameters:
             BlinkTime               :  int     
             CharSize                :  list    
+            DefaultHub              :  str     
             DeferTime               :  str     
             Font                    :  str     
             Message                 :  list    
@@ -46,11 +40,9 @@ Module Parameters:
             label                   :  list    
         Overrideable Globals:
             BackgroundColor
-            BrightLevel
             CharColor
             CmdCharCol
             CmdKeyCol
-            DimLevel
             DimTO
             KeyCharColorOff
             KeyCharColorOn
@@ -59,72 +51,57 @@ Module Parameters:
     ClockScreenDesc
         Local Parameters:
             CharSize                :  list    
+            DefaultHub              :  str     
+            ExtraFields             :  list    
+            ExtraFormat             :  list    
+            ExtraSize               :  list    
             Font                    :  str     
             OutFormat               :  list    
             label                   :  list    
         Overrideable Globals:
             BackgroundColor
-            BrightLevel
             CharColor
             CmdCharCol
             CmdKeyCol
-            DimLevel
-            DimTO
-            PersistTO
-    HouseStatusScreenDesc
-        Local Parameters:
-            NormalOff               :  list    
-            NormalOn                :  list    
-            label                   :  list    
-        Overrideable Globals:
-            BackgroundColor
-            BrightLevel
-            CharColor
-            CmdCharCol
-            CmdKeyCol
-            DimLevel
             DimTO
             PersistTO
     KeyScreenDesc
         Local Parameters:
+            DefaultHub              :  str     
             label                   :  list    
         Overrideable Globals:
             BackgroundColor
-            BrightLevel
             CharColor
             CmdCharCol
             CmdKeyCol
-            DimLevel
             DimTO
             KeysPerColumn
             KeysPerRow
             PersistTO
     LogDisplayScreen
         Local Parameters:
+            DefaultHub              :  str     
             label                   :  list    
         Overrideable Globals:
             BackgroundColor
-            BrightLevel
             CharColor
             CmdCharCol
             CmdKeyCol
-            DimLevel
             DimTO
             KeysPerColumn
             KeysPerRow
             PersistTO
     MaintScreenDesc
         Local Parameters:
+            DefaultHub              :  str     
             SubFontSize             :  int     
             TitleFontSize           :  int     
             label                   :  list    
         Overrideable Globals:
             BackgroundColor
-            BrightLevel
             CharColor
             CmdCharCol
             CmdKeyCol
-            DimLevel
             DimTO
             KeysPerColumn
             KeysPerRow
@@ -190,34 +167,15 @@ Module Parameters:
             KeyOffOutlineColor
             KeyOnOutlineColor
             KeyOutlineOffset
-    SetVarValueKey
-        Local Parameters:
-            Blink                   :  int     
-            FastPress               :  int     
-            Var                     :  str     
-            Verify                  :  int     
-            label                   :  list    
-        Overrideable Globals:
-            KeyCharColorOff
-            KeyCharColorOn
-            KeyColor
-            KeyColorOff
-            KeyColorOn
-            KeyLabelOff
-            KeyLabelOn
-            KeyOffOutlineColor
-            KeyOnOutlineColor
-            KeyOutlineOffset
     ThermostatScreenDesc
         Local Parameters:
+            DefaultHub              :  str     
             label                   :  list    
         Overrideable Globals:
             BackgroundColor
-            BrightLevel
             CharColor
             CmdCharCol
             CmdKeyCol
-            DimLevel
             DimTO
             KeyColor
             KeyOffOutlineColor
@@ -233,6 +191,7 @@ Module Parameters:
             CondSize                :  list    
             ConditionFields         :  list    
             ConditionFormat         :  list    
+            DefaultHub              :  str     
             FcstIcon                :  bool    
             FcstLayout              :  str     
             FcstSize                :  list    
@@ -247,41 +206,57 @@ Module Parameters:
             location                :  str     
         Overrideable Globals:
             BackgroundColor
-            BrightLevel
             CharColor
             CmdCharCol
             CmdKeyCol
-            DimLevel
             DimTO
             PersistTO
             WunderKey
+    VarKey
+        Local Parameters:
+            Appearance              :  list    
+            Blink                   :  int     
+            FastPress               :  int     
+            ValueSeq                :  list    
+            Var                     :  str     
+            Verify                  :  int     
+            label                   :  list    
+        Overrideable Globals:
+            KeyCharColorOff
+            KeyCharColorOn
+            KeyColor
+            KeyColorOff
+            KeyColorOn
+            KeyLabelOff
+            KeyLabelOn
+            KeyOffOutlineColor
+            KeyOnOutlineColor
+            KeyOutlineOffset
     VerifyScreen
         Local Parameters:
+            DefaultHub              :  str     
             SubFontSize             :  int     
             TitleFontSize           :  int     
             label                   :  list    
         Overrideable Globals:
             BackgroundColor
-            BrightLevel
             CharColor
             CmdCharCol
             CmdKeyCol
-            DimLevel
             DimTO
             KeysPerColumn
             KeysPerRow
             PersistTO
     WeatherScreenDesc
         Local Parameters:
+            DefaultHub              :  str     
             label                   :  list    
             location                :  str     
         Overrideable Globals:
             BackgroundColor
-            BrightLevel
             CharColor
             CmdCharCol
             CmdKeyCol
-            DimLevel
             DimTO
             PersistTO
             WunderKey

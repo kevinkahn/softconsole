@@ -36,7 +36,6 @@ ParsedConfigFile = None  # config.txt internal version
 configfilebase = "/home/pi/Console/"  # default location of configfile, can be overridden by arg1.
 configfile = ""
 fonts = None
-DummyProgram = None
 
 configfilelist = {}  # list of configfiles and their timestamps
 

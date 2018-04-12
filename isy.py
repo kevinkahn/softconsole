@@ -44,10 +44,10 @@ class OnOffItem(ISYNode):
 	Provides command handling for nodes that can be sent on/off faston/fastoff commands.
 	"""
 
-	def SendCommand(self, state, presstype):
+	def SendOnOffCommand(self, settoon, presstype):
 		selcmd = (('DOF', 'DFOF'), ('DON', 'DFON'))
-		debug.debugPrint('ISYdbg', "OnOff sent: ", selcmd[state][presstype], ' to ', self.name)
-		self.Hub.try_ISY_comm('nodes/' + self.address + '/cmd/' + selcmd[state][presstype])
+		debug.debugPrint('ISYdbg', "OnOff sent: ", selcmd[settoon][presstype], ' to ', self.name)
+		self.Hub.try_ISY_comm('nodes/' + self.address + '/cmd/' + selcmd[settoon][presstype])
 
 
 class Folder(TreeItem):
@@ -141,11 +141,10 @@ class Program(ProgramFolder):
 		# not using enabled, runAtStartup,running
 		utilities.register_example("Program", self)
 
-	def runThen(self):
+	def RunProgram(self):  # for ISY this does a runThen
 		debug.debugPrint('ISYdbg', "runThen sent to ", self.name)
 		url = self.Hub.ISYprefix + 'programs/' + self.address + '/runThen'
 		r = self.Hub.ISYrequestsession.get(url)
-		return r
 
 	def __repr__(self):
 		return 'Program: ' + TreeItem.__repr__(self) + ' '
@@ -174,19 +173,19 @@ class ISY(object):
 		self.addr = isyaddr
 		self.user = user
 		self.password = pwd
-		self.NodeRoot = Folder(self, 0, '', u'0', 0, u'0') # *root*
-		self.ProgRoot = None
+		self._NodeRoot = Folder(self, 0, '', u'0', 0, u'0') # *root*
+		self._ProgRoot = None
 		self.NodesByAddr = {}
-		self.FoldersByAddr = {'0': self.NodeRoot}
-		self.ScenesByAddr = {}
-		self.NodesByName = {}
-		self.NodesByFullName = {}
-		self.ScenesByName = {}
-		self.FoldersByName = {}
-		self.ProgramFoldersByAddr = {}
-		self.ProgramsByAddr = {}
-		self.ProgramsByName = {}
-		self.ProgramFoldersByName = {}
+		self._FoldersByAddr = {'0': self._NodeRoot}
+		self._ScenesByAddr = {}
+		self._NodesByName = {}
+		self._NodesByFullName = {}
+		self._ScenesByName = {}
+		self._FoldersByName = {}
+		self._ProgramFoldersByAddr = {}
+		self._ProgramsByAddr = {}
+		self._ProgramsByName = {}
+		self._ProgramFoldersByName = {}
 
 
 		"""
@@ -251,8 +250,8 @@ class ISY(object):
 			if 'parent' in folder:
 				ptyp = int(folder['parent']['@type'])
 				parentaddr = folder['parent']['#text']
-			self.FoldersByAddr[addr] = Folder(self, folder['@flag'], folder['name'], str(addr), ptyp, parentaddr)
-		self._LinkChildrenParents(self.FoldersByAddr, self.FoldersByName, self.FoldersByAddr, self.NodesByAddr)
+			self._FoldersByAddr[addr] = Folder(self, folder['@flag'], folder['name'], str(addr), ptyp, parentaddr)
+		self._LinkChildrenParents(self._FoldersByAddr, self._FoldersByName, self._FoldersByAddr, self.NodesByAddr)
 
 		fixlist = []
 		for node in configdict['node']:
@@ -282,7 +281,7 @@ class ISY(object):
 				logsupport.Logs.Log("Problem with processing node: ", nm, ' Address: ', str(addr), ' Pnode: ', str(pnd),
 								' ', str(flg), '/', str(enabld), '/', repr(prop), severity=ConsoleWarning)
 				# for now at least try to avoid nodes without properties which apparently Zwave devices may have
-		self._LinkChildrenParents(self.NodesByAddr, self.NodesByName, self.FoldersByAddr, self.NodesByAddr)
+		self._LinkChildrenParents(self.NodesByAddr, self._NodesByName, self._FoldersByAddr, self.NodesByAddr)
 		for fixitem in fixlist:
 			# noinspection PyBroadException
 			try:
@@ -314,17 +313,17 @@ class ISY(object):
 				else:
 					ptyp = 0
 					p = '0'
-				self.ScenesByAddr[scene['address']] = Scene(self, scene['@flag'], scene['name'], str(scene['address']), ptyp,
-															p, memberlist)
+				self._ScenesByAddr[scene['address']] = Scene(self, scene['@flag'], scene['name'], str(scene['address']), ptyp,
+															 p, memberlist)
 			else:
 				if scene['name'] not in ('~Auto DR', 'Auto DR'):
 					logsupport.Logs.Log('Scene with no members ', scene['name'], severity=ConsoleWarning)
-		self._LinkChildrenParents(self.ScenesByAddr, self.ScenesByName, self.FoldersByAddr, self.NodesByAddr)
+		self._LinkChildrenParents(self._ScenesByAddr, self._ScenesByName, self._FoldersByAddr, self.NodesByAddr)
 
-		self._SetFullNames(self.NodeRoot, "")
+		self._SetFullNames(self._NodeRoot, "")
 
 		if debug.dbgStore.GetVal('ISYdbg'):
-			self.PrintTree(self.NodeRoot, "    ", 'Nodes')
+			self.PrintTree(self._NodeRoot, "    ", 'Nodes')
 
 		"""
 		Build the Program tree
@@ -362,24 +361,17 @@ class ISY(object):
 		for item in configdict:
 			if item['@id'] == '0001':
 				# Program Root
-				self.ProgRoot = ProgramFolder(self, item['name'], '0001', '0001')
-				self.ProgramFoldersByAddr['0001'] = self.ProgRoot
+				self._ProgRoot = ProgramFolder(self, item['name'], '0001', '0001')
+				self._ProgramFoldersByAddr['0001'] = self._ProgRoot
 			else:
 				if item['@folder'] == 'true':
-					self.ProgramFoldersByAddr[item['@id']] = ProgramFolder(self, item['name'], item['@id'], item['@parentId'])
+					self._ProgramFoldersByAddr[item['@id']] = ProgramFolder(self, item['name'], item['@id'], item['@parentId'])
 				else:
-					self.ProgramsByAddr[item['@id']] = Program(self, item['name'], item['@id'], item['@parentId'])
-		self._LinkChildrenParents(self.ProgramFoldersByAddr, self.ProgramFoldersByName, self.ProgramFoldersByAddr,
-								  self.ProgramsByAddr)
-		self._LinkChildrenParents(self.ProgramsByAddr, self.ProgramsByName, self.ProgramFoldersByAddr,
-								  self.ProgramsByAddr)
-		config.DummyProgram = Program(self, 'dummy', 0, 0)
-
-		def Noop():
-			debug.debugPrint('Main', "Dummy program invocation")
-			pass
-
-		config.DummyProgram.runThen = Noop
+					self._ProgramsByAddr[item['@id']] = Program(self, item['name'], item['@id'], item['@parentId'])
+		self._LinkChildrenParents(self._ProgramFoldersByAddr, self._ProgramFoldersByName, self._ProgramFoldersByAddr,
+								  self._ProgramsByAddr)
+		self._LinkChildrenParents(self._ProgramsByAddr, self._ProgramsByName, self._ProgramFoldersByAddr,
+								  self._ProgramsByAddr)
 
 		"""
 		Get the variables
@@ -453,7 +445,7 @@ class ISY(object):
 		Vars.LockStore()
 		utilities.register_example("ISY", self)
 		if debug.dbgStore.GetVal('ISYdbg'):
-			self.PrintTree(self.ProgRoot, "    ", 'Programs')
+			self.PrintTree(self._ProgRoot, "    ", 'Programs')
 
 		self.isyEM = isyeventmonitor.ISYEventMonitor(self)
 		threadmanager.SetUpHelperThread(self.name,self.isyEM.QHandler,prerestart=self.isyEM.PreRestartQHThread,poststart=self.isyEM.PostStartQHThread)
@@ -590,17 +582,27 @@ class ISY(object):
 		else:
 			return None, None
 
-	def SendPress(self, ControlObj, presstype):
-		pass # return success?
+	def GetProgram(self, name):
+		try:
+			return self._ProgramsByName[name]
+		except KeyError:
+			logsupport.Logs.Log("Attempt to access unknown program: " + name + " in ISY Hub " + self.name, severity = ConsoleWarning)
+			return None
 
 	def GetCurrentStatus(self,MonitorNode):
 		if MonitorNode is not None:
 			return self._get_real_time_node_status(MonitorNode.address)
 		else:
-			return 0
+			return None
+
+	def SetAlertWatch(self, node, alert):
+		if node.address in self.isyEM.AlertNodes:
+			self.isyEM.AlertNodes[node.address].append(alert)
+		else:
+			self.isyEM.AlertNodes[node.address] = [alert]
 
 	def StatesDump(self):
-		for n, nd in self.NodesByFullName.items():
+		for n, nd in self._NodesByFullName.items():
 			if hasattr(nd,'devState'):
 				print('Node(', type(nd), '): ', n, ' -> ', nd.devState, type(nd.devState))
 			else:
@@ -608,7 +610,7 @@ class ISY(object):
 
 	def _SetFullNames(self, startpoint, parentname):
 		startpoint.fullname = parentname + startpoint.name
-		self.NodesByFullName[startpoint.fullname] = startpoint
+		self._NodesByFullName[startpoint.fullname] = startpoint
 		if isinstance(startpoint, TreeItem):
 			for c in startpoint.children:
 				self._SetFullNames(c, startpoint.fullname + '/')
@@ -616,25 +618,25 @@ class ISY(object):
 	def _GetNodeByName(self, name):
 		if name[0] == '/':
 			# use fully qualified name
-			return self.NodesByFullName[name]
+			return self._NodesByFullName[name]
 		else:
 			# use short name
-			return self.NodesByName[name]
+			return self._NodesByName[name]
 
 	def _NodeExists(self, name):
 		if name[0] == '/':
-			return name in self.NodesByFullName
+			return name in self._NodesByFullName
 		else:
-			return name in self.NodesByName
+			return name in self._NodesByName
 
 	def _GetSceneByName(self,name):
 		if name[0] != '/':
-			if name in self.ScenesByName:
-				return self.ScenesByName[name]
+			if name in self._ScenesByName:
+				return self._ScenesByName[name]
 			else:
 				return None
 		else:
-			for n, s in self.ScenesByName.items():
+			for n, s in self._ScenesByName.items():
 				if name == s.fullname:
 					return s
 			return None

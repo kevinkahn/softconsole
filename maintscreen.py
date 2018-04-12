@@ -143,14 +143,14 @@ def doexit(K, presstype):
 
 # noinspection PyUnusedLocal
 def dobeta(K, presstype):
-	#todo fetch other tags; switch to versionselector
+	#Future fetch other tags; switch to versionselector
 	K.State = not K.State
 	K.PaintKey()
 	if K.name == 'stable':
-		subprocess.Popen('sudo rm /home/pi/usebeta', shell=True) #todo remove
+		subprocess.Popen('sudo rm /home/pi/usebeta', shell=True) #Deprecate remove
 		subprocess.Popen('sudo echo stable > /home/pi/versionselector', shell=True)
 	elif K.name == 'beta':
-		subprocess.Popen('sudo touch /home/pi/usebeta', shell=True) #todo remove
+		subprocess.Popen('sudo touch /home/pi/usebeta', shell=True) #Deprecate remove
 		subprocess.Popen('sudo echo beta > /home/pi/versionselector', shell=True)
 	elif K.name == 'fetch':
 		fetch_beta()
