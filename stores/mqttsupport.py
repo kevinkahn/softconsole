@@ -1,6 +1,7 @@
 import paho.mqtt.client as mqtt
 import debug
 import logsupport
+import json
 from logsupport import ConsoleWarning
 # noinspection PyProtectedMember
 from configobj import Section
@@ -9,8 +10,9 @@ from stores import valuestore
 import threadmanager
 
 class MQitem(valuestore.StoreItem):
-	def __init__(self, name, Topic, Type, Expires, Store):
+	def __init__(self, name, Topic, Type, Expires, jsonflds, Store):
 		self.Topic = Topic
+		self.jsonflds = jsonflds
 		super(MQitem,self).__init__(name, None, store = Store, vt = Type,Expires = Expires)
 
 class MQTTBroker(valuestore.ValueStore):
@@ -31,17 +33,30 @@ class MQTTBroker(valuestore.ValueStore):
 		# noinspection PyUnusedLocal
 		def on_message(client, userdata, msg):
 			#print time.ctime() + " Received message " + str(msg.payload) + " on topic "  + msg.topic + " with QoS " + str(msg.qos)
-			var = None
+			var = []
 			for v,d in self.vars.items():
 				if d.Topic == msg.topic:
-					var = v
-					break
-			if var is None:
+					var.append(v)
+			if var == []:
 				logsupport.Logs.Log('Unknown topic ',msg.topic, ' from broker ',self.name,severity=ConsoleWarning)
 			else:
-				self.vars[var].SetTime = time.time()
-				self.vars[var].Value = self.vars[var].Type(msg.payload)
-				debug.debugPrint('StoreTrack', "Store(mqtt): ", self.name, ':', var, ' Value: ', self.vars[var].Value)
+				for v in var:
+					self.vars[v].SetTime = time.time()
+					if self.vars[v].jsonflds == []:
+						self.vars[v].Value = self.vars[v].Type(msg.payload)
+						debug.debugPrint('StoreTrack', "Store(mqtt): ", self.name, ':', v, ' Value: ',
+										 self.vars[v].Value)
+					else:
+						try:
+							payload = json.loads(msg.payload.decode('ascii'))
+							for i in self.vars[v].jsonflds:
+								payload = payload[i]
+							self.vars[v].Value = self.vars[v].Type(payload)
+							debug.debugPrint('StoreTrack', "Store(mqtt): ", self.name, ':', v, ' Value: ',
+											 self.vars[v].Value)
+						except Exception as e:
+							logsupport.Logs.Log('Error handling json MQTT item: ',str(self.vars[v].jsonflds),
+												msg.payload.decode('ascii'),str(e), severity=ConsoleWarning)
 
 		# noinspection PyUnusedLocal
 		def on_log(client, userdata, level, buf):
@@ -62,7 +77,8 @@ class MQTTBroker(valuestore.ValueStore):
 				else:
 					tpcvrt = str
 				tpc = value.get('Topic',None)
-				self.vars[itemname] = MQitem(itemname, tpc, tpcvrt,int(value.get('Expires',99999999999999999)),self)
+				jsonflds = value.get('json', '').split(':')
+				self.vars[itemname] = MQitem(itemname, tpc, tpcvrt,int(value.get('Expires',99999999999999999)),jsonflds,self)
 				self.ids[tpc] = itemname
 		self.MQTTclient = mqtt.Client(userdata=self)
 		self.MQTTclient.on_connect = on_connect

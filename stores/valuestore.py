@@ -369,7 +369,7 @@ class ValueStore(object):
 		self.iternames = list(self.vars)
 		return self
 
-	def __next__(self): #todo both nexts?
+	def __next__(self):
 		try:
 			return self.vars[self.iternames.pop(0)]
 		except IndexError:

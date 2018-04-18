@@ -286,7 +286,7 @@ Fake an ISY Hub section if old style auth present
 """
 if "ISYaddr" in config.ParsedConfigFile:
 	logsupport.Logs.Log("Converting ISYaddr parameter style to hub named: ", config.defaultISYname)
-	tmp = {"addr":config.ParsedConfigFile.get("ISYaddr",""),
+	tmp = {"address":config.ParsedConfigFile.get("ISYaddr",""),
 					 "password":config.ParsedConfigFile.get("ISYpassword",""),
 					 "user":config.ParsedConfigFile.get("ISYuser",""),
 					 "type":"ISY"}
