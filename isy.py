@@ -458,6 +458,16 @@ class ISY(object):
 			varid = storeitem.Attribute
 			txt = self.try_ISY_comm('vars/set/' + str(varid[0]) + '/' + str(varid[1]) + '/' + str(val))  # todo what if notfound
 
+	def CheckStates(self):
+		# sanity check all states in Hub against local cache
+		logsupport.Logs.Log("Running state check for ISY hub: ",self.name)
+		for nm, N in self._NodesByFullName.items():
+			devstate = self._get_real_time_node_status(N.address)
+			if devstate != N.devState:
+				logsupport.Logs.Log("ISY state anomoly in hub: ",self.name,' Node: ',N.fullname,' Cached: ',N.devState,' Actual: ',devstate, severity=ConsoleWarning)
+				N.devState = devstate
+
+
 	def try_ISY_comm(self, urlcmd):
 		for i in range(15):
 			try:

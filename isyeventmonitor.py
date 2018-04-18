@@ -167,6 +167,11 @@ class ISYEventMonitor(object):
 								notice = pygame.event.Event(config.DS.ISYAlert, node=enode, value=self._NormalizeState(eaction), alert=a)
 								pygame.fastevent.post(notice)
 
+						if enode in self.isy.NodesByAddr:
+							N = self.isy.NodesByAddr[enode]
+							devstate = self._NormalizeState(eaction) # N.devState =
+							print(N.name+' set to '+str(devstate)+' was '+str(N.devState)) # todo activate this full state approach
+
 						if config.DS.AS is not None:
 							if self.isy.name in config.DS.AS.HubInterestList:
 								if enode in config.DS.AS.HubInterestList[self.isy.name]:
