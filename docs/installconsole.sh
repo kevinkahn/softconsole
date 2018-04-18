@@ -41,6 +41,40 @@ function LogBanner()
   echo "----------------------------------------------------------"
 }
 
+function UseWheezyVersion()
+{
+    # PiTFT touch using PyGame requires the older wheezy sdl library (long term problem that PyGame needs to resolve)
+
+    LogBanner "Setup to downgrade touch stuff to wheezy"
+    #enable wheezy package sources
+    echo "deb http://archive.raspbian.org/raspbian wheezy main
+    " > /etc/apt/sources.list.d/wheezy.list
+
+    #set stable as default package source (currently jessie)
+    echo "APT::Default-release \"stable\";
+    " > /etc/apt/apt.conf.d/10defaultRelease
+
+    #set the priority for libsdl from wheezy higher then the jessie package
+    echo "Package: libsdl1.2debian
+    Pin: release n=jessie
+    Pin-Priority: -10
+    Package: libsdl1.2debian
+    Pin: release n=stretch
+    Pin-Priority: -10
+    Package: libsdl1.2debian
+    Pin: release n=wheezy
+    Pin-Priority: 900
+    " > /etc/apt/preferences.d/libsdl
+
+    #install
+
+    echo "Update to downgrade"
+    apt-get -y --force-yes update
+    echo "Install the downgrade"
+    apt-get -y --force-yes install libsdl1.2debian/wheezy
+
+}
+
 LogBanner "Console Setup Script" > /home/pi/prep.log
 if [[ "$EUID" -ne 0 ]]
 then
@@ -48,7 +82,7 @@ then
   exit
 fi
 
-# script can take 2 parameters to preanswer Personal and AutoConsole
+# script can take 3 parameters to preanswer Personal and AutoConsole and specify Wheezy touch
 # this supports autorunning at reboot
 SkipVerify=Y
 if [ -n "$1" ]
@@ -65,6 +99,13 @@ else
   Get_yn AutoConsole "Autostart console (Y/N)?"
   SkipVerify=N
 fi
+
+if [ -n "$3" ]
+then
+  UseWheezy=$3
+else
+  Get_yn UseWheezy "Use Wheezy SDL for oddball screens (Y/N)?"
+  SkipVerify=N
 
 echo "Developer system:           $Personal"
 echo "Auto start Console on boot: $AutoConsole"
@@ -101,38 +142,18 @@ DEBIAN_FRONTEND=noninteractive apt-get -y upgrade
 
 LogBanner "Install stuff for console"
 apt-get -y install python-dev
+apt-get -y install python3-dev
+LogBanner "Switch default Python to Python3"
+update-alternatives --install /usr/bin/python python /usr/bin/python3.5 2
 
 pip install --upgrade pip
+pip3 install --upgrade pip
 
-# PiTFT touch using PyGame requires the older wheezy sdl library (long term problem that PyGame needs to resolve)
-
-LogBanner "Setup to downgrade touch stuff to wheezy"
-#enable wheezy package sources
-echo "deb http://archive.raspbian.org/raspbian wheezy main
-" > /etc/apt/sources.list.d/wheezy.list
-
-#set stable as default package source (currently jessie)
-echo "APT::Default-release \"stable\";
-" > /etc/apt/apt.conf.d/10defaultRelease
-
-#set the priority for libsdl from wheezy higher then the jessie package
-echo "Package: libsdl1.2debian
-Pin: release n=jessie
-Pin-Priority: -10
-Package: libsdl1.2debian
-Pin: release n=stretch
-Pin-Priority: -10
-Package: libsdl1.2debian
-Pin: release n=wheezy
-Pin-Priority: 900
-" > /etc/apt/preferences.d/libsdl
-
-#install
-
-echo "Update to downgrade"
-apt-get -y --force-yes update
-echo "Install the downgrade"
-apt-get -y --force-yes install libsdl1.2debian/wheezy
+if [ $UseWheezy == "Y" ]
+then
+    LogBanner "Old Wheezy Touch system requested"
+    UseWheezyVersion
+fi
 
 cd /home/pi/
 LogBanner "Console Installation"
@@ -172,8 +193,6 @@ rm getsetupinfo.py
 rm doinstall.sh
 mv installc* consoleinstallleftovers
 mv di.log    consoleinstallleftovers
-
-
 
 LogBanner "Install and setup finished"
 rm -f /home/pi/CONSOLEINSTALLRUNNING

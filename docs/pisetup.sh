@@ -141,10 +141,11 @@ LogBanner "This is the system setup script"
 LogBanner "Connect WiFI if needed"
 read -p "Press Enter to continue"
 LogBanner "Install Python2/3 Compatibility Support"
+echo "Note - installation switches system default Python to version 3"
+echo "To undo this run 'sudo update-alternatives --config python' to select desired alternative"
 pip install future
 pip3 install future
 wget https://raw.githubusercontent.com/kevinkahn/softconsole/master/docs/installconsole.sh
-wget https://raw.githubusercontent.com/kevinkahn/softconsole/master/docs/installconsoleSDL.sh
 wget https://raw.githubusercontent.com/kevinkahn/softconsole/master/getsetupinfo.py
 wget https://raw.githubusercontent.com/kevinkahn/softconsole/master/scripts/vncserverpi.service
 chmod +x installconsole.sh
@@ -342,6 +343,7 @@ cd /home/pi
 wget https://raw.githubusercontent.com/adafruit/Adafruit-PiTFT-Helper/master/adafruit-pitft-touch-cal
 wget https://raw.githubusercontent.com/adafruit/Raspberry-Pi-Installer-Scripts/master/adafruit-pitft.sh
 chmod +x adafruit-pitft-touch-cal adafruit-pitft.sh
+UseWheezy='N'
 
 echo $ScreenType > .Screentype
 case $ScreenType in
@@ -367,7 +369,6 @@ N
 EOF
   ./adafruit-pitft.sh < tmp
   raspi-config nonint do_boot_behaviour B4 # set boot to desktop already logged in
-  cp installconsoleSDL.sh installconsole.sh
   sed -isav s/fb0/fb1/ /usr/share/X11/xorg.conf.d/99-fbturbo.conf
   ;;
   custom)
@@ -379,7 +380,6 @@ EOF
     then
         echo "lcd_rotate=2" >> /boot/config.txt
     fi
-    cp installconsoleSDL.sh installconsole.sh
     ;;
   wave35)
     LogBanner "Install Waveshare screen"
@@ -387,6 +387,7 @@ EOF
     wget raw.githubusercontent.com/kevinkahn/softconsole/master/screensupport/waveshare35a-overlay.dtb
     mv waveshare35a-overlay.dtb /boot/overlays/waveshare35a.dtbo
     chmod 755 /boot/overlays/waveshare35a.dtbo
+    UseWheezy='Y'
     echo "Edit /boot/config.txt"
     cat >> /boot/config.txt <<EOF
 
@@ -469,7 +470,7 @@ for i in 10 9 8 7 6 5 4 3 2 1
       echo installconsole.sh start in \$i
       sleep 1
     done
-sudo bash ./installconsole.sh $Personal $AutoConsole
+sudo bash ./installconsole.sh $Personal $AutoConsole $UseWheezy
 EOF
     reboot now
 fi

@@ -104,6 +104,36 @@ apt-get -y install python-dev
 
 pip install --upgrade pip
 
+# PiTFT touch using PyGame requires the older wheezy sdl library (long term problem that PyGame needs to resolve)
+
+LogBanner "Setup to downgrade touch stuff to wheezy"
+#enable wheezy package sources
+echo "deb http://archive.raspbian.org/raspbian wheezy main
+" > /etc/apt/sources.list.d/wheezy.list
+
+#set stable as default package source (currently jessie)
+echo "APT::Default-release \"stable\";
+" > /etc/apt/apt.conf.d/10defaultRelease
+
+#set the priority for libsdl from wheezy higher then the jessie package
+echo "Package: libsdl1.2debian
+Pin: release n=jessie
+Pin-Priority: -10
+Package: libsdl1.2debian
+Pin: release n=stretch
+Pin-Priority: -10
+Package: libsdl1.2debian
+Pin: release n=wheezy
+Pin-Priority: 900
+" > /etc/apt/preferences.d/libsdl
+
+#install
+
+echo "Update to downgrade"
+apt-get -y --force-yes update
+echo "Install the downgrade"
+apt-get -y --force-yes install libsdl1.2debian/wheezy
+
 cd /home/pi/
 LogBanner "Console Installation"
 wget https://raw.githubusercontent.com/kevinkahn/softconsole/master/setupconsole.py
@@ -142,6 +172,8 @@ rm getsetupinfo.py
 rm doinstall.sh
 mv installc* consoleinstallleftovers
 mv di.log    consoleinstallleftovers
+
+
 
 LogBanner "Install and setup finished"
 rm -f /home/pi/CONSOLEINSTALLRUNNING
