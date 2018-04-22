@@ -147,6 +147,9 @@ class HA(object):
 			logsupport.Logs.Log("Error accessing current state in HA Hub: " + self.name + ' ' + repr(MonitorNode), severity=ConsoleWarning)
 			return None
 
+	def CheckStates(self):
+		pass # todo add integrity check code
+
 	def SetAlertWatch(self, node, alert):
 		if node.address in self.AlertNodes:
 			self.AlertNodes[node.address].append(alert)
@@ -188,7 +191,16 @@ class HA(object):
 		def on_message(qws, message):
 			mdecode = json.loads(message)
 			if mdecode['type'] == 'auth_ok':
-				debug.debugPrint('HASSgeneral', 'WS Authorization OK')
+				debug.debugPrint('HASSgeneral', 'WS Authorization OK, subscribing')
+				ws.send(
+					json.dumps({'id': self.HAnum, 'type': 'subscribe_events'}))  # , 'event_type': 'state_changed'}))
+				return
+			if mdecode['type'] == 'auth_required':
+				debug.debugPrint('HASSgeneral', 'WS Authorization requested, sending')
+				ws.send(json.dumps({"type": "auth", "api_password": self.password}))
+				return
+			if mdecode['type'] == 'auth_invalid':
+				logsupport.Logs.Log("Invalid password for hub: "+self.name, severity=ConsoleError) # todo set permanent nonstart
 				return
 			if mdecode['type'] != 'event':
 				debug.debugPrint('HASSgeneral', 'Non event seen on WS stream: ', str(mdecode))
@@ -257,7 +269,9 @@ class HA(object):
 
 		def on_open(qws):
 			logsupport.Logs.Log("HA WS stream " + str(self.HAnum) + " opened")
-			ws.send(json.dumps({'id': self.HAnum, 'type': 'subscribe_events'})) #, 'event_type': 'state_changed'}))
+			#if self.password != '':
+			#	ws.send({"type": "auth","api_password": self.password})
+			#ws.send(json.dumps({'id': self.HAnum, 'type': 'subscribe_events'})) #, 'event_type': 'state_changed'}))
 
 		websocket.setdefaulttimeout(30)
 		while True:
@@ -280,6 +294,7 @@ class HA(object):
 		self.name = hubname
 		self.addr = addr
 		self.url = addr
+		self.password = password
 		if self.addr.startswith('http://'):
 			self.wsurl = 'ws://' + self.addr[7:] + ':8123/api/websocket'
 		elif self.addr.startswith('https://'):
@@ -304,7 +319,7 @@ class HA(object):
 		else:
 			self.api = ha.API(self.url)
 		if ha.validate_api(self.api).value != 'ok':
-			logsupport.Logs.Log('HA access failed validation', severity = ConsoleError)
+			logsupport.Logs.Log('HA access failed validation', severity = ConsoleError, tb=False)
 			return
 		logsupport.Logs.Log('HA access accepted for: '+self.name)
 
@@ -325,7 +340,7 @@ class HA(object):
 			self.Domains[e.domain][e.object_id] = N
 		logsupport.Logs.Log("Processed "+str(len(self.Entities))+" total entities")
 		logsupport.Logs.Log("    Lights: " + str(len(self.Lights)) + " Switches: " + str(len(self.Switches)) + " Sensors: " + str(len(self.Sensors)) +
-							" Automations " + str(len(self.Automations)))
+							" Automations: " + str(len(self.Automations)))
 		threadmanager.SetUpHelperThread(self.name, self.HAevents, prerestart=self.PreRestartHAEvents)
 		logsupport.Logs.Log("Finished creating Structure for Home Assistant hub: ", self.name)
 
