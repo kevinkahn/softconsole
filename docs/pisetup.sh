@@ -150,7 +150,8 @@ wget https://raw.githubusercontent.com/kevinkahn/softconsole/master/getsetupinfo
 wget https://raw.githubusercontent.com/kevinkahn/softconsole/master/scripts/vncserverpi.service
 chmod +x installconsole.sh
 # fix issue in adafruit install script as of 3/31/2018
-echo "deb http://mirrordirector.raspbian.org/raspbian/ stretch main contrib non-free rpi firmware" >> /etc/apt/sources.list/raspi.list
+
+echo "deb http://mirrordirector.raspbian.org/raspbian/ stretch main contrib non-free rpi firmware" >> /etc/apt/sources.list.d/raspi.list
 
 LogBanner "Set Time Zone"
 # seed the timezone dialog
