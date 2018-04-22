@@ -10,6 +10,7 @@ import pygame, time
 import exitutils
 from stores import valuestore
 import errno
+import isycodes
 
 
 class ISYEMInternalError(Exception):
@@ -52,9 +53,12 @@ class ISYEventMonitor(object):
 
 	def PreRestartQHThread(self):
 		try:
-			if self.lasterror == TimeoutError:
-				logsupport.Logs.Log('(TimeoutError) Wait for likely router reboot or down', severity=ConsoleError)
-				time.sleep(120)
+			try:
+				if self.lasterror == TimeoutError:
+					logsupport.Logs.Log('(TimeoutError) Wait for likely router reboot or down', severity=ConsoleError)
+					time.sleep(120)
+			except:
+				pass # TimeoutError is Python 3 specific
 			if self.lasterror[0] == errno.ENETUNREACH:
 				# likely home network down so wait a bit
 				logsupport.Logs.Log('(NETUNREACH) Wait for likely router reboot or down', severity=ConsoleError)
@@ -70,17 +74,6 @@ class ISYEventMonitor(object):
 		except Exception as e:
 			logsupport.Logs.Log('PreRestartQH internal error ',e)
 		self.reinit()
-
-	def _NormalizeState(self,stateval):
-		t = stateval
-		try:
-			if isinstance(stateval, unicode):
-				t = str(stateval)
-		except:
-			pass
-		if isinstance(t, str):
-			return int(t) if t.isdigit() else 0
-		return t
 
 	def QHandler(self):
 		def on_error(qws, error):
@@ -164,13 +157,9 @@ class ISYEventMonitor(object):
 							for a in self.AlertNodes[enode]:
 								logsupport.Logs.Log("Node alert fired: " + str(a), severity=ConsoleDetail)
 								# noinspection PyArgumentList
-								notice = pygame.event.Event(config.DS.ISYAlert, node=enode, value=self._NormalizeState(eaction), alert=a)
+								notice = pygame.event.Event(config.DS.ISYAlert, node=enode, value=isycodes._NormalizeState(eaction), alert=a)
 								pygame.fastevent.post(notice)
 
-						if enode in self.isy.NodesByAddr:
-							N = self.isy.NodesByAddr[enode]
-							devstate = self._NormalizeState(eaction) # N.devState =
-							print(N.name+' set to '+str(devstate)+' was '+str(N.devState)) # todo activate this full state approach
 
 						if config.DS.AS is not None:
 							if self.isy.name in config.DS.AS.HubInterestList:
@@ -178,7 +167,7 @@ class ISYEventMonitor(object):
 										debug.debugPrint('DaemonCtl', time.time() - config.starttime, "ISY reports node change(screen): ",
 												   "Key: ", self.isy.NodesByAddr[enode].name)
 										# noinspection PyArgumentList
-										notice = pygame.event.Event(config.DS.HubNodeChange, hub=self.isy.name, node=enode, value=self._NormalizeState(eaction))
+										notice = pygame.event.Event(config.DS.HubNodeChange, hub=self.isy.name, node=enode, value=isycodes._NormalizeState(eaction))
 										pygame.fastevent.post(notice)
 
 					elif (prcode == 'Trigger') and (eaction == '6'):
@@ -215,13 +204,16 @@ class ISYEventMonitor(object):
 						logsupport.Logs.Log("ISY shows comm error for node: " + str(isynd), severity=ConsoleWarning)
 
 					if ecode == 'ST':
-						if int(eaction) < 0:
-							print("Strange node set: "+str(enode)+' '+str(eaction))
-						node = self.isy.NodesByAddr[enode]
-						debug.debugPrint('ISYchg', 'ISY Node: ', node.name, ' state change from: ', node.devState,
-										 ' to: ', int(eaction))
-						node.devState = int(eaction)
-
+						if enode in self.isy.NodesByAddr:
+							N = self.isy.NodesByAddr[enode]
+							oldstate = N.devState
+							N.devState = isycodes._NormalizeState(eaction) # N.devState =
+							print(N.name+' set to '+str(N.devState)+' was '+str(oldstate)) # todo del
+#						if int(eaction) < 0:
+#							print("Strange node set: "+str(enode)+' '+str(eaction))
+#						node = self.isy.NodesByAddr[enode]
+							debug.debugPrint('ISYchg', 'ISY Node: ', N.name, ' state change from: ', oldstate,
+										 ' to: ', N.devState)
 				else:
 					logsupport.Logs.Log("Strange item in event stream: " + str(m), severity=ConsoleWarning)
 			except Exception as E:

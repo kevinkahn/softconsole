@@ -1,4 +1,5 @@
 import collections
+import isycodes
 
 import xmltodict
 import requests, time
@@ -81,6 +82,7 @@ class Node(Folder, OnOffItem):
 			props = [props]  # make it a list so below always works
 		for item in props:
 			if item['@id'] == 'ST':
+				self.devState = isycodes._NormalizeState(item['@value'])
 				if item['@value'] != ' ':
 					self.hasstatus = True
 			# no use for nodetype now
@@ -148,6 +150,7 @@ class Program(ProgramFolder):
 
 	def __repr__(self):
 		return 'Program: ' + TreeItem.__repr__(self) + ' '
+
 
 class ISY(object):
 	"""
@@ -462,10 +465,7 @@ class ISY(object):
 		# sanity check all states in Hub against local cache
 		logsupport.Logs.Log("Running state check for ISY hub: ",self.name)
 		for nm, N in self._NodesByFullName.items():
-			devstate = self._get_real_time_node_status(N.address)
-			if devstate != N.devState:
-				logsupport.Logs.Log("ISY state anomoly in hub: ",self.name,' Node: ',N.fullname,' Cached: ',N.devState,' Actual: ',devstate, severity=ConsoleWarning)
-				N.devState = devstate
+			if isinstance(N, Node): self._check_real_time_node_status(N)
 
 
 	def try_ISY_comm(self, urlcmd):
@@ -515,31 +515,21 @@ class ISY(object):
 		logsupport.Logs.Log("ISY Communications Failure", severity=ConsoleError)
 		exitutils.errorexit(exitutils.ERRORPIREBOOT)
 
-	def _get_real_time_node_status(self, addr):
-		text = self.try_ISY_comm('status/' + addr)  # todo what if notfound?
+	def _check_real_time_node_status(self, Node):
+		text = self.try_ISY_comm('status/' + Node.address)  # todo what if notfound?
 		props = xmltodict.parse(text)['properties']['property']
 		if isinstance(props, dict):
 			props = [props]
 		devstate = 0
 		for item in props:
 			if item['@id'] == "ST":
-				devstate = item['@value']
+				devstate = isycodes._NormalizeState(item['@value'])
 				break
-		try:
-			localstate = self.NodesByAddr[addr].devState #todo remove to go with full shadow states plus periodic sanity, also correct stream restart on miss
-			if localstate != int(devstate):
-				logsupport.Logs.Log("Shadow state wrong: ", self.NodesByAddr[addr].fullname, ' (', addr,
-									') Real State: ', devstate, ' Shadow State: ',localstate,'/',
-									self.NodesByAddr[addr].devState,
-									severity=ConsoleWarning)
-				time.sleep(.2)
-				logsupport.Logs.Log("Shadow state wrong2: ", self.NodesByAddr[addr].fullname, ' (', addr,
-									') Real State: ', devstate, ' Shadow State: ',localstate,'/',
-									self.NodesByAddr[addr].devState,
-									severity=ConsoleWarning)
-		except KeyError:
-			logsupport.Logs.Log('Bad NodeByAddr in rt status: ', addr, severity=ConsoleError)
-		return int(devstate if devstate.isdigit() else 0)  # todo use _normalize?
+
+		if Node.devState != int(devstate):
+			logsupport.Logs.Log("ISY state anomoly in hub: ", self.name, ' Node: ', Node.fullname, ' (',Node.address,') Cached: ',
+								Node.devState, ' Actual: ', devstate, severity=ConsoleWarning)
+			Node.devState = devstate # fix the state
 
 	@staticmethod
 	def _LinkChildrenParents(nodelist, listbyname, looklist1, looklist2):
@@ -577,7 +567,7 @@ class ISY(object):
 			else:
 				for i in ISYObj.members:
 					device = i[1]
-					if device.enabled and device.hasstatus:
+					if device.enabled: #and device.hasstatus: todo do we need this?  If not also delete its setting
 						MObj = device
 						break
 					else:
@@ -601,7 +591,8 @@ class ISY(object):
 
 	def GetCurrentStatus(self,MonitorNode):
 		if MonitorNode is not None:
-			return self._get_real_time_node_status(MonitorNode.address)
+			#self._get_check_time_node_status(MonitorNode) todo del or add back in?
+			return MonitorNode.devState  # todo
 		else:
 			return None
 

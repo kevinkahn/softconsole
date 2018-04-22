@@ -50,6 +50,19 @@ EVENT_CTRL = {
 
 AlertNodes = {}
 
+
+def _NormalizeState(stateval):
+	t = stateval
+	try:
+		if isinstance(stateval, unicode):
+			t = str(stateval)
+	except:
+		pass
+	if isinstance(t, str):
+		return int(t) if t.isdigit() else 0
+	return t
+
+
 def formatwsitem(sid, seq, code, action, node, info, extra, hub):
 	# noinspection PyBroadException
 	try:
