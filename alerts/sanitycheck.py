@@ -12,7 +12,7 @@ class CheckIntegrity(object):
 	@staticmethod
 	def CheckISYVars(alert):
 		def DoCheck(hubnm, hub):
-			logsupport.Logs.Log('Integrity check for hub: ', hubnm)
+			logsupport.Logs.Log('Integrity check for hub: ', hubnm, ' starting')
 			valuestore.ValueStores[hubnm].CheckValsUpToDate()
 			hub.CheckStates()
 			logsupport.Logs.Log('Integrity check thread for hub: ', hubnm, ' complete')

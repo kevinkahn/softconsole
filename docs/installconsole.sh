@@ -106,9 +106,11 @@ then
 else
   Get_yn UseWheezy "Use Wheezy SDL for oddball screens (Y/N)?"
   SkipVerify=N
+fi
 
 echo "Developer system:           $Personal"
 echo "Auto start Console on boot: $AutoConsole"
+echo "Downgrade touch to Wheezy:  $UseWheezy"
 
 if [ "$SkipVerify" != "Y" ]
 then
