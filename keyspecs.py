@@ -311,6 +311,7 @@ class OnOffKey(ManualKeyDesc):
 			logsupport.Logs.Log("No state available for  key: " + self.name + ' on screen: ' + self.Screen.name, severity=ConsoleWarning)
 			state = 0
 		self.State = not (state == 0)  # K is off (false) only if state is 0
+		self.UnknownState = True if state == -1 else False
 		super(OnOffKey, self).InitDisplay()
 
 	def OnOffKeyPressed(self, presstype):

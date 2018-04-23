@@ -41,6 +41,7 @@ class ManualKeyDesc(TouchPoint):
 	# noinspection PyMissingConstructor
 	def __init__(self, *args, **kwargs):
 		self.State = True
+		self.UnknownState = False
 		self.Verify = False
 		self.GoMsg = ['']
 		self.NoGoMsg =['']
@@ -59,6 +60,7 @@ class ManualKeyDesc(TouchPoint):
 		self.KeyOffImage = None # type: pygame.Surface
 		self.KeyOnImageBase = None # type: pygame.Surface
 		self.KeyOffImageBase = None # type: pygame.Surface
+		self.KeyUnknownOverlay = None # type: pygame.Surface
 
 
 		# alternate creation signatures
@@ -122,6 +124,9 @@ class ManualKeyDesc(TouchPoint):
 			config.screen.blit(self.KeyOnImage, (x, y))
 		else:
 			config.screen.blit(self.KeyOffImage, (x, y))
+		if self.UnknownState:
+			# overlay an X for lost states
+			config.screen.blit(self.KeyUnknownOverlay, (x, y))
 		pygame.display.update()
 
 	def ScheduleBlinkKey(self, cycle):
@@ -193,6 +198,12 @@ class ManualKeyDesc(TouchPoint):
 		bord = self.KeyOutlineOffset
 		pygame.draw.rect(self.KeyOffImageBase, wc(self.KeyOffOutlineColor),
 						 ((scaleW(bord), scaleH(bord)), buttonsmaller), bord)
+
+		self.KeyUnknownOverlay = pygame.Surface(self.Size)
+		pygame.draw.line(self.KeyUnknownOverlay,wc(self.KeyCharColorOn),(0,0),self.Size,bord)
+		pygame.draw.line(self.KeyUnknownOverlay,wc(self.KeyCharColorOn),(0,self.Size[1]),(self.Size[0],0),bord)
+		self.KeyUnknownOverlay.set_alpha(128)
+
 
 	def FinishKey(self,center,size,firstfont=0,shrink=True):
 		if size[0] != 0: # if size is not zero then set the pos/size of the key; otherwise it was previously set in manual creation

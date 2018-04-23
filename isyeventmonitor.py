@@ -208,7 +208,7 @@ class ISYEventMonitor(object):
 							N = self.isy.NodesByAddr[enode]
 							oldstate = N.devState
 							N.devState = isycodes._NormalizeState(eaction) # N.devState =
-							print(N.name+' set to '+str(N.devState)+' was '+str(oldstate)) # todo del
+#							print(N.name+' set to '+str(N.devState)+' was '+str(oldstate)) # todo del
 #						if int(eaction) < 0:
 #							print("Strange node set: "+str(enode)+' '+str(eaction))
 #						node = self.isy.NodesByAddr[enode]

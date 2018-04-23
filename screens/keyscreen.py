@@ -1,6 +1,7 @@
 # noinspection PyProtectedMember
 from configobj import Section
-
+import logsupport
+from logsupport import ConsoleWarning
 import config
 import screen
 import utilities
@@ -44,6 +45,10 @@ class KeyScreenDesc(screen.BaseKeyScreenDesc):
 	def NodeEvent(self, hub='', node=0, value=0, varinfo = ()):
 		# Watched node reported change event is ("Node", addr, value, seq)
 		#print('HUB',hub,node,type(value), value)
+		if isinstance(value, float):
+			logsupport.Logs.Log("Node event with floating state: "+hub+':'+str(node)+'->'+str(value), severity = ConsoleWarning)
+			value = int(value)
+
 		assert isinstance(value,int)
 		if node != 0:
 			# noinspection PyBroadException
@@ -54,6 +59,7 @@ class KeyScreenDesc(screen.BaseKeyScreenDesc):
 				return  # treat as noop
 			debug.debugPrint('Screen', 'KS ISYEvent ', K.name, str(value), str(K.State))
 			K.State = not (value == 0)  # K is off (false) only if state is 0
+			K.UnknownState = True if value == -1 else False
 		else:
 			# noinspection PyBroadException
 			try:

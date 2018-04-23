@@ -21,11 +21,14 @@ def _NormalizeState(state, brightness=None):
 				return 255
 		elif state == 'off':
 			return 0
+		elif state == 'unavailable':
+			return -1
 		else:
 			try:
 				val = literal_eval(state)
-			except:
-				return state
+			except ValueError:
+				logsupport.Logs.Log('HA Hub reports unknown state: ',state,severity=ConsoleError, tb=False)
+				return -1
 	else:
 		val = state
 	if isinstance(val, float):
@@ -36,19 +39,29 @@ def _NormalizeState(state, brightness=None):
 class HAnode(object):
 	def __init__(self, HAitem, **entries):
 		self.entity_id = ''
-		self.state = 0
 		self.name = ''
 		self.attributes = {}
-		self.internalstate = 0 # 0 = off, non-zero = on, 1 - 255 = intensity
+		self.state = 0
+		self.internalstate = -1 # 0 = off, non-zero = on, 1 - 255 = intensity
 		self.__dict__.update(entries)
 		if 'friendly_name' in self.attributes: self.FriendlyName = self.attributes['friendly_name']
-		self.internalstate = _NormalizeState(self.state)
 		self.address = self.entity_id
 		self.Hub = HAitem
 
 	def Update(self,**ns):
+		logsupport.Logs.Log("Internal error - update call on " + self.entity_id, severity=ConsoleError, tb=False)
+		debug.debugPrint('HASSgeneral', 'Bad call to update: ' + repr(self))
+
+class StatefulHAnode(HAnode):
+	def __init__(self, HAitem, **entries):
+		super(StatefulHAnode, self).__init__(HAitem, **entries)
+		self.internalstate = _NormalizeState(self.state)
+
+	def Update(self,**ns):
 		self.__dict__.update(ns)
 		self.internalstate = _NormalizeState(self.state)
+		if self.internalstate == -1:
+			logsupport.Logs.Log("Node "+self.name+" set unavailable")
 		if config.DS.AS is not None:
 			if self.Hub.name in config.DS.AS.HubInterestList:
 				if self.entity_id in config.DS.AS.HubInterestList[self.Hub.name]:
@@ -66,24 +79,21 @@ class Automation(HAnode):
 	def __init__(self, HAitem, d):
 		super(Automation, self).__init__(HAitem, **d)
 		self.Hub.Automations[self.entity_id] = self
-		self.Hub.Entities[self.entity_id] = self
 
 	def RunProgram(self):
 		ha.call_service(self.Hub.api, 'automation', 'trigger', {'entity_id': '{}'.format(self.entity_id)})
 		debug.debugPrint('HASSgeneral', "Automation trigger sent to: ", self.entity_id)
 
-class Group(HAnode):
+class Group(StatefulHAnode):
 	def __init__(self, HAitem, d):
 		super(Group, self).__init__(HAitem, **d)
 		self.members = self.attributes['entity_id']
 		self.Hub.Groups[self.entity_id] = self
-		self.Hub.Entities[self.entity_id] = self
 
-class Light(HAnode):
+class Light(StatefulHAnode):
 	def __init__(self, HAitem, d):
 		super(Light, self).__init__(HAitem, **d)
 		self.Hub.Lights[self.entity_id] = self
-		self.Hub.Entities[self.entity_id] = self
 		if 'brightness' in self.attributes:
 			self.internalstate = _NormalizeState(self.state, int(self.attributes['brightness']))
 
@@ -97,26 +107,24 @@ class Light(HAnode):
 		ha.call_service(self.Hub.api, 'light', selcmd[settoon], {'entity_id': '{}'.format(self.entity_id)})
 		debug.debugPrint('HASSgeneral', "Light OnOff sent: ", selcmd[settoon], ' to ', self.entity_id)
 
-class Switch(HAnode):
+class Switch(StatefulHAnode):
 	def __init__(self, HAitem, d):
 		super(Switch, self).__init__(HAitem, **d)
 		self.Hub.Switches[self.entity_id] = self
-		self.Hub.Entities[self.entity_id] = self
 
 	def SendOnOffCommand(self, settoon, presstype):
 		selcmd = ('turn_off', 'turn_on')
 		ha.call_service(self.Hub.api, 'switch', selcmd[settoon], {'entity_id': '{}'.format(self.entity_id)})
 		debug.debugPrint('HASSgeneral', "Switch OnOff sent: ", selcmd[settoon], ' to ', self.entity_id)
 
-class Sensor(HAnode):
+class Sensor(HAnode): # todo is sensor stateful?
 	def __init__(self, HAitem, d):
 		super(Sensor, self).__init__(HAitem, **d)
 		self.Hub.Sensors[self.entity_id] = self
-		self.Hub.Entities[self.entity_id] = self
 		self.Hub.sensorstore.SetVal(self.entity_id, self.state)
 
 	def Update(self,**ns):
-		super(Sensor,self).Update(**ns)
+		#super(Sensor,self).Update(**ns)
 		self.Hub.sensorstore.SetVal(self.entity_id, self.state)
 
 class ZWave(HAnode):
@@ -125,6 +133,9 @@ class ZWave(HAnode):
 		self.Hub.ZWaves[self.entity_id] = self
 
 class HA(object):
+
+	class HAClose(Exception):
+		pass
 
 	def GetNode(self, name, proxy):
 		try:
@@ -161,6 +172,8 @@ class HA(object):
 			print('Node(', type(nd),'): ', n, ' -> ', nd.internalstate, nd.state, type(nd.state))
 
 	def PreRestartHAEvents(self):
+		if isinstance(self.lasterror, ConnectionRefusedError):
+			self.delaystart = 8 # HA probably restarting so give it a chance to get set up
 		self.watchstarttime = time.time()
 		self.HAnum += 1  # todo message to diagnose failure?
 
@@ -202,6 +215,8 @@ class HA(object):
 			if mdecode['type'] == 'auth_invalid':
 				logsupport.Logs.Log("Invalid password for hub: "+self.name, severity=ConsoleError) # todo set permanent nonstart
 				return
+			if mdecode['type'] in ('result', 'service_registered', 'zwave.network_complete', 'platform_discovered'):
+				return
 			if mdecode['type'] != 'event':
 				debug.debugPrint('HASSgeneral', 'Non event seen on WS stream: ', str(mdecode))
 				return
@@ -211,22 +226,24 @@ class HA(object):
 			if m['event_type'] == 'state_changed':
 				del m['event_type']
 				ent = d['entity_id']
-				if not ent in self.Entities: # not an entitity type that is currently handled
-					debug.debugPrint('HASSgeneral', 'WS Stream item for unhandled entity type: ',ent)
-					return
 				new = d['new_state']
 				old = d['old_state']
 				del d['new_state']
 				del d['old_state']
 				del d['entity_id']
 				chgs, dels, adds = findDiff(old, new)
+				if not ent in self.Entities and not ent in self.IgnoredEntities:
+					# not an entitity type that is currently known
+					debug.debugPrint('HASSgeneral', 'WS Stream item for unhandled entity type: ' + ent + ' Added: ' + str(adds) + ' Deleted: ' + str(dels) + ' Changed: ' + str(chgs))
+					return
+				if ent in self.IgnoredEntities:
+					return
 				debug.debugPrint('HASSchg', 'WS change: ' + ent + ' Added: ' + str(adds) + ' Deleted: ' + str(dels) + ' Changed: ' + str(chgs))
 				#debug.debugPrint('HASSchg', 'New: ' + str(new))
 				#debug.debugPrint('HASSchg', 'Old: ' + str(old))
-				if ent in self.Sensors:
+				if ent in self.Entities:
 					self.Entities[ent].Update(**new)
-				else:
-					self.Entities[ent].Update(**new)
+
 				if m['origin'] == 'LOCAL': del m['origin']
 				if m['data'] == {}: del m['data']
 				timefired = m['time_fired']
@@ -241,10 +258,22 @@ class HA(object):
 						notice = pygame.event.Event(config.DS.ISYAlert, node=ent, value=self.Entities[ent].internalstate,
 													alert=a)
 						pygame.fastevent.post(notice)
+			elif m['event_type'] == 'system_log_event':
+				logsupport.Logs.Log('Hub: '+self.name+' logged at level: '+d['level']+' Msg: '+d['message'])
+			elif m['event_type'] in ('call_service', 'service_executed'):
+				#debug.debugPrint('HASSchg', "Other expected event" + str(m))
+				pass
 			else:
-				debug.debugPrint('HASSchg', "Not a state change: " + str(m))
+				debug.debugPrint('HASSchg', "Unknown event: " + str(m))
 
 		def on_error(qws, error):
+			self.lasterror = error
+			try:
+				if error.args[0] == "'NoneType' object has no attribute 'connected'":
+					# library bug workaround - get this error after close happens just ignore
+					return
+			except:
+				pass
 			logsupport.Logs.Log("Error in HA WS stream " + str(self.HAnum) + ':' + repr(error), severity=ConsoleError, tb=False)
 			try:
 				if error == TimeoutError: # Py3
@@ -256,7 +285,6 @@ class HA(object):
 					error = (errno.ETIMEDOUT,"Websock bug catch")
 			except:
 				pass
-			self.lasterror = error
 			qws.close()
 
 		def on_close(qws, code, reason):
@@ -264,6 +292,7 @@ class HA(object):
 
 			:type qws: object
 			"""
+			self.delaystart = 20 # probably a HA server restart so give it some time
 			logsupport.Logs.Log("HA ws stream " + str(self.HAnum) + " closed: " + str(code) + ' : ' + str(reason),
 							severity=ConsoleError, tb=False)
 
@@ -273,6 +302,10 @@ class HA(object):
 			#	ws.send({"type": "auth","api_password": self.password})
 			#ws.send(json.dumps({'id': self.HAnum, 'type': 'subscribe_events'})) #, 'event_type': 'state_changed'}))
 
+		if self.delaystart > 0:
+			logsupport.Logs.Log('HA thread delaying start for '+str(self.delaystart)+' seconds to allow HA to restart')
+			time.sleep(self.delaystart)
+		self.delaystart = 0
 		websocket.setdefaulttimeout(30)
 		while True:
 			try:
@@ -283,13 +316,19 @@ class HA(object):
 				break
 			except AttributeError as e:
 				logsupport.Logs.Log("Problem starting HA WS handler - retrying: ", repr(e), severity = ConsoleWarning)
-		ws.run_forever()
+		try:
+			ws.run_forever()
+		except self.HAClose:
+			self.delaystart = 20
+			logsupport.Logs.Log("HA Event thread got close")
 		logsupport.Logs.Log("HA Event Thread " + str(self.HAnum) + " exiting", severity=ConsoleError, tb=False)
 
 	def __init__(self, hubname, addr, user, password):
 		logsupport.Logs.Log("Creating Structure for Home Assistant hub: ", hubname)
 
-		hadomains = {'group':Group, 'light':Light, 'switch':Switch, 'sensor':Sensor, 'automation':Automation, 'zwave':ZWave}
+		hadomains = {'group':Group, 'light':Light, 'switch':Switch, 'sensor':Sensor, 'automation':Automation}
+		haignoredomains = {'zwave':ZWave, 'sun':HAnode, 'notifications':HAnode}
+
 		self.sensorstore = valuestore.NewValueStore(valuestore.ValueStore(hubname,itemtyp=valuestore.StoreItem))
 		self.name = hubname
 		self.addr = addr
@@ -304,6 +343,7 @@ class HA(object):
 		self.HAnum = 1
 		self.watchstarttime = time.time()
 		self.Entities = {}
+		self.IgnoredEntities = {} # things we expect and do nothing with
 		self.Domains = {}
 		self.Groups = {}
 		self.Lights = {}
@@ -314,6 +354,8 @@ class HA(object):
 		self.Others = {}
 		self.alertspeclist = {}  # if ever want auto alerts like ISY command vars they get put here
 		self.AlertNodes = {}
+		self.lasterror = None
+		self.delaystart = 0
 		if password != '':
 			self.api = ha.API(self.url,password)
 		else:
@@ -329,10 +371,13 @@ class HA(object):
 			if e.domain not in self.Domains:
 				self.Domains[e.domain] = {}
 			p2 = dict(e.as_dict(),**{'domain':e.domain, 'name':e.name})
-#			p2['domain'] = e.domain
-#			p2['name'] = e.name
+
 			if e.domain in hadomains:
 				N = hadomains[e.domain](self, p2)
+				self.Entities[e.entity_id] = N
+			elif e.domain in haignoredomains:
+				N = HAnode(self, **p2)
+				self.IgnoredEntities[e.entity_id] = N
 			else:
 				N = HAnode(self,**p2)
 				self.Others[e.entity_id] = N
@@ -343,16 +388,6 @@ class HA(object):
 							" Automations: " + str(len(self.Automations)))
 		threadmanager.SetUpHelperThread(self.name, self.HAevents, prerestart=self.PreRestartHAEvents)
 		logsupport.Logs.Log("Finished creating Structure for Home Assistant hub: ", self.name)
-
-		"""
-		self.services = ha.get_services(self.api)
-		for i in self.services:
-			print(i['domain']+':')
-			for sn, s in i['services'].items():
-				print('   '+sn+': '+str(s['description']))
-				for fn,f in s['fields'].items():
-					print('           '+fn+': '+str(f))
-		"""
 
 
 
