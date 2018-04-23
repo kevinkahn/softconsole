@@ -32,6 +32,7 @@ class ISYEventMonitor(object):
 		self.hbcount = 0
 		self.digestinginput = True
 		self.AlertNodes = {}
+		self.delayedstart = 0
 
 		self.lasterror = (0,'Init')
 		debug.debugPrint('DaemonCtl', "Queue Handler ", self.QHnum, " started: ", self.watchstarttime)
@@ -46,28 +47,32 @@ class ISYEventMonitor(object):
 
 	def PostStartQHThread(self):
 		logsupport.Logs.Log("ISY stream thread " + str(self.QHnum) + " setup")
-		while self.digestinginput:
+		while self.digestinginput: # todo merge with HubOnline?
 			logsupport.Logs.Log("Waiting initial status dump")
 			time.sleep(0.5)
+		self.isy._HubOnline = True
 		logsupport.Logs.Log("ISY initial status streamed ", self.seq, " items")
 
 	def PreRestartQHThread(self):
+		self.isy._HubOnline = False
 		try:
 			try:
-				if self.lasterror == TimeoutError:
-					logsupport.Logs.Log('(TimeoutError) Wait for likely router reboot or down', severity=ConsoleError)
-					time.sleep(120)
+				if isinstance(self.lasterror, TimeoutError):
+					logsupport.Logs.Log('(TimeoutError) Wait for likely router reboot or down', severity=ConsoleError, tb=False)
+					self.delayedstart = 60
+					self.reinit()
+					return
 			except:
 				pass # TimeoutError is Python 3 specific
 			if self.lasterror[0] == errno.ENETUNREACH:
 				# likely home network down so wait a bit
-				logsupport.Logs.Log('(NETUNREACH) Wait for likely router reboot or down', severity=ConsoleError)
+				logsupport.Logs.Log('(NETUNREACH) Wait for likely router reboot or down', severity=ConsoleError, tb=False)
 				# todo overlay a screen delay message so locked up console is understood
-				time.sleep(120)
+				self.delayedstart = 120
 			elif self.lasterror[0] == errno.ETIMEDOUT:
 				logsupport.Logs.Log('(errno TIMEOUT) Timeout on WS - delay to allow possible ISY or router reboot',severity=ConsoleError, tb=False)
 				logsupport.Logs.Log('Original error report: '+repr(self.lasterror))
-				time.sleep(15)
+				self.delayedstart = 60
 				# todo - bug in websocket that results in attribute error for errno.WSEACONNECTIONREFUSED check
 			else:
 				logsupport.Logs.Log('Unexpected error on WS stream: ',repr(self.lasterror), severity=ConsoleError, tb=False)
@@ -220,7 +225,9 @@ class ISYEventMonitor(object):
 				print(E)
 				logsupport.Logs.Log("Exception in QH on message: ", E)
 
-
+		if self.delayedstart != 0:
+			logsupport.Logs.Log("Delaying ISY Hub restart for probably network reset")
+			time.sleep(self.delayedstart)
 		#websocket.enableTrace(True)
 		websocket.setdefaulttimeout(30)
 		if self.isy.addr.startswith('http://'):
@@ -242,5 +249,6 @@ class ISYEventMonitor(object):
 		self.digestinginput = True
 		self.lastheartbeat = time.time()
 		ws.run_forever()
+		self.isy._HubOnline = False
 		logsupport.Logs.Log("QH Thread " + str(self.QHnum) + " exiting", severity=ConsoleError)
 

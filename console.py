@@ -39,7 +39,7 @@ import isy
 import logsupport
 import maintscreen
 import utilities
-from logsupport import ConsoleWarning
+from logsupport import ConsoleWarning,ConsoleError
 from stores import mqttsupport, valuestore, localvarsupport, sysstore
 import alerttasks
 
@@ -310,7 +310,11 @@ for i, v in config.ParsedConfigFile.items():
 			del config.ParsedConfigFile[i]
 		for hubtyp, pkg in config.hubtypes.items():
 			if stype == hubtyp:
-				config.Hubs[i] = pkg(i, v.get('address',''), v.get('user',''), v.get('password',''))
+				try:
+					config.Hubs[i] = pkg(i, v.get('address',''), v.get('user',''), v.get('password',''))
+				except:
+					logsupport.Logs.Log("Fatal console error - fix config file",severity=ConsoleError, tb=False)
+					exitutils.Exit(exitutils.ERRORDIE) # shutdown and don't try restart
 				del config.ParsedConfigFile[i]
 
 config.defaulthubname = config.ParsedConfigFile.get('DefaultHub','')

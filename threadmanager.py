@@ -41,7 +41,6 @@ def CheckThreads():
 				T.StopThread()
 				logsupport.Logs.Log("Thread for: "+T.name+" reports not ok; stopping/restarting",severity=ConsoleWarning)
 				DoRestart(T)
-			# todo - watch for restart loops?
 
 def StartThreads():
 	for T in HelperThreads.values():

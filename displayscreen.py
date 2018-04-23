@@ -38,6 +38,7 @@ class DisplayScreen(object):
 		self.HubNodeChange = pygame.USEREVENT + 2  # Node state change in a current screen watched node on the ISY
 		self.ISYAlert = pygame.USEREVENT + 3  # Mpde state change in watched node for alerts
 		self.ISYVar = pygame.USEREVENT + 4  # Var value change for a watched variable on ISY
+		self.GeneralRepaint = pygame.USEREVENT + 5 # force a repaint of current screen
 		# noinspection PyArgumentList
 		self.NOEVENT = pygame.event.Event(pygame.NOEVENT)
 
@@ -258,8 +259,12 @@ class DisplayScreen(object):
 					else:  # Maint or Alert - todo?
 						debug.debugPrint('Dispatch', 'TO while in: ', self.state)
 
+			elif event.type == self.GeneralRepaint:
+				debug.debugPrint('Dispatch', 'General Repaint Event', event)
+				self.AS.InitDisplay()
+
 			elif event.type == self.HubNodeChange:
-				debug.debugPrint('Dispatch', 'ISY Change Event', event)
+				debug.debugPrint('Dispatch', 'Hub Change Event', event)
 				if hasattr(event, 'node'):
 					self.AS.NodeEvent(hub=event.hub, node=event.node, value=event.value)
 				elif hasattr(event, 'varinfo'):

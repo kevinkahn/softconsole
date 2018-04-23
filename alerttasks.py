@@ -55,7 +55,7 @@ class NodeChgtrigger(object):
 		val = self.node.Hub.GetCurrentStatus(self.node)
 		if val is None:
 			logsupport.Logs.Log("No state available in alert for: " + self.node.name)
-			val = 999999
+			val = -1
 		if self.test == 'EQ':
 			return int(val) == int(self.value)
 		elif self.test == 'NE':

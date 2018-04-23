@@ -117,7 +117,7 @@ class Switch(StatefulHAnode):
 		ha.call_service(self.Hub.api, 'switch', selcmd[settoon], {'entity_id': '{}'.format(self.entity_id)})
 		debug.debugPrint('HASSgeneral', "Switch OnOff sent: ", selcmd[settoon], ' to ', self.entity_id)
 
-class Sensor(HAnode): # todo is sensor stateful?
+class Sensor(HAnode): # not stateful since it updates directly to store value
 	def __init__(self, HAitem, d):
 		super(Sensor, self).__init__(HAitem, **d)
 		self.Hub.Sensors[self.entity_id] = self
@@ -175,7 +175,7 @@ class HA(object):
 		if isinstance(self.lasterror, ConnectionRefusedError):
 			self.delaystart = 8 # HA probably restarting so give it a chance to get set up
 		self.watchstarttime = time.time()
-		self.HAnum += 1  # todo message to diagnose failure?
+		self.HAnum += 1
 
 	def HAevents(self):
 
@@ -213,7 +213,7 @@ class HA(object):
 				ws.send(json.dumps({"type": "auth", "api_password": self.password}))
 				return
 			if mdecode['type'] == 'auth_invalid':
-				logsupport.Logs.Log("Invalid password for hub: "+self.name, severity=ConsoleError) # todo set permanent nonstart
+				logsupport.Logs.Log("Invalid password for hub: "+self.name, severity=ConsoleError) # since already validate with API shouldn't get here
 				return
 			if mdecode['type'] in ('result', 'service_registered', 'zwave.network_complete', 'platform_discovered'):
 				return
@@ -362,7 +362,7 @@ class HA(object):
 			self.api = ha.API(self.url)
 		if ha.validate_api(self.api).value != 'ok':
 			logsupport.Logs.Log('HA access failed validation', severity = ConsoleError, tb=False)
-			return
+			raise ValueError
 		logsupport.Logs.Log('HA access accepted for: '+self.name)
 
 		self.config = ha.get_config(self.api)

@@ -163,7 +163,7 @@ class ISY(object):
 
 		if isyaddr == '' or user == '':
 			logsupport.Logs.Log("ISY id info missing:  addr: ", isyaddr, " user: ", user, severity=ConsoleError)
-			return  #todo should fatal
+			raise ValueError
 
 		if isyaddr.startswith('http'):
 			self.ISYprefix = isyaddr + '/rest/'
@@ -189,6 +189,7 @@ class ISY(object):
 		self._ProgramsByAddr = {}
 		self._ProgramsByName = {}
 		self._ProgramFoldersByName = {}
+		self._HubOnline = False
 
 
 		"""
@@ -590,9 +591,9 @@ class ISY(object):
 			return None
 
 	def GetCurrentStatus(self,MonitorNode):
+		if not self._HubOnline: return -1
 		if MonitorNode is not None:
-			#self._get_check_time_node_status(MonitorNode) todo del or add back in?
-			return MonitorNode.devState  # todo
+			return MonitorNode.devState
 		else:
 			return None
 
