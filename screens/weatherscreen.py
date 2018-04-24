@@ -109,7 +109,7 @@ class WeatherScreenDesc(screen.ScreenDesc):
 					fcstlines = 5
 					usewidth = config.screenwidth
 					lastfcst = 7
-				s = (usefulheight - h) / (fcstlines -1)
+				s = (usefulheight - h) / (fcstlines+1)
 
 				config.screen.blit(renderedlines[0],((config.screenwidth - renderedlines[0].get_width())/2,vert_off))
 				vert_off = vert_off + renderedlines[0].get_height() + s
