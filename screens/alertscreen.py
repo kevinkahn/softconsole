@@ -8,6 +8,7 @@ import utilities
 from eventlist import ProcEventItem, AlertEventItem
 import keyspecs
 import logsupport
+from logsupport import ConsoleDetail
 
 alertscreens = {}
 
@@ -130,6 +131,9 @@ class AlertsScreenDesc(screen.ScreenDesc):
 		else:
 			config.screen.blit(self.messageimage, self.upperleft)
 			pygame.display.update()
+
+	def NodeEvent(self, hub='', node=0, value=0, varinfo = ()):
+		logsupport.Logs.Log("ISY event to alert screen: ", self.name+ ' ' + str(node) + ' ' + str(value), severity=ConsoleDetail)
 
 	def ExitScreen(self):
 		config.DS.Tasks.RemoveAllGrp(id(self))
