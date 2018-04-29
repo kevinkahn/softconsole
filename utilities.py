@@ -34,13 +34,14 @@ except AttributeError:
 	pass
 # end SIGHUP hack
 
-def wc(clr):
+def wc(clr, factor=0.0, layercolor=(255,255,255)):
 	try:
 		v = webcolors.name_to_rgb(clr)
 	except ValueError:
 		logsupport.Logs.Log('Bad color name: ' + str(clr), severity=ConsoleWarning)
 		v = webcolors.name_to_rgb('black')
-	return v
+
+	return (v[0] + (layercolor[0] - v[0]) * factor, v[1] + (layercolor[1] - v[1]) * factor, v[2] + (layercolor[2] - v[2]) * factor)
 
 def tint(clr):
 	tint_factor = .25

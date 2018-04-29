@@ -10,6 +10,7 @@ import threadmanager
 import logsupport
 from stores import valuestore
 from logsupport import ConsoleWarning, ConsoleError, ConsoleDetail
+import functools
 
 from ast import literal_eval
 def _NormalizeState(state, brightness=None):
@@ -123,9 +124,74 @@ class Sensor(HAnode): # not stateful since it updates directly to store value
 		self.Hub.Sensors[self.entity_id] = self
 		self.Hub.sensorstore.SetVal(self.entity_id, self.state)
 
+	def _SetSensorAlert(self, p):
+		self.Hub.sensorstore.AddAlert(self.entity_id,p)
+
 	def Update(self,**ns):
 		#super(Sensor,self).Update(**ns)
-		self.Hub.sensorstore.SetVal(self.entity_id, self.state)
+		self.attributes = ns['attributes']
+		if 'state' in ns:
+			self.Hub.sensorstore.SetVal(self.entity_id, ns['state'])
+
+class Thermostat(HAnode): # not stateful since has much state info
+	def __init__(self, HAitem, d):
+		super(Thermostat, self).__init__(HAitem, **d)
+		self.Hub.Thermostats[self.entity_id] = self
+		try:
+			self.curtemp = self.attributes['current_temperature']
+			self.target_low = self.attributes['target_temp_low']
+			self.target_high = self.attributes['target_temp_high']
+			self.mode = self.attributes['operation_mode']
+			self.fan = self.attributes['fan_mode']
+			self.fanstates = self.attributes['fan_list']
+			self.modelist = self.attributes['operation_list']
+		except:
+			pass
+	'''
+	The code for the Nest limits sensor updates to 270 seconds which makes the "current hvac state" pretty useless.
+	Edit /srv/homeassistant/lib/python3.5/site-packages/homeassistant/components/nest.py line 132 (0.67):
+	access_token_cache_file=access_token_cache_file,cache_ttl=30, to add the cache_ttl=30; also put a scan_interval:30 in the
+	config file for sensor platform nest
+	'''
+
+	def Update(self,**ns):
+		self.attributes = ns['attributes']
+		self.curtemp = self.attributes['current_temperature']
+		self.target_low = self.attributes['target_temp_low']
+		self.target_high = self.attributes['target_temp_high']
+		self.mode = self.attributes['operation_mode']
+		self.fan = self.attributes['fan_mode']
+		if config.DS.AS is not None:
+			if self.Hub.name in config.DS.AS.HubInterestList:
+				if self.entity_id in config.DS.AS.HubInterestList[self.Hub.name]:
+					debug.debugPrint('DaemonCtl', time.time() - config.starttime, "HA reports node change(screen): ",
+									 "Key: ", self.Hub.Entities[self.entity_id].name)
+
+					# noinspection PyArgumentList
+					notice = pygame.event.Event(config.DS.HubNodeChange, hub=self.Hub.name, node=self.entity_id, value=self.internalstate)
+					pygame.fastevent.post(notice)
+
+	def PushSetpoints(self,t_low,t_high):
+		ha.call_service(self.Hub.api, 'climate', 'set_temperature', {'entity_id': '{}'.format(self.entity_id),'target_temp_high':str(t_high),'target_temp_low':str(t_low)})
+
+	def GetThermInfo(self):
+		return self.curtemp, self.target_low, self.target_high, self.HVAC_state.capitalize(), self.mode.capitalize(), self.fan.capitalize()
+
+	def _HVACstatechange(self, storeitem, old, new, param, chgsource):
+		self.HVAC_state = new
+		if config.DS.AS is not None:
+			if self.Hub.name in config.DS.AS.HubInterestList:
+				if self.entity_id in config.DS.AS.HubInterestList[self.Hub.name]:
+					debug.debugPrint('DaemonCtl', time.time() - config.starttime, "HA Tstat reports node change(screen): ",
+									 "Key: ", self.Hub.Entities[self.entity_id].name)
+
+					# noinspection PyArgumentList
+					notice = pygame.event.Event(config.DS.HubNodeChange, hub=self.Hub.name, node=self.entity_id, value=new)
+					pygame.fastevent.post(notice)
+
+	def _connectsensors(self, HVACsensor):
+		self.HVAC_state = HVACsensor.state
+		HVACsensor._SetSensorAlert(functools.partial(self._HVACstatechange))
 
 class ZWave(HAnode):
 	def __init__(self, HAitem, d):
@@ -137,7 +203,7 @@ class HA(object):
 	class HAClose(Exception):
 		pass
 
-	def GetNode(self, name, proxy):
+	def GetNode(self, name, proxy = ''):
 		try:
 			return self.Entities[name], self.Entities[name]
 		except:
@@ -176,6 +242,9 @@ class HA(object):
 			self.delaystart = 8 # HA probably restarting so give it a chance to get set up
 		self.watchstarttime = time.time()
 		self.HAnum += 1
+
+	def PostRestartHAEvents(self):
+		ha.call_service(self.api, 'logbook', 'log', {'message': 'Softconsole connected'})
 
 	def HAevents(self):
 
@@ -326,7 +395,7 @@ class HA(object):
 	def __init__(self, hubname, addr, user, password):
 		logsupport.Logs.Log("Creating Structure for Home Assistant hub: ", hubname)
 
-		hadomains = {'group':Group, 'light':Light, 'switch':Switch, 'sensor':Sensor, 'automation':Automation}
+		hadomains = {'group':Group, 'light':Light, 'switch':Switch, 'sensor':Sensor, 'automation':Automation, 'climate':Thermostat}
 		haignoredomains = {'zwave':ZWave, 'sun':HAnode, 'notifications':HAnode}
 
 		self.sensorstore = valuestore.NewValueStore(valuestore.ValueStore(hubname,itemtyp=valuestore.StoreItem))
@@ -351,6 +420,7 @@ class HA(object):
 		self.Sensors = {}
 		self.ZWaves = {}
 		self.Automations = {}
+		self.Thermostats = {}
 		self.Others = {}
 		self.alertspeclist = {}  # if ever want auto alerts like ISY command vars they get put here
 		self.AlertNodes = {}
@@ -383,10 +453,18 @@ class HA(object):
 				self.Others[e.entity_id] = N
 
 			self.Domains[e.domain][e.object_id] = N
+
+		for n, T in self.Thermostats.items():
+			tname = n.split('.')[1]
+			tsensor = self.Sensors['sensor.'+tname+'_thermostat_hvac_state']
+			T._connectsensors(tsensor)
+
+		services = ha.get_services(self.api)
+		#listeners = ha.get_event_listeners(self.api)
 		logsupport.Logs.Log("Processed "+str(len(self.Entities))+" total entities")
 		logsupport.Logs.Log("    Lights: " + str(len(self.Lights)) + " Switches: " + str(len(self.Switches)) + " Sensors: " + str(len(self.Sensors)) +
 							" Automations: " + str(len(self.Automations)))
-		threadmanager.SetUpHelperThread(self.name, self.HAevents, prerestart=self.PreRestartHAEvents)
+		threadmanager.SetUpHelperThread(self.name, self.HAevents, prerestart=self.PreRestartHAEvents, postrestart=self.PostRestartHAEvents)
 		logsupport.Logs.Log("Finished creating Structure for Home Assistant hub: ", self.name)
 
 
