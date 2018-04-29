@@ -138,6 +138,7 @@ class Thermostat(HAnode): # not stateful since has much state info
 		super(Thermostat, self).__init__(HAitem, **d)
 		self.Hub.Thermostats[self.entity_id] = self
 		try:
+			self.temperature = self.attributes['temperature']
 			self.curtemp = self.attributes['current_temperature']
 			self.target_low = self.attributes['target_temp_low']
 			self.target_high = self.attributes['target_temp_high']
@@ -156,6 +157,7 @@ class Thermostat(HAnode): # not stateful since has much state info
 
 	def Update(self,**ns):
 		self.attributes = ns['attributes']
+		self.temperature = self.attributes['temperature']
 		self.curtemp = self.attributes['current_temperature']
 		self.target_low = self.attributes['target_temp_low']
 		self.target_high = self.attributes['target_temp_high']
@@ -172,10 +174,14 @@ class Thermostat(HAnode): # not stateful since has much state info
 					pygame.fastevent.post(notice)
 
 	def PushSetpoints(self,t_low,t_high):
+		# todo with nest pushing setpoint while not in auto seems to be a no-op and so doesn't cause an event
 		ha.call_service(self.Hub.api, 'climate', 'set_temperature', {'entity_id': '{}'.format(self.entity_id),'target_temp_high':str(t_high),'target_temp_low':str(t_low)})
 
 	def GetThermInfo(self):
-		return self.curtemp, self.target_low, self.target_high, self.HVAC_state.capitalize(), self.mode.capitalize(), self.fan.capitalize()
+		if self.target_low is not None:
+			return self.curtemp, self.target_low, self.target_high, self.HVAC_state, self.mode, self.fan
+		else:
+			return self.curtemp, self.temperature, self.temperature, self.HVAC_state, self.mode, self.fan
 
 	def _HVACstatechange(self, storeitem, old, new, param, chgsource):
 		self.HVAC_state = new
@@ -192,6 +198,20 @@ class Thermostat(HAnode): # not stateful since has much state info
 	def _connectsensors(self, HVACsensor):
 		self.HVAC_state = HVACsensor.state
 		HVACsensor._SetSensorAlert(functools.partial(self._HVACstatechange))
+
+	def GetModeInfo(self):
+		return self.modelist, self.fanstates
+
+	def PushFanState(self,mode):
+		ha.call_service(self.Hub.api, 'climate', 'set_fan_mode',
+						{'entity_id': '{}'.format(self.entity_id), 'fan_mode': mode})
+
+	def PushMode(self,mode):
+		try:
+			ha.call_service(self.Hub.api, 'climate', 'set_operation_mode',
+						{'entity_id': '{}'.format(self.entity_id), 'operation_mode': mode})
+		except:
+			pass
 
 class ZWave(HAnode):
 	def __init__(self, HAitem, d):
@@ -243,8 +263,8 @@ class HA(object):
 		self.watchstarttime = time.time()
 		self.HAnum += 1
 
-	def PostRestartHAEvents(self):
-		ha.call_service(self.api, 'logbook', 'log', {'message': 'Softconsole connected'})
+	def PostStartHAEvents(self):
+		ha.call_service(self.api, 'logbook', 'log', {'name':'Softconsole','message': config.hostname+ ' connected'})
 
 	def HAevents(self):
 
@@ -464,7 +484,7 @@ class HA(object):
 		logsupport.Logs.Log("Processed "+str(len(self.Entities))+" total entities")
 		logsupport.Logs.Log("    Lights: " + str(len(self.Lights)) + " Switches: " + str(len(self.Switches)) + " Sensors: " + str(len(self.Sensors)) +
 							" Automations: " + str(len(self.Automations)))
-		threadmanager.SetUpHelperThread(self.name, self.HAevents, prerestart=self.PreRestartHAEvents, postrestart=self.PostRestartHAEvents)
+		threadmanager.SetUpHelperThread(self.name, self.HAevents, prerestart=self.PreRestartHAEvents, poststart=self.PostStartHAEvents, postrestart=self.PostStartHAEvents)
 		logsupport.Logs.Log("Finished creating Structure for Home Assistant hub: ", self.name)
 
 

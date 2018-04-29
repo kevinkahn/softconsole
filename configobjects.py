@@ -32,9 +32,13 @@ class MyScreens(object):
 				debug.debugPrint('Screen', "Screen of type ", tempscreentype)
 
 				if tempscreentype in config.screentypes:
-					logsupport.Logs.Log(tempscreentype + " screen " + screenitem, severity=ConsoleDetail)
-					NewScreen = config.screentypes[tempscreentype](thisScreen, screenitem)
-
+					try:
+						NewScreen = config.screentypes[tempscreentype](thisScreen, screenitem)
+						logsupport.Logs.Log(tempscreentype + " screen " + screenitem, severity=ConsoleDetail)
+					except ValueError:
+						NewScreen = None
+						logsupport.Logs.Log(tempscreentype + " screen not created due to error " + screenitem, severity=ConsoleWarning)
+						del thisconfig[screenitem]
 				else:
 					logsupport.Logs.Log("Screentype error " + screenitem + " type " + tempscreentype, severity=ConsoleWarning)
 					del thisconfig[screenitem]

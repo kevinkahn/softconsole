@@ -34,9 +34,11 @@ class NestThermostatScreenDesc(screen.BaseKeyScreenDesc):
 			self.ThermNode = self.HA.GetNode(screenname)[0]  # use ControlObj (0)
 			if self.ThermNode is None:
 				logsupport.Logs.Log("No Thermostat: " + screenname, severity=ConsoleWarning)
+				raise ValueError
 		else:
 			logsupport.Logs.Log("Nest Thermostat screen only works with HA hub", severity=ConsoleError)
 			self.self.ThermNode = None
+			raise ValueError
 
 		self.TitleRen = config.fonts.Font(self.fsize[1]).render(screen.FlatenScreenLabel(self.label), 0,
 																wc(self.CharColor))
@@ -56,9 +58,14 @@ class NestThermostatScreenDesc(screen.BaseKeyScreenDesc):
 		self.SPHPosR = int(3.5*centerspacing)
 		self.AdjButSurf.fill(wc(self.BackgroundColor))
 		self.LocalOnly = [0.0, 0.0]  # Heat setpoint, Cool setpoint:  0 is normal color
+		self.ModeLocal = 0.0
+		self.FanLocal = 0.0
 		arrowsize = scaleH(40)  # pixel
 		self.t_low = 0
 		self.t_high = 99
+		self.t_cur = 0
+		self.t_state = "Unknown"
+		self.modes, self.fanstates = self.ThermNode.GetModeInfo()
 
 		for i in range(4):
 			gfxdraw.filled_trigon(self.AdjButSurf, *trifromtop(centerspacing, arrowsize//2, i + 1, arrowsize,
@@ -78,13 +85,13 @@ class NestThermostatScreenDesc(screen.BaseKeyScreenDesc):
 													self.KeyColor, self.CharColor, self.CharColor,
 													center=(self.SPHPosL, self.ModeButPos), size=bsize,
 													KOn=config.KeyOffOutlineColor,
-													proc=functools.partial(self.BumpMode, 'CLIMD', range(8)))
+													proc=self.BumpMode)
 
 		self.Keys['Fan'] = toucharea.ManualKeyDesc(self, "Fan", ["Fan"],
 												   self.KeyColor, self.CharColor, self.CharColor,
 												   center=(self.SPHPosR, self.ModeButPos), size=bsize,
 												   KOn=config.KeyOffOutlineColor,
-												   proc=functools.partial(self.BumpMode, 'CLIFS', (7, 8)))
+												   proc=self.BumpFan)
 
 		self.ModesPos = self.ModeButPos + bsize[1]//2 + scaleH(5)
 		# ----------  Above is all setup and could be shared as a single routine with ISY tstat
@@ -113,35 +120,59 @@ class NestThermostatScreenDesc(screen.BaseKeyScreenDesc):
 			pygame.display.update(pygame.Rect(self.SPHPosR - self.SPWdt // 2, self.SPVPos, self.SPWdt, self.SPHgt))
 		config.DS.Tasks.RemoveAllGrp(id(self))  # remove any pending pushtemp
 		E = eventlist.ProcEventItem(id(self), 'pushsetpoint',self.PushTemp)
-		config.DS.Tasks.AddTask(E, 5) # push setpoint change after 2 seconds of idle
-		self.LocalOnly[heat] = 0.25
-		#self.ThermNode.ChangeSetpoint()
+		config.DS.Tasks.AddTask(E, 2) # push setpoint change after 2 seconds of idle
+
 		#self.isy.try_ISY_comm('nodes/' + self.ISYObj.address + '/cmd/' + setpoint + '/' + str(
 				#self.info[setpoint][0] + degrees))
 
 	def PushTemp(self):
 		# called on callback timeout
-	    # do the set call to the thermostat
 		self.ThermNode.PushSetpoints(self.t_low,self.t_high)
 
+	def PushModes(self):
+		# called on callback timeout
+		self.ThermNode.PushMode(self.mode)
+
+	def PushFanState(self):
+		self.ThermNode.PushFanState(self.fan)
+
 	# noinspection PyUnusedLocal
-	def BumpMode(self, mode, vals, presstype):
-		return
-		cv = vals.index(self.info[mode][0])
-		cv = (cv + 1)%len(vals)
-		debug.debugPrint('Main', "Bump: ", mode, ' to ', cv)
-		self.isy.try_ISY_comm('nodes/' + self.ISYObj.address + '/cmd/' + mode + '/' + str(vals[cv]))
+	def BumpMode(self, presstype):
+		self.ModeLocal = 0.5 # just do a show screen for mode and fan
+		self.modes = self.modes[1:] + self.modes[:1]
+		self.mode = self.modes[0]
+
+		debug.debugPrint('Main', "Bump mode: ", self.mode)
+		self.ShowScreen()
+		config.DS.Tasks.RemoveAllGrp(id(self)+1)  # remove any pending pushtemp
+		E = eventlist.ProcEventItem(id(self)+1, 'pushmodes',self.PushModes)
+		config.DS.Tasks.AddTask(E, 2) # push setpoint change after 2 seconds of idle
+
+	def BumpFan(self, presstype):
+		self.FanLocal = 0.5 # just do a show screen for mode and fan
+		self.fanstates = self.fanstates[1:] + self.fanstates[:1]
+		self.fan = self.fanstates[0]
+
+		debug.debugPrint('Main', "Bump fa: ", self.fan)
+		self.ShowScreen()
+		config.DS.Tasks.RemoveAllGrp(id(self)+1)  # remove any pending pushtemp
+		E = eventlist.ProcEventItem(id(self)+1, 'pushmodes',self.PushFanState)
+		config.DS.Tasks.AddTask(E, 2) # push setpoint change after 2 seconds of idle
 
 	def ShowScreen(self):
-		t_cur, self.t_low, self.t_high, state, mode, fan = self.ThermNode.GetThermInfo()
+
+		m = self.modes.index(self.mode)
+		self.modes = self.modes[m:] + self.modes[:m]
+		m = self.fanstates.index(self.fan)
+		self.fanstates = self.fanstates[m:] + self.fanstates[:m]
 
 		self.ReInitDisplay()
 		config.screen.blit(self.TitleRen, self.TitlePos)
 
-		r = config.fonts.Font(self.fsize[3], bold=True).render(u"{:4.1f}".format(t_cur), 0,
+		r = config.fonts.Font(self.fsize[3], bold=True).render(u"{:4.1f}".format(self.t_cur), 0,
 															   wc(self.CharColor))
 		config.screen.blit(r, ((config.screenwidth - r.get_width())//2, self.TempPos))
-		r = config.fonts.Font(self.fsize[0]).render(state, 0, wc(self.CharColor))
+		r = config.fonts.Font(self.fsize[0]).render(self.t_state.capitalize(), 0, wc(self.CharColor))
 		config.screen.blit(r, ((config.screenwidth - r.get_width())//2, self.StatePos))
 		rL = config.fonts.Font(self.fsize[2]).render("{:2d}".format(self.t_low), 0, wc(self.CharColor, factor=self.LocalOnly[0]))
 		rH = config.fonts.Font(self.fsize[2]).render("{:2d}".format(self.t_high), 0, wc(self.CharColor, factor=self.LocalOnly[1]))
@@ -150,8 +181,8 @@ class NestThermostatScreenDesc(screen.BaseKeyScreenDesc):
 		config.screen.blit(rL, (self.SPHPosL - self.SPWdt // 2, self.SPVPos))
 		config.screen.blit(rH, (self.SPHPosR - self.SPWdt // 2, self.SPVPos))
 		config.screen.blit(self.AdjButSurf, (0, self.AdjButTops))
-		r1 = config.fonts.Font(self.fsize[1]).render(mode, 0, wc(self.CharColor))
-		r2 = config.fonts.Font(self.fsize[1]).render(fan, 0,  wc(self.CharColor))
+		r1 = config.fonts.Font(self.fsize[1]).render(self.mode.capitalize(), 0, wc(self.CharColor, factor=self.ModeLocal))
+		r2 = config.fonts.Font(self.fsize[1]).render(self.fan.capitalize(), 0,  wc(self.CharColor, factor=self.FanLocal))
 		config.screen.blit(r1, (self.Keys['Mode'].Center[0] - r1.get_width()//2, self.ModesPos))
 		config.screen.blit(r2, (self.Keys['Fan'].Center[0] - r2.get_width()//2, self.ModesPos))
 
@@ -160,13 +191,15 @@ class NestThermostatScreenDesc(screen.BaseKeyScreenDesc):
 
 	def InitDisplay(self, nav):
 		super(NestThermostatScreenDesc, self).InitDisplay(nav)
-		self.info = {} # clear any old info to force a display
+		self.t_cur, self.t_low, self.t_high, self.t_state, self.mode, self.fan = self.ThermNode.GetThermInfo()
 		self.ShowScreen()
 
 	def NodeEvent(self, hub ='', node=0, value=0, varinfo = ()):
 		# need to verify that this is the real update?
 		self.LocalOnly = [0.0,0.0]
-		# clear local values flag - should check if different for race?
+		self.ModeLocal = 0.0
+		self.FanLocal = 0.0
+		self.t_cur, self.t_low, self.t_high, self.t_state, self.mode, self.fan = self.ThermNode.GetThermInfo()
 		self.ShowScreen()
 
 config.screentypes["NestThermostat"] = NestThermostatScreenDesc
