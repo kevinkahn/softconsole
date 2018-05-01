@@ -2,7 +2,7 @@ import pygame
 import logsupport
 from logsupport import ConsoleWarning, ConsoleError
 from pygame import gfxdraw
-import hasshub # only to test that the hub for this is an HA hub
+#import hasshub # only to test that the hub for this is an HA hub
 import eventlist
 
 import config
@@ -29,16 +29,16 @@ class NestThermostatScreenDesc(screen.BaseKeyScreenDesc):
 		screen.BaseKeyScreenDesc.__init__(self, screensection, screenname)
 		utilities.LocalizeParams(self, screensection, '-', 'KeyColor', 'KeyOffOutlineColor', 'KeyOnOutlineColor')
 		self.fsize = (30, 50, 80, 160)
-		if isinstance(self.DefaultHub,hasshub.HA):
-			self.HA = self.DefaultHub
-			self.ThermNode = self.HA.GetNode(screenname)[0]  # use ControlObj (0)
-			if self.ThermNode is None:
-				logsupport.Logs.Log("No Thermostat: " + screenname, severity=ConsoleWarning)
-				raise ValueError
-		else:
-			logsupport.Logs.Log("Nest Thermostat screen only works with HA hub", severity=ConsoleError)
-			self.self.ThermNode = None
-			raise ValueError
+		#if isinstance(self.DefaultHub,hasshub.HA):
+		#	self.HA = self.DefaultHub
+		#	self.ThermNode = self.HA.GetNode(screenname)[0]  # use ControlObj (0)
+		#	if self.ThermNode is None:
+		#		logsupport.Logs.Log("No Thermostat: " + screenname, severity=ConsoleWarning)
+		#		raise ValueError
+		#else:
+		#	logsupport.Logs.Log("Nest Thermostat screen only works with HA hub", severity=ConsoleError)
+		#	self.self.ThermNode = None
+		#	raise ValueError
 
 		self.TitleRen = config.fonts.Font(self.fsize[1]).render(screen.FlatenScreenLabel(self.label), 0,
 																wc(self.CharColor))
