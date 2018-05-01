@@ -1,0 +1,102 @@
+LogLevel = 3
+#Screen = True
+#Main = True
+#Dispatch = True
+#DaemonCtl = True
+#ISYDump = True
+#ISYLoad = True
+#StoreTrack = True
+#HASSgeneral = True
+#HASSchg = True
+
+
+cfglib = "/home/pi/consolerem/example configs/cfglib"
+include = /home/pi/Console/cfglib/pgawauth.cfg, timetempLQ.cfg, weathCC.cfg, timetempPDX.cfg, myclock2.cfg,weathPDX.cfg,weathPump.cfg
+HomeScreenName = LQ
+DimLevel = 25
+DimTO = 25
+DimIdleListNames = MyClock, Portland, LaQuinta
+DimIdleListTimes =	20, 20, 20
+
+MainChain = LQ, LQTT, climate.master_bedroom, climate.living_room
+SecondaryChain = Portland, Pumpkin, Local
+
+DefaultHub = ISY
+
+[Variables]
+    InternetUp = 1
+
+[MQTT]
+	type = MQTT
+	address = rpi-dev7.pgawhome
+	[[PatioTemp]]
+	Topic = Patio/tele/SENSOR
+	json = SI7021:Temperature
+	TopicType = float
+	Expires = 450
+	[[PatioHum]]
+	Topic = Patio/tele/SENSOR
+        json = SI7021:Humidity
+	TopicType = float
+	Expires = 450
+
+[Alerts]
+	[[AdjustScreenDim]]
+	Type = Periodic
+	At = 11:00pm
+	Invoke = AssignVar.Assign
+	Parameter = System:DimLevel = 8
+	[[AdjustScreenDimUp]]
+	Type = Periodic
+	At = 6:30am
+	Invoke = AssignVar.Assign
+	Parameter = System:DimLevel = 35
+
+	[[AutoVersion]]
+	Type = Periodic
+	Interval = 3 hours
+	Invoke = AutoVersion.CheckUpToDate
+	[[SanityCheck]]
+	Type = Periodic
+	Interval = 60 minute
+        Parameter = "ISY"
+	Invoke = CheckIntegrity.CheckISYVars
+[LQ]
+    type = Keypad
+    DefaultHub = HASS
+    label = LQ,
+    [[switch.bed_bath_side]]
+      type = ONOFF
+      label = Suzi, Bedside
+    [[switch.bed_win_side]]
+      type = ONOFF
+      label = Kevin, Bedside
+    [[switch.bedroom_ceiling]]
+      type = ONOFF
+    [[light.main_hall]]
+      type = ONOFF
+    [[switch.outdoor_lights]]
+      type = ONOFF
+      label = Landscape,
+    [[light.bar_lights]]
+      type = ONOFF
+    [[switch.patio_lights]]
+      type = ONOFF
+      label = Patio,
+	  
+[climate.master_bedroom]
+    DefaultHub = HASS
+    type = NestThermostat
+    label = Bedrooms, HVAC
+    BackgroundColor = orchid
+    CharColor = black
+
+[climate.living_room]
+    DefaultHub = HASS
+    type = NestThermostat
+    label = Living Room, HVAC
+    BackgroundColor = maroon
+    CharColor = black
+
+
+
