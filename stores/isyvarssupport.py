@@ -16,16 +16,22 @@ class ISYVars(valuestore.ValueStore):
 		if V is None:
 			# lazy load
 			attr = self.GetAttr(name)
-			text = self.isy.try_ISY_comm('vars/get/' + str(attr[0]) + '/' + str(attr[1]))  # todo what if notfound
-			V = int(xmltodict.parse(text)['var']['val'])
-			super(ISYVars, self).SetVal(name, V)
+			text = self.isy.try_ISY_comm('vars/get/' + str(attr[0]) + '/' + str(attr[1]))
+			if text != "":
+				V = int(xmltodict.parse(text)['var']['val'])
+				super(ISYVars, self).SetVal(name, V)
+			else:
+				V = -999999
 		return V
 
 	def GetValByAttr(self, attr):
 		V = super(ISYVars,self).GetValByAttr(attr)
 		if V is None: # why would val not be in attrlist of store already?
-			text = self.isy.try_ISY_comm('vars/get/' + str(attr[0]) + '/' + str(attr[1]))  # todo what if notfound
-			V = int(xmltodict.parse(text)['var']['val'])
+			text = self.isy.try_ISY_comm('vars/get/' + str(attr[0]) + '/' + str(attr[1]))
+			if text != "":
+				V = int(xmltodict.parse(text)['var']['val'])
+			else:
+				V = -999999
 		return V
 
 	def BlockRefresh(self):
@@ -34,7 +40,7 @@ class ISYVars(valuestore.ValueStore):
 			#print v, self.GetVal(v)
 			self.GetVal(v)
 
-	def CheckValsUpToDate(self):
+	def CheckValsUpToDate(self,reload=False):
 		goodcheck = True
 		for v in self.items():
 			l = self.GetVal(v,forceactual=False)

@@ -87,17 +87,17 @@ class ThermostatScreenDesc(screen.BaseKeyScreenDesc):
 	def BumpTemp(self, setpoint, degrees, presstype):
 		debug.debugPrint('Main', "Bump temp: ", setpoint, degrees,' to ',self.info[setpoint][0] + degrees)
 		self.isy.try_ISY_comm('nodes/' + self.ISYObj.address + '/cmd/' + setpoint + '/' + str(
-				self.info[setpoint][0] + degrees))
+				self.info[setpoint][0] + degrees))  # todo fix for lost connect when move to common screen
 
 	# noinspection PyUnusedLocal
 	def BumpMode(self, mode, vals, presstype):
 		cv = vals.index(self.info[mode][0])
 		cv = (cv + 1)%len(vals)
 		debug.debugPrint('Main', "Bump: ", mode, ' to ', cv)
-		self.isy.try_ISY_comm('nodes/' + self.ISYObj.address + '/cmd/' + mode + '/' + str(vals[cv]))
+		self.isy.try_ISY_comm('nodes/' + self.ISYObj.address + '/cmd/' + mode + '/' + str(vals[cv])) # todo fix for lost connect when move to common screen
 
 	def ShowScreen(self):
-		rtxt = self.isy.try_ISY_comm('nodes/' + self.ISYObj.address)
+		rtxt = self.isy.try_ISY_comm('nodes/' + self.ISYObj.address) # todo fix for lost connect when move to common screen
 		# noinspection PyBroadException
 		try:
 			tstatdict = xmltodict.parse(rtxt)

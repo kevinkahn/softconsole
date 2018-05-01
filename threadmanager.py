@@ -1,8 +1,10 @@
 import logsupport
 from logsupport import ConsoleWarning
 import threading
+import time
 
 HelperThreads = {}
+Watcher = None
 
 class ThreadItem(object):
 	def __init__(self, name, proc, prestart, poststart, prerestart, postrestart, checkok):
@@ -20,6 +22,7 @@ class ThreadItem(object):
 		self.Thread.stop()
 
 def SetUpHelperThread(name, proc, prestart=None, poststart=None, prerestart=None, postrestart=None, checkok=None):
+	global HelperThreads
 	HelperThreads[name] = ThreadItem(name,proc,prestart,poststart,prerestart,postrestart,checkok)
 
 def DoRestart(T):
@@ -43,6 +46,8 @@ def CheckThreads():
 				DoRestart(T)
 
 def StartThreads():
+	global Watcher
+
 	for T in HelperThreads.values():
 		T.seq += 1
 		logsupport.Logs.Log("Starting helper thread (", T.seq,") for: ", T.name)
@@ -51,6 +56,15 @@ def StartThreads():
 		T.Thread.setDaemon(True)
 		T.Thread.start()
 		if T.PostStartThread is not None: T.PostStartThread()
+	Watcher = threading.Thread(name='Watcher', target=Watch)
+	Watcher.setDaemon(True)
+	Watcher.start()
+
+def Watch():
+	while True:
+		CheckThreads()
+		time.sleep(2)
+	print('Exit Watch')
 
 
 

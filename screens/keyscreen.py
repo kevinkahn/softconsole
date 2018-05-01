@@ -50,7 +50,12 @@ class KeyScreenDesc(screen.BaseKeyScreenDesc):
 			value = int(value)
 
 		assert isinstance(value,int)
-		if node != 0:
+		if node is None: # all keys for this hub
+			for _, K in self.HubInterestList[hub].items():
+				debug.debugPrint('Screen', 'KS Wildcard ISYEvent ', K.name, str(value), str(K.State))
+				K.UnknownState = True
+				K.PaintKey()
+		elif node != 0:
 			# noinspection PyBroadException
 			try:
 				K = self.HubInterestList[hub][node]
@@ -60,14 +65,16 @@ class KeyScreenDesc(screen.BaseKeyScreenDesc):
 			debug.debugPrint('Screen', 'KS ISYEvent ', K.name, str(value), str(K.State))
 			K.State = not (value == 0)  # K is off (false) only if state is 0
 			K.UnknownState = True if value == -1 else False
+			K.PaintKey()
 		else:
 			# noinspection PyBroadException
 			try:
 				# varinfo is (keyname, varname)
 				K = self.Keys[varinfo[0]]
+				K.PaintKey()
 			except:
 				debug.debugPrint('Screen', 'Bad var key', self.name, str(varinfo))
 				return
-		K.PaintKey()
+
 
 config.screentypes["Keypad"] = KeyScreenDesc

@@ -12,7 +12,6 @@ from stores import valuestore
 import errno
 import isycodes
 
-
 class ISYEMInternalError(Exception):
 	pass
 
@@ -30,28 +29,46 @@ class ISYEventMonitor(object):
 		self.seq = 0
 		self.lastheartbeat = 0
 		self.hbcount = 0
-		self.digestinginput = True
 		self.AlertNodes = {}
 		self.delayedstart = 0
+		self.WS = None
+		self.THstate = 'init'
 
 		self.lasterror = (0,'Init')
 		debug.debugPrint('DaemonCtl', "Queue Handler ", self.QHnum, " started: ", self.watchstarttime)
 		self.reportablecodes = ["DON", "DFON", "DOF", "DFOF", "ST", "CLISP", "CLISPH", "CLISPC", "CLIFS",
 								"CLIMD", "CLIHUM", "CLIHCS", "BRT", "DIM"] # "RR", "OL",
 
+	def EndWSServer(self):
+		self.WS.close()
+
+	def FakeNodeChange(self):
+		print("Fake: ")
+		notice = pygame.event.Event(config.DS.HubNodeChange, hub=self.isy.name, node=None, value=-1)
+		pygame.fastevent.post(notice)
+
 	def reinit(self):
 		self.watchstarttime = time.time()
 		self.watchlist = []
 		self.seq = 0
+		self.hbcount = 0
 		self.QHnum += 1
 
 	def PostStartQHThread(self):
-		logsupport.Logs.Log("ISY stream thread " + str(self.QHnum) + " setup")
-		while self.digestinginput: # todo merge with HubOnline?
+		while self.THstate == 'delaying':
+			time.sleep(1)
+		while self.THstate == 'starting':
 			logsupport.Logs.Log("Waiting initial status dump")
-			time.sleep(0.5)
-		self.isy._HubOnline = True
-		logsupport.Logs.Log("ISY initial status streamed ", self.seq, " items")
+			time.sleep(1)
+		if self.THstate == 'running':
+			self.isy._HubOnline = True
+			logsupport.Logs.Log("ISY initial status streamed ", self.seq, " items")
+			self.isy.Vars.CheckValsUpToDate(reload=True)
+			logsupport.Logs.Log("ISY vars updated")
+		elif self.THstate == 'failed':
+			pass
+		else:
+			logsupport.Logs.Log("Unknown QH Thread state")
 
 	def PreRestartQHThread(self):
 		self.isy._HubOnline = False
@@ -71,9 +88,11 @@ class ISYEventMonitor(object):
 				self.delayedstart = 120
 			elif self.lasterror[0] == errno.ETIMEDOUT:
 				logsupport.Logs.Log('(errno TIMEOUT) Timeout on WS - delay to allow possible ISY or router reboot',severity=ConsoleError, tb=False)
-				logsupport.Logs.Log('Original error report: '+repr(self.lasterror))
 				self.delayedstart = 60
 				# todo - bug in websocket that results in attribute error for errno.WSEACONNECTIONREFUSED check
+			elif self.lasterror == (0, 'Init'):
+				logsupport.Logs.Log('QHThead failed to start - comms likely out')
+				self.delayedstart = 60
 			else:
 				logsupport.Logs.Log('Unexpected error on WS stream: ',repr(self.lasterror), severity=ConsoleError, tb=False)
 		except Exception as e:
@@ -83,6 +102,11 @@ class ISYEventMonitor(object):
 	def QHandler(self):
 		def on_error(qws, error):
 			logsupport.Logs.Log("Error in WS stream " + str(self.QHnum) + ':' + repr(error), severity=ConsoleError, tb=False)
+			try:
+				if error.args[0] == 'timed out':
+					error = (errno.ETIMEDOUT,'InitTimedOut')
+			except:
+				pass
 			try:
 				if error == TimeoutError: # Py3
 					error = (errno.ETIMEDOUT,"Converted Py3 Timeout")
@@ -94,7 +118,13 @@ class ISYEventMonitor(object):
 			except:
 				pass
 			self.lasterror = error
+			self.THstate = 'failed'
 			debug.debugPrint('DaemonCtl', "Websocket stream error", self.QHnum, repr(error))
+			if error[0] != errno.ETIMEDOUT:
+				logsupport.Logs.Log("Error in WS stream " + str(self.QHnum) + ':' + repr(error), severity=ConsoleError,
+									tb=False)
+			else:
+				logsupport.Logs.Log("Timeout on ISY WS stream",severity=ConsoleError,tb=False)
 			qws.close()
 
 		# noinspection PyUnusedLocal
@@ -103,10 +133,11 @@ class ISYEventMonitor(object):
 							severity=ConsoleError, tb=False)
 			debug.debugPrint('DaemonCtl', "Websocket stream closed", str(code), str(reason))
 
-		# noinspection PyUnusedLocal
 		def on_open(qws):
+			self.THstate = 'starting'
 			logsupport.Logs.Log("Websocket stream " + str(self.QHnum) + " opened")
 			debug.debugPrint('DaemonCtl', "Websocket stream opened: ", self.QHnum, self.streamid)
+			self.WS = qws
 
 		# noinspection PyUnusedLocal
 		def on_message(qws, message):
@@ -188,11 +219,11 @@ class ISYEventMonitor(object):
 					elif prcode == 'Heartbeat':
 						if self.hbcount > 0:
 							# wait 2 heartbeats
-							self.digestinginput = False
+							self.THstate = 'running'
 						self.lastheartbeat = time.time()
 						self.hbcount += 1
 					elif prcode == 'Billing':
-						self.digestinginput = False
+						self.THstate = 'running'
 					else:
 						pass  # handle any other?
 					efmtact = E.pop('fmtAct', 'v4stream')
@@ -225,8 +256,10 @@ class ISYEventMonitor(object):
 				print(E)
 				logsupport.Logs.Log("Exception in QH on message: ", E)
 
+		self.THstate = 'delaying'
+		logsupport.Logs.Log("ISY stream thread " + str(self.QHnum) + " setup")
 		if self.delayedstart != 0:
-			logsupport.Logs.Log("Delaying ISY Hub restart for probably network reset")
+			logsupport.Logs.Log("Delaying ISY Hub restart for probable network reset: ",str(self.delayedstart),' seconds')
 			time.sleep(self.delayedstart)
 		#websocket.enableTrace(True)
 		websocket.setdefaulttimeout(30)
@@ -246,9 +279,9 @@ class ISYEventMonitor(object):
 			except AttributeError as e:
 				logsupport.Logs.Log("Problem starting WS handler - retrying: ",repr(e))
 				print(e)
-		self.digestinginput = True
 		self.lastheartbeat = time.time()
 		ws.run_forever()
+		self.THstate = 'failed'
 		self.isy._HubOnline = False
-		logsupport.Logs.Log("QH Thread " + str(self.QHnum) + " exiting", severity=ConsoleError)
+		logsupport.Logs.Log("QH Thread " + str(self.QHnum) + " exiting", severity=ConsoleError, tb=False)
 

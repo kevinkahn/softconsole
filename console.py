@@ -391,8 +391,8 @@ LogBadParams(alertspec, "Alerts")
 """
 Dump documentation if development version
 """
-if config.versionname == 'development':
-	utilities.DumpDocumentation()
+#if config.versionname == 'development':
+#	utilities.DumpDocumentation()
 
 """
 Run the main console loop

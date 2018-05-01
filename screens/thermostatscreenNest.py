@@ -185,13 +185,15 @@ class NestThermostatScreenDesc(screen.BaseKeyScreenDesc):
 		r2 = config.fonts.Font(self.fsize[1]).render(self.fan.capitalize(), 0,  wc(self.CharColor, factor=self.FanLocal))
 		config.screen.blit(r1, (self.Keys['Mode'].Center[0] - r1.get_width()//2, self.ModesPos))
 		config.screen.blit(r2, (self.Keys['Fan'].Center[0] - r2.get_width()//2, self.ModesPos))
-
 		pygame.display.update()
-		pass
+
 
 	def InitDisplay(self, nav):
 		super(NestThermostatScreenDesc, self).InitDisplay(nav)
 		self.t_cur, self.t_low, self.t_high, self.t_state, self.mode, self.fan = self.ThermNode.GetThermInfo()
+		self.LocalOnly = [0.0,0.0]
+		self.ModeLocal = 0.0
+		self.FanLocal = 0.0
 		self.ShowScreen()
 
 	def NodeEvent(self, hub ='', node=0, value=0, varinfo = ()):

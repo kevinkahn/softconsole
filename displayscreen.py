@@ -3,7 +3,7 @@ import time
 from collections import OrderedDict
 
 import pygame
-
+import exitutils
 import alerttasks
 import config
 import debug
@@ -150,14 +150,16 @@ class DisplayScreen(object):
 
 		while config.Running:  # Operational Control Loop
 
+			if not threadmanager.Watcher.is_alive():
+				logsupport.Logs.Log("Threadmanager Failure", severity=ConsoleError,tb=False)
+				exitutils.Exit(exitutils.ERRORRESTART)
+
 			os.utime(config.homedir + "/.ConsoleStart", None)
 			if debug.dbgStore.GetVal('StatesDump'):
 				debug.dbgStore.SetVal('StatesDump',False)
 				for h, hub in config.Hubs.items():
 					print('States dump for hub: ',h)
 					hub.StatesDump()
-
-			threadmanager.CheckThreads()
 
 			if self.Deferrals:  # an event was deferred mid screen touches - handle now
 				event = self.Deferrals.pop(0)

@@ -48,8 +48,9 @@ class OnOffItem(ISYNode):
 	def SendOnOffCommand(self, settoon, presstype):
 		selcmd = (('DOF', 'DFOF'), ('DON', 'DFON'))
 		debug.debugPrint('ISYdbg', "OnOff sent: ", selcmd[settoon][presstype], ' to ', self.name)
-		self.Hub.try_ISY_comm('nodes/' + self.address + '/cmd/' + selcmd[settoon][presstype])
-
+		r = self.Hub.try_ISY_comm('nodes/' + self.address + '/cmd/' + selcmd[settoon][presstype])
+		if r == "": # error in comm - fake a response to see unavailable key
+			self.Hub.isyEM.FakeNodeChange()
 
 class Folder(TreeItem):
 	"""
@@ -190,6 +191,7 @@ class ISY(object):
 		self._ProgramsByName = {}
 		self._ProgramFoldersByName = {}
 		self._HubOnline = False
+		self.Vars = None
 
 
 		"""
@@ -404,7 +406,7 @@ class ISY(object):
 					exitutils.errorexit(exitutils.ERRORPIREBOOT)
 					logsupport.Logs.Log('Reached unreachable code! ISY4')
 
-		Vars = valuestore.NewValueStore(isyvarssupport.ISYVars(self))
+		self.Vars = valuestore.NewValueStore(isyvarssupport.ISYVars(self))
 		# noinspection PyBroadException
 		try:
 			configdictS = xmltodict.parse(r1.text)['CList']['e']
@@ -414,9 +416,9 @@ class ISY(object):
 				debug.ISYDump("xml.dmp", r1.text, pretty=False)
 				debug.ISYDump("struct.dmp", configdictS)
 			for v in configdictS:
-				Vars.SetVal(('State',v['@name']),None)
-				Vars.SetAttr(('State',v['@name']),(2,int(v['@id'])))
-				Vars.AddAlert(('State',v['@name']),self._ISYVarChanged)
+				self.Vars.SetVal(('State',v['@name']),None)
+				self.Vars.SetAttr(('State',v['@name']),(2,int(v['@id'])))
+				self.Vars.AddAlert(('State',v['@name']),self._ISYVarChanged)
 		except:
 			logsupport.Logs.Log('No state variables defined')
 		# noinspection PyBroadException
@@ -428,9 +430,9 @@ class ISY(object):
 				debug.ISYDump("xml.dmp", r2.text, pretty=False)
 				debug.ISYDump("struct.dmp", configdictI)
 			for v in configdictI:
-				Vars.SetVal(('Int',v['@name']),None)
-				Vars.SetAttr(('Int',v['@name']),(1,int(v['@id'])))
-				Vars.AddAlert(('Int', v['@name']), self._ISYVarChanged)
+				self.Vars.SetVal(('Int',v['@name']),None)
+				self.Vars.SetAttr(('Int',v['@name']),(1,int(v['@id'])))
+				self.Vars.AddAlert(('Int', v['@name']), self._ISYVarChanged)
 		except:
 			logsupport.Logs.Log('No integer variables defined')
 
@@ -446,13 +448,13 @@ class ISY(object):
 					'Invoke': 'NetCmd.Command'}
 				break
 
-		Vars.LockStore()
+		self.Vars.LockStore()
 		utilities.register_example("ISY", self)
 		if debug.dbgStore.GetVal('ISYdbg'):
 			self.PrintTree(self._ProgRoot, "    ", 'Programs')
 
 		self.isyEM = isyeventmonitor.ISYEventMonitor(self)
-		threadmanager.SetUpHelperThread(self.name,self.isyEM.QHandler,prerestart=self.isyEM.PreRestartQHThread,poststart=self.isyEM.PostStartQHThread)
+		threadmanager.SetUpHelperThread(self.name,self.isyEM.QHandler,prerestart=self.isyEM.PreRestartQHThread,poststart=self.isyEM.PostStartQHThread,postrestart=self.isyEM.PostStartQHThread)
 		logsupport.Logs.Log("Finished creating Structure for ISY hub: ", name)
 
 	# noinspection PyUnusedLocal
@@ -460,7 +462,7 @@ class ISY(object):
 		if not chgsource:  # only send to ISY if change didn't originate there
 			val = int(new)  # ISY V4 only allows integer variable values - may change in V5
 			varid = storeitem.Attribute
-			txt = self.try_ISY_comm('vars/set/' + str(varid[0]) + '/' + str(varid[1]) + '/' + str(val))  # todo what if notfound
+			self.try_ISY_comm('vars/set/' + str(varid[0]) + '/' + str(varid[1]) + '/' + str(val))
 
 	def CheckStates(self):
 		# sanity check all states in Hub against local cache
@@ -470,7 +472,7 @@ class ISY(object):
 
 
 	def try_ISY_comm(self, urlcmd):
-		for i in range(15):
+		for i in range(5):
 			try:
 				try:
 					r = self.ISYrequestsession.get(self.ISYprefix + urlcmd, verify=False, timeout=5)
@@ -496,7 +498,7 @@ class ISY(object):
 						logsupport.Logs.Log(sys.exc_info()[1], severity=ConsoleDetailHigh, tb=False)
 					raise CommsError
 				except Exception as e:
-					logsupport.Logs.Log("ISY Comm UnknownErr: " + ' Cmd: ' + urlcmd, severity=ConsoleError)
+					logsupport.Logs.Log("ISY Comm UnknownErr: " + ' Cmd: ' + urlcmd, severity=ConsoleError,tb=False)
 					logsupport.Logs.Log("  Exception: ", str(e))
 					logsupport.Logs.Log(sys.exc_info()[1], severity=ConsoleDetailHigh, tb=True)
 					raise CommsError
@@ -513,19 +515,25 @@ class ISY(object):
 				time.sleep(.5)
 				logsupport.Logs.Log("Attempting ISY retry " + str(i + 1), severity=ConsoleError, tb=False)
 
-		logsupport.Logs.Log("ISY Communications Failure", severity=ConsoleError)
-		exitutils.errorexit(exitutils.ERRORPIREBOOT)
+		logsupport.Logs.Log("ISY Communications Failure - Hub Unavailable", severity=ConsoleError, tb=False)
+		self._HubOnline = False
+		self.isyEM.EndWSServer()
+		return ""
+		#exitutils.errorexit(exitutils.ERRORPIREBOOT)
 
 	def _check_real_time_node_status(self, Node):
 		text = self.try_ISY_comm('status/' + Node.address)  # todo what if notfound?
-		props = xmltodict.parse(text)['properties']['property']
-		if isinstance(props, dict):
-			props = [props]
-		devstate = 0
-		for item in props:
-			if item['@id'] == "ST":
-				devstate = isycodes._NormalizeState(item['@value'])
-				break
+		if text != "":
+			props = xmltodict.parse(text)['properties']['property']
+			if isinstance(props, dict):
+				props = [props]
+			devstate = 0
+			for item in props:
+				if item['@id'] == "ST":
+					devstate = isycodes._NormalizeState(item['@value'])
+					break
+		else:
+			devstate = -99999
 
 		if Node.devState != int(devstate):
 			logsupport.Logs.Log("ISY state anomoly in hub: ", self.name, ' Node: ', Node.fullname, ' (',Node.address,') Cached: ',

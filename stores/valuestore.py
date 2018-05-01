@@ -258,7 +258,7 @@ class ValueStore(object):
 			else:
 				logsupport.Logs.Log("Can't set alert on array element for ", self.name)
 		except Exception as e:
-			logsupport.Logs.Log("Alert add error", self.name, " Exception: ", e)
+			logsupport.Logs.Log("Alert add error: ", self.name, " Exception: ", e)
 
 	def SetType(self, name, vtype):
 		# noinspection PyBroadException
@@ -309,7 +309,7 @@ class ValueStore(object):
 				if self.locked:
 					logsupport.Logs.Log('Attempt to add element to locked store',self.name,n)
 					return
-				t[n2[0]] = {} if not isinstance(n2[1],int) else self.itemtyp(StoreList(t),val,store=self) # todo test
+				t[n2[0]] = {} if not isinstance(n2[1],int) else self.itemtyp(StoreList(t),val,store=self)
 				t = t[n2[0]]
 				n2.pop(0)
 		# at this point n2 is last piece of name and t dict holding pointer to last piece of name (itemtype) or itemtype with array value

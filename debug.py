@@ -93,7 +93,7 @@ def ISYDump(fn, item, pretty = True,new=False):
 			f.write(item)
 
 # noinspection PyUnusedLocal
-def StoresDump(store,old,new,param):
+def StoresDump(store,old,new,param,_):
 	if not new: return
 	for store in valuestore.ValueStores.values():
 		for i in store.items():
