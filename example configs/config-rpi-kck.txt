@@ -20,8 +20,8 @@ SecondaryChain = Bathroom, Upper Level, LR, OtherMain, Downstairs, Portland
 	Invoke = NetworkHealth.Do_Ping
 	Parameter = '8.8.8.8',InternetUp
 	[[InternetAlert]]
-	Type = LocalVarChange
-	Var = InternetUp
+	Type = VarChange
+	Var = LocalVars:InternetUp
 	Test = NE
 	Value = 1
 	Invoke = InternetAlertScreen

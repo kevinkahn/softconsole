@@ -11,6 +11,7 @@ import logsupport
 from stores import valuestore
 from logsupport import ConsoleWarning, ConsoleError, ConsoleDetail
 import functools
+import eventlist
 
 from ast import literal_eval
 def _NormalizeState(state, brightness=None):
@@ -155,6 +156,13 @@ class Thermostat(HAnode): # not stateful since has much state info
 	config file for sensor platform nest
 	'''
 
+	def ErrorFakeChange(self):
+		# noinspection PyArgumentList
+		print('Fake Therm')
+		notice = pygame.event.Event(config.DS.HubNodeChange, hub=self.Hub.name, node=self.entity_id,
+									value=self.internalstate)
+		pygame.fastevent.post(notice)
+
 	def Update(self,**ns):
 		self.attributes = ns['attributes']
 		self.temperature = self.attributes['temperature']
@@ -176,6 +184,10 @@ class Thermostat(HAnode): # not stateful since has much state info
 	def PushSetpoints(self,t_low,t_high):
 		# todo with nest pushing setpoint while not in auto seems to be a no-op and so doesn't cause an event
 		ha.call_service(self.Hub.api, 'climate', 'set_temperature', {'entity_id': '{}'.format(self.entity_id),'target_temp_high':str(t_high),'target_temp_low':str(t_low)})
+		# should push a fake event a few seconds into the future to handle error cases todo
+		print("push setpts")
+		E = eventlist.ProcEventItem(id(self), 'setpointnoresp', self.ErrorFakeChange)
+		config.DS.Tasks.AddTask(E, 5) # if HA doesn't respond clear the tentative values after short wait
 
 	def GetThermInfo(self):
 		if self.target_low is not None:
@@ -348,7 +360,7 @@ class HA(object):
 													alert=a)
 						pygame.fastevent.post(notice)
 			elif m['event_type'] == 'system_log_event':
-				logsupport.Logs.Log('Hub: '+self.name+' logged at level: '+d['level']+' Msg: '+d['message'])
+				logsupport.Logs.Log('Hub: '+self.name+' logged at level: '+d['level']+' Msg: '+d['message']) # todo fake an event for Nest error?
 			elif m['event_type'] in ('call_service', 'service_executed'):
 				#debug.debugPrint('HASSchg', "Other expected event" + str(m))
 				pass

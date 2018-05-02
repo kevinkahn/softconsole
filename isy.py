@@ -157,7 +157,6 @@ class ISY(object):
 	"""
 	Representation of an ISY system as a whole and provides roots to its structures
 	and useful directories to its nodes/programs.  Provides a debug method to dump the constructed graph.
-	Note current limitation: assumes non-conflicting names at the leaves.  Qualified name support is a future addition.
 	"""
 
 	def __init__(self, name, isyaddr, user, pwd):

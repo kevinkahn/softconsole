@@ -42,7 +42,7 @@ class ISYEventMonitor(object):
 	def EndWSServer(self):
 		self.WS.close()
 
-	def FakeNodeChange(self):
+	def FakeNodeChange(self):  #todo del
 		print("Fake: ")
 		notice = pygame.event.Event(config.DS.HubNodeChange, hub=self.isy.name, node=None, value=-1)
 		pygame.fastevent.post(notice)

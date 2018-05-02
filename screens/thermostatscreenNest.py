@@ -29,6 +29,11 @@ class NestThermostatScreenDesc(screen.BaseKeyScreenDesc):
 		screen.BaseKeyScreenDesc.__init__(self, screensection, screenname)
 		utilities.LocalizeParams(self, screensection, '-', 'KeyColor', 'KeyOffOutlineColor', 'KeyOnOutlineColor')
 		self.fsize = (30, 50, 80, 160)
+		self.HA = self.DefaultHub
+		self.ThermNode = self.HA.GetNode(screenname)[0]  # use ControlObj (0)
+		if self.ThermNode is None:
+			logsupport.Logs.Log("No Thermostat: " + screenname, severity=ConsoleWarning)
+			raise ValueError
 		#if isinstance(self.DefaultHub,hasshub.HA):
 		#	self.HA = self.DefaultHub
 		#	self.ThermNode = self.HA.GetNode(screenname)[0]  # use ControlObj (0)
@@ -127,6 +132,7 @@ class NestThermostatScreenDesc(screen.BaseKeyScreenDesc):
 
 	def PushTemp(self):
 		# called on callback timeout
+		print("push temp")
 		self.ThermNode.PushSetpoints(self.t_low,self.t_high)
 
 	def PushModes(self):
