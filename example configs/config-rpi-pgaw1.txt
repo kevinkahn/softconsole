@@ -61,6 +61,24 @@ DefaultHub = HASS
 	Interval = 60 minute
         Parameter = "ISY"
 	Invoke = CheckIntegrity.CheckISYVars
+
+	[[Main Garage Door]]
+	Type = VarChange
+	Var = HASS:sensor.main_garage_door_access_control
+	Test = EQ
+	Value = 22
+	Delay = 5 minutes
+	Invoke = GarageDoor
+
+        [[Cart Garage Door]]
+        Type = VarChange
+        Var = HASS:sensor.golf_cart_door_access_control
+        Test = EQ
+        Value = 22
+        Delay = 5 minutes 
+        Invoke = CartDoor
+
+
 [LQ]
     type = Keypad
     DefaultHub = HASS
@@ -97,6 +115,30 @@ DefaultHub = HASS
     label = Living Room, HVAC
     BackgroundColor = maroon
     CharColor = black
+
+[GarageDoor]
+	type = Alert
+	BackgroundColor = cyan
+	MessageBack = red
+	CharColor = black
+	Message = Garage, Main Door, is, Open
+	CharSize = 30, 30, 30,40
+	DeferTime = 2 minute
+	BlinkTime = 1
+	KeyColor = maroon
+
+[CartDoor]
+        type = Alert
+        BackgroundColor = cyan
+        MessageBack = red
+        CharColor = black
+        Message = Garage, Cart Door, is, Open
+        CharSize = 30, 30, 30,40
+        DeferTime = 2 minute
+        BlinkTime = 1
+        KeyColor = maroon
+
+
 
 
 

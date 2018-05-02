@@ -19,7 +19,7 @@
       <paths name="rpi-pgaw1">
         <serverdata>
           <mappings>
-            <mapping deploy="/home/pi/consolerem" local="$PROJECT_DIR$" />
+            <mapping deploy="/consolerem" local="$PROJECT_DIR$" />
           </mappings>
         </serverdata>
       </paths>

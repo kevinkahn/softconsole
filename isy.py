@@ -522,7 +522,7 @@ class ISY(object):
 		#exitutils.errorexit(exitutils.ERRORPIREBOOT)
 
 	def _check_real_time_node_status(self, Node):
-		text = self.try_ISY_comm('status/' + Node.address)  # todo what if notfound?
+		text = self.try_ISY_comm('status/' + Node.address)
 		if text != "":
 			props = xmltodict.parse(text)['properties']['property']
 			if isinstance(props, dict):
@@ -576,7 +576,7 @@ class ISY(object):
 			else:
 				for i in ISYObj.members:
 					device = i[1]
-					if device.enabled: #and device.hasstatus: todo do we need this?  If not also delete its setting
+					if device.enabled:
 						MObj = device
 						break
 					else:

@@ -230,10 +230,11 @@ def ParseAlertParams(nm, spec):
 		valuestore.AddAlert(n, (VarChanged, A))
 
 	elif triggertype == 'VarChange':
-		n = spec.get('Var', None).split(':')
-		if n is None:
+		tmp = spec.get('Var', None)
+		if tmp is None:
 			logsupport.Logs.Log("Alert: ", nm, " var name doesn't exist", severity=ConsoleWarning)
 			return None
+		n = tmp.split(':')
 		monitoredvars.append(n)
 		trig = VarChangeTrigger(n,comparams(spec))
 		A = Alert(nm, triggertype, trig, action, actionname, param)

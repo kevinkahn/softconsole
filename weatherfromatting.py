@@ -39,7 +39,7 @@ def CreateWeathBlock(Format, Fields, WeathFont, FontSize, WeathColor, icon, cent
 	except Exception as e:
 		logsupport.Logs.Log('TimeTemp Weather Formatting Error', severity=ConsoleWarning)
 		if isinstance(e, KeyError):
-			logsupport.Logs.Log(' No such weather field: ',e.message, severity=ConsoleWarning)  #todo check what KeyError returns
+			logsupport.Logs.Log(' No such weather field: ',e.message, severity=ConsoleWarning)
 		rf.append(usefont.render('Weather N/A', 0, wc(WeathColor)))
 		fh = rf[-1].get_height()*len(Format)  # force the height to always be equal even if error
 		if rf[-1].get_width() > fw: fw = rf[-1].get_width()

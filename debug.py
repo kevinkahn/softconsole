@@ -18,7 +18,7 @@ def debugPrintEarly(flag,*args):
 
 def debugPrintReal(flag, *args):
 	global debugPrint
-	tb = False  # todo how to pass a kw param with extra positionals?
+	tb = False
 	flg = dbgStore.GetVal(flag)
 
 	if flg is not None:
