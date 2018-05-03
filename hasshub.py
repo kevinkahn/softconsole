@@ -260,12 +260,17 @@ class HA(object):
 			return None
 
 	def CheckStates(self):
-		for n, s in self.Sensors.items():
-			cacheval = self.sensorstore.GetVal(s.entity_id)
-			actualval = ha.get_state(self.api, s.entity_id)
-			if cacheval != actualval:
-				logsupport.Logs.Log('Sensor value anomoly('+self.name+'): Cached: '+str(cacheval)+ ' Actual: '+str(actualval))
-				self.sensorstore.SetVal(s.entity_id, actualval)
+		try:
+			for n, s in self.Sensors.items():
+				cacheval = self.sensorstore.GetVal(s.entity_id)
+				e = ha.get_state(self.api, s.entity_id)
+				actualval = e.state
+				e = ha.get_state(self.api, s.entity_id)
+				if cacheval != actualval:
+					logsupport.Logs.Log('Sensor value anomoly('+self.name+'): Cached: '+str(cacheval)+ ' Actual: '+str(actualval),severity=ConsoleWarning)
+					self.sensorstore.SetVal(s.entity_id, actualval)
+		except:
+			logsupport.Logs.Log('Sensor value check did not complete',severity=ConsoleWarning)
 
 	def SetAlertWatch(self, node, alert):
 		if node.address in self.AlertNodes:
