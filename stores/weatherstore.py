@@ -1,6 +1,7 @@
 import functools
 import pygame
 import io
+import os
 import sys
 import json
 import time
@@ -126,9 +127,6 @@ class WeatherVals(valuestore.ValueStore):
 		# noinspection PyBroadException
 		try:
 			r = requests.get(self.url,timeout=15)
-			#f = urllib2.urlopen(self.url, None, 15)  # wait at most 15 seconds for weather response then timeout
-			#val = f.read()
-			#f.close
 			val = r.text
 			WUcount += 1
 			logsupport.Logs.Log("Actual weather fetch for " + self.location + "(" + str(self.fetchcount) + ')' + " WU count: " + str(WUcount),
@@ -136,7 +134,6 @@ class WeatherVals(valuestore.ValueStore):
 		except:
 			logsupport.Logs.Log("Error fetching weather: " + self.url + str(sys.exc_info()[0]),
 							severity=ConsoleWarning)
-			#self.dumpweatherresp(val, 'none', 'fetch', '--')
 			self.failedfetch = True
 			return None
 
@@ -151,7 +148,7 @@ class WeatherVals(valuestore.ValueStore):
 			self.fetchtime = 0  # force retry next time since this didn't register with WU
 			return None
 
-		"""
+
 		if config.versionname in ('development', 'homerelease'):
 			self.weathvalfile = open(os.path.dirname(config.configfile) + '/' + self.location + 'wv.log', 'w')
 			self.weathvalfile.write(self.location + ' \n==================\n')
@@ -160,9 +157,19 @@ class WeatherVals(valuestore.ValueStore):
 			self.weathjsonfile.write(self.location + '\n==================\n')
 			self.weathjsonfile.flush()
 			# dump
-		"""
 
-		parsed_json = json.loads(val)
+		try:
+			parsed_json = json.loads(val)
+		except json.JSONDecodeError as e:
+			logsupport.Logs.Log("Bad weather json: ", repr(e),severity=ConsoleWarning)
+			logsupport.Logs.Log("Val: ",val,severity=ConsoleWarning)
+			if config.versionname in ('development', 'homerelease'):
+				self.weathvalfile.write(
+					time.strftime('%H:%M:%S') + ' ' + tag + repr(param) + '\n' + repr(val) + '\n=================')
+				self.weathvalfile.flush()
+
+			self.failedfetch = True
+			return None
 		js = functools.partial(TreeDict, parsed_json)
 		fcsts = TreeDict(parsed_json, 'forecast', 'simpleforecast', 'forecastday')
 		for n, cond in self.vars['Cond'].items():
@@ -228,7 +235,7 @@ class WeatherVals(valuestore.ValueStore):
 
 
 
-	'''
+
 	def dumpweatherresp(self, val, json, tag, param):
 		if config.versionname in ('development', 'homerelease'):
 			self.weathvalfile.write(
@@ -237,4 +244,4 @@ class WeatherVals(valuestore.ValueStore):
 				time.strftime('%H:%M:%S') + ' ' + tag + repr(param) + '\n' + repr(json) + '\n=================')
 			self.weathvalfile.flush()
 			self.weathjsonfile.flush()
-	'''
+
