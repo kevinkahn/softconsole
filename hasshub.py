@@ -260,7 +260,12 @@ class HA(object):
 			return None
 
 	def CheckStates(self):
-		pass # todo add integrity check code
+		for n, s in self.Sensors.items():
+			cacheval = self.sensorstore.GetVal(s.entity_id)
+			actualval = ha.get_state(self.api, s.entity_id)
+			if cacheval != actualval:
+				logsupport.Logs.Log('Sensor value anomoly('+self.name+'): Cached: '+str(cacheval)+ ' Actual: '+str(actualval))
+				self.sensorstore.SetVal(s.entity_id, actualval)
 
 	def SetAlertWatch(self, node, alert):
 		if node.address in self.AlertNodes:

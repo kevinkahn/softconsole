@@ -93,7 +93,7 @@ def syncKeytoStore(storeitem, old, new, key, chgsource):
 def setdbg(K, presstype):  # todo needs dynamic repaint
 	st = debug.dbgStore.GetVal(K.name)
 	debug.dbgStore.SetVal(K.name,not st)
-	K.State = not st
+	K.State = debug.dbgStore.GetVal(K.name) # this allows for case where flag gets reset by proc called servicing the set
 	K.PaintKey()
 	logsupport.Logs.Log("Debug flag ", K.name, ' = ', K.State, severity=ConsoleWarning)
 

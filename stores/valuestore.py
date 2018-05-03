@@ -176,6 +176,9 @@ class ValueStore(object):
 		self.attrnames = {}
 		self.locked = False
 
+	def CheckValsUpToDate(self):
+		pass
+
 	@staticmethod
 	def _normalizename(name):
 		if isinstance(name, list):

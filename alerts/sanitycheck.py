@@ -10,7 +10,7 @@ class CheckIntegrity(object):
 
 	# noinspection PyUnusedLocal
 	@staticmethod
-	def CheckISYVars(alert):
+	def CheckStatusCaches(alert):
 		def DoCheck(hubnm, hub):
 			logsupport.Logs.Log('Integrity check for hub: ', hubnm, ' starting')
 			valuestore.ValueStores[hubnm].CheckValsUpToDate()

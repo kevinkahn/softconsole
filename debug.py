@@ -95,7 +95,8 @@ def ISYDump(fn, item, pretty = True,new=False):
 # noinspection PyUnusedLocal
 def StoresDump(store,old,new,param,_):
 	if not new: return
-	for store in valuestore.ValueStores.values():
-		for i in store.items():
-			print (store.name + str(i)+str(store.GetVal(i)))
+	with open('/home/pi/Console/StoresDump.txt', mode='w') as f:
+		for store in valuestore.ValueStores.values():
+			for i in store.items():
+				f.write(store.name + str(i)+str(store.GetVal(i))+'\n')
 	dbgStore.SetVal('StoresDump',False)
