@@ -185,7 +185,7 @@ class Thermostat(HAnode): # not stateful since has much state info
 		# todo with nest pushing setpoint while not in auto seems to be a no-op and so doesn't cause an event
 		ha.call_service(self.Hub.api, 'climate', 'set_temperature', {'entity_id': '{}'.format(self.entity_id),'target_temp_high':str(t_high),'target_temp_low':str(t_low)})
 		# should push a fake event a few seconds into the future to handle error cases todo
-		print("push setpts")
+		print("push setpts",t_low,t_high,self.entity_id)
 		E = eventlist.ProcEventItem(id(self), 'setpointnoresp', self.ErrorFakeChange)
 		config.DS.Tasks.AddTask(E, 5) # if HA doesn't respond clear the tentative values after short wait
 

@@ -70,13 +70,22 @@ DefaultHub = HASS
 	Delay = 5 minutes
 	Invoke = GarageDoor
 
-        [[Cart Garage Door]]
-        Type = VarChange
-        Var = HASS:sensor.golf_cart_door_access_control
-        Test = EQ
-        Value = 22
-        Delay = 5 minutes 
-        Invoke = CartDoor
+     [[Cart Garage Door]]
+     Type = VarChange
+     Var = HASS:sensor.golf_cart_door_access_control
+     Test = EQ
+     Value = 22
+     Delay = 5 minutes
+     Invoke = CartDoor
+
+	[[AutoVersionInit]]
+	Type = Init
+	Invoke = AutoVersion.CheckUpToDate
+
+	[[AutoVersion]]
+	Type = Periodic
+	Interval = 3 hours
+	Invoke = AutoVersion.CheckUpToDate
 
 
 [LQ]

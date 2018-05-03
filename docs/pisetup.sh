@@ -145,9 +145,10 @@ echo "Note - installation switches system default Python to version 3"
 echo "To undo this run 'sudo update-alternatives --config python' to select desired alternative"
 pip install future
 pip3 install future
-wget https://raw.githubusercontent.com/kevinkahn/softconsole/master/docs/installconsole.sh
-wget https://raw.githubusercontent.com/kevinkahn/softconsole/master/getsetupinfo.py
-wget https://raw.githubusercontent.com/kevinkahn/softconsole/master/scripts/vncserverpi.service
+# NOTE to test with current master version from github replace "currentrelease" with 'master'
+wget https://raw.githubusercontent.com/kevinkahn/softconsole/currentrelease/docs/installconsole.sh
+wget https://raw.githubusercontent.com/kevinkahn/softconsole/currentrelease/getsetupinfo.py
+wget https://raw.githubusercontent.com/kevinkahn/softconsole/currentrelease/scripts/vncserverpi.service
 chmod +x installconsole.sh
 # fix issue in adafruit install script as of 3/31/2018
 

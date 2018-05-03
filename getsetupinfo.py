@@ -21,11 +21,11 @@ if ans in ('y', 'Y'):
 		ISYUSER = input("ISY user name: ")
 		ISYPWD = input("ISY password: ")
 		exswitch = input("Example switch to use (ISY name): ")
-		print("Name:    " + ISYname)
-		print("IP:      " + ISYIP)
-		print("USER:    " + ISYUSER)
-		print("PASSWORD:" + ISYPWD)
-		print("SWITCH:  " + "[[" + exswitch + "]]")
+		print("ISY Name: " + ISYname)
+		print("IP:       " + ISYIP)
+		print("USER:     " + ISYUSER)
+		print("PASSWORD: " + ISYPWD)
+		print("SWITCH:   " + "[[" + exswitch + "]]")
 		go = input("OK? (y/n)")
 	with open('/home/pi/Consoleauth', "w") as f:
 		cfg = ("[" + ISYname + "]",
@@ -38,7 +38,7 @@ if ans in ('y', 'Y'):
 	with open('/home/pi/ConsoleMinEx', 'w') as f:
 		cfg = ('cfglib = cfglib',
 			   'include = auth.cfg, myclock.cfg',
-			   'DefaultHub = ISY',
+			   'DefaultHub = ' + ISYname,
 			   'HomeScreenName = test',
 			   'PersistTO = 30',
 			   'DimLevel = 5',

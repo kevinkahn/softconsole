@@ -159,8 +159,8 @@ fi
 
 cd /home/pi/
 LogBanner "Console Installation"
-wget https://raw.githubusercontent.com/kevinkahn/softconsole/master/setupconsole.py
-wget https://raw.githubusercontent.com/kevinkahn/softconsole/master/githubutil.py
+wget https://raw.githubusercontent.com/kevinkahn/softconsole/currenrelease/setupconsole.py
+wget https://raw.githubusercontent.com/kevinkahn/softconsole/currentrelease/githubutil.py
 python -u setupconsole.py
 
 # in case this is a development system
