@@ -61,6 +61,8 @@ class ManualKeyDesc(TouchPoint):
 		self.KeyOnImageBase = None # type: pygame.Surface
 		self.KeyOffImageBase = None # type: pygame.Surface
 		self.KeyUnknownOverlay = None # type: pygame.Surface
+		self.KeyLabelOn = ''
+		self.KeyLabelOff = ''
 
 
 		# alternate creation signatures

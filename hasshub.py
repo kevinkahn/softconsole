@@ -17,7 +17,7 @@ from ast import literal_eval
 def _NormalizeState(state, brightness=None):
 	if isinstance(state, str):
 		if state == 'on':
-			if brightness != None:
+			if brightness is not None:
 				return brightness
 			else:
 				return 255
@@ -138,6 +138,7 @@ class Thermostat(HAnode): # not stateful since has much state info
 	def __init__(self, HAitem, d):
 		super(Thermostat, self).__init__(HAitem, **d)
 		self.Hub.Thermostats[self.entity_id] = self
+		# noinspection PyBroadException
 		try:
 			self.temperature = self.attributes['temperature']
 			self.curtemp = self.attributes['current_temperature']
@@ -158,7 +159,6 @@ class Thermostat(HAnode): # not stateful since has much state info
 
 	def ErrorFakeChange(self):
 		# noinspection PyArgumentList
-		print('Fake Therm')
 		notice = pygame.event.Event(config.DS.HubNodeChange, hub=self.Hub.name, node=self.entity_id,
 									value=self.internalstate)
 		pygame.fastevent.post(notice)
@@ -185,7 +185,6 @@ class Thermostat(HAnode): # not stateful since has much state info
 		# todo with nest pushing setpoint while not in auto seems to be a no-op and so doesn't cause an event
 		ha.call_service(self.Hub.api, 'climate', 'set_temperature', {'entity_id': '{}'.format(self.entity_id),'target_temp_high':str(t_high),'target_temp_low':str(t_low)})
 		# should push a fake event a few seconds into the future to handle error cases todo
-		print("push setpts",t_low,t_high,self.entity_id)
 		E = eventlist.ProcEventItem(id(self), 'setpointnoresp', self.ErrorFakeChange)
 		config.DS.Tasks.AddTask(E, 5) # if HA doesn't respond clear the tentative values after short wait
 
@@ -209,6 +208,7 @@ class Thermostat(HAnode): # not stateful since has much state info
 
 	def _connectsensors(self, HVACsensor):
 		self.HVAC_state = HVACsensor.state
+		# noinspection PyProtectedMember
 		HVACsensor._SetSensorAlert(functools.partial(self._HVACstatechange))
 
 	def GetModeInfo(self):
@@ -219,6 +219,7 @@ class Thermostat(HAnode): # not stateful since has much state info
 						{'entity_id': '{}'.format(self.entity_id), 'fan_mode': mode})
 
 	def PushMode(self,mode):
+		# noinspection PyBroadException
 		try:
 			ha.call_service(self.Hub.api, 'climate', 'set_operation_mode',
 						{'entity_id': '{}'.format(self.entity_id), 'operation_mode': mode})
@@ -236,6 +237,7 @@ class HA(object):
 		pass
 
 	def GetNode(self, name, proxy = ''):
+		# noinspection PyBroadException
 		try:
 			return self.Entities[name], self.Entities[name]
 		except:
@@ -250,6 +252,7 @@ class HA(object):
 			return None
 
 	def GetCurrentStatus(self, MonitorNode):
+		# noinspection PyBroadException
 		try:
 			return MonitorNode.internalstate
 		except:
@@ -369,6 +372,7 @@ class HA(object):
 
 		def on_error(qws, error):
 			self.lasterror = error
+			# noinspection PyBroadException
 			try:
 				if error.args[0] == "'NoneType' object has no attribute 'connected'":
 					# library bug workaround - get this error after close happens just ignore
@@ -376,11 +380,13 @@ class HA(object):
 			except:
 				pass
 			logsupport.Logs.Log("Error in HA WS stream " + str(self.HAnum) + ':' + repr(error), severity=ConsoleError, tb=False)
+			# noinspection PyBroadException
 			try:
 				if error == TimeoutError: # Py3
 					error = (errno.ETIMEDOUT,"Converted Py3 Timeout")
 			except:
 				pass
+			# noinspection PyBroadException
 			try:
 				if error == AttributeError:
 					error = (errno.ETIMEDOUT,"Websock bug catch")
@@ -390,8 +396,9 @@ class HA(object):
 
 		def on_close(qws, code, reason):
 			"""
-
-			:type qws: object
+			:param reason:  str
+			:param code: int
+			:type qws: websocket.WebSocketApp
 			"""
 			self.delaystart = 20 # probably a HA server restart so give it some time
 			logsupport.Logs.Log("HA ws stream " + str(self.HAnum) + " closed: " + str(code) + ' : ' + str(reason),

@@ -64,7 +64,6 @@ def Watch():
 	while True:
 		CheckThreads()
 		time.sleep(2)
-	print('Exit Watch')
 
 
 

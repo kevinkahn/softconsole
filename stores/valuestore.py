@@ -206,6 +206,7 @@ class ValueStore(object):
 	def GetVal(self,name):
 		if self.refreshinterval != 0 and time.time()>self.fetchtime+self.refreshinterval:
 			self.BlockRefresh()
+		n2=''
 		# noinspection PyBroadException
 		try:
 			n2 = self._normalizename(name)

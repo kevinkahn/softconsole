@@ -42,8 +42,8 @@ class ISYEventMonitor(object):
 	def EndWSServer(self):
 		self.WS.close()
 
-	def FakeNodeChange(self):  #todo del
-		print("Fake: ")
+	def FakeNodeChange(self):
+		# noinspection PyArgumentList
 		notice = pygame.event.Event(config.DS.HubNodeChange, hub=self.isy.name, node=None, value=-1)
 		pygame.fastevent.post(notice)
 
@@ -73,6 +73,7 @@ class ISYEventMonitor(object):
 	def PreRestartQHThread(self):
 		self.isy._HubOnline = False
 		try:
+			# noinspection PyBroadException
 			try:
 				if isinstance(self.lasterror, TimeoutError):
 					logsupport.Logs.Log('(TimeoutError) Wait for likely router reboot or down', severity=ConsoleError, tb=False)
@@ -102,16 +103,19 @@ class ISYEventMonitor(object):
 	def QHandler(self):
 		def on_error(qws, error):
 			logsupport.Logs.Log("Error in WS stream " + str(self.QHnum) + ':' + repr(error), severity=ConsoleError, tb=False)
+			# noinspection PyBroadException
 			try:
 				if error.args[0] == 'timed out':
 					error = (errno.ETIMEDOUT,'InitTimedOut')
 			except:
 				pass
+			# noinspection PyBroadException
 			try:
 				if error == TimeoutError: # Py3
 					error = (errno.ETIMEDOUT,"Converted Py3 Timeout")
 			except:
 				pass
+			# noinspection PyBroadException
 			try:
 				if error == AttributeError: # Py2 websocket debug todo
 					error = (errno.ETIMEDOUT,"Websock bug catch")

@@ -3,7 +3,6 @@ import exitutils
 from configobjects import Section
 import screen
 from logsupport import ConsoleWarning, ConsoleDetail, ConsoleError
-import isy
 from stores import valuestore
 import pygame
 import debug

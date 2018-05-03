@@ -147,7 +147,7 @@ class Program(ProgramFolder):
 	def RunProgram(self):  # for ISY this does a runThen
 		debug.debugPrint('ISYdbg', "runThen sent to ", self.name)
 		url = self.Hub.ISYprefix + 'programs/' + self.address + '/runThen'
-		r = self.Hub.ISYrequestsession.get(url)
+		_ = self.Hub.ISYrequestsession.get(url)
 
 	def __repr__(self):
 		return 'Program: ' + TreeItem.__repr__(self) + ' '
@@ -520,8 +520,8 @@ class ISY(object):
 		return ""
 		#exitutils.errorexit(exitutils.ERRORPIREBOOT)
 
-	def _check_real_time_node_status(self, Node):
-		text = self.try_ISY_comm('status/' + Node.address)
+	def _check_real_time_node_status(self, TargNode):
+		text = self.try_ISY_comm('status/' + TargNode.address)
 		if text != "":
 			props = xmltodict.parse(text)['properties']['property']
 			if isinstance(props, dict):
@@ -534,10 +534,10 @@ class ISY(object):
 		else:
 			devstate = -99999
 
-		if Node.devState != int(devstate):
-			logsupport.Logs.Log("ISY state anomoly in hub: ", self.name, ' Node: ', Node.fullname, ' (',Node.address,') Cached: ',
-								Node.devState, ' Actual: ', devstate, severity=ConsoleWarning)
-			Node.devState = devstate # fix the state
+		if TargNode.devState != int(devstate):
+			logsupport.Logs.Log("ISY state anomoly in hub: ", self.name, ' Node: ', TargNode.fullname, ' (', TargNode.address, ') Cached: ',
+								TargNode.devState, ' Actual: ', devstate, severity=ConsoleWarning)
+			TargNode.devState = devstate # fix the state
 
 	@staticmethod
 	def _LinkChildrenParents(nodelist, listbyname, looklist1, looklist2):

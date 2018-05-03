@@ -37,6 +37,7 @@ class MQTTBroker(valuestore.ValueStore):
 			for v,d in self.vars.items():
 				if d.Topic == msg.topic:
 					var.append(v)
+			# noinspection PySimplifyBooleanCheck
 			if var == []:
 				logsupport.Logs.Log('Unknown topic ',msg.topic, ' from broker ',self.name,severity=ConsoleWarning)
 			else:

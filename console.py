@@ -310,6 +310,7 @@ for i, v in config.ParsedConfigFile.items():
 			del config.ParsedConfigFile[i]
 		for hubtyp, pkg in config.hubtypes.items():
 			if stype == hubtyp:
+				# noinspection PyBroadException
 				try:
 					config.Hubs[i] = pkg(i, v.get('address',''), v.get('user',''), v.get('password',''))
 				except:

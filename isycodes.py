@@ -53,6 +53,7 @@ AlertNodes = {}
 
 def _NormalizeState(stateval):
 	t = stateval
+	# noinspection PyBroadException
 	try:
 		if isinstance(stateval, unicode):
 			t = str(stateval)

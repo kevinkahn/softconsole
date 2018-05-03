@@ -17,9 +17,9 @@ class CheckIntegrity(object):
 			hub.CheckStates()
 			logsupport.Logs.Log('Integrity check thread for hub: ', hubnm, ' complete')
 
-		hubnm = alert.param
-		hub = config.Hubs[hubnm]
-		T = threading.Thread(name='IntegrityCheck', target=DoCheck,args=(hubnm,hub))
+		hubname = alert.param
+		thishub = config.Hubs[hubname]
+		T = threading.Thread(name='IntegrityCheck', target=DoCheck,args=(hubname,thishub))
 		T.start()
 
 

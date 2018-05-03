@@ -1,13 +1,12 @@
 import debug
 import xmltodict
 from stores import valuestore
-import isy
 
 
 class ISYVars(valuestore.ValueStore):
-	def __init__(self, isy):
-		super(ISYVars,self).__init__(isy.name)
-		self.isy = isy
+	def __init__(self, thisisy):
+		super(ISYVars,self).__init__(thisisy.name)
+		self.isy = thisisy
 
 	def GetVal(self, name, forceactual=True):
 		V =  super(ISYVars,self).GetVal(name)

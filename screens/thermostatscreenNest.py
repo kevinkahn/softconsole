@@ -1,6 +1,6 @@
 import pygame
 import logsupport
-from logsupport import ConsoleWarning, ConsoleError
+from logsupport import ConsoleWarning
 from pygame import gfxdraw
 #import hasshub # only to test that the hub for this is an HA hub
 import eventlist
@@ -70,6 +70,8 @@ class NestThermostatScreenDesc(screen.BaseKeyScreenDesc):
 		self.t_high = 99
 		self.t_cur = 0
 		self.t_state = "Unknown"
+		self.mode = 'auto'
+		self.fan = 'auto'
 		self.modes, self.fanstates = self.ThermNode.GetModeInfo()
 
 		for i in range(4):
@@ -132,7 +134,6 @@ class NestThermostatScreenDesc(screen.BaseKeyScreenDesc):
 
 	def PushTemp(self):
 		# called on callback timeout
-		print("push temp")
 		self.ThermNode.PushSetpoints(self.t_low,self.t_high)
 
 	def PushModes(self):
