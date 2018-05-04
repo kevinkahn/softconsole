@@ -135,41 +135,40 @@ class WeatherVals(valuestore.ValueStore):
 			logsupport.Logs.Log("Error fetching weather: " + self.url + str(sys.exc_info()[0]),
 							severity=ConsoleWarning)
 			self.failedfetch = True
-			return None
+			return
 
 		if val.find("keynotfound") != -1:
 			config.BadWunderKey = True
 			# only report once in log
 			logsupport.Logs.Log("Bad weatherunderground key:" + self.location, severity=ConsoleError, tb=False)
-			return None
+			self.failedfetch = True
+			return
 
 		if val.find("you must supply a key") != -1:
 			logsupport.Logs.Log("WeatherUnderground missed the key:" + self.location, severity=ConsoleWarning)
 			self.fetchtime = 0  # force retry next time since this didn't register with WU
-			return None
+			self.failedfetch = True
+			return
 
-
-		if config.versionname in ('development', 'homerelease'):
-			self.weathvalfile = open(os.path.dirname(config.configfile) + '/' + self.location + 'wv.log', 'w')
-			self.weathvalfile.write(self.location + ' \n==================\n')
-			self.weathvalfile.flush()
-			self.weathjsonfile = open(os.path.dirname(config.configfile) + '/' + self.location + 'wj.log', 'w')
-			self.weathjsonfile.write(self.location + '\n==================\n')
-			self.weathjsonfile.flush()
-			# dump
+		if val.find('been an error') != -1:
+			# odd error case that's been seen where html rather than json is returned
+			logsupport.Logs.Log("WeatherUnderground returned nonsense for station: ", self.location, severity=ConsoleWarning)
+			with open(os.path.dirname(config.configfile)+'/'+self.location+'-WUjunk.log', 'w') as f:
+				f.write(val)
+				f.flush()
+			self.failedfetch = True
+			return
 
 		try:
 			parsed_json = json.loads(val)
-		except json.JSONDecodeError as e:
+		except ValueError as e:  # in Python3 this could be a JSONDecodeError which is a subclass of ValueError
 			logsupport.Logs.Log("Bad weather json: ", repr(e),severity=ConsoleWarning)
-			logsupport.Logs.Log("Val: ",val,severity=ConsoleWarning)
-			if config.versionname in ('development', 'homerelease'):
-				self.weathvalfile.write(
-					time.strftime('%H:%M:%S') + ' ' + tag + repr(param) + '\n' + repr(val) + '\n=================')
-				self.weathvalfile.flush()
+			with open(os.path.dirname(config.configfile)+'/'+self.location+'-WUjunk.log', 'w') as f:
+				f.write(val)
+				f.flush()
 
 			self.failedfetch = True
-			return None
+			return
 		js = functools.partial(TreeDict, parsed_json)
 		fcsts = TreeDict(parsed_json, 'forecast', 'simpleforecast', 'forecastday')
 		for n, cond in self.vars['Cond'].items():
