@@ -145,12 +145,7 @@ echo "Note - installation switches system default Python to version 3"
 echo "To undo this run 'sudo update-alternatives --config python' to select desired alternative"
 pip install future
 pip3 install future
-# NOTE to test with current master version from github replace "currentrelease" with 'master'
-wget https://raw.githubusercontent.com/kevinkahn/softconsole/currentrelease/docs/installconsole.sh
-wget https://raw.githubusercontent.com/kevinkahn/softconsole/currentrelease/getsetupinfo.py
-wget https://raw.githubusercontent.com/kevinkahn/softconsole/currentrelease/scripts/vncserverpi.service
-chmod +x installconsole.sh
-# fix issue in adafruit install script as of 3/31/2018
+
 
 echo "deb http://mirrordirector.raspbian.org/raspbian/ stretch main contrib non-free rpi firmware" >> /etc/apt/sources.list.d/raspi.list
 
@@ -187,6 +182,23 @@ fi
 
 #Get_yn CON "Would you like the console to appear on the PiTFT display?"
 Get_yn Reboot "Automatically reboot to continue install after system setup?"
+
+if [ "$Personal" == "Y" ]
+then
+  echo Get homerelease versions of setup scripts
+  wget https://raw.githubusercontent.com/kevinkahn/softconsole/homerelease/docs/installconsole.sh
+  wget https://raw.githubusercontent.com/kevinkahn/softconsole/homerelease/getsetupinfo.py
+  wget https://raw.githubusercontent.com/kevinkahn/softconsole/homerelease/scripts/vncserverpi.service
+else
+  # NOTE to test with current master version from github replace "currentrelease" with 'master'
+  echo Get currentrelease version of setup scripts
+  wget https://raw.githubusercontent.com/kevinkahn/softconsole/currentrelease/docs/installconsole.sh
+  wget https://raw.githubusercontent.com/kevinkahn/softconsole/currentrelease/getsetupinfo.py
+  wget https://raw.githubusercontent.com/kevinkahn/softconsole/currentrelease/scripts/vncserverpi.service
+  chmod +x installconsole.sh
+# fix issue in adafruit install script as of 3/31/2018
+fi
+
 python getsetupinfo.py
 
 if [ "x$1" != "x" ]

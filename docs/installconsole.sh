@@ -159,8 +159,17 @@ fi
 
 cd /home/pi/
 LogBanner "Console Installation"
-wget https://raw.githubusercontent.com/kevinkahn/softconsole/currenrelease/setupconsole.py
-wget https://raw.githubusercontent.com/kevinkahn/softconsole/currentrelease/githubutil.py
+if [ $Personal == "Y" ]
+then
+    echo Get homerelease version of setupconsole and githubutil
+    wget https://raw.githubusercontent.com/kevinkahn/softconsole/homerelease/setupconsole.py
+    wget https://raw.githubusercontent.com/kevinkahn/softconsole/homerelease/githubutil.py
+else
+    echo Get currentrelease version of setupconsole and githubutil
+    wget https://raw.githubusercontent.com/kevinkahn/softconsole/currentrelease/setupconsole.py
+    wget https://raw.githubusercontent.com/kevinkahn/softconsole/currentrelease/githubutil.py
+fi
+
 python -u setupconsole.py
 
 # in case this is a development system
