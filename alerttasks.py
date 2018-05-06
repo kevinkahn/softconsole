@@ -19,18 +19,28 @@ AlertType = ('NodeChange', 'VarChange', 'StateVarChange', 'IntVarChange', 'Local
 class Alert(object):
 	def __init__(self, nm, atype, trigger, action, actionname, param):
 		self.name = nm
-		self.state = 'Idle'
+		self._state = 'Idle'
 		self.type = atype
 		self.trigger = trigger
 		self.actiontarget = action
 		self.actionname = actionname
 		self.param = param
 
+	@property
+	def state(self):
+		return self._state
+
+	@state.setter
+	def state(self, value):
+		debug.debugPrint('AlertsTrace','Alert: '+self.name+' changed from ' + self._state + ' to '+ value)
+		self._state = value
+
 	def Invoke(self):
 		if isinstance(self.actiontarget, config.screentypes["Alert"]):
 			self.state = 'Active'
 			config.DS.SwitchScreen(self.actiontarget, 'Bright', 'Alert', 'Go to alert screen', NavKeys=False)
 		else:
+			self.state = 'Active'
 			self.actiontarget(self)  # target is the proc
 			self.state = "Armed"
 
@@ -119,6 +129,9 @@ class Periodictrigger(object):
 			# no times left for today
 			#print 'Tomorrow ', 24*3600 - seconds_since_midnight + self.timeslist[0]
 			return 24*3600 - seconds_since_midnight + self.timeslist[0]
+
+	def IsTrue(self): # If trigger comes to execute it is because timer went off so always return condition True
+		return True
 
 	def __repr__(self):
 		if self.periodic:
@@ -266,3 +279,8 @@ class Alerts(object):
 					alert = ParseAlertParams(nm, spec)
 					if alert is not None:
 						self.AlertsList[id(alert)] = alert
+
+def DumpAlerts():
+	with open('/home/pi/Console/AlertsDump.txt', mode='w') as f:
+		for _,a in config.Alerts.AlertsList.items():
+			f.write(repr(a) + '\n')

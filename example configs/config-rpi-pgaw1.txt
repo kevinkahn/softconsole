@@ -52,16 +52,6 @@ DefaultHub = HASS
 	Invoke = AssignVar.Assign
 	Parameter = System:DimLevel = 35
 
-	[[AutoVersion]]
-	Type = Periodic
-	Interval = 3 hours
-	Invoke = AutoVersion.CheckUpToDate
-	[[SanityCheck]]
-	Type = Periodic
-	Interval = 60 minute
-        Parameter = "ISY"
-	Invoke = CheckIntegrity.CheckISYVars
-
 	[[Main Garage Door]]
 	Type = VarChange
 	Var = HASS:sensor.main_garage_door_access_control
@@ -110,6 +100,9 @@ DefaultHub = HASS
     [[switch.patio_lights]]
       type = ONOFF
       label = Patio,
+    [[light.kitchen_counter]]
+      type = ONOFF
+
 	  
 [climate.master_bedroom]
     DefaultHub = HASS

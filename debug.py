@@ -4,6 +4,7 @@ import logsupport
 import mypprint
 from logsupport import ConsoleDebug, ConsoleError, ConsoleWarning
 from stores import valuestore
+from alerttasks import DumpAlerts
 import traceback
 
 
@@ -41,7 +42,7 @@ def debugPrintReal(flag, *args):
 
 debugPrint = debugPrintEarly
 DbgFlags = ['Main', 'DaemonCtl', 'DaemonStream', 'Screen', 'ISYdbg', 'ISYchg', 'HASSgeneral', 'HASSchg', 'Dispatch', 'EventList', 'Fonts', 'DebugSpecial',
-			'QDump', 'LLTouch', 'Touch', 'ISYDump', 'ISYLoad', 'StoreTrack', 'StoresDump', 'StatesDump']
+			'QDump', 'LLTouch', 'Touch', 'ISYDump', 'ISYLoad', 'StoreTrack', 'StoresDump', 'StatesDump', 'AlertsTrace', 'AlertsCheck']
 DebugFlagKeys = {}
 dbgStore = valuestore.NewValueStore(valuestore.ValueStore('Debug'))
 dbgStore.SimpleInit(DbgFlags,False)
@@ -74,6 +75,7 @@ def InitFlags(sect):
 		dbgStore.SetVal(flg, v)
 		dbgStore.AddAlert(flg,OptimizeDebug)
 	dbgStore.AddAlert('StoresDump',StoresDump)
+	dbgStore.AddAlert('AlertsCheck',AlertsCheck)
 	if flgCount > 0:
 		debugPrint = debugPrintReal
 	else:
@@ -100,3 +102,9 @@ def StoresDump(store,old,new,param,_):
 			for i in store.items():
 				f.write(store.name + str(i)+str(store.GetVal(i))+'\n')
 	dbgStore.SetVal('StoresDump',False)
+
+def AlertsCheck(store,old,new,param,_):
+	if not new: return
+	DumpAlerts()
+	dbgStore.SetVal('AlertsCheck', False)
+

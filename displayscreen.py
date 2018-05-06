@@ -278,6 +278,7 @@ class DisplayScreen(object):
 						E = AlertEventItem(id(alert), 'delayed' + evtype, alert)
 						self.Tasks.AddTask(E, alert.trigger.delay)
 					else:  # invoke now
+						alert.state = 'FiredNoDelay'
 						debug.debugPrint('Dispatch', "Invoke: ", alert.name)
 						alert.Invoke()  # either calls a proc or enters a screen and adjusts alert state appropriately
 				elif alert.state == 'Active' and not alert.trigger.IsTrue():  # alert condition has cleared and screen is up
@@ -288,7 +289,13 @@ class DisplayScreen(object):
 					# condition changed under a pending action (screen or proc) so just cancel and rearm
 					debug.debugPrint('Dispatch', 'Delayed event cleared before invoke', alert.name)
 					alert.state = 'Armed'
-					self.Tasks.RemoveAllGrp(id(alert.actiontarget))#  id(alert))
+					self.Tasks.RemoveAllGrp(id(alert))
+					self.Tasks.RemoveAllGrp(id(alert.actiontarget))
+					# todo - verify this is correct.  Issue is that the alert might have gotten here from a delay or from the
+					# alert screen deferring.  The screen uses it's own id for this alert to might be either.  Probably should
+					# distinguish based on if delay or defer but doing both should be same id(alert.actiontarget))  originally this was id-alert for some
+				    # reason I changed it to id-actiontarget don't know why but it was done while adding HASS this screwed up clearing deferred alerts
+					# so switched it back in hopes to remember why the change todo
 				else:
 					debug.debugPrint('Dispatch', 'ISYVar/ISYAlert passing: ', alert.state, alert.trigger.IsTrue(), event,
 							   alert)
@@ -308,7 +315,16 @@ class DisplayScreen(object):
 				elif isinstance(E, AlertEventItem):
 					debug.debugPrint('Dispatch', 'Task AlertEvent fired: ', E)
 					logsupport.Logs.Log("Alert event fired" + str(E.alert), severity=ConsoleDetail)
-					E.alert.Invoke()  # defered or delayed or scheduled alert firing
+					E.alert.state = 'Fired'
+					if E.alert.trigger.IsTrue():
+						E.alert.Invoke()  # defered or delayed or scheduled alert firing or any periodic
+					else:
+						if isinstance(E.alert.trigger, alerttasks.NodeChgtrigger):
+							# why not cleared before getting here?
+							logsupport.Logs.Log('Anomolous NodeChgTrigger firing as task: ',repr(E.alert),severity = ConsoleWarning)
+						elif isinstance(E.alert.trigger, alerttasks.VarChangeTrigger):
+							logsupport.Logs.Log('Anomolous VarChangeTrigger firing as task: ',repr(E.alert),severity=ConsoleWarning)
+						E.alert.state = 'Armed'
 					if isinstance(E.alert.trigger, alerttasks.Periodictrigger):
 						self.Tasks.AddTask(E, E.alert.trigger.NextInterval())
 				else:

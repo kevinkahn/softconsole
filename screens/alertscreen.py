@@ -105,9 +105,9 @@ class AlertsScreenDesc(screen.ScreenDesc):
 	def DeferAction(self, presstype):
 		debug.debugPrint('Screen', 'Alertscreen manual defer: ' + self.name)
 		config.DS.Tasks.RemoveAllGrp(id(self))
+		self.Alert.state = 'Deferred'
 		E = AlertEventItem(id(self), 'self deferred screen: ' + self.name, self.Alert)
 		config.DS.Tasks.AddTask(E, self.Defer)
-		self.Alert.state = 'Deferred'
 		config.DS.SwitchScreen(config.HomeScreen, 'Bright', 'Home', 'Manual defer an alert')
 
 	def BlinkMsg(self):
