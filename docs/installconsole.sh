@@ -198,7 +198,7 @@ fi
 
 if [ -e /boot/auth ]
 then
-  mv /boot/auth/* /pi/Console/cfglib
+  mv /boot/auth/* /home/pi/Console/cfglib
   rmdir /boot/auth
 fi
 
