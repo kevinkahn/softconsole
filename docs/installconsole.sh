@@ -196,6 +196,12 @@ else
   LogBanner "Set No Console Autostart at Boot"
 fi
 
+if [ -e /boot/auth ]
+then
+  mv /boot/auth/* /pi/Console/cfglib
+  rmdir /boot/auth
+fi
+
 mkdir consoleinstallleftovers
 mv prep.log earlyprep.log consoleinstallleftovers
 mv adafruit* consoleinstallleftovers
