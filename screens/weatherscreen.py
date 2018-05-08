@@ -66,12 +66,13 @@ class WeatherScreenDesc(screen.ScreenDesc):
 		vert_off = config.topborder
 
 		if self.store.failedfetch:
-			renderedlines = [config.fonts.Font(45, "").render(self.fmt.format("{d[0]}",'Weather Not Available',
-															d=self.scrlabel), 0, wc(self.CharColor))]
+			renderedlines = [
+				config.fonts.Font(50, "").render(self.fmt.format("{d}", d=self.scrlabel), 0, wc(self.CharColor)),
+				config.fonts.Font(45, "").render('Weather Not Available', 0, wc(self.CharColor))]
 			for l in renderedlines:
 				config.screen.blit(l, ((config.screenwidth - l.get_width()) / 2, vert_off))
-				vert_off = vert_off + 30
-			logsupport.Logs.Log('Weatherscreen missing weather' + self.name, severity=logsupport.ConsoleWarning)
+				vert_off = vert_off + 60
+			logsupport.Logs.Log('Weatherscreen missing weather ' + self.name, severity=logsupport.ConsoleWarning)
 		else:
 			renderedlines = [
 				config.fonts.Font(50, "").render(self.fmt.format("{d}", d=self.scrlabel), 0, wc(self.CharColor)),
