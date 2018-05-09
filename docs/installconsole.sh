@@ -112,6 +112,7 @@ echo "Developer system:           $Personal"
 echo "Auto start Console on boot: $AutoConsole"
 echo "Downgrade touch to Wheezy:  $UseWheezy"
 
+Go='N'
 if [ "$SkipVerify" != "Y" ]
 then
     Get_yn Go "Proceed?"

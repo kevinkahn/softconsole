@@ -271,6 +271,7 @@ class ISYEventMonitor(object):
 			wsurl = 'ws://' +self.isy.addr + '/rest/subscribe'
 		while True:
 			try:
+				# noinspection PyArgumentList
 				ws = websocket.WebSocketApp(wsurl, on_message=on_message,
 										on_error=on_error,
 										on_close=on_close, on_open=on_open,

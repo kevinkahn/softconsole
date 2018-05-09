@@ -62,6 +62,7 @@ class ClockScreenDesc(screen.ScreenDesc):
 			config.screen.blit(l[i], (horiz_off, vert_off))
 			vert_off = vert_off + s + l[i].get_height()
 		if self.ExtraSize[0] != 0:
+			# noinspection PyUnboundLocalVariable
 			horiz_off = (config.screenwidth - cb.get_width())//2
 			config.screen.blit(cb, (horiz_off, vert_off))
 		pygame.display.update()

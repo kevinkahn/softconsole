@@ -127,6 +127,7 @@ class Logger(object):
 				text = itext.decode(encoding='UTF-8')  # unicode(v,'UTF-8')
 			except AttributeError:
 				text = itext
+		# noinspection PyUnboundLocalVariable
 		text = re.sub('\s\s+', ' ', text.rstrip())
 		ltext = re.split('([ :,])', text)
 		ltext.append('')

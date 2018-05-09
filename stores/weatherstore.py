@@ -234,13 +234,14 @@ class WeatherVals(valuestore.ValueStore):
 
 
 
-
-	def dumpweatherresp(self, val, json, tag, param):
+	"""
+	def dumpweatherresp(self, val, djson, tag, param):
 		if config.versionname in ('development', 'homerelease'):
 			self.weathvalfile.write(
 				time.strftime('%H:%M:%S') + ' ' + tag + repr(param) + '\n' + repr(val) + '\n=================')
 			self.weathjsonfile.write(
-				time.strftime('%H:%M:%S') + ' ' + tag + repr(param) + '\n' + repr(json) + '\n=================')
+				time.strftime('%H:%M:%S') + ' ' + tag + repr(param) + '\n' + repr(djson) + '\n=================')
 			self.weathvalfile.flush()
 			self.weathjsonfile.flush()
+	"""
 

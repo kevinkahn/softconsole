@@ -32,7 +32,7 @@ DefaultHub = ISY
 [HASS]
 	type = HASS
 	password =
-	address = 
+	address =
 	
 
 [Variables]

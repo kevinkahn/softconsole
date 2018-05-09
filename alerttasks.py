@@ -130,7 +130,8 @@ class Periodictrigger(object):
 			#print 'Tomorrow ', 24*3600 - seconds_since_midnight + self.timeslist[0]
 			return 24*3600 - seconds_since_midnight + self.timeslist[0]
 
-	def IsTrue(self): # If trigger comes to execute it is because timer went off so always return condition True
+	@staticmethod
+	def IsTrue(): # If trigger comes to execute it is because timer went off so always return condition True
 		return True
 
 	def __repr__(self):

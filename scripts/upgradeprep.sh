@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 pip install configobj
 pip install webcolors
 pip install xmltodict
