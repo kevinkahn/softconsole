@@ -50,7 +50,7 @@ class ClockScreenDesc(screen.ScreenDesc):
 			h = h + l[i].get_height()
 		if self.ExtraSize[0] != 0:
 			cb = CreateWeathBlock(self.ExtraFormat, self.DecodedExtraFields, self.Font,
-							  self.ExtraSize, self.CharColor, None, True)
+								  self.ExtraSize, self.CharColor, None, True, useicon=False)
 			h = h + cb.get_height()
 		s = (usefulheight - h)/(len(l))
 

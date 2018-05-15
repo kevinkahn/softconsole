@@ -55,6 +55,9 @@ class ISYEventMonitor(object):
 		self.QHnum += 1
 
 	def PostStartQHThread(self):
+        while self.THstate == 'restarting':
+            logsupport.Logs.Log("Waiting ISY thread start")
+            time.sleep(2)
 		while self.THstate == 'delaying':
 			time.sleep(1)
 		while self.THstate == 'starting':
@@ -66,12 +69,13 @@ class ISYEventMonitor(object):
 			self.isy.Vars.CheckValsUpToDate(reload=True)
 			logsupport.Logs.Log("ISY vars updated")
 		elif self.THstate == 'failed':
-			pass
+            logsupport.Logs.Log("Failed ISY Restart", severity=ConsoleWarning)
 		else:
 			logsupport.Logs.Log("Unknown QH Thread state")
 
 	def PreRestartQHThread(self):
 		self.isy._HubOnline = False
+        self.THstate = 'restarting'
 		try:
 			# noinspection PyBroadException
 			try:
