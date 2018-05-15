@@ -1,5 +1,5 @@
 cfglib = cfglib
-include = auth.cfg, pdxalerts.cfg, timetempPR.cfg, timetempLQ.cfg, weathCC.cfg, timetempPDX.cfg, myclock.cfg,bathroom.cfg,upperlev.cfg,BR-kck.cfg
+include = pdxauth.cfg, pdxalerts.cfg, timetempPR.cfg, timetempLQ.cfg, weathCC.cfg, timetempPDX.cfg, myclock.cfg,bathroom.cfg,upperlev.cfg,BR-kck.cfg
 HomeScreenName = LR1
 HomeScreenTO = 45
 DimLevel = 50
