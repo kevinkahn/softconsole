@@ -258,8 +258,8 @@ class Touchscreen(object):
 						# set to do corrections? TODO read pointercal and set a flag to correct
 						return os.path.join('/dev', 'input', os.path.basename(evdev))
 					elif dev == self.TOUCHSCREEN28CAP:
-						self._flipx = 240
-						self._flipy = 320
+                        self._flipx = 0  # 240  todo auto fix orientation?
+                        self._flipy = 0  # 320
 						return os.path.join('/dev', 'input', os.path.basename(evdev))
 			except IOError as e:
 				if e.errno != errno.ENOENT:
