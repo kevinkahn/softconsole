@@ -143,14 +143,17 @@ read -p "Press Enter to continue"
 LogBanner "Install Python2/3 Compatibility Support"
 echo "Note - installation switches system default Python to version 3"
 echo "To undo this run 'sudo update-alternatives --config python' to select desired alternative"
+apt-get -y install python-dev
+apt-get -y install python3-dev
+LogBanner "Switch default Python to Python3"
+update-alternatives --install /usr/bin/python python /usr/bin/python3.5 2
+
 apt-get install python3-pip -y
 apt-get install python-pip -y
 apt-get install python3-pygame -y
-apt-get install libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev libsdl2-mixer-dev -y
-apt-get install libsdl1.2-dev libsdl1.2-image-dev libsdl1.2-ttf-dev libsdl1.2-mixer-dev -y
 
-apt-get install fonts-noto -y
-apt-get install fontconfig -y
+pip install future
+pip install requests
 pip3 install future
 pip3 install requests
 
@@ -337,7 +340,7 @@ N
 N
 EOF
   ./adafruit-pitft.sh < tmp
-  raspi-config nonint do_boot_behaviour B4 # set boot to desktop already logged in
+  #raspi-config nonint do_boot_behaviour B4 # set boot to desktop already logged in
   sed -isav s/fb0/fb1/ /usr/share/X11/xorg.conf.d/99-fbturbo.conf
   ;;
   custom)
@@ -401,6 +404,11 @@ EOF
     ;;
 esac
 
+LogBanner "Install Fonts, SDL"
+apt-get install libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev libsdl2-mixer-dev -y
+apt-get install libsdl1.2-dev -y
+apt-get install fonts-noto -y
+apt-get install fontconfig -y
 
 mv --backup=numbered /etc/rc.local.hold /etc/rc.local
 chmod +x /etc/rc.local

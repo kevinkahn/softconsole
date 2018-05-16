@@ -143,6 +143,10 @@ read -p "Press Enter to continue"
 LogBanner "Install Python2/3 Compatibility Support"
 echo "Note - installation switches system default Python to version 3"
 echo "To undo this run 'sudo update-alternatives --config python' to select desired alternative"
+apt-get -y install python-dev
+apt-get -y install python3-dev
+LogBanner "Switch default Python to Python3"
+update-alternatives --install /usr/bin/python python /usr/bin/python3.5 2
 pip install future
 pip3 install future
 

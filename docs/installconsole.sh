@@ -144,10 +144,10 @@ DEBIAN_FRONTEND=noninteractive apt-get -y upgrade
 # Install the python packages needed for the console
 
 LogBanner "Install stuff for console"
-apt-get -y install python-dev
-apt-get -y install python3-dev
-LogBanner "Switch default Python to Python3"
-update-alternatives --install /usr/bin/python python /usr/bin/python3.5 2
+#apt-get -y install python-dev
+#apt-get -y install python3-dev
+#LogBanner "Switch default Python to Python3"
+#update-alternatives --install /usr/bin/python python /usr/bin/python3.5 2
 
 pip install --upgrade pip
 pip3 install --upgrade pip
