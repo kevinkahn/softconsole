@@ -132,23 +132,23 @@ class Logger(object):
 		ltext = re.split('([ :,])', text)
 		ltext.append('')
 		ptext = []
+		logfont = config.fonts.Font(config.LogFontSize, face=config.monofont)
 		while len(ltext) > 1:
 			ptext.append(ltext[0])
 			del ltext[0]
 			while 1:
 				if len(ltext) == 0:
 					break
-				t = config.fonts.Font(config.LogFontSize).size(''.join(ptext) + ltext[0])[
-					0]
+				t = logfont.size(''.join(ptext) + ltext[0])[0]
 				if t > config.screenwidth - 10:
 					break
 				else:
 					ptext.append(ltext[0])
 					del ltext[0]
-			l = config.fonts.Font(config.LogFontSize).render(''.join(ptext), False, wc(clr))
+			l = logfont.render(''.join(ptext), False, wc(clr))
 			self.screen.blit(l, (10, pos))
 			ptext = ["    "]
-			pos = pos + config.fonts.Font(config.LogFontSize).get_linesize()
+			pos = pos + logfont.get_linesize()
 		pygame.display.update()
 		return pos
 

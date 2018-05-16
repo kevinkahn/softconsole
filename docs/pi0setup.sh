@@ -143,35 +143,27 @@ read -p "Press Enter to continue"
 LogBanner "Install Python2/3 Compatibility Support"
 echo "Note - installation switches system default Python to version 3"
 echo "To undo this run 'sudo update-alternatives --config python' to select desired alternative"
-apt-get -y install python-dev
-apt-get -y install python3-dev
 LogBanner "Switch default Python to Python3"
 update-alternatives --install /usr/bin/python python /usr/bin/python3.5 2
-
+update-alternatives --install /usr/bin/python python /usr/bin/python2.7 1
+LogBanner "python3-pip"
 apt-get install python3-pip -y
-apt-get install python-pip -y
-apt-get install python3-pygame -y
 
-pip install future
-pip install requests
+LogBanner "python3-pygame"
+apt-get update
+apt-get install python3-pygame -y
 pip3 install future
 pip3 install requests
-
-
-
 
 echo "deb http://mirrordirector.raspbian.org/raspbian/ stretch main contrib non-free rpi firmware" >> /etc/apt/sources.list.d/raspi.list
 
 LogBanner "Set Time Zone"
-# seed the timezone dialog
-echo 'US/Pacific-New' > /etc/timezone
-dpkg-reconfigure -f noninteractive tzdata
 dpkg-reconfigure tzdata
 LogBanner "Pi User Password"
 sudo passwd pi
 
 Get_val NodeName "What name for this system?"
-Get_yn VNCstdPort "Install VNC on standard port (Y/N/alt port number)?"
+Get_yn VNCstdPort "Install access on standard port (Y/N/alt port number)?"
 Get_yn Personal "Is this the developer personal system (Y/N) (bit risky to say Y if it not)?"
 Get_yn AutoConsole "Autostart console (Y/N)?"
 
@@ -194,25 +186,26 @@ then
 fi
 
 #Get_yn CON "Would you like the console to appear on the PiTFT display?"
-Get_yn Reboot "Automatically reboot to continue install after system setup?"
+#Get_yn Reboot "Automatically reboot to continue install after system setup?"
+Reboot="N"
 
 if [ "$Personal" == "Y" ]
 then
   echo Get homerelease versions of setup scripts
   wget https://raw.githubusercontent.com/kevinkahn/softconsole/homerelease/docs/installconsole.sh
   wget https://raw.githubusercontent.com/kevinkahn/softconsole/homerelease/getsetupinfo.py
-  #wget https://raw.githubusercontent.com/kevinkahn/softconsole/homerelease/scripts/vncserverpi.service
+  chmod +x installconsole.sh
 else
   # NOTE to test with current master version from github replace "currentrelease" with 'master'
   echo Get currentrelease version of setup scripts
   wget https://raw.githubusercontent.com/kevinkahn/softconsole/currentrelease/docs/installconsole.sh
   wget https://raw.githubusercontent.com/kevinkahn/softconsole/currentrelease/getsetupinfo.py
-  #wget https://raw.githubusercontent.com/kevinkahn/softconsole/currentrelease/scripts/vncserverpi.service
   chmod +x installconsole.sh
 # fix issue in adafruit install script as of 3/31/2018
 fi
 
 python getsetupinfo.py
+update-alternatives --set python /usr/bin/python2.7
 
 if [ "x$1" != "x" ]
 then
@@ -276,31 +269,16 @@ hostname $NodeName
 case $VNCstdPort in # if [ $VNCstdPort != "Y" ]
   Y)
     echo "SSH will be set up on its normal port"
-    #LogBanner "VNC Service Password"
-    #vncpasswd -service
-    #echo "Authentication=VncAuth" >> /root/.vnc/config.d/vncserver-x11
-    #echo "Encryption=PreferOff" >> /root/.vnc/config.d/vncserver-x11
-    #su pi -c vncserver # create the Xvnc file in ~pi/.vnc/config.d so it can be modified below
     ;;
   N)
     echo "No VNC will ne set up"
     ;;
   *)
     LogBanner "VNC Service Password"
-    #vncpasswd -service
-    #echo "Authentication=VncAuth" >> /root/.vnc/config.d/vncserver-x11
-    #echo "Encryption=PreferOff" >> /root/.vnc/config.d/vncserver-x11
-    #su pi -c vncserver # create the Xvnc file in ~pi/.vnc/config.d so it can be modified below
     SSHDport=$(($VNCstdPort - 100))
-    VNCConsole=$(($VNCstdPort - 1))
-    echo "Console VNC will be set up on port " $VNCConsole
-    echo "Virtual VNC will be set up on port " $VNCstdPort
     echo "sshd will be moved to port " $SSHDport
     cp /etc/ssh/sshd_config /etc/ssh/sshd_config.sav
     sed "/Port /s/.*/Port $SSHDport/" /etc/ssh/sshd_config.sav > /etc/ssh/sshd_config
-    #echo "RfbPort=$VNCstdPort" >> /home/pi/.vnc/config.d/Xvnc
-    #chown pi /home/pi/.vnc/config.d/Xvnc
-    #echo "RfbPort=$VNCConsole" >> /root/.vnc/config.d/vncserver-x11
     ;;
 esac
 
@@ -322,26 +300,25 @@ case $ScreenType in
     LogBanner "Run PiTFT Helper 28r"
     echo 1 > tmp
     echo 4 >> tmp # rotation
+    echo Y >> tmp # pi console to pitft
     ;;
     28c)
     LogBanner "Run PiTFT Helper 28c"
     echo 3 > tmp
     echo 2 >> tmp # rotation
+    echo Y >> tmp # pi console to pitft
     ;;
     35r)
     LogBanner "Run PiTFT Helper 35r"
     echo 4 > tmp
     echo 4 >> tmp # rotation
+    echo Y >> tmp # pi console to pitft
     ;;
     esac
-  cat >> tmp <<EOF
-4
-N
-N
-EOF
+
   ./adafruit-pitft.sh < tmp
   #raspi-config nonint do_boot_behaviour B4 # set boot to desktop already logged in
-  sed -isav s/fb0/fb1/ /usr/share/X11/xorg.conf.d/99-fbturbo.conf
+  #sed -isav s/fb0/fb1/ /usr/share/X11/xorg.conf.d/99-fbturbo.conf
   ;;
   custom)
     LogBanner "No Screen Configured - do it manually for custom screen before reboot"
@@ -405,10 +382,12 @@ EOF
 esac
 
 LogBanner "Install Fonts, SDL"
-apt-get install libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev libsdl2-mixer-dev -y
-apt-get install libsdl1.2-dev -y
 apt-get install fonts-noto -y
 apt-get install fontconfig -y
+apt-get install libsdl1.2-dev -y
+apt-get install libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev libsdl2-mixer-dev -y
+
+update-alternatives --set python /usr/bin/python3.5
 
 mv --backup=numbered /etc/rc.local.hold /etc/rc.local
 chmod +x /etc/rc.local
@@ -416,38 +395,7 @@ chmod +x /etc/rc.local
 #cat /usr/share/X11/xorg.conf.d/99-fbturbo.conf
 
 LogBanner "Reboot now installconsole.sh will autorun as root unless aborted"
-echo "Install will set Personal $Personal and AutoConsole $AutoConsole"
+echo "Run Install with Personal $Personal and AutoConsole $AutoConsole"
 
-if [ "$Reboot" == "Y" ]
-then
 
-    LogBanner "Rebooting in 10 seconds"
-    for i in 10 9 8 7 6 5 4 3 2 1
-    do
-      echo Rebooting $i
-      sleep 1
-    done
-    echo "Reboot . . ."
-    cd /home/pi
-    mv .bashrc .bashrc.real
-    cat > .bashrc << EOF
-cd /home/pi
-source .bashrc.real
-cp .bashrc .bashrc.sav
-mv -f .bashrc.real .bashrc
-touch /home/pi/CONSOLEINSTALLRUNNING
-#sudo bash /home/pi/doinstall.sh > /home/pi/di3.log 2>> /home/pi/di2.log
-sudo bash /home/pi/doinstall.sh 2>> /home/pi/di.log
-EOF
-    cat > doinstall.sh << EOF
-echo Autorunning console install in 10 second - ctl-c to stop
-for i in 10 9 8 7 6 5 4 3 2 1
-    do
-      echo installconsole.sh start in \$i
-      sleep 1
-    done
-sudo bash ./installconsole.sh $Personal $AutoConsole $UseWheezy
-EOF
-    reboot now
-fi
-LogBanner "Chose to manually reboot and run installconsole.sh"
+LogBanner "Manually reboot and run installconsole.sh"

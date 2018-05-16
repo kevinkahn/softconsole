@@ -1,5 +1,5 @@
 cfglib = cfglib
-include = pdxauth.cfg, pdxalerts.cfg, timetempPR.cfg, timetempLQ.cfg, weathCC.cfg, timetempPDX.cfg, myclock.cfg,bathroom.cfg,upperlev.cfg,BR-kck.cfg
+include = pdxauth.cfg, pdxalerts.cfg, timetempPR.cfg, timetempLQ.cfg, weathCC.cfg, timetempPDX.cfg, myclock.cfg,bathroom.cfg,upperlev.cfg,BR-kck.cfg,tstat.cfg
 HomeScreenName = LR1
 HomeScreenTO = 45
 DimLevel = 50
@@ -7,7 +7,7 @@ DimTO = 25
 DimIdleListNames = MyClock, Portland, Pumpkin, LaQuinta
 DimIdleListTimes =	20, 20, 20, 20
 
-MainChain = LR1,LR2, Pumpkin, Local, Upper Level
+MainChain = LR1,LR2, Pumpkin, Local, Upper Level,Thermostat - Main
 SecondaryChain = Portland, Bathroom, BR
 
 

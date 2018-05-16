@@ -12,7 +12,7 @@ BackgroundColor = 'maroon'
 _WunderKey = 'none'
 
 MaxLogFiles = 5  # would be nice to get these in globalparams but right now there is an ordering issue since logging starts before global sucking
-LogFontSize = 23
+LogFontSize = 14
 
 _MainChain = []  # defaults to order based on config file
 _SecondaryChain = []  # if spec'd used for secondary screens else random order
