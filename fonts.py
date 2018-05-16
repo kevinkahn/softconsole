@@ -20,8 +20,8 @@ class Fonts(object):
 
 	def Font(self, fsize, face="", bold=False, italic=False):
 		def gennewfont(name, size, bold, italic):
-			logsupport.Logs.Log('Generated Font: ', repr(name), str(size), str(utilities.scaleH(size)), str(bold),
-								str(italic))
+			# logsupport.Logs.Log('Generated Font: ', repr(name), str(size), str(utilities.scaleH(size)), str(bold),
+			#					str(italic))
 			return pygame.font.SysFont(name, utilities.scaleH(size), bold, italic)
 
 		size = int(fsize)
