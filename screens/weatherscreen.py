@@ -94,8 +94,9 @@ class WeatherScreenDesc(screen.ScreenDesc):
 
 			else:
 				fcstlines = 0
+				fcstdays = valuestore.GetVal((self.location, 'FcstDays'))
 				maxfcstwidth = 0
-				for i in range(10):
+				for i in range(fcstdays):
 					renderedlines.append(CreateWeathBlock(self.fcstformat, self.fcstfields, "", [25], self.CharColor, (self.location, 'Fcst', 'Icon'), False, day=i))
 					if renderedlines[-1].get_width() > maxfcstwidth: maxfcstwidth = renderedlines[-1].get_width()
 					fcstlines += 1

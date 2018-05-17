@@ -10,6 +10,7 @@ ICONSPACE = 10
 
 
 def CreateWeathBlock(Format, Fields, WeathFont, FontSize, WeathColor, icon, centered, day=-1, useicon=True):
+	erroronce = False
 	rf = []
 	fh = 0
 	fw = 0
@@ -25,7 +26,16 @@ def CreateWeathBlock(Format, Fields, WeathFont, FontSize, WeathColor, icon, cent
 			if day == -1:
 				vals.append(valuestore.GetVal(fld))
 			else:
-				vals.append(valuestore.GetVal(fld + (day,)))
+				fcstdays = valuestore.GetVal((fld[0], 'FcstDays'))
+				print(fcstdays)
+				if day < fcstdays:
+					vals.append(valuestore.GetVal(fld + (day,)))
+				else:
+					vals.append(None)
+					if not erroronce:
+						logsupport.Logs.Log(
+							"Attempt to forecast(day " + str(day) + ") beyond " + str(fcstdays) + " returned by WU")
+						erroronce = True
 	except Exception as e:
 		logsupport.Logs.Log('Weather Block field access error: '+str(fld)+' Exc: '+str(e))
 
@@ -47,8 +57,19 @@ def CreateWeathBlock(Format, Fields, WeathFont, FontSize, WeathColor, icon, cent
 	if icon is not None:
 		totw = fw + fh + ICONSPACE
 		hoff = fh + ICONSPACE
-		iconref = icon[1:] if day == -1 else icon[1:] + (day,)
+		if day == -1:
+			iconref = icon[1:]
+		else:
+			if day < fcstdays:
+				iconref = icon[1:] + (day,)
+			else:
+				iconref = None
+				if not erroronce:
+					erroronce = True
+					logsupport.Logs.Log(
+						"Attempt to forecast(day " + str(day) + ") beyond " + str(fcstdays) + " returned by WU")
 	else:
+		iconref = None
 		totw = fw
 		hoff = 0
 	fsfc = pygame.Surface((totw, fh))
@@ -56,7 +77,8 @@ def CreateWeathBlock(Format, Fields, WeathFont, FontSize, WeathColor, icon, cent
 	v = 0
 	# noinspection PyBroadException
 	try:
-		if icon is not None: fsfc.blit(pygame.transform.smoothscale(valuestore.ValueStores[icon[0]].GetVal(iconref), (fh, fh)), (0, 0))
+		if iconref is not None: fsfc.blit(
+			pygame.transform.smoothscale(valuestore.ValueStores[icon[0]].GetVal(iconref), (fh, fh)), (0, 0))
 	except:
 		if useicon: logsupport.Logs.Log("Missing icon for: ", str(iconref),
 										severity=ConsoleWarning)  # todo stop log flooding

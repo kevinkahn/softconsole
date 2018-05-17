@@ -5,6 +5,7 @@ import os
 import sys
 import json
 import time
+import datetime
 import requests
 import utilities
 import config
@@ -114,6 +115,7 @@ class WeatherVals(valuestore.ValueStore):
 			self.vars['Fcst'][fld] = WeatherItem(('Fcst',fld),fldinfo,self)
 		for fld, fldinfo in fsynthmap.items():
 			self.vars['Fcst'][fld] = WeatherItem(('Fcst',fld),fldinfo,self)
+		self.vars['FcstDays'] = valuestore.StoreItem('FcstDays', 0, store=self)
 
 	def BlockRefresh(self):
 		global WUcount
@@ -171,6 +173,13 @@ class WeatherVals(valuestore.ValueStore):
 			return
 		js = functools.partial(TreeDict, parsed_json)
 		fcsts = TreeDict(parsed_json, 'forecast', 'simpleforecast', 'forecastday')
+		fcstepoch = int(fcsts[0]['date']['epoch'])
+		now = int(time.time())
+		forecastjunk = False
+		if now - fcstepoch > 60 * 60 * 24:  # 1 day
+			forecastjunk = True
+			logsupport.Logs.Log("WU returned nonsense forecast from: ",
+								datetime.datetime.fromtimestamp(fcstepoch).strftime('%c'), severity=ConsoleWarning)
 		for n, cond in self.vars['Cond'].items():
 			# noinspection PyBroadException
 			try:
@@ -196,6 +205,12 @@ class WeatherVals(valuestore.ValueStore):
 						fcst.Value.append(fcst.MapInfo[1](fcst.MapInfo[2], day=i))
 				except:
 					fcst.Value.append(None)
+		if forecastjunk:
+			self.vars['FcstDays'].Value = 0
+		else:
+			self.vars['FcstDays'].Value = len(fcsts)
+
+
 
 	def geticon(self,n, day=-1):
 		if day == -1:
