@@ -27,7 +27,6 @@ def CreateWeathBlock(Format, Fields, WeathFont, FontSize, WeathColor, icon, cent
 				vals.append(valuestore.GetVal(fld))
 			else:
 				fcstdays = valuestore.GetVal((fld[0], 'FcstDays'))
-				print(fcstdays)
 				if day < fcstdays:
 					vals.append(valuestore.GetVal(fld + (day,)))
 				else:

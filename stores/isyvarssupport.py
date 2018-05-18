@@ -18,7 +18,8 @@ class ISYVars(valuestore.ValueStore):
 			text = self.isy.try_ISY_comm('vars/get/' + str(attr[0]) + '/' + str(attr[1]))
 			if text != "":
 				V = int(xmltodict.parse(text)['var']['val'])
-				super(ISYVars, self).SetVal(name, V)
+				super(ISYVars, self).SetVal(name, V,
+											modifier=True)  # don't reflect back to ISY - it just came from there
 			else:
 				V = -999999
 		return V

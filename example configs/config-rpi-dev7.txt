@@ -51,12 +51,6 @@ SecondaryChain = Portland, Bathroom, BR, Thermostat - Main
 	Value = 1
 	Invoke = InternetAlertScreen
 
-    [[GetTemps]]
-    Type = Periodic
-    Interval = 20 seconds #2 minutes
-    Invoke = GetTempsToISY.SendTemps
-    Parameter = pws:KORPORTL26, C:Temp S:tEST F:Low S:tEST # station,(field name, var)+  pws:KORPORTL280
-
 [InternetAlertScreen]
     type = Alert
     BackgroundColor = black

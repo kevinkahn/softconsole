@@ -96,10 +96,16 @@ class WeatherScreenDesc(screen.ScreenDesc):
 				fcstlines = 0
 				fcstdays = valuestore.GetVal((self.location, 'FcstDays'))
 				maxfcstwidth = 0
-				for i in range(fcstdays):
-					renderedlines.append(CreateWeathBlock(self.fcstformat, self.fcstfields, "", [25], self.CharColor, (self.location, 'Fcst', 'Icon'), False, day=i))
-					if renderedlines[-1].get_width() > maxfcstwidth: maxfcstwidth = renderedlines[-1].get_width()
-					fcstlines += 1
+				if fcstdays > 0:
+					for i in range(fcstdays):
+						renderedlines.append(
+							CreateWeathBlock(self.fcstformat, self.fcstfields, "", [25], self.CharColor,
+											 (self.location, 'Fcst', 'Icon'), False, day=i))
+						if renderedlines[-1].get_width() > maxfcstwidth: maxfcstwidth = renderedlines[-1].get_width()
+						fcstlines += 1
+				else:
+					renderedlines.append(config.fonts.Font(35, "").render("No Forecast Available", 0,
+																		  wc(self.CharColor)))
 
 				if config.screenwidth > 350:
 					h = h + renderedlines[-1].get_height() * 5

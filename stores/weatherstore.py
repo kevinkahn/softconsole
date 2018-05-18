@@ -117,15 +117,8 @@ class WeatherVals(valuestore.ValueStore):
 			self.vars['Fcst'][fld] = WeatherItem(('Fcst',fld),fldinfo,self)
 		self.vars['FcstDays'] = valuestore.StoreItem('FcstDays', 0, store=self)
 
-	def BlockRefresh(self):
+	def _FetchWeather(self):
 		global WUcount
-		if self.fetchtime + self.refreshinterval > time.time():
-			# have recent data
-			return
-
-		self.fetchtime = time.time()
-		self.failedfetch = False
-		self.fetchcount += 1
 		# noinspection PyBroadException
 		try:
 			r = requests.get(self.url,timeout=15)
@@ -137,20 +130,20 @@ class WeatherVals(valuestore.ValueStore):
 			logsupport.Logs.Log("Error fetching weather: " + self.url + str(sys.exc_info()[0]),
 							severity=ConsoleWarning)
 			self.failedfetch = True
-			return
+			return None
 
 		if val.find("keynotfound") != -1:
 			config.BadWunderKey = True
 			# only report once in log
 			logsupport.Logs.Log("Bad weatherunderground key:" + self.location, severity=ConsoleError, tb=False)
 			self.failedfetch = True
-			return
+			return None
 
 		if val.find("you must supply a key") != -1:
 			logsupport.Logs.Log("WeatherUnderground missed the key:" + self.location, severity=ConsoleWarning)
 			self.fetchtime = 0  # force retry next time since this didn't register with WU
 			self.failedfetch = True
-			return
+			return None
 
 		if val.find('been an error') != -1:
 			# odd error case that's been seen where html rather than json is returned
@@ -159,7 +152,7 @@ class WeatherVals(valuestore.ValueStore):
 				f.write(val)
 				f.flush()
 			self.failedfetch = True
-			return
+			return None
 
 		try:
 			parsed_json = json.loads(val)
@@ -170,16 +163,40 @@ class WeatherVals(valuestore.ValueStore):
 				f.flush()
 
 			self.failedfetch = True
+			return None
+		return parsed_json
+
+	def BlockRefresh(self):
+
+		if self.fetchtime + self.refreshinterval > time.time():
+			# have recent data
 			return
-		js = functools.partial(TreeDict, parsed_json)
+
+		self.fetchtime = time.time()
+		self.failedfetch = False
+		self.fetchcount += 1
+
+		parsed_json = self._FetchWeather()
+
+
 		fcsts = TreeDict(parsed_json, 'forecast', 'simpleforecast', 'forecastday')
 		fcstepoch = int(fcsts[0]['date']['epoch'])
-		now = int(time.time())
 		forecastjunk = False
-		if now - fcstepoch > 60 * 60 * 24:  # 1 day
+		if int(time.time()) - fcstepoch > 60 * 60 * 24:  # 1 day
 			forecastjunk = True
-			logsupport.Logs.Log("WU returned nonsense forecast from: ",
+			logsupport.Logs.Log("WU returned nonsense forecast for ", self.location, " from: ",
 								datetime.datetime.fromtimestamp(fcstepoch).strftime('%c'), severity=ConsoleWarning)
+			# retry once
+			parsed_json = self._FetchWeather()
+			fcsts = TreeDict(parsed_json, 'forecast', 'simpleforecast', 'forecastday')
+			fcstepoch = int(fcsts[0]['date']['epoch'])
+			if int(time.time()) - fcstepoch > 60 * 60 * 24:  # 1 day
+				logsupport.Logs.Log("Retry didn't resolve WU issue")
+			else:
+				logsupport.Logs.Log("Retry resolved WU issue")
+				forecastjunk = False
+
+		js = functools.partial(TreeDict, parsed_json)
 		for n, cond in self.vars['Cond'].items():
 			# noinspection PyBroadException
 			try:
