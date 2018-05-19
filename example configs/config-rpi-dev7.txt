@@ -6,8 +6,8 @@ LogLevel = 3
 
 
 cfglib = "/home/pi/consolerem/example configs/cfglib"
-include = /home/pi/Console/cfglib/auth.cfg, pdxalerts.cfg, weathPump.cfg, timetempLQ.cfg, weathCC.cfg, timetempPDX.cfg, myclock.cfg,bathroom.cfg,upperlev.cfg,BR-kck.cfg,tstat.cfg
-HomeScreenName = LR1q
+include = /home/pi/Console/cfglib/auth.cfg, pdxalerts.cfg, weathPump.cfg, timetempLQ.cfg, weathCC.cfg, timetempPDX.cfg, myclock.cfg,bathroom.cfg,upperlev.cfg,BR-kck.cfg,tstat.cfg,weathPDX.cfg
+HomeScreenName = LR1
 DimLevel = 50
 DimTO = 25
 DimIdleListNames = MyClock, Portland, Pumpkin, LaQuinta
@@ -44,8 +44,8 @@ SecondaryChain = Portland, Bathroom, BR, Thermostat - Main
 	Invoke = NetworkHealth.Do_Ping
 	Parameter = '8.8.8.8',InternetUp
 	[[InternetAlert]]
-	Type = LocalVarChange
-	Var = InternetUp
+	Type = VarChange
+	Var = LocalVars:InternetUp
 	Test = NE
 	Value = 1
 	Invoke = InternetAlertScreen
@@ -62,8 +62,7 @@ SecondaryChain = Portland, Bathroom, BR, Thermostat - Main
 	KeyColor = maroon
 	[[Action]]
 		type = SETVAR
-		Var = InternetUp
-		VarType = Local
+		Var = LocaVars:InternetUp
 		label = Acknowledge, Outage
 
 [NodeTest]
@@ -99,10 +98,10 @@ SecondaryChain = Portland, Bathroom, BR, Thermostat - Main
 #		KeyColor = Maroon
 #		label = Clear tEST,
 
-[HouseStat]
-    type = Status
-    NormalOff = Pucks, Downlights, Kitchen Dimmer, Office Ceiling
-    NormalOn = Main Hall, Landscape, LR Dual Spots
+#[HouseStat]
+#    type = Status
+#    NormalOff = Pucks, Downlights, Kitchen Dimmer, Office Ceiling
+#    NormalOn = Main Hall, Landscape, LR Dual Spots
 
 [LR1]
     type = Keypad
@@ -124,12 +123,6 @@ SecondaryChain = Portland, Bathroom, BR, Thermostat - Main
     label = Living, Room 2   
     [[Main Hall]]
     [[Upper Hall]]
-    [[LR Plug Win]]
-        label = Test
-        type = RUNPROG
-        KeyColor = green
-        ProgramName = TestProcXX
-        Verify = 1
     [[TestProg]]
         type=RUNPROG
         ProgramName = TestProc
@@ -142,12 +135,12 @@ SecondaryChain = Portland, Bathroom, BR, Thermostat - Main
 #    [[LR Plug Dr]]
 #        label = Reading, Light, Door
 
- [Test]
-	type = Keypad
-	label = Test
-	[[TestVar]]
-	VarType = Int
-	type = SETVARVALUE
+# [Test]
+#	type = Keypad
+#	label = Test
+#	[[TestVar]]
+#	VarType = Int
+#	type = SETVARVALUE
 
 
 

@@ -49,8 +49,7 @@ SecondaryChain = Bathroom, Upper Level, LR, OtherMain, Downstairs, Portland
 	KeyColor = maroon
 	[[Action]]
 		type = SETVAR
-		Var = InternetUp
-		VarType = Local
+		Var = LocalVars:InternetUp
 		label = Acknowledge, Outage
 
 

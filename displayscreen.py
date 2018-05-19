@@ -128,6 +128,7 @@ class DisplayScreen(object):
 					notice = pygame.event.Event(config.DS.ISYAlert, alert=a)
 					pygame.fastevent.post(notice)
 			elif a.type == 'VarChange':
+				a.state = 'Init'
 				# Note: VarChange alerts don't need setup because the store has an alert proc
 				pass
 			elif a.type == 'Init':
@@ -271,7 +272,7 @@ class DisplayScreen(object):
 				evtype = 'variable' if event.type == self.ISYVar else 'node'
 				debug.debugPrint('Dispatch', 'ISY ', evtype, ' change', event)
 				alert = event.alert
-				if alert.state == 'Armed':
+				if alert.state in ('Armed', 'Init'):
 					if alert.trigger.IsTrue():  # alert condition holds
 						if alert.trigger.delay != 0:  # delay invocation
 							alert.state = 'Delayed'
@@ -282,9 +283,15 @@ class DisplayScreen(object):
 							alert.state = 'FiredNoDelay'
 							debug.debugPrint('Dispatch', "Invoke: ", alert.name)
 							alert.Invoke()  # either calls a proc or enters a screen and adjusts alert state appropriately
-					else:  # condition cleared after alert rearmed  - timing in the queue?
-						logsupport.Logs.Log('Anomolous NodeChgTrigger clearing while armed: ', repr(alert),
+					else:
+						if alert.state == 'Armed':
+							# condition cleared after alert rearmed  - timing in the queue?
+							logsupport.Logs.Log('Anomolous Trigger clearing while armed: ', repr(alert),
 											severity=ConsoleWarning)
+						else:
+							alert.state = 'Armed'
+							logsupport.Logs.Log('Initial var value for trigger is benign: ', repr(alert),
+												severity=ConsoleDetail)
 				elif alert.state == 'Active' and not alert.trigger.IsTrue():  # alert condition has cleared and screen is up
 					debug.debugPrint('Dispatch', 'Active alert cleared', alert.name)
 					alert.state = 'Armed'  # just rearm the alert
@@ -301,7 +308,8 @@ class DisplayScreen(object):
 				    # reason I changed it to id-actiontarget don't know why but it was done while adding HASS this screwed up clearing deferred alerts
 					# so switched it back in hopes to remember why the change todo
 				else:
-					logsupport.Logs.Log("Anomolous change situation: ", repr(alert), " Trigger IsTue: ",
+					logsupport.Logs.Log("Anomolous change situation  State: ", alert.state, " Alert: ", repr(alert),
+										" Trigger IsTue: ",
 										alert.trigger.IsTrue(), severity=ConsoleWarning)
 					debug.debugPrint('Dispatch', 'ISYVar/ISYAlert passing: ', alert.state, alert.trigger.IsTrue(), event,
 							   alert)
