@@ -116,6 +116,7 @@ class WeatherVals(valuestore.ValueStore):
 		for fld, fldinfo in fsynthmap.items():
 			self.vars['Fcst'][fld] = WeatherItem(('Fcst',fld),fldinfo,self)
 		self.vars['FcstDays'] = valuestore.StoreItem('FcstDays', 0, store=self)
+		self.vars['LastGoodFcst'] = valuestore.StoreItem('LastGoodFcst', 0, store=self)
 
 	def _FetchWeather(self):
 		global WUcount
@@ -208,24 +209,27 @@ class WeatherVals(valuestore.ValueStore):
 					cond.Value = cond.MapInfo[1](cond.MapInfo[2])
 			except:
 				cond.Value = None  # set error equiv to Conderr?
-
-		for n, fcst in self.vars['Fcst'].items():
-			fcst.Value = valuestore.StoreList(fcst)
-			for i, fcstitem in enumerate(fcsts):
-				fs = functools.partial(TreeDict,fcstitem)
-				# noinspection PyBroadException
-				try:
-					if fcst.MapInfo[0] != 'synthetic':
-						itemval = fcst.MapInfo[0](fs(*fcst.MapInfo[1]))
-						fcst.Value.append(itemval if fcst.MapInfo[0] != str else TryShorten(itemval))
-					else:
-						fcst.Value.append(fcst.MapInfo[1](fcst.MapInfo[2], day=i))
-				except:
-					fcst.Value.append(None)
-		if forecastjunk:
-			self.vars['FcstDays'].Value = 0
-		else:
+		if not forecastjunk:
+			self.vars['LastGoodFcst'].Value = time.time()
 			self.vars['FcstDays'].Value = len(fcsts)
+			for n, fcst in self.vars['Fcst'].items():
+				fcst.Value = valuestore.StoreList(fcst)
+				for i, fcstitem in enumerate(fcsts):
+					fs = functools.partial(TreeDict, fcstitem)
+					# noinspection PyBroadException
+					try:
+						if fcst.MapInfo[0] != 'synthetic':
+							itemval = fcst.MapInfo[0](fs(*fcst.MapInfo[1]))
+							fcst.Value.append(itemval if fcst.MapInfo[0] != str else TryShorten(itemval))
+						else:
+							fcst.Value.append(fcst.MapInfo[1](fcst.MapInfo[2], day=i))
+					except:
+						fcst.Value.append(None)
+		else:
+			logsupport.Logs.Log("Continuing to use forecast retrieved at: ",
+								datetime.datetime.fromtimestamp(self.vars['LastGoodFcst'].Value).strftime('%c'),
+								severity=ConsoleWarning)
+
 
 
 
