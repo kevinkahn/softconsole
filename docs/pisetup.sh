@@ -143,20 +143,22 @@ read -p "Press Enter to continue"
 LogBanner "Install Python2/3 Compatibility Support"
 echo "Note - installation switches system default Python to version 3"
 echo "To undo this run 'sudo update-alternatives --config python' to select desired alternative"
-apt-get -y install python-dev
-apt-get -y install python3-dev
+
 LogBanner "Switch default Python to Python3"
 update-alternatives --install /usr/bin/python python /usr/bin/python3.5 2
-pip install future
-pip3 install future
+update-alternatives --install /usr/bin/python python /usr/bin/python2.7 1
+LogBanner "python3-pip"
+apt-get install python3-pip -y
 
+LogBanner "python3-pygame"
+apt-get update
+apt-get install python3-pygame -y
+pip3 install future
+pip3 install requests
 
 echo "deb http://mirrordirector.raspbian.org/raspbian/ stretch main contrib non-free rpi firmware" >> /etc/apt/sources.list.d/raspi.list
 
 LogBanner "Set Time Zone"
-# seed the timezone dialog
-echo 'US/Pacific-New' > /etc/timezone
-dpkg-reconfigure -f noninteractive tzdata
 dpkg-reconfigure tzdata
 LogBanner "Pi User Password"
 sudo passwd pi
@@ -204,6 +206,7 @@ else
 fi
 
 python getsetupinfo.py
+update-alternatives --set python /usr/bin/python2.7
 
 if [ "x$1" != "x" ]
 then
@@ -370,21 +373,23 @@ case $ScreenType in
     28r)
     LogBanner "Run PiTFT Helper 28r"
     echo 1 > tmp
+    echo 4 >> tmp # rotation
+    echo Y >> tmp # pi console to pitft
     ;;
     28c)
     LogBanner "Run PiTFT Helper 28c"
     echo 3 > tmp
+    echo 2 >> tmp # rotation
+    echo Y >> tmp # pi console to pitft
     ;;
     35r)
     LogBanner "Run PiTFT Helper 35r"
     echo 4 > tmp
+    echo 4 >> tmp # rotation
+    echo Y >> tmp # pi console to pitft
     ;;
     esac
-  cat >> tmp <<EOF
-4
-N
-N
-EOF
+
   ./adafruit-pitft.sh < tmp
   raspi-config nonint do_boot_behaviour B4 # set boot to desktop already logged in
   sed -isav s/fb0/fb1/ /usr/share/X11/xorg.conf.d/99-fbturbo.conf
@@ -450,6 +455,7 @@ EOF
     ;;
 esac
 
+update-alternatives --set python /usr/bin/python3.5
 
 mv --backup=numbered /etc/rc.local.hold /etc/rc.local
 chmod +x /etc/rc.local

@@ -1,6 +1,6 @@
 import config
 import logsupport
-from logsupport import ConsoleWarning
+from logsupport import ConsoleWarning, ConsoleDetailHigh
 from utilities import wc
 from stores import valuestore
 import pygame
@@ -33,7 +33,8 @@ def CreateWeathBlock(Format, Fields, WeathFont, FontSize, WeathColor, icon, cent
 					vals.append(None)
 					if not erroronce:
 						logsupport.Logs.Log(
-							"Attempt to forecast(day " + str(day) + ") beyond " + str(fcstdays) + " returned by WU")
+							"Attempt to forecast(day " + str(day) + ") beyond " + str(fcstdays) + " returned by WU",
+							severity=ConsoleDetailHigh)
 						erroronce = True
 	except Exception as e:
 		logsupport.Logs.Log('Weather Block field access error: '+str(fld)+' Exc: '+str(e))
@@ -66,7 +67,8 @@ def CreateWeathBlock(Format, Fields, WeathFont, FontSize, WeathColor, icon, cent
 				if not erroronce:
 					erroronce = True
 					logsupport.Logs.Log(
-						"Attempt to forecast(day " + str(day) + ") beyond " + str(fcstdays) + " returned by WU")
+						"Attempt to forecast(day " + str(day) + ") beyond " + str(fcstdays) + " returned by WU",
+						severity=ConsoleDetailHigh)
 	else:
 		iconref = None
 		totw = fw

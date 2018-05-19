@@ -1,7 +1,6 @@
 cfglib = cfglib
 include = pdxauth.cfg, pdxalerts.cfg, timetempPR.cfg, timetempLQ.cfg, weathCC.cfg, timetempPDX.cfg, myclock.cfg,bathroom.cfg,upperlev.cfg,BR-kck.cfg,tstat.cfg
 HomeScreenName = LR1
-HomeScreenTO = 45
 DimLevel = 50
 DimTO = 25
 DimIdleListNames = MyClock, Portland, Pumpkin, LaQuinta

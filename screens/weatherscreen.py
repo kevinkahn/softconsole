@@ -49,6 +49,7 @@ class WeatherScreenDesc(screen.ScreenDesc):
 		self.fcstfields = list(((self.location, 'Fcst', x) for x in ('Day', 'High','Low', 'Sky', 'WindDir','WindSpd')))
 
 		self.store = valuestore.NewValueStore(weatherstore.WeatherVals(self.location, self.WunderKey))
+		self.loggedonce = False
 		utilities.register_example("WeatherScreenDesc", self)
 
 	def __repr__(self):
@@ -61,6 +62,7 @@ class WeatherScreenDesc(screen.ScreenDesc):
 
 	def ShowScreen(self, conditions):
 		self.ReInitDisplay()
+		self.store.BlockRefresh()
 
 		usefulheight = config.screenheight - config.topborder - config.botborder
 		vert_off = config.topborder
@@ -72,8 +74,11 @@ class WeatherScreenDesc(screen.ScreenDesc):
 			for l in renderedlines:
 				config.screen.blit(l, ((config.screenwidth - l.get_width()) / 2, vert_off))
 				vert_off = vert_off + 60
-			logsupport.Logs.Log('Weatherscreen missing weather ' + self.name, severity=logsupport.ConsoleWarning)
+			if not self.loggedonce:
+				logsupport.Logs.Log('Weatherscreen missing weather ' + self.name, severity=logsupport.ConsoleWarning)
+				self.loggedonce = True
 		else:
+			self.loggedonce = False
 			renderedlines = [
 				config.fonts.Font(50, "").render(self.fmt.format("{d}", d=self.scrlabel), 0, wc(self.CharColor)),
 				config.fonts.Font(40, "").render(self.fmt.format("{d}", d=self.store.GetVal(('Cond', 'Location'))), 0,

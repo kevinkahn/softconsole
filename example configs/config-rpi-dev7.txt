@@ -8,7 +8,6 @@ LogLevel = 3
 cfglib = "/home/pi/consolerem/example configs/cfglib"
 include = /home/pi/Console/cfglib/auth.cfg, pdxalerts.cfg, weathPump.cfg, timetempLQ.cfg, weathCC.cfg, timetempPDX.cfg, myclock.cfg,bathroom.cfg,upperlev.cfg,BR-kck.cfg,tstat.cfg
 HomeScreenName = LR1q
-HomeScreenTO = 45
 DimLevel = 50
 DimTO = 25
 DimIdleListNames = MyClock, Portland, Pumpkin, LaQuinta

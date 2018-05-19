@@ -2,7 +2,6 @@ cfglib = cfglib
 include = auth.cfg, pdxalerts.cfg, weathLQ.cfg, weathCC.cfg, weathDownTown.cfg, weathPDX.cfg,timetempPDX.cfg,BR-suzi.cfg, tstat.cfg, suzi-misc1.cfg,suzi-misc2.cfg
 
 HomeScreenName = BR
-HomeScreenTO = 90
 DimLevel = 5
 DimTO = 25
 DimHomeScreenCoverName = TimeTemp

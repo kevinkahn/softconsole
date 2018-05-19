@@ -271,16 +271,20 @@ class DisplayScreen(object):
 				evtype = 'variable' if event.type == self.ISYVar else 'node'
 				debug.debugPrint('Dispatch', 'ISY ', evtype, ' change', event)
 				alert = event.alert
-				if alert.state == 'Armed' and alert.trigger.IsTrue():  # alert condition holds
-					if alert.trigger.delay != 0:  # delay invocation
-						alert.state = 'Delayed'
-						debug.debugPrint('Dispatch', "Post with delay:", alert.name, alert.trigger.delay)
-						E = AlertEventItem(id(alert), 'delayed' + evtype, alert)
-						self.Tasks.AddTask(E, alert.trigger.delay)
-					else:  # invoke now
-						alert.state = 'FiredNoDelay'
-						debug.debugPrint('Dispatch', "Invoke: ", alert.name)
-						alert.Invoke()  # either calls a proc or enters a screen and adjusts alert state appropriately
+				if alert.state == 'Armed':
+					if alert.trigger.IsTrue():  # alert condition holds
+						if alert.trigger.delay != 0:  # delay invocation
+							alert.state = 'Delayed'
+							debug.debugPrint('Dispatch', "Post with delay:", alert.name, alert.trigger.delay)
+							E = AlertEventItem(id(alert), 'delayed' + evtype, alert)
+							self.Tasks.AddTask(E, alert.trigger.delay)
+						else:  # invoke now
+							alert.state = 'FiredNoDelay'
+							debug.debugPrint('Dispatch', "Invoke: ", alert.name)
+							alert.Invoke()  # either calls a proc or enters a screen and adjusts alert state appropriately
+					else:  # condition cleared after alert rearmed  - timing in the queue?
+						logsupport.Logs.Log('Anomolous NodeChgTrigger clearing while armed: ', repr(alert),
+											severity=ConsoleWarning)
 				elif alert.state == 'Active' and not alert.trigger.IsTrue():  # alert condition has cleared and screen is up
 					debug.debugPrint('Dispatch', 'Active alert cleared', alert.name)
 					alert.state = 'Armed'  # just rearm the alert
@@ -297,6 +301,8 @@ class DisplayScreen(object):
 				    # reason I changed it to id-actiontarget don't know why but it was done while adding HASS this screwed up clearing deferred alerts
 					# so switched it back in hopes to remember why the change todo
 				else:
+					logsupport.Logs.Log("Anomolous change situation: ", repr(alert), " Trigger IsTue: ",
+										alert.trigger.IsTrue(), severity=ConsoleWarning)
 					debug.debugPrint('Dispatch', 'ISYVar/ISYAlert passing: ', alert.state, alert.trigger.IsTrue(), event,
 							   alert)
 				# Armed and false: irrelevant report
