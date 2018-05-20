@@ -137,9 +137,10 @@ then
     echo "Make Home System"
 fi
 
-LogBanner "Update/upgrade system"
-apt-get update
-DEBIAN_FRONTEND=noninteractive apt-get -y upgrade
+#LogBanner "Update/upgrade system"
+#apt-get update
+#DEBIAN_FRONTEND=noninteractive apt-get -y upgrade
+echo 1 > /proc/sys/vm/drop_caches # try to avoid kswap problem
 
 # Install the python packages needed for the console
 

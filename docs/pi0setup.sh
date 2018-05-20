@@ -144,6 +144,10 @@ LogBanner "Install Python2/3 Compatibility Support"
 echo "Note - installation switches system default Python to version 3"
 echo "To undo this run 'sudo update-alternatives --config python' to select desired alternative"
 
+LogBanner "Upgrade/Update System"
+apt-get update
+DEBIAN_FRONTEND=noninteractive apt-get -y upgrade
+
 LogBanner "Switch default Python to Python3"
 update-alternatives --install /usr/bin/python python /usr/bin/python3.5 2
 update-alternatives --install /usr/bin/python python /usr/bin/python2.7 1
@@ -151,7 +155,6 @@ LogBanner "python3-pip"
 apt-get install python3-pip -y
 
 LogBanner "python3-pygame"
-apt-get update
 apt-get install python3-pygame -y
 pip3 install future
 pip3 install requests

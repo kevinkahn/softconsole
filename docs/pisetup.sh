@@ -140,6 +140,13 @@ cd /home/pi
 LogBanner "This is the system setup script"
 LogBanner "Connect WiFI if needed"
 read -p "Press Enter to continue"
+
+sed -i "s/CONF_SWAPSIZE=100/CONF_SWAPSIZE=200/" /etc/dphys-swapfile  # enlarge the swapfile to try to avoid the kswapd issue
+
+LogBanner "Upgrade/Update System"
+apt-get update
+DEBIAN_FRONTEND=noninteractive apt-get -y upgrade
+
 LogBanner "Install Python2/3 Compatibility Support"
 echo "Note - installation switches system default Python to version 3"
 echo "To undo this run 'sudo update-alternatives --config python' to select desired alternative"
@@ -151,7 +158,7 @@ LogBanner "python3-pip"
 apt-get install python3-pip -y
 
 LogBanner "python3-pygame"
-apt-get update
+
 apt-get install python3-pygame -y
 pip3 install future
 pip3 install requests
@@ -268,6 +275,7 @@ echo $NodeName > /etc/hostname
 hostname $NodeName
 
 LogBanner "Set better LX Terminal parameters"
+lxsession-default-terminal # create the conf file
 cd /home/pi/.config/lxterminal
 echo "
 /fontname/c \\
@@ -494,6 +502,7 @@ for i in 10 9 8 7 6 5 4 3 2 1
       echo installconsole.sh start in \$i
       sleep 1
     done
+sudo bash -c "echo 1 > /proc/sys/vm/drop_caches"  # trying to avoid the kswap issue
 sudo bash ./installconsole.sh $Personal $AutoConsole $UseWheezy
 EOF
     reboot now
