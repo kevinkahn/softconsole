@@ -8,6 +8,7 @@ import pygame
 from pygame import draw
 from toucharea import TouchPoint, ManualKeyDesc
 import logsupport
+from logsupport import ConsoleDetail
 
 
 class VerifyScreen(screen.BaseKeyScreenDesc):
@@ -47,7 +48,7 @@ class VerifyScreen(screen.BaseKeyScreenDesc):
 
 	def InitDisplay(self, nav):
 		# debugPrint('Main', "Enter to screen: ", self.name)
-		logsupport.Logs.Log('Entering Verify Screen: ' + self.name)
+		logsupport.Logs.Log('Entering Verify Screen: ' + self.name, severity=ConsoleDetail)
 		super(VerifyScreen, self).InitDisplay({})
 		self.ShowScreen()
 

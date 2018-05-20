@@ -75,7 +75,7 @@ class NodeChgtrigger(object):
 	def __repr__(self):
 		naddr = "*NONE*" if self.node is None else self.node.address
 		return 'Node ' + naddr + ' status ' + self.test + ' ' + str(self.value) + ' delayed ' + str(
-			self.delay) + ' seconds'
+			self.delay) + ' seconds' + ' IsTrue: ' + str(self.IsTrue())
 
 
 # noinspection PyUnusedLocal
@@ -103,7 +103,8 @@ class VarChangeTrigger(object):
 			return False # shouldn't happen
 
 	def __repr__(self):
-		return ' Variable ' + valuestore.ExternalizeVarName(self.var) + ' ' + self.test + ' ' + str(self.value) + ' delayed ' + str(self.delay) + ' seconds'
+		return ' Variable ' + valuestore.ExternalizeVarName(self.var) + ' ' + self.test + ' ' + str(
+			self.value) + ' delayed ' + str(self.delay) + ' seconds' + ' IsTrue: ' + str(self.IsTrue())
 
 class InitTrigger(object):
 	def __init__(self):

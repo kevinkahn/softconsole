@@ -3,7 +3,7 @@ import websocket
 import xmltodict
 import config
 import logsupport
-from logsupport import ConsoleWarning, ConsoleError, ConsoleDetail
+from logsupport import ConsoleWarning, ConsoleError, ConsoleDetail, ConsoleDetailHigh
 import debug
 from isycodes import EVENT_CTRL, formatwsitem
 import pygame, time
@@ -187,23 +187,48 @@ class ISYEventMonitor(object):
 					enode = E.pop('node', 'No node')
 					eInfo = E.pop('eventInfo', 'No EventInfo')
 
+					if isinstance(eaction, dict):
+						debug.debugPrint('DaemonStream', "V5 stream - pull up action value: ", eaction)
+						eaction = eaction["#text"]  # todo the new xmltodict will return as data['action']['#text']
+
+					if ecode == 'ST':  # update cached state first before posting alerts or race
+						if enode in self.isy.NodesByAddr:
+							N = self.isy.NodesByAddr[enode]
+							oldstate = N.devState
+							N.devState = isycodes._NormalizeState(eaction)
+							debug.debugPrint('ISYchg', 'ISY Node: ', N.name, ' state change from: ', oldstate,
+											 ' to: ', N.devState)
+							if (oldstate == N.devState) and self.THstate == 'running':
+								logsupport.Logs.Log(
+									"ISY State report with no change: " + N.name + ' state: ' + str(oldstate),
+									severity=ConsoleWarning)
+							else:
+								logsupport.Logs.Log(
+									"Status change for " + N.name + '(' + str(enode) + ') to ' + str(N.devState),
+									severity=ConsoleDetailHigh)
+								# status changed to post to any alerts that want it
+								# since alerts can only react to the state of a node we check only on an ST message
+								# screens on the other hand may need to know about other actions (thermostat e.g.)
+								# so they get checked below under reportablecodes
+								# if I check alerts there I get extra invocations for the DON and DOF e.g. which while not
+								# harmful are anomolous
+								if enode in self.AlertNodes:
+									# alert node changed
+									debug.debugPrint('DaemonCtl', 'ISY reports change(alert):',
+													 self.isy.NodesByAddr[enode].name)
+									for a in self.AlertNodes[enode]:
+										logsupport.Logs.Log("Node alert fired: " + str(a), severity=ConsoleDetail)
+										# noinspection PyArgumentList
+										notice = pygame.event.Event(config.DS.ISYAlert, node=enode,
+																	value=isycodes._NormalizeState(eaction), alert=a)
+										pygame.fastevent.post(notice)
+
 					if ecode in self.reportablecodes:
 						# Node change report
 						debug.debugPrint('DaemonStream', time.time() - config.starttime, "Status update in stream: ", eseq, ":",
 								   prcode, " : ", enode, " : ", eInfo, " : ", eaction)
-						if isinstance(eaction, dict):
-							debug.debugPrint('DaemonStream', "V5 stream - pull up action value: ", eaction)
-							eaction = eaction["#text"]  # todo the new xmltodict will return as data['action']['#text']
 
-						if enode in self.AlertNodes:
-							# alert node changed
-							debug.debugPrint('DaemonCtl', 'ISY reports change(alert):', self.isy.NodesByAddr[enode].name)
-							for a in self.AlertNodes[enode]:
-								logsupport.Logs.Log("Node alert fired: " + str(a), severity=ConsoleDetail)
-								# noinspection PyArgumentList
-								notice = pygame.event.Event(config.DS.ISYAlert, node=enode, value=isycodes._NormalizeState(eaction), alert=a)
-								pygame.fastevent.post(notice)
-
+						# logsupport.Logs.Log('reportable event '+str(ecode)+' for '+str(enode)+' action '+str(eaction))
 
 						if config.DS.AS is not None:
 							if self.isy.name in config.DS.AS.HubInterestList:
@@ -247,13 +272,7 @@ class ISYEventMonitor(object):
 							isynd = enode
 						logsupport.Logs.Log("ISY shows comm error for node: " + str(isynd), severity=ConsoleWarning)
 
-					if ecode == 'ST':
-						if enode in self.isy.NodesByAddr:
-							N = self.isy.NodesByAddr[enode]
-							oldstate = N.devState
-							N.devState = isycodes._NormalizeState(eaction) # N.devState =
-							debug.debugPrint('ISYchg', 'ISY Node: ', N.name, ' state change from: ', oldstate,
-										 ' to: ', N.devState)
+
 				else:
 					logsupport.Logs.Log("Strange item in event stream: " + str(m), severity=ConsoleWarning)
 			except Exception as E:
