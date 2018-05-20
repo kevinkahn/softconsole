@@ -283,31 +283,31 @@ sed -f lxfix lxterminal.conf.bak > lxterminal.conf
 case $VNCstdPort in # if [ $VNCstdPort != "Y" ]
   Y)
     echo "VNC will be set up on its normal port"
-    LogBanner "VNC Service Password"
-    vncpasswd -service
-    echo "Authentication=VncAuth" >> /root/.vnc/config.d/vncserver-x11
-    echo "Encryption=PreferOff" >> /root/.vnc/config.d/vncserver-x11
+    #LogBanner "VNC Service Password"
+    #vncpasswd -service
+    #echo "Authentication=VncAuth" >> /root/.vnc/config.d/vncserver-x11
+    #echo "Encryption=PreferOff" >> /root/.vnc/config.d/vncserver-x11
     su pi -c vncserver # create the Xvnc file in ~pi/.vnc/config.d so it can be modified below
     ;;
   N)
     echo "No VNC will ne set up"
     ;;
   *)
-    LogBanner "VNC Service Password"
-    vncpasswd -service
-    echo "Authentication=VncAuth" >> /root/.vnc/config.d/vncserver-x11
-    echo "Encryption=PreferOff" >> /root/.vnc/config.d/vncserver-x11
+    #LogBanner "VNC Service Password"
+    #vncpasswd -service
+    #echo "Authentication=VncAuth" >> /root/.vnc/config.d/vncserver-x11
+    #echo "Encryption=PreferOff" >> /root/.vnc/config.d/vncserver-x11
     su pi -c vncserver # create the Xvnc file in ~pi/.vnc/config.d so it can be modified below
     SSHDport=$(($VNCstdPort - 100))
     VNCConsole=$(($VNCstdPort - 1))
-    echo "Console VNC will be set up on port " $VNCConsole
+    #echo "Console VNC will be set up on port " $VNCConsole
     echo "Virtual VNC will be set up on port " $VNCstdPort
     echo "sshd will be moved to port " $SSHDport
     cp /etc/ssh/sshd_config /etc/ssh/sshd_config.sav
     sed "/Port /s/.*/Port $SSHDport/" /etc/ssh/sshd_config.sav > /etc/ssh/sshd_config
     echo "RfbPort=$VNCstdPort" >> /home/pi/.vnc/config.d/Xvnc
     chown pi /home/pi/.vnc/config.d/Xvnc
-    echo "RfbPort=$VNCConsole" >> /root/.vnc/config.d/vncserver-x11
+    #echo "RfbPort=$VNCConsole" >> /root/.vnc/config.d/vncserver-x11
     ;;
 esac
 LogBanner "Setup Virtual VNC Service"
