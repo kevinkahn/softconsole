@@ -136,6 +136,8 @@ class DisplayScreen(object):
 			else:
 				logsupport.Logs.Log("Internal error - unknown alert type: ", a.type, ' for ', a.name, severity=ConsoleError, tb=False)
 
+		logsupport.Logs.livelog = False  # turn off logging to the screen
+
 		with open(config.homedir + "/.ConsoleStart", "a") as f:
 			f.write(str(time.time()) + '\n')
 		if config.Running:  # allow for a very early restart request from things like autoversion

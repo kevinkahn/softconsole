@@ -384,9 +384,6 @@ Set up the Maintenance Screen
 maintscreen.SetUpMaintScreens()
 logsupport.Logs.Log("Built Maintenance Screen")
 
-logsupport.Logs.livelog = False  # turn off logging to the screen and give user a moment to scan
-# time.sleep(2)
-
 LogBadParams(config.ParsedConfigFile, "Globals")
 LogBadParams(alertspec, "Alerts")
 """
