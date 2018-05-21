@@ -200,8 +200,14 @@ fi
 
 if [ -e /boot/auth ]
 then
-  mv /boot/auth/* /home/pi/Console/cfglib
+  mv -f /boot/auth/* /home/pi/Console/cfglib
   rmdir /boot/auth
+fi
+
+if [ -e /usr/lib/systemd/system/vncserverpi.service ]
+then
+  LogBanner "Enable VNC"
+  systemctl enable vncserverpi
 fi
 
 mkdir consoleinstallleftovers

@@ -141,11 +141,11 @@ LogBanner "This is the system setup script"
 LogBanner "Connect WiFI if needed"
 read -p "Press Enter to continue"
 
-sed -i "s/CONF_SWAPSIZE=100/CONF_SWAPSIZE=200/" /etc/dphys-swapfile  # enlarge the swapfile to try to avoid the kswapd issue
+#sed -i "s/CONF_SWAPSIZE=100/CONF_SWAPSIZE=200/" /etc/dphys-swapfile  # enlarge the swapfile to try to avoid the kswapd issue
 
-LogBanner "Upgrade/Update System"
-apt-get update
-DEBIAN_FRONTEND=noninteractive apt-get -y upgrade
+#LogBanner "Upgrade/Update System"
+#apt-get update
+#DEBIAN_FRONTEND=noninteractive apt-get -y upgrade
 
 LogBanner "Install Python2/3 Compatibility Support"
 echo "Note - installation switches system default Python to version 3"
@@ -154,14 +154,14 @@ echo "To undo this run 'sudo update-alternatives --config python' to select desi
 LogBanner "Switch default Python to Python3"
 update-alternatives --install /usr/bin/python python /usr/bin/python3.5 2
 update-alternatives --install /usr/bin/python python /usr/bin/python2.7 1
-LogBanner "python3-pip"
-apt-get install python3-pip -y
+#LogBanner "python3-pip"
+#apt-get install python3-pip -y
 
-LogBanner "python3-pygame"
+LogBanner "Python Compatibility Lib"
 
-apt-get install python3-pygame -y
+#apt-get install python3-pygame -y
 pip3 install future
-pip3 install requests
+#pip3 install requests
 
 echo "deb http://mirrordirector.raspbian.org/raspbian/ stretch main contrib non-free rpi firmware" >> /etc/apt/sources.list.d/raspi.list
 
@@ -202,18 +202,22 @@ then
   wget https://raw.githubusercontent.com/kevinkahn/softconsole/homerelease/docs/installconsole.sh
   wget https://raw.githubusercontent.com/kevinkahn/softconsole/homerelease/getsetupinfo.py
   wget https://raw.githubusercontent.com/kevinkahn/softconsole/homerelease/scripts/vncserverpi.service
+  wget https://raw.githubusercontent.com/kevinkahn/softconsole/homerelease/scripts/lxterminal.conf
 else
   # NOTE to test with current master version from github replace "currentrelease" with 'master'
   echo Get currentrelease version of setup scripts
   wget https://raw.githubusercontent.com/kevinkahn/softconsole/currentrelease/docs/installconsole.sh
   wget https://raw.githubusercontent.com/kevinkahn/softconsole/currentrelease/getsetupinfo.py
   wget https://raw.githubusercontent.com/kevinkahn/softconsole/currentrelease/scripts/vncserverpi.service
-  chmod +x installconsole.sh
+  wget https://raw.githubusercontent.com/kevinkahn/softconsole/currentrelease/scripts/lxterminal.conf
 # fix issue in adafruit install script as of 3/31/2018
 fi
 
+chmod +x installconsole.sh
+chown pi:pi lxterminal.conf
+
 python getsetupinfo.py
-update-alternatives --set python /usr/bin/python2.7
+#update-alternatives --set python /usr/bin/python2.7
 
 if [ "x$1" != "x" ]
 then
@@ -275,18 +279,8 @@ echo $NodeName > /etc/hostname
 hostname $NodeName
 
 LogBanner "Set better LX Terminal parameters"
-lxsession-default-terminal # create the conf file
-cd /home/pi/.config/lxterminal
-echo "
-/fontname/c \\
-fontname = Monospace Bold 13
-/bgcolor/c \\
-bgcolor=#5ddb1a55f009
-/fgcolor/c \\
-fgcolor=#c63eef9a0c11
-" > lxfix
-cp lxterminal.conf lxterminal.conf.bak
-sed -f lxfix lxterminal.conf.bak > lxterminal.conf
+sudo -u pi mkdir -p /home/pi/.config/lxterminal
+mv -f lxterminal.conf /home/pi/.config/lxterminal
 
 case $VNCstdPort in # if [ $VNCstdPort != "Y" ]
   Y)
@@ -295,7 +289,7 @@ case $VNCstdPort in # if [ $VNCstdPort != "Y" ]
     #vncpasswd -service
     #echo "Authentication=VncAuth" >> /root/.vnc/config.d/vncserver-x11
     #echo "Encryption=PreferOff" >> /root/.vnc/config.d/vncserver-x11
-    su pi -c vncserver # create the Xvnc file in ~pi/.vnc/config.d so it can be modified below
+    su pi -c vncserver
     ;;
   N)
     echo "No VNC will ne set up"
@@ -314,7 +308,7 @@ case $VNCstdPort in # if [ $VNCstdPort != "Y" ]
     cp /etc/ssh/sshd_config /etc/ssh/sshd_config.sav
     sed "/Port /s/.*/Port $SSHDport/" /etc/ssh/sshd_config.sav > /etc/ssh/sshd_config
     echo "RfbPort=$VNCstdPort" >> /home/pi/.vnc/config.d/Xvnc
-    chown pi /home/pi/.vnc/config.d/Xvnc
+    chown pi:pi /home/pi/.vnc/config.d/Xvnc
     #echo "RfbPort=$VNCConsole" >> /root/.vnc/config.d/vncserver-x11
     ;;
 esac
@@ -322,13 +316,14 @@ LogBanner "Setup Virtual VNC Service"
 
 if [ $VNCstdPort == "N" ]
 then
-    echo "VNC service files installation skipped"
+    echo "VNC service file installation skipped"
 else
-    echo "VNC service files installed and enabled"
+    echo "VNC service file installed"
     mv /home/pi/vncserverpi.service /usr/lib/systemd/system
-    systemctl enable vncserverpi.service
-    systemctl enable vncserver-x11-serviced.service
-    systemctl start vncserver-x11-serviced.service
+    #systemctl enable vncserverpi.service
+    #systemctl start vncserverpi.service
+    #systemctl enable vncserver-x11-serviced.service
+    #systemctl start vncserver-x11-serviced.service
 fi
 
 # Save initial rc.local to restore after helper scripts run
@@ -383,18 +378,21 @@ case $ScreenType in
     echo 1 > tmp
     echo 4 >> tmp # rotation
     echo Y >> tmp # pi console to pitft
+    echo N >> tmp # don't reboot
     ;;
     28c)
     LogBanner "Run PiTFT Helper 28c"
     echo 3 > tmp
     echo 2 >> tmp # rotation
     echo Y >> tmp # pi console to pitft
+    echo N >> tmp # don't reboot
     ;;
     35r)
     LogBanner "Run PiTFT Helper 35r"
     echo 4 > tmp
     echo 4 >> tmp # rotation
     echo Y >> tmp # pi console to pitft
+    echo N >> tmp # don't reboot
     ;;
     esac
 
