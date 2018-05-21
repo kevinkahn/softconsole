@@ -81,19 +81,22 @@ class ISYEventMonitor(object):
 			try:
 				if isinstance(self.lasterror, TimeoutError):
 					logsupport.Logs.Log('(TimeoutError) Wait for likely router reboot or down', severity=ConsoleError, tb=False)
-					self.delayedstart = 60
+					self.delayedstart = 63
 					self.reinit()
 					return
 			except:
 				pass # TimeoutError is Python 3 specific
-			if self.lasterror[0] == errno.ENETUNREACH:
+			if isinstance(self.lasterror, OSError):
+				logsupport.Logs.Log('ISY Thread Lasterror was: ', repr(self.lasterror), severity=ConsoleError)
+				self.delayedstart = 62
+			elif self.lasterror[0] == errno.ENETUNREACH:
 				# likely home network down so wait a bit
 				logsupport.Logs.Log('(NETUNREACH) Wait for likely router reboot or down', severity=ConsoleError, tb=False)
 				# todo overlay a screen delay message so locked up console is understood
-				self.delayedstart = 120
+				self.delayedstart = 121
 			elif self.lasterror[0] == errno.ETIMEDOUT:
 				logsupport.Logs.Log('(errno TIMEOUT) Timeout on WS - delay to allow possible ISY or router reboot',severity=ConsoleError, tb=False)
-				self.delayedstart = 60
+				self.delayedstart = 61
 				# todo - bug in websocket that results in attribute error for errno.WSEACONNECTIONREFUSED check
 			elif self.lasterror == (0, 'Init'):
 				logsupport.Logs.Log('QHThead failed to start - comms likely out')
@@ -217,6 +220,10 @@ class ISYEventMonitor(object):
 									debug.debugPrint('DaemonCtl', 'ISY reports change(alert):',
 													 self.isy.NodesByAddr[enode].name)
 									for a in self.AlertNodes[enode]:
+										if self.THstate != 'running':
+											# this is a restart or initial dump so indicate upwards to avoid misleading log entry
+											if a.state == 'Armed':
+												a.state == 'Init'
 										logsupport.Logs.Log("Node alert fired: " + str(a), severity=ConsoleDetail)
 										# noinspection PyArgumentList
 										notice = pygame.event.Event(config.DS.ISYAlert, node=enode,
