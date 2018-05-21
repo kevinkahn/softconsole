@@ -4,8 +4,10 @@ After=network.target
 
 [Service]
 User=pi
+Type=forking
 # delay is to work around the kswapd linux bug by not trying to start too much at once
-ExecStartPre=/bin/sleep 60
+ExecStart=/usr/bin/vncserver
+ExecStartPre=/bin/sleep 30
 ExecReload=/bin/kill -HUP $MAINPID
 Restart=always
 KillMode=process

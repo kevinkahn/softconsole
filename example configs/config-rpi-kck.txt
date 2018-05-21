@@ -17,7 +17,7 @@ SecondaryChain = Bathroom, Upper Level, LR, OtherMain, Downstairs, Portland
 	Type = Periodic
 	Interval = 60 seconds
 	Invoke = NetworkHealth.Do_Ping
-	Parameter = '8.8.8.8',InternetUp
+	Parameter = '8.8.8.8',LocalVars:InternetUp
 	[[InternetAlert]]
 	Type = VarChange
 	Var = LocalVars:InternetUp
