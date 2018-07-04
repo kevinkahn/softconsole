@@ -12,6 +12,18 @@ SecondaryChain = Bathroom, Upper Level, LR, OtherMain, Downstairs, Portland
 [Variables]
     InternetUp = 1
 
+[MQTT]
+	type = MQTT
+	address = rpi-kck.pdxhome
+	[[DeckTemp]]
+	TopicType = group
+	Topic = 'Deck Temp'
+	[[[Temp]]]
+	TopicType = float
+	[[[Hum]]]
+	TopicType = float
+	Topic = Hum
+
 [Alerts]
 	[[Internet]]
 	Type = Periodic

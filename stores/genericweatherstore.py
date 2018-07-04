@@ -64,6 +64,7 @@ class WeatherVals(valuestore.ValueStore):
 	global WUcount
 
 	def __init__(self, location, weathersource):
+		self.fetchtime = 0
 		CondFields = (
 		('Time', str), ('Location', str), ('Temp', float), ('Sky', str), ('Feels', float), ('WindDir', str),
 		('WindMPH', float), ('WindGust', int), ('Sunrise', str), ('Sunset', str), ('Moonrise', str),
@@ -100,44 +101,17 @@ class WeatherVals(valuestore.ValueStore):
 		self.failedfetch = False
 		self.fetchcount += 1
 
-		parsed_json = self.ws.FetchWeather()
+		'''
+		This is where we call the actual fetch weather
+		That is provider specific and should update all the items in the store or set failedfetch
+		'''
 
-		fcsts = TreeDict(parsed_json, 'forecast', 'simpleforecast', 'forecastday')
-		fcstepoch = int(fcsts[0]['date']['epoch'])
-		forecastjunk = False
+		self.ws.FetchWeather()
 
-		js = functools.partial(TreeDict, parsed_json)
-		for n, cond in self.vars['Cond'].items():
-			# noinspection PyBroadException
-			try:
-				if cond.MapInfo[0] != 'synthetic':
-					cond.Value = cond.MapInfo[0](js(*cond.MapInfo[1]))
-					if cond.MapInfo[0] == str:
-						cond.Value = TryShorten(cond.Value)
-				else:
-					cond.Value = cond.MapInfo[1](cond.MapInfo[2])
-			except:
-				cond.Value = None  # set error equiv to Conderr?
-		if not forecastjunk:
-			self.vars['LastGoodFcst'].Value = time.time()
-			self.vars['FcstDays'].Value = len(fcsts)
-			for n, fcst in self.vars['Fcst'].items():
-				fcst.Value = valuestore.StoreList(fcst)
-				for i, fcstitem in enumerate(fcsts):
-					fs = functools.partial(TreeDict, fcstitem)
-					# noinspection PyBroadException
-					try:
-						if fcst.MapInfo[0] != 'synthetic':
-							itemval = fcst.MapInfo[0](fs(*fcst.MapInfo[1]))
-							fcst.Value.append(itemval if fcst.MapInfo[0] != str else TryShorten(itemval))
-						else:
-							fcst.Value.append(fcst.MapInfo[1](fcst.MapInfo[2], day=i))
-					except:
-						fcst.Value.append(None)
-		else:
-			logsupport.Logs.Log("Continuing to use forecast retrieved at: ",
-								datetime.datetime.fromtimestamp(self.vars['LastGoodFcst'].Value).strftime('%c'),
-								severity=ConsoleWarning)
+	# fcsts = TreeDict(parsed_json, 'forecast', 'simpleforecast', 'forecastday')
+	# fcstepoch = int(fcsts[0]['date']['epoch'])
+	# forecastjunk = False
+
 
 	def geticon(self, n, day=-1):
 		if day == -1:

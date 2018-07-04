@@ -23,8 +23,11 @@ class MQTTBroker(valuestore.ValueStore):
 		# noinspection PyUnusedLocal
 		def on_connect(client, userdata, flags, rc):
 			logsupport.Logs.Log("Connected to ", self.name, " result code: " + str(rc))
-			for i, v in userdata.vars.items():
-				client.subscribe(v.Topic)
+			for i, _ in userdata.topicindex.items():
+				client.subscribe(i)
+
+		#			for i, v in userdata.vars.items():
+		#				client.subscribe(v.Topic)
 
 		# noinspection PyUnusedLocal
 		def on_disconnect(client, userdata, rc):
@@ -34,29 +37,28 @@ class MQTTBroker(valuestore.ValueStore):
 		def on_message(client, userdata, msg):
 			#print time.ctime() + " Received message " + str(msg.payload) + " on topic "  + msg.topic + " with QoS " + str(msg.qos)
 			var = []
-			for v,d in self.vars.items():
-				if d.Topic == msg.topic:
-					var.append(v)
+			for t, item in userdata.topicindex.items():
+				if t == msg.topic:
+					var.extend(item)
+
 			# noinspection PySimplifyBooleanCheck
 			if var == []:
 				logsupport.Logs.Log('Unknown topic ',msg.topic, ' from broker ',self.name,severity=ConsoleWarning)
 			else:
 				for v in var:
-					self.vars[v].SetTime = time.time()
-					if self.vars[v].jsonflds == []:
-						self.vars[v].Value = self.vars[v].Type(msg.payload)
-						debug.debugPrint('StoreTrack', "Store(mqtt): ", self.name, ':', v, ' Value: ',
-										 self.vars[v].Value)
+					v.SetTime = time.time()
+					if v.jsonflds == []:
+						v.Value = v.Type(msg.payload)
+					# debug.debugPrint('StoreTrack', "Store(mqtt): ", self.name, ':', v, ' Value: ', v.Value)
 					else:
 						try:
 							payload = json.loads(msg.payload.decode('ascii'))
-							for i in self.vars[v].jsonflds:
+							for i in v.jsonflds:
 								payload = payload[i]
-							self.vars[v].Value = self.vars[v].Type(payload)
-							debug.debugPrint('StoreTrack', "Store(mqtt): ", self.name, ':', v, ' Value: ',
-											 self.vars[v].Value)
+							v.Value = v.Type(payload)
+						#debug.debugPrint('StoreTrack', "Store(mqtt): ", self.name, ':', v, ' Value: ', v.Value)
 						except Exception as e:
-							logsupport.Logs.Log('Error handling json MQTT item: ',str(self.vars[v].jsonflds),
+							logsupport.Logs.Log('Error handling json MQTT item: ', str(v.jsonflds),
 												msg.payload.decode('ascii'),str(e), severity=ConsoleWarning)
 
 		# noinspection PyUnusedLocal
@@ -64,14 +66,46 @@ class MQTTBroker(valuestore.ValueStore):
 			logsupport.Logs.Log("MQTT Log: ",str(level)," buf: ",str(buf),severity=ConsoleWarning)
 			#print time.ctime() + " MQTT Log " + str(level) + '  ' + str(buf)
 
+		def _parsesection(nm, sect, prefix=''):
+			tp = sect.get('TopicType', 'string')
+			if tp == 'group':
+				thistopic = sect.get('Topic', nm[-1])
+				rtn = {}
+				for itemname, value in sect.items():
+					rtn[itemname] = _parsesection(nm + [itemname], value, prefix=prefix + '/' + thistopic)
+				return rtn
+			else:
+				if tp == 'float':
+					tpcvrt = float
+				elif tp == 'int':
+					tpcvrt = int
+				else:
+					tpcvrt = str
+				thistopic = sect.get('Topic', nm[-1])
+				jsonflds = sect.get('json', [])
+				if jsonflds != []: jsonflds = jsonflds.split(':')
+				tpc = (prefix + '/' + thistopic).lstrip('/')
+				rtn = MQitem(nm, tpc, tpcvrt, int(sect.get('Expires', 99999999999999999)), jsonflds, self)
+				if tpc in self.topicindex:
+					self.topicindex[tpc].append(rtn)
+				else:
+					self.topicindex[tpc] = [rtn]
+				return rtn
+
+
+
 		self.address = configsect.get('address',None)
 		self.password = configsect.get('password',None)
 		self.vars = {}
 		self.ids = {}
+		self.topicindex = {}  # dict from full topics to MQitems
+		'''
 		for itemname,value in configsect.items():
 			if isinstance(value,Section):
 				tp = value.get('TopicType', str)
-				if tp == 'float':
+				if tp == 'group':
+					pass
+				elif tp == 'float':
 					tpcvrt = float
 				elif tp == 'int':
 					tpcvrt = int
@@ -81,6 +115,11 @@ class MQTTBroker(valuestore.ValueStore):
 				jsonflds = value.get('json', '').split(':')
 				self.vars[itemname] = MQitem(itemname, tpc, tpcvrt,int(value.get('Expires',99999999999999999)),jsonflds,self)
 				self.ids[tpc] = itemname
+		'''
+		for itemname, value in configsect.items():
+			if isinstance(value, Section):
+				self.vars[itemname] = _parsesection([itemname], value)
+
 		self.MQTTclient = mqtt.Client(userdata=self)
 		self.MQTTclient.on_connect = on_connect
 		self.MQTTclient.on_message = on_message

@@ -19,6 +19,75 @@ SecondaryChain = Portland, Bathroom, BR, Thermostat - Main
 [Variables]
     InternetUp = 1
 
+[MQTT]
+	type = MQTT
+	address = rpi-kck.pdxhome
+	[[PatioTemp]]
+	Topic = Patio/tele/SENSOR
+	json = SI7021:Temperature
+	TopicType = float
+	Expires = 450
+	[[PatioHum]]
+	Topic = Patio/tele/SENSOR
+        json = SI7021:Humidity
+	TopicType = float
+	Expires = 450
+	[[Deck Temp]]
+	TopicType = group
+	Topic = 'Deck Temp'
+	[[[Temp]]]
+	TopicType = float
+	[[[Hum]]]
+	TopicType = float
+	Topic = Hum
+	[[failsafe]]
+	TopicType = group
+	Topic = tele/tasfailsafe
+	[[[Temp]]]
+	TopicType = float
+	Topic = SENSOR
+	json = 'SHT3X-0x45:Temperature'
+	[[[Hum]]]
+	TopicType = float
+	Topic = SENSOR
+	json = SHT3X-0x45:Humidity
+	[[FlashForge]]
+	TopicType = group
+	[[[event]]]
+	TopicType = group
+	[[[[PrinterStateChanged]]]]
+	TopicType = string
+	json = state_string
+	[[[temperature]]]
+	TopicType = group
+	[[[[RightActual]]]]
+	Topic = tool0
+	TopicType = float
+	json = actual
+	[[[[RightTarget]]]]
+	Topic = tool0
+	TopicType = float
+	json = target
+	[[[[LeftActual]]]]
+	Topic = tool1
+	TopicType = float
+	json = actual
+	[[[[LeftTarget]]]]
+	Topic = tool1
+	TopicType = float
+	json = target
+	[[[[BedActual]]]]
+	Topic = bed
+	TopicType = float
+	json = actual
+	[[[[BedTarget]]]]
+	Topic = bed
+	TopicType = float
+	json = target
+
+
+
+
 [Alerts]
 	[[AutoVersion]]
 	Type = Periodic

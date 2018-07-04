@@ -79,3 +79,7 @@ class APIXUWeatherSource(object):
 			for fn, entry in FcstFieldMap.items():
 				val = TreeDict(fcst, *entry[1])
 				self.thisStore.SetVal((('Fcst', fn), i), val)
+
+		'''
+		Should also set common fields and possibly return fail indicator
+		'''

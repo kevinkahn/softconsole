@@ -308,6 +308,8 @@ for i, v in config.ParsedConfigFile.items():
 		elif stype == "Locals":
 			valuestore.NewValueStore(localvarsupport.LocalVars(i, v))
 			del config.ParsedConfigFile[i]
+		elif stype == "WeatherProvider":
+			pass  # map "provider" to package, call setup passing section; get list of locations (also implicit from screens)
 		for hubtyp, pkg in config.hubtypes.items():
 			if stype == hubtyp:
 				# noinspection PyBroadException
@@ -317,6 +319,7 @@ for i, v in config.ParsedConfigFile.items():
 					logsupport.Logs.Log("Fatal console error - fix config file",severity=ConsoleError, tb=False)
 					exitutils.Exit(exitutils.ERRORDIE) # shutdown and don't try restart
 				del config.ParsedConfigFile[i]
+
 
 config.defaulthubname = config.ParsedConfigFile.get('DefaultHub','')
 
@@ -366,7 +369,7 @@ if 'Variables' in config.ParsedConfigFile:
 	del config.ParsedConfigFile['Variables']
 
 """
-Build the ISY object structure and connect the configured screens to it
+Build the Hub(s) object structure and connect the configured screens to it
 """
 
 configobjects.MyScreens()
