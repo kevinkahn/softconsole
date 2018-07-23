@@ -11,6 +11,7 @@ import exitutils
 from stores import valuestore
 import errno
 import isycodes
+from threadmanager import ThreadStartException
 
 class ISYEMInternalError(Exception):
 	pass
@@ -55,14 +56,20 @@ class ISYEventMonitor(object):
 		self.QHnum += 1
 
 	def PostStartQHThread(self):
+		hungcount = 40
 		while self.THstate == 'restarting':
 			logsupport.Logs.Log("Waiting ISY thread start")
 			time.sleep(2)
+			hungcount -= 1
+			if hungcount < 0: raise ThreadStartException
 		while self.THstate == 'delaying':
 			time.sleep(1)
+		hungcount = 60
 		while self.THstate == 'starting':
 			logsupport.Logs.Log("Waiting initial status dump")
-			time.sleep(1)
+			time.sleep(2)
+			hungcount -= 1
+			if hungcount < 0: raise ThreadStartException
 		if self.THstate == 'running':
 			self.isy._HubOnline = True
 			logsupport.Logs.Log("ISY initial status streamed ", self.seq, " items")
@@ -71,7 +78,7 @@ class ISYEventMonitor(object):
 		elif self.THstate == 'failed':
 			logsupport.Logs.Log("Failed ISY Restart", severity=ConsoleWarning)
 		else:
-			logsupport.Logs.Log("Unknown QH Thread state")
+			logsupport.Logs.Log("Unknown ISY QH Thread state")
 
 	def PreRestartQHThread(self):
 		self.isy._HubOnline = False
@@ -89,6 +96,10 @@ class ISYEventMonitor(object):
 			if isinstance(self.lasterror, OSError):
 				logsupport.Logs.Log('ISY Thread Lasterror was: ', repr(self.lasterror), severity=ConsoleError)
 				self.delayedstart = 62
+			elif isinstance(self.lasterror, websocket.WebSocketConnectionClosedException):
+				logsupport.Logs.Log('ISY Thread websocket closed unexpectedly', repr(self.lasterror),
+									severity=ConsoleError)
+				self.delayedstart = 30  # brief delay - ISY may be doing query or otherwise busy
 			elif self.lasterror[0] == errno.ENETUNREACH:
 				# likely home network down so wait a bit
 				logsupport.Logs.Log('(NETUNREACH) Wait for likely router reboot or down', severity=ConsoleError, tb=False)
@@ -314,5 +325,4 @@ class ISYEventMonitor(object):
 		ws.run_forever()
 		self.THstate = 'failed'
 		self.isy._HubOnline = False
-		logsupport.Logs.Log("QH Thread " + str(self.QHnum) + " exiting", severity=ConsoleError, tb=False)
-
+		logsupport.Logs.Log("ISY QH Thread " + str(self.QHnum) + " exiting", severity=ConsoleError, tb=False)
