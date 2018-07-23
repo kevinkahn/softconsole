@@ -134,6 +134,65 @@ class Sensor(HAnode): # not stateful since it updates directly to store value
 		if 'state' in ns:
 			self.Hub.sensorstore.SetVal(self.entity_id, ns['state'])
 
+
+class MediaPlayer(HAnode):
+	def __init__(self, HAitem, d):
+		super(MediaPlayer, self).__init__(HAitem, **d)
+		self.Hub.MediaPlayers[self.entity_id] = self
+		self.Sonos = False
+		if 'sonos_group' in self.attributes:
+			self.Sonos = True
+			self.sonos_group = self.attributes['sonos_group']
+			self.source_list = self.attributes['source_list']
+			self.muted = self.attributes['is_volume_muted']
+			self.volume = self.attributes['volume_level']
+			self.song = self.attributes['media_title'] if 'media_title' in self.attributes else ''
+			self.artist = self.attributes['media_artist'] if 'media_artist' in self.attributes else ''
+			self.album = self.attributes['media_album_name'] if 'media_album_name' in self.attributes else ''
+
+	def Update(self, **ns):
+		self.attributes = ns['attributes']
+		if self.Sonos:
+			self.sonos_group = self.attributes['sonos_group']
+			self.source_list = self.attributes['source_list']
+			self.muted = self.attributes['is_volume_muted']
+			self.volume = self.attributes['volume_level']
+			self.song = self.attributes['media_title'] if 'media_title' in self.attributes else ''
+			self.artist = self.attributes['media_artist'] if 'media_artist' in self.attributes else ''
+			self.album = self.attributes['media_album_name'] if 'media_album_name' in self.attributes else ''
+
+			if config.DS.AS is not None:
+				if self.Hub.name in config.DS.AS.HubInterestList:
+					if self.entity_id in config.DS.AS.HubInterestList[self.Hub.name]:
+						debug.debugPrint('DaemonCtl', time.time() - config.starttime,
+										 "HA reports node change(screen): ",
+										 "Key: ", self.Hub.Entities[self.entity_id].name)
+
+						# noinspection PyArgumentList
+						notice = pygame.event.Event(config.DS.HubNodeChange, hub=self.Hub.name, node=self.entity_id,
+													value=self.internalstate)
+						pygame.fastevent.post(notice)
+
+	def Join(self, master, roomname):
+		ha.call_service(self.Hub.api, 'media_player', 'sonos_join', {'master': '{}'.format(master),
+																	 'entity_id': '{}'.format(roomname)})
+
+	def UnJoin(self, roomname):
+		ha.call_service(self.Hub.api, 'media_player', 'sonos_unjoin', {'entity_id': '{}'.format(roomname)})
+
+	def VolumeUpDown(self, roomname, up):
+		updown = 'volume_up' if up >= 1 else 'volume_down'
+		ha.call_service(self.Hub.api, 'media_player', updown, {'entity_id': '{}'.format(roomname)})
+
+	def Mute(self, roomname, domute):
+		# todo - do I pass the boolean or translate it to string true/false
+		ha.call_service(self.Hub.api, 'media_player', 'volume_mute', {'entity_id': '{}'.format(roomname),
+																	  'is_volume_muted': domute})
+
+	def Source(self, roomname, sourcename):
+		ha.call_service(self.Hub.api, 'media_player', 'select_source', {'entity_id': '{}'.format(roomname),
+																		'source': '{}'.format(sourcename)})
+
 class Thermostat(HAnode): # not stateful since has much state info
 	def __init__(self, HAitem, d):
 		super(Thermostat, self).__init__(HAitem, **d)
@@ -444,7 +503,8 @@ class HA(object):
 	def __init__(self, hubname, addr, user, password):
 		logsupport.Logs.Log("Creating Structure for Home Assistant hub: ", hubname)
 
-		hadomains = {'group':Group, 'light':Light, 'switch':Switch, 'sensor':Sensor, 'automation':Automation, 'climate':Thermostat}
+		hadomains = {'group': Group, 'light': Light, 'switch': Switch, 'sensor': Sensor, 'automation': Automation,
+					 'climate': Thermostat, 'media_player': MediaPlayer}
 		haignoredomains = {'zwave':ZWave, 'sun':HAnode, 'notifications':HAnode}
 
 		self.sensorstore = valuestore.NewValueStore(valuestore.ValueStore(hubname,itemtyp=valuestore.StoreItem))
@@ -470,6 +530,7 @@ class HA(object):
 		self.ZWaves = {}
 		self.Automations = {}
 		self.Thermostats = {}
+		self.MediaPlayers = {}
 		self.Others = {}
 		self.alertspeclist = {}  # if ever want auto alerts like ISY command vars they get put here
 		self.AlertNodes = {}

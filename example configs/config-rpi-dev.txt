@@ -13,11 +13,18 @@ DimTO = 25
 DimIdleListNames = MyClock, Portland, Pumpkin, LaQuinta
 DimIdleListTimes =	20, 20, 20, 20
 
-MainChain = LR1,LR2, Pumpkin, Local, Upper Level, Test
+DefaultHub = ISY
+
+MainChain = LR1,Sonos,LR2, Pumpkin, Local, Upper Level, Test
 SecondaryChain = Portland, Bathroom, BR, Thermostat - Main
 
 [Variables]
     InternetUp = 1
+
+[Sonos]
+    type = Sonos
+    DefaultHub = HASS
+    PlayerInputs = master_bedroom, TV, living_room, Line-in, master_bedroom, Line-in
 
 [Alerts]
 	[[AutoVersion]]
@@ -42,10 +49,10 @@ SecondaryChain = Portland, Bathroom, BR, Thermostat - Main
 	Type = Periodic
 	Interval = 30 seconds
 	Invoke = NetworkHealth.Do_Ping
-	Parameter = '8.8.8.8',InternetUp
+	Parameter = '8.8.8.8',LocalVars:InternetUp
 	[[InternetAlert]]
-	Type = LocalVarChange
-	Var = InternetUp
+	Type = VarChange
+	Var = LocalVars:InternetUp
 	Test = NE
 	Value = 1
 	Invoke = InternetAlertScreen
@@ -68,8 +75,7 @@ SecondaryChain = Portland, Bathroom, BR, Thermostat - Main
 	KeyColor = maroon
 	[[Action]]
 		type = SETVAR
-		Var = InternetUp
-		VarType = Local
+		Var = LocalVars:InternetUp
 		label = Acknowledge, Outage
 
 [NodeTest]

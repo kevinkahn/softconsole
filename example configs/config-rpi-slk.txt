@@ -6,7 +6,7 @@ DimLevel = 5
 DimTO = 25
 DimHomeScreenCoverName = TimeTemp
 
-MainChain = BR, TimeTemp, Suzi Misc1
+MainChain = BR, TimeTemp, Suzi Misc1, Sonos
 SecondaryChain = Thermostat - Main, Local, Portland, Downtown, La Quinta, Suzi Misc2
 
 [Alerts]
@@ -21,6 +21,10 @@ SecondaryChain = Thermostat - Main, Local, Portland, Downtown, La Quinta, Suzi M
     Interval = 60 minutes
     Invoke = GetTempsToISY.SendTemps
     Parameter = KPDX, C:Temp S:TempPDX F:Low S:ForecastLowPDX # station,(field name, var)+  pws:KPDX
+
+[Sonos]
+    type = Sonos
+    DefaultHub = HASS
 
 
 

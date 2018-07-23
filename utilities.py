@@ -4,7 +4,7 @@ import signal
 import time
 import socket
 import webcolors
-import threadmanager
+import threadmanager  # should not depend on in project files - move somewhere else
 # from sets import Set
 
 import pygame
@@ -35,13 +35,17 @@ except AttributeError:
 # end SIGHUP hack
 
 def wc(clr, factor=0.0, layercolor=(255,255,255)):
-	try:
-		v = webcolors.name_to_rgb(clr)
-	except ValueError:
-		logsupport.Logs.Log('Bad color name: ' + str(clr), severity=ConsoleWarning)
-		v = webcolors.name_to_rgb('black')
+	lc = webcolors.name_to_rgb(layercolor) if isinstance(layercolor, str) else layercolor
+	if isinstance(clr, str):
+		try:
+			v = webcolors.name_to_rgb(clr)
+		except ValueError:
+			logsupport.Logs.Log('Bad color name: ' + str(clr), severity=ConsoleWarning)
+			v = webcolors.name_to_rgb('black')
+	else:
+		v = clr
 
-	return v[0] + (layercolor[0] - v[0]) * factor, v[1] + (layercolor[1] - v[1]) * factor, v[2] + (layercolor[2] - v[2]) * factor
+	return v[0] + (lc[0] - v[0]) * factor, v[1] + (lc[1] - v[1]) * factor, v[2] + (lc[2] - v[2]) * factor
 
 def tint(clr):
 	tint_factor = .25

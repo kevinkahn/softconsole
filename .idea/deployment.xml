@@ -2,13 +2,6 @@
 <project version="4">
   <component name="PublishConfigData" autoUpload="Always" serverName="pi@rpi-dev7.pdxhome:8623" promptOnLocalOverwrite="false" exclude=".svn;.cvs;.idea;.DS_Store;.git;.hg;*.pyc" autoUploadExternalChanges="true">
     <serverData>
-      <paths name="development">
-        <serverdata>
-          <mappings>
-            <mapping local="$PROJECT_DIR$" web="/" />
-          </mappings>
-        </serverdata>
-      </paths>
       <paths name="pi@rpi-dev7.pdxhome:8623">
         <serverdata>
           <mappings>
@@ -20,6 +13,13 @@
         <serverdata>
           <mappings>
             <mapping deploy="/home/pi/consolerem" local="$PROJECT_DIR$" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="rpi-dev">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/consolerem" local="$PROJECT_DIR$" web="/" />
           </mappings>
         </serverdata>
       </paths>
