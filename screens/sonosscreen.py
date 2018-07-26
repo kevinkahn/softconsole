@@ -317,7 +317,7 @@ class SonosScreenDesc(screen.BaseKeyScreenDesc):
 			rn = screenutil.CreateTextBlock(self.nms[-1].FriendlyName, self.ctlhgt, self.CharColor, True, FitLine=True,
 											MaxWidth=config.screenwidth - 2 * config.horizborder + 10)
 			vol = self.nms[-1].volume * 100
-			volrndr, w, h = screenutil.CreateTextBlock(str(int(vol)), .8 * self.ctlhgt, self.CharColor, True,
+			volrndr, h, w = screenutil.CreateTextBlock(str(int(vol)), .8 * self.ctlhgt, self.CharColor, True,
 													   FitLine=True)
 			volx = (self.ButLocSize[i]['Dn'][0][0] + self.ButLocSize[i]['Up'][0][0] - w) // 2
 			config.screen.blit(volrndr, (volx, self.ButLocSize[i]['Dn'][0][1] - h // 2))
