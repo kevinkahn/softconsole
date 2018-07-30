@@ -315,9 +315,9 @@ for i, v in config.ParsedConfigFile.items():
 				# noinspection PyBroadException
 				try:
 					config.Hubs[i] = pkg(i, v.get('address',''), v.get('user',''), v.get('password',''))
-				except:
-					logsupport.Logs.Log("Fatal console error - fix config file",severity=ConsoleError, tb=False)
-					exitutils.Exit(exitutils.ERRORDIE) # shutdown and don't try restart
+				except BaseException as e:
+					logsupport.Logs.Log("Fatal console error - fix config file: ", e, severity=ConsoleError, tb=False)
+					exitutils.Exit(exitutils.ERRORDIE, immediate=True)  # shutdown and don't try restart
 				del config.ParsedConfigFile[i]
 
 

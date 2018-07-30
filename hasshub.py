@@ -375,7 +375,11 @@ class HA(object):
 			return chg, dels, adds
 
 		def on_message(qws, message):
-			mdecode = json.loads(message)
+			try:
+				mdecode = json.loads(message)
+			except:
+				logsupport.Logs.Log("HA event with bad message: ", message, severity=ConsoleError)
+				return
 			if mdecode['type'] == 'auth_ok':
 				debug.debugPrint('HASSgeneral', 'WS Authorization OK, subscribing')
 				ws.send(

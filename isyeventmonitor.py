@@ -98,7 +98,7 @@ class ISYEventMonitor(object):
 				self.delayedstart = 62
 			elif isinstance(self.lasterror, websocket.WebSocketConnectionClosedException):
 				logsupport.Logs.Log('ISY Thread websocket closed unexpectedly', repr(self.lasterror),
-									severity=ConsoleError)
+									severity=ConsoleError, tb=False)
 				self.delayedstart = 30  # brief delay - ISY may be doing query or otherwise busy
 			elif self.lasterror[0] == errno.ENETUNREACH:
 				# likely home network down so wait a bit
@@ -142,11 +142,15 @@ class ISYEventMonitor(object):
 			self.lasterror = error
 			self.THstate = 'failed'
 			debug.debugPrint('DaemonCtl', "Websocket stream error", self.QHnum, repr(error))
-			if error[0] != errno.ETIMEDOUT:
-				logsupport.Logs.Log("Error in WS stream " + str(self.QHnum) + ':' + repr(error), severity=ConsoleError,
-									tb=False)
-			else:
-				logsupport.Logs.Log("Timeout on ISY WS stream",severity=ConsoleError,tb=False)
+			try:
+				if error[0] != errno.ETIMEDOUT:
+					logsupport.Logs.Log("Error in WS stream " + str(self.QHnum) + ':' + repr(error),
+										severity=ConsoleError,
+										tb=False)
+				else:
+					logsupport.Logs.Log("Timeout on ISY WS stream", severity=ConsoleError, tb=False)
+			except:
+				logsupport.Logs.Log("Unindexable error: ", repr(error), severity=ConsoleError, tb=False)
 			qws.close()
 
 		# noinspection PyUnusedLocal

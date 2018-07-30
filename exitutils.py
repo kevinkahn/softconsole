@@ -65,7 +65,7 @@ def EarlyAbort(scrnmsg):
 	os._exit(EARLYABORT)
 
 
-def Exit(ecode):
+def Exit(ecode, immediate=False):
 	consoleup = time.time() - config.starttime
 	logsupport.Logs.Log("Console was up: ", interval_str(consoleup), severity=ConsoleWarning)
 	with open(config.homedir + "/.RelLog", "a") as f:
@@ -99,9 +99,11 @@ def Exit(ecode):
 		print('Undefined console exit code!  Code: ' + str(ecode))
 		# reboot pi?
 		pass
-
-	config.ecode = ecode
-	config.Running = False  # make sure the main loop ends even if this exit call returns
+	if immediate:
+		os._exit(ecode)
+	else:
+		config.ecode = ecode
+		config.Running = False  # make sure the main loop ends even if this exit call returns
 
 def domaintexit(ExitKey):
 	if ExitKey == 'shut':
@@ -128,7 +130,7 @@ def errorexit(opt):
 		Exit_Screen_Message('Error reboot', 'Error', 'Rebooting Pi')
 	elif opt == ERRORDIE:
 		Exit_Screen_Message('Error Shutdown', 'Error', 'Not Restarting', 'Check Log')
-	Exit(opt)
+	Exit(opt, immediate=True)
 
 def Exit_Screen_Message(msg, scrnmsg1, scrnmsg2='', scrnmsg3=''):
 	config.screen.fill(wc("red"))
@@ -143,12 +145,7 @@ def Exit_Screen_Message(msg, scrnmsg1, scrnmsg2='', scrnmsg3=''):
 	time.sleep(5)
 
 
-def FatalError(msg, restartopt='restart'):
+def FatalError(msg):
 	logsupport.Logs.Log(msg, severity=ConsoleError, tb=False) # include traceback
 	Exit_Screen_Message(msg, 'Internal Error', msg)
-	if restartopt == 'restart':
-		ExitCode = ERRORRESTART
-	else:
-		ExitCode = ERRORDIE
-	Exit(ExitCode)
-
+	Exit(ERRORRESTART, immediate=True)
