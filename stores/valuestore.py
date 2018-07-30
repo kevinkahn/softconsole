@@ -2,6 +2,7 @@ from logsupport import ConsoleError
 import logsupport
 import time
 import debug
+import inspect
 
 ValueStores = {} # General store for named values storename:itemname accessed as ValueStore[storename].GetVal(itemname)
 				# or GetVal([itemname]) for a nested name
@@ -37,21 +38,27 @@ def PrettyVarName(store,name):
 def GetVal(name):
 	n = _normalizename(name)
 	if not n[0] in ValueStores:
-		logsupport.Logs.Log("(Generic GetVal) No store named: ",n[0],severity=ConsoleError, tb=True)
+		callloc = inspect.stack()[1].filename + ':' + str(inspect.stack()[1].lineno)
+		logsupport.Logs.Log("(Generic GetVal) No store named: ", n[0], ' at: ', callloc, severity=ConsoleError,
+							tb=False)
 		return None
 	return ValueStores[n[0]].GetVal(n[1:])
 
 def SetVal(name,val, modifier = None):
 	n = _normalizename(name)
 	if not n[0] in ValueStores:
-		logsupport.Logs.Log("(Generic SetVal) No store named: ",n[0],severity=ConsoleError, tb=True)
+		callloc = inspect.stack()[1].filename + ':' + str(inspect.stack()[1].lineno)
+		logsupport.Logs.Log("(Generic SetVal) No store named: ", n[0], ' at: ', callloc, severity=ConsoleError,
+							tb=False)
 		return None
 	return ValueStores[n[0]].SetVal(n[1:],val, modifier)
 
 def GetAttr(name):
 	n = _normalizename(name)
 	if not n[0] in ValueStores:
-		logsupport.Logs.Log("(Generic GetAttr) No store named: ",n[0],severity=ConsoleError, tb=True)
+		callloc = inspect.stack()[1].filename + ':' + str(inspect.stack()[1].lineno)
+		logsupport.Logs.Log("(Generic GetAttr) No store named: ", n[0], ' at: ', callloc, severity=ConsoleError,
+							tb=False)
 		return None
 	return ValueStores[n[0].GetAttr(n[1:])]
 
@@ -61,14 +68,18 @@ def GetNameFromAttr(name, attr):
 def AddAlert(name,a):
 	n = _normalizename(name)
 	if not n[0] in ValueStores:
-		logsupport.Logs.Log("(Generic AddAlert) No store named: ",n[0],severity=ConsoleError, tb=True)
+		callloc = inspect.stack()[1].filename + ':' + str(inspect.stack()[1].lineno)
+		logsupport.Logs.Log("(Generic AddAlert) No store named: ", n[0], ' at: ', callloc, severity=ConsoleError,
+							tb=False)
 		return None
 	return ValueStores[n[0]].AddAlert(n[1:],a)
 
 def SetAttr(name,attr):
 	n = _normalizename(name)
 	if not n[0] in ValueStores:
-		logsupport.Logs.Log("(Generic SetAttr) No store named: ",n[0],severity=ConsoleError, tb=True)
+		callloc = inspect.stack()[1].filename + ':' + str(inspect.stack()[1].lineno)
+		logsupport.Logs.Log("(Generic SetAttr) No store named: ", n[0], ' at: ', callloc, severity=ConsoleError,
+							tb=False)
 		return None
 	return ValueStores[n[0]].SetAttr(n[1:],attr)
 
