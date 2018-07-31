@@ -3,7 +3,6 @@ import os
 import signal
 import time
 import socket
-import webcolors
 import threadmanager  # should not depend on in project files - move somewhere else
 # from sets import Set
 
