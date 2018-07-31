@@ -2,7 +2,7 @@ import screen
 import debug
 import config
 import utilities
-from utilities import wc
+from utilfuncs import wc
 import functools
 import pygame
 from pygame import draw

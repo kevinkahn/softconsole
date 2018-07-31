@@ -1,4 +1,4 @@
-from utilities import wc
+from utilfuncs import wc
 import config
 import toucharea
 import pygame

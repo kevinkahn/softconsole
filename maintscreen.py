@@ -9,7 +9,7 @@ import config
 import toucharea
 import debug
 import exitutils
-from utilities import interval_str, wc
+from utilfuncs import interval_str, wc
 import logsupport
 from logsupport import ConsoleWarning
 import time

@@ -8,7 +8,7 @@ from weatherfromatting import CreateWeathBlock, WFormatter
 import utilities
 import toucharea
 from collections import OrderedDict
-from utilities import wc
+from utilfuncs import wc
 
 fsizes = ((20, False, False), (30, True, False), (45, True, True))
 """

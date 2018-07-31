@@ -4,7 +4,7 @@ import config
 import screen
 import utilities
 import debug
-from utilities import wc
+from utilfuncs import wc
 from stores import valuestore, weatherstore
 from weatherfromatting import CreateWeathBlock, WFormatter
 import pygame

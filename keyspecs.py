@@ -10,6 +10,7 @@ from logsupport import ConsoleWarning, ConsoleDetail
 from toucharea import ManualKeyDesc
 from stores import valuestore
 import shlex
+from utilfuncs import *
 
 # noinspection PyUnusedLocal
 def KeyWithVarChanged(storeitem, old, new, param, modifier):
@@ -148,15 +149,15 @@ class VarKey(ManualKeyDesc):
 		val = valuestore.GetVal(self.Var)
 		if self.oldval != val:
 			self.oldval = val
-			oncolor = utilities.wc(self.KeyColorOn)
-			offcolor = utilities.wc(self.KeyColorOff)
+			oncolor = wc(self.KeyColorOn)
+			offcolor = wc(self.KeyColorOff)
 			lab = []
 			for i in self.displayoptions:
 				if i.Chooser[0] <= val <= i.Chooser[1]:
 					lab = i.Label[:]
 
-					oncolor = utilities.tint(i.Color)
-					offcolor = utilities.wc(i.Color)
+					oncolor = tint(i.Color)
+					offcolor = wc(i.Color)
 					break
 			if not lab: lab = self.KeyLabelOn[:]
 			lab2 = []

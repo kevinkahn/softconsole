@@ -2,7 +2,7 @@ import pygame
 import logsupport
 from collections import defaultdict
 from logsupport import ConsoleWarning, ConsoleError
-from utilities import wc
+from utilfuncs import wc
 import hasshub  # only to test that the hub for this is an HA hub
 
 import config

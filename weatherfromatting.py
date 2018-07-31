@@ -1,7 +1,7 @@
 import config
 import logsupport
 from logsupport import ConsoleWarning, ConsoleDetailHigh
-from utilities import wc
+from utilfuncs import wc
 from stores import valuestore
 import pygame
 import string

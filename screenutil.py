@@ -1,10 +1,8 @@
 import config
-import logsupport
-from logsupport import ConsoleWarning, ConsoleDetailHigh
-from utilities import wc
-from stores import valuestore
+
+from utilfuncs import wc
 import pygame
-import string
+
 
 
 def fitFont(font, s, FitLine):

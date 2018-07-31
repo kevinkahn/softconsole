@@ -4,7 +4,7 @@ from logsupport import ConsoleError, ConsoleWarning
 import utilities
 import toucharea
 import collections
-from utilities import wc
+from utilfuncs import wc
 import debug
 
 

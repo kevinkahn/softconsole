@@ -1,8 +1,6 @@
-import functools
+
 import pygame
 import io
-import os
-import sys
 import json
 import time
 import datetime
@@ -13,6 +11,7 @@ from stores import valuestore
 from collections import OrderedDict
 import logsupport
 from logsupport import ConsoleWarning, ConsoleDetail, ConsoleError
+from utilfuncs import *
 
 from stores import apixustore  # todo temp
 
@@ -123,7 +122,7 @@ class WeatherVals(valuestore.ValueStore):
 	def setAge(self, junk):
 		# noinspection PyBroadException
 		try:
-			return utilities.interval_str(time.time() - self.vars['Cond']['Time'].Value)
+			return interval_str(time.time() - self.vars['Cond']['Time'].Value)
 		except:
 			return "No readings ever retrieved"
 

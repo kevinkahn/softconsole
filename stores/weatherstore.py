@@ -13,6 +13,7 @@ from stores import valuestore
 from collections import OrderedDict
 import logsupport
 from logsupport import ConsoleWarning, ConsoleDetail, ConsoleError
+from utilfuncs import *
 
 def TreeDict(d, *args):
 	# Allow a nest of dictionaries to be accessed by a tuple of keys for easier code
@@ -243,7 +244,7 @@ class WeatherVals(valuestore.ValueStore):
 	def setAge(self,junk):
 		# noinspection PyBroadException
 		try:
-			return utilities.interval_str(time.time() - self.vars['Cond']['Time'].Value)
+			return interval_str(time.time() - self.vars['Cond']['Time'].Value)
 		except:
 			return "No readings ever retrieved"
 

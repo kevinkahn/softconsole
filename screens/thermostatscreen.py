@@ -10,7 +10,8 @@ import screen
 import xmltodict
 import toucharea
 import utilities
-from utilities import scaleW, scaleH, wc
+from utilities import scaleW, scaleH
+from utilfuncs import wc
 import functools
 
 
