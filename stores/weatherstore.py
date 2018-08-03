@@ -180,6 +180,11 @@ class WeatherVals(valuestore.ValueStore):
 
 		parsed_json = self._FetchWeather()
 
+		if parsed_json is None:
+			logsupport.Logs.Log("FetchWeather failed - not updating information for: ", self.location,
+								severity=ConsoleWarning)
+			return
+
 
 		fcsts = TreeDict(parsed_json, 'forecast', 'simpleforecast', 'forecastday')
 		fcstepoch = int(fcsts[0]['date']['epoch'])
