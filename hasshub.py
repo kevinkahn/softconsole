@@ -544,10 +544,19 @@ class HA(object):
 			self.api = ha.API(self.url,password)
 		else:
 			self.api = ha.API(self.url)
-		if ha.validate_api(self.api).value != 'ok': # todo check not connected response and give different message
-			logsupport.Logs.Log('HA access failed validation', severity = ConsoleError, tb=False)
+		for i in range(5):
+			hassok = False
+			if ha.validate_api(self.api).value != 'ok':  # todo check not connected response and give different message
+				logsupport.Logs.Log('HA access failed validation - retrying', severity=ConsoleWarning)
+				time.sleep(1)
+			else:
+				hassok = True
+		if hassok:
+			logsupport.Logs.Log('HA access accepted for: ' + self.name)
+		else:
+			logsupport.Logs.Log('HA access failed multiple trys', severity=ConsoleError, tb=False)
 			raise ValueError
-		logsupport.Logs.Log('HA access accepted for: '+self.name)
+
 
 		self.config = ha.get_config(self.api)
 		entities = ha.get_states(self.api)
