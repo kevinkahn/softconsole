@@ -6,9 +6,11 @@ DimTO = 25
 DimIdleListNames = MyClock, Portland, Pumpkin, LaQuinta
 DimIdleListTimes =	20, 20, 20, 20
 
-MainChain = LR1,LR2, Pumpkin, Local, Upper Level,Thermostat - Main
+MainChain = LR1,LR2, Sonos, Pumpkin, Local, Upper Level,Thermostat - Main
 SecondaryChain = Portland, Bathroom, BR
 
+[Sonos]
+type = Sonos
 
 [LR1]
     type = Keypad

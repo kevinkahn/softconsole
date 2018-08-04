@@ -22,7 +22,7 @@ def CreateTextBlock(textlines, fontsizes, color, center, font=config.monofont, F
 	w = 0
 	t = len(sizes)
 	if len(lines) > t:
-		for i in (len(lines), t):
+		for i in range(len(lines) - t):
 			sizes.append(sizes[-1])
 	rl = []
 	for l, s in zip(lines, sizes):

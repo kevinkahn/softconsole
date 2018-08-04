@@ -16,6 +16,7 @@ import functools
 
 class SonosScreenDesc(screen.BaseKeyScreenDesc):
 	def __init__(self, screensection, screenname):
+		self.numplayers = 0  # if 0 then Sonos didn't get set up correctly
 		self.KeyColor = ''
 		self.PlayerInputs = []
 		debug.debugPrint('Screen', "New SonosScreenDesc ", screenname)
@@ -51,7 +52,7 @@ class SonosScreenDesc(screen.BaseKeyScreenDesc):
 					self.SlotToGp.append('')
 					self.HubInterestList[self.HA.name][p.entity_id] = p.entity_id
 		else:
-			logsupport.Logs.Log("Default Hub is not HA hub", severity=ConsoleError)
+			logsupport.Logs.Log("Sonos Default Hub is not HA hub", severity=ConsoleError, tb=False)
 			return
 		self.numplayers = len(self.SonosNodes)
 
@@ -257,6 +258,12 @@ class SonosScreenDesc(screen.BaseKeyScreenDesc):
 		self.ShowScreen()
 
 	def SummaryScreen(self):
+		if self.numplayers == 0:
+			errmsg, _, _ = screenutil.CreateTextBlock([' ', 'No Players', 'Found', 'Check', 'Configuration', ' '], 30,
+													  'white', True)
+			config.screen.blit(errmsg, (config.horizborder + 15, 40))
+			pygame.display.update()
+			return
 		self.Keys = self.KeysSum
 		self.ReInitDisplay()
 		slot = 0
