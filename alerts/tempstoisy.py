@@ -28,7 +28,7 @@ class GetTempsToISY(object):
 				weathval = WI.GetVal(('Fcst',weathcode[1],0))
 			else:
 				weathval = '' # to supress warning on log msg below
-				exitutils.FatalError('Weather field error in SendTemps', restartopt='shut')
+				exitutils.FatalError('Weather field error in SendTemps')
 
 			if not (isinstance(weathval,int) or isinstance(weathval,float)):
 				logsupport.Logs.Log("No valid weather value to send (" + station +'):'+weathcode[0]+':'+weathcode[1] +str(weathval),severity=ConsoleWarning)

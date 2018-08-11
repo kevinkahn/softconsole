@@ -544,11 +544,12 @@ class HA(object):
 			self.api = ha.API(self.url,password)
 		else:
 			self.api = ha.API(self.url)
-		for i in range(5):
+		for i in range(7):
 			hassok = False
 			if ha.validate_api(self.api).value != 'ok':  # todo check not connected response and give different message
 				logsupport.Logs.Log('HA access failed validation - retrying', severity=ConsoleWarning)
-				time.sleep(1)
+				time.sleep(
+					4 * i)  # if this pi is also running HA it may take a while to be ready so stretch the wait out
 			else:
 				hassok = True
 		if hassok:
