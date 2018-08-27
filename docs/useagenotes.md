@@ -133,13 +133,7 @@ For example, the following might subscribe to a broker running in the house to w
 
     There are four regions of the screen each with its own character sizing parameter.  The font size of the clock area is given as **ClockSize**, that of the location as **LocationSize** (where 0 suppresses the location line), the current conditions block as **CondSize**, and the forecast block as **FcstSize**.  Note that for the current conditions and forecast blocks which can be multiline the appropriate size parameter can be a list of sizes which then apply sequentially to the lines.  The old parameter **CharSize** is deprecated.  It works currently but will be removed in the future.
 
-* Alert: used to display an alarm condition - see below.
-
-* Sonos: Provides control of a Sonos music system.  Requires that Home Assistant be set up to control Sonos.  Type is set to Sonos and a DefaultHub must be specified pointing at a home assistant hub.  Only other general screen appearance parameters are accepted (colors, etc.).  The main Sonos screen shows a block for each speaker with outlines grouping any joined speakers.  If music is playing on a group it is listed under the first (master) speaker. 
-
-    Double tapping a speaker block moves to a screen that allows groups to be changed.  On this screen the master is the first listed speaker and other available speakers are listed below, either in bright or dull characters.  Bright ones are in the group.  Touching the other speaker names toggles their inclusion in the group.  
-    
-    Single tapping on a group moves to a control screen that allows changing volume or muting speakers in the group.  It also has a "source" button that further moves to a series of screens that list all available "Sonos favorites" from which a source can be chosen.
+    * Alert: used to display an alarm condition - see below.
 
 # Alerts
 Alerts are defined in an "\[Alerts\]" section of the config files.  See cfglib/pdxalerts for some examples.  Currently alerts can be triggered periodically, based on a node state chance, or based on a variable state change.  The effect of the alert can be delayed by some time to avoid alerts for routine events that should clear within some typical window.  Alerts can either invoke an alert screen (see the away and garage alerts in the sample file) or an alert procedure (see the update alert).
