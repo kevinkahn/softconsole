@@ -326,7 +326,7 @@ class ISYEventMonitor(object):
 				logsupport.Logs.Log("Problem starting WS handler - retrying: ",repr(e))
 				print(e)
 		self.lastheartbeat = time.time()
-		ws.run_forever()
+		ws.run_forever(ping_timeout=999)
 		self.THstate = 'failed'
 		self.isy._HubOnline = False
 		logsupport.Logs.Log("ISY QH Thread " + str(self.QHnum) + " exiting", severity=ConsoleError, tb=False)
