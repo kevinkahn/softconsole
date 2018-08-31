@@ -1,5 +1,5 @@
 import config
-import homeassistant.remote as ha
+import haremote as ha
 import json
 import time
 import errno
@@ -12,6 +12,8 @@ from stores import valuestore
 from logsupport import ConsoleWarning, ConsoleError, ConsoleDetail
 import functools
 import eventlist
+
+import requests  # todo ha replacement
 
 from ast import literal_eval
 def _NormalizeState(state, brightness=None):
@@ -498,7 +500,7 @@ class HA(object):
 			except AttributeError as e:
 				logsupport.Logs.Log("Problem starting HA WS handler - retrying: ", repr(e), severity = ConsoleWarning)
 		try:
-			ws.run_forever()
+			ws.run_forever(ping_timeout=999)
 		except self.HAClose:
 			self.delaystart = 20
 			logsupport.Logs.Log("HA Event thread got close")

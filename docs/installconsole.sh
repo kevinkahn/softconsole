@@ -153,6 +153,8 @@ LogBanner "Install stuff for console"
 pip install --upgrade pip
 pip3 install --upgrade pip
 
+pip3 install homeassistant # do it here to avoid conflicts in versions later
+
 if [ $UseWheezy == "Y" ]
 then
     LogBanner "Old Wheezy Touch system requested"

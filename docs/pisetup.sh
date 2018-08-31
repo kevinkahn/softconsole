@@ -38,103 +38,14 @@ function LogBanner()
 }
 
 
-#**************ROUTINES ADAPTED FROM RE4SON PITFT SETUP***************
-# Specific to wave35 at this point
-function info(){
-    echo $2
-}
-
-function update_xorg_for_waveshare() {
-    mkdir -p /etc/X11/xorg.conf.d
-
-    cat > /etc/X11/xorg.conf.d/99-fbdev.conf <<EOF
-Section "Device"
-  Identifier "myfb"
-  Driver "fbdev"
-  Option "fbdev" "/dev/fb1"
-EndSection
-EOF
-# for portrait screen from a run of xinput_calibrator on waveshare35 screen
-    cat > /etc/X11/xorg.conf.d/99-calibration.conf <<EOF
-Section "InputClass"
-         Identifier "calibration"
-         MatchProduct "ADS7846 Touchscreen"
-         Option "SwapAxes" "0"
-         Option "Calibration" "1155 1227 1408 1463"
-EndSection
-EOF
-
-}
-
-function update_x11profile_for_waveshare() {
-    fbturbo_path="/usr/share/X11/xorg.conf.d/99-fbturbo.conf"
-    if [ -e $fbturbo_path ]; then
-        echo "Moving ${fbturbo_path} to ${target_homedir}"
-        mv "$fbturbo_path" "$target_homedir"
-    fi
-
-    if grep -xq "export FRAMEBUFFER=/dev/fb1" "${target_homedir}/.profile"; then
-        echo "Already had 'export FRAMEBUFFER=/dev/fb1'"
-    else
-        echo "Adding 'export FRAMEBUFFER=/dev/fb1'"
-        date=`date`
-        cat >> "${target_homedir}/.profile" <<EOF
-# --- added by re4son-pi-tft-setup $date ---
-export FRAMEBUFFER=/dev/fb1
-# --- end re4son-pi-tft-setup $date ---
-EOF
-    fi
-}
-
-function update_udev_for_waveshare() {
-   cat > /etc/udev/rules.d/95-ADS7846.rules <<EOF
-SUBSYSTEM=="input", ATTRS{name}=="ADS7846 Touchscreen", ENV{DEVNAME}=="*event*", SYMLINK+="input/touchscreen"
-EOF
-}
-
-function install_console_for_waveshare() {
-    if ! grep -q 'fbcon=map:10 fbcon=font:VGA8x8' /boot/cmdline.txt; then
-        info PI-TFT "Updating /boot/cmdline.txt"
-        sed -i 's/rootwait/rootwait fbcon=map:10 fbcon=font:VGA8x8/g' "/boot/cmdline.txt"
-    else
-        info PI-TFT "/boot/cmdline.txt already updated"
-    fi
-    if [ ! -f /etc/kbd/config ]; then
-        info PI-TFT "Creating /etc/kbd/config"
-        mkdir -p /etc/kbd
-        touch /etc/kbd/config
-    fi
-    sed -i 's/BLANK_TIME=.*/BLANK_TIME=0/g' "/etc/kbd/config"
-}
-
-function install_xserver_xorg_input_evdev_for_waveshare {
-## Debian releases after early 2017 break touch input - this will fix it
-    set +e
-    info PI-TFT "Checking for xserver-xorg-input-evdev:"
-    PKG_STATUS=$(dpkg-query -W --showformat='${Status}\n' xserver-xorg-input-evdev|grep "install ok installed")
-    if [ "" == "$PKG_STATUS" ]; then
-        info PI-TFT "**** Installing xserver-xorg-input-evdev package ****"
-        info PI-TFT "No xserver-xorg-input-evdev. Installing it now."
-        apt update
-        apt install -y xserver-xorg-input-evdev
-    fi
-    if [ ! -f /usr/share/X11/xorg.conf.d/45-evdev.conf ]; then
-            info PI-TFT "Creating /usr/share/X11/xorg.conf.d/45-evdev.conf"
-            ln -s /usr/share/X11/xorg.conf.d/10-evdev.conf /usr/share/X11/xorg.conf.d/45-evdev.conf
-    fi
-    info PI-TFT "**** xserver-xorg-input-evdev package installed ****"
-    set -e
-}
-
-#************** END ROUTINES ADAPTED FROM RE4SON PITFT SETUP***************
-
-
-
 if [[ "$EUID" -ne 0 ]]
 then
   echo "Must be run as root"
   exit
 fi
+
+exec > >(tee -a /home/pi/earlyprep.log)
+exec 2>&1
 
 cd /home/pi
 LogBanner "This is the system setup script"
@@ -219,27 +130,14 @@ chown pi:pi lxterminal.conf
 python getsetupinfo.py
 #update-alternatives --set python /usr/bin/python2.7
 
-if [ "x$1" != "x" ]
-then
-  LogBanner "Extended setup requested"
-  Get_yn InstallOVPN "Install OpenVPN (Y/N)?"
-  Get_yn InstallDDC "Install ddclient (Y/N)?"
-  #Get_yn InstallSamba "Install samba (Y/N)?"
-  Get_yn InstallWD "Install and start Watchdog (Y/N)?"
-else
-  InstallOVPN=N
-  InstallDDC=N
-  InstallWD=N
-fi
-
 Get_yn Go "Proceed?"
 if [ "$Go" != "Y" ]
 then
   exit 1
 fi
 
-exec > >(tee -a /home/pi/earlyprep.log)
-exec 2>&1
+#exec > >(tee -a /home/pi/earlyprep.log)
+#exec 2>&1
 
 
 LogBanner "Force WiFi to US"
@@ -285,31 +183,21 @@ mv -f lxterminal.conf /home/pi/.config/lxterminal
 case $VNCstdPort in # if [ $VNCstdPort != "Y" ]
   Y)
     echo "VNC will be set up on its normal port"
-    #LogBanner "VNC Service Password"
-    #vncpasswd -service
-    #echo "Authentication=VncAuth" >> /root/.vnc/config.d/vncserver-x11
-    #echo "Encryption=PreferOff" >> /root/.vnc/config.d/vncserver-x11
     su pi -c vncserver
     ;;
   N)
     echo "No VNC will ne set up"
     ;;
   *)
-    #LogBanner "VNC Service Password"
-    #vncpasswd -service
-    #echo "Authentication=VncAuth" >> /root/.vnc/config.d/vncserver-x11
-    #echo "Encryption=PreferOff" >> /root/.vnc/config.d/vncserver-x11
     su pi -c vncserver # create the Xvnc file in ~pi/.vnc/config.d so it can be modified below
     SSHDport=$(($VNCstdPort - 100))
     VNCConsole=$(($VNCstdPort - 1))
-    #echo "Console VNC will be set up on port " $VNCConsole
     echo "Virtual VNC will be set up on port " $VNCstdPort
     echo "sshd will be moved to port " $SSHDport
     cp /etc/ssh/sshd_config /etc/ssh/sshd_config.sav
     sed "/Port /s/.*/Port $SSHDport/" /etc/ssh/sshd_config.sav > /etc/ssh/sshd_config
     echo "RfbPort=$VNCstdPort" >> /home/pi/.vnc/config.d/Xvnc
     chown pi:pi /home/pi/.vnc/config.d/Xvnc
-    #echo "RfbPort=$VNCConsole" >> /root/.vnc/config.d/vncserver-x11
     ;;
 esac
 LogBanner "Setup Virtual VNC Service"
@@ -320,47 +208,10 @@ then
 else
     echo "VNC service file installed"
     mv /home/pi/vncserverpi.service /usr/lib/systemd/system
-    #systemctl enable vncserverpi.service
-    #systemctl start vncserverpi.service
-    #systemctl enable vncserver-x11-serviced.service
-    #systemctl start vncserver-x11-serviced.service
 fi
 
 # Save initial rc.local to restore after helper scripts run
 cp /etc/rc.local /etc/rc.local.hold # helper script below screws up rc.local
-
-if [ "$InstallOVPN" == "Y" ]
-then
-  LogBanner "Install OpenVPN"
-  apt-get -y install openvpn
-fi
-
-# install ddclient
-if [ "$InstallDDC" == "Y" ]
-then
-  LogBanner "Install ddclient"
-  echo "
-  ssl=yes
-  protocol=googledomains
-  login=<addfromgoogle>
-  password=<addfromgoogle>
-  use=????
-  host.domain.tld
-  " > /etc/ddclient.conf
-  DEBIAN_FRONTEND=noninteractive apt-get -y install ddclient
-fi
-
-# install watchdog
-if [ "$InstallWD" == "Y" ]
-then
-  LogBanner "Install Watchdog"
-  cd /home/pi
-  mkdir watchdog
-  cd watchdog
-  wget https://github.com/kevinkahn/watchdoghandler/archive/1.2.tar.gz
-  tar -zxls --strip-components=1 < 1.2.tar.gz
-  bash ./WDsetup.sh
-fi
 
 cd /home/pi
 
@@ -412,47 +263,22 @@ case $ScreenType in
     ;;
   wave35)
     LogBanner "Install Waveshare screen"
-    echo "Get the screen driver and move to /boot/overlays"
-    wget raw.githubusercontent.com/kevinkahn/softconsole/master/screensupport/waveshare35a-overlay.dtb
-    mv waveshare35a-overlay.dtb /boot/overlays/waveshare35a.dtbo
-    chmod 755 /boot/overlays/waveshare35a.dtbo
-    UseWheezy='Y'
-    echo "Edit /boot/config.txt"
-    cat >> /boot/config.txt <<EOF
+    echo "Following link as of 8//30/18"
+    wget https://www.waveshare.com/w/upload/3/34/LCD-show-180331.tar.gz
+    tar xvf LCD-show-*.tar.gz
+    cd LCD-show 90
+    chmod +x LCD35-show
+    sed -i 's/sudo reboot/echo skip sudo reboot/' "LCD35-show"
+    ./LCD35-show 90
+    cd ..
 
-# --- added by softconsole setup $date ---
-dtparam=spi=on
-dtparam=i2c1=on
-dtparam=i2c_arm=on
-dtoverlay=waveshare35a,rotate=0
-###########################################
-####  Overclocking the micro sdcard    ####
-#### Uncomment  84 for Raspberry Pi 2  ####
-# dtparam=sd_overclock=84
-#### Uncomment 100 for Raspberry Pi 3  ####
-# dtparam=sd_overclock=100
-###########################################
-# --- end softconsole setup $date ---
-EOF
-
-    echo "Update xorg"
-    update_xorg_for_waveshare
-    echo "Update X11 Profile"
-    update_x11profile_for_waveshare
-    echo "Update udev"
-    update_udev_for_waveshare
     echo "Update pointercal"
     cat > /etc/pointercal <<EOF
 5729 138 -1857350 78 8574 -2707152 65536
 EOF
 
-    #if $CON
-    #  then
-    #    echo "Updating console to PiTFT..."
-    #    install_console_for_waveshare
-    #  fi
-    echo "Install xserver xorg input evdev"
-    install_xserver_xorg_input_evdev_for_waveshare
+# 5672 -28 -1130318 -203 8466 -1835732 65536
+
     echo "Finished waveshare install"
     ;;
   *)

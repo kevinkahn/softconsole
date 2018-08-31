@@ -81,8 +81,9 @@ def CreateWeathBlock(Format, Fields, WeathFont, FontSize, WeathColor, icon, cent
 		if iconref is not None: fsfc.blit(
 			pygame.transform.smoothscale(valuestore.ValueStores[icon[0]].GetVal(iconref), (fh, fh)), (0, 0))
 	except:
-		if useicon: logsupport.Logs.Log("Missing icon for: ", str(iconref),
-										severity=ConsoleWarning)  # todo stop log flooding
+		if useicon:
+			logsupport.Logs.Log("Missing icon for: ", str(icon[0]), str(iconref), severity=ConsoleWarning)
+		# todo stop log flooding by putting error icon in the store
 	for l in rf:
 		if centered:
 			fsfc.blit(l,(hoff + (fw-l.get_width())/2,v))
