@@ -52,11 +52,9 @@ LogBanner "This is the system setup script"
 LogBanner "Connect WiFI if needed"
 read -p "Press Enter to continue"
 
-#sed -i "s/CONF_SWAPSIZE=100/CONF_SWAPSIZE=200/" /etc/dphys-swapfile  # enlarge the swapfile to try to avoid the kswapd issue
-
-#LogBanner "Upgrade/Update System"
-#apt-get update
-#DEBIAN_FRONTEND=noninteractive apt-get -y upgrade
+LogBanner "Upgrade/Update System"
+apt-get update
+DEBIAN_FRONTEND=noninteractive apt-get -y upgrade
 
 LogBanner "Install Python2/3 Compatibility Support"
 echo "Note - installation switches system default Python to version 3"
@@ -65,14 +63,10 @@ echo "To undo this run 'sudo update-alternatives --config python' to select desi
 LogBanner "Switch default Python to Python3"
 update-alternatives --install /usr/bin/python python /usr/bin/python3.5 2
 update-alternatives --install /usr/bin/python python /usr/bin/python2.7 1
-#LogBanner "python3-pip"
-#apt-get install python3-pip -y
 
 LogBanner "Python Compatibility Lib"
 
-#apt-get install python3-pygame -y
 pip3 install future
-#pip3 install requests
 
 echo "deb http://mirrordirector.raspbian.org/raspbian/ stretch main contrib non-free rpi firmware" >> /etc/apt/sources.list.d/raspi.list
 
@@ -104,7 +98,6 @@ then
   Get_yn Flip7 "Flip 7 inch screen so power at top? (Y/N)"
 fi
 
-#Get_yn CON "Would you like the console to appear on the PiTFT display?"
 Get_yn Reboot "Automatically reboot to continue install after system setup?"
 
 if [ "$Personal" == "Y" ]
@@ -135,9 +128,6 @@ if [ "$Go" != "Y" ]
 then
   exit 1
 fi
-
-#exec > >(tee -a /home/pi/earlyprep.log)
-#exec 2>&1
 
 
 LogBanner "Force WiFi to US"
@@ -315,7 +305,6 @@ source .bashrc.real
 cp .bashrc .bashrc.sav
 mv -f .bashrc.real .bashrc
 touch /home/pi/CONSOLEINSTALLRUNNING
-#sudo bash /home/pi/doinstall.sh > /home/pi/di3.log 2>> /home/pi/di2.log
 sleep 15 # delay to allow X system to startup for next command (is this long enough in a Pi0)
 DISPLAY=:0.0 x-terminal-emulator -t "Console Install" --geometry=40x17 -e sudo bash /home/pi/doinstall.sh 2>> /home/pi/di.log
 EOF
