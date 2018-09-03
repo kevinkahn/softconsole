@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="PublishConfigData" autoUpload="Always" serverName="pi@rpi-printer.pdxhome:8623" promptOnLocalOverwrite="false" exclude=".svn;.cvs;.idea;.DS_Store;.git;.hg;*.pyc" autoUploadExternalChanges="true">
+  <component name="PublishConfigData" autoUpload="Always" serverName="pi@rpi-dev7.pdxhome:8623" promptOnLocalOverwrite="false" exclude=".svn;.cvs;.idea;.DS_Store;.git;.hg;*.pyc" autoUploadExternalChanges="true">
     <serverData>
       <paths name="pi@rpi-dev7.pdxhome:8623">
         <serverdata>
@@ -10,13 +10,6 @@
         </serverdata>
       </paths>
       <paths name="pi@rpi-lrwall.pdxhome:8623">
-        <serverdata>
-          <mappings>
-            <mapping deploy="/home/pi/consolerem" local="$PROJECT_DIR$" />
-          </mappings>
-        </serverdata>
-      </paths>
-      <paths name="pi@rpi-printer.pdxhome:8623">
         <serverdata>
           <mappings>
             <mapping deploy="/home/pi/consolerem" local="$PROJECT_DIR$" />
