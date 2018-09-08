@@ -251,7 +251,7 @@ class WeatherVals(valuestore.ValueStore):
 		try:
 			rdingage = time.time() - self.vars['Cond']['Time'].Value
 			if rdingage > (60 * 60 * 24) * 5:
-				logsupport.Logs.Log("Weather station likely gone: ", self.name, " age > ", rdingage / (60 * 60 * 24),
+				logsupport.Logs.Log("Weather station likely gone: ", self.name, " age is ", rdingage / (60 * 60 * 24),
 									" days old", severity=ConsoleWarning)
 			return interval_str(rdingage)
 		except:

@@ -14,7 +14,7 @@ SecondaryChain = Thermostat - Main, Local, Portland, Downtown, La Quinta, Suzi M
     Type = Periodic
     Interval = 60 minutes
     Invoke = GetTempsToISY.SendTemps
-    Parameter = pws:KORPORTL26, C:Temp S:TempHills F:Low S:ForecastLowHills # station,(field name, var)+  pws:KORPORTL26
+    Parameter = pws:KORPORTL1104, C:Temp S:TempHills F:Low S:ForecastLowHills # station,(field name, var)+  pws:KORPORTL26
 
     [[GetTempsPDX]]
     Type = Periodic
