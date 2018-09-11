@@ -55,6 +55,9 @@ class SonosScreenDesc(screen.BaseKeyScreenDesc):
 			logsupport.Logs.Log("Sonos Default Hub is not HA hub", severity=ConsoleError, tb=False)
 			return
 		self.numplayers = len(self.SonosNodes)
+		if self.numplayers == 0:
+			logsupport.Logs.Log("No Sonos Players reported - check network", severity=ConsoleError)
+			return
 
 		# set up source selection screen
 		self.SourceSlot = []
@@ -171,10 +174,10 @@ class SonosScreenDesc(screen.BaseKeyScreenDesc):
 
 	def NodeEvent(self, hub='', node=0, value=0, varinfo=()):
 		# Watched node reported change event is ("Node", addr, value, seq)
-		print('event')
+		# print('event')
 		stable = self.UpdateGroups()
 		if stable:
-			print('stable')
+			#print('stable')
 			self.ShowScreen()
 
 	def VolChange(self, slotnum, chg, presstype):
@@ -197,7 +200,7 @@ class SonosScreenDesc(screen.BaseKeyScreenDesc):
 		self.ShowScreen()
 
 	def PickSource(self, slotnum, presstype):
-		print(slotnum)
+		#print(slotnum)
 		# change the source
 		self.SourceSelection = self.SourceSlot[slotnum]
 		self.ShowScreen()
@@ -379,9 +382,10 @@ class SonosScreenDesc(screen.BaseKeyScreenDesc):
 
 	def ShowScreen(self):
 		stable = self.UpdateGroups()
-		print('stable2: ' + str(stable))
 		# self.ReInitDisplay()
-		if self.Subscreen == -1:
+		if self.numplayers == 0:
+			pass  # no players - probably startup sequencing error
+		elif self.Subscreen == -1:
 			self.SummaryScreen()
 		elif self.Subscreen >= 100 and self.Subscreen < 200:
 			self.ChangeGroupingScreen(self.SlotToGp[self.Subscreen - 100])
