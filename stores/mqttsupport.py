@@ -58,8 +58,8 @@ class MQTTBroker(valuestore.ValueStore):
 							v.Value = v.Type(payload)
 						#debug.debugPrint('StoreTrack', "Store(mqtt): ", self.name, ':', v, ' Value: ', v.Value)
 						except Exception as e:
-							logsupport.Logs.Log('Error handling json MQTT item: ', str(v.jsonflds),
-												msg.payload.decode('ascii'),str(e), severity=ConsoleWarning)
+							logsupport.Logs.Log('Error handling json MQTT item: ', v.name, str(v.jsonflds),
+												msg.payload.decode('ascii'), str(e), severity=ConsoleWarning)
 
 		# noinspection PyUnusedLocal
 		def on_log(client, userdata, level, buf):

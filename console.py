@@ -210,10 +210,13 @@ while includes:
 	else:
 		pfiles.append(f)
 	cfiles.append(f)
-	tmpconf = ConfigObj(f)
-	includes = includes + tmpconf.get('include', [])
-	config.ParsedConfigFile.merge(tmpconf)
-	logsupport.Logs.Log("Merged config file " + f)
+	try:
+		tmpconf = ConfigObj(f)
+		includes = includes + tmpconf.get('include', [])
+		config.ParsedConfigFile.merge(tmpconf)
+		logsupport.Logs.Log("Merged config file " + f)
+	except:
+		logsupport.Logs.Log("Error merging include file: ", f)
 	# noinspection PyBroadException
 	try:
 		config.configfilelist[f] = os.path.getmtime(f)
