@@ -99,7 +99,12 @@ class DisplayScreen(object):
 
 		debug.debugPrint('Dispatch', "New watchlist(Main): " + str(self.AS.HubInterestList))
 
-		if OS != self.AS: self.AS.InitDisplay(nav)
+		if OS != self.AS:
+			try:
+				self.AS.InitDisplay(nav)
+			except Exception as e:
+				logsupport.Logs.Log('Screen display error: ', self.AS.name, ' ', repr(e), severity=ConsoleError)
+		# todo - just wait for timer to switch screen?
 
 	# noinspection PyUnusedLocal
 	def NavPress(self, NS, press):
