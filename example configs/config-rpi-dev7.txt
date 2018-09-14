@@ -6,16 +6,16 @@ LogLevel = 3
 
 
 cfglib = "/home/pi/consolerem/example configs/cfglib"
-include = /home/pi/Console/cfglib/auth.cfg, pdxalerts.cfg, weathPump.cfg, timetempLQ.cfg, weathCC.cfg, timetempPDX.cfg, myclock.cfg,bathroom.cfg,upperlev.cfg,BR-kck.cfg,tstat.cfg,weathPDX.cfg,timetempLQ7.cfg,pdxmqtt.cfg, pdxmqtt.cfg
-HomeScreenName = LR1
+include = /home/pi/Console/cfglib/auth.cfg, pdxalerts.cfg, weathPump.cfg, timetempLQ.cfg, weathCC.cfg, timetempPDX.cfg, myclock.cfg,bathroom.cfg,upperlev.cfg,BR-kck.cfg,tstat.cfg,weathPDX.cfg,timetempLQ7.cfg,pdxmqtt.cfg, pdxmqtt.cfg, octoprint.cfg
+HomeScreenName = 'Creator Pro'
 DimLevel = 50
 DimTO = 25
 DimIdleListNames = MyClock, Portland, Pumpkin
 #, LQTTbig
 DimIdleListTimes =	10, 10, 10, 10
 
-MainChain = LR1,Sonos,LR2, Pumpkin, Local, Upper Level, Test
-SecondaryChain = Portland, Bathroom, BR, Thermostat - Main,LQTTbig
+MainChain = Creator Pro,LR1,Sonos,LR2, Pumpkin, Local, Upper Level, Test
+SecondaryChain = Portland, Bathroom, BR, Thqermostat - Main,LQTTbig
 
 DefaultHub = ISY
 
