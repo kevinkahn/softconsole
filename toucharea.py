@@ -44,8 +44,8 @@ class ManualKeyDesc(TouchPoint):
 		self.State = True
 		self.UnknownState = False
 		self.Verify = False
-		self.GoMsg = ['']
-		self.NoGoMsg =['']
+		self.GoMsg = ['Proceed']
+		self.NoGoMsg = ['Back']
 		self.FastPress = False
 		self.KeyColor = ''
 		self.KeyColorOn = ''
@@ -86,7 +86,7 @@ class ManualKeyDesc(TouchPoint):
 		utilities.register_example("ManualKeyDesc", self)
 
 	def docodeinit(self, screen, keyname, label, bcolor, charcoloron, charcoloroff, center=(0, 0), size=(0, 0), KOn='',
-				   KOff='', proc=None, KCon='', KCoff='', KLon=('', ), KLoff=('', ), State=True, Blink=0):
+				   KOff='', proc=None, KCon='', KCoff='', KLon=('',), KLoff=('',), State=True, Blink=0, Verify=False):
 		# NOTE: do not put defaults for KOn/KOff in signature - imports and arg parsing subtleties will cause error
 		# because of when config is imported and what walues are at that time versus at call time
 
