@@ -63,9 +63,10 @@ class ScreenDesc(object):
 		utilities.register_example('ScreenDesc', self)
 
 	def PaintKeys(self):
-		for key in self.Keys.values():
-			if type(key) is not toucharea.TouchPoint:
-				key.PaintKey()
+		if self.Keys is not None:
+			for key in self.Keys.values():
+				if type(key) is not toucharea.TouchPoint:
+					key.PaintKey()
 		for key in self.NavKeys.values():
 			key.PaintKey()
 
