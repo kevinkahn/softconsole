@@ -1,6 +1,6 @@
 import pygame
 import logsupport
-from collections import defaultdict
+import supportscreens
 from logsupport import ConsoleWarning, ConsoleError
 from utilfuncs import wc
 import hasshub  # only to test that the hub for this is an HA hub
@@ -294,17 +294,6 @@ class SonosScreenDesc(screen.BaseKeyScreenDesc):
 		pygame.draw.line(config.screen, wc(self.CharColor), (config.screenwidth - config.horizborder, self.NodeVPos[0]),
 						 (config.screenwidth - config.horizborder, lineoff), 3)
 
-	def _TriangleCorners(self, c, hgt, invert):
-		h = .8 * hgt
-		top = c[1] - h // 2
-		bot = c[1] + h // 2
-		left = c[0] - h // 2
-		right = c[0] + h // 2
-		if invert:
-			return (c[0], bot), (left, top), (right, top)
-		else:
-			return (c[0], top), (left, bot), (right, bot)
-
 	def _Speaker(self, c, hgt):
 		h = .8 * hgt
 		left = c[0] - h // 2
@@ -332,12 +321,14 @@ class SonosScreenDesc(screen.BaseKeyScreenDesc):
 			volx = (self.ButLocSize[i]['Dn'][0][0] + self.ButLocSize[i]['Up'][0][0] - w) // 2
 			config.screen.blit(volrndr, (volx, self.ButLocSize[i]['Dn'][0][1] - h // 2))
 			config.screen.blit(rn[0], (20, self.GPCtlVPos[i]))
-			pygame.draw.polygon(config.screen, wc(self.CharColor), self._TriangleCorners(self.ButLocSize[i]['Dn'][0],
-																						 self.ButLocSize[i]['Dn'][1][0],
-																						 True), 2)
-			pygame.draw.polygon(config.screen, wc(self.CharColor), self._TriangleCorners(self.ButLocSize[i]['Up'][0],
-																						 self.ButLocSize[i]['Up'][1][0],
-																						 False), 2)
+			pygame.draw.polygon(config.screen, wc(self.CharColor),
+								supportscreens._TriangleCorners(self.ButLocSize[i]['Dn'][0],
+																self.ButLocSize[i]['Dn'][1][0],
+																True), 2)
+			pygame.draw.polygon(config.screen, wc(self.CharColor),
+								supportscreens._TriangleCorners(self.ButLocSize[i]['Up'][0],
+																self.ButLocSize[i]['Up'][1][0],
+																False), 2)
 			spkr, diagbar = self._Speaker(self.ButLocSize[i]['Mute'][0], self.ButLocSize[i]['Mute'][1][0])
 			pygame.draw.polygon(config.screen, wc(self.CharColor), spkr, 2)
 			if self.nms[-1].muted:
@@ -375,10 +366,12 @@ class SonosScreenDesc(screen.BaseKeyScreenDesc):
 			self.SourceSlot[slot] = self.SourceSet[i]
 			voff = self.SrcSlotsVPos[slot] + (self.sourceheight - h) // 2
 			config.screen.blit(rs, (config.horizborder, voff))
-		pygame.draw.polygon(config.screen, wc(self.CharColor), self._TriangleCorners(self.SrcPrev, self.sourceheight,
-																					 False), 3)
-		pygame.draw.polygon(config.screen, wc(self.CharColor), self._TriangleCorners(self.SrcNext, self.sourceheight,
-																					 True), 3)
+		pygame.draw.polygon(config.screen, wc(self.CharColor),
+							supportscreens._TriangleCorners(self.SrcPrev, self.sourceheight,
+															False), 3)
+		pygame.draw.polygon(config.screen, wc(self.CharColor),
+							supportscreens._TriangleCorners(self.SrcNext, self.sourceheight,
+															True), 3)
 
 	def ShowScreen(self):
 		stable = self.UpdateGroups()
