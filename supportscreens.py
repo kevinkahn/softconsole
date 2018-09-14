@@ -9,6 +9,8 @@ from pygame import draw
 from toucharea import TouchPoint, ManualKeyDesc
 import logsupport
 from logsupport import ConsoleDetail
+import toucharea
+import screenutil
 
 
 class VerifyScreen(screen.BaseKeyScreenDesc):
@@ -157,3 +159,116 @@ class ValueChangeScreen(screen.ScreenDesc): # todo may need to call super class
 		pygame.display.update()
 		pass
 
+
+def _TriangleCorners(c, hgt, invert):
+	h = .8 * hgt
+	top = c[1] - h // 2
+	bot = c[1] + h // 2
+	left = c[0] - h // 2
+	right = c[0] + h // 2
+	if invert:
+		return (c[0], bot), (left, top), (right, top)
+	else:
+		return (c[0], top), (left, bot), (right, bot)
+
+
+class ListChooserSubScreen(screen.ScreenDesc):
+	def __init__(self, masterscreen, slots, screenhgt, voffset, proc):
+		"""
+		Create subscreen(s) that allow choosing from a list
+		:param masterscreen: the real screen for which this operates
+		:param slots: number of slots to create per selection screen
+		:param screenhgt: height of the area to be used for the list
+		:param voffset: vertical offset for start of area to be used
+		:param proc: function called with resultant selection index or -1 if cancelled
+		"""
+		self.Result = proc
+		self.masterscreen = masterscreen
+		self.firstitem = 0
+		self.NumSlots = slots
+		self.ListKeySlots = {}
+		self.SlotsVPos = []
+		self.SlotItem = []
+		vpos = voffset
+		self.BackgroundColor = self.masterscreen.BackgroundColor
+		self.DullKeyColor = wc(self.masterscreen.KeyColor, .5, self.BackgroundColor)
+		self.CharColor = self.masterscreen.CharColor
+		self.sourceheight = screenhgt // (self.NumSlots + 1)
+		for i in range(self.NumSlots):
+			self.SlotsVPos.append(vpos)
+			self.ListKeySlots['Src' + str(i)] = toucharea.TouchPoint('Slot' + str(i),
+																	 (
+																		 config.screenwidth // 2,
+																		 vpos + self.sourceheight // 2),
+																	 (config.screenwidth, self.sourceheight),
+																	 proc=functools.partial(self.PickItem, i))
+			vpos += self.sourceheight
+			self.SlotItem.append('')
+		self.SrcPrev = (config.screenwidth - self.sourceheight - config.horizborder,
+						voffset - self.sourceheight // 2)
+		self.SrcNext = (config.screenwidth - self.sourceheight - config.horizborder,
+						vpos + self.sourceheight // 2 + 10)  # for appearance
+		self.ListKeySlots['Prev'] = toucharea.TouchPoint('Prev' + str(i), self.SrcPrev,
+														 (self.sourceheight, self.sourceheight),
+														 proc=functools.partial(self.PrevNext, False))
+		self.ListKeySlots['Next'] = toucharea.TouchPoint('Next' + str(i), self.SrcNext,
+														 (self.sourceheight, self.sourceheight),
+														 proc=functools.partial(self.PrevNext, True))
+		self.ListKeySlots['OKSrc'] = toucharea.ManualKeyDesc(screen, 'OKSrc', ['OK'], self.BackgroundColor,
+															 self.CharColor, self.CharColor,
+															 center=(
+																 self.SrcNext[0] - 2.5 * self.sourceheight,
+																 self.SrcNext[1]),
+															 size=(2 * self.sourceheight, self.sourceheight), KOn='',
+															 KOff='',
+															 proc=functools.partial(self.PickItemOK, True))
+		self.ListKeySlots['CnclSrc'] = toucharea.ManualKeyDesc(screen, 'CnclSrc', ['Back'], self.BackgroundColor,
+															   self.CharColor, self.CharColor,
+															   center=(
+																   self.SrcNext[0] - 5 * self.sourceheight,
+																   self.SrcNext[1]),
+															   size=(2 * self.sourceheight, self.sourceheight), KOn='',
+															   KOff='',
+															   proc=functools.partial(self.PickItemOK, False))
+
+	def PickItem(self, slotnum, presstype):
+		# print(slotnum)
+		# change the source
+		self.selection = self.firstitem + slotnum
+		self.masterscreen.ShowScreen()
+
+	def PickItemOK(self, doit, presstype):
+		if doit:
+			self.Result(self.selection)
+		else:
+			self.Result(-1)
+
+	def PrevNext(self, nxt, presstype):
+		if nxt:
+			if self.firstitem + self.NumSlots < len(self.itemlist):
+				self.firstitem += self.NumSlots
+		elif self.firstitem - self.NumSlots >= 0:
+			self.firstitem -= self.NumSlots
+		self.masterscreen.ShowScreen()
+
+	def Initialize(self, itemlist):
+		self.itemlist = itemlist
+		self.masterscreen.Keys = self.ListKeySlots
+		self.firstitem = 0
+		self.selection = -1
+
+	def DisplayListSelect(self):
+		self.masterscreen.ReInitDisplay()
+		for i in range(self.firstitem, min(len(self.itemlist), self.firstitem + self.NumSlots)):
+			slot = i - self.firstitem
+			clr = self.DullKeyColor if i == self.selection else self.CharColor
+			rs, h, w = screenutil.CreateTextBlock(self.itemlist[i], self.sourceheight, clr, False, FitLine=True,
+												  MaxWidth=config.screenwidth - config.horizborder * 2)
+			# self.SourceSlot[slot] = self.SourceSet[i]
+			voff = self.SlotsVPos[slot] + (self.sourceheight - h) // 2
+			config.screen.blit(rs, (config.horizborder, voff))
+		pygame.draw.polygon(config.screen, wc(self.CharColor),
+							_TriangleCorners(self.SrcPrev, self.sourceheight, False), 3)
+		pygame.draw.polygon(config.screen, wc(self.CharColor),
+							_TriangleCorners(self.SrcNext, self.sourceheight, True), 3)
+		pygame.display.update()
