@@ -15,6 +15,7 @@ class EventItem(object):
 		self.abstime = 0  # set when added
 		self.name = name
 		self.deleted = False
+		self.onlist = False
 
 	def __hash__(self):
 		return id(self)  # hash((self.delay, self.gpid, self.name))
@@ -31,6 +32,9 @@ class EventItem(object):
 	def __repr__(self):
 		return 'ID:' + str(id(self)) + ' gpid: ' + str(self.gpid) + ' name: ' + self.name + ' del: ' + str(
 			self.deleted)
+
+	def OnList(self):
+		return self.onlist
 
 
 class ProcEventItem(EventItem):
@@ -87,6 +91,7 @@ class EventList(object):
 		for i in self.List:
 			if i[1] == evnt:
 				logsupport.Logs.Log("Event add task error", severity=ConsoleError)
+		evnt.onlist = True
 		heappush(self.List, (evnt.abstime, evnt))
 		T = self.TimeToNext()
 		debug.debugPrint('EventList', self.RelNow(), ' Add: ', dt, evnt, T)
@@ -95,7 +100,10 @@ class EventList(object):
 
 	def RemoveTask(self, evnt):
 		debug.debugPrint('EventList', self.RelNow(), ' Remove: ', evnt)
-		self.finder[id(evnt)].deleted = True
+		try:
+			self.finder[id(evnt)].deleted = True
+		except Exception:
+			debug.debugPrint('EventList', self.RelNow(), ' Remove item not on list: : ', evnt)
 
 	def _TopItem(self):
 		try:
@@ -104,6 +112,7 @@ class EventList(object):
 				debug.debugPrint('EventList', "PRE", self.List)
 				debug.debugPrint('EventList', self.RelNow(), ' Flush deleted: ', evnt)
 				heappop(self.List)
+				evnt.onlist = False
 				debug.debugPrint('EventList', "POST", self.List)
 				try:
 					del self.finder[id(evnt)]
@@ -129,6 +138,7 @@ class EventList(object):
 			DiffToSched = T[0] - time.time()
 			if DiffToSched <= epsilon:  # task is due
 				I = heappop(self.List)[1]
+				I.onlist = False
 				del self.finder[id(I)]
 				nextdelay = self.TimeToNext()
 				pygame.time.set_timer(self.TASKREADY.type, nextdelay)
