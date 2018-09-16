@@ -166,9 +166,9 @@ class OctoPrintScreenDesc(screen.BaseKeyScreenDesc):
 		OPfile = r['job']['file']['name']
 		if OPfile is None: OPfile = ''
 		pct = r['progress']['completion']
-		OPcomppct = '- Done ' if pct is None else '{0:.1%} Done '.format(pct / 100)
+		OPcomppct = '- Done ' if pct is None else '{0:.0%} Done '.format(pct / 100)
 		tl = r['progress']['printTimeLeft']
-		OPtimeleft = ' - Left' if tl is None else '{0:.1f} min. left'.format(tl / 60)
+		OPtimeleft = ' - Left' if tl is None else '{0:.0f} min'.format(tl / 60)
 		statusblock, h, statusw = screenutil.CreateTextBlock([OPstate, OPfile, OPcomppct + OPtimeleft], 25,
 															 self.CharColor, True)
 		vpos = self.titlespace + h
