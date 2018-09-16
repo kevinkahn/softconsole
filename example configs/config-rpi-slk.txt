@@ -1,5 +1,5 @@
 cfglib = cfglib
-include = auth.cfg, pdxalerts.cfg, weathLQ.cfg, weathCC.cfg, weathDownTown.cfg, weathPDX.cfg,timetempPDX.cfg,BR-suzi.cfg, tstat.cfg, suzi-misc1.cfg,suzi-misc2.cfg
+include = /home/pi/Console/local/auth.cfg, pdxalerts.cfg, pdxtempalerts.cfg, weathLQ.cfg, weathCC.cfg, weathDownTown.cfg, weathPDX.cfg,timetempPDX.cfg,BR-suzi.cfg, tstat.cfg, suzi-misc1.cfg,suzi-misc2.cfg, pdxmqtt.cfg
 
 HomeScreenName = BR
 DimLevel = 5
@@ -9,18 +9,6 @@ DimHomeScreenCoverName = TimeTemp
 MainChain = BR, TimeTemp, Suzi Misc1, Sonos
 SecondaryChain = Thermostat - Main, Local, Portland, Downtown, La Quinta, Suzi Misc2
 
-[Alerts]
-    [[GetTempsHills]]
-    Type = Periodic
-    Interval = 60 minutes
-    Invoke = GetTempsToISY.SendTemps
-    Parameter = pws:KORPORTL1104, C:Temp S:TempHills F:Low S:ForecastLowHills # station,(field name, var)+  pws:KORPORTL26
-
-    [[GetTempsPDX]]
-    Type = Periodic
-    Interval = 60 minutes
-    Invoke = GetTempsToISY.SendTemps
-    Parameter = KPDX, C:Temp S:TempPDX F:Low S:ForecastLowPDX # station,(field name, var)+  pws:KPDX
 
 [Sonos]
     type = Sonos

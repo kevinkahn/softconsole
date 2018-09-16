@@ -202,7 +202,8 @@ fi
 
 if [ -e /boot/auth ]
 then
-  mv -f /boot/auth/* /home/pi/Console/cfglib
+  mkdir /home/pi/Console/local
+  mv -f /boot/auth/* /home/pi/Console/local
   rmdir /boot/auth
 fi
 
