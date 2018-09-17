@@ -215,6 +215,20 @@ class WeatherVals(valuestore.ValueStore):
 					cond.Value = cond.MapInfo[1](cond.MapInfo[2])
 			except:
 				cond.Value = None  # set error equiv to Conderr?
+
+		# special debug check for icon missing issue
+		try:
+			iconfn = self.vars['Cond']['Iconurl']
+			iconsplit = iconfn.split('/')
+			cbase = iconsplit[-1].split('.')[:-1]
+			if cbase[0] in ['', 'nt_']:
+				logsupport.Logs.Log('Icon issue: ', iconfn, repr(cbase), self.vars['Cond']['Sky'])
+				fixedurl = '/'.join(iconsplit[:-1]) + '/' + cbase[0] + self.vars['Cond']['Sky'].lower() + '.gif'
+				logsupport.Logs.Log('Icon issue replace with: ', fixedurl)
+				self.vars['Cond']['Iconurl'] = fixedurl
+		except:
+			logsupport.Logs.Log('Icon debug error')
+
 		if not forecastjunk:
 			self.vars['LastGoodFcst'].Value = time.time()
 			self.vars['FcstDays'].Value = len(fcsts)
