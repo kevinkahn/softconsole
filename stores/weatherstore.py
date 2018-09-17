@@ -218,6 +218,9 @@ class WeatherVals(valuestore.ValueStore):
 
 		# special debug check for icon missing issue
 		try:
+			iconfn = '***'
+			iconsplit = ['*none*']
+			cbase = ['*xx*']
 			iconfn = self.vars['Cond']['Iconurl']
 			iconsplit = iconfn.split('/')
 			cbase = iconsplit[-1].split('.')[:-1]
@@ -226,8 +229,9 @@ class WeatherVals(valuestore.ValueStore):
 				fixedurl = '/'.join(iconsplit[:-1]) + '/' + cbase[0] + self.vars['Cond']['Sky'].lower() + '.gif'
 				logsupport.Logs.Log('Icon issue replace with: ', fixedurl)
 				self.vars['Cond']['Iconurl'] = fixedurl
-		except:
-			logsupport.Logs.Log('Icon debug error')
+		except Exception as e:
+			logsupport.Logs.Log('Icon debug error ', repr(e))
+			logsupport.Logs.Log('Icon debug error ', iconfn, repr(iconsplit)), repr(cbase)
 
 		if not forecastjunk:
 			self.vars['LastGoodFcst'].Value = time.time()
