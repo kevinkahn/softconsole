@@ -221,14 +221,14 @@ class WeatherVals(valuestore.ValueStore):
 			iconfn = '***'
 			iconsplit = ['*none*']
 			cbase = ['*xx*']
-			iconfn = self.vars['Cond']['Iconurl']
+			iconfn = self.vars['Cond']['Iconurl'].Value
 			iconsplit = iconfn.split('/')
 			cbase = iconsplit[-1].split('.')[:-1]
 			if cbase[0] in ['', 'nt_']:
 				logsupport.Logs.Log('Icon issue: ', iconfn, repr(cbase), self.vars['Cond']['Sky'])
 				fixedurl = '/'.join(iconsplit[:-1]) + '/' + cbase[0] + self.vars['Cond']['Sky'].lower() + '.gif'
 				logsupport.Logs.Log('Icon issue replace with: ', fixedurl)
-				self.vars['Cond']['Iconurl'] = fixedurl
+				self.vars['Cond']['Iconurl'].Value = fixedurl
 		except Exception as e:
 			logsupport.Logs.Log('Icon debug error ', repr(e))
 			logsupport.Logs.Log('Icon debug error ', iconfn, repr(iconsplit)), repr(cbase)
