@@ -41,21 +41,29 @@ def TryShorten(term):
 			json.dump(config.TermShortener, f, indent=4, separators=(',', ": "))
 	return term
 
+
+EmptyIcon = pygame.Surface((50, 50))
+EmptyIcon.fill((255, 255, 255))
+EmptyIcon.set_colorkey((255, 255, 255))
 WeatherIconCache = {}
 WUcount = 0
 
 def get_icon(url):
+	global EmptyIcon
 	if 	url in WeatherIconCache:
 		return WeatherIconCache[url]
 	else:
-		r = requests.get(url)
-		icon_str = r.content
-		icon_file = io.BytesIO(icon_str)
-		icon_gif = pygame.image.load(icon_file,'icon.gif')
-		icon_scr = pygame.Surface.convert_alpha(icon_gif)
-		icon_scr.set_colorkey(icon_gif.get_colorkey())
-		WeatherIconCache[url] = icon_scr
-		return icon_scr
+		try:
+			r = requests.get(url)
+			icon_str = r.content
+			icon_file = io.BytesIO(icon_str)
+			icon_gif = pygame.image.load(icon_file, 'icon.gif')
+			icon_scr = pygame.Surface.convert_alpha(icon_gif)
+			icon_scr.set_colorkey(icon_gif.get_colorkey())
+			WeatherIconCache[url] = icon_scr
+			return icon_scr
+		except Exception:
+			return EmptyIcon
 
 class WeatherItem(valuestore.StoreItem):
 	def __init__(self,name, mapinfo, Store):

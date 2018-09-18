@@ -11,12 +11,6 @@ from collections import OrderedDict
 from utilfuncs import wc
 
 fsizes = ((20, False, False), (30, True, False), (45, True, True))
-"""
-num fcst days, 1 or 2 col, format override, spacing, block center, other params from timetemp?
-default cols based on screen width > 390 use 2 col
-def fcst days based on screen height?
-for conditions where to put icon?  Center vertically? with size lesser of % of screen width % of screen height
-"""
 
 class WeatherScreenDesc(screen.ScreenDesc):
 	def __init__(self, screensection, screenname):
