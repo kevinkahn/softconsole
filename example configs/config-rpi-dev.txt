@@ -1,4 +1,3 @@
-LogLevel = 3
 #Screen = True
 #Main = True
 #Dispatch = True
@@ -24,7 +23,6 @@ SecondaryChain = Portland, Bathroom, BR, Thermostat - Main
 [Sonos]
     type = Sonos
     DefaultHub = HASS
-    PlayerInputs = master_bedroom, TV, living_room, Line-in, master_bedroom, Line-in
 
 [Alerts]
 	[[AutoVersion]]
@@ -56,12 +54,6 @@ SecondaryChain = Portland, Bathroom, BR, Thermostat - Main
 	Test = NE
 	Value = 1
 	Invoke = InternetAlertScreen
-
-    [[GetTemps]]
-    Type = Periodic
-    Interval = 20 seconds #2 minutes
-    Invoke = GetTempsToISY.SendTemps
-    Parameter = pws:KORPORTL1104, C:Temp S:tEST F:Low S:tEST # station,(field name, var)+  pws:KORPORTL280
 
 [InternetAlertScreen]
     type = Alert

@@ -11,6 +11,7 @@ SecondaryChain = Portland, Bathroom, BR
 
 [Sonos]
 type = Sonos
+DefaultHub = HASS
 
 [LR1]
     type = Keypad
