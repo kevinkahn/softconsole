@@ -190,6 +190,8 @@ class WeatherVals(valuestore.ValueStore):
 			parsed_json2 = self._FetchWeather()
 			if parsed_json2 is not None:
 				parsed_json = parsed_json2
+				if parsed_json['current_observation']['weather'] == '':
+					parsed_json['current_observation']['weather'] = 'No-Sky-Cond'
 				logsupport.Logs.Log("Retry of fetch yielded: ", parsed_json['current_observation']['weather'],
 									severity=ConsoleWarning)
 			else:
