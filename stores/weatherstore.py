@@ -184,7 +184,16 @@ class WeatherVals(valuestore.ValueStore):
 			logsupport.Logs.Log("FetchWeather failed - not updating information for: ", self.location,
 								severity=ConsoleWarning)
 			return
-
+		if parsed_json['current_observation']['weather'] == '':
+			# try once more to see if that fixes it
+			logsupport.Logs.Log("Bad weather fetch for sky condition: ", self.location, severity=ConsoleWarning)
+			parsed_json2 = self._FetchWeather()
+			if parsed_json2 is not None:
+				parsed_json = parsed_json2
+				logsupport.Logs.Log("Retry of fetch yielded: ", parsed_json['current_observation']['weather'],
+									severity=ConsoleWarning)
+			else:
+				logsupport.Loga.Log("Retry of fetch failed", severity=ConsoleWarning)
 
 		fcsts = TreeDict(parsed_json, 'forecast', 'simpleforecast', 'forecastday')
 		fcstepoch = int(fcsts[0]['date']['epoch'])
@@ -204,6 +213,7 @@ class WeatherVals(valuestore.ValueStore):
 				forecastjunk = False
 
 		js = functools.partial(TreeDict, parsed_json)
+
 		for n, cond in self.vars['Cond'].items():
 			# noinspection PyBroadException
 			try:
