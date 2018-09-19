@@ -84,7 +84,7 @@ def CreateWeathBlock(Format, Fields, WeathFont, FontSize, WeathColor, icon, cent
 		if useicon:
 			tmp = ["Iconurl" if x == 'Icon' else x for x in iconref]
 
-			logsupport.Logs.Log("Missing icon for: ", str(icon[0]), str(iconref), str(tmp),
+			logsupport.Logs.Log("Internal error - missing icon for: ", str(icon[0]), str(iconref), str(tmp),
 								valuestore.ValueStores[icon[0]].GetVal(tmp),
 								severity=ConsoleWarning)
 		# todo stop log flooding by putting error icon in the store

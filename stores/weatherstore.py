@@ -43,7 +43,7 @@ def TryShorten(term):
 
 
 EmptyIcon = pygame.Surface((50, 50))
-EmptyIcon.fill((255, 255, 255))
+EmptyIcon.fill((255, 255, 255))  # todo replace with a ? icon?
 EmptyIcon.set_colorkey((255, 255, 255))
 WeatherIconCache = {}
 WUcount = 0
@@ -193,17 +193,8 @@ class WeatherVals(valuestore.ValueStore):
 								severity=ConsoleWarning)
 			return
 		if parsed_json['current_observation']['weather'] == '':
-			# try once more to see if that fixes it
-			logsupport.Logs.Log("Bad weather fetch for sky condition: ", self.location, severity=ConsoleWarning)
-			parsed_json2 = self._FetchWeather()
-			if parsed_json2 is not None:
-				parsed_json = parsed_json2
-				if parsed_json['current_observation']['weather'] == '':
-					parsed_json['current_observation']['weather'] = 'No-Sky-Cond'
-				logsupport.Logs.Log("Retry of fetch yielded: ", parsed_json['current_observation']['weather'],
-									severity=ConsoleWarning)
-			else:
-				logsupport.Loga.Log("Retry of fetch failed", severity=ConsoleWarning)
+			parsed_json['current_observation']['weather'] = 'No-Sky-Cond'
+			logsupport.Logs.Log("Missing sky condition: ", self.location, severity=ConsoleWarning)
 
 		fcsts = TreeDict(parsed_json, 'forecast', 'simpleforecast', 'forecastday')
 		fcstepoch = int(fcsts[0]['date']['epoch'])
@@ -235,24 +226,6 @@ class WeatherVals(valuestore.ValueStore):
 					cond.Value = cond.MapInfo[1](cond.MapInfo[2])
 			except:
 				cond.Value = None  # set error equiv to Conderr?
-
-		# special debug check for icon missing issue
-		try:
-			iconfn = '***'
-			iconsplit = ['*none*']
-			cbase = ['*xx*']
-			iconfn = self.vars['Cond']['Iconurl'].Value
-			iconsplit = iconfn.split('/')
-			cbase = iconsplit[-1].split('.')[:-1]
-			if cbase[0] in ['', 'nt_']:
-				logsupport.Logs.Log('Icon issue: ', iconfn, repr(cbase), self.vars['Cond']['Sky'].Value)
-				fixedurl = '/'.join(iconsplit[:-1]) + '/' + cbase[0] + self.vars['Cond']['Sky'].Value.lower() + '.gif'
-				self.vars['Cond']['Iconurl'].Value = fixedurl
-				logsupport.Logs.Log('Icon issue replace with: ', fixedurl)
-
-		except Exception as e:
-			logsupport.Logs.Log('Icon debug error ', repr(e))
-			logsupport.Logs.Log('Icon debug error ', iconfn, ' -- ', repr(iconsplit)), '-- ', repr(cbase)
 
 		if not forecastjunk:
 			self.vars['LastGoodFcst'].Value = time.time()
