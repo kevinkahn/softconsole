@@ -4,6 +4,7 @@ import config
 import debug
 import utilities
 import logsupport
+from logsupport import ConsoleWarning
 import screenutil
 import pygame
 import toucharea
@@ -92,9 +93,18 @@ class OctoPrintScreenDesc(screen.BaseKeyScreenDesc):
 	def OctoGet(self, item):
 		try:
 			r = requests.get(self.url + '/api/' + item, headers=self.head)
+			return r
 		except Exception as e:
-			print(repr(e))
-		return r
+			logsupport.Logs.Log('Bad octoprint get: ', repr(e), severity=ConsoleWarning)
+			for i in range(5):
+				try:
+					r = requests.get(self.url + '/api/' + item, headers=self.head)
+					return r
+				except:
+					pass
+		logsupport.Logs.Log("Permanent Octoprint Screen Error", severity=ConsoleWarning)
+		raise ValueError
+
 
 	def OctoPost(self, item, senddata):
 		try:
