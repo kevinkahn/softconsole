@@ -234,7 +234,8 @@ class ValueStore(object):
 			else:
 				return V
 		except Exception as e:
-			logsupport.Logs.Log("Error accessing ", self.name, ":", str(name), str(n2), repr(e), severity=ConsoleError)
+			logsupport.Logs.Log("Error accessing ", self.name, ":", str(name), str(n2), repr(e), severity=ConsoleError,
+								tb=False)
 			return None
 
 	def GetValByAttr(self, attr):

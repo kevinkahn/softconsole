@@ -54,6 +54,8 @@ def get_icon(url):
 		return WeatherIconCache[url]
 	else:
 		try:
+			if url.split('/')[-1] in ['.git', 'nt_.gif']:
+				return EmptyIcon
 			r = requests.get(url)
 			icon_str = r.content
 			icon_file = io.BytesIO(icon_str)
@@ -63,6 +65,7 @@ def get_icon(url):
 			WeatherIconCache[url] = icon_scr
 			return icon_scr
 		except Exception:
+			logsupport.Logs.Log('Bad icon url fetch - using empty icon for: ', repr(url))
 			return EmptyIcon
 
 class WeatherItem(valuestore.StoreItem):
@@ -129,6 +132,10 @@ class WeatherVals(valuestore.ValueStore):
 
 	def _FetchWeather(self):
 		global WUcount
+		if config.BadWunderKey:
+			# if key was bad don't bother banging on WU
+			self.failedfetch = True
+			return None
 		# noinspection PyBroadException
 		try:
 			r = requests.get(self.url,timeout=15)
@@ -164,6 +171,12 @@ class WeatherVals(valuestore.ValueStore):
 			self.failedfetch = True
 			return None
 
+		if val.find('backend failure') != -1:
+			logsupport.Logs.Log("WeatherUnderground backend failure on station: ", self.location,
+								severity=ConsoleWarning)
+			self.failedfetch = True
+			return None
+
 		try:
 			parsed_json = json.loads(val)
 		except ValueError as e:  # in Python3 this could be a JSONDecodeError which is a subclass of ValueError
@@ -182,16 +195,20 @@ class WeatherVals(valuestore.ValueStore):
 			# have recent data
 			return
 
-		self.fetchtime = time.time()
 		self.failedfetch = False
 		self.fetchcount += 1
 
 		parsed_json = self._FetchWeather()
 
+
 		if parsed_json is None:
 			logsupport.Logs.Log("FetchWeather failed - not updating information for: ", self.location,
 								severity=ConsoleWarning)
+			# but don't retry too quickly
+			self.fetchtime = time.time() - self.refreshinterval + 120  # should fake a 2 minute delay before a retry
 			return
+		# good fetch so don't repeat for interval
+		self.fetchtime = time.time()
 		if parsed_json['current_observation']['weather'] == '':
 			parsed_json['current_observation']['weather'] = 'No-Sky-Cond'
 			logsupport.Logs.Log("Missing sky condition: ", self.location, severity=ConsoleWarning)
