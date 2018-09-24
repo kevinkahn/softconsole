@@ -24,11 +24,19 @@ def CreateWeathBlock(Format, Fields, WeathFont, FontSize, WeathColor, icon, cent
 	try:
 		for fld in Fields:
 			if day == -1:
-				vals.append(valuestore.GetVal(fld))
+				t = valuestore.GetVal(fld)
+				if callable(t):
+					vals.append(t())
+				else:
+					vals.append(t)
 			else:
 				fcstdays = valuestore.GetVal((fld[0], 'FcstDays'))
 				if day < fcstdays:
-					vals.append(valuestore.GetVal(fld + (day,)))
+					t = valuestore.GetVal(fld + (day,))
+					if callable(t):
+						vals.append(t())
+					else:
+						vals.append(t)
 				else:
 					vals.append(None)
 					if not erroronce:
