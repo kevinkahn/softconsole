@@ -6,12 +6,12 @@ LogLevel = 3
 
 
 cfglib = "/home/pi/consolerem/example configs/cfglib"
-include = /home/pi/Console/cfglib/auth.cfg, pdxalerts.cfg, weathPump.cfg, timetempLQ.cfg, weathCC.cfg, timetempPDX.cfg, myclock.cfg,bathroom.cfg,upperlev.cfg,BR-kck.cfg,tstat.cfg,weathPDX.cfg,timetempLQ7.cfg,pdxmqtt.cfg, pdxmqtt.cfg, octoprint.cfg
+include = /home/pi/Console/cfglib/local/auth.cfg, weathersources.cfg, pdxalerts.cfg, weathPump.cfg, timetempLQ.cfg,  myclock.cfg,bathroom.cfg,upperlev.cfg,BR-kck.cfg,tstat.cfg,weathPDX.cfg,timetempLQ7.cfg,pdxmqtt.cfg, pdxmqtt.cfg, octoprint.cfg, weathCC.cfg,
 HomeScreenName = 'Creator Pro'
 DimLevel = 50
-DimTO = 25
-DimIdleListNames = MyClock, Portland, Pumpkin
-#, LQTTbig
+DimTO = 5
+DimIdleListNames = Portland, MyClock, LQTTbig, Pumpkin
+
 DimIdleListTimes =	10, 10, 10, 10
 
 MainChain = Creator Pro,LR1,Sonos,LR2, Pumpkin, Local, Upper Level, Test
@@ -21,7 +21,6 @@ DefaultHub = ISY
 
 [Variables]
     InternetUp = 1
-
 
 [Sonos]
     type = Sonos

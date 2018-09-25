@@ -65,7 +65,8 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 							screenname,severity=ConsoleWarning)
 			self.FcstLayout = "Block"
 		self.scrlabel = screen.FlatenScreenLabel(self.label)
-		self.store = valuestore.NewValueStore(weatherstore.WeatherVals(self.location, self.WunderKey))
+		self.store = valuestore.ValueStores[self.location]
+		# todo self.store = valuestore.NewValueStore(weatherstore.WeatherVals(self.location, self.WunderKey))
 		self.DecodedCondFields = []
 		for f in self.ConditionFields:
 			if ':' in f:

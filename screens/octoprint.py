@@ -110,7 +110,7 @@ class OctoPrintScreenDesc(screen.BaseKeyScreenDesc):
 		try:
 			r = requests.post(self.url + '/api/' + item, json=senddata, headers=self.head)
 		except Exception as e:
-			print(repr(e))
+			print('Exc4' + repr(e))
 		return r
 
 	def Power(self, opt, presstype):

@@ -1,7 +1,7 @@
 import pygame
 import config
 import debug
-from stores import valuestore, weatherstore
+from stores import valuestore, weatherstore, genericweatherstore
 import screen
 import logsupport
 from weatherfromatting import CreateWeathBlock, WFormatter
@@ -15,7 +15,6 @@ fsizes = ((20, False, False), (30, True, False), (45, True, True))
 class WeatherScreenDesc(screen.ScreenDesc):
 	def __init__(self, screensection, screenname):
 		self.location = ''
-		self.WunderKey = ''
 
 		self.fmt = WFormatter()
 		debug.debugPrint('Screen', "New WeatherScreenDesc ", screenname)
@@ -26,23 +25,26 @@ class WeatherScreenDesc(screen.ScreenDesc):
 																	proc=self.CondOrFcst)})
 		self.currentconditions = True  # show conditions or forecast
 
-		utilities.LocalizeParams(self, screensection, '-', 'WunderKey', location='')
+		utilities.LocalizeParams(self, screensection, '-', location='')
 
 		self.scrlabel = screen.FlatenScreenLabel(self.label)
 
-		self.condformat = u"{d[0]} {d[1]}\u00B0F",u"  Feels like: {d[2]}\u00B0","Wind {d[3]}@{d[4]} gusts {d[5]}"
-		self.condfields = list(((self.location, 'Cond', x) for x in ('Sky','Temp','Feels','WindDir', 'WindMPH', 'WindGust')))
+		self.condformat = u"{d[0]} {d[1]}\u00B0F", u"  Feels like: {d[2]}\u00B0", "Wind {d[3]}@{d[4]}"
+		self.condfields = list(((self.location, 'Cond', x) for x in ('Sky', 'Temp', 'Feels', 'WindDir', 'WindMPH')))
 
-		self.dayformat  = "Sunrise: {d[0]:02d}:{d[1]:02d}","Sunset:  {d[2]:02d}:{d[3]:02d}","Moon rise: {d[4]} set: {d[5]}","{d[6]}% illuminated"
-		self.dayfields  = list(((self.location, 'Cond', x) for x in ('SunriseH','SunriseM','SunsetH','SunsetM','Moonrise','Moonset','MoonPct')))
+		# self.dayformat  = "Sunrise: {d[0]:02d}:{d[1]:02d}","Sunset:  {d[2]:02d}:{d[3]:02d}","Moon rise: {d[4]} set: {d[5]}","{d[6]}% illuminated"
+		# self.dayfields  = list(((self.location, 'Cond', x) for x in ('SunriseH','SunriseM','SunsetH','SunsetM','Moonrise','Moonset','MoonPct')))
+		self.dayformat = "Sunrise: {d[0]}", "Sunset:  {d[1]}", "Moon rise: {d[2]} set: {d[3]}"
+		self.dayfields = list(((self.location, 'Cond', x) for x in ('Sunrise', 'Sunset', 'Moonrise', 'Moonset')))
 
-		self.footformat = "Readings as of", "{d[0]} ago",
+		self.footformat = "Readings as of {d[0]}",
 		self.footfields = ((self.location,'Cond','Age'),)
 
-		self.fcstformat = u"{d[0]}   {d[1]}\u00B0/{d[2]}\u00B0 {d[3]}","Wind: {d[4]} at {d[5]}"
-		self.fcstfields = list(((self.location, 'Fcst', x) for x in ('Day', 'High','Low', 'Sky', 'WindDir','WindSpd')))
+		self.fcstformat = u"{d[0]}   {d[1]}\u00B0/{d[2]}\u00B0 {d[3]}", "Wind: {d[4]}"
+		self.fcstfields = list(((self.location, 'Fcst', x) for x in ('Day', 'High', 'Low', 'Sky', 'WindSpd')))
 
-		self.store = valuestore.NewValueStore(weatherstore.WeatherVals(self.location, self.WunderKey))
+		# self.store = valuestore.NewValueStore(genericweatherstore.WeatherVals(self.location, self.WunderKey)) #todo
+		self.store = valuestore.ValueStores[self.location]
 		self.loggedonce = False
 		utilities.register_example("WeatherScreenDesc", self)
 
