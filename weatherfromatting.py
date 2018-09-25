@@ -56,7 +56,7 @@ def CreateWeathBlock(Format, Fields, WeathFont, FontSize, WeathColor, icon, cent
 				fsize = int(FS.pop(0))
 				usefont = config.fonts.Font(fsize, WeathFont)
 	except Exception as e:
-		logsupport.Logs.Log('TimeTemp Weather Formatting Error', severity=ConsoleWarning)
+		logsupport.Logs.Log('TimeTemp Weather Formatting Error: ', repr(e), severity=ConsoleWarning)
 		if isinstance(e, KeyError):
 			logsupport.Logs.Log(' No such weather field: ',e.message, severity=ConsoleWarning)
 		rf.append(usefont.render('Weather N/A', 0, wc(WeathColor)))
@@ -75,7 +75,7 @@ def CreateWeathBlock(Format, Fields, WeathFont, FontSize, WeathColor, icon, cent
 				if not erroronce:
 					erroronce = True
 					logsupport.Logs.Log(
-						"Attempt to forecast(day " + str(day) + ") beyond " + str(fcstdays) + " returned by WU",
+						"Attempt to forecast(day " + str(day) + ") beyond " + str(fcstdays) + " returned by provider",
 						severity=ConsoleDetailHigh)
 	else:
 		iconref = None
@@ -86,16 +86,16 @@ def CreateWeathBlock(Format, Fields, WeathFont, FontSize, WeathColor, icon, cent
 	v = 0
 	# noinspection PyBroadException
 	try:
-		if iconref is not None: fsfc.blit(
-			pygame.transform.smoothscale(valuestore.ValueStores[icon[0]].GetVal(iconref), (fh, fh)), (0, 0))
+		if iconref is not None:
+			tmp = pygame.transform.smoothscale(valuestore.ValueStores[icon[0]].GetVal(iconref), (fh, fh))
+			# R = pygame.Rect((0, 0), (tmp.get_height(), tmp.get_width()))
+			# pygame.draw.rect(fsfc, (128, 128, 128), R, 3)
+			# print('Scale: '+str(tmp.get_height())+ ' ' + str(valuestore.ValueStores[icon[0]].GetVal(iconref)) )
+			fsfc.blit(tmp, (0, 0))
 	except:
 		if useicon:
-			tmp = ["Iconurl" if x == 'Icon' else x for x in iconref]
-
-			logsupport.Logs.Log("Internal error - missing icon for: ", str(icon[0]), str(iconref), str(tmp),
-								valuestore.ValueStores[icon[0]].GetVal(tmp),
+			logsupport.Logs.Log("Internal error - missing icon for: ", str(icon[0]), str(iconref),
 								severity=ConsoleWarning)
-		# todo stop log flooding by putting error icon in the store
 	for l in rf:
 		if centered:
 			fsfc.blit(l,(hoff + (fw-l.get_width())/2,v))
