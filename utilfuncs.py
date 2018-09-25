@@ -29,3 +29,19 @@ def tint(clr):
 	tint_factor = .25
 	r, g, b = wc(clr)
 	return r + (255 - r) * tint_factor, g + (255 - g) * tint_factor, b + (255 - b) * tint_factor
+
+
+def TreeDict(d, args):
+	# Allow a nest of dictionaries to be accessed by a tuple of keys for easier code
+	if len(args) == 1:
+		temp = d[args[0]]
+		if isinstance(temp, str) and temp.isdigit():
+			temp = int(temp)
+		else:
+			try:
+				temp = float(temp)
+			except (ValueError, TypeError):
+				pass
+		return temp
+	else:
+		return TreeDict(d[args[0]], args[1:])

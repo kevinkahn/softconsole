@@ -8,6 +8,8 @@ defaulthub = None
 defaulthubname = ""
 defaultISYname = 'ISY'
 
+WeathProvs = {}
+
 starttime = 0
 Running = True
 Console_pid = 0

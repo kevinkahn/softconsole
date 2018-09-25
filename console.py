@@ -48,7 +48,6 @@ if sys.version_info[0] == 3:
 	import hasshub
 	config.hubtypes['HASS'] = hasshub.HA
 
-
 # noinspection PyUnusedLocal
 def handler(signum, frame):
 	if signum in (signal.SIGTERM, signal.SIGINT):
@@ -155,6 +154,14 @@ for alertproctype in os.listdir(os.getcwd() + '/alerts'):
 			importlib.import_module('alerts.' + splitname[0])
 
 logsupport.Logs.Log("Alert Proc types imported")
+
+# load weather providers
+for wp in os.listdir(os.getcwd() + '/stores/weathprov'):
+	if '__' not in wp:
+		splitname = os.path.splitext(wp)
+		if splitname[1] == '.py':
+			importlib.import_module('stores.weathprov.' + splitname[0])
+logsupport.Logs.Log("Weather providers imported")
 
 for n in alerttasks.alertprocs:
 	alerttasks.alertprocs[n] = alerttasks.alertprocs[n]()  # instantiate an instance of each alert class
@@ -312,7 +319,9 @@ for i, v in config.ParsedConfigFile.items():
 			valuestore.NewValueStore(localvarsupport.LocalVars(i, v))
 			del config.ParsedConfigFile[i]
 		elif stype == "WeatherProvider":
-			pass  # map "provider" to package, call setup passing section; get list of locations (also implicit from screens)
+			apikey = v.get('apikey', 'N/A')
+			config.WeathProvs[i][1] = apikey
+			del config.ParsedConfigFile[i]
 		for hubtyp, pkg in config.hubtypes.items():
 			if stype == hubtyp:
 				# noinspection PyBroadException
@@ -322,6 +331,24 @@ for i, v in config.ParsedConfigFile.items():
 					logsupport.Logs.Log("Fatal console error - fix config file: ", e, severity=ConsoleError, tb=False)
 					exitutils.Exit(exitutils.ERRORDIE, immediate=True)  # shutdown and don't try restart
 				del config.ParsedConfigFile[i]
+
+from stores import genericweatherstore
+
+for i, v in config.ParsedConfigFile.items():
+	if isinstance(v, Section):
+		stype = v.get('type', None, delkey=False)
+		for wptyp, info in config.WeathProvs.items():
+			if stype == wptyp:
+				try:
+					desc = i
+					loccode = v.get('location', desc)
+					refresh = int(v.get('refresh', 60))  # default refresh in minutes
+					ws = info[0](desc, loccode, info[1])
+					valuestore.NewValueStore(genericweatherstore.WeatherVals(desc, ws, refresh))
+				except Exception as e:
+					print('Exc1' + repr(e))
+				del config.ParsedConfigFile[i]
+
 
 
 config.defaulthubname = config.ParsedConfigFile.get('DefaultHub','')
