@@ -378,72 +378,82 @@ class HA(object):
 
 		def on_message(qws, message):
 			try:
-				mdecode = json.loads(message)
-			except:
-				logsupport.Logs.Log("HA event with bad message: ", message, severity=ConsoleError)
-				return
-			if mdecode['type'] == 'auth_ok':
-				debug.debugPrint('HASSgeneral', 'WS Authorization OK, subscribing')
-				ws.send(
-					json.dumps({'id': self.HAnum, 'type': 'subscribe_events'}))  # , 'event_type': 'state_changed'}))
-				return
-			if mdecode['type'] == 'auth_required':
-				debug.debugPrint('HASSgeneral', 'WS Authorization requested, sending')
-				ws.send(json.dumps({"type": "auth", "api_password": self.password}))
-				return
-			if mdecode['type'] == 'auth_invalid':
-				logsupport.Logs.Log("Invalid password for hub: "+self.name, severity=ConsoleError) # since already validate with API shouldn't get here
-				return
-			if mdecode['type'] in ('result', 'service_registered', 'zwave.network_complete', 'platform_discovered'):
-				return
-			if mdecode['type'] != 'event':
-				debug.debugPrint('HASSgeneral', 'Non event seen on WS stream: ', str(mdecode))
-				return
-			m = mdecode['event']
-			del mdecode['event']
-			d = m['data']
-			if m['event_type'] == 'state_changed':
-				del m['event_type']
-				ent = d['entity_id']
-				new = d['new_state']
-				old = d['old_state']
-				del d['new_state']
-				del d['old_state']
-				del d['entity_id']
-				chgs, dels, adds = findDiff(old, new)
-				if not ent in self.Entities and not ent in self.IgnoredEntities:
-					# not an entitity type that is currently known
-					debug.debugPrint('HASSgeneral', 'WS Stream item for unhandled entity type: ' + ent + ' Added: ' + str(adds) + ' Deleted: ' + str(dels) + ' Changed: ' + str(chgs))
+				try:
+					mdecode = json.loads(message)
+				except:
+					logsupport.Logs.Log("HA event with bad message: ", message, severity=ConsoleError)
 					return
-				if ent in self.IgnoredEntities:
+				if mdecode['type'] == 'auth_ok':
+					debug.debugPrint('HASSgeneral', 'WS Authorization OK, subscribing')
+					ws.send(
+						json.dumps(
+							{'id': self.HAnum, 'type': 'subscribe_events'}))  # , 'event_type': 'state_changed'}))
 					return
-				debug.debugPrint('HASSchg', 'WS change: ' + ent + ' Added: ' + str(adds) + ' Deleted: ' + str(dels) + ' Changed: ' + str(chgs))
-				#debug.debugPrint('HASSchg', 'New: ' + str(new))
-				#debug.debugPrint('HASSchg', 'Old: ' + str(old))
-				if ent in self.Entities:
-					self.Entities[ent].Update(**new)
+				if mdecode['type'] == 'auth_required':
+					debug.debugPrint('HASSgeneral', 'WS Authorization requested, sending')
+					ws.send(json.dumps({"type": "auth", "api_password": self.password}))
+					return
+				if mdecode['type'] == 'auth_invalid':
+					logsupport.Logs.Log("Invalid password for hub: " + self.name,
+										severity=ConsoleError)  # since already validate with API shouldn't get here
+					return
+				if mdecode['type'] in ('result', 'service_registered', 'zwave.network_complete', 'platform_discovered'):
+					return
+				if mdecode['type'] != 'event':
+					debug.debugPrint('HASSgeneral', 'Non event seen on WS stream: ', str(mdecode))
+					return
+				m = mdecode['event']
+				del mdecode['event']
+				d = m['data']
+				if m['event_type'] == 'state_changed':
+					del m['event_type']
+					ent = d['entity_id']
+					new = d['new_state']
+					old = d['old_state']
+					del d['new_state']
+					del d['old_state']
+					del d['entity_id']
+					chgs, dels, adds = findDiff(old, new)
+					if not ent in self.Entities and not ent in self.IgnoredEntities:
+						# not an entitity type that is currently known
+						debug.debugPrint('HASSgeneral',
+										 'WS Stream item for unhandled entity type: ' + ent + ' Added: ' + str(
+											 adds) + ' Deleted: ' + str(dels) + ' Changed: ' + str(chgs))
+						return
+					if ent in self.IgnoredEntities:
+						return
+					debug.debugPrint('HASSchg', 'WS change: ' + ent + ' Added: ' + str(adds) + ' Deleted: ' + str(
+						dels) + ' Changed: ' + str(chgs))
+					# debug.debugPrint('HASSchg', 'New: ' + str(new))
+					# debug.debugPrint('HASSchg', 'Old: ' + str(old))
+					if ent in self.Entities:
+						self.Entities[ent].Update(**new)
 
-				if m['origin'] == 'LOCAL': del m['origin']
-				if m['data'] == {}: del m['data']
-				timefired = m['time_fired']
-				del m['time_fired']
-				if m != {}: debug.debugPrint('HASSchg', "Extras @ " + timefired+ ' : ' + m)
-				if ent in self.AlertNodes:
-					# alert node changed
-					debug.debugPrint('DaemonCtl', 'HASS reports change(alert):', ent)
-					for a in self.AlertNodes[ent]:
-						logsupport.Logs.Log("Node alert fired: " + str(a), severity=ConsoleDetail)
-						# noinspection PyArgumentList
-						notice = pygame.event.Event(config.DS.ISYAlert, node=ent, value=self.Entities[ent].internalstate,
-													alert=a)
-						pygame.fastevent.post(notice)
-			elif m['event_type'] == 'system_log_event':
-				logsupport.Logs.Log('Hub: '+self.name+' logged at level: '+d['level']+' Msg: '+d['message']) # todo fake an event for Nest error?
-			elif m['event_type'] in ('call_service', 'service_executed'):
-				#debug.debugPrint('HASSchg', "Other expected event" + str(m))
-				pass
-			else:
-				debug.debugPrint('HASSchg', "Unknown event: " + str(m))
+					if m['origin'] == 'LOCAL': del m['origin']
+					if m['data'] == {}: del m['data']
+					timefired = m['time_fired']
+					del m['time_fired']
+					if m != {}: debug.debugPrint('HASSchg', "Extras @ " + timefired + ' : ' + m)
+					if ent in self.AlertNodes:
+						# alert node changed
+						debug.debugPrint('DaemonCtl', 'HASS reports change(alert):', ent)
+						for a in self.AlertNodes[ent]:
+							logsupport.Logs.Log("Node alert fired: " + str(a), severity=ConsoleDetail)
+							# noinspection PyArgumentList
+							notice = pygame.event.Event(config.DS.ISYAlert, node=ent,
+														value=self.Entities[ent].internalstate,
+														alert=a)
+							pygame.fastevent.post(notice)
+				elif m['event_type'] == 'system_log_event':
+					logsupport.Logs.Log('Hub: ' + self.name + ' logged at level: ' + d['level'] + ' Msg: ' + d[
+						'message'])  # todo fake an event for Nest error?
+				elif m['event_type'] in ('call_service', 'service_executed'):
+					# debug.debugPrint('HASSchg', "Other expected event" + str(m))
+					pass
+				else:
+					debug.debugPrint('HASSchg', "Unknown event: " + str(m))
+			except Exception as e:
+				logsupport.Logs.Log("Exception handling HA message: ", repr(e), repr(message), severity=ConsoleWarning)
 
 		def on_error(qws, error):
 			self.lasterror = error
