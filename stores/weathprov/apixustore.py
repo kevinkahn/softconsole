@@ -66,8 +66,10 @@ FcstFieldMap = {'Day': (getdayname, ('date_epoch',)),  # convert to day name
 CommonFieldMap = {'FcstDays': 7, 'FcstEpoch': (int, ('forecast', 'forecastday', 0, 'date_epoch')),
 				  'FcstDate': (str, ('forecast', 'forecastday', 0, 'date'))}  # todo constant 7 should be dynamic
 
-# icondir = config.exdir+'/auxinfo/apixuicons/'
-icondir = '/home/pi/consolerem' + '/auxinfo/apixuicons/'
+icondir = config.exdir + '/auxinfo/apixuicons/'
+
+
+# icondir = '/home/pi/consolerem' + '/auxinfo/apixuicons/'
 
 
 class APIXUWeatherSource(object):

@@ -10,7 +10,7 @@ include = /home/pi/Console/cfglib/local/auth.cfg, weathersources.cfg, pdxalerts.
 HomeScreenName = 'Creator Pro'
 DimLevel = 50
 DimTO = 5
-DimIdleListNames = Portland, MyClock, LQTTbig, Pumpkin
+DimIdleListNames = Portland, LQTT, MyClock, LQTTbig, Pumpkin
 
 DimIdleListTimes =	10, 10, 10, 10
 
