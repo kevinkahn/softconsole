@@ -81,6 +81,7 @@ class APIXUWeatherSource(object):
 		self.thisStore = None
 		self.location = location
 		self.json = {}
+		logsupport.Logs.Log('Created weather source from APIXU for: ', location, ' as ', storename)
 
 	def ConnectStore(self, store):
 		self.thisStore = store

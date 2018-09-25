@@ -103,6 +103,7 @@ class WUWeatherSource(object):
 		self.json = {}
 		self.url = 'http://api.wunderground.com/api/' + self.apikey + '/conditions/forecast10day/astronomy/q/' \
 				   + location + '.json'
+		logsupport.Logs.Log('Created weather source from WeatherUnderground for: ', location, ' as ', storename)
 
 	def ConnectStore(self, store):
 		self.thisStore = store
