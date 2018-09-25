@@ -13,8 +13,7 @@ def _normalizename(name):
 	elif isinstance(name, list):
 		return name[:]
 	elif isinstance(name, str):
-		tmp = [x.replace('*', ':') for x in name.split(':')]
-		return tmp  # todo collapse
+		return [x.replace('*', ':') for x in name.split(':')]
 	else:
 		logsupport.Logs.Log("Normalize name got strange input: ", name, severity=ConsoleError, tb=True)
 		return [name]

@@ -8,7 +8,6 @@ from collections import OrderedDict
 import logsupport
 from logsupport import ConsoleWarning, ConsoleDetail, ConsoleError
 
-from stores.weathprov import apixustore  # todo temp
 
 '''
 At the generic level defining the available fields seems reasonable; issue with the specific sources holding their mappings 
@@ -21,7 +20,7 @@ icon/icon cache - should different sources have different caches?  Different ico
 CondFields = (
 	('Time', str), ('Location', str), ('Temp', float), ('Sky', str), ('Feels', float), ('WindDir', str),
 	('WindMPH', float), ('WindGust', int), ('Sunrise', str), ('Sunset', str), ('Moonrise', str),
-	('Moonset', str), ('Humidity', float), ('Icon', pygame.Surface), ('TimeEpoch', int), ('Age', None))
+	('Moonset', str), ('Humidity', str), ('Icon', pygame.Surface), ('TimeEpoch', int), ('Age', None))
 FcstFields = (('Day', str), ('High', float), ('Low', float), ('Sky', str), ('WindSpd', float), ('WindDir', str),
 			  ('Icon', pygame.Surface))
 CommonFields = (('FcstDays', int), ('FcstEpoch', int), ('FcstDate', str))
@@ -47,16 +46,17 @@ class WeatherItem(valuestore.StoreItem):
 class WeatherVals(valuestore.ValueStore):
 	global WUcount
 
-	def __init__(self, location, weathersource):
+	def __init__(self, location, weathersource, refresh):
 		self.fetchtime = 0
 
-		super(WeatherVals, self).__init__(location, refreshinterval=60 * 30)
-		self.ws = apixustore.APIXUWeatherSource(self, location)  # weathersource
+		super(WeatherVals, self).__init__(location, refreshinterval=60 * refresh)
+		self.ws = weathersource  # apixustore.APIXUWeatherSource(self, location)  #
 		self.fetchcount = 0
 		self.vars = {'Cond': OrderedDict(), 'Fcst': OrderedDict(), 'FcstDays': 0, 'FcstEpoch': 0, 'FcstDate': ''}
 		self.failedfetch = False
 		self.location = location
 		self.name = location
+		self.ws.ConnectStore(self)
 
 		for fld, fldtype in CondFields:
 			nm = ('Cond', fld)
@@ -79,19 +79,19 @@ class WeatherVals(valuestore.ValueStore):
 		self.fetchcount += 1
 
 		'''
-		This is where we call the actual fetch weather
-		That is provider specific and should update all the items in the store or set failedfetch
+todo need logic to return none on failed fetches
 		'''
 		try:
 			for n, fcst in self.vars['Fcst'].items():
 				fcst.Value = valuestore.StoreList(fcst)
-			self.ws.FetchWeather()  # todo return failure indicator?
+			successcode = self.ws.FetchWeather()  # todo code for success(0), failure/redo(1) failure delay(2) fail perm(3)
 		except Exception as e:
-			print(repr(e))
+			logsupport.Logs.Log('Error processing forecast for: ', self.name, ' ', repr(e), severity=ConsoleError,
+								tb=False)
 
 	def GetVal(self, name):
-		if config.BadWunderKey:
-			return None
+		# if config.BadWunderKey:
+		#	return None
 		self.BlockRefresh()
 		if self.failedfetch:
 			return None

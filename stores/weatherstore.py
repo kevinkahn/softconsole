@@ -55,6 +55,7 @@ def get_icon(url):
 	else:
 		try:
 			if url.split('/')[-1] in ['.git', 'nt_.gif']:
+				WeatherIconCache[url] = EmptyIcon
 				return EmptyIcon
 			r = requests.get(url)
 			icon_str = r.content
@@ -243,6 +244,9 @@ class WeatherVals(valuestore.ValueStore):
 					cond.Value = cond.MapInfo[1](cond.MapInfo[2])
 			except:
 				cond.Value = None  # set error equiv to Conderr?
+
+		if self.vars['Cond']['Icon'] is None:
+			logsupport.Logs.Log('Internal icon error', severity=ConsoleError, tb=False)
 
 		if not forecastjunk:
 			self.vars['LastGoodFcst'].Value = time.time()
