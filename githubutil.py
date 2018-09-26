@@ -46,10 +46,13 @@ def InstallStagedVersion(d):
 	os.rename(d + '.TMP', d + '/previousversion')  # save previous version
 	os.chdir(d)
 	try:
-		os.remove(d + '/../Console/termshortenlist')
+		os.remove('../Console/termshortenlist')
 	except:
-		pass
-	os.rename(d + '/scripts/termshortenlist', d + '../Console/termshortenlist')
+		print('No current termshortenlist in ' + str(os.getcwd()))
+	try:
+		os.rename('scripts/termshortenlist', '../Console/termshortenlist')
+	except:
+		print("Couldn't move termshortenlist in " + str(os.getcwd()))
 	print('Process upgrade extras script')
 	subprocess.call('sudo bash ' + './scripts/upgradeprep.sh', shell=True)
 	print('End upgrade extras script')
