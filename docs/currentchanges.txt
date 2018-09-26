@@ -2,5 +2,12 @@ V3.0 of softconsole is now available.  This is the completion of some major chan
 
 V3.01 is a minor bug fix/cleanup release.  The main addition is a minimalist version of the install script meant to be used with the "stretch-lite" Raspbian distribution on Pi0 systems.  It doesn't install VNC so only ssh access to the finished system is available.  This release fixes a few odd timing race conditions that sometimes led to anomalous log messages.  It also has a patch to handle junk forecasts from WeatherUnderground that seem to be somewhat common of late.  This is where they return a "forecast" for Jan 3, 2018.  The console suppresses these and just continues to use the last good forecast for display (or an error message if none such exists).
 
+WU flakiness (missing sky conditions, out of date data, . . .)
+New weather support
+Warning/Error indicator
+Octoprint
+Sonos
+* for :
+
 
 
