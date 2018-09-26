@@ -13,16 +13,16 @@ def TryShorten(term):
 	elif len(term) > 12 and term[0:4] != 'http':
 		logsupport.Logs.Log("Long term: " + term, severity=ConsoleWarning)
 		TermShortener[term] = term  # only report once
-		with open(config.exdir + '/termshortenlist.new', 'w') as f:
+		with open(config.homedir + '/Console/termshortenlist.new', 'w') as f:
 			json.dump(TermShortener, f, indent=4, separators=(',', ": "))
 	return term
 
 
 def SetUpTermShortener():
 	global TermShortener
-	with open(config.exdir + '/termshortenlist', 'r') as f:
+	try:
+		with open(config.homedir + '/Console/termshortenlist', 'r') as f:
 		# noinspection PyBroadException
-		try:
 			TermShortener = json.load(f)
-		except:
-			TermShortener = {}
+	except:
+		TermShortener = {}

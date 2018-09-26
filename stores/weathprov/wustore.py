@@ -46,7 +46,7 @@ def fixsky(param):
 	if param == '':
 		return 'No Sky Rpt'
 	else:
-		TryShorten(param)
+		return TryShorten(param)
 
 
 def setAge(param, loc):
@@ -55,6 +55,9 @@ def setAge(param, loc):
 def makeTime(h, m):
 	return "{0:02d}:{1:02d}".format(h, m)
 
+
+def savjson(param, rawjson):
+	return rawjson
 
 def makewindir(param):
 	return str(param) + '@'
@@ -93,7 +96,8 @@ FcstFieldMap = {'Day': (str, ('date', 'weekday_short')),  # convert to day name
 
 CommonFieldMap = {'FcstDays': 10, 'FcstEpoch': (int, ('forecast', 'simpleforecast', 'forecastday', 0, 'date', 'epoch')),
 				  'FcstDate': (strtime, ('forecast', 'simpleforecast', 'forecastday', 0, 'date',
-										 'epoch'))}  # todo constant 7 should be dynamic
+										 'epoch')),
+				  'Rawjson': (savjson, ('forecast',), 'json')}  # todo constant 7 should be dynamic
 
 # icondir = config.exdir+'/auxinfo/apixuicons/'
 icondir = '/home/pi/consolerem' + '/auxinfo/apixuicons/'
@@ -126,6 +130,8 @@ class WUWeatherSource(object):
 				if isinstance(item[2], str):
 					if item[2] == 'location':  # can add other internal variables here if needed
 						return item[0](TreeDict(src, item[1]), self.location)
+					elif item[2] == 'json':
+						return item[0](TreeDict(src, item[1]), self.json)
 				else:
 					return item[0](TreeDict(src, item[1]), TreeDict(src, item[2]))
 		else:
