@@ -27,6 +27,8 @@ def _NormalizeState(state, brightness=None):
 			return 0
 		elif state == 'unavailable':
 			return -1
+		elif state in ['paused', 'playing']:
+			return 255
 		else:
 			try:
 				val = literal_eval(state)
@@ -144,6 +146,7 @@ class MediaPlayer(HAnode):
 		self.Sonos = False
 		if 'sonos_group' in self.attributes:
 			self.Sonos = True
+			self.internalstate = 255
 			self.sonos_group = self.attributes['sonos_group']
 			self.source_list = self.attributes['source_list']
 			self.muted = self.attributes['is_volume_muted']
@@ -154,14 +157,27 @@ class MediaPlayer(HAnode):
 
 	def Update(self, **ns):
 		self.attributes = ns['attributes']
+		self.state = ns['state']
+		newst = _NormalizeState(self.state)
+		if newst != self.internalstate:
+			logsupport.Logs.Log("Sonos room state change: ", self.Hub.Entities[self.entity_id].name, ' was ',
+								self.internalstate, ' now ', newst, '(', self.state, ')',
+								severity=ConsoleWarning)
+			self.internalstate = newst
+
 		if self.Sonos:
-			self.sonos_group = self.attributes['sonos_group']
-			self.source_list = self.attributes['source_list']
-			self.muted = self.attributes['is_volume_muted']
-			self.volume = self.attributes['volume_level']
-			self.song = self.attributes['media_title'] if 'media_title' in self.attributes else ''
-			self.artist = self.attributes['media_artist'] if 'media_artist' in self.attributes else ''
-			self.album = self.attributes['media_album_name'] if 'media_album_name' in self.attributes else ''
+			if self.internalstate == -1:  # unavailable
+				logsupport.Logs.Log("Sonos room went unavailable: ", self.Hub.Entities[self.entity_id].name,
+									severity=ConsoleWarning)
+				return
+			else:
+				self.sonos_group = self.attributes['sonos_group']
+				if 'source_list' in self.attributes: self.source_list = self.attributes['source_list']
+				self.muted = self.attributes['is_volume_muted']
+				self.volume = self.attributes['volume_level']
+				self.song = self.attributes['media_title'] if 'media_title' in self.attributes else ''
+				self.artist = self.attributes['media_artist'] if 'media_artist' in self.attributes else ''
+				self.album = self.attributes['media_album_name'] if 'media_album_name' in self.attributes else ''
 
 			if config.DS.AS is not None:
 				if self.Hub.name in config.DS.AS.HubInterestList:

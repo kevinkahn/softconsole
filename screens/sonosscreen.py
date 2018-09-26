@@ -274,13 +274,23 @@ class SonosScreenDesc(screen.BaseKeyScreenDesc):
 						 (config.screenwidth - config.horizborder, self.NodeVPos[0]), 3)
 		for e, g in self.SonosGroups.items():
 			ginfo = self.SonosNodes[g[0]]
-			song, ht, wd = screenutil.CreateTextBlock([ginfo.song, ginfo.artist, ginfo.album],
-													  self.roomheight // (
+			if ginfo.internalstate == -1:
+				unav, ht, wd = screenutil.CreateTextBlock('<player info unavailable>',
+														  self.roomheight // (
 																  sum(self.roomdisplayinfo) / self.roomdisplayinfo[1]),
-													  self.CharColor, False, FitLine=True
-													  , MaxWidth=config.screenwidth - 2 * config.horizborder - 15)
-			config.screen.blit(song, (config.horizborder + 15,
-									  self.NodeVPos[slot] + self.roomheight // (
+														  self.CharColor, False, FitLine=True
+														  , MaxWidth=config.screenwidth - 2 * config.horizborder - 15)
+				config.screen.blit(unav, (config.horizborder + 15,
+										  self.NodeVPos[slot] + self.roomheight // (
+												  sum(self.roomdisplayinfo) / self.roomdisplayinfo[0])))
+			else:
+				song, ht, wd = screenutil.CreateTextBlock([ginfo.song, ginfo.artist, ginfo.album],
+														  self.roomheight // (
+																  sum(self.roomdisplayinfo) / self.roomdisplayinfo[1]),
+														  self.CharColor, False, FitLine=True
+														  , MaxWidth=config.screenwidth - 2 * config.horizborder - 15)
+				config.screen.blit(song, (config.horizborder + 15,
+										  self.NodeVPos[slot] + self.roomheight // (
 												  sum(self.roomdisplayinfo) / self.roomdisplayinfo[0])))
 			for n in g:
 				config.screen.blit(self.RoomNames[n][0], (config.horizborder + 5, self.NodeVPos[slot]))
