@@ -25,18 +25,6 @@ FcstFields = (('Day', str), ('High', float), ('Low', float), ('Sky', str), ('Win
 			  ('Icon', pygame.Surface))
 CommonFields = (('FcstDays', int), ('FcstEpoch', int), ('FcstDate', str))
 
-def TryShorten(term):
-	if term in config.TermShortener:
-		return config.TermShortener[term]
-	elif len(term) > 12 and term[0:4] != 'http':
-		logsupport.Logs.Log("Long term: " + term, severity=ConsoleWarning)
-		config.TermShortener[term] = term  # only report once
-		with open(config.exdir + '/termshortenlist.new', 'w') as f:
-			json.dump(config.TermShortener, f, indent=4, separators=(',', ": "))
-	return term
-
-
-
 class WeatherItem(valuestore.StoreItem):
 	def __init__(self, name, Store, vt=None):
 		# self.MapInfo = mapinfo

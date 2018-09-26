@@ -42,6 +42,7 @@ import utilities
 from logsupport import ConsoleWarning,ConsoleError
 from stores import mqttsupport, valuestore, localvarsupport, sysstore
 import alerttasks
+from stores.weathprov.providerutils import SetUpTermShortener
 
 config.hubtypes['ISY'] = isy.ISY
 if sys.version_info[0] == 3:
@@ -172,12 +173,7 @@ logsupport.Logs.Log("Alert classes instantiated")
 Initialize the Console
 """
 
-with open(config.exdir + '/termshortenlist', 'r') as f:
-	# noinspection PyBroadException
-	try:
-		config.TermShortener = json.load(f)
-	except:
-		config.TermShortener = {}
+SetUpTermShortener()
 
 if len(sys.argv) == 2:
 	config.configfile = sys.argv[1]
@@ -346,7 +342,8 @@ for i, v in config.ParsedConfigFile.items():
 					ws = info[0](desc, loccode, info[1])
 					valuestore.NewValueStore(genericweatherstore.WeatherVals(desc, ws, refresh))
 				except Exception as e:
-					print('Exc1' + repr(e))
+					logsupport.Logs.Log('Unhandled error creating weather location: ', loccode, repr(e),
+										severity=ConsoleError, tb=False)
 				del config.ParsedConfigFile[i]
 
 
@@ -430,7 +427,7 @@ Run the main console loop
 """
 for n in alerttasks.monitoredvars:  # make sure vars used in alerts are updated to starting values
 	valuestore.GetVal(n)
-
+logsupport.ErrorNotice = False
 config.DS.MainControlLoop(config.HomeScreen)
 logsupport.Logs.Log("Main line exit: ", config.ecode)
 pygame.quit()

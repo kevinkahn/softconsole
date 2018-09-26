@@ -25,8 +25,9 @@ def interval_str(sec_elapsed):
 	s = int(sec_elapsed % 60)
 	return "{} days {:>02d}hrs {:>02d}mn {:>02d}sec".format(d, h, m, s)
 
-def tint(clr):
-	tint_factor = .25
+
+def tint(clr, tint_factor=.25):
+	# tint_factor = .25
 	r, g, b = wc(clr)
 	return r + (255 - r) * tint_factor, g + (255 - g) * tint_factor, b + (255 - b) * tint_factor
 

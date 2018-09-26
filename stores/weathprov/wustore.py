@@ -1,6 +1,5 @@
 import requests
 import os, sys
-from datetime import datetime
 import time
 import pygame
 from utilfuncs import interval_str, TreeDict
@@ -9,6 +8,7 @@ import config
 import logsupport
 from logsupport import ConsoleDetail, ConsoleWarning, ConsoleError
 import io
+from stores.weathprov.providerutils import TryShorten
 
 EmptyIcon = pygame.Surface((64, 64))
 EmptyIcon.fill((255, 255, 255))  # todo replace with a ? icon?
@@ -34,13 +34,23 @@ def geticon(url):
 	return icon_scr
 
 
-def doage(basetime):
-	return interval_str(time.time() - basetime)
+def doage(basetime, loc):
+	rdingage = time.time() - basetime
+	if rdingage > (60 * 60 * 24) * 5:  # over 5 days old
+		logsupport.Logs.Log("Weather station likely gone: ", loc, " age is ", rdingage / (60 * 60 * 24),
+							" days old", severity=ConsoleWarning)
+	return interval_str(rdingage)
 
 
-def setAge(param):
-	return functools.partial(doage, param)
+def fixsky(param):
+	if param == '':
+		return 'No Sky Rpt'
+	else:
+		TryShorten(param)
 
+
+def setAge(param, loc):
+	return functools.partial(doage, param, loc)
 
 def makeTime(h, m):
 	return "{0:02d}:{1:02d}".format(h, m)
@@ -57,7 +67,7 @@ def strtime(epochtime):
 CondFieldMap = {'Time': (strtime, ('current_observation', 'observation_epoch')),
 				'Location': (str, ('current_observation', 'display_location', 'city')),
 				'Temp': (float, ('current_observation', 'temp_f')),
-				'Sky': (str, ('current_observation', 'weather')),
+				'Sky': (fixsky, ('current_observation', 'weather')),
 				'Feels': (float, ('current_observation', 'feelslike_f')),
 				'WindDir': (str, ('current_observation', 'wind_dir')),
 				'WindMPH': (float, ('current_observation', 'wind_mph')),
@@ -67,7 +77,7 @@ CondFieldMap = {'Time': (strtime, ('current_observation', 'observation_epoch')),
 				'Moonrise': (makeTime, ('moon_phase', 'moonrise', 'hour'), ('moon_phase', 'moonrise', 'minute')),
 				'Moonset': (makeTime, ('moon_phase', 'moonset', 'hour'), ('moon_phase', 'moonset', 'minute')),
 				'TimeEpoch': (int, ('current_observation', 'observation_epoch')),
-				'Age': (setAge, ('current_observation', 'observation_epoch')),
+				'Age': (setAge, ('current_observation', 'observation_epoch'), 'location'),
 				'Humidity': (str, ('current_observation', 'relative_humidity')),
 				'Icon': (geticon, ('current_observation', 'icon_url'))
 				}
@@ -75,7 +85,7 @@ CondFieldMap = {'Time': (strtime, ('current_observation', 'observation_epoch')),
 FcstFieldMap = {'Day': (str, ('date', 'weekday_short')),  # convert to day name
 				'High': (float, ('high', 'fahrenheit')),
 				'Low': (float, ('low', 'fahrenheit')),
-				'Sky': (str, ('conditions',)),
+				'Sky': (fixsky, ('conditions',)),
 				'WindSpd': (float, ('avewind', 'mph')),
 				'WindDir': (makewindir, ('avewind', 'dir')),
 				'Icon': (geticon, ('icon_url',))  # get the surface
@@ -103,7 +113,7 @@ class WUWeatherSource(object):
 		self.json = {}
 		self.url = 'http://api.wunderground.com/api/' + self.apikey + '/conditions/forecast10day/astronomy/q/' \
 				   + location + '.json'
-		logsupport.Logs.Log('Created weather source from WeatherUnderground for: ', location, ' as ', storename)
+		logsupport.Logs.Log('Created WU weather for: ', location, ' as ', storename)
 
 	def ConnectStore(self, store):
 		self.thisStore = store
@@ -113,7 +123,11 @@ class WUWeatherSource(object):
 			if len(item) == 2:
 				return item[0](TreeDict(src, item[1]))
 			else:
-				return item[0](TreeDict(src, item[1]), TreeDict(src, item[2]))
+				if isinstance(item[2], str):
+					if item[2] == 'location':  # can add other internal variables here if needed
+						return item[0](TreeDict(src, item[1]), self.location)
+				else:
+					return item[0](TreeDict(src, item[1]), TreeDict(src, item[2]))
 		else:
 			return item
 

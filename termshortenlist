@@ -1,4 +1,5 @@
 {
+    "Partly cloudy": "Ptly Cldy",
     "Chance of Rain": "Chc of Rain",
     "Chance of Snow": "Chc of Snow",
     "Chance of Freezing Rain": "Chc Frzg Rain",
@@ -10,5 +11,6 @@
     "Partly Cloudy": "Ptly Cldy",
     "Portland International": "PDX",
     "Scattered Clouds": "Sct Clouds",
-    "Chance of Thunderstorms": "Chc of TStorms"
+    "Chance of Thunderstorms": "Chc of TStorms",
+    "Moderate or heavy rain shower": "Mod/Hvy Shower"
 }

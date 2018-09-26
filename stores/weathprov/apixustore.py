@@ -6,6 +6,7 @@ from utilfuncs import interval_str, TreeDict
 import functools
 import config
 import logsupport
+from stores.weathprov.providerutils import TryShorten
 
 EmptyIcon = pygame.Surface((64, 64))
 EmptyIcon.fill((255, 255, 255))  # todo replace with a ? icon?
@@ -40,7 +41,7 @@ def setAge(param):
 CondFieldMap = {'Time': (str, ('current', 'last_updated')),
 				'Location': (str, ('location', 'name')),
 				'Temp': (float, ('current', 'temp_f')),
-				'Sky': (str, ('current', 'condition', 'text')),
+				'Sky': (TryShorten, ('current', 'condition', 'text')),
 				'Feels': (float, ('current', 'feelslike_f')),
 				'WindDir': (str, ('current', 'wind_dir')),
 				'WindMPH': (float, ('current', 'wind_mph')),
@@ -57,7 +58,7 @@ CondFieldMap = {'Time': (str, ('current', 'last_updated')),
 FcstFieldMap = {'Day': (getdayname, ('date_epoch',)),  # convert to day name
 				'High': (float, ('day', 'maxtemp_f')),
 				'Low': (float, ('day', 'mintemp_f')),
-				'Sky': (str, ('day', 'condition', 'text')),
+				'Sky': (TryShorten, ('day', 'condition', 'text')),
 				'WindSpd': (str, ('day', 'maxwind_mph')),
 				'WindDir': '',
 				'Icon': (geticon, ('day', 'condition', 'icon'))  # get the surface
@@ -81,7 +82,7 @@ class APIXUWeatherSource(object):
 		self.thisStore = None
 		self.location = location
 		self.json = {}
-		logsupport.Logs.Log('Created weather source from APIXU for: ', location, ' as ', storename)
+		logsupport.Logs.Log('Created APIXU weather for: ', location, ' as ', storename)
 
 	def ConnectStore(self, store):
 		self.thisStore = store
