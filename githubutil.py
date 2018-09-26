@@ -59,7 +59,7 @@ def InstallStagedVersion(d):
 			print("Initialized termshortenlist")
 		except:
 			print("Couldn't move termshortenlist in " + str(os.getcwd()))
-			
+
 	print('Process upgrade extras script')
 	subprocess.call('sudo bash ' + './scripts/upgradeprep.sh', shell=True)
 	print('End upgrade extras script')
