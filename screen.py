@@ -4,8 +4,9 @@ from logsupport import ConsoleError, ConsoleWarning
 import utilities
 import toucharea
 import collections
-from utilfuncs import wc
+from utilfuncs import wc, tint
 import debug
+import pygame
 
 
 def FlatenScreenLabel(label):
@@ -46,6 +47,7 @@ class ScreenDesc(object):
 		self.CmdCharCol = None
 		self.label = None # type: list
 		self.DefaultHub = None
+		self.markradius = int(min(config.screenwidth, config.screenheight) * .025)
 
 		self.name = screenname
 		self.NavKeys = collections.OrderedDict()
@@ -97,7 +99,9 @@ class ScreenDesc(object):
 
 	def PaintBase(self):
 		config.screen.fill(wc(self.BackgroundColor))
-
+		if logsupport.ErrorNotice:
+			pygame.draw.circle(config.screen, tint(self.BackgroundColor, tint_factor=.5),
+							   (self.markradius, self.markradius), self.markradius, 0)
 
 class BaseKeyScreenDesc(ScreenDesc):
 	def __init__(self, screensection, screenname):

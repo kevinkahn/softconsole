@@ -23,7 +23,6 @@ import config
 import time
 import os
 import re
-import types
 from hw import disklogging
 
 LogLevels = ('Debug', 'DetailHigh', 'Detail', 'Info', 'Warning', 'Error')
@@ -33,6 +32,7 @@ ConsoleDetail = 2
 ConsoleInfo = 3
 ConsoleWarning = 4
 ConsoleError = 5
+ErrorNotice = False
 
 LogLevel = 3
 
@@ -77,7 +77,9 @@ class Logger(object):
 		"""
 		params: args is one or more strings (like for print) and kwargs is severity=
 		"""
+		global ErrorNotice
 		severity = kwargs.pop('severity', ConsoleInfo)
+		if severity in [ConsoleWarning, ConsoleError]: ErrorNotice = True
 		tb = kwargs.pop('tb', True)
 		if severity < LogLevel:
 			return

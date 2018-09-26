@@ -130,8 +130,7 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 			errmsg1 = config.fonts.Font(self.LocationSize,self.Font).render('Weather',0,wc(self.CharColor))
 			errmsg2 = config.fonts.Font(self.LocationSize, self.Font).render('unavailable', 0, wc(self.CharColor))
 			errmsg3 = config.fonts.Font(self.LocationSize, self.Font).render('or error', 0, wc(self.CharColor))
-			config.screen.fill(wc(self.BackgroundColor),
-							   pygame.Rect(0, 0, config.screenwidth, config.screenheight - config.botborder))
+			self.PaintBase()
 			vert_off = config.topborder
 			for tmlbl in renderedtimelabel:
 				horiz_off = (config.screenwidth - tmlbl.get_width()) / 2
@@ -170,8 +169,7 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 			s = (usefulheight - h)/(spaces + forecastlines - 1)
 			extraspace = (usefulheight - h - s*(spaces + forecastlines - 1))/spaces
 
-			config.screen.fill(wc(self.BackgroundColor),
-							   pygame.Rect(0, 0, config.screenwidth, config.screenheight - config.botborder))
+			self.PaintBase()
 			vert_off = config.topborder
 			for tmlbl in renderedtimelabel:
 				horiz_off = (config.screenwidth - tmlbl.get_width())//2

@@ -230,6 +230,7 @@ class LogDisplayScreen(screen.BaseKeyScreenDesc):
 		debug.debugPrint('Main', "Enter to screen: ", self.name)
 		super(LogDisplayScreen, self).InitDisplay(nav)
 		logsupport.Logs.Log('Entering Log Screen')
+		logsupport.ErrorNotice = False
 		self.item = 0
 		self.PageStartItem = [0]
 		self.pageno = -1

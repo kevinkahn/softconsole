@@ -122,7 +122,7 @@ class AlertsScreenDesc(screen.ScreenDesc):
 	def InitDisplay(self, nav):
 		super(AlertsScreenDesc, self).InitDisplay(nav)
 
-		config.screen.fill(wc(self.BackgroundColor))
+		self.PaintBase()
 		self.PaintKeys()
 		pygame.display.update()
 		self.Msg = True

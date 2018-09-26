@@ -54,8 +54,7 @@ class ClockScreenDesc(screen.ScreenDesc):
 			h = h + cb.get_height()
 		s = (usefulheight - h)/(len(l))
 
-		config.screen.fill(wc(self.BackgroundColor),
-						   pygame.Rect(0, 0, config.screenwidth, config.screenheight - config.botborder))
+		self.PaintBase()
 		vert_off = config.topborder
 		for i in range(len(l)):
 			horiz_off = (config.screenwidth - l[i].get_width())//2

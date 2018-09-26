@@ -176,7 +176,7 @@ class ISYEventMonitor(object):
 					sr = m['SubscriptionResponse']
 					if self.streamid != sr['SID']:
 						self.streamid = sr['SID']
-						logsupport.Logs.Log("Opened event stream: " + self.streamid, severity=ConsoleWarning)
+						logsupport.Logs.Log("Opened event stream: " + self.streamid)
 
 				elif 'Event' in m:
 					E = m['Event']
