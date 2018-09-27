@@ -160,9 +160,8 @@ class MediaPlayer(HAnode):
 		self.state = ns['state']
 		newst = _NormalizeState(self.state)
 		if newst != self.internalstate:
-			logsupport.Logs.Log("Sonos room state change: ", self.Hub.Entities[self.entity_id].name, ' was ',
-								self.internalstate, ' now ', newst, '(', self.state, ')',
-								severity=ConsoleWarning)
+			logsupport.Logs.Log("Mediaplayer state change: ", self.Hub.Entities[self.entity_id].name, ' was ',
+								self.internalstate, ' now ', newst, '(', self.state, ')')
 			self.internalstate = newst
 
 		if self.Sonos:
