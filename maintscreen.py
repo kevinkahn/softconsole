@@ -148,6 +148,7 @@ def dobeta(K, presstype):
 	#Future fetch other tags; switch to versionselector
 	K.State = not K.State
 	K.PaintKey()
+	pygame.display.update()
 	if K.name == 'stable':
 		subprocess.Popen('sudo rm /home/pi/usebeta', shell=True) #Deprecate remove
 		subprocess.Popen('sudo echo stable > /home/pi/versionselector', shell=True)
@@ -162,6 +163,7 @@ def dobeta(K, presstype):
 	time.sleep(2)
 	K.State = not K.State
 	K.PaintKey()
+	pygame.display.update()
 
 
 def fetch_stable():
