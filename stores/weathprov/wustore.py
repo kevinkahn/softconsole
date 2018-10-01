@@ -25,13 +25,17 @@ def geticon(url):
 		WeatherIconCache[url] = EmptyIcon
 		return EmptyIcon
 	r = requests.get(url)
-	icon_str = r.content
-	icon_file = io.BytesIO(icon_str)
-	icon_gif = pygame.image.load(icon_file, 'icon.gif')
-	icon_scr = pygame.Surface.convert_alpha(icon_gif)
-	icon_scr.set_colorkey(icon_gif.get_colorkey())
-	WeatherIconCache[url] = icon_scr
-	return icon_scr
+	try:
+		icon_str = r.content
+		icon_file = io.BytesIO(icon_str)
+		icon_gif = pygame.image.load(icon_file, 'icon.gif')
+		icon_scr = pygame.Surface.convert_alpha(icon_gif)
+		icon_scr.set_colorkey(icon_gif.get_colorkey())
+		WeatherIconCache[url] = icon_scr
+		return icon_scr
+	except Exception as e:
+		logsupport.Logs.Log("Bad icon from WU: ", str(url), repr(e), severity=ConsoleWarning)
+		return EmptyIcon
 
 
 def doage(basetime, loc):
@@ -152,7 +156,7 @@ class WUWeatherSource(object):
 					WUcount),
 				severity=ConsoleDetail)
 		except:
-			logsupport.Logs.Log("Error fetching weather: " + self.url + str(sys.exc_info()[0]),
+			logsupport.Logs.Log("Error fetching WU weather: " + self.url + str(sys.exc_info()[0]),
 								severity=ConsoleWarning)
 			self.failedfetch = True
 			return 1
@@ -204,6 +208,8 @@ class WUWeatherSource(object):
 		for fn, entry in CommonFieldMap.items():
 			val = self.MapItem(self.json, entry)
 			self.thisStore.SetVal(fn, val)
+
+		return 0  # success
 
 
 config.WeathProvs['WU'] = [WUWeatherSource, '']  # api key gets filled in from config file

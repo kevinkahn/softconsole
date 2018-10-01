@@ -166,14 +166,13 @@ class MediaPlayer(HAnode):
 
 		if self.Sonos:
 			if self.internalstate == -1:  # unavailable
-				logsupport.Logs.Log("Sonos room went unavailable: ", self.Hub.Entities[self.entity_id].name,
-									severity=ConsoleWarning)
+				logsupport.Logs.Log("Sonos room went unavailable: ", self.Hub.Entities[self.entity_id].name)
 				return
 			else:
 				self.sonos_group = self.attributes['sonos_group']
 				if 'source_list' in self.attributes: self.source_list = self.attributes['source_list']
-				self.muted = self.attributes['is_volume_muted']
-				self.volume = self.attributes['volume_level']
+				self.muted = self.attributes['is_volume_muted'] if 'is_volume_muted' in self.attributes else 'True'
+				self.volume = self.attributes['volume_level'] if 'volume_level' in self.attributes else 0
 				self.song = self.attributes['media_title'] if 'media_title' in self.attributes else ''
 				self.artist = self.attributes['media_artist'] if 'media_artist' in self.attributes else ''
 				self.album = self.attributes['media_album_name'] if 'media_album_name' in self.attributes else ''

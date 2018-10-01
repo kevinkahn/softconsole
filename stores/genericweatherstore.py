@@ -1,8 +1,6 @@
 
 import pygame
-import json
 import time
-import config
 from stores import valuestore
 from collections import OrderedDict
 import logsupport
@@ -66,16 +64,14 @@ class WeatherVals(valuestore.ValueStore):
 		self.failedfetch = False
 		self.fetchcount += 1
 
-		'''
-todo need logic to return none on failed fetches
-		'''
 		try:
 			for n, fcst in self.vars['Fcst'].items():
 				fcst.Value = valuestore.StoreList(fcst)
 			successcode = self.ws.FetchWeather()  # todo code for success(0), failure/redo(1) failure delay(2) fail perm(3)
+			if successcode != 0: self.failedfetch = True
 		except Exception as e:
-			logsupport.Logs.Log('Error processing forecast for: ', self.name, ' ', repr(e), severity=ConsoleError,
-								tb=False)
+			logsupport.Logs.Log('Error processing forecast for: ', self.name, ' ', repr(e), severity=ConsoleWarning)
+			self.failedfetch = True
 
 	def GetVal(self, name):
 		# if config.BadWunderKey:
