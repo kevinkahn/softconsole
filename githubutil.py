@@ -55,7 +55,7 @@ def InstallStagedVersion(d):
 
 	if not os.path.exists('../Console/termshortenlist'):
 		try:
-			os.rename('scripts/termshortenlist', '../Console/termshortenlist')
+			os.rename('example configs/termshortenlist', '../Console/termshortenlist')
 			print("Initialized termshortenlist")
 		except:
 			print("Couldn't move termshortenlist in " + str(os.getcwd()))
