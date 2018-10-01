@@ -256,7 +256,8 @@ class MaintScreenDesc(screen.BaseKeyScreenDesc):
 		utilities.register_example("MaintScreenDesc", self)
 
 	def ShowScreen(self):
-		self.PaintBase()
+		self.ReInitDisplay()
+		# self.PaintBase()
 		r = config.fonts.Font(self.TitleFontSize, '', True, True).render("Console Maintenance", 0, wc(self.CharColor))
 		rl = (config.screenwidth - r.get_width())/2
 		config.screen.blit(r, (rl, config.topborder))

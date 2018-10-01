@@ -88,7 +88,7 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 		self.fmt = WFormatter()
 
 	def InitDisplay(self, nav):
-		self.PaintBase()
+		# self.PaintBase()
 		super(TimeTempScreenDesc, self).InitDisplay(nav)
 		self.repaintClock()
 
@@ -130,8 +130,9 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 			errmsg1 = config.fonts.Font(self.LocationSize,self.Font).render('Weather',0,wc(self.CharColor))
 			errmsg2 = config.fonts.Font(self.LocationSize, self.Font).render('unavailable', 0, wc(self.CharColor))
 			errmsg3 = config.fonts.Font(self.LocationSize, self.Font).render('or error', 0, wc(self.CharColor))
-			self.PaintBase()
+			#self.PaintBase()
 			vert_off = config.topborder
+			self.ReInitDisplay()
 			for tmlbl in renderedtimelabel:
 				horiz_off = (config.screenwidth - tmlbl.get_width()) / 2
 				config.screen.blit(tmlbl, (horiz_off, vert_off))
@@ -169,8 +170,9 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 			s = (usefulheight - h)/(spaces + forecastlines - 1)
 			extraspace = (usefulheight - h - s*(spaces + forecastlines - 1))/spaces
 
-			self.PaintBase()
+			#self.PaintBase()
 			vert_off = config.topborder
+			self.ReInitDisplay()
 			for tmlbl in renderedtimelabel:
 				horiz_off = (config.screenwidth - tmlbl.get_width())//2
 				config.screen.blit(tmlbl, (horiz_off, vert_off))

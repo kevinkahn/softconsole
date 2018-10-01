@@ -100,7 +100,7 @@ class SonosScreenDesc(screen.BaseKeyScreenDesc):
 														  proc=functools.partial(self.PickSourceOK, False))
 
 		for i in range(self.numplayers + 1):
-			self.GCVPos.append(self.titlespace + i * 50)  # spacing for group change todo make auto
+			self.GCVPos.append(self.titlespace + i * 50)
 
 		# set up the control screen for a group
 		self.ctlhgt = useablescreenheight // (2 * self.numplayers + 2)
@@ -129,7 +129,6 @@ class SonosScreenDesc(screen.BaseKeyScreenDesc):
 																  (config.screenwidth // 2,
 																   (self.GCVPos[i] + self.GCVPos[i + 1]) // 2),
 																  (config.screenwidth, 50),
-																  # spacing for group change todo make auto
 																  proc=functools.partial(self.GroupMemberToggle, i))
 			butvert = self.GPCtlVPos[i] + self.ctlhgt * 1.5
 			butsz = (self.ctlhgt, self.ctlhgt)
@@ -165,7 +164,6 @@ class SonosScreenDesc(screen.BaseKeyScreenDesc):
 		self.KeysGC['OK'] = toucharea.ManualKeyDesc(screen, 'OK', ['OK'], self.BackgroundColor,
 													self.CharColor, self.CharColor,
 													center=(config.screenwidth // 2, self.GCVPos[-1] + 30),
-													# todo make auto?
 													size=(config.screenwidth // 4, self.ctlhgt), KOn='', KOff='',
 													proc=self.GroupMemberOK)
 
@@ -360,8 +358,6 @@ class SonosScreenDesc(screen.BaseKeyScreenDesc):
 														  MaxWidth=config.screenwidth - config.horizborder)[0],
 							   (20, self.GCVPos[i]))
 
-	# spacing for group change todo make auto
-	# shrinking room name? todo master bedroom
 
 	def SourceSelectScreen(self):
 		# show a list of sources starting with startsource item last item is either next or return

@@ -54,7 +54,8 @@ class ClockScreenDesc(screen.ScreenDesc):
 			h = h + cb.get_height()
 		s = (usefulheight - h)/(len(l))
 
-		self.PaintBase()
+		# self.PaintBase()
+		self.ReInitDisplay()
 		vert_off = config.topborder
 		for i in range(len(l)):
 			horiz_off = (config.screenwidth - l[i].get_width())//2

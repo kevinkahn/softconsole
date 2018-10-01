@@ -40,7 +40,8 @@ class VerifyScreen(screen.BaseKeyScreenDesc):
 		config.DS.SwitchScreen(self, 'Bright', config.DS.state, 'Do Verify ' + self.name, NavKeys=False)
 
 	def ShowScreen(self):
-		self.PaintBase()
+		self.ReInitDisplay()
+		# self.PaintBase()
 		r = config.fonts.Font(self.TitleFontSize, '', True, True).render(self.label, 0, wc(self.CharColor))
 		rl = (config.screenwidth - r.get_width())/2
 		config.screen.blit(r, (rl, config.topborder))
@@ -140,7 +141,8 @@ class ValueChangeScreen(screen.ScreenDesc): # todo may need to call super class
 	def InitDisplay(self, nav):
 		super(ValueChangeScreen, self).InitDisplay({})  # why do we pass in the nav keys here?
 
-		self.PaintBase()
+		self.ReInitDisplay()
+		#self.PaintBase()
 		# write the title with name of var? maybe button should be "accept"
 		for i in range(len(self.changevals)):
 			fho = self.chgval[i][0][0]

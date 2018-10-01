@@ -130,7 +130,8 @@ class ManualKeyDesc(TouchPoint):
 		if self.UnknownState:
 			# overlay an X for lost states
 			config.screen.blit(self.KeyUnknownOverlay, (x, y))
-		pygame.display.update()
+
+	# pygame.display.update() todo del?
 
 	def ScheduleBlinkKey(self, cycle):
 		E = eventlist.ProcEventItem(id(self.Screen), 'keyblink',
@@ -145,6 +146,7 @@ class ManualKeyDesc(TouchPoint):
 				self.PaintKey(ForceDisplay=True, DisplayState=False)  # force off
 			E = eventlist.ProcEventItem(id(self.Screen), 'keyblink',
 										functools.partial(self.BlinkKey, cycle - 1))
+			pygame.display.update()  # actually change the display - used to do in PaintKey but that causes redundancy
 			config.DS.Tasks.AddTask(E, .5)
 		else:
 			self.PaintKey()  # make sure to leave it in real state

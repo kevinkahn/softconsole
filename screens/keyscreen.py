@@ -7,6 +7,7 @@ import screen
 import utilities
 import debug
 import keyspecs
+import pygame
 
 class KeyScreenDesc(screen.BaseKeyScreenDesc):
 	def __init__(self, screensection, screenname):
@@ -41,6 +42,7 @@ class KeyScreenDesc(screen.BaseKeyScreenDesc):
 		for K in self.Keys.values():
 			K.InitDisplay()
 		super(KeyScreenDesc, self).InitDisplay(nav)
+		pygame.display.update()
 
 	def NodeEvent(self, hub='', node=0, value=0, varinfo = ()):
 		# Watched node reported change event is ("Node", addr, value, seq)
@@ -55,6 +57,7 @@ class KeyScreenDesc(screen.BaseKeyScreenDesc):
 				debug.debugPrint('Screen', 'KS Wildcard ISYEvent ', K.name, str(value), str(K.State))
 				K.UnknownState = True
 				K.PaintKey()
+				pygame.display.update()
 		elif node != 0:
 			# noinspection PyBroadException
 			try:
@@ -66,12 +69,14 @@ class KeyScreenDesc(screen.BaseKeyScreenDesc):
 			K.State = not (value == 0)  # K is off (false) only if state is 0
 			K.UnknownState = True if value == -1 else False
 			K.PaintKey()
+			pygame.display.update()
 		else:
 			# noinspection PyBroadException
 			try:
 				# varinfo is (keyname, varname)
 				K = self.Keys[varinfo[0]]
 				K.PaintKey()
+				pygame.display.update()
 			except:
 				debug.debugPrint('Screen', 'Bad var key', self.name, str(varinfo))
 				return
