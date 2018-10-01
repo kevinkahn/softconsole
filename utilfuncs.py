@@ -5,7 +5,7 @@ Avoids import loops
 import webcolors
 
 
-def wc(clr, factor=0.0, layercolor=(255, 255, 255)):  # todo move this and interval str to a dependencyless file
+def wc(clr, factor=0.0, layercolor=(255, 255, 255)):
 	lc = webcolors.name_to_rgb(layercolor) if isinstance(layercolor, str) else layercolor
 	if isinstance(clr, str):
 		try:

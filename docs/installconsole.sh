@@ -133,7 +133,6 @@ echo stable > versionselector
 if [ $Personal == "Y" ]
 then
     touch homesystem
-    #echo cur > versionselector  # todo delete
     echo "Make Home System"
 fi
 

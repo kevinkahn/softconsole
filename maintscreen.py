@@ -90,11 +90,12 @@ def syncKeytoStore(storeitem, old, new, key, chgsource):
 	key.State = new
 
 # noinspection PyUnusedLocal
-def setdbg(K, presstype):  # todo needs dynamic repaint
+def setdbg(K, presstype):
 	st = debug.dbgStore.GetVal(K.name)
 	debug.dbgStore.SetVal(K.name,not st)
 	K.State = debug.dbgStore.GetVal(K.name) # this allows for case where flag gets reset by proc called servicing the set
 	K.PaintKey()
+	pygame.display.update()
 	logsupport.Logs.Log("Debug flag ", K.name, ' = ', K.State, severity=ConsoleWarning)
 
 # noinspection PyUnusedLocal
@@ -112,6 +113,7 @@ def adjloglevel(K, presstype):
 	debug.DebugFlagKeys["LogLevelUp"].PaintKey()
 	debug.DebugFlagKeys["LogLevelDown"].PaintKey()
 	logsupport.Logs.Log("Log Level changed via ", K.name, " to ", logsupport.LogLevel, severity=ConsoleWarning)
+	pygame.display.update()
 
 # noinspection PyUnusedLocal
 def gohome(K, presstype):  # neither peram used

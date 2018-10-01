@@ -65,7 +65,7 @@ class DisplayScreen(object):
 			newstate = 'Home'
 		if NS == self.AS:
 			debug.debugPrint('Dispatch', 'Null SwitchScreen: ', reason)
-			logsupport.Logs.Log('Null switchscreen: ' + reason, severity=ConsoleWarning)
+			logsupport.Logs.Log('Null switchscreen: ' + reason)
 		if self.AS is not None and self.AS != NS:
 			debug.debugPrint('Dispatch', "Switch from: ", self.AS.name, " to ", NS.name, "Nav=", NavKeys, ' State=',
 					   oldstate + '/' + newstate + ':' + olddim + '/' + newdim, ' ', reason)
@@ -104,7 +104,6 @@ class DisplayScreen(object):
 				self.AS.InitDisplay(nav)
 			except Exception as e:
 				logsupport.Logs.Log('Screen display error: ', self.AS.name, ' ', repr(e), severity=ConsoleError)
-		# todo - just wait for timer to switch screen?
 
 	# noinspection PyUnusedLocal
 	def NavPress(self, NS, press):
@@ -249,7 +248,6 @@ class DisplayScreen(object):
 						self.SwitchScreen(config.HomeScreen, 'Dim', 'Home', 'Dim nonhome to dim home')
 					elif self.state == 'Home':
 						self.SwitchScreen(config.DimIdleList[0], 'Dim', 'Cover', 'Go to cover', NavKeys=False)
-						# TODO funny case where there are no idle screens and the nav keys don't get drawn on touch
 						# rotate covers - save even if only 1 cover
 						config.DimIdleList = config.DimIdleList[1:] + config.DimIdleList[:1]
 						config.DimIdleTimes = config.DimIdleTimes[1:] + config.DimIdleTimes[:1]

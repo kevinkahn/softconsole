@@ -131,8 +131,6 @@ class ManualKeyDesc(TouchPoint):
 			# overlay an X for lost states
 			config.screen.blit(self.KeyUnknownOverlay, (x, y))
 
-	# pygame.display.update() todo del?
-
 	def ScheduleBlinkKey(self, cycle):
 		E = eventlist.ProcEventItem(id(self.Screen), 'keyblink',
 									functools.partial(self.BlinkKey, cycle))

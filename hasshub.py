@@ -13,7 +13,6 @@ from logsupport import ConsoleWarning, ConsoleError, ConsoleDetail
 import functools
 import eventlist
 
-import requests  # todo ha replacement
 
 from ast import literal_eval
 def _NormalizeState(state, brightness=None):
@@ -210,6 +209,7 @@ class MediaPlayer(HAnode):
 																		'source': '{}'.format(sourcename)})
 
 class Thermostat(HAnode): # not stateful since has much state info
+	# todo update since state now in pushed stream
 	def __init__(self, HAitem, d):
 		super(Thermostat, self).__init__(HAitem, **d)
 		self.Hub.Thermostats[self.entity_id] = self
