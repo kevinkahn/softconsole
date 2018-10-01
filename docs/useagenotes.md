@@ -111,6 +111,45 @@ location = pws:KORNORTH18
 ```  
 The section name will be the name of the store that will hold the weather and can be referenced where ever store references are allowed, most likely on a weather screen or timetemp screen.  Location is the string that the provider will use to return the weather.  Refresh is the optional refresh interval for getting new data in minutes (default 60).  Most providers limit calls per day so this provides some control over the demand you create.
 
+The weather information is available in a store named as above with entries under "Cond" for current conditions, "Fcst" for forecast conditions (these are indexed by day number), as some common fields.  The set of fields available with standard names for screen display purposes are:
+ * Current conditions:
+```
+    Time: time of readings as string
+    TimeEpoch: time of readings as Unix epoch
+    Location: Location of readings as string
+    Temp: Current temperature as float
+    Humidity: Current humidity as string
+    Sky: Current sky condition as string
+    Feels: Current "feels like" temperatire as float
+    WindDir: Current wind direction as string
+    WindMPH: Current wind speed as float
+    WindGust: Current gust value as int
+    Sunrise: Daily sunrise time as string
+    Sunset: Daily sunset time as string
+    Moonrise: Daily moonrise time as string
+    Moonset: Daily moonset time as string
+    Age: Dynamically computed age of reading as string
+    Icon: Pygame surface of weather icon
+```
+ * Forecast Fields: (these are indexed by day up to the length of available forecast)
+ ```
+    Day: Name of day forecast is for as string
+    High: Forecast high for day as float
+    Low: Forecast low for day as float
+    Sky: Forecast sky condition for day as string
+    WindSpd: Forecast wind as float
+    WindDir: Forecast wind direction as string of form "DIr@" since
+     some providers do not provide this.  This form allows empty
+     string for those to still have display make sense.
+    Icon: Pygame surface for weather icon
+```
+ * Common Fields:
+ ```
+     FcstDays: Number of forecast days available as int
+     FcstEpoch: Time of forecast as Unix epoch
+     FcstData: Time of forecast as string
+ ```
+
 # MQTT Broker Reference
 The console can subscribe to an MQTT broker and get variables updated via that route.  To do this create a separate section named as you with for each MQTT broker you wish to subscribe to.  Provide parameters that specify its type as MQTT, its address, password (if needed), and then a sequence of subsections each of which names a variable to be subscribed to.  These sections have parameters Topic, TopicType, and Expires that describe how the value will be stored in the console.  If Expires is left out then values will be valid forever, otherwise they will disappear after the listed number of seconds.
 
