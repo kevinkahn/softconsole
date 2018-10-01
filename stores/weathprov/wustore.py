@@ -11,7 +11,7 @@ import io
 from stores.weathprov.providerutils import TryShorten
 
 EmptyIcon = pygame.Surface((64, 64))
-EmptyIcon.fill((255, 255, 255))  # todo replace with a ? icon?
+EmptyIcon.fill((255, 255, 255))
 EmptyIcon.set_colorkey((255, 255, 255))
 WeatherIconCache = {'n/a': EmptyIcon}
 
@@ -21,7 +21,7 @@ WUcount = 0
 def geticon(url):
 	if url in WeatherIconCache:
 		return WeatherIconCache[url]
-	if url.split('/')[-1] in ['.git', 'nt_.gif']:
+	if url.split('/')[-1] in ['.gif', 'nt_.gif']:
 		WeatherIconCache[url] = EmptyIcon
 		return EmptyIcon
 	r = requests.get(url)
@@ -101,7 +101,7 @@ FcstFieldMap = {'Day': (str, ('date', 'weekday_short')),  # convert to day name
 CommonFieldMap = {'FcstDays': 10, 'FcstEpoch': (int, ('forecast', 'simpleforecast', 'forecastday', 0, 'date', 'epoch')),
 				  'FcstDate': (strtime, ('forecast', 'simpleforecast', 'forecastday', 0, 'date',
 										 'epoch')),
-				  'Rawjson': (savjson, ('forecast',), 'json')}  # todo constant 7 should be dynamic
+				  'Rawjson': (savjson, ('forecast',), 'json')}
 
 # icondir = config.exdir+'/auxinfo/apixuicons/'
 icondir = '/home/pi/consolerem' + '/auxinfo/apixuicons/'

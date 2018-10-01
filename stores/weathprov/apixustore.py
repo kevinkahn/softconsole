@@ -9,7 +9,7 @@ import logsupport
 from stores.weathprov.providerutils import TryShorten
 
 EmptyIcon = pygame.Surface((64, 64))
-EmptyIcon.fill((255, 255, 255))  # todo replace with a ? icon?
+EmptyIcon.fill((255, 255, 255))
 EmptyIcon.set_colorkey((255, 255, 255))
 WeatherIconCache = {'n/a': EmptyIcon}
 
@@ -38,6 +38,11 @@ def setAge(param):
 	return functools.partial(doage, param)
 
 
+def fcstlength(param):
+	return len(param)
+
+
+
 CondFieldMap = {'Time': (str, ('current', 'last_updated')),
 				'Location': (str, ('location', 'name')),
 				'Temp': (float, ('current', 'temp_f')),
@@ -64,13 +69,11 @@ FcstFieldMap = {'Day': (getdayname, ('date_epoch',)),  # convert to day name
 				'Icon': (geticon, ('day', 'condition', 'icon'))  # get the surface
 				}
 
-CommonFieldMap = {'FcstDays': 7, 'FcstEpoch': (int, ('forecast', 'forecastday', 0, 'date_epoch')),
-				  'FcstDate': (str, ('forecast', 'forecastday', 0, 'date'))}  # todo constant 7 should be dynamic
+CommonFieldMap = {'FcstDays': (fcstlength, ('forecast', 'forecastday')),
+				  'FcstEpoch': (int, ('forecast', 'forecastday', 0, 'date_epoch')),
+				  'FcstDate': (str, ('forecast', 'forecastday', 0, 'date'))}
 
 icondir = config.exdir + '/auxinfo/apixuicons/'
-
-
-# icondir = '/home/pi/consolerem' + '/auxinfo/apixuicons/'
 
 
 class APIXUWeatherSource(object):

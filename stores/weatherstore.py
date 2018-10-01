@@ -43,7 +43,7 @@ def TryShorten(term):
 
 
 EmptyIcon = pygame.Surface((50, 50))
-EmptyIcon.fill((255, 255, 255))  # todo replace with a ? icon?
+EmptyIcon.fill((255, 255, 255))
 EmptyIcon.set_colorkey((255, 255, 255))
 WeatherIconCache = {}
 WUcount = 0
