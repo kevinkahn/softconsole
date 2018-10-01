@@ -2,7 +2,6 @@ import pygame
 import logsupport
 from logsupport import ConsoleWarning
 from pygame import gfxdraw
-#import hasshub # only to test that the hub for this is an HA hub
 import eventlist
 
 import config

@@ -50,6 +50,8 @@ class ThermostatScreenDesc(screen.BaseKeyScreenDesc):
 		self.AdjButSurf = pygame.Surface((config.screenwidth, scaleH(40)))
 		self.AdjButTops = self.SPPos + config.fonts.Font(self.fsize[2]).get_linesize() - scaleH(5)
 		centerspacing = config.screenwidth//5
+		self.SPHPosL = int(1.5 * centerspacing)
+		self.SPHPosR = int(3.5 * centerspacing)
 		self.AdjButSurf.fill(wc(self.BackgroundColor))
 		arrowsize = scaleH(40)  # pixel
 
@@ -127,10 +129,11 @@ class ThermostatScreenDesc(screen.BaseKeyScreenDesc):
 			if self.oldinfo[i] != val:
 				updtneeded = True
 				debug.debugPrint('Main','Tstat reading change: ',i+':',self.oldinfo[i],'->',self.info[i])
-		config.screen.blit(self.TitleRen, self.TitlePos)
+
 		if not updtneeded:
 			return
 		self.ReInitDisplay()
+		config.screen.blit(self.TitleRen, self.TitlePos)
 		r = config.fonts.Font(self.fsize[3], bold=True).render(u"{:4.1f}".format(self.info["ST"][0]//2), 0,
 															   wc(self.CharColor))
 		config.screen.blit(r, ((config.screenwidth - r.get_width())//2, self.TempPos))
@@ -140,10 +143,15 @@ class ThermostatScreenDesc(screen.BaseKeyScreenDesc):
 		else:
 			r = config.fonts.Font(self.fsize[0]).render("n/a", 0, wc(self.CharColor))
 		config.screen.blit(r, ((config.screenwidth - r.get_width())//2, self.StatePos))
-		r = config.fonts.Font(self.fsize[2]).render(
-			"{:2d}    {:2d}".format(self.info["CLISPH"][0]//2, self.info["CLISPC"][0]//2), 0,
-			wc(self.CharColor))
-		config.screen.blit(r, ((config.screenwidth - r.get_width())//2, self.SPPos))
+		# r = config.fonts.Font(self.fsize[2]).render(
+		#	"{:2d}    {:2d}".format(self.info["CLISPH"][0]//2, self.info["CLISPC"][0]//2), 0,
+		#	wc(self.CharColor))
+		rL = config.fonts.Font(self.fsize[2]).render(
+			"{:2d}".format(self.info["CLISPH"][0] // 2), 0, wc(self.CharColor))
+		rH = config.fonts.Font(self.fsize[2]).render(
+			"{:2d}".format(self.info["CLISPC"][0] // 2), 0, wc(self.CharColor))
+		config.screen.blit(rL, (self.SPHPosL - rL.get_width() // 2, self.SPPos))
+		config.screen.blit(rH, (self.SPHPosR - rH.get_width() // 2, self.SPPos))
 		config.screen.blit(self.AdjButSurf, (0, self.AdjButTops))
 		# noinspection PyBroadException
 		try:
