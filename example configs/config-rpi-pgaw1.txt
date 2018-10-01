@@ -10,8 +10,8 @@ LogLevel = 3
 #HASSchg = True
 
 
-cfglib = "/home/pi/consolerem/example configs/cfglib"
-include = /home/pi/Console/cfglib/pgawauth.cfg, timetempLQ.cfg, weathCC.cfg, timetempPDX.cfg, myclock2.cfg,weathPDX.cfg,weathPump.cfg
+cfglib = "/home/pi/Console/cfglib"
+include = /home/pi/Console/local/pgawauth.cfg, timetempLQ.cfg, weathCC.cfg, timetempPDX.cfg, myclock2.cfg,weathPDX.cfg,weathPump.cfg,weathersources.cfg
 HomeScreenName = LQ
 DimLevel = 25
 DimTO = 25
