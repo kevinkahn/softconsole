@@ -394,6 +394,8 @@ class HA(object):
 
 		def on_message(qws, message):
 			try:
+				self.msgcount += 1
+				# if self.msgcount <4: logsupport.Logs.Log(self.name + " Message "+str(self.msgcount)+':'+ repr(message))
 				try:
 					mdecode = json.loads(message)
 				except:
@@ -401,23 +403,26 @@ class HA(object):
 					return
 				if mdecode['type'] == 'auth_ok':
 					debug.debugPrint('HASSgeneral', 'WS Authorization OK, subscribing')
-					ws.send(
+					self.ws.send(
 						json.dumps(
 							{'id': self.HAnum, 'type': 'subscribe_events'}))  # , 'event_type': 'state_changed'}))
 					return
 				if mdecode['type'] == 'auth_required':
 					debug.debugPrint('HASSgeneral', 'WS Authorization requested, sending')
-					ws.send(json.dumps({"type": "auth", "api_password": self.password}))
+					self.ws.send(json.dumps({"type": "auth", "access_token": self.password}))
 					return
 				if mdecode['type'] == 'auth_invalid':
-					logsupport.Logs.Log("Invalid password for hub: " + self.name,
-										severity=ConsoleError)  # since already validate with API shouldn't get here
+					logsupport.Logs.Log("Invalid password for hub: " + self.name + '(' + str(self.msgcount) + ')',
+										repr(message),
+										severity=ConsoleError,
+										tb=False)  # since already validate with API shouldn't get here
 					return
 				if mdecode['type'] in ('result', 'service_registered', 'zwave.network_complete', 'platform_discovered'):
 					return
 				if mdecode['type'] != 'event':
 					debug.debugPrint('HASSgeneral', 'Non event seen on WS stream: ', str(mdecode))
 					return
+
 				m = mdecode['event']
 				del mdecode['event']
 				d = m['data']
@@ -506,7 +511,7 @@ class HA(object):
 							severity=ConsoleError, tb=False)
 
 		def on_open(qws):
-			logsupport.Logs.Log("HA WS stream " + str(self.HAnum) + " opened")
+			logsupport.Logs.Log("HA WS stream " + str(self.HAnum) + " opened for " + self.name)
 			#if self.password != '':
 			#	ws.send({"type": "auth","api_password": self.password})
 			#ws.send(json.dumps({'id': self.HAnum, 'type': 'subscribe_events'})) #, 'event_type': 'state_changed'}))
@@ -519,14 +524,15 @@ class HA(object):
 		while True:
 			try:
 				#websocket.enableTrace(True)
-				ws = websocket.WebSocketApp(self.wsurl, on_message=on_message,
+				self.ws = websocket.WebSocketApp(self.wsurl, on_message=on_message,
 											on_error=on_error,
 											on_close=on_close, on_open=on_open, header=self.api._headers)
+				self.msgcount = 0
 				break
 			except AttributeError as e:
 				logsupport.Logs.Log("Problem starting HA WS handler - retrying: ", repr(e), severity = ConsoleWarning)
 		try:
-			ws.run_forever(ping_timeout=999)
+			self.ws.run_forever(ping_timeout=999)
 		except self.HAClose:
 			self.delaystart = 20
 			logsupport.Logs.Log("HA Event thread got close")
@@ -551,6 +557,8 @@ class HA(object):
 		else:
 			self.wsurl = 'ws://' +self.addr + ':8123/api/websocket'
 		self.HAnum = 1
+		self.ws = None  # websocket client instance
+		self.msgcount = 0
 		self.watchstarttime = time.time()
 		self.Entities = {}
 		self.IgnoredEntities = {} # things we expect and do nothing with
