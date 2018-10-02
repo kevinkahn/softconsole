@@ -1,4 +1,4 @@
-import os, shutil, subprocess, requests, time
+import os, shutil, subprocess, requests, time, datetime
 
 """
 NOTE: This gets used in initial setup of console by the setup program
@@ -6,7 +6,8 @@ NOTE: This gets used in initial setup of console by the setup program
 """
 
 def StageVersion(vdir, tag, label):
-	print("Staging " + tag + " in " + vdir + ' because ' + label)
+	print(datetime.datetime.now().strftime("%I:%M%p on %B %d, %Y"), file=open("stagelog.log", "a"))
+	print("Staging " + tag + " in " + vdir + ' because ' + label, file=open("stagelog.log", "a"))
 	cwd = os.getcwd()
 	os.chdir(vdir)
 	shutil.rmtree('stagedversion', True)
@@ -49,20 +50,20 @@ def InstallStagedVersion(d):
 	if os.path.exists('../homesystem'):
 		try:
 			os.remove('../Console/termshortenlist')
-			print('Removed existing shortenlist from homesystem')
+			print('Removed existing shortenlist from homesystem', file=open("stagelog.log", "a"))
 		except:
-			print('No existing shortenlist to remove from homesystem')
+			print('No existing shortenlist to remove from homesystem', file=open("stagelog.log", "a"))
 
 	if not os.path.exists('../Console/termshortenlist'):
 		try:
 			os.rename('example configs/termshortenlist', '../Console/termshortenlist')
-			print("Initialized termshortenlist")
+			print("Initialized termshortenlist", file=open("stagelog.log", "a"))
 		except:
-			print("Couldn't move termshortenlist in " + str(os.getcwd()))
+			print("Couldn't move termshortenlist in " + str(os.getcwd()), file=open("stagelog.log", "a"))
 
-	print('Process upgrade extras script')
+	print('Process upgrade extras script', file=open("stagelog.log", "a"))
 	subprocess.call('sudo bash ' + './scripts/upgradeprep.sh', shell=True)
-	print('End upgrade extras script')
+	print('End upgrade extras script', file=open("stagelog.log", "a"))
 	os.chdir('..')
 
 
