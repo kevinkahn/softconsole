@@ -372,6 +372,8 @@ class HA(object):
 			chg = {}
 			dels = {}
 			adds = {}
+			old = {} if d1 is None else d1
+			new = {} if d2 is None else d2
 			for k in d2.keys():
 				if not k in d1:
 					adds[k] = d2[k]
@@ -535,7 +537,7 @@ class HA(object):
 
 		hadomains = {'group': Group, 'light': Light, 'switch': Switch, 'sensor': Sensor, 'automation': Automation,
 					 'climate': Thermostat, 'media_player': MediaPlayer}
-		haignoredomains = {'zwave':ZWave, 'sun':HAnode, 'notifications':HAnode}
+		haignoredomains = {'zwave': ZWave, 'sun': HAnode, 'notifications': HAnode, 'persistent_notification': HAnode}
 
 		self.sensorstore = valuestore.NewValueStore(valuestore.ValueStore(hubname,itemtyp=valuestore.StoreItem))
 		self.name = hubname
