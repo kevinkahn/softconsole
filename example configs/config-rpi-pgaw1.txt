@@ -11,7 +11,7 @@ LogLevel = 3
 
 
 cfglib = "/home/pi/Console/cfglib"
-include = /home/pi/Console/local/pgawauth.cfg, timetempLQ.cfg, weathCC.cfg, timetempPDX.cfg, myclock2.cfg,weathPDX.cfg,weathPump.cfg,weathersources.cfg
+include = /home/pi/Console/local/authpga.cfg, timetempLQ.cfg, weathCC.cfg, timetempPDX.cfg, myclock2.cfg,weathPDX.cfg,weathPump.cfg,weathersources.cfg
 HomeScreenName = LQ
 DimLevel = 25
 DimTO = 25
