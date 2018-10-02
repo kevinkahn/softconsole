@@ -57,7 +57,11 @@ def setAge(param, loc):
 	return functools.partial(doage, param, loc)
 
 def makeTime(h, m):
-	return "{0:02d}:{1:02d}".format(h, m)
+	try:
+		strtime = "{0:02d}:{1:02d}".format(h, m)
+	except ValueError:
+		strtime = " n/a "
+	return strtime
 
 
 def savjson(param, rawjson):
