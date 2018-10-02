@@ -5,7 +5,7 @@
 
 
 cfglib = "/home/pi/consolerem/example configs/cfglib"
-include = /home/pi/Console/local/auth.cfg, pdxalerts.cfg, timetempPR.cfg, timetempLQ.cfg, weathCC.cfg, timetempPDX.cfg, myclock.cfg,bathroom.cfg,upperlev.cfg,BR-kck.cfg,tstat.cfg, weathersources.cfg
+include = /home/pi/Console/local/auth.cfg, pdxalerts.cfg, timetempPR.cfg, timetempLQ.cfg, weathCC.cfg, timetempPDX.cfg, myclock.cfg,bathroom.cfg,upperlev.cfg,BR-kck.cfg,tstat.cfg, weathersources.cfg, weathPDX.cfg
 HomeScreenName = LR1
 DimLevel = 50
 DimTO = 25
@@ -14,7 +14,7 @@ DimIdleListTimes =	20, 20, 20, 20
 
 DefaultHub = ISY
 
-MainChain = LR1,Sonos,LR2, Pumpkin, Local, Upper Level, Test
+MainChain = LR1,Sonos,LR2, Pumpkin, Local, Upper Level
 SecondaryChain = Portland, Bathroom, BR, Thermostat - Main
 
 [Variables]
@@ -103,10 +103,10 @@ SecondaryChain = Portland, Bathroom, BR, Thermostat - Main
 #		KeyColor = Maroon
 #		label = Clear tEST,
 
-[HouseStat]
-    type = Status
-    NormalOff = Pucks, Downlights, Kitchen Dimmer, Office Ceiling
-    NormalOn = Main Hall, Landscape, LR Dual Spots
+#[HouseStat]
+#    type = Status
+#    NormalOff = Pucks, Downlights, Kitchen Dimmer, Office Ceiling
+#    NormalOn = Main Hall, Landscape, LR Dual Spots
 
 [LR1]
     type = Keypad
@@ -146,12 +146,12 @@ SecondaryChain = Portland, Bathroom, BR, Thermostat - Main
 #    [[LR Plug Dr]]
 #        label = Reading, Light, Door
 
- [Test]
-	type = Keypad
-	label = Test
-	[[TestVar]]
-	VarType = Int
-	type = SETVARVALUE
+# [Test]
+#	type = Keypad
+#	label = Test
+#	[[TestVar]]
+#	VarType = Int
+#	type = SETVARVALUE
 
 
 
