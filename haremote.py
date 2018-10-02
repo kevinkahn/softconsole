@@ -75,7 +75,8 @@ class API:
 		self._headers = {CONTENT_TYPE: CONTENT_TYPE_JSON}
 
 		if api_password is not None:
-			self._headers[HTTP_HEADER_HA_AUTH] = api_password
+			# self._headers[HTTP_HEADER_HA_AUTH] = api_password
+			self._headers['Authorization'] = 'Bearer ' + api_password
 
 	def validate_api(self, force_validate: bool = False) -> bool:
 		"""Test if we can communicate with the API."""

@@ -447,7 +447,7 @@ class HA(object):
 					if m['data'] == {}: del m['data']
 					timefired = m['time_fired']
 					del m['time_fired']
-					if m != {}: debug.debugPrint('HASSchg', "Extras @ " + timefired + ' : ' + m)
+					if m != {}: debug.debugPrint('HASSchg', "Extras @ " + timefired + ' : ' + repr(m))
 					if ent in self.AlertNodes:
 						# alert node changed
 						debug.debugPrint('DaemonCtl', 'HASS reports change(alert):', ent)
@@ -519,7 +519,7 @@ class HA(object):
 				#websocket.enableTrace(True)
 				ws = websocket.WebSocketApp(self.wsurl, on_message=on_message,
 											on_error=on_error,
-											on_close=on_close, on_open=on_open)
+											on_close=on_close, on_open=on_open, header=self.api._headers)
 				break
 			except AttributeError as e:
 				logsupport.Logs.Log("Problem starting HA WS handler - retrying: ", repr(e), severity = ConsoleWarning)
@@ -578,6 +578,7 @@ class HA(object):
 					4 * i)  # if this is a system boot or whole house power hit it may take a while for HA to be ready so stretch the wait out
 			else:
 				hassok = True
+				break
 		if hassok:
 			logsupport.Logs.Log('HA access accepted for: ' + self.name)
 		else:
