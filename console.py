@@ -18,7 +18,6 @@ Copyright 2016, 2017, 2018 Kevin Kahn
 import cgitb
 import datetime
 import importlib
-import json
 import os
 import signal
 import sys
