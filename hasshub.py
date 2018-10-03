@@ -374,22 +374,22 @@ class HA(object):
 			adds = {}
 			old = {} if d1 is None else d1
 			new = {} if d2 is None else d2
-			for k in d2.keys():
-				if not k in d1:
-					adds[k] = d2[k]
-			for k in d1.keys():
-				if k in d2:
-					if isinstance(d1[k], dict):
-						c, d, a = findDiff(d1[k], d2[k])
+			for k in new.keys():
+				if not k in old:
+					adds[k] = new[k]
+			for k in old.keys():
+				if k in new:
+					if isinstance(old[k], dict):
+						c, d, a = findDiff(old[k], new[k])
 						if c != {}: chg[k] = c
 						if d != {}: dels[k] = d
 						if a != {}: adds[k] = a
 						#chg[k], dels[k], adds[k] = findDiff(d1[k], d2[k])
 					else:
-						if d1[k] != d2[k]:
-							chg[k] = d2[k]
+						if old[k] != new[k]:
+							chg[k] = new[k]
 				else:
-					dels[k] = d1[k]
+					dels[k] = old[k]
 			return chg, dels, adds
 
 		def on_message(qws, message):
