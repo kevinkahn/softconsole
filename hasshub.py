@@ -447,7 +447,7 @@ class HA(object):
 						dels) + ' Changed: ' + str(chgs))
 					# debug.debugPrint('HASSchg', 'New: ' + str(new))
 					# debug.debugPrint('HASSchg', 'Old: ' + str(old))
-					if ent in self.Entities:
+					if ent in self.Entities and new is not None:
 						self.Entities[ent].Update(**new)
 
 					if m['origin'] == 'LOCAL': del m['origin']
