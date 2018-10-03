@@ -24,7 +24,7 @@ def _NormalizeState(state, brightness=None):
 				return 255
 		elif state == 'off':
 			return 0
-		elif state == 'unavailable':
+		elif state in ['unavailable', 'unknown']:
 			return -1
 		elif state in ['paused', 'playing']:
 			return 255
