@@ -2,13 +2,12 @@ V3.0 of softconsole is now available.  This is the completion of some major chan
 
 V3.01 is a minor bug fix/cleanup release.  The main addition is a minimalist version of the install script meant to be used with the "stretch-lite" Raspbian distribution on Pi0 systems.  It doesn't install VNC so only ssh access to the finished system is available.  This release fixes a few odd timing race conditions that sometimes led to anomalous log messages.  It also has a patch to handle junk forecasts from WeatherUnderground that seem to be somewhat common of late.  This is where they return a "forecast" for Jan 3, 2018.  The console suppresses these and just continues to use the last good forecast for display (or an error message if none such exists).
 
-WU flakiness (missing sky conditions, out of date data, . . .)
-New weather support
-Warning/Error indicator
-Octoprint
-Sonos
-* for :
-termshortenlist move
+V3.1 of softconsole adds a number of new/updated capabilities.  Of most importance is weather support.  WeatherUnderground has become increasingly flakey as a provider and they have now announced that will drop support for their current API at the end of the year (they claim they may replace it with a new personal API but have no details at this point).  As a result the release adds support for an additional weather provider, APIXU, who provides free weather for personal, limited use (10000 calls/month).  Structurally the program has actually separated the weather provider part from the rest of the weather support logic so it would be straightforward to add other providers by modeling them after the apixustore.py file.  (Basically, this code simply has to map the, typically JSON, returned by a provider to a standard form of naming using elsewhere in the console.)  Unfortunately, adding this support made it too difficult to maintain backward compatibility of the config file so you will need to update yours even if you are using WU by adding section(s) to define weather provider(s) and sections to define internal location names from which weather is to be fetched and map to the provider's location code.  See the example auth.cfg, weathersources.cfg, and any weather cfg file for example of how this works.  The WU proveder has been made more robust in an effort to deal with the WU flakiness in the meantime (things like missing sky conditions, out of date data, stations gone missing, etc.)
 
+Some other changes:
+- This release also updates Home Assistant support for their new authentication regime (post 0.77 of HA).  Use their access tokens and supply that as the password.  A small added feature is the display of a small light (unobtrusive) dot in the upper right of the display if a Warning or Error level entry has been made in the log file since the log was last looked at.  Accessing the log from the maintenance screen clears the indicator.
+- Two new screen types have been added that will probably not be of interest to anyone other than me that support Octoprint (a manager for 3D printers) and Sonos systems.  The Sonos screen depends upon Home Assistant running.
+- The termshortenlist has been moved to the Console directory (where as a config type file it really belonged) for :
+- As always lots of little bug fixes throughout.
 
 
