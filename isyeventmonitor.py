@@ -241,7 +241,7 @@ class ISYEventMonitor(object):
 												a.state == 'Init'
 										logsupport.Logs.Log("Node alert fired: " + str(a), severity=ConsoleDetail)
 										# noinspection PyArgumentList
-										notice = pygame.event.Event(config.DS.ISYAlert, node=enode,
+										notice = pygame.event.Event(config.DS.ISYAlert,  hub=self.isy.name, node=enode,
 																	value=isycodes._NormalizeState(eaction), alert=a)
 										pygame.fastevent.post(notice)
 

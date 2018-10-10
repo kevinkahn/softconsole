@@ -82,7 +82,7 @@ class NodeChgtrigger(object):
 def VarChanged(storeitem, old, new, param, modifier):
 	debug.debugPrint('DaemonCtl','Var changed ',storeitem.name,' from ',old,' to ',new)
 	# noinspection PyArgumentList
-	notice = pygame.event.Event(config.DS.ISYVar, alert=param)
+	notice = pygame.event.Event(config.DS.ISYVar, hub='AlertTasksVarChange', alert=param)
 	pygame.fastevent.post(notice)
 
 class VarChangeTrigger(object):

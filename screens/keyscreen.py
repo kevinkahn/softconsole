@@ -78,7 +78,7 @@ class KeyScreenDesc(screen.BaseKeyScreenDesc):
 				K.PaintKey()
 				pygame.display.update()
 			except:
-				debug.debugPrint('Screen', 'Bad var key', self.name, str(varinfo))
+				debug.debugPrint('Screen', "Var change reported to screen that doesn't care", self.name, str(varinfo)) #todo event reporting correlation to screens could use rework
 				return
 
 

@@ -5,7 +5,7 @@
 
 
 cfglib = "/home/pi/consolerem/example configs/cfglib"
-include = /home/pi/Console/local/auth.cfg, pdxalerts.cfg, timetempPR.cfg, timetempLQ.cfg, weathCC.cfg, timetempPDX.cfg, myclock.cfg,bathroom.cfg,upperlev.cfg,BR-kck.cfg,tstat.cfg, weathersources.cfg, weathPDX.cfg
+include = /home/pi/Console/local/auth.cfg, timetempPR.cfg, timetempLQ.cfg, weathCC.cfg, timetempPDX.cfg, myclock.cfg,bathroom.cfg,upperlev.cfg,BR-kck.cfg,tstat.cfg, weathersources.cfg, weathPDX.cfg #, pdxalerts.cfg
 HomeScreenName = LR1
 DimLevel = 50
 DimTO = 25
@@ -121,8 +121,10 @@ SecondaryChain = Portland, Bathroom, BR, Thermostat - Main
         label = Dual, Spots
     [[LR Pict Spot]]
         label = Art Spot,
-    [[Up Lights]]
-        Blink = 5
+[[Count-tmp]]
+     type = VARKEY
+     Var = ISY:Int:Count_tmp
+     Appearance = 0:48 red 'ISY Uptime $ mins',49:168 yellow 'ISY Uptime $ mins',169:17520 green 'ISY Uptime $ mins'
  [LR2]
     type = Keypad
     label = Living, Room 2   

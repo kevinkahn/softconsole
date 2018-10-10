@@ -88,9 +88,12 @@ class ScreenDesc(object):
 		self.PaintBase()
 		self.PaintKeys()
 
-	def NodeEvent(self, hub='', node=0, value=0, varinfo = ()):
+	def NodeEvent(self, hub='none', node=9999, value=9999, varinfo = ()):
 		if node is not None:
-			logsupport.Logs.Log("Unexpected ISY event to screen: ", self.name, str(node), str(value), severity=ConsoleWarning)
+			if hub != '*VARSTORE*': # var changes can be reported while any screen is up
+				logsupport.Logs.Log("Unexpected event to screen: ", self.name, ' Hub: ', str(hub), ' Node: ', str(node), ' Val: ', str(value),severity = ConsoleWarning)
+			else:
+				pass
 
 	def ExitScreen(self):
 		config.DS.Tasks.RemoveAllGrp(id(self))  # by default delete all pending tasks override if screen needs to

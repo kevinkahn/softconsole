@@ -129,7 +129,7 @@ class DisplayScreen(object):
 				a.trigger.node.Hub.SetAlertWatch(a.trigger.node, a)
 				if a.trigger.IsTrue():
 					# noinspection PyArgumentList
-					notice = pygame.event.Event(config.DS.ISYAlert, alert=a)
+					notice = pygame.event.Event(config.DS.ISYAlert, hub = 'DS-NodeChange', alert=a)
 					pygame.fastevent.post(notice)
 			elif a.type == 'VarChange':
 				a.state = 'Init'
@@ -268,7 +268,7 @@ class DisplayScreen(object):
 				if hasattr(event, 'node'):
 					self.AS.NodeEvent(hub=event.hub, node=event.node, value=event.value)
 				elif hasattr(event, 'varinfo'):
-					self.AS.NodeEvent(varinfo=event.varinfo)
+					self.AS.NodeEvent(hub=event.hub, varinfo=event.varinfo)
 				else:
 					debug.debugPrint('Dispatch', 'Bad Node Change Event: ', event)
 					logsupport.Logs.Log('Bad Node Change Event ', event, severity=ConsoleWarning)
