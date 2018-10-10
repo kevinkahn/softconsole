@@ -461,7 +461,7 @@ class HA(object):
 						for a in self.AlertNodes[ent]:
 							logsupport.Logs.Log("Node alert fired: " + str(a), severity=ConsoleDetail)
 							# noinspection PyArgumentList
-							notice = pygame.event.Event(config.DS.ISYAlert, node=ent,
+							notice = pygame.event.Event(config.DS.ISYAlert, node=ent,  hub=self.name,
 														value=self.Entities[ent].internalstate,
 														alert=a)
 							pygame.fastevent.post(notice)
