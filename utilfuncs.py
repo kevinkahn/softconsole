@@ -23,7 +23,12 @@ def interval_str(sec_elapsed):
 	h = int((sec_elapsed % (60 * 60 * 24)) / 3600)
 	m = int((sec_elapsed % (60 * 60)) / 60)
 	s = int(sec_elapsed % 60)
-	return "{} days {:>02d}hrs {:>02d}mn {:>02d}sec".format(d, h, m, s)
+	if d != 0:
+		return "{} days {:>02d}hrs {:>02d}mn {:>02d}sec".format(d, h, m, s)
+	elif h != 0:
+		return "{:>02d}hrs {:>02d}mn {:>02d}sec".format(h, m, s)
+	else:
+		return "{:>02d}mn {:>02d}sec".format(m, s)
 
 
 def tint(clr, tint_factor=.25):
