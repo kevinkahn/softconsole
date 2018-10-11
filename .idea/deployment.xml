@@ -1,32 +1,32 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="PublishConfigData" autoUpload="Always" serverName="pi@rpi-dev7.pdxhome:8623" promptOnLocalOverwrite="false" exclude=".svn;.cvs;.idea;.DS_Store;.git;.hg;*.pyc" autoUploadExternalChanges="true">
+  <component name="PublishConfigData" autoUpload="Always" serverName="pi@rpi-dev.pgawhome:8623" promptOnLocalOverwrite="false" exclude=".svn;.cvs;.idea;.DS_Store;.git;.hg;*.pyc" autoUploadExternalChanges="true">
     <serverData>
-      <paths name="pi@rpi-dev7.pdxhome:8623">
+      <paths name="Dev">
+        <serverdata>
+          <mappings>
+            <mapping local="$PROJECT_DIR$" web="/" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="Dev7">
+        <serverdata>
+          <mappings>
+            <mapping local="$PROJECT_DIR$" web="/" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="pi@rpi-dev.pgawhome:8623">
         <serverdata>
           <mappings>
             <mapping deploy="/home/pi/consolerem" local="$PROJECT_DIR$" />
           </mappings>
         </serverdata>
       </paths>
-      <paths name="pi@rpi-lrwall.pdxhome:8623">
+      <paths name="rpi-pgaw1">
         <serverdata>
           <mappings>
-            <mapping deploy="/home/pi/consolerem" local="$PROJECT_DIR$" />
-          </mappings>
-        </serverdata>
-      </paths>
-      <paths name="rpi-dev">
-        <serverdata>
-          <mappings>
-            <mapping deploy="/tmp/pycharm_project_133" local="$PROJECT_DIR$" />
-          </mappings>
-        </serverdata>
-      </paths>
-      <paths name="rpi-printer">
-        <serverdata>
-          <mappings>
-            <mapping deploy="/home/pi/consolerem" local="$PROJECT_DIR$" />
+            <mapping local="$PROJECT_DIR$" web="/" />
           </mappings>
         </serverdata>
       </paths>

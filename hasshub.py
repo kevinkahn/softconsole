@@ -485,7 +485,8 @@ class HA(object):
 					return
 			except:
 				pass
-			logsupport.Logs.Log("Error in HA WS stream " + str(self.HAnum) + ':' + repr(error), severity=ConsoleError, tb=False)
+			logsupport.Logs.Log("Error in HA WS stream " + str(self.HAnum) + ':' + repr(error), severity=ConsoleWarning)
+			logsupport.Logs.Log("Error in HA WS stream " + str(self.HAnum) + ':' + repr(error), severity=ConsoleWarning)
 			# noinspection PyBroadException
 			try:
 				if error == TimeoutError: # Py3
@@ -534,7 +535,7 @@ class HA(object):
 		try:
 			self.ws.run_forever(ping_timeout=999)
 		except self.HAClose:
-			self.delaystart = 20
+			self.delaystart = 21
 			logsupport.Logs.Log("HA Event thread got close")
 		logsupport.Logs.Log("HA Event Thread " + str(self.HAnum) + " exiting", severity=ConsoleError, tb=False)
 
