@@ -24,8 +24,9 @@ def geticon(url):
 	if url.split('/')[-1] in ['.gif', 'nt_.gif']:
 		WeatherIconCache[url] = EmptyIcon
 		return EmptyIcon
-	r = requests.get(url)
+
 	try:
+		r = requests.get(url)
 		icon_str = r.content
 		icon_file = io.BytesIO(icon_str)
 		icon_gif = pygame.image.load(icon_file, 'icon.gif')
