@@ -52,14 +52,18 @@ class MQTTBroker(valuestore.ValueStore):
 					# debug.debugPrint('StoreTrack', "Store(mqtt): ", self.name, ':', v, ' Value: ', v.Value)
 					else:
 						try:
-							payload = json.loads(msg.payload.decode('ascii'))
+							payload = '*bad json*'+msg.payload.decode('ascii') # for exception log below
+							payload = json.loads(msg.payload.decode('ascii')).replace('nan','null') # work around bug in tasmota returning bad json
 							for i in v.jsonflds:
 								payload = payload[i]
-							v.Value = v.Type(payload)
+							if payload is not None:
+								v.Value = v.Type(payload)
+							else:
+								v.Value = None# todo check nan case
 						#debug.debugPrint('StoreTrack', "Store(mqtt): ", self.name, ':', v, ' Value: ', v.Value)
 						except Exception as e:
 							logsupport.Logs.Log('Error handling json MQTT item: ', v.name, str(v.jsonflds),
-												msg.payload.decode('ascii'), str(e), severity=ConsoleWarning)
+												msg.payload.decode('ascii'), str(e), repr(payload), severity=ConsoleWarning)
 
 		# noinspection PyUnusedLocal
 		def on_log(client, userdata, level, buf):
