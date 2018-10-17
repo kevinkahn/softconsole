@@ -91,7 +91,8 @@ CondFieldMap = {'Time': (strtime, ('current_observation', 'observation_epoch')),
 				'TimeEpoch': (int, ('current_observation', 'observation_epoch')),
 				'Age': (setAge, ('current_observation', 'observation_epoch'), 'location'),
 				'Humidity': (str, ('current_observation', 'relative_humidity')),
-				'Icon': (geticon, ('current_observation', 'icon_url'))
+				'Icon': (geticon, ('current_observation', 'icon_url')),
+				'IconURL': (str, ('current_observation','icon_url'))  # todo delete after bug found
 				}
 
 FcstFieldMap = {'Day': (str, ('date', 'weekday_short')),  # convert to day name

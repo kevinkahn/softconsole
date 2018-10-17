@@ -257,7 +257,7 @@ class ISYEventMonitor(object):
 						try:
 							valuestore.SetValByAttr(self.hubname,(vartype,varid),varval, modifier=True)
 						except KeyError:
-							logsupport.Logs.Log("Unknown variable from ISY - probably added since startup", severity=ConsoleWarning)
+							logsupport.Logs.Log("Unknown variable from ISY - probably added since startup", severity=ConsoleWarning) # todo cause a restart?
 
 					elif prcode == 'Heartbeat':
 						if self.hbcount > 0:
