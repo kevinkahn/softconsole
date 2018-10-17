@@ -89,6 +89,10 @@ class Automation(HAnode):
 		ha.call_service(self.Hub.api, 'automation', 'trigger', {'entity_id': '{}'.format(self.entity_id)})
 		debug.debugPrint('HASSgeneral', "Automation trigger sent to: ", self.entity_id)
 
+	def Update(self,**ns):
+		# just updates last triggered etc.
+		self.__dict__.update(ns)
+
 class Group(StatefulHAnode):
 	def __init__(self, HAitem, d):
 		super(Group, self).__init__(HAitem, **d)
@@ -225,12 +229,6 @@ class Thermostat(HAnode): # not stateful since has much state info
 			self.modelist = self.attributes['operation_list']
 		except:
 			pass
-	'''
-	The code for the Nest limits sensor updates to 270 seconds which makes the "current hvac state" pretty useless.
-	Edit /srv/homeassistant/lib/python3.5/site-packages/homeassistant/components/nest.py line 132 (0.67):
-	access_token_cache_file=access_token_cache_file,cache_ttl=30, to add the cache_ttl=30; also put a scan_interval:30 in the
-	config file for sensor platform nest
-	'''
 
 	def ErrorFakeChange(self):
 		# noinspection PyArgumentList
@@ -468,11 +466,11 @@ class HA(object):
 				elif m['event_type'] == 'system_log_event':
 					logsupport.Logs.Log('Hub: ' + self.name + ' logged at level: ' + d['level'] + ' Msg: ' + d[
 						'message'])  # todo fake an event for Nest error?
-				elif m['event_type'] in ('call_service', 'service_executed'):
+				elif m['event_type'] in ('call_service', 'service_executed','zwave.scene_activated'):
 					# debug.debugPrint('HASSchg', "Other expected event" + str(m))
 					pass
 				else:
-					debug.debugPrint('HASSchg', "Unknown event: " + str(m))
+					debug.debugPrint('HASSgeneral', "Unknown event: " + str(m))
 			except Exception as e:
 				logsupport.Logs.Log("Exception handling HA message: ", repr(e), repr(message), severity=ConsoleWarning)
 
