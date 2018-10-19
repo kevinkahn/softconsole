@@ -13,6 +13,20 @@ from logsupport import ConsoleWarning, ConsoleError, ConsoleDetail
 import functools
 import eventlist
 
+def stringtonumeric(v):
+	if not isinstance(v,str):
+		return v
+	try:
+		f = float(v)
+		return f
+	except:
+		pass
+	try:
+		i = int(v)
+		return i
+	except:
+		pass
+	return v
 
 from ast import literal_eval
 def _NormalizeState(state, brightness=None):
@@ -54,8 +68,8 @@ class HAnode(object):
 		self.Hub = HAitem
 
 	def Update(self,**ns):
-		logsupport.Logs.Log("Internal error - update call on " + self.entity_id, severity=ConsoleError, tb=False)
-		debug.debugPrint('HASSgeneral', 'Bad call to update: ' + repr(self))
+		# just updates last triggered etc.
+		self.__dict__.update(ns)
 
 class StatefulHAnode(HAnode):
 	def __init__(self, HAitem, **entries):
@@ -80,6 +94,15 @@ class StatefulHAnode(HAnode):
 	def __str__(self):
 		return str(self.name)+'::'+str(self.state)
 
+class Script(HAnode):
+	def __init__(self, HAitem, d):
+		super(Script, self).__init__(HAitem, **d)
+		self.Hub.Scripts[self.entity_id] = self
+
+	def RunProgram(self):
+		ha.call_service(self.Hub.api, 'script', self.object_id)
+		debug.debugPrint('HASSgeneral', "Script execute sent to: script.", self.object_id)
+
 class Automation(HAnode):
 	def __init__(self, HAitem, d):
 		super(Automation, self).__init__(HAitem, **d)
@@ -88,10 +111,6 @@ class Automation(HAnode):
 	def RunProgram(self):
 		ha.call_service(self.Hub.api, 'automation', 'trigger', {'entity_id': '{}'.format(self.entity_id)})
 		debug.debugPrint('HASSgeneral', "Automation trigger sent to: ", self.entity_id)
-
-	def Update(self,**ns):
-		# just updates last triggered etc.
-		self.__dict__.update(ns)
 
 class Group(StatefulHAnode):
 	def __init__(self, HAitem, d):
@@ -130,7 +149,7 @@ class Sensor(HAnode): # not stateful since it updates directly to store value
 	def __init__(self, HAitem, d):
 		super(Sensor, self).__init__(HAitem, **d)
 		self.Hub.Sensors[self.entity_id] = self
-		self.Hub.sensorstore.SetVal(self.entity_id, self.state)
+		self.Hub.sensorstore.SetVal(self.entity_id, stringtonumeric(self.state))
 
 	def _SetSensorAlert(self, p):
 		self.Hub.sensorstore.AddAlert(self.entity_id,p)
@@ -139,7 +158,31 @@ class Sensor(HAnode): # not stateful since it updates directly to store value
 		#super(Sensor,self).Update(**ns)
 		self.attributes = ns['attributes']
 		if 'state' in ns:
-			self.Hub.sensorstore.SetVal(self.entity_id, ns['state'])
+			self.Hub.sensorstore.SetVal(self.entity_id, stringtonumeric(ns['state']))
+
+class BinarySensor(HAnode):
+	def __init__(self, HAitem, d):
+		super(BinarySensor,self).__init__(HAitem, **d)
+		self.Hub.BinarySensors[self.entity_id] = self
+		if self.state not in ('on','off'):
+			logsupport.Logs.Log("Odd Binary sensor initial value: ", self.entity_id, ':', self.state, severity=ConsoleWarning)
+		self.Hub.sensorstore.SetVal(self.entity_id, self.state == 'on')
+
+	def _SetSensorAlert(self, p):
+		self.Hub.sensorstore.AddAlert(self.entity_id,p)
+
+	def Update(self,**ns):
+		#super(Sensor,self).Update(**ns)
+		self.attributes = ns['attributes']
+		if 'state' in ns:
+			if ns['state'] == 'on':
+				st = True
+			elif ns['state'] == 'off':
+				st = False
+			else:
+				st = False
+				logsupport.Logs.Log("Bad Binary sensor value: ", self.entity_id, ':', ns['state'], severity=ConsoleWarning)
+			self.Hub.sensorstore.SetVal(self.entity_id, st)
 
 
 class MediaPlayer(HAnode):
@@ -319,7 +362,12 @@ class HA(object):
 
 	def GetProgram(self, name):
 		try:
-			return self.Automations[name]
+			return self.Automations['automation.' + name]
+		except:
+			pass
+
+		try:
+			return self.Scripts['script.' + name]
 		except KeyError:
 			logsupport.Logs.Log("Attempt to access unknown program: " + name + " in HA Hub " + self.name, severity = ConsoleWarning)
 			return None
@@ -435,9 +483,11 @@ class HA(object):
 					chgs, dels, adds = findDiff(old, new)
 					if not ent in self.Entities and not ent in self.IgnoredEntities:
 						# not an entitity type that is currently known
-						debug.debugPrint('HASSgeneral',
-										 'WS Stream item for unhandled entity type: ' + ent + ' Added: ' + str(
+						debug.debugPrint('HASSgeneral', self.name,
+										 ' WS Stream item for unhandled entity type: ' + ent + ' Added: ' + str(
 											 adds) + ' Deleted: ' + str(dels) + ' Changed: ' + str(chgs))
+						logsupport.Logs.Log("New entity since startup seen from ", self.name, ": ", ent)
+						self.IgnoredEntities[ent] = None
 						return
 					if ent in self.IgnoredEntities:
 						return
@@ -466,11 +516,12 @@ class HA(object):
 				elif m['event_type'] == 'system_log_event':
 					logsupport.Logs.Log('Hub: ' + self.name + ' logged at level: ' + d['level'] + ' Msg: ' + d[
 						'message'])  # todo fake an event for Nest error?
-				elif m['event_type'] in ('call_service', 'service_executed','zwave.scene_activated'):
+				elif m['event_type'] in ('call_service', 'service_executed','zwave.scene_activated','logbook_entry','service_registered','service_removed'):
 					# debug.debugPrint('HASSchg', "Other expected event" + str(m))
 					pass
 				else:
 					debug.debugPrint('HASSgeneral', "Unknown event: " + str(m))
+					logsupport.Logs.Log("Previously unknown event seen: " + str(m))
 			except Exception as e:
 				logsupport.Logs.Log("Exception handling HA message: ", repr(e), repr(message), severity=ConsoleWarning)
 
@@ -541,8 +592,9 @@ class HA(object):
 		logsupport.Logs.Log("Creating Structure for Home Assistant hub: ", hubname)
 
 		hadomains = {'group': Group, 'light': Light, 'switch': Switch, 'sensor': Sensor, 'automation': Automation,
-					 'climate': Thermostat, 'media_player': MediaPlayer}
+					 'climate': Thermostat, 'media_player': MediaPlayer, 'binary_sensor': BinarySensor, 'script': Script}
 		haignoredomains = {'zwave': ZWave, 'sun': HAnode, 'notifications': HAnode, 'persistent_notification': HAnode}
+		haignoreandskipdomains = ('history_graph','updater')
 
 		self.sensorstore = valuestore.NewValueStore(valuestore.ValueStore(hubname,itemtyp=valuestore.StoreItem))
 		self.name = hubname
@@ -566,8 +618,10 @@ class HA(object):
 		self.Lights = {}
 		self.Switches = {}
 		self.Sensors = {}
+		self.BinarySensors = {}
 		self.ZWaves = {}
 		self.Automations = {}
+		self.Scripts = {}
 		self.Thermostats = {}
 		self.MediaPlayers = {}
 		self.Others = {}
@@ -600,7 +654,7 @@ class HA(object):
 		for e in entities:
 			if e.domain not in self.Domains:
 				self.Domains[e.domain] = {}
-			p2 = dict(e.as_dict(),**{'domain':e.domain, 'name':e.name})
+			p2 = dict(e.as_dict(),**{'domain':e.domain, 'name':e.name, 'object_id':e.object_id})
 
 			if e.domain in hadomains:
 				N = hadomains[e.domain](self, p2)
@@ -608,9 +662,14 @@ class HA(object):
 			elif e.domain in haignoredomains:
 				N = HAnode(self, **p2)
 				self.IgnoredEntities[e.entity_id] = N
+			elif e.domain in haignoreandskipdomains:
+				N = None
+				pass # totally ignore these
 			else:
 				N = HAnode(self,**p2)
 				self.Others[e.entity_id] = N
+				logsupport.Logs.Log('Uncatagorized HA domain type: ', e.domain, ' for entity: ',e.entity_id)
+				debug.debugPrint('HASSgeneral', "Unhandled node type: ", e.object_id)
 
 			self.Domains[e.domain][e.object_id] = N
 
@@ -622,7 +681,8 @@ class HA(object):
 		services = ha.get_services(self.api)
 		#listeners = ha.get_event_listeners(self.api)
 		logsupport.Logs.Log("Processed "+str(len(self.Entities))+" total entities")
-		logsupport.Logs.Log("    Lights: " + str(len(self.Lights)) + " Switches: " + str(len(self.Switches)) + " Sensors: " + str(len(self.Sensors)) +
+		logsupport.Logs.Log("    Lights: " + str(len(self.Lights)) + " Switches: " + str(len(self.Switches)) +
+							" Sensors: " + str(len(self.Sensors)) + " BinarySensors: " + str(len(self.BinarySensors)) +
 							" Automations: " + str(len(self.Automations)))
 		threadmanager.SetUpHelperThread(self.name, self.HAevents, prerestart=self.PreRestartHAEvents, poststart=self.PostStartHAEvents, postrestart=self.PostStartHAEvents)
 		logsupport.Logs.Log("Finished creating Structure for Home Assistant hub: ", self.name)
