@@ -227,15 +227,16 @@ class DummyProgram(object):
 		logsupport.Logs.Log("Pressed unbound program key: " + self.keyname + " for hub: " + self.hubname + " program: " + self.programname)
 
 class RunProgram(ManualKeyDesc):
-	def __init__(self, screen, keysection, kn):
-		keyname, self.Hub = _resolvekeyname(kn,screen.DefaultHub)
+	def __init__(self, screen, keysection, keyname):
+
 
 		self.ProgramName = ''
 		debug.debugPrint('Screen', "             New RunProgram Key ", keyname)
 		utilities.LocalizeParams(self, keysection, '--', ProgramName='')
 		ManualKeyDesc.__init__(self, screen, keysection, keyname)
 		self.State = False
-		self.Program = self.Hub.GetProgram(self.ProgramName)
+		pn, self.Hub = _resolvekeyname(self.ProgramName,screen.DefaultHub)
+		self.Program = self.Hub.GetProgram(pn)
 		if self.Program is None:
 			self.Program = DummyProgram(keyname,self.Hub.name,self.ProgramName)
 			logsupport.Logs.Log("Missing Prog binding Key: " + keyname + " Hub: " + self.Hub.name + " Program: " + self.ProgramName, severity=ConsoleWarning)

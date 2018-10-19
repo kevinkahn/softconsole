@@ -2,6 +2,7 @@
 #Main = True
 #Dispatch = True
 #DaemonCtl = True
+HASSgeneral = True
 
 
 cfglib = "/home/pi/consolerem/example configs/cfglib"
@@ -123,8 +124,8 @@ SecondaryChain = Portland, Bathroom, BR, Thermostat - Main
         label = Art Spot,
 [[Count-tmp]]
      type = VARKEY
-     Var = ISY:Int:Count_tmp
-     Appearance = 0:48 red 'ISY Uptime $ mins',49:168 yellow 'ISY Uptime $ mins',169:17520 green 'ISY Uptime $ mins'
+     Var = HASSpga:sensor.tp_link_amps
+     Appearance = 0:9999 green 'Amps $',
  [LR2]
     type = Keypad
     label = Living, Room 2   
@@ -138,7 +139,7 @@ SecondaryChain = Portland, Bathroom, BR, Thermostat - Main
         Verify = 1
     [[TestProg]]
         type=RUNPROG
-        ProgramName = TestProc
+        ProgramName = HASSpga:mbr_bathroom_dimmers_off
         KeyColor = green
         Verify = 1
         GoMsg = Yes, Do, It!

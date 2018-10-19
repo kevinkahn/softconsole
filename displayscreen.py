@@ -229,9 +229,9 @@ class DisplayScreen(object):
 				for K in self.AS.Keys.values():
 					if K.touched(pos):
 						if tapcount == 1:
-							K.Proc(config.PRESS)
+							if K.Proc is not None: K.Proc(config.PRESS)
 						else:
-							K.Proc(config.FASTPRESS)
+							if K.Proc is not None: K.Proc(config.FASTPRESS)
 
 				for K in self.AS.NavKeys.values():
 					if K.touched(pos):
