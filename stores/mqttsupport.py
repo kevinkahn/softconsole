@@ -53,7 +53,7 @@ class MQTTBroker(valuestore.ValueStore):
 					else:
 						try:
 							payload = '*bad json*'+msg.payload.decode('ascii') # for exception log below
-							payload = json.loads(msg.payload.decode('ascii')).replace('nan','null') # work around bug in tasmota returning bad json
+							payload = json.loads(msg.payload.decode('ascii').replace('nan','null')) # work around bug in tasmota returning bad json
 							for i in v.jsonflds:
 								payload = payload[i]
 							if payload is not None:
