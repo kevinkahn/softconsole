@@ -139,7 +139,7 @@ SecondaryChain = Portland, Bathroom, BR, Thermostat - Main
         Verify = 1
     [[TestProg]]
         type=RUNPROG
-        ProgramName = HASSpga:mbr_bathroom_dimmers_off
+        ProgramName = HASSpga:mbr_bathroom_off
         KeyColor = green
         Verify = 1
         GoMsg = Yes, Do, It!

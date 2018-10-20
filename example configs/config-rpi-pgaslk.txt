@@ -1,0 +1,12 @@
+cfglib = "/home/pi/Console/cfglib"
+include = /home/pi/Console/local/authpga.cfg, pgawBRmain.cfg, pgaBath.cfg, pgaTstat.cfg, pgaOther.cfg, timetempLQ.cfg, weathCC.cfg, timetempPDX.cfg, myclock2.cfg,weathPDX.cfg,weathPump.cfg,weathersources.cfg,pgawmqtt.cfg, pgaalerts.cfg
+HomeScreenName = LQ
+DimLevel = 25
+DimTO = 25
+DimIdleListNames = MyClock, Portland, LaQuinta
+DimIdleListTimes =	20, 20, 20
+
+MainChain = pgaBR, LQTT, pgawBath, climate.master_bedroom, climate.living_room
+SecondaryChain = pgaOther, Portland, Pumpkin
+
+DefaultHub = HASSpga
