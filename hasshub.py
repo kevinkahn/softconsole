@@ -156,8 +156,8 @@ class Sensor(HAnode): # not stateful since it updates directly to store value
 
 	def Update(self,**ns):
 		#super(Sensor,self).Update(**ns)
-		self.attributes = ns['attributes']
-		if 'state' in ns:
+		if 'attributes' in ns: self.attributes = ns['attributes']
+		if 'state' in ns and ns['state'] != 'unknown':
 			self.Hub.sensorstore.SetVal(self.entity_id, stringtonumeric(ns['state']))
 
 class BinarySensor(HAnode):
@@ -173,7 +173,7 @@ class BinarySensor(HAnode):
 
 	def Update(self,**ns):
 		#super(Sensor,self).Update(**ns)
-		self.attributes = ns['attributes']
+		if 'attributes' in ns: self.attributes = ns['attributes']
 		if 'state' in ns:
 			if ns['state'] == 'on':
 				st = True
@@ -202,7 +202,7 @@ class MediaPlayer(HAnode):
 			self.album = self.attributes['media_album_name'] if 'media_album_name' in self.attributes else ''
 
 	def Update(self, **ns):
-		self.attributes = ns['attributes']
+		if 'attributes' in ns: self.attributes = ns['attributes']
 		self.state = ns['state']
 		newst = _NormalizeState(self.state)
 		if newst != self.internalstate:
@@ -280,7 +280,7 @@ class Thermostat(HAnode): # not stateful since has much state info
 		pygame.fastevent.post(notice)
 
 	def Update(self,**ns):
-		self.attributes = ns['attributes']
+		if 'attributes' in ns: self.attributes = ns['attributes']
 		self.temperature = self.attributes['temperature']
 		self.curtemp = self.attributes['current_temperature']
 		self.target_low = self.attributes['target_temp_low']
