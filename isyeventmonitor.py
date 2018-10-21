@@ -35,12 +35,13 @@ class ISYEventMonitor(object):
 		self.WS = None
 		self.THstate = 'init'
 
-		self.lasterror = (0,'Init')
+		self.lasterror = 'Init'
 		debug.debugPrint('DaemonCtl', "Queue Handler ", self.QHnum, " started: ", self.watchstarttime)
 		self.reportablecodes = ["DON", "DFON", "DOF", "DFOF", "ST", "CLISP", "CLISPH", "CLISPC", "CLIFS",
 								"CLIMD", "CLIHUM", "CLIHCS", "BRT", "DIM"] # "RR", "OL",
 
 	def EndWSServer(self):
+		self.lasterror = "DirectCommError"
 		self.WS.close()
 
 	def FakeNodeChange(self):
@@ -91,8 +92,8 @@ class ISYEventMonitor(object):
 				return
 
 			if self.lasterror == 'ISYWSTimeOut':
-				logsupport.Logs.Log('ISY WS restart after surprise close - short delay (30)', severity=ConsoleWarning)
-				self.delayedstart = 30
+				logsupport.Logs.Log('ISY WS restart after surprise close - short delay (15)', severity=ConsoleWarning)
+				self.delayedstart = 15
 			elif self.lasterror == 'ISYNetDown':
 				# likely home network down so wait a bit
 				logsupport.Logs.Log('ISY WS restart for NETUNREACH - delay likely router reboot or down', severity=ConsoleWarning)
@@ -102,6 +103,9 @@ class ISYEventMonitor(object):
 				logsupport.Logs.Log('Recover closed ISY WS stream', severity=ConsoleWarning)
 				self.delayedstart = 2
 				# todo - bug in websocket that results in attribute error for errno.WSEACONNECTIONREFUSED check ??
+			elif self.lasterror == 'DirectCommError':
+				logsupport.Logs.Log('ISY WS restart because of failed direct communication failure')
+				self.delayedstart = 90  # probably ISY doing query
 			else:
 				logsupport.Logs.Log('Unexpected error on WS stream: ',self.lasterror, severity=ConsoleError, tb=False)
 				self.delayedstart = 90
