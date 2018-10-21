@@ -32,7 +32,7 @@ ConsoleDetail = 2
 ConsoleInfo = 3
 ConsoleWarning = 4
 ConsoleError = 5
-ErrorNotice = False
+ErrorNotice = -1
 
 LogLevel = 3
 
@@ -79,7 +79,6 @@ class Logger(object):
 		"""
 		global ErrorNotice
 		severity = kwargs.pop('severity', ConsoleInfo)
-		if severity in [ConsoleWarning, ConsoleError]: ErrorNotice = True
 		tb = kwargs.pop('tb', True)
 		if severity < LogLevel:
 			return
@@ -96,11 +95,12 @@ class Logger(object):
 				entry = entry + str(i)
 
 		#entry = "".join([str(i) for i in args])
+		entrytime = time.strftime('%m-%d-%y %H:%M:%S')
 		if not diskonly:
-			self.log.append((severity, entry))
+			self.log.append((severity, entry, entrytime))
+			if severity in [ConsoleWarning, ConsoleError] and ErrorNotice == -1: ErrorNotice = len(self.log) - 1
 		if disklogging:
-			self.disklogfile.write(time.strftime('%m-%d-%y %H:%M:%S')
-								   + ' Sev: ' + str(severity) + " " + entry + '\n')
+			self.disklogfile.write(entrytime + ' Sev: ' + str(severity) + " " + entry + '\n')
 			if severity == ConsoleError and tb:
 				# traceback.print_stack(file=self.disklogfile)
 				for line in traceback.format_stack():
@@ -154,9 +154,11 @@ class Logger(object):
 		pygame.display.update()
 		return pos
 
-	def RenderLog(self, backcolor, start=0):
+	def RenderLog(self, backcolor, start=0, pageno=-1):
 		pos = 0
 		config.screen.fill(wc(backcolor))
+		if pageno != -1:
+			pos = self.RenderLogLine(self.log[start][2] + '          Page: ' + str(pageno), 'white', pos)
 		for i in range(start, len(self.log)):
 			pos = self.RenderLogLine(self.log[i][1], self.LogColors[self.log[i][0]], pos)
 			if pos > config.screenheight - config.botborder:

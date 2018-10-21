@@ -426,7 +426,7 @@ Run the main console loop
 """
 for n in alerttasks.monitoredvars:  # make sure vars used in alerts are updated to starting values
 	valuestore.GetVal(n)
-logsupport.ErrorNotice = False
+logsupport.ErrorNotice = -1  # if -1 no unseen, else entry number of first unseen
 config.DS.MainControlLoop(config.HomeScreen)
 logsupport.Logs.Log("Main line exit: ", config.ecode)
 pygame.quit()

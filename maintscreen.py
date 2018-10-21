@@ -216,7 +216,7 @@ class LogDisplayScreen(screen.BaseKeyScreenDesc):
 	def NextPage(self, presstype):
 		if self.item >= 0:
 			self.pageno += 1
-			self.item = logsupport.Logs.RenderLog(self.BackgroundColor, start=self.item)
+			self.item = logsupport.Logs.RenderLog(self.BackgroundColor, start=self.item, pageno=self.pageno + 1)
 			if self.pageno + 1 == len(self.PageStartItem):
 				self.PageStartItem.append(self.item)
 		else:
@@ -226,7 +226,8 @@ class LogDisplayScreen(screen.BaseKeyScreenDesc):
 	def PrevPage(self, presstype):
 		if self.pageno > 0:
 			self.pageno -= 1
-			self.item = logsupport.Logs.RenderLog(self.BackgroundColor, start=self.PageStartItem[self.pageno])
+			self.item = logsupport.Logs.RenderLog(self.BackgroundColor, start=self.PageStartItem[self.pageno],
+												  pageno=self.pageno + 1)
 		else:
 			config.DS.SwitchScreen(config.MaintScreen, 'Bright', 'Maint', 'Done showing log', NavKeys=False)
 
@@ -234,11 +235,19 @@ class LogDisplayScreen(screen.BaseKeyScreenDesc):
 		debug.debugPrint('Main', "Enter to screen: ", self.name)
 		super(LogDisplayScreen, self).InitDisplay(nav)
 		logsupport.Logs.Log('Entering Log Screen')
-		logsupport.ErrorNotice = False
+		if logsupport.ErrorNotice != -1:
+			startat = logsupport.ErrorNotice
+			logsupport.ErrorNotice = -1
+		else:
+			startat = 0
 		self.item = 0
 		self.PageStartItem = [0]
 		self.pageno = -1
 		self.NextPage(0)
+		while self.item < startat:
+			time.sleep(.5)
+			self.NextPage(0)
+
 
 class MaintScreenDesc(screen.BaseKeyScreenDesc):
 	def __init__(self, name, keys, overrides=fixedoverrides):
