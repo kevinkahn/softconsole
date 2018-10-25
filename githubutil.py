@@ -49,10 +49,11 @@ def InstallStagedVersion(d):
 
 	if os.path.exists('../homesystem'):
 		try:
-			os.remove('../Console/termshortenlist')
-			print('Removed existing shortenlist from homesystem', file=open("stagelog.log", "a"))
+			subprocess.call('cp -r --backup=numbered "example configs"/* ../Console', shell=True)
+		# os.remove('../Console/termshortenlist')
+		# print('Removed existing shortenlist from homesystem', file=open("stagelog.log", "a"))
 		except:
-			print('No existing shortenlist to remove from homesystem', file=open("stagelog.log", "a"))
+			print('Copy of example configs failed on homesystem', file=open("stagelog.log", "a"))
 
 	if not os.path.exists('../Console/termshortenlist'):
 		try:

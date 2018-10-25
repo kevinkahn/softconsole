@@ -3,7 +3,7 @@ include = /home/pi/Console/local/auth.cfg, pdxalerts.cfg, timetempPR.cfg, timete
 HomeScreenName = LR1
 DimLevel = 50
 DimTO = 25
-DimIdleListNames = MyClock, Portland, Pumpkin, LaQuinta
+DimIdleListNames = MyClock, TimeTemp, Pumpkin, LQTT
 DimIdleListTimes =	20, 20, 20, 20
 
 MainChain = LR1,LR2, Sonos, Pumpkin, Local, Upper Level,Thermostat - Main
