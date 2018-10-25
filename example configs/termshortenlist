@@ -19,5 +19,6 @@
     "Moderate rain":              "Mod Rain",
     "Heavy rain at times":        "Hvy Rain @ tms",
     "Patchy light drizzle":       "Ptchy Lt Drzl",
-    "Light rain shower":          "Lt Rain Shwr"
+    "Light rain shower":          "Lt Rain Shwr",
+    "Moderate or heavy rain with thunder": "Hvy Rn/Thndr"
 }
