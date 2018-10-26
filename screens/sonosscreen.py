@@ -244,9 +244,12 @@ class SonosScreenDesc(screen.BaseKeyScreenDesc):
 
 	def UpdateGroups(self):
 		assigned = 0
+		gpassign = {}
 		for n, p in self.SonosNodes.items():
 			if p.sonos_group[0] == n:  # we are a group master
-				self.SonosGroups[n] = p.attributes['sonos_group']
+				if p.internalstate != -1:
+					# if node went unavailable skip this to keep lsst state of groups for now
+					self.SonosGroups[n] = p.attributes['sonos_group']
 				assigned += len(self.SonosGroups[n])
 			else:
 				if n in self.SonosGroups: del self.SonosGroups[n]
