@@ -202,12 +202,13 @@ class MediaPlayer(HAnode):
 			self.album = self.attributes['media_album_name'] if 'media_album_name' in self.attributes else ''
 
 	def Update(self, **ns):
+		oldst = self.state
 		if 'attributes' in ns: self.attributes = ns['attributes']
 		self.state = ns['state']
 		newst = _NormalizeState(self.state)
 		if newst != self.internalstate:
 			logsupport.Logs.Log("Mediaplayer state change: ", self.Hub.Entities[self.entity_id].name, ' was ',
-								self.internalstate, ' now ', newst, '(', self.state, ')')
+								self.internalstate, ' now ', newst, '(', self.state, ')', severity=ConsoleDetail)
 			self.internalstate = newst
 
 		if self.Sonos:
@@ -215,6 +216,8 @@ class MediaPlayer(HAnode):
 				logsupport.Logs.Log("Sonos room went unavailable: ", self.Hub.Entities[self.entity_id].name)
 				return
 			else:
+				if oldst == -1:
+					logsupport.Logs.Log("Sonos room became available: ", self.Hub.Entities[self.entity_id].name)
 				self.sonos_group = self.attributes['sonos_group']
 				if 'source_list' in self.attributes: self.source_list = self.attributes['source_list']
 				self.muted = self.attributes['is_volume_muted'] if 'is_volume_muted' in self.attributes else 'True'
@@ -534,11 +537,17 @@ class HA(object):
 			try:
 				if error.args[0] == "'NoneType' object has no attribute 'connected'":
 					# library bug workaround - get this error after close happens just ignore
+					logsupport.Logs.Log("WS lib workaround hit (1)")  # todo remove
 					return
 			except:
 				pass
-			logsupport.Logs.Log("Error in HA WS stream " + str(self.HAnum) + ':' + repr(error), severity=ConsoleWarning)
-			logsupport.Logs.Log("Error in HA WS stream " + str(self.HAnum) + ':' + repr(error), severity=ConsoleWarning)
+				logsupport.Logs.Log("WS lib workaround hit (2)")  # todo remove
+			if isinstance(error, websocket.WebSocketConnectionClosedException):
+				logsupport.Logs.Log(self.name + " closed WS stream " + str(self.HAnum) + "; attempt to reopen",
+									severity=ConsoleWarning)
+			else:
+				logsupport.Logs.Log(self.name + ": Unknown Error in WS stream " + str(self.HAnum) + ':' + repr(error),
+									severity=ConsoleWarning)
 			# noinspection PyBroadException
 			try:
 				if error == TimeoutError: # Py3
@@ -549,6 +558,7 @@ class HA(object):
 			try:
 				if error == AttributeError:
 					error = (errno.ETIMEDOUT,"Websock bug catch")
+					logsupport.Logs.Log("WS lib workaround hit (3)")  # todo remove
 			except:
 				pass
 			qws.close()
@@ -560,17 +570,19 @@ class HA(object):
 			:type qws: websocket.WebSocketApp
 			"""
 			self.delaystart = 20 # probably a HA server restart so give it some time
-			logsupport.Logs.Log("HA ws stream " + str(self.HAnum) + " closed: " + str(code) + ' : ' + str(reason),
-							severity=ConsoleError, tb=False)
+			logsupport.Logs.Log(
+				self.name + " WS stream " + str(self.HAnum) + " closed: " + str(code) + ' : ' + str(reason),
+				severity=ConsoleError, tb=False)
 
 		def on_open(qws):
-			logsupport.Logs.Log("HA WS stream " + str(self.HAnum) + " opened for " + self.name)
+			logsupport.Logs.Log(self.name + " WS stream " + str(self.HAnum) + " opened for " + self.name)
 			#if self.password != '':
 			#	ws.send({"type": "auth","api_password": self.password})
 			#ws.send(json.dumps({'id': self.HAnum, 'type': 'subscribe_events'})) #, 'event_type': 'state_changed'}))
 
 		if self.delaystart > 0:
-			logsupport.Logs.Log('HA thread delaying start for '+str(self.delaystart)+' seconds to allow HA to restart')
+			logsupport.Logs.Log(
+				self.name + ' thread delaying start for ' + str(self.delaystart) + ' seconds to allow HA to restart')
 			time.sleep(self.delaystart)
 		self.delaystart = 0
 		websocket.setdefaulttimeout(30)
@@ -583,13 +595,15 @@ class HA(object):
 				self.msgcount = 0
 				break
 			except AttributeError as e:
-				logsupport.Logs.Log("Problem starting HA WS handler - retrying: ", repr(e), severity = ConsoleWarning)
+				logsupport.Logs.Log(self.name + ": Problem starting WS handler - retrying: ", repr(e),
+									severity=ConsoleWarning)
 		try:
 			self.ws.run_forever(ping_timeout=999)
 		except self.HAClose:
 			self.delaystart = 21
-			logsupport.Logs.Log("HA Event thread got close")
-		logsupport.Logs.Log("HA Event Thread " + str(self.HAnum) + " exiting", severity=ConsoleError, tb=False)
+			logsupport.Logs.Log(self.name + " Event thread got close")
+		logsupport.Logs.Log(self.name + " Event Thread " + str(self.HAnum) + " exiting", severity=ConsoleWarning,
+							tb=False)
 
 	def __init__(self, hubname, addr, user, password):
 		logsupport.Logs.Log("Creating Structure for Home Assistant hub: ", hubname)
@@ -639,7 +653,7 @@ class HA(object):
 		for i in range(9):
 			hassok = False
 			if ha.validate_api(self.api).value != 'ok':  # todo check not connected response and give different message
-				logsupport.Logs.Log('HA access failed validation - retrying', severity=ConsoleWarning)
+				logsupport.Logs.Log(self.name + ' access failed validation - retrying', severity=ConsoleWarning)
 				time.sleep(
 					4 * i)  # if this is a system boot or whole house power hit it may take a while for HA to be ready so stretch the wait out
 			else:
@@ -648,7 +662,7 @@ class HA(object):
 		if hassok:
 			logsupport.Logs.Log('HA access accepted for: ' + self.name)
 		else:
-			logsupport.Logs.Log('HA access failed multiple trys', severity=ConsoleError, tb=False)
+			logsupport.Logs.Log('HA access failed multiple trys for: ' + self.name, severity=ConsoleError, tb=False)
 			raise ValueError
 
 
@@ -671,7 +685,8 @@ class HA(object):
 			else:
 				N = HAnode(self,**p2)
 				self.Others[e.entity_id] = N
-				logsupport.Logs.Log('Uncatagorized HA domain type: ', e.domain, ' for entity: ',e.entity_id)
+				logsupport.Logs.Log(self.name + ': Uncatagorized HA domain type: ', e.domain, ' for entity: ',
+									e.entity_id)
 				debug.debugPrint('HASSgeneral', "Unhandled node type: ", e.object_id)
 
 			self.Domains[e.domain][e.object_id] = N
@@ -683,7 +698,7 @@ class HA(object):
 
 		services = ha.get_services(self.api)
 		#listeners = ha.get_event_listeners(self.api)
-		logsupport.Logs.Log("Processed "+str(len(self.Entities))+" total entities")
+		logsupport.Logs.Log(self.name + " Processed " + str(len(self.Entities)) + " total entities")
 		logsupport.Logs.Log("    Lights: " + str(len(self.Lights)) + " Switches: " + str(len(self.Switches)) +
 							" Sensors: " + str(len(self.Sensors)) + " BinarySensors: " + str(len(self.BinarySensors)) +
 							" Automations: " + str(len(self.Automations)))

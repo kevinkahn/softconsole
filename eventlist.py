@@ -31,7 +31,7 @@ class EventItem(object):
 
 	def __repr__(self):
 		return 'ID:' + str(id(self)) + ' gpid: ' + str(self.gpid) + ' name: ' + self.name + ' del: ' + str(
-			self.deleted)
+			self.deleted) + ' onlist: ' + str(self.onlist) + ' abstm: ' + str(self.abstime)
 
 	def OnList(self):
 		return self.onlist
@@ -86,11 +86,11 @@ class EventList(object):
 		if self.BaseTime == 0: self.BaseTime = time.time()
 
 		self.finder[id(evnt)] = evnt
-		evnt.abstime = time.time() + dt
-		evnt.deleted = False
 		for i in self.List:
 			if i[1] == evnt:
-				logsupport.Logs.Log("Event add task error", severity=ConsoleError)
+				logsupport.Logs.Log("Event add task error", repr(evnt), severity=ConsoleError)
+		evnt.abstime = time.time() + dt
+		evnt.deleted = False
 		evnt.onlist = True
 		heappush(self.List, (evnt.abstime, evnt))
 		T = self.TimeToNext()

@@ -59,7 +59,7 @@ class ISYEventMonitor(object):
 	def PostStartQHThread(self):
 		hungcount = 40
 		while self.THstate == 'restarting':
-			logsupport.Logs.Log("Waiting ISY thread start")
+			logsupport.Logs.Log(self.hubname + " Waiting thread start")
 			time.sleep(2)
 			hungcount -= 1
 			if hungcount < 0: raise ThreadStartException
@@ -67,89 +67,97 @@ class ISYEventMonitor(object):
 			time.sleep(1)
 		hungcount = 60
 		while self.THstate == 'starting':
-			logsupport.Logs.Log("Waiting initial status dump")
+			logsupport.Logs.Log(self.hubname + " Waiting initial status dump")
 			time.sleep(2)
 			hungcount -= 1
 			if hungcount < 0: raise ThreadStartException
 		if self.THstate == 'running':
 			self.isy._HubOnline = True
-			logsupport.Logs.Log("ISY initial status streamed ", self.seq, " items")
+			logsupport.Logs.Log(self.hubname + " initial status streamed ", self.seq, " items")
 			self.isy.Vars.CheckValsUpToDate(reload=True)
-			logsupport.Logs.Log("ISY vars updated")
+			logsupport.Logs.Log(self.hubname + " vars updated")
 		elif self.THstate == 'failed':
-			logsupport.Logs.Log("Failed ISY Restart", severity=ConsoleWarning)
+			logsupport.Logs.Log(self.hubname + " Failed Thread Restart", severity=ConsoleWarning)
 		else:
-			logsupport.Logs.Log("Unknown ISY QH Thread state")
+			logsupport.Logs.Log(self.hubname + " Unknown ISY QH Thread state")
 
 	def PreRestartQHThread(self):
 		self.isy._HubOnline = False
 		self.THstate = 'restarting'
 		try:
 			if self.lasterror == 'ISYSocketTimeOut':
-				logsupport.Logs.Log('(TimeoutError) Wait for likely router reboot or down', severity=ConsoleWarning, tb=False)
+				logsupport.Logs.Log(self.hubname + '(TimeoutError) Wait for likely router reboot or down',
+									severity=ConsoleWarning, tb=False)
 				self.delayedstart = 63
 				self.reinit()
 				return
 
 			if self.lasterror == 'ISYWSTimeOut':
-				logsupport.Logs.Log('ISY WS restart after surprise close - short delay (15)', severity=ConsoleWarning)
+				logsupport.Logs.Log(self.hubname + ' WS restart after surprise close - short delay (15)',
+									severity=ConsoleWarning)
 				self.delayedstart = 15
 			elif self.lasterror == 'ISYNetDown':
 				# likely home network down so wait a bit
-				logsupport.Logs.Log('ISY WS restart for NETUNREACH - delay likely router reboot or down', severity=ConsoleWarning)
+				logsupport.Logs.Log(self.hubname + ' WS restart for NETUNREACH - delay likely router reboot or down',
+									severity=ConsoleWarning)
 				# todo overlay a screen delay message so locked up console is understood
 				self.delayedstart = 121
 			elif self.lasterror == 'ISYClose':
-				logsupport.Logs.Log('Recover closed ISY WS stream', severity=ConsoleWarning)
+				logsupport.Logs.Log(self.hubname + ' Recover closed WS stream', severity=ConsoleWarning)
 				self.delayedstart = 2
 				# todo - bug in websocket that results in attribute error for errno.WSEACONNECTIONREFUSED check ??
 			elif self.lasterror == 'DirectCommError':
-				logsupport.Logs.Log('ISY WS restart because of failed direct communication failure')
+				logsupport.Logs.Log(self.hubname + ' WS restart because of failed direct communication failure')
 				self.delayedstart = 90  # probably ISY doing query
 			else:
-				logsupport.Logs.Log('Unexpected error on WS stream: ',self.lasterror, severity=ConsoleError, tb=False)
+				logsupport.Logs.Log(self.hubname + ' Unexpected error on WS stream: ', self.lasterror,
+									severity=ConsoleError, tb=False)
 				self.delayedstart = 90
 		except Exception as e:
-			logsupport.Logs.Log('PreRestartQH internal error ',e)
+			logsupport.Logs.Log(self.hubname + ' PreRestartQH internal error ', e)
 		self.reinit()
 
 	def QHandler(self):
 		def on_error(qws, error):
 			self.lasterror = "ISYUnknown"
-			if error == websocket.WebSocketConnectionClosedException:
-				logsupport.Logs.Log("ISY WS connection close - attempt to recontact ISY", severity = ConsoleWarning)
+			if isinstance(error, websocket.WebSocketConnectionClosedException):
+				logsupport.Logs.Log(self.hubname + " WS connection closed - attempt to recontact ISY",
+									severity=ConsoleWarning)
 				self.lasterror = 'ISYclose'
-			elif error == websocket.WebSocketTimeoutException:
-				logsupport.Logs.Log("ISY WS connection timed out", severity = ConsoleWarning)
+			elif isinstance(error, websocket.WebSocketTimeoutException):
+				logsupport.Logs.Log(self.hubname + " WS connection timed out", severity=ConsoleWarning)
 				self.lasterror = 'ISYWSTimeOut'
-			elif error == TimeoutError:
-				logsupport.Logs.Log("ISY WS socket timed out", severity=ConsoleWarning)
+			elif isinstance(error, TimeoutError):
+				logsupport.Logs.Log(self.hubname + " WS socket timed out", severity=ConsoleWarning)
 				self.lasterror = 'ISYSocketTimeOut'
-			elif error == AttributeError: # Py2 websocket debug todo
-				logsupport.Logs.Log("ISY WS library bug", severity=ConsoleWarning)
+			elif isinstance(error, AttributeError):  # Py2 websocket debug todo
+				logsupport.Logs.Log(self.hubname + " WS library bug", severity=ConsoleWarning)
 				self.lasterror = 'ISYwsdebugcatch'
-			elif error == OSError:
+			elif isinstance(error, OSError):
 				if error[0] == errno.ENETUNREACH:
-					logsupport.Logs.Log("ISY WS network down", severity=ConsoleWarning)
+					logsupport.Logs.Log(self.hubname + " WS network down", severity=ConsoleWarning)
 					self.lasterror = 'ISYNetDown'
 				else:
-					logsupport.Logs.Log('ISY WS OS error', repr(error),severity=ConsoleError, tb=False)
+					logsupport.Logs.Log(self.hubname + ' WS OS error', repr(error), severity=ConsoleError, tb=False)
 			else:
-				logsupport.Logs.Log("Error in ISY WS stream " + str(self.QHnum) + ':' + repr(error), severity=ConsoleError,
-									tb=False)
+				logsupport.Logs.Log(self.hubname + " Error in WS stream " + str(self.QHnum) + ': ' + repr(error),
+									severity=ConsoleError,
+									tb=True)
+				logsupport.Logs.Log(repr(websocket.WebSocketConnectionClosedException))
 			self.THstate = 'failed'
 			debug.debugPrint('DaemonCtl', "Websocket stream error", self.QHnum, repr(error))
 			qws.close()
 
 		# noinspection PyUnusedLocal
 		def on_close(qws, code, reason):
-			logsupport.Logs.Log("Websocket stream " + str(self.QHnum) + " closed: " + str(code) + ' : ' + str(reason),
-							severity=ConsoleWarning)
-			debug.debugPrint('DaemonCtl', "Websocket stream closed", str(code), str(reason))
+			logsupport.Logs.Log(
+				self.hubname + " Websocket stream " + str(self.QHnum) + " closed: " + str(code) + ' : ' + str(reason),
+				severity=ConsoleWarning)
+			debug.debugPrint('DaemonCtl', "ISY Websocket stream closed", str(code), str(reason))
 
 		def on_open(qws):
 			self.THstate = 'starting'
-			logsupport.Logs.Log("Websocket stream " + str(self.QHnum) + " opened")
+			logsupport.Logs.Log(self.hubname + " Websocket stream " + str(self.QHnum) + " opened")
 			debug.debugPrint('DaemonCtl', "Websocket stream opened: ", self.QHnum, self.streamid)
 			self.WS = qws
 
@@ -172,14 +180,16 @@ class ISYEventMonitor(object):
 
 					esid = E.pop('@sid', 'No sid')
 					if self.streamid != esid:
-						logsupport.Logs.Log("Unexpected event stream change: " + self.streamid + "/" + str(esid),
-										severity=ConsoleError, tb=False)
+						logsupport.Logs.Log(
+							self.hubname + " Unexpected event stream change: " + self.streamid + "/" + str(esid),
+							severity=ConsoleError, tb=False)
 						exitutils.FatalError("WS Stream ID Changed")
 
 					eseq = int(E.pop('@seqnum', -99))
 					if self.seq != eseq:
-						logsupport.Logs.Log("Event mismatch - Expected: " + str(self.seq) + " Got: " + str(eseq),
-										severity=ConsoleWarning)
+						logsupport.Logs.Log(
+							self.hubname + " Event mismatch - Expected: " + str(self.seq) + " Got: " + str(eseq),
+							severity=ConsoleWarning)
 						raise ISYEMInternalError
 					else:
 						self.seq += 1
@@ -206,13 +216,15 @@ class ISYEventMonitor(object):
 							debug.debugPrint('ISYchg', 'ISY Node: ', N.name, ' state change from: ', oldstate,
 											 ' to: ', N.devState)
 							if (oldstate == N.devState) and self.THstate == 'running':
-								logsupport.Logs.Log(
-									"ISY State report with no change: " + N.name + ' state: ' + str(oldstate),
-									severity=ConsoleWarning)
+								logsupport.Logs.Log(self.hubname +
+													" State report with no change: " + N.name + ' state: ' + str(
+									oldstate),
+													severity=ConsoleWarning)
 							else:
-								logsupport.Logs.Log(
-									"Status change for " + N.name + '(' + str(enode) + ') to ' + str(N.devState),
-									severity=ConsoleDetailHigh)
+								logsupport.Logs.Log(self.hubname +
+													" Status change for " + N.name + '(' + str(enode) + ') to ' + str(
+									N.devState),
+													severity=ConsoleDetailHigh)
 								# status changed to post to any alerts that want it
 								# since alerts can only react to the state of a node we check only on an ST message
 								# screens on the other hand may need to know about other actions (thermostat e.g.)
@@ -228,7 +240,8 @@ class ISYEventMonitor(object):
 											# this is a restart or initial dump so indicate upwards to avoid misleading log entry
 											if a.state == 'Armed':
 												a.state == 'Init'
-										logsupport.Logs.Log("Node alert fired: " + str(a), severity=ConsoleDetail)
+										logsupport.Logs.Log(self.hubname + " Node alert fired: " + str(a),
+															severity=ConsoleDetail)
 										# noinspection PyArgumentList
 										notice = pygame.event.Event(config.DS.ISYAlert,  hub=self.isy.name, node=enode,
 																	value=isycodes._NormalizeState(eaction), alert=a)
@@ -261,7 +274,9 @@ class ISYEventMonitor(object):
 						try:
 							valuestore.SetValByAttr(self.hubname,(vartype,varid),varval, modifier=True)
 						except KeyError:
-							logsupport.Logs.Log("Unknown variable from ISY - probably added since startup", severity=ConsoleWarning) # todo cause a restart?
+							logsupport.Logs.Log(
+								"Unknown variable from " + self.hubname + " - probably added since startup",
+								severity=ConsoleWarning)  # todo cause a restart?
 
 					elif prcode == 'Heartbeat':
 						if self.hbcount > 0:
@@ -275,7 +290,9 @@ class ISYEventMonitor(object):
 						pass  # handle any other?
 					efmtact = E.pop('fmtAct', 'v4stream')
 					if E:
-						logsupport.Logs.Log("Extra info in event: " + str(ecode) +'/' + str(prcode) +'/' + str(eaction) +'/' + str(enode) +'/' + str(eInfo) + str(E), severity=ConsoleWarning)
+						logsupport.Logs.Log(
+							self.hubname + " Extra info in event: " + str(ecode) + '/' + str(prcode) + '/' + str(
+								eaction) + '/' + str(enode) + '/' + str(eInfo) + str(E), severity=ConsoleWarning)
 					debug.debugPrint('DaemonStream', time.time() - config.starttime,
 									 formatwsitem(esid, eseq, ecode, eaction, enode, eInfo, E, self.isy))
 
@@ -284,18 +301,21 @@ class ISYEventMonitor(object):
 							isynd = self.isy.NodesByAddr[enode].name
 						except (KeyError, AttributeError):
 							isynd = enode
-						logsupport.Logs.Log("ISY shows comm error for node: " + str(isynd), severity=ConsoleWarning)
+						logsupport.Logs.Log(self.hubname + " shows comm error for node: " + str(isynd),
+											severity=ConsoleWarning)
 
 
 				else:
-					logsupport.Logs.Log("Strange item in event stream: " + str(m), severity=ConsoleWarning)
+					logsupport.Logs.Log(self.hubname + " Strange item in event stream: " + str(m),
+										severity=ConsoleWarning)
 			except Exception as E:
-				logsupport.Logs.Log("Exception in QH on message: ",repr(m),' Excp: ', repr(E))
+				logsupport.Logs.Log(self.hubname + " Exception in QH on message: ", repr(m), ' Excp: ', repr(E))
 
 		self.THstate = 'delaying'
-		logsupport.Logs.Log("ISY stream thread " + str(self.QHnum) + " setup")
+		logsupport.Logs.Log(self.hubname + " stream thread " + str(self.QHnum) + " setup")
 		if self.delayedstart != 0:
-			logsupport.Logs.Log("Delaying ISY Hub restart for probable network reset: ",str(self.delayedstart),' seconds')
+			logsupport.Logs.Log(self.hubname + " Delaying Hub restart for probable network reset: ",
+								str(self.delayedstart), ' seconds')
 			time.sleep(self.delayedstart)
 		#websocket.enableTrace(True)
 		websocket.setdefaulttimeout(30)
@@ -314,10 +334,11 @@ class ISYEventMonitor(object):
 										subprotocols=['ISYSUB'], header={'Authorization': 'Basic ' + self.a.decode('ascii')})
 				break
 			except AttributeError as e:
-				logsupport.Logs.Log("Problem starting WS handler - retrying: ",repr(e))
+				logsupport.Logs.Log(self.hubname + " Problem starting WS handler - retrying: ", repr(e))
 				print(e)
 		self.lastheartbeat = time.time()
 		ws.run_forever(ping_timeout=999)
 		self.THstate = 'failed'
 		self.isy._HubOnline = False
-		logsupport.Logs.Log("ISY QH Thread " + str(self.QHnum) + " exiting", severity=ConsoleError, tb=False)
+		logsupport.Logs.Log(self.hubname + " QH Thread " + str(self.QHnum) + " exiting", severity=ConsoleError,
+							tb=False)

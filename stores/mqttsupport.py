@@ -22,16 +22,18 @@ class MQTTBroker(valuestore.ValueStore):
 
 		# noinspection PyUnusedLocal
 		def on_connect(client, userdata, flags, rc):
-			logsupport.Logs.Log("Connected to ", self.name, " result code: " + str(rc))
+			logm = "Connected" if self.loopexited else "Reconnected"
+			logsupport.Logs.Log(logm + " to ", self.name, " result code: " + str(rc))
 			for i, _ in userdata.topicindex.items():
 				client.subscribe(i)
+			self.loopexited = False
 
 		#			for i, v in userdata.vars.items():
 		#				client.subscribe(v.Topic)
 
 		# noinspection PyUnusedLocal
 		def on_disconnect(client, userdata, rc):
-			logsupport.Logs.Log("Disconnected from ", self.name, "result code: " + str(rc))
+			logsupport.Logs.Log("Disconnected from ", self.name, " result code: " + str(rc))
 
 		# noinspection PyUnusedLocal
 		def on_message(client, userdata, msg):
@@ -103,6 +105,7 @@ class MQTTBroker(valuestore.ValueStore):
 		self.vars = {}
 		self.ids = {}
 		self.topicindex = {}  # dict from full topics to MQitems
+		self.loopexited = True
 		'''
 		for itemname,value in configsect.items():
 			if isinstance(value,Section):
@@ -138,6 +141,7 @@ class MQTTBroker(valuestore.ValueStore):
 		self.MQTTclient.loop_forever()
 		self.MQTTclient.disconnect()
 		logsupport.Logs.Log("MQTT handler thread ended for: "+self.name,severity=ConsoleWarning)
+		self.loopexited = True
 
 	def GetValByID(self, lclid):
 		self.GetVal(self.ids[lclid])
