@@ -88,7 +88,7 @@ class ISYEventMonitor(object):
 			if self.lasterror == 'ISYSocketTimeOut':
 				logsupport.Logs.Log(self.hubname + '(TimeoutError) Wait for likely router reboot or down',
 									severity=ConsoleWarning, tb=False)
-				self.delayedstart = 63
+				self.delayedstart = 150
 				self.reinit()
 				return
 
@@ -303,6 +303,7 @@ class ISYEventMonitor(object):
 							isynd = enode
 						logsupport.Logs.Log(self.hubname + " shows comm error for node: " + str(isynd),
 											severity=ConsoleWarning)
+						logsupport.Logs.Log("-Temp- ", repr(m))
 
 
 				else:

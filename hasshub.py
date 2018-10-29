@@ -543,21 +543,26 @@ class HA(object):
 				pass
 				logsupport.Logs.Log("WS lib workaround hit (2)")  # todo remove
 			if isinstance(error, websocket.WebSocketConnectionClosedException):
+				self.delaystart = 20  # server or network business?
 				logsupport.Logs.Log(self.name + " closed WS stream " + str(self.HAnum) + "; attempt to reopen",
 									severity=ConsoleWarning)
+			elif isinstance(error, TimeoutError):
+				self.delaystart = 150  # likely router reboot delay
+				logsupport.Logs.Log(self.name + " WS socket timed out", severity=ConsoleWarning)
+			elif isinstance(error, OSError):
+				if error[0] == errno.ENETUNREACH:
+					self.delaystart = 151  # likely router reboot delay
+					logsupport.Logs.Log(self.name + " WS network down", severity=ConsoleWarning)
+				else:
+					self.delaystart = 21  # likely router reboot delay
+					logsupport.Logs.Log(self.hubname + ' WS OS error', repr(error), severity=ConsoleError, tb=False)
 			else:
+				self.delaystart = 15
 				logsupport.Logs.Log(self.name + ": Unknown Error in WS stream " + str(self.HAnum) + ':' + repr(error),
 									severity=ConsoleWarning)
-			# noinspection PyBroadException
 			try:
-				if error == TimeoutError: # Py3
-					error = (errno.ETIMEDOUT,"Converted Py3 Timeout")
-			except:
-				pass
-			# noinspection PyBroadException
-			try:
-				if error == AttributeError:
-					error = (errno.ETIMEDOUT,"Websock bug catch")
+				if isinstance(error, AttributeError):
+					# error = (errno.ETIMEDOUT,"Websock bug catch")
 					logsupport.Logs.Log("WS lib workaround hit (3)")  # todo remove
 			except:
 				pass
@@ -569,7 +574,8 @@ class HA(object):
 			:param code: int
 			:type qws: websocket.WebSocketApp
 			"""
-			self.delaystart = 20 # probably a HA server restart so give it some time
+			if self.delaystart == 0:
+				self.delaystart = 11  # if no other delay set just delay a bit
 			logsupport.Logs.Log(
 				self.name + " WS stream " + str(self.HAnum) + " closed: " + str(code) + ' : ' + str(reason),
 				severity=ConsoleError, tb=False)
