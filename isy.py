@@ -476,13 +476,15 @@ class ISY(object):
 	def try_ISY_comm(self, urlcmd):
 		# todo suppress error messages unless multiple failures but keep track of number for patterning consistent recoverable failures
 		# or perhaps informative message when recovery happens (e.g, recovered on try "n"
+		error = ['ERR']
 		for i in range(5):
 			try:
 				try:
 					r = self.ISYrequestsession.get(self.ISYprefix + urlcmd, verify=False, timeout=5)
 				except requests.exceptions.ConnectTimeout as e:
+					if error[-1] != 'ConnTO': error.append('ConnTO')
 					logsupport.Logs.Log(self.name + " Comm Timeout: " + ' Cmd: ' + '*' + urlcmd + '*',
-										severity=ConsoleError,
+										severity=ConsoleDetailHigh,
 										tb=False)
 					logsupport.Logs.Log(sys.exc_info()[1], severity=ConsoleDetailHigh, tb=False)
 					logsupport.Logs.Log("Exc: ", e, severity=ConsoleDetailHigh, tb=False)
@@ -491,19 +493,28 @@ class ISY(object):
 					# noinspection PyBroadException
 					try:
 						if e[0] == errno.ENETUNREACH:
+							if error[-1] != 'NetUnrch': error.append('NetUnrch')
 							# probable network outage for reboot
-							logsupport.Logs.Log(self.name + " Comm: Network Unreachable", tb=False)
+							logsupport.Logs.Log(self.name + " Comm: Network Unreachable", severity=ConsoleDetailHigh,
+												tb=False)
 							time.sleep(120)
 						else:
-							logsupport.Logs.Log(self.name + " Comm ConnErr: " + ' Cmd: ' + urlcmd, severity=ConsoleError,
+							if error[-1] != 'ConnErr': error.append('ConnErr')
+							logsupport.Logs.Log(self.name + " Comm ConnErr: " + ' Cmd: ' + urlcmd,
+												severity=ConsoleDetailHigh,
 												tb=False)
 							logsupport.Logs.Log(sys.exc_info()[1], severity=ConsoleDetailHigh, tb=False)
 					except:
+						if error[-1] != 'ConnErr2': error.append('ConnErr2')
 						logsupport.Logs.Log(self.name + " Comm ConnErr2: " + ' Cmd: ' + urlcmd, severity=ConsoleError,
 											tb=False)
-						logsupport.Logs.Log(sys.exc_info()[1], severity=ConsoleDetailHigh, tb=False)
+						logsupport.Logs.Log(sys.exc_info()[1], severity=ConsoleError, tb=False)
+					raise CommsError
+				except requests.exceptions.ReadTimeout as e:
+					if error[-1] != 'ReadTO': error.append('ReadTO')
 					raise CommsError
 				except Exception as e:
+					if error[-1] != 'CommUnknErr': error.append('CommUnknErr')
 					logsupport.Logs.Log(self.name + " Comm UnknownErr: " + ' Cmd: ' + urlcmd, severity=ConsoleError,
 										tb=False)
 					logsupport.Logs.Log("  Exception: ", repr(e))
@@ -512,17 +523,21 @@ class ISY(object):
 				if r.status_code == 404:  # not found
 					return 'notfound'
 				if r.status_code != 200:
+					if error[-1] != 'FailReq': error.append('FailReq')
 					logsupport.Logs.Log('Hub (' + self.name +') Bad status:' + str(r.status_code) + ' on Cmd: ' + urlcmd,
 										severity=ConsoleError)
 					logsupport.Logs.Log(r.text)
 					raise CommsError
 				else:
+					if i != 0:
+						logsupport.Logs.Log(self.name + " required ", str(i + 1) + " tries " + str(error))
 					return r.text
 			except CommsError:
 				time.sleep(.5)
-				logsupport.Logs.Log(self.name + " Attempting retry " + str(i + 1), severity=ConsoleError, tb=False)
+				logsupport.Logs.Log(self.name + " Attempting retry " + str(i + 1), severity=ConsoleDetailHigh, tb=False)
 
-		logsupport.Logs.Log(self.name + " Communications Failure - Hub Unavailable", severity=ConsoleError, tb=False)
+		logsupport.Logs.Log(self.name + " Communications Failure - Hub Unavailable" + str(error), severity=ConsoleError,
+							tb=False)
 		self._HubOnline = False
 		self.isyEM.EndWSServer()
 		return ""

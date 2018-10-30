@@ -103,7 +103,7 @@ class ISYEventMonitor(object):
 				# todo overlay a screen delay message so locked up console is understood
 				self.delayedstart = 121
 			elif self.lasterror == 'ISYClose':
-				logsupport.Logs.Log(self.hubname + ' Recover closed WS stream', severity=ConsoleWarning)
+				logsupport.Logs.Log(self.hubname + ' Recovering closed WS stream')
 				self.delayedstart = 2
 				# todo - bug in websocket that results in attribute error for errno.WSEACONNECTIONREFUSED check ??
 			elif self.lasterror == 'DirectCommError':
@@ -123,7 +123,7 @@ class ISYEventMonitor(object):
 			if isinstance(error, websocket.WebSocketConnectionClosedException):
 				logsupport.Logs.Log(self.hubname + " WS connection closed - attempt to recontact ISY",
 									severity=ConsoleWarning)
-				self.lasterror = 'ISYclose'
+				self.lasterror = 'ISYClose'
 			elif isinstance(error, websocket.WebSocketTimeoutException):
 				logsupport.Logs.Log(self.hubname + " WS connection timed out", severity=ConsoleWarning)
 				self.lasterror = 'ISYWSTimeOut'
@@ -218,13 +218,11 @@ class ISYEventMonitor(object):
 							if (oldstate == N.devState) and self.THstate == 'running':
 								logsupport.Logs.Log(self.hubname +
 													" State report with no change: " + N.name + ' state: ' + str(
-									oldstate),
-													severity=ConsoleWarning)
+									oldstate))
 							else:
 								logsupport.Logs.Log(self.hubname +
 													" Status change for " + N.name + '(' + str(enode) + ') to ' + str(
-									N.devState),
-													severity=ConsoleDetailHigh)
+									N.devState), severity=ConsoleDetailHigh)
 								# status changed to post to any alerts that want it
 								# since alerts can only react to the state of a node we check only on an ST message
 								# screens on the other hand may need to know about other actions (thermostat e.g.)
@@ -341,5 +339,5 @@ class ISYEventMonitor(object):
 		ws.run_forever(ping_timeout=999)
 		self.THstate = 'failed'
 		self.isy._HubOnline = False
-		logsupport.Logs.Log(self.hubname + " QH Thread " + str(self.QHnum) + " exiting", severity=ConsoleError,
+		logsupport.Logs.Log(self.hubname + " QH Thread " + str(self.QHnum) + " exiting", severity=ConsoleWarningq,
 							tb=False)

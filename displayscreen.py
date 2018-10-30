@@ -293,7 +293,7 @@ class DisplayScreen(object):
 						if alert.state == 'Armed':
 							# condition cleared after alert rearmed  - timing in the queue?
 							logsupport.Logs.Log('Anomolous Trigger clearing while armed: ', repr(alert),
-											severity=ConsoleWarning)
+												severity=ConsoleDetail)
 						else:
 							alert.state = 'Armed'
 							logsupport.Logs.Log('Initial var value for trigger is benign: ', repr(alert),
