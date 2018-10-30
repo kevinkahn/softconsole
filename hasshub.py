@@ -411,12 +411,16 @@ class HA(object):
 
 	def PreRestartHAEvents(self):
 		if isinstance(self.lasterror, ConnectionRefusedError):
-			self.delaystart = 8 # HA probably restarting so give it a chance to get set up
+			self.delaystart = 152  # HA probably restarting so give it a chance to get set up
 		self.watchstarttime = time.time()
 		self.HAnum += 1
 
 	def PostStartHAEvents(self):
-		ha.call_service(self.api, 'logbook', 'log', {'name':'Softconsole','message': config.hostname+ ' connected'})
+		try:
+			ha.call_service(self.api, 'logbook', 'log',
+							{'name': 'Softconsole', 'message': config.hostname + ' connected'})
+		except ha.HomeAssistantError:
+			logsupport.Logs.Log(self.name + " not responding to service call after restart", severity=ConsoleWarning)
 
 	def HAevents(self):
 
@@ -522,7 +526,10 @@ class HA(object):
 				elif m['event_type'] == 'system_log_event':
 					logsupport.Logs.Log('Hub: ' + self.name + ' logged at level: ' + d['level'] + ' Msg: ' + d[
 						'message'])  # todo fake an event for Nest error?
-				elif m['event_type'] in ('call_service', 'service_executed','zwave.scene_activated','logbook_entry','service_registered','service_removed'):
+				elif m['event_type'] in (
+				'call_service', 'service_executed', 'zwave.scene_activated', 'logbook_entry', 'service_registered',
+				'service_removed',
+				'config_entry_discovered', 'persistent_notifications_updated'):
 					# debug.debugPrint('HASSchg', "Other expected event" + str(m))
 					pass
 				else:
@@ -546,6 +553,9 @@ class HA(object):
 				self.delaystart = 20  # server or network business?
 				logsupport.Logs.Log(self.name + " closed WS stream " + str(self.HAnum) + "; attempt to reopen",
 									severity=ConsoleWarning)
+			elif isinstance(error, ConnectionRefusedError):
+				self.delaystart = 149  # likely initial message after attempt to reconnect - server still down
+				logsupport.Logs.Log(self.name + "WS socket refused connection", severity=ConsoleWarning)
 			elif isinstance(error, TimeoutError):
 				self.delaystart = 150  # likely router reboot delay
 				logsupport.Logs.Log(self.name + " WS socket timed out", severity=ConsoleWarning)
@@ -575,10 +585,11 @@ class HA(object):
 			:type qws: websocket.WebSocketApp
 			"""
 			if self.delaystart == 0:
-				self.delaystart = 11  # if no other delay set just delay a bit
+				self.delaystart = 30  # if no other delay set just delay a bit
 			logsupport.Logs.Log(
 				self.name + " WS stream " + str(self.HAnum) + " closed: " + str(code) + ' : ' + str(reason),
-				severity=ConsoleError, tb=False)
+				severity=ConsoleWarning, tb=False)
+			raise self.HAClose
 
 		def on_open(qws):
 			logsupport.Logs.Log(self.name + " WS stream " + str(self.HAnum) + " opened for " + self.name)
@@ -606,7 +617,6 @@ class HA(object):
 		try:
 			self.ws.run_forever(ping_timeout=999)
 		except self.HAClose:
-			self.delaystart = 21
 			logsupport.Logs.Log(self.name + " Event thread got close")
 		logsupport.Logs.Log(self.name + " Event Thread " + str(self.HAnum) + " exiting", severity=ConsoleWarning,
 							tb=False)
