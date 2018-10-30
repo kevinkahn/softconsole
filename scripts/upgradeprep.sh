@@ -15,7 +15,6 @@ pip3 install wiringpi
 pip3 install paho-mqtt
 pip3 install python-dateutil
 pip3 install future
-#pip3 install homeassistant
 
 if [ -e setupsystemd.py ]
 then
