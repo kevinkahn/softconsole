@@ -1,6 +1,7 @@
 import os
 import subprocess
 import time
+import sys
 
 import pygame
 
@@ -44,7 +45,10 @@ def EarlyAbort(scrnmsg):
 	time.sleep(10)
 	pygame.quit()
 	# noinspection PyProtectedMember
-	os._exit(EARLYABORT)
+	sys.exit(EARLYABORT)
+
+
+# os._exit(EARLYABORT)
 
 
 def Exit(ecode, immediate=False):
@@ -82,7 +86,9 @@ def Exit(ecode, immediate=False):
 		# reboot pi?
 		pass
 	if immediate:
-		os._exit(ecode)
+		logsupport.Logs.Log("Temp - Immediate Exit: ", str(ecode), tb=True)
+		sys.exit(ecode)
+	#os._exit(ecode)
 	else:
 		config.ecode = ecode
 		config.Running = False  # make sure the main loop ends even if this exit call returns

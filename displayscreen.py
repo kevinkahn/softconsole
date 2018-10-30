@@ -1,4 +1,5 @@
 import os
+import sys
 import time
 from collections import OrderedDict
 
@@ -353,5 +354,5 @@ class DisplayScreen(object):
 		logsupport.Logs.Log('Main Loop Exit: ', config.ecode)
 		pygame.quit()
 		# noinspection PyProtectedMember
-		os._exit(config.ecode)
-
+		sys.exit(config.ecode)
+# os._exit(config.ecode)

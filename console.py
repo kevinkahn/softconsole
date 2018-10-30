@@ -56,7 +56,8 @@ def handler(signum, frame):
 		pygame.display.quit()
 		pygame.quit()
 		# noinspection PyProtectedMember
-		os._exit(0)
+		# os._exit(0)
+		sys.exit(0)
 	else:
 		logsupport.Logs.Log(u"Console received signal " + str(signum) + u" Ignoring")
 
@@ -99,7 +100,8 @@ if os.getegid() != 0:
 	logsupport.Logs.Log(u"Not running as root - exit")
 	print (u"Must run as root")
 	# noinspection PyProtectedMember
-	os._exit(exitutils.EARLYABORT)
+	sys.exit(exitutils.EARLYABORT)
+#os._exit(exitutils.EARLYABORT)
 
 utilities.InitializeEnvironment()
 
@@ -431,6 +433,7 @@ config.DS.MainControlLoop(config.HomeScreen)
 logsupport.Logs.Log("Main line exit: ", config.ecode)
 pygame.quit()
 # noinspection PyProtectedMember
-os._exit(config.ecode)
+sys.exit(config.ecode)
+#os._exit(config.ecode)
 
 # This never returns

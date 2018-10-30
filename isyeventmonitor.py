@@ -303,7 +303,7 @@ class ISYEventMonitor(object):
 							isynd = enode
 						logsupport.Logs.Log(self.hubname + " shows comm error for node: " + str(isynd),
 											severity=ConsoleWarning)
-						logsupport.Logs.Log("-Temp- ", repr(m))
+						logsupport.Logs.Log("-Temp- ", repr(m), repr(message))
 
 
 				else:
