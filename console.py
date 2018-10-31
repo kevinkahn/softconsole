@@ -44,7 +44,7 @@ import alerttasks
 from stores.weathprov.providerutils import SetUpTermShortener
 
 config.hubtypes['ISY'] = isy.ISY
-if sys.version_info[0] == 3:
+if sys.version_info[0] == 3:  # todo remove and force v3.5
 	import hasshub
 	config.hubtypes['HASS'] = hasshub.HA
 
@@ -247,6 +247,9 @@ logsupport.Logs.Log(u"  \u00A9 Kevin Kahn 2016, 2017, 2018")
 logsupport.Logs.Log("Software under Apache 2.0 License")
 logsupport.Logs.Log("Version Information:")
 logsupport.Logs.Log(" Running under Python: ", sys.version)
+if not (sys.version_info[0] == 3 and sys.version_info[1] >= 5):
+	logsupport.Logs.Log("Softconsole untested on Python versions earlier than 3.5 - please upgrade!",
+						severity=ConsoleError, tb=False)
 logsupport.Logs.Log(" Run from: ", config.exdir)
 logsupport.Logs.Log(" Last mod: ", lastfn)
 logsupport.Logs.Log(" Mod at: ", time.ctime(lastmod))

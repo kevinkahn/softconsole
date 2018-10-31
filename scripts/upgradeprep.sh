@@ -1,20 +1,13 @@
 #!/usr/bin/env bash
-#pip install configobj
-#pip install webcolors
-#pip install xmltodict
-#pip install websocket-client
-#pip install wiringpi
-#pip install paho-mqtt
-#pip install python-dateutil
-#pip install future
-pip3 install configobj
-pip3 install webcolors
-pip3 install xmltodict
-pip3 install websocket-client
-pip3 install wiringpi
-pip3 install paho-mqtt
-pip3 install python-dateutil
-pip3 install future
+
+pip install configobj
+pip install webcolors
+pip install xmltodict
+pip install --upgrade websocket-client
+pip install --upgrade wiringpi
+pip install --upgrade paho-mqtt
+pip install --upgrade python-dateutil
+pip install --upgrade future
 
 if [ -e setupsystemd.py ]
 then
