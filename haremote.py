@@ -12,6 +12,7 @@ import enum
 import json
 import logging
 import urllib.parse
+import logsupport
 
 from typing import Optional, Dict, Any, List
 
@@ -106,12 +107,12 @@ class API:
 				headers=self._headers)
 
 		except requests.exceptions.ConnectionError:
-			_LOGGER.exception("Error connecting to server")
+			# _LOGGER.exception("Error connecting to server")
 			raise HomeAssistantError("Error connecting to server")
 
 		except requests.exceptions.Timeout:
 			error = "Timeout when talking to {}".format(self.host)
-			_LOGGER.exception(error)
+			#_LOGGER.exception(error)
 			raise HomeAssistantError(error)
 
 	def __repr__(self) -> str:
@@ -198,7 +199,8 @@ def get_state(api: API, entity_id: str):
 
 	except (HomeAssistantError, ValueError):
 		# ValueError if req.json() can't parse the json
-		_LOGGER.exception("Error fetching state")
+		# _LOGGER.exception("Error fetching state")
+		logsupport.Logs.Log("Error fetching state", severity=logsupport.ConsoleWarning)
 
 		return None
 
@@ -214,7 +216,8 @@ def get_states(api: API):
 
 	except (HomeAssistantError, ValueError, AttributeError):
 		# ValueError if req.json() can't parse the json
-		_LOGGER.exception("Error fetching states")
+		# _LOGGER.exception("Error fetching states")
+		logsupport.Logs.Log("Error fetching states in get_states", severity=logsupport.ConsoleWarning)
 
 		return []
 
@@ -305,10 +308,13 @@ def call_service(api: API, domain: str, service: str,
 			_LOGGER.error("Error calling service: %d - %s",
 						  req.status_code, req.text)
 
-	except HomeAssistantError:
-		_LOGGER.exception("Error calling service")
+	except HomeAssistantError as e:
+		# _LOGGER.exception("Error calling service")
+		logsupport.Logs.Log("HA service call failed", repr(e), severity=logsupport.ConsoleWarning)
+		raise
 
 
+'''
 def get_config(api: API) -> Dict:
 	"""Return configuration."""
 	try:
@@ -327,3 +333,4 @@ def get_config(api: API) -> Dict:
 		_LOGGER.exception("Got unexpected configuration results")
 
 		return {}
+'''

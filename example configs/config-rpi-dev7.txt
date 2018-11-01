@@ -8,8 +8,8 @@ LogLevel = 3
 cfglib = "/home/pi/consolerem/example configs/cfglib"
 include = /home/pi/Console/local/auth.cfg, weathersources.cfg, pdxalerts.cfg, weathPump.cfg, timetempLQ.cfg,  myclock.cfg,bathroom.cfg,upperlev.cfg,BR-kck.cfg,tstat.cfg,weathPDX.cfg,timetempLQ7.cfg,pdxmqtt.cfg, pdxmqtt.cfg, octoprint.cfg, weathCC.cfg, tstat.cfg
 HomeScreenName = 'Creator Pro'
-DimLevel = 5
-DimTO = 5
+DimLevel = 10
+DimTO = 15
 DimIdleListNames = Portland, LQTT, MyClock, LQTTbig, Pumpkin
 
 DimIdleListTimes =	10, 10, 10, 10

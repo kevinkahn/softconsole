@@ -294,15 +294,28 @@ class ISYEventMonitor(object):
 					debug.debugPrint('DaemonStream', time.time() - config.starttime,
 									 formatwsitem(esid, eseq, ecode, eaction, enode, eInfo, E, self.isy))
 
+					try:
+						isynd = self.isy.NodesByAddr[enode].name
+					except (KeyError, AttributeError):
+						isynd = enode
 					if ecode == "ERR":
-						try:
-							isynd = self.isy.NodesByAddr[enode].name
-						except (KeyError, AttributeError):
-							isynd = enode
-						logsupport.Logs.Log(self.hubname + " shows comm error for node: " + str(isynd),
+						if enode in self.isy.ErrNodes:
+							self.isy.ErrNodes[enode] += 1
+						else:
+							self.isy.ErrNodes[enode] = 1
+						logsupport.Logs.Log(
+							self.hubname + " shows comm error " + str(self.isy.ErrNodes[enode]) + " for node: " + str(
+								isynd),
 											severity=ConsoleWarning)
 						logsupport.Logs.Log("-Temp- ", repr(m), repr(message))
+						self.isy.try_ISY_comm('query/' + enode)
 
+					# todo issue a query for the node, record it as at issue report after n tries
+					else:
+						if enode in self.isy.ErrNodes:
+							logsupport.Logs.Log(
+								self.hubname + " cleared comm error for node: " + str(isynd) + " after " + str(
+									self.isy.ErrNodes.pop(enode, -1)) + " errors")
 
 				else:
 					logsupport.Logs.Log(self.hubname + " Strange item in event stream: " + str(m),
@@ -339,5 +352,5 @@ class ISYEventMonitor(object):
 		ws.run_forever(ping_timeout=999)
 		self.THstate = 'failed'
 		self.isy._HubOnline = False
-		logsupport.Logs.Log(self.hubname + " QH Thread " + str(self.QHnum) + " exiting", severity=ConsoleWarningq,
+		logsupport.Logs.Log(self.hubname + " QH Thread " + str(self.QHnum) + " exiting", severity=ConsoleWarning,
 							tb=False)

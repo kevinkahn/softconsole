@@ -391,8 +391,10 @@ class HA(object):
 			for n, s in self.Sensors.items():
 				cacheval = self.sensorstore.GetVal(s.entity_id)
 				e = ha.get_state(self.api, s.entity_id)
-				actualval = e.state
-				e = ha.get_state(self.api, s.entity_id)
+				if e is None:
+					actualval = '*unknown*'
+				else:
+					actualval = e.state
 				if cacheval != actualval:
 					logsupport.Logs.Log('Sensor value anomoly('+self.name+'): Cached: '+str(cacheval)+ ' Actual: '+str(actualval),severity=ConsoleWarning)
 					self.sensorstore.SetVal(s.entity_id, actualval)
@@ -555,7 +557,7 @@ class HA(object):
 									severity=ConsoleWarning)
 			elif isinstance(error, ConnectionRefusedError):
 				self.delaystart = 149  # likely initial message after attempt to reconnect - server still down
-				logsupport.Logs.Log(self.name + "WS socket refused connection", severity=ConsoleWarning)
+				logsupport.Logs.Log(self.name + " WS socket refused connection", severity=ConsoleWarning)
 			elif isinstance(error, TimeoutError):
 				self.delaystart = 150  # likely router reboot delay
 				logsupport.Logs.Log(self.name + " WS socket timed out", severity=ConsoleWarning)
@@ -681,8 +683,7 @@ class HA(object):
 			logsupport.Logs.Log('HA access failed multiple trys for: ' + self.name, severity=ConsoleError, tb=False)
 			raise ValueError
 
-
-		self.config = ha.get_config(self.api)
+		# self.config = ha.get_config(self.api)
 		entities = ha.get_states(self.api)
 		for e in entities:
 			if e.domain not in self.Domains:

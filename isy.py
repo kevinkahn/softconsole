@@ -191,6 +191,7 @@ class ISY(object):
 		self._ProgramFoldersByName = {}
 		self._HubOnline = False
 		self.Vars = None
+		self.ErrNodes = {}
 
 
 		"""
