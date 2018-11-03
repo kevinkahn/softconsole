@@ -119,6 +119,7 @@ class ISYEventMonitor(object):
 
 	def QHandler(self):
 		def on_error(qws, error):
+			self.isy.HBWS.Entry(repr(error))
 			self.lasterror = "ISYUnknown"
 			if isinstance(error, websocket.WebSocketConnectionClosedException):
 				logsupport.Logs.Log(self.hubname + " WS connection closed - attempt to recontact ISY",
@@ -150,12 +151,14 @@ class ISYEventMonitor(object):
 
 		# noinspection PyUnusedLocal
 		def on_close(qws, code, reason):
+			self.isy.HBWS.Entry("Close")
 			logsupport.Logs.Log(
 				self.hubname + " Websocket stream " + str(self.QHnum) + " closed: " + str(code) + ' : ' + str(reason),
-				severity=ConsoleWarning)
+				severity=ConsoleWarning, hb=True)
 			debug.debugPrint('DaemonCtl', "ISY Websocket stream closed", str(code), str(reason))
 
 		def on_open(qws):
+			self.isy.HBWS.Entry("Open")
 			self.THstate = 'starting'
 			logsupport.Logs.Log(self.hubname + " Websocket stream " + str(self.QHnum) + " opened")
 			debug.debugPrint('DaemonCtl', "Websocket stream opened: ", self.QHnum, self.streamid)
@@ -163,6 +166,7 @@ class ISYEventMonitor(object):
 
 		# noinspection PyUnusedLocal
 		def on_message(qws, message):
+			self.isy.HBWS.Entry(repr(message))
 			try:
 				m = 'parse error'
 				m = xmltodict.parse(message)

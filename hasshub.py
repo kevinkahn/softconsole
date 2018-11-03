@@ -1,4 +1,5 @@
 import config
+import historybuffer
 import haremote as ha
 import json
 import time
@@ -396,7 +397,9 @@ class HA(object):
 				else:
 					actualval = e.state
 				if cacheval != actualval:
-					logsupport.Logs.Log('Sensor value anomoly('+self.name+'): Cached: '+str(cacheval)+ ' Actual: '+str(actualval),severity=ConsoleWarning)
+					logsupport.Logs.Log(
+						'Sensor value anomoly(' + self.name + '): Cached: ' + str(cacheval) + ' Actual: ' + str(
+							actualval), severity=ConsoleWarning, hb=True)
 					self.sensorstore.SetVal(s.entity_id, actualval)
 		except:
 			logsupport.Logs.Log('Sensor value check did not complete',severity=ConsoleWarning)
@@ -412,6 +415,10 @@ class HA(object):
 			print('Node(', type(nd),'): ', n, ' -> ', nd.internalstate, nd.state, type(nd.state))
 
 	def PreRestartHAEvents(self):
+		self.config = ha.get_config(self.api)
+		if self.config == {}:
+			# HA not responding yet - long delay
+			self.delaystart = 180
 		if isinstance(self.lasterror, ConnectionRefusedError):
 			self.delaystart = 152  # HA probably restarting so give it a chance to get set up
 		self.watchstarttime = time.time()
@@ -451,6 +458,7 @@ class HA(object):
 			return chg, dels, adds
 
 		def on_message(qws, message):
+			self.HB.Entry(repr(message))
 			try:
 				self.msgcount += 1
 				# if self.msgcount <4: logsupport.Logs.Log(self.name + " Message "+str(self.msgcount)+':'+ repr(message))
@@ -541,6 +549,7 @@ class HA(object):
 				logsupport.Logs.Log("Exception handling HA message: ", repr(e), repr(message), severity=ConsoleWarning)
 
 		def on_error(qws, error):
+			self.HB.Entry('ERROR: ', repr(error))
 			self.lasterror = error
 			# noinspection PyBroadException
 			try:
@@ -586,14 +595,16 @@ class HA(object):
 			:param code: int
 			:type qws: websocket.WebSocketApp
 			"""
+			self.HB.Entry('Close')
 			if self.delaystart == 0:
 				self.delaystart = 30  # if no other delay set just delay a bit
 			logsupport.Logs.Log(
 				self.name + " WS stream " + str(self.HAnum) + " closed: " + str(code) + ' : ' + str(reason),
-				severity=ConsoleWarning, tb=False)
+				severity=ConsoleWarning, tb=False, hb=True)
 			raise self.HAClose
 
 		def on_open(qws):
+			self.HB.Entry('Open')
 			logsupport.Logs.Log(self.name + " WS stream " + str(self.HAnum) + " opened for " + self.name)
 			#if self.password != '':
 			#	ws.send({"type": "auth","api_password": self.password})
@@ -624,6 +635,7 @@ class HA(object):
 							tb=False)
 
 	def __init__(self, hubname, addr, user, password):
+		self.HB = historybuffer.HistoryBuffer(40, hubname)
 		logsupport.Logs.Log("Creating Structure for Home Assistant hub: ", hubname)
 
 		hadomains = {'group': Group, 'light': Light, 'switch': Switch, 'sensor': Sensor, 'automation': Automation,
@@ -670,10 +682,12 @@ class HA(object):
 			self.api = ha.API(self.url)
 		for i in range(9):
 			hassok = False
-			if ha.validate_api(self.api).value != 'ok':  # todo check not connected response and give different message
-				logsupport.Logs.Log(self.name + ' access failed validation - retrying', severity=ConsoleWarning)
-				time.sleep(
-					4 * i)  # if this is a system boot or whole house power hit it may take a while for HA to be ready so stretch the wait out
+			apistat = ha.validate_api(self.api)
+			if apistat.value != 'ok':  # todo check not connected response and give different message
+				logsupport.Logs.Log(self.name + ' access failed validation - retrying (' + repr(apistat) + ')',
+									severity=ConsoleWarning)
+				# if this is a system boot or whole house power hit it may take a while for HA to be ready so stretch the wait out
+				time.sleep(10 * i)
 			else:
 				hassok = True
 				break
@@ -719,7 +733,9 @@ class HA(object):
 		logsupport.Logs.Log("    Lights: " + str(len(self.Lights)) + " Switches: " + str(len(self.Switches)) +
 							" Sensors: " + str(len(self.Sensors)) + " BinarySensors: " + str(len(self.BinarySensors)) +
 							" Automations: " + str(len(self.Automations)))
-		threadmanager.SetUpHelperThread(self.name, self.HAevents, prerestart=self.PreRestartHAEvents, poststart=self.PostStartHAEvents, postrestart=self.PostStartHAEvents)
+		threadmanager.SetUpHelperThread(self.name, self.HAevents, prerestart=self.PreRestartHAEvents,
+										poststart=self.PostStartHAEvents, postrestart=self.PostStartHAEvents,
+										prestart=self.PreRestartHAEvents)
 		logsupport.Logs.Log("Finished creating Structure for Home Assistant hub: ", self.name)
 
 

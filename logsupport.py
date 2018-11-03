@@ -1,7 +1,9 @@
+import historybuffer
 import pygame
 import webcolors
 import sys
 import traceback
+import shutil
 
 wc = webcolors.name_to_rgb  # can't use the safe version from utilities due to import loop but this is only used with
 # known color names
@@ -71,6 +73,7 @@ class Logger(object):
 				pass
 			self.disklogfile = open('Console.log', 'w')
 			os.chmod('Console.log', 0o555)
+			historybuffer.SetupHistoryBuffers(dirnm, config.MaxLogFiles)
 			os.chdir(cwd)
 
 	def Log(self, *args, **kwargs):
@@ -79,7 +82,11 @@ class Logger(object):
 		"""
 		global ErrorNotice
 		severity = kwargs.pop('severity', ConsoleInfo)
+		entrytime = time.strftime('%m-%d-%y %H:%M:%S')
 		tb = kwargs.pop('tb', True)
+		hb = kwargs.pop('hb', False)
+
+
 		if severity < LogLevel:
 			return
 		diskonly = kwargs.pop('diskonly', False)
@@ -94,8 +101,9 @@ class Logger(object):
 			else:
 				entry = entry + str(i)
 
-		#entry = "".join([str(i) for i in args])
-		entrytime = time.strftime('%m-%d-%y %H:%M:%S')
+		if hb: historybuffer.DumpAll(entry, entrytime)
+
+
 		if not diskonly:
 			self.log.append((severity, entry, entrytime))
 			if severity in [ConsoleWarning, ConsoleError] and ErrorNotice == -1: ErrorNotice = len(self.log) - 1

@@ -1,5 +1,6 @@
 import collections
 import isycodes
+import historybuffer
 
 import xmltodict
 import requests, time
@@ -147,6 +148,7 @@ class Program(ProgramFolder):
 	def RunProgram(self):  # for ISY this does a runThen
 		debug.debugPrint('ISYdbg', "runThen sent to ", self.name)
 		url = self.Hub.ISYprefix + 'programs/' + self.address + '/runThen'
+		self.HBDirect.Entry('Runprog: ' + url)
 		_ = self.Hub.ISYrequestsession.get(url)
 
 	def __repr__(self):
@@ -453,6 +455,8 @@ class ISY(object):
 		if debug.dbgStore.GetVal('ISYdbg'):
 			self.PrintTree(self._ProgRoot, "    ", 'Programs')
 
+		self.HBWS = historybuffer.HistoryBuffer(40, self.name + '-WS')
+		self.HBDirect = historybuffer.HistoryBuffer(40, self.name + '-Direct')
 		self.isyEM = isyeventmonitor.ISYEventMonitor(self)
 		threadmanager.SetUpHelperThread(self.name,self.isyEM.QHandler,prerestart=self.isyEM.PreRestartQHThread,poststart=self.isyEM.PostStartQHThread,postrestart=self.isyEM.PostStartQHThread)
 		logsupport.Logs.Log("Finished creating Structure for ISY hub: ", name)
@@ -477,10 +481,11 @@ class ISY(object):
 	def try_ISY_comm(self, urlcmd):
 		# todo suppress error messages unless multiple failures but keep track of number for patterning consistent recoverable failures
 		# or perhaps informative message when recovery happens (e.g, recovered on try "n"
-		error = ['ERR']
+		error = ['Errors']
 		for i in range(5):
 			try:
 				try:
+					self.HBDirect.Entry('(' + str(i) + ') Cmd: ' + self.ISYprefix + urlcmd)
 					r = self.ISYrequestsession.get(self.ISYprefix + urlcmd, verify=False, timeout=5)
 				except requests.exceptions.ConnectTimeout as e:
 					if error[-1] != 'ConnTO': error.append('ConnTO')
@@ -532,6 +537,7 @@ class ISY(object):
 				else:
 					if i != 0:
 						logsupport.Logs.Log(self.name + " required ", str(i + 1) + " tries " + str(error))
+					self.HBDirect.Entry(r.text)
 					return r.text
 			except CommsError:
 				time.sleep(.5)
@@ -560,7 +566,7 @@ class ISY(object):
 
 		if TargNode.devState != int(devstate):
 			logsupport.Logs.Log("ISY state anomoly in hub: ", self.name, ' Node: ', TargNode.fullname, ' (', TargNode.address, ') Cached: ',
-								TargNode.devState, ' Actual: ', devstate, severity=ConsoleWarning)
+								TargNode.devState, ' Actual: ', devstate, severity=ConsoleWarning, hb=True)
 			TargNode.devState = devstate # fix the state
 
 	@staticmethod

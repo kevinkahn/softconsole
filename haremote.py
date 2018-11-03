@@ -314,7 +314,6 @@ def call_service(api: API, domain: str, service: str,
 		raise
 
 
-'''
 def get_config(api: API) -> Dict:
 	"""Return configuration."""
 	try:
@@ -330,7 +329,7 @@ def get_config(api: API) -> Dict:
 
 	except (HomeAssistantError, ValueError):
 		# ValueError if req.json() can't parse the JSON
-		_LOGGER.exception("Got unexpected configuration results")
+		logsupport.Logs.Log("Got unexpected configuration results from HA", severity=logsupport.ConsoleWarning)
+		# _LOGGER.exception("Got unexpected configuration results")
 
 		return {}
-'''

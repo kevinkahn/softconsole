@@ -14,6 +14,7 @@ import threadmanager
 from eventlist import AlertEventItem, ProcEventItem
 from eventlist import EventList
 from logsupport import ConsoleWarning, ConsoleError, ConsoleDetail
+import historybuffer
 
 
 class DisplayScreen(object):
@@ -46,6 +47,8 @@ class DisplayScreen(object):
 		self.AS = None  # Active Screen
 		self.ScreensDict = {}  # all the sceens by name for setting navigation keys
 		self.Chain = 0  # which screen chain is active 0: Main chain 1: Secondary Chain
+		self.HBScreens = historybuffer.HistoryBuffer(20, 'Screens')
+		self.HBEvents = historybuffer.HistoryBuffer(80, 'Events')
 
 	def Dim(self):
 		self.dim = 'Dim'
@@ -60,13 +63,17 @@ class DisplayScreen(object):
 		debug.debugPrint('Dispatch', 'Set activity timer: ', timeinsecs, ' ', dbgmsg)
 
 	def SwitchScreen(self, NS, newdim, newstate, reason, NavKeys=True):
+		ASname = '*None*' if self.AS is None else self.AS.name
+		self.HBScreens.Entry(
+			NS.name + ' was ' + ASname + ' dim: ' + str(newdim) + ' state: ' + str(newstate) + ' reason: ' + str(
+				reason))
 		oldstate = self.state
 		olddim = self.dim
 		if NS == config.HomeScreen:  # always force home state on move to actual home screen
 			newstate = 'Home'
 		if NS == self.AS:
 			debug.debugPrint('Dispatch', 'Null SwitchScreen: ', reason)
-			logsupport.Logs.Log('Null switchscreen: ' + reason)
+			logsupport.Logs.Log('Null switchscreen: ' + reason, hb=True)
 		if self.AS is not None and self.AS != NS:
 			debug.debugPrint('Dispatch', "Switch from: ", self.AS.name, " to ", NS.name, "Nav=", NavKeys, ' State=',
 					   oldstate + '/' + newstate + ':' + olddim + '/' + newdim, ' ', reason)
@@ -179,6 +186,7 @@ class DisplayScreen(object):
 				event = pygame.fastevent.wait()  # wait for the next event: touches, timeouts, ISY changes on note
 
 			if event.type == pygame.MOUSEBUTTONDOWN:
+				self.HBEvents.Entry('MouseDown' + str(event.pos))
 				debug.debugPrint('Touch','MouseDown'+str(event.pos))
 				# screen touch events; this includes touches to non-sensitive area of screen
 				self.SetActivityTimer(self.AS.DimTO,
@@ -200,6 +208,7 @@ class DisplayScreen(object):
 				while True:
 					eventx = pygame.fastevent.poll()
 					if eventx.type == pygame.MOUSEBUTTONDOWN:
+						self.HBEvents.Entry('Follow MouseDown' + str(event.pos))
 						debug.debugPrint('Touch','Follow MouseDown'+str(event.pos))
 						tapcount += 1
 						pygame.time.delay(config.sysStore.GetVal('MultiTapTime'))
@@ -207,6 +216,7 @@ class DisplayScreen(object):
 						break
 					else:
 						if eventx.type >= pygame.USEREVENT:  # it isn't a screen related event
+							self.HBEvents.Entry('Defer' + repr(eventx))
 							self.Deferrals.append(eventx)  # defer the event until after the clicks are sorted out
 						else:
 							debug.debugPrint('Touch','Other event '+ pygame.event.event_name(eventx.type) + str(eventx.type))
@@ -227,18 +237,20 @@ class DisplayScreen(object):
 					self.SwitchScreen(config.MaintScreen, 'Bright', 'Maint', 'Tap to maintenance', NavKeys=False)
 					continue
 
-				for K in self.AS.Keys.values():
-					if K.touched(pos):
-						if tapcount == 1:
-							if K.Proc is not None: K.Proc(config.PRESS)
-						else:
-							if K.Proc is not None: K.Proc(config.FASTPRESS)
+				if self.AS.Keys is not None:
+					for K in self.AS.Keys.values():
+						if K.touched(pos):
+							if tapcount == 1:
+								if K.Proc is not None: K.Proc(config.PRESS)
+							else:
+								if K.Proc is not None: K.Proc(config.FASTPRESS)
 
 				for K in self.AS.NavKeys.values():
 					if K.touched(pos):
 						K.Proc(config.PRESS)  # same action whether single or double tap
 
 			elif event.type == self.ACTIVITYTIMER:  # todo .type:
+				self.HBEvents.Entry('ActivityTimer' + str(self.state))
 				debug.debugPrint('Dispatch', 'Activity timer fired State=', self.state, '/', self.dim)
 
 				if self.dim == 'Bright':
@@ -261,10 +273,12 @@ class DisplayScreen(object):
 						debug.debugPrint('Dispatch', 'TO while in: ', self.state)
 
 			elif event.type == self.GeneralRepaint:
+				self.HBEvents.Entry('General Repaint' + repr(event))
 				debug.debugPrint('Dispatch', 'General Repaint Event', event)
 				self.AS.InitDisplay()
 
 			elif event.type == self.HubNodeChange:
+				self.HBEvents.Entry('Hub Change' + repr(event))
 				debug.debugPrint('Dispatch', 'Hub Change Event', event)
 				if hasattr(event, 'node'):
 					self.AS.NodeEvent(hub=event.hub, node=event.node, value=event.value)
@@ -275,6 +289,7 @@ class DisplayScreen(object):
 					logsupport.Logs.Log('Bad Node Change Event ', event, severity=ConsoleWarning)
 
 			elif event.type in (self.ISYVar, self.ISYAlert):
+				self.HBEvents.Entry('Var or Alert' + repr(event))
 				evtype = 'variable' if event.type == self.ISYVar else 'node'
 				debug.debugPrint('Dispatch', 'ISY ', evtype, ' change', event)
 				alert = event.alert
@@ -293,7 +308,7 @@ class DisplayScreen(object):
 						if alert.state == 'Armed':
 							# condition cleared after alert rearmed  - timing in the queue?
 							logsupport.Logs.Log('Anomolous Trigger clearing while armed: ', repr(alert),
-												severity=ConsoleDetail)
+												severity=ConsoleDetail, hb=True)
 						else:
 							alert.state = 'Armed'
 							logsupport.Logs.Log('Initial var value for trigger is benign: ', repr(alert),
@@ -316,7 +331,7 @@ class DisplayScreen(object):
 				else:
 					logsupport.Logs.Log("Anomolous change situation  State: ", alert.state, " Alert: ", repr(alert),
 										" Trigger IsTue: ",
-										alert.trigger.IsTrue(), severity=ConsoleWarning)
+										alert.trigger.IsTrue(), severity=ConsoleWarning, hb=True)
 					debug.debugPrint('Dispatch', 'ISYVar/ISYAlert passing: ', alert.state, alert.trigger.IsTrue(), event,
 							   alert)
 				# Armed and false: irrelevant report
@@ -326,13 +341,16 @@ class DisplayScreen(object):
 			elif event.type == self.Tasks.TASKREADY.type:
 				E = self.Tasks.PopTask()
 				if E is None:
+					self.HBEvents.Entry('Task Empty')
 					debug.debugPrint('Dispatch', 'Empty Task Event fired')
 					continue  # some deleted task cleared
 				if isinstance(E, ProcEventItem):  # internal proc fired
+					self.HBEvents.Entry('Proc Event' + repr(E))
 					debug.debugPrint('Dispatch', 'Task ProcEvent fired: ', E)
 					if callable(E.proc):
 						E.proc()
 				elif isinstance(E, AlertEventItem):
+					self.HBEvents.Entry('Alert Event' + repr(E))
 					debug.debugPrint('Dispatch', 'Task AlertEvent fired: ', E)
 					logsupport.Logs.Log("Alert event fired" + str(E.alert), severity=ConsoleDetail)
 					E.alert.state = 'Fired'
@@ -341,13 +359,16 @@ class DisplayScreen(object):
 					else:
 						if isinstance(E.alert.trigger, alerttasks.NodeChgtrigger):
 							# why not cleared before getting here?
-							logsupport.Logs.Log('Anomolous NodeChgTrigger firing as task: ',repr(E.alert),severity = ConsoleWarning)
+							logsupport.Logs.Log('Anomolous NodeChgTrigger firing as task: ', repr(E.alert),
+												severity=ConsoleDetail, hb=True)
 						elif isinstance(E.alert.trigger, alerttasks.VarChangeTrigger):
-							logsupport.Logs.Log('Anomolous VarChangeTrigger firing as task: ',repr(E.alert),severity=ConsoleWarning)
+							logsupport.Logs.Log('Anomolous VarChangeTrigger firing as task: ', repr(E.alert),
+												severity=ConsoleDetail, hb=True)
 						E.alert.state = 'Armed'
 					if isinstance(E.alert.trigger, alerttasks.Periodictrigger):
 						self.Tasks.AddTask(E, E.alert.trigger.NextInterval())
 				else:
+					self.HBEvents.Entry('Unknown Event' + repr(E))
 					# unknown eevent?
 					debug.debugPrint('Dispatch', 'TASKREADY found unknown event: ', E)
 
