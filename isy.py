@@ -148,7 +148,7 @@ class Program(ProgramFolder):
 	def RunProgram(self):  # for ISY this does a runThen
 		debug.debugPrint('ISYdbg', "runThen sent to ", self.name)
 		url = self.Hub.ISYprefix + 'programs/' + self.address + '/runThen'
-		self.HBDirect.Entry('Runprog: ' + url)
+		self.Hub.HBDirect.Entry('Runprog: ' + url)
 		_ = self.Hub.ISYrequestsession.get(url)
 
 	def __repr__(self):
