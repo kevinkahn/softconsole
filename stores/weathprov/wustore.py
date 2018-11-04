@@ -133,19 +133,23 @@ class WUWeatherSource(object):
 		self.thisStore = store
 
 	def MapItem(self, src, item):
-		if isinstance(item, tuple):
-			if len(item) == 2:
-				return item[0](TreeDict(src, item[1]))
-			else:
-				if isinstance(item[2], str):
-					if item[2] == 'location':  # can add other internal variables here if needed
-						return item[0](TreeDict(src, item[1]), self.location)
-					elif item[2] == 'json':
-						return item[0](TreeDict(src, item[1]), self.json)
+		try:
+			if isinstance(item, tuple):
+				if len(item) == 2:
+					return item[0](TreeDict(src, item[1]))
 				else:
-					return item[0](TreeDict(src, item[1]), TreeDict(src, item[2]))
-		else:
-			return item
+					if isinstance(item[2], str):
+						if item[2] == 'location':  # can add other internal variables here if needed
+							return item[0](TreeDict(src, item[1]), self.location)
+						elif item[2] == 'json':
+							return item[0](TreeDict(src, item[1]), self.json)
+					else:
+						return item[0](TreeDict(src, item[1]), TreeDict(src, item[2]))
+			else:
+				return item
+		except:
+			# logsupport.Logs.Log("Bad WU json for value mapping: ",repr(src),repr(item),severity=ConsoleWarning)
+			return None
 
 	def FetchWeather(self):
 		global WUcount
@@ -208,8 +212,7 @@ class WUWeatherSource(object):
 					val = self.MapItem(fcst, entry)
 					self.thisStore.GetVal(('Fcst', fn)).append(val)
 			except Exception as e:
-				logsupport.Logs.Log('Exception in wu forecast processing: ', fn, repr(e),
-									severity=logsupport.ConsoleWarning)
+				logsupport.Logs.Log('Exception in wu forecast processing: ', fn, ' ', repr(entry), ' ', repr(e))
 
 		for fn, entry in CommonFieldMap.items():
 			val = self.MapItem(self.json, entry)

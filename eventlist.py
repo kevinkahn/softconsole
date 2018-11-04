@@ -4,6 +4,7 @@ import pygame
 import debug
 import logsupport
 from logsupport import ConsoleError
+import historybuffer
 
 Tasks = None
 
@@ -62,12 +63,15 @@ class EventList(object):
 		self.List = []
 		self.finder = {}
 		self.TASKREADY = pygame.event.Event(pygame.USEREVENT,{})
+		self.HB = historybuffer.HistoryBuffer(100, 'EventList')
 		# todo think this could just be the int constant and remove .type below where used
 
 	def StartLongOp(self):
+		self.HB.Entry('StartLongOp')
 		pygame.time.set_timer(self.TASKREADY.type, 0)
 
 	def EndLongOp(self):
+		self.HB.Entry('EndLongOp')
 		pygame.time.set_timer(self.TASKREADY.type, self.TimeToNext())
 
 	def PrettyTime(self, t):
@@ -83,6 +87,7 @@ class EventList(object):
 		return time.time() - self.BaseTime
 
 	def AddTask(self, evnt, dt):
+		self.HB.Entry('AddTask: ' + repr(evnt) + ' DeltaT: ' + str(dt))
 		if self.BaseTime == 0: self.BaseTime = time.time()
 
 		self.finder[id(evnt)] = evnt
@@ -99,10 +104,12 @@ class EventList(object):
 		pygame.time.set_timer(self.TASKREADY.type, T)
 
 	def RemoveTask(self, evnt):
+		self.HB.Entry('RemoveTask: ' + repr(evnt))
 		debug.debugPrint('EventList', self.RelNow(), ' Remove: ', evnt)
 		try:
 			self.finder[id(evnt)].deleted = True
 		except Exception:
+			self.HB.Entry('Not on List')
 			debug.debugPrint('EventList', self.RelNow(), ' Remove item not on list: : ', evnt)
 
 	def _TopItem(self):
@@ -137,6 +144,7 @@ class EventList(object):
 		if T is not None:
 			DiffToSched = T[0] - time.time()
 			if DiffToSched <= epsilon:  # task is due
+				self.HB.Entry('PopTask: ' + repr(T))
 				I = heappop(self.List)[1]
 				I.onlist = False
 				del self.finder[id(I)]
@@ -151,16 +159,19 @@ class EventList(object):
 				first of them will be very short and it is likely to tick a second time before the correct time to next
 				is set by the second of the 2 close events.
 				'''
+				self.HB.Entry('PopTaskEarly: ' + repr(T) + ' Early: ' + str(DiffToSched))
 				pygame.time.set_timer(self.TASKREADY.type, int(round(DiffToSched*1000 + .5)))
 				debug.debugPrint('EventList', self.RelNow(), ' Early wake: ', DiffToSched, self.PrettyList(self.List))
 				return None
 		else:
+			self.HB.Entry('PopTask Empty')
 			pygame.time.set_timer(self.TASKREADY.type, 0)  # there is no next item
 			debug.debugPrint('EventList', self.RelNow(), ' Clear timer on list empty')
 			return None
 
 	def RemoveAllGrp(self, gpid):
 		# remove all events where screen is this screen
+		self.HB.Entry('RemoveGp: ' + repr(gpid))
 		for e in self.finder.values():
 			if e.gpid == gpid:
 				self.RemoveTask(e)

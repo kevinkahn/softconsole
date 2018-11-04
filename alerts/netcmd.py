@@ -6,6 +6,8 @@ import exitutils
 import logsupport
 from stores import valuestore
 from logsupport import ConsoleWarning
+import historybuffer
+import time
 
 
 class NetCmd(object):
@@ -17,6 +19,7 @@ class NetCmd(object):
 	4: Download Beta
 	5: Set Stable
 	6: Set Beta
+	7: Dump HistoryBuffer
 	1xx: Set xxth debug flag
 	2xx: Clear xxth debug flag
 	30x: Set LogLevel to x (defaults 3, debug set 0)
@@ -51,6 +54,9 @@ class NetCmd(object):
 		elif varval == 6:
 			logsupport.Logs.Log('Remote set beta')
 			subprocess.Popen('sudo touch /home/pi/usebeta', shell=True)
+		elif varval == 7:
+			entrytime = time.strftime('%m-%d-%y %H:%M:%S')
+			historybuffer.DumpAll('Command Dump', entrytime)
 		elif varval in range(100, 100 + len(debug.DbgFlags)):
 			flg = debug.DbgFlags[varval - 100]
 			valuestore.SetVal(('Debug',flg), True)
