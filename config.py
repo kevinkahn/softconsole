@@ -7,6 +7,7 @@ Hubs = {}
 defaulthub = None
 defaulthubname = ""
 defaultISYname = 'ISY'
+hooks = None
 
 WeathProvs = {}
 

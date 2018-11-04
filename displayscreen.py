@@ -359,10 +359,10 @@ class DisplayScreen(object):
 					else:
 						if isinstance(E.alert.trigger, alerttasks.NodeChgtrigger):
 							# why not cleared before getting here?
-							logsupport.Logs.Log('Anomolous NodeChgTrigger firing as task: ', repr(E.alert),
+							logsupport.Logs.Log('NodeChgTrigger cleared while deferred: ', repr(E.alert),
 												severity=ConsoleDetail, hb=True)
 						elif isinstance(E.alert.trigger, alerttasks.VarChangeTrigger):
-							logsupport.Logs.Log('Anomolous VarChangeTrigger firing as task: ', repr(E.alert),
+							logsupport.Logs.Log('VarChangeTrigger cleared while deferred: ', repr(E.alert),
 												severity=ConsoleDetail, hb=True)
 						E.alert.state = 'Armed'
 					if isinstance(E.alert.trigger, alerttasks.Periodictrigger):

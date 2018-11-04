@@ -141,10 +141,10 @@ class AlertsScreenDesc(screen.ScreenDesc):
 			E = AlertEventItem(id(self), 'external deferred screen: ' + self.name, self.Alert)
 			config.DS.Tasks.AddTask(E, self.Defer)
 			debug.debugPrint('Screen', 'Alert screen defer to another screen: ' + self.name)
-			logsupport.Logs.Log("Alert screen " + self.name + " deferring")
+			logsupport.Logs.Log("Alert screen " + self.name + " deferring", severity=ConsoleDetail)
 		else:
 			debug.debugPrint('Screen', 'Alert screen cause cleared: ' + self.name)
-			logsupport.Logs.Log("Alert screen " + self.name + " cause cleared")
+			logsupport.Logs.Log("Alert screen " + self.name + " cause cleared", severity=ConsoleDetail)
 
 
 config.screentypes["Alert"] = AlertsScreenDesc

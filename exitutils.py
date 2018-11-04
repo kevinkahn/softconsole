@@ -8,6 +8,7 @@ import pygame
 import config
 import logsupport
 from logsupport import ConsoleWarning, ConsoleError
+import historybuffer
 
 from utilfuncs import *
 
@@ -33,6 +34,15 @@ MAINTPIREBOOT  = 41
 REMOTEREBOOT   = 42
 ERRORPIREBOOT  = 43
 
+
+def exitlogging():
+	if config.hooks.exit_code not in (
+	EARLYABORT, MAINTEXIT, MAINTPISHUT, MAINTRESTART, AUTORESTART, REMOTERESTART, EXTERNALSIGTERM, MAINTPIREBOOT,
+	REMOTEREBOOT):
+		logsupport.Logs.Log("Exiting with history trace")
+		historybuffer.DumpAll('Exit Trace', time.strftime('%m-%d-%y %H:%M:%S'))
+	else:
+		logsupport.Logs.Log("Exiting without history trace")
 
 def EarlyAbort(scrnmsg):
 	config.screen.fill(wc("red"))

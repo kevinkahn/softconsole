@@ -3,11 +3,10 @@ import shutil, os
 
 Buffers = {}
 HBdir = ''
-BaseTime = 0
 
 
 def SetupHistoryBuffers(dirnm, maxlogs):
-	global HBdir, BaseTime
+	global HBdir
 	r = [k for k in os.listdir('.') if '.HistoryBuffer' in k]
 	if ".HistoryBuffer." + str(maxlogs) in r:
 		shutil.rmtree(".HistoryBuffer." + str(maxlogs))
@@ -20,7 +19,6 @@ def SetupHistoryBuffers(dirnm, maxlogs):
 		pass
 	os.mkdir('.HistoryBuffer')
 	HBdir = dirnm + '/.HistoryBuffer/'
-	BaseTime = time.time()
 
 
 def DumpAll1(idline, entrytime):
@@ -37,6 +35,7 @@ def DumpAll(idline, entrytime):
 	curfirst = {}
 	curtime = {}
 	initial = {}
+	now = time.time()
 	more = True
 	for nm, HB in Buffers.items():
 		t[nm] = HB.content()
@@ -58,7 +57,8 @@ def DumpAll(idline, entrytime):
 				f.write('seq error:' + str(prevtime) + ' ' + str(curtime[nextup]) + '\n')
 				prevtime = 0
 			f.write(
-				'{:1s}{:10s}:({:3d}) {}: {}\n'.format(initial[nextup], nextup, curfirst[nextup][0], curfirst[nextup][1],
+				'{:1s}{:10s}:({:3d}) {}: {}\n'.format(initial[nextup], nextup, curfirst[nextup][0],
+													  now - curfirst[nextup][1],
 													  curfirst[nextup][2]))
 			# f.write(nextup + ': (' + str(curfirst[nextup][0]) + ') ' + str(curfirst[nextup][1]) + ': ' + repr(curfirst[nextup][2]) + '\n')
 			initial[nextup] = ' '
@@ -111,7 +111,7 @@ class HistoryBuffer(object):
 		for i in range(self.size):
 			j = (i + curind) % self.size
 			if cur[j].timeofentry != 0:
-				yield (j, cur[j].timeofentry - BaseTime, cur[j].entry)
+				yield (j, cur[j].timeofentry, cur[j].entry)
 
 
 	def Dump(self, f):
