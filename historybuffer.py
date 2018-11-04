@@ -97,11 +97,16 @@ class HistoryBuffer(object):
 
 	def content(self):
 		# freeze for dump and reset empty
+		# this is subject to races from other threads doing entry reports
+		# sequence must be create new buf offline, replace current buf with it so always one or other valid list
+		# then change current back to 0
+		# at worst this loses a few events that record between grabbing current and replacing with new one
+		tempbuf = []
+		for i in range(self.size):
+			tempbuf.append(EntryItem())
 		cur = self.buf
 		curind = self.current
-		self.buf = []
-		for i in range(self.size):
-			self.buf.append(EntryItem())
+		self.buf = tempbuf
 		self.current = 0
 		for i in range(self.size):
 			j = (i + curind) % self.size
