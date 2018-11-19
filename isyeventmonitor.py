@@ -133,7 +133,7 @@ class ISYEventMonitor(object):
 				self.lasterror = 'ISYSocketTimeOut'
 			elif isinstance(error, AttributeError):  # Py2 websocket debug todo
 				logsupport.Logs.Log(self.hubname + " WS library bug", severity=ConsoleWarning)
-				self.lasterror = 'ISYwsdebugcatch'
+				self.lasterror = 'ISYClose'
 			elif isinstance(error, OSError):
 				if error[0] == errno.ENETUNREACH:
 					logsupport.Logs.Log(self.hubname + " WS network down", severity=ConsoleWarning)
@@ -307,14 +307,14 @@ class ISYEventMonitor(object):
 							self.isy.ErrNodes[enode] += 1
 						else:
 							self.isy.ErrNodes[enode] = 1
-						logsupport.Logs.Log(
-							self.hubname + " shows comm error " + str(self.isy.ErrNodes[enode]) + " for node: " + str(
-								isynd),
-											severity=ConsoleWarning)
-						logsupport.Logs.Log("-Temp- ", repr(m), repr(message))
+						if self.isy.ErrNodes[enode] > 3:
+							logsupport.Logs.Log(self.hubname + " shows comm error " + str(self.isy.ErrNodes[enode]) +
+												" for node: " + str(isynd), severity=ConsoleWarning)
+							logsupport.Logs.Log("-Temp- ", repr(m), repr(message), severity=ConsoleDetail)
+						else:
+							logsupport.Logs.Log(self.hubname + " shows comm error " + str(self.isy.ErrNodes[enode]) +
+												" for node: " + str(isynd), severity=ConsoleDetail)
 						self.isy.try_ISY_comm('query/' + enode)
-
-					# todo issue a query for the node, record it as at issue report after n tries
 					else:
 						if enode in self.isy.ErrNodes:
 							logsupport.Logs.Log(

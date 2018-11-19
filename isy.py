@@ -488,6 +488,7 @@ class ISY(object):
 					self.HBDirect.Entry('(' + str(i) + ') Cmd: ' + self.ISYprefix + urlcmd)
 					r = self.ISYrequestsession.get(self.ISYprefix + urlcmd, verify=False, timeout=5)
 				except requests.exceptions.ConnectTimeout as e:
+					self.HBDirect.Entry('(' + str(i) + ') ConnectionTimeout: ' + repr(e))
 					if error[-1] != 'ConnTO': error.append('ConnTO')
 					logsupport.Logs.Log(self.name + " Comm Timeout: " + ' Cmd: ' + '*' + urlcmd + '*',
 										severity=ConsoleDetailHigh,
@@ -497,29 +498,21 @@ class ISY(object):
 					raise CommsError
 				except requests.exceptions.ConnectionError as e:
 					# noinspection PyBroadException
-					try:
-						if e[0] == errno.ENETUNREACH:
-							if error[-1] != 'NetUnrch': error.append('NetUnrch')
-							# probable network outage for reboot
-							logsupport.Logs.Log(self.name + " Comm: Network Unreachable", severity=ConsoleDetailHigh,
-												tb=False)
-							time.sleep(120)
-						else:
-							if error[-1] != 'ConnErr': error.append('ConnErr')
-							logsupport.Logs.Log(self.name + " Comm ConnErr: " + ' Cmd: ' + urlcmd,
-												severity=ConsoleDetailHigh,
-												tb=False)
-							logsupport.Logs.Log(sys.exc_info()[1], severity=ConsoleDetailHigh, tb=False)
-					except:
-						if error[-1] != 'ConnErr2': error.append('ConnErr2')
-						logsupport.Logs.Log(self.name + " Comm ConnErr2: " + ' Cmd: ' + urlcmd, severity=ConsoleError,
-											tb=False)
-						logsupport.Logs.Log(sys.exc_info()[1], severity=ConsoleError, tb=False)
+					self.HBDirect.Entry('(' + str(i) + ') ConnectionError: ' + repr(e))
+					if error[-1] != 'ConnErr': error.append('ConnErr')
+					logsupport.Logs.Log(self.name + " Comm ConnErr: " + ' Cmd: ' + urlcmd,
+										severity=ConsoleDetailHigh,
+										tb=False)
+					logsupport.Logs.Log(sys.exc_info()[1], severity=ConsoleDetailHigh, tb=False)
+					time.sleep(30)  # network may be resetting
 					raise CommsError
+
 				except requests.exceptions.ReadTimeout as e:
+					self.HBDirect.Entry('(' + str(i) + ') ReadTimeout: ' + repr(e))
 					if error[-1] != 'ReadTO': error.append('ReadTO')
 					raise CommsError
 				except Exception as e:
+					self.HBDirect.Entry('(' + str(i) + ') UnknownError: ' + repr(e))
 					if error[-1] != 'CommUnknErr': error.append('CommUnknErr')
 					logsupport.Logs.Log(self.name + " Comm UnknownErr: " + ' Cmd: ' + urlcmd, severity=ConsoleError,
 										tb=False)
@@ -529,6 +522,7 @@ class ISY(object):
 				if r.status_code == 404:  # not found
 					return 'notfound'
 				if r.status_code != 200:
+					self.HBDirect.Entry('(' + str(i) + ') Not Success: ' + repr(r.status_code))
 					if error[-1] != 'FailReq': error.append('FailReq')
 					logsupport.Logs.Log('Hub (' + self.name +') Bad status:' + str(r.status_code) + ' on Cmd: ' + urlcmd,
 										severity=ConsoleError)

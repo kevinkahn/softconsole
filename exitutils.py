@@ -39,7 +39,7 @@ def exitlogging():
 	if config.hooks.exit_code not in (
 	EARLYABORT, MAINTEXIT, MAINTPISHUT, MAINTRESTART, AUTORESTART, REMOTERESTART, EXTERNALSIGTERM, MAINTPIREBOOT,
 	REMOTEREBOOT):
-		logsupport.Logs.Log("Exiting with history trace")
+		logsupport.Logs.Log("Exiting with history trace (", repr(config.hooks.exit_code), ')')
 		historybuffer.DumpAll('Exit Trace', time.strftime('%m-%d-%y %H:%M:%S'))
 	else:
 		logsupport.Logs.Log("Exiting without history trace")

@@ -68,7 +68,7 @@ def DumpAll(idline, entrytime):
 			except StopIteration:
 				del curfirst[nextup]
 				del curtime[nextup]
-			if curfirst == {}: more = False
+			if curfirst == {} or curtime == {}: more = False
 
 
 
