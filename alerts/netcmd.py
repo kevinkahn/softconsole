@@ -20,6 +20,7 @@ class NetCmd(object):
 	5: Set Stable
 	6: Set Beta
 	7: Dump HistoryBuffer
+	8: Clear error indicator
 	1xx: Set xxth debug flag
 	2xx: Clear xxth debug flag
 	30x: Set LogLevel to x (defaults 3, debug set 0)
@@ -55,8 +56,12 @@ class NetCmd(object):
 			logsupport.Logs.Log('Remote set beta')
 			subprocess.Popen('sudo touch /home/pi/usebeta', shell=True)
 		elif varval == 7:
+			logsupport.Logs.Log('Remote history buffer dump')
 			entrytime = time.strftime('%m-%d-%y %H:%M:%S')
 			historybuffer.DumpAll('Command Dump', entrytime)
+		elif varval == 8:
+			logsupport.Logs.Log('Remote error indicator cleared')
+			logsupport.ErrorNotice = -1
 		elif varval in range(100, 100 + len(debug.DbgFlags)):
 			flg = debug.DbgFlags[varval - 100]
 			valuestore.SetVal(('Debug',flg), True)
