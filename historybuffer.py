@@ -43,8 +43,8 @@ def DumpAll(idline, entrytime):
 			curfirst[nm] = next(t[nm])
 			curtime[nm] = curfirst[nm][1]
 		except StopIteration:
-			del curfirst[nm]
-			del curtime[nm]
+			if nm in curfirst: del curfirst[nm]
+			if nm in curtime:  del curtime[nm]
 		initial[nm] = '*'
 	with open(HBdir + entrytime, 'w') as f:
 		prevtime = 0

@@ -477,8 +477,7 @@ class ISY(object):
 		for nm, N in self._NodesByFullName.items():
 			if isinstance(N, Node): self._check_real_time_node_status(N)
 
-
-	def try_ISY_comm(self, urlcmd):
+	def try_ISY_comm(self, urlcmd, timeout=5, closeonfail=True):
 		# todo suppress error messages unless multiple failures but keep track of number for patterning consistent recoverable failures
 		# or perhaps informative message when recovery happens (e.g, recovered on try "n"
 		error = ['Errors']
@@ -486,7 +485,7 @@ class ISY(object):
 			try:
 				try:
 					self.HBDirect.Entry('(' + str(i) + ') Cmd: ' + self.ISYprefix + urlcmd)
-					r = self.ISYrequestsession.get(self.ISYprefix + urlcmd, verify=False, timeout=5)
+					r = self.ISYrequestsession.get(self.ISYprefix + urlcmd, verify=False, timeout=timeout)
 				except requests.exceptions.ConnectTimeout as e:
 					self.HBDirect.Entry('(' + str(i) + ') ConnectionTimeout: ' + repr(e))
 					if error[-1] != 'ConnTO': error.append('ConnTO')
@@ -536,13 +535,15 @@ class ISY(object):
 			except CommsError:
 				time.sleep(.5)
 				logsupport.Logs.Log(self.name + " Attempting retry " + str(i + 1), severity=ConsoleDetailHigh, tb=False)
-
-		logsupport.Logs.Log(self.name + " Communications Failure - Hub Unavailable" + str(error), severity=ConsoleError,
+		if closeonfail:
+			logsupport.Logs.Log(self.name + " Communications Failure - Hub Unavailable" + str(error),
+								severity=ConsoleError,
 							tb=False)
-		self._HubOnline = False
-		self.isyEM.EndWSServer()
-		return ""
-		#exitutils.errorexit(exitutils.ERRORPIREBOOT)
+			self._HubOnline = False
+			self.isyEM.EndWSServer()
+			return ""
+		else:
+			return ""
 
 	def _check_real_time_node_status(self, TargNode):
 		text = self.try_ISY_comm('status/' + TargNode.address)

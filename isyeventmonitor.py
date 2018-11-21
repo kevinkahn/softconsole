@@ -12,6 +12,7 @@ from stores import valuestore
 import errno
 import isycodes
 from threadmanager import ThreadStartException
+import threading
 
 class ISYEMInternalError(Exception):
 	pass
@@ -34,6 +35,7 @@ class ISYEventMonitor(object):
 		self.delayedstart = 0
 		self.WS = None
 		self.THstate = 'init'
+		self.querycnt = 0
 
 		self.lasterror = 'Init'
 		debug.debugPrint('DaemonCtl', "Queue Handler ", self.QHnum, " started: ", self.watchstarttime)
@@ -43,6 +45,28 @@ class ISYEventMonitor(object):
 	def EndWSServer(self):
 		self.lasterror = "DirectCommError"
 		self.WS.close()
+
+	def RealQuery(self, enode, seq):
+		logsupport.Logs.Log("Queued query attempt for: " + enode)
+		time.sleep(120)  # allow any in progress query at ISY a chance to clear
+		if enode not in self.isy.ErrNodes:
+			logsupport.Logs.Log("Node error cleared without need of query for: " + enode)
+			return
+		logsupport.Logs.Log(self.hubname + ": Attempt query (" + str(seq) + ") in errored node: " + enode,
+							severity=ConsoleWarning)
+		r = self.isy.try_ISY_comm('query/' + enode, timeout=120, closeonfail=False)
+		if r == '':
+			logsupport.Logs.Log(self.hubname + ": Query (" + str(seq) + ") attempt failed for node: " + enode,
+								severity=ConsoleWarning)
+		else:
+			logsupport.Logs.Log(self.hubname + ": Query (" + str(seq) + ") attempt succeeded for node: " + enode)
+		del self.isy.ErrNodes[enode]
+
+	def DoNodeQuery(self, enode):
+		self.querycnt += 1
+		t = threading.Thread(name='Query-' + str(self.querycnt) + '-' + enode, target=self.RealQuery, daemon=True,
+							 args=(enode, self.querycnt))
+		t.start()
 
 	def FakeNodeChange(self):
 		# noinspection PyArgumentList
@@ -303,23 +327,19 @@ class ISYEventMonitor(object):
 					except (KeyError, AttributeError):
 						isynd = enode
 					if ecode == "ERR":
-						if enode in self.isy.ErrNodes:
-							self.isy.ErrNodes[enode] += 1
-						else:
-							self.isy.ErrNodes[enode] = 1
-						if self.isy.ErrNodes[enode] > 3:
-							logsupport.Logs.Log(self.hubname + " shows comm error " + str(self.isy.ErrNodes[enode]) +
-												" for node: " + str(isynd), severity=ConsoleWarning)
-							logsupport.Logs.Log("-Temp- ", repr(m), repr(message), severity=ConsoleDetail)
-						else:
-							logsupport.Logs.Log(self.hubname + " shows comm error " + str(self.isy.ErrNodes[enode]) +
-												" for node: " + str(isynd), severity=ConsoleDetail)
-						self.isy.try_ISY_comm('query/' + enode)
+						logsupport.Logs.Log(self.hubname + " shows comm error for node: " + str(isynd),
+											severity=ConsoleWarning)
+						# logsupport.Logs.Log("-Temp- ", repr(m), repr(message), severity=ConsoleWarning)
+						if enode not in self.isy.ErrNodes:
+							self.isy.ErrNodes[enode] = self.DoNodeQuery(enode)
 					else:
-						if enode in self.isy.ErrNodes:
+						if enode in self.isy.ErrNodes and (ecode == "ST" or (ecode == "_3" and eaction == "CE")):
 							logsupport.Logs.Log(
-								self.hubname + " cleared comm error for node: " + str(isynd) + " after " + str(
-									self.isy.ErrNodes.pop(enode, -1)) + " errors")
+								self.hubname + " cleared comm error for node: " + str(isynd))
+							if enode in self.isy.ErrNodes:
+								# logsupport.Logs.Log("Query thread still running")
+								del self.isy.ErrNodes[enode]
+						#logsupport.Logs.Log("-Temp- ", repr(m), repr(message))
 
 				else:
 					logsupport.Logs.Log(self.hubname + " Strange item in event stream: " + str(m),
