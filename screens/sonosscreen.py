@@ -19,9 +19,8 @@ class SonosScreenDesc(screen.BaseKeyScreenDesc):
 		debug.debugPrint('Screen', "New SonosScreenDesc ", screenname)
 		screen.BaseKeyScreenDesc.__init__(self, screensection, screenname)
 		self.numplayers = 0  # if 0 then Sonos didn't get set up correctly
-		self.KeyColor = ''
 		self.PlayerInputs = []
-		utilities.LocalizeParams(self, screensection, '-', 'KeyColor')
+		screen.IncorporateParams(self, 'SonosScreen', {'KeyColor'}, screensection)
 		self.DullKeyColor = wc(self.KeyColor, .5, self.BackgroundColor)
 		self.HA = self.DefaultHubObj
 		self.HubInterestList[self.HA.name] = {}

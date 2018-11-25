@@ -92,14 +92,16 @@ class MyScreens(object):
 		for i, kn in enumerate(config.MainChain):
 			prevk = config.MainDict[config.MainChain[i - 1]].screen
 			nextk = config.MainDict[config.MainChain[(i + 1)%len(config.MainChain)]].screen
-			config.MainDict[kn].prevkey = toucharea.ManualKeyDesc(config.MainDict[kn].screen, prevk.name, prevk.label,
+			config.MainDict[kn].prevkey = toucharea.ManualKeyDesc(config.MainDict[kn].screen, 'Nav<' + prevk.name,
+																  prevk.label,
 																  config.CmdKeyCol, config.CmdCharCol,
 																  config.CmdCharCol,
 																  proc=functools.partial(config.DS.NavPress, prevk),
 																  center=(
 																  config.horizborder + .5*cbutwidth, cvertcenter),
 																  size=(cbutwidth, cbutheight))
-			config.MainDict[kn].nextkey = toucharea.ManualKeyDesc(config.MainDict[kn].screen, nextk.name, nextk.label,
+			config.MainDict[kn].nextkey = toucharea.ManualKeyDesc(config.MainDict[kn].screen, 'Nav>' + nextk.name,
+																  nextk.label,
 																  config.CmdKeyCol, config.CmdCharCol,
 																  config.CmdCharCol,
 																  proc=functools.partial(config.DS.NavPress, nextk),
@@ -110,7 +112,8 @@ class MyScreens(object):
 		for i, kn in enumerate(config.SecondaryChain):
 			prevk = config.SecondaryDict[config.SecondaryChain[i - 1]].screen
 			nextk = config.SecondaryDict[config.SecondaryChain[(i + 1)%len(config.SecondaryChain)]].screen
-			config.SecondaryDict[kn].prevkey = toucharea.ManualKeyDesc(config.SecondaryDict[kn].screen, prevk.name,
+			config.SecondaryDict[kn].prevkey = toucharea.ManualKeyDesc(config.SecondaryDict[kn].screen,
+																	   'Nav<' + prevk.name,
 																	   prevk.label,
 																	   config.CmdKeyCol, config.CmdCharCol,
 																	   config.CmdCharCol,
@@ -119,7 +122,8 @@ class MyScreens(object):
 																	   center=(
 																	   config.horizborder + .5*cbutwidth, cvertcenter),
 																	   size=(cbutwidth, cbutheight))
-			config.SecondaryDict[kn].nextkey = toucharea.ManualKeyDesc(config.SecondaryDict[kn].screen, nextk.name,
+			config.SecondaryDict[kn].nextkey = toucharea.ManualKeyDesc(config.SecondaryDict[kn].screen,
+																	   'Nav>' + nextk.name,
 																	   nextk.label,
 																	   config.CmdKeyCol, config.CmdCharCol,
 																	   config.CmdCharCol,

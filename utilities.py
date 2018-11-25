@@ -242,39 +242,6 @@ def LocalizeParams(inst, configsection, indent, *args, **kwargs):
 		inst.__dict__[lcllist[i]] = val
 
 
-# if 'userstore' in inst.__dict__: inst.__dict__['userstore'].SetVal(lcllist[i],val)
-
-
-def LocalizeExtra(inst, configsection, **kwargs):
-	global moddoc
-	if not inst.__class__.__name__ in moddoc:
-		moddoc[inst.__class__.__name__] = {'loc': {}, 'ovrd': set()}
-	if configsection is None:
-		configsection = {}
-	lcllist = []
-	lclval = []
-	for nametoadd in kwargs:
-		if nametoadd not in inst.__dict__:
-			logsupport.Logs.Log('Adding extra keyword without previous definition(internal anomoly): ', nametoadd)
-			lcllist.append(nametoadd)
-			lclval.append(kwargs[nametoadd])
-			moddoc[inst.__class__.__name__]['loc'][lcllist[-1]] = type(lclval[-1])
-		else:
-			lcllist.append(nametoadd)
-			lclval.append(kwargs[nametoadd])
-			moddoc[inst.__class__.__name__]['loc'][lcllist[-1]] = type(lclval[-1])
-	for i in range(len(lcllist)):
-		val = type(lclval[i])(configsection.get(lcllist[i], lclval[i]))
-		if isinstance(val, list):
-			for j, v in enumerate(val):
-				if isinstance(v, str):
-					try:
-						val[j] = v.decode(encoding='UTF-8')#unicode(v,'UTF-8')
-					except AttributeError:
-						val[j] = v
-		inst.__dict__[lcllist[i]] = val
-
-
 def DumpDocumentation():
 	docfile = open('docs/params.txt', 'w')
 	os.chmod('docs/params.txt', 0o555)

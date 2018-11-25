@@ -11,6 +11,7 @@ from stores import valuestore
 from controlevents import *
 import shlex
 from utilfuncs import *
+import screen
 
 # noinspection PyUnusedLocal
 def KeyWithVarChanged(storeitem, old, new, param, modifier):
@@ -32,7 +33,8 @@ def _resolvekeyname(kn,DefHub):
 		logsupport.Logs.Log("Ill formed keyname: ", kn)
 		return '*none*', DefHub
 
-def CreateKey(screen, screensection, keyname):
+
+def CreateKey(thisscreen, screensection, keyname):
 	if screensection.get('type', 'ONOFF', delkey=False) == 'RUNTHEN':
 		screensection['type'] = 'RUNPROG'
 	if screensection.get('type', 'ONOFF', delkey=False) == 'ONBLINKRUNTHEN':
@@ -45,17 +47,17 @@ def CreateKey(screen, screensection, keyname):
 	keytype = screensection.get('type', 'ONOFF')
 	logsupport.Logs.Log("-Key:" + keyname, severity=ConsoleDetail)
 	if keytype in ('ONOFF', 'ON', 'OFF'):
-		NewKey = OnOffKey(screen, screensection, keyname, keytype)
+		NewKey = OnOffKey(thisscreen, screensection, keyname, keytype)
 	elif keytype == 'VARKEY':
-		NewKey = VarKey(screen, screensection, keyname)
+		NewKey = VarKey(thisscreen, screensection, keyname)
 	elif keytype == 'SETVAR':
-		NewKey = SetVarKey(screen, screensection, keyname)
+		NewKey = SetVarKey(thisscreen, screensection, keyname)
 	elif keytype == 'SETVARVALUE':
-		NewKey = SetVarValueKey(screen, screensection, keyname)
+		NewKey = SetVarValueKey(thisscreen, screensection, keyname)
 	elif keytype == 'RUNPROG':
-		NewKey = RunProgram(screen, screensection, keyname)
+		NewKey = RunProgram(thisscreen, screensection, keyname)
 	else:  # unknown type
-		NewKey = BlankKey(screen, screensection, keyname)
+		NewKey = BlankKey(thisscreen, screensection, keyname)
 		logsupport.Logs.Log('Undefined key type ' + keytype + ' for: ' + keyname, severity=ConsoleWarning)
 	return NewKey
 
@@ -66,9 +68,9 @@ def ErrorKey(presstype):
 
 
 class BlankKey(ManualKeyDesc):
-	def __init__(self, screen, keysection, keyname):
+	def __init__(self, thisscreen, keysection, keyname):
 		debug.debugPrint('Screen', "             New Blank Key Desc ", keyname)
-		ManualKeyDesc.__init__(self, screen, keysection, keyname)
+		ManualKeyDesc.__init__(self, thisscreen, keysection, keyname)
 		self.Proc = ErrorKey
 		self.State = False
 		self.label = self.label.append('(NoOp)')
@@ -78,13 +80,11 @@ class BlankKey(ManualKeyDesc):
 
 class SetVarValueKey(ManualKeyDesc):
 	# This is a key that brings up a sub screen that allows buttons to change the value of the var explicitly
-	def __init__(self, screen, keysection, keyname):
-		self.Var = ''
-
+	def __init__(self, thisscreen, keysection, keyname):
 		debug.debugPrint('Screen', "             New SetVarValue Key Desc ", keyname)
 		self.Value = None
-		ManualKeyDesc.__init__(self, screen, keysection, keyname)
-		utilities.LocalizeParams(self, keysection, '--', Var='')
+		ManualKeyDesc.__init__(self, thisscreen, keysection, keyname)
+		screen.AddUndefaultedParams(thisscreen, keysection, Var='')
 		self.Proc = self.SetVarValue
 
 		utilities.register_example("SetVarValueKey", self)
@@ -118,14 +118,10 @@ class VarKey(ManualKeyDesc):
 			self.Color = color
 			self.Label = label.split(';')
 
-	def __init__(self, screen, keysection, keyname):
-		self.Var = ''
-		self.Appearance = []
-		self.ValueSeq = []
-
+	def __init__(self, thisscreen, keysection, keyname):
 		debug.debugPrint('Screen',"              New Var Key ", keyname)
-		ManualKeyDesc.__init__(self, screen, keysection, keyname)
-		utilities.LocalizeParams(self, keysection, '--', Var='', Appearance=[], ValueSeq=[])
+		ManualKeyDesc.__init__(self, thisscreen, keysection, keyname)
+		screen.AddUndefaultedParams(thisscreen, keysection, Var='', Appearance=[], ValueSeq=[])
 		valuestore.AddAlert(self.Var, (KeyWithVarChanged,(keyname,self.Var)))
 		if self.ValueSeq:
 			self.Proc = self.VarKeyPressed
@@ -178,14 +174,10 @@ class VarKey(ManualKeyDesc):
 
 
 class SetVarKey(ManualKeyDesc):
-	def __init__(self, screen, keysection, keyname):
-		self.VarType = ''
-		self.Var = ''
-		self.Value = 0
-
+	def __init__(self, thisscreen, keysection, keyname):
 		debug.debugPrint('Screen', "             New SetVar Key Desc ", keyname)
-		ManualKeyDesc.__init__(self, screen, keysection, keyname)
-		utilities.LocalizeParams(self, keysection, '--', VarType='undef', Var='', Value=0)
+		ManualKeyDesc.__init__(self, thisscreen, keysection, keyname)
+		screen.AddUndefaultedParams(thisscreen, keysection, VarType='undef', Var='', Value=0)
 		try:
 			self.Proc = self.SetVarKeyPressed
 			if self.VarType != 'undef': # deprecate
@@ -198,15 +190,16 @@ class SetVarKey(ManualKeyDesc):
 				elif self.VarType == 'Local':
 					self.VarName = ('LocalVars', self.Var)
 				else:
-					logsupport.Logs.Log('VarType not specified for key ', self.Var, ' on screen ', screen.name,
-								severity=ConsoleWarning)
+					logsupport.Logs.Log('VarType not specified for key ', self.Var, ' on screen ', thisscreen.name,
+										severity=ConsoleWarning)
 					self.Proc = ErrorKey
 				logsupport.Logs.Log('VarKey definition using depreacted VarKey ', self.VarType, ' change to ',
 									valuestore.ExternalizeVarName(self.VarName), severity=ConsoleWarning)
 			else:
 				self.VarName = self.Var.split(':')
 		except Exception as e:
-			logsupport.Logs.Log('Var key error on screen: ' + screen.name + ' Var: ' + self.Var, severity=ConsoleWarning)
+			logsupport.Logs.Log('Var key error on screen: ' + thisscreen.name + ' Var: ' + self.Var,
+								severity=ConsoleWarning)
 			logsupport.Logs.Log('Excpt: ',str(e))
 			self.Proc = ErrorKey
 
@@ -227,23 +220,21 @@ class DummyProgram(object):
 		logsupport.Logs.Log("Pressed unbound program key: " + self.keyname + " for hub: " + self.hubname + " program: " + self.programname)
 
 class RunProgram(ManualKeyDesc):
-	def __init__(self, screen, keysection, keyname):
-
-
-		self.ProgramName = ''
+	def __init__(self, thisscreen, keysection, keyname):
 		debug.debugPrint('Screen', "             New RunProgram Key ", keyname)
-		utilities.LocalizeParams(self, keysection, '--', ProgramName='')
-		ManualKeyDesc.__init__(self, screen, keysection, keyname)
+		screen.AddUndefaultedParams(thisscreen, keysection, ProgramName='')
+		ManualKeyDesc.__init__(self, thisscreen, keysection, keyname)
 		self.State = False
-		pn, self.Hub = _resolvekeyname(self.ProgramName, screen.DefaultHubObj)
+		pn, self.Hub = _resolvekeyname(self.ProgramName, thisscreen.DefaultHubObj)
 		self.Program = self.Hub.GetProgram(pn)
 		if self.Program is None:
 			self.Program = DummyProgram(keyname,self.Hub.name,self.ProgramName)
 			logsupport.Logs.Log("Missing Prog binding Key: " + keyname + " Hub: " + self.Hub.name + " Program: " + self.ProgramName, severity=ConsoleWarning)
 		if self.Verify:
 			self.VerifyScreen = supportscreens.VerifyScreen(self, self.GoMsg, self.NoGoMsg, self.VerifyRunAndReturn,
-															screen, self.KeyColorOff,
-															screen.BackgroundColor, screen.CharColor, self.State, screen.HubInterestList)
+															thisscreen, self.KeyColorOff,
+															thisscreen.BackgroundColor, thisscreen.CharColor,
+															self.State, thisscreen.HubInterestList)
 		self.Proc = self.RunKeyPressed
 
 	# noinspection PyUnusedLocal
@@ -267,16 +258,14 @@ class RunProgram(ManualKeyDesc):
 			self.BlinkKey(self.Blink)
 
 class OnOffKey(ManualKeyDesc):
-	def __init__(self, screen, keysection, kn, keytype):
-		self.SceneProxy = ''
-		self.NodeName = ''
-		keyname, self.Hub = _resolvekeyname(kn, screen.DefaultHubObj)
+	def __init__(self, thisscreen, keysection, kn, keytype):
+		keyname, self.Hub = _resolvekeyname(kn, thisscreen.DefaultHubObj)
 		self.ControlObj = None # object on which to make operation calls
 		self.DisplayObj = None # object whose state is reflected in key
 
 		debug.debugPrint('Screen', "             New ", keytype, " Key Desc ", keyname)
-		utilities.LocalizeParams(self, keysection, '--', SceneProxy='', NodeName='')
-		ManualKeyDesc.__init__(self, screen, keysection, keyname)
+		screen.AddUndefaultedParams(thisscreen, keysection, SceneProxy='', NodeName='')
+		ManualKeyDesc.__init__(self, thisscreen, keysection, keyname)
 		self.lastpresstype = 0
 
 		if keyname == '*Action*': keyname = self.NodeName  # special case for alert screen action keys that always have same name todo - can nodename ever be explicitly set otherwise?
@@ -288,8 +277,9 @@ class OnOffKey(ManualKeyDesc):
 
 		if self.Verify:
 			self.VerifyScreen = supportscreens.VerifyScreen(self, self.GoMsg, self.NoGoMsg, self.VerifyPressAndReturn,
-															screen, self.KeyColorOff,
-															screen.BackgroundColor, screen.CharColor, self.State, screen.HubInterestList)
+															thisscreen, self.KeyColorOff,
+															thisscreen.BackgroundColor, thisscreen.CharColor,
+															self.State, thisscreen.HubInterestList)
 
 		if keytype == 'ONOFF':
 			self.KeyAction = 'OnOff'

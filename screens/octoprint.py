@@ -21,11 +21,9 @@ class OctoPrintScreenDesc(screen.BaseKeyScreenDesc):
 		self.files = []
 		self.filepaths = []
 		self.PowerKeys = {}
-		self.address = ''
-		self.apikey = ''
-		self.KeyColor = ''
 
-		utilities.LocalizeParams(self, screensection, '-', 'KeyColor', address='', apikey='')
+		screen.IncorporateParams(self, 'OctoPrint', {'KeyColor'}, screensection)
+		screen.AddUndefaultedParams(self, screensection, address='', apikey='')
 		self.title, th, self.tw = screenutil.CreateTextBlock(self.name, config.screenheight / 12, self.CharColor, True)
 		self.titlespace = th + config.screenheight / 32
 		useablescreenheight = config.screenheight - config.topborder - config.botborder - self.titlespace

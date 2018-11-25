@@ -258,10 +258,7 @@ class MaintScreenDesc(screen.BaseKeyScreenDesc):
 	def __init__(self, name, keys, overrides=fixedoverrides):
 		screen.BaseKeyScreenDesc.__init__(self, overrides, name)
 		debug.debugPrint('Screen', "Build Maintenance Screen")
-		self.TitleFontSize = 0
-		self.SubFontSize = 0
-
-		utilities.LocalizeParams(self, None, '-', TitleFontSize=40, SubFontSize=25)
+		screen.AddUndefaultedParams(self, None, TitleFontSize=40, SubFontSize=25)
 		for k, kt in keys.items():
 			NK = toucharea.ManualKeyDesc(self, k, [kt[0]], 'gold', 'black', 'red', KOn='black', KOff='red')
 			if kt[1] is not None:

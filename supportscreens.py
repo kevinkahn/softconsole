@@ -18,15 +18,13 @@ class VerifyScreen(screen.BaseKeyScreenDesc):
 	def __init__(self, key, gomsg, nogomsg, proc, callingscreen, bcolor, keycoloroff, charcolor, state, interestlist):
 		screen.BaseKeyScreenDesc.__init__(self, {}, key.name + '-Verify')
 		debug.debugPrint('Screen', "Build Verify Screen")
-		self.TitleFontSize=0
-		self.SubFontSize=0
 
 		self.HubInterestList = interestlist
 		self.DimTO = 20
 		self.PersistTO = 10
 		self.label = screen.FlatenScreenLabel(key.label)
 		self.CallingScreen = callingscreen
-		utilities.LocalizeParams(self, None, '-', TitleFontSize=40, SubFontSize=25)
+		screen.AddUndefaultedParams(self, None, TitleFontSize=40, SubFontSize=25)
 		self.Keys['yes'] = ManualKeyDesc(self, 'yes', gomsg, bcolor, keycoloroff, charcolor, State=state)
 		self.Keys['yes'].Proc = functools.partial(proc, True)
 		self.Keys['no'] = ManualKeyDesc(self, 'no', nogomsg, bcolor, keycoloroff, charcolor, State=state)
