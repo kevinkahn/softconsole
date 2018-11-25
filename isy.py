@@ -481,7 +481,8 @@ class ISY(object):
 		# todo suppress error messages unless multiple failures but keep track of number for patterning consistent recoverable failures
 		# or perhaps informative message when recovery happens (e.g, recovered on try "n"
 		error = ['Errors']
-		for i in range(5):
+		reqtm = time.time()
+		for i in range(10):
 			try:
 				try:
 					self.HBDirect.Entry('(' + str(i) + ') Cmd: ' + self.ISYprefix + urlcmd)
@@ -529,20 +530,24 @@ class ISY(object):
 					raise CommsError
 				else:
 					if i != 0:
-						logsupport.Logs.Log(self.name + " required ", str(i + 1) + " tries " + str(error))
+						logsupport.Logs.Log(self.name + " required ", str(i + 1) + " tries over " +
+											str(time.time() - reqtm) + " seconds " + str(error))
 					self.HBDirect.Entry(r.text)
 					return r.text
 			except CommsError:
-				time.sleep(.5)
+				time.sleep(5)
 				logsupport.Logs.Log(self.name + " Attempting retry " + str(i + 1), severity=ConsoleDetailHigh, tb=False)
 		if closeonfail:
-			logsupport.Logs.Log(self.name + " Communications Failure - Hub Unavailable" + str(error),
-								severity=ConsoleError,
-							tb=False)
+			logsupport.Logs.Log(
+				self.name + " Fatal Communications Failure - Hub Unavailable for " + str(time.time() - reqtm) +
+				" seconds " + str(error), severity=ConsoleError, tb=False)
 			self._HubOnline = False
 			self.isyEM.EndWSServer()
 			return ""
 		else:
+			logsupport.Logs.Log(
+				self.name + " Non-fatal Communications Failure - Hub Unavailable for " + str(time.time() - reqtm) +
+				" seconds " + str(error), severity=ConsoleWarning)
 			return ""
 
 	def _check_real_time_node_status(self, TargNode):

@@ -37,6 +37,7 @@ class ISYEventMonitor(object):
 		self.WS = None
 		self.THstate = 'init'
 		self.querycnt = 0
+		self.queryqueued = {}
 
 		self.lasterror = 'Init'
 		debug.debugPrint('DaemonCtl', "Queue Handler ", self.QHnum, " started: ", self.watchstarttime)
@@ -62,12 +63,18 @@ class ISYEventMonitor(object):
 		else:
 			logsupport.Logs.Log(self.hubname + ": Query (" + str(seq) + ") attempt succeeded for node: " + enode)
 		del self.isy.ErrNodes[enode]
+		del self.queryqueued[enode]
 
 	def DoNodeQuery(self, enode):
-		self.querycnt += 1
-		t = threading.Thread(name='Query-' + str(self.querycnt) + '-' + enode, target=self.RealQuery, daemon=True,
+		if enode not in self.queryqueued:
+			self.querycnt += 1
+			self.queryqueued[enode] = self.querycnt
+			t = threading.Thread(name='Query-' + str(self.querycnt) + '-' + enode, target=self.RealQuery, daemon=True,
 							 args=(enode, self.querycnt))
-		t.start()
+			t.start()
+		else:
+			logsupport.Logs.Log(
+				self.hubname + ": Query " + str(self.queryqueued[enode]) + " already queued for node: " + enode)
 
 	def FakeNodeChange(self):
 		# noinspection PyArgumentList
