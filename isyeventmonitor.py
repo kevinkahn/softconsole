@@ -49,10 +49,10 @@ class ISYEventMonitor(object):
 		self.WS.close()
 
 	def RealQuery(self, enode, seq):
-		logsupport.Logs.Log("Queued query attempt for: " + enode)
+		logsupport.Logs.Log("Queued query attempt (" + str(seq) + ") for: " + enode)
 		time.sleep(120)  # allow any in progress query at ISY a chance to clear
 		if enode not in self.isy.ErrNodes:
-			logsupport.Logs.Log("Node error cleared without need of query for: " + enode)
+			logsupport.Logs.Log("Node error cleared without need of query (" + str(seq) + ") for: " + enode)
 			return
 		logsupport.Logs.Log(self.hubname + ": Attempt query (" + str(seq) + ") in errored node: " + enode,
 							severity=ConsoleWarning)
@@ -62,8 +62,8 @@ class ISYEventMonitor(object):
 								severity=ConsoleWarning)
 		else:
 			logsupport.Logs.Log(self.hubname + ": Query (" + str(seq) + ") attempt succeeded for node: " + enode)
-		del self.isy.ErrNodes[enode]
-		del self.queryqueued[enode]
+		if enode in self.isy.ErrNodes: del self.isy.ErrNodes[enode]
+		if enode in self.isy.queryqueued: del self.queryqueued[enode]
 
 	def DoNodeQuery(self, enode):
 		if enode not in self.queryqueued:
