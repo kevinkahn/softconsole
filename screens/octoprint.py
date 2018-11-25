@@ -36,12 +36,6 @@ class OctoPrintScreenDesc(screen.BaseKeyScreenDesc):
 		if retp.status_code != 200:
 			logsupport.Logs.Log('Access to OctoPrint denied: ', retp.text, severity=logsupport.ConsoleWarning)
 
-		self.VerifyScreenCancel = supportscreens.VerifyScreen(self, ('Cancel', 'Job'), ('Back',), self.DoCancel,
-															  screen, self.KeyColor, self.CharColor, self.CharColor,
-															  True, None)
-		self.VerifyScreenPause = supportscreens.VerifyScreen(self, ('Pause', 'Job'), ('Back',), self.DoCancel,
-															 screen, self.KeyColor, self.CharColor, self.CharColor,
-															 True, None)
 		self.PowerKeys['printeron'] = toucharea.ManualKeyDesc(self, 'PowerOn', ['Power On'], self.KeyColor,
 															  self.CharColor, self.CharColor,
 															  center=(config.screenwidth // 4, ctlpos * 4),
@@ -79,7 +73,16 @@ class OctoPrintScreenDesc(screen.BaseKeyScreenDesc):
 														center=(3 * config.screenwidth // 4, ctlpos * 5),
 														size=(config.screenwidth // 3, ctlhgt), KOn='', KOff='',
 														proc=self.PreDoPause, Verify=True)
-		self.FileSubscreen = supportscreens.ListChooserSubScreen(self, 8, useablescreenheight, self.titlespace,
+		self.VerifyScreenCancel = supportscreens.VerifyScreen(self.JobKeys['Cancel'], ('Cancel', 'Job'), ('Back',),
+															  self.DoCancel,
+															  screen, self.KeyColor, self.CharColor, self.CharColor,
+															  True, None)
+		self.VerifyScreenPause = supportscreens.VerifyScreen(self.JobKeys['Pause'], ('Pause', 'Job'), ('Back',),
+															 self.DoCancel,
+															 screen, self.KeyColor, self.CharColor, self.CharColor,
+															 True, None)
+		self.FileSubscreen = supportscreens.ListChooserSubScreen(self, 'FileList', 8, useablescreenheight,
+																 self.titlespace,
 																 self.FilePick)
 
 	def FilePick(self, fileno):

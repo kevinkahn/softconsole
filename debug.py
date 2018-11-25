@@ -94,24 +94,32 @@ def ISYDump(fn, item, pretty = True,new=False):
 				f.write('\n')
 			f.write(item)
 
+
+def DumpStore(f, store, name, indent):
+	notdumped = True
+	while notdumped:
+		try:
+			f.write('\n' + indent + name + '->\n')
+			for i in store.items():
+				f.write(indent + '  ' + str(i) + ' ' + str(store.GetVal(i)) + '\n')
+				f.flush()
+			notdumped = False
+		except Exception as e:
+			f.write(store.name + " changed - retry dump\n  (" + repr(e) + ")\n")
+		if hasattr(store, 'children'):
+			for child, childstore in store.children.items():
+				DumpStore(f, childstore, child, indent + '    ')
+
+
 # noinspection PyUnusedLocal
-def StoresDump(store,old,new,param,_):
+def StoresDump(store, old, new, param, _):
 	if not new: return
 	with open('/home/pi/Console/StoresDump.txt', mode='w') as f:
 		for store in valuestore.ValueStores.values():
-			notdumped = True
-			while notdumped:
-				try:
-					for i in store.items():
-						f.write(store.name + str(i) + ' ')
-						f.flush()
-						x = str(store.GetVal(i))
-						# f.write(store.name + str(i) + str(store.GetVal(i)) + '\n')
-						f.write(x + '\n')
-						f.flush()
-					notdumped = False
-				except Exception as e:
-					f.write(store.name + " changed - retry dump\n  (" + repr(e) + ")\n")
+			if not hasattr(store, 'defaultparent'):
+				DumpStore(f, store, store.name, '')
+			elif store.defaultparent == None:
+				DumpStore(f, store, store.name, '')
 
 	dbgStore.SetVal('StoresDump',False)
 

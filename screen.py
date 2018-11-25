@@ -98,9 +98,10 @@ class ScreenDesc(object):
 	def __getattr__(self, key):
 		return self.userstore.GetVal(key)
 
-
-	def __init__(self, screensection, screenname):
-		self.userstore = valuestore.NewValueStore(paramstore.ParamStore('Screen-' + screenname, dp=screenStore))
+	def __init__(self, screensection, screenname, parentscreen=None):
+		self.userstore = valuestore.NewValueStore(paramstore.ParamStore('Screen-' + screenname,
+																		dp=screenStore if parentscreen is None else parentscreen.userstore,
+																		locname=screenname))
 
 		self.markradius = int(min(config.screenwidth, config.screenheight) * .025)
 
@@ -165,8 +166,8 @@ class ScreenDesc(object):
 							   (self.markradius, self.markradius), self.markradius, 0)
 
 class BaseKeyScreenDesc(ScreenDesc):
-	def __init__(self, screensection, screenname):
-		ScreenDesc.__init__(self, screensection, screenname)
+	def __init__(self, screensection, screenname, parentscreen=None):
+		ScreenDesc.__init__(self, screensection, screenname, parentscreen=parentscreen)
 
 		AddUndefaultedParams(self, screensection, KeysPerColumn=0, KeysPerRow=0)
 

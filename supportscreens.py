@@ -16,7 +16,7 @@ import screenutil
 class VerifyScreen(screen.BaseKeyScreenDesc):
 
 	def __init__(self, key, gomsg, nogomsg, proc, callingscreen, bcolor, keycoloroff, charcolor, state, interestlist):
-		screen.BaseKeyScreenDesc.__init__(self, {}, key.name + '-Verify')
+		screen.BaseKeyScreenDesc.__init__(self, {}, key.name + '-Verify', parentscreen=key)
 		debug.debugPrint('Screen', "Build Verify Screen")
 
 		self.HubInterestList = interestlist
@@ -173,7 +173,7 @@ def _TriangleCorners(c, hgt, invert):
 
 
 class ListChooserSubScreen(screen.ScreenDesc):
-	def __init__(self, masterscreen, slots, screenhgt, voffset, proc):
+	def __init__(self, masterscreen, choosername, slots, screenhgt, voffset, proc):
 		"""
 		Create subscreen(s) that allow choosing from a list
 		:param masterscreen: the real screen for which this operates
@@ -182,7 +182,8 @@ class ListChooserSubScreen(screen.ScreenDesc):
 		:param voffset: vertical offset for start of area to be used
 		:param proc: function called with resultant selection index or -1 if cancelled
 		"""
-		screen.ScreenDesc.__init__(self, {}, masterscreen.name + ' -ListChooser')
+		screen.ScreenDesc.__init__(self, {}, masterscreen.name + '-' + choosername + '-Chooser',
+								   parentscreen=masterscreen)
 		self.Result = proc
 		self.masterscreen = masterscreen
 		self.firstitem = 0

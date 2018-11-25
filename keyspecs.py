@@ -84,7 +84,7 @@ class SetVarValueKey(ManualKeyDesc):
 		debug.debugPrint('Screen', "             New SetVarValue Key Desc ", keyname)
 		self.Value = None
 		ManualKeyDesc.__init__(self, thisscreen, keysection, keyname)
-		screen.AddUndefaultedParams(thisscreen, keysection, Var='')
+		screen.AddUndefaultedParams(self, keysection, Var='')
 		self.Proc = self.SetVarValue
 
 		utilities.register_example("SetVarValueKey", self)
@@ -121,7 +121,7 @@ class VarKey(ManualKeyDesc):
 	def __init__(self, thisscreen, keysection, keyname):
 		debug.debugPrint('Screen',"              New Var Key ", keyname)
 		ManualKeyDesc.__init__(self, thisscreen, keysection, keyname)
-		screen.AddUndefaultedParams(thisscreen, keysection, Var='', Appearance=[], ValueSeq=[])
+		screen.AddUndefaultedParams(self, keysection, Var='', Appearance=[], ValueSeq=[])
 		valuestore.AddAlert(self.Var, (KeyWithVarChanged,(keyname,self.Var)))
 		if self.ValueSeq:
 			self.Proc = self.VarKeyPressed
@@ -177,7 +177,7 @@ class SetVarKey(ManualKeyDesc):
 	def __init__(self, thisscreen, keysection, keyname):
 		debug.debugPrint('Screen', "             New SetVar Key Desc ", keyname)
 		ManualKeyDesc.__init__(self, thisscreen, keysection, keyname)
-		screen.AddUndefaultedParams(thisscreen, keysection, VarType='undef', Var='', Value=0)
+		screen.AddUndefaultedParams(self, keysection, VarType='undef', Var='', Value=0)
 		try:
 			self.Proc = self.SetVarKeyPressed
 			if self.VarType != 'undef': # deprecate
@@ -222,8 +222,8 @@ class DummyProgram(object):
 class RunProgram(ManualKeyDesc):
 	def __init__(self, thisscreen, keysection, keyname):
 		debug.debugPrint('Screen', "             New RunProgram Key ", keyname)
-		screen.AddUndefaultedParams(thisscreen, keysection, ProgramName='')
 		ManualKeyDesc.__init__(self, thisscreen, keysection, keyname)
+		screen.AddUndefaultedParams(self, keysection, ProgramName='')
 		self.State = False
 		pn, self.Hub = _resolvekeyname(self.ProgramName, thisscreen.DefaultHubObj)
 		self.Program = self.Hub.GetProgram(pn)
@@ -264,8 +264,8 @@ class OnOffKey(ManualKeyDesc):
 		self.DisplayObj = None # object whose state is reflected in key
 
 		debug.debugPrint('Screen', "             New ", keytype, " Key Desc ", keyname)
-		screen.AddUndefaultedParams(thisscreen, keysection, SceneProxy='', NodeName='')
 		ManualKeyDesc.__init__(self, thisscreen, keysection, keyname)
+		screen.AddUndefaultedParams(self, keysection, SceneProxy='', NodeName='')
 		self.lastpresstype = 0
 
 		if keyname == '*Action*': keyname = self.NodeName  # special case for alert screen action keys that always have same name todo - can nodename ever be explicitly set otherwise?

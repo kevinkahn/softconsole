@@ -58,28 +58,11 @@ class ManualKeyDesc(TouchPoint):
 	def __init__(self, *args, **kwargs):
 		self.State = True
 		self.UnknownState = False
-		# self.Verify = False
-		# self.GoMsg = ['Proceed']
-		# self.NoGoMsg = ['Back']
-		# self.FastPress = False
-		# self.KeyColor = ''
-		# self.KeyColorOn = ''
-		# self.KeyColorOff = ''
-		# self.KeyCharColorOn = ''
-		# self.KeyCharColorOff = ''
-		# self.KeyOutlineOffset = config.KeyOutlineOffset
-		# self.label = ''
-		# self.KeyOnOutlineColor = ''
-		# self.KeyOffOutlineColor = ''
-		#self.Blink = 0
 		self.KeyOnImage = None # type: pygame.Surface
 		self.KeyOffImage = None # type: pygame.Surface
 		self.KeyOnImageBase = None # type: pygame.Surface
 		self.KeyOffImageBase = None # type: pygame.Surface
 		self.KeyUnknownOverlay = None # type: pygame.Surface
-		# self.KeyLabelOn = ''
-		#self.KeyLabelOff = ''
-
 
 		# alternate creation signatures
 		self.ButtonFontSizes = (31, 28, 25, 22, 20, 18, 16)
@@ -105,7 +88,8 @@ class ManualKeyDesc(TouchPoint):
 		# NOTE: do not put defaults for KOn/KOff in signature - imports and arg parsing subtleties will cause error
 		# because of when config is imported and what walues are at that time versus at call time
 		self.userstore = valuestore.NewValueStore(
-			paramstore.ParamStore('Screen-' + thisscreen.name + '-' + keyname, dp=thisscreen.userstore))
+			paramstore.ParamStore('Screen-' + thisscreen.name + '-' + keyname, dp=thisscreen.userstore,
+								  locname=keyname))
 
 		TouchPoint.__init__(self, keyname, center, size, proc=proc)
 		self.Screen = thisscreen
@@ -118,16 +102,6 @@ class ManualKeyDesc(TouchPoint):
 								  'KeyCharColorOn': charcoloron, 'KeyCharColorOff': charcoloroff,
 								  'KeyOutlineOffset': config.KeyOutlineOffset, 'KeyColorOn': KCon, 'KeyColorOff': KCoff,
 								  'KeyLabelOn': list(KLon), 'KeyLabelOff': list(KLoff)}, {})
-		# self.KeyColor = bcolor
-		# self.KeyColorOn = KCon
-		# self.KeyColorOff = KCoff
-		# self.KeyLabelOn = list(KLon)
-		# self.KeyLabelOff = list(KLoff)
-		# self.KeyCharColorOn = charcoloron
-		# self.KeyCharColorOff = charcoloroff
-		# self.label = label
-		# self.KeyOnOutlineColor = config.KeyOnOutlineColor if KOn == '' else KOn
-		# self.KeyOffOutlineColor = config.KeyOffOutlineColor if KOff == '' else KOff
 		# self.KeyOutlineOffset = config.KeyOutlineOffset # todo wrong defaulting - should be screen value
 		# self.FastPress = False # todo is this the right init?
 		# self.Verify = False # todo is this right
@@ -136,7 +110,8 @@ class ManualKeyDesc(TouchPoint):
 
 	def dosectioninit(self, thisscreen, keysection, keyname):
 		self.userstore = valuestore.NewValueStore(
-			paramstore.ParamStore('Screen-' + thisscreen.name + '-' + keyname, dp=thisscreen.userstore))
+			paramstore.ParamStore('Screen-' + thisscreen.name + '-' + keyname, dp=thisscreen.userstore,
+								  locname=keyname))
 		TouchPoint.__init__(self, keyname, (0, 0), (0, 0))
 		screen.IncorporateParams(self, 'TouchArea', {'KeyColor', 'KeyOffOutlineColor', 'KeyOnOutlineColor',
 								 'KeyCharColorOn', 'KeyCharColorOff', 'KeyOutlineOffset', 'KeyColorOn', 'KeyColorOff',
