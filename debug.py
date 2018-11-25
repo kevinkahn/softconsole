@@ -99,8 +99,20 @@ def StoresDump(store,old,new,param,_):
 	if not new: return
 	with open('/home/pi/Console/StoresDump.txt', mode='w') as f:
 		for store in valuestore.ValueStores.values():
-			for i in store.items():
-				f.write(store.name + str(i)+str(store.GetVal(i))+'\n')
+			notdumped = True
+			while notdumped:
+				try:
+					for i in store.items():
+						f.write(store.name + str(i) + ' ')
+						f.flush()
+						x = str(store.GetVal(i))
+						# f.write(store.name + str(i) + str(store.GetVal(i)) + '\n')
+						f.write(x + '\n')
+						f.flush()
+					notdumped = False
+				except Exception as e:
+					f.write(store.name + " changed - retry dump\n  (" + repr(e) + ")\n")
+
 	dbgStore.SetVal('StoresDump',False)
 
 def AlertsCheck(store,old,new,param,_):

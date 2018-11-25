@@ -6,8 +6,9 @@ import logsupport
 from logsupport import ConsoleWarning, ConsoleError, ConsoleDetail, ConsoleDetailHigh
 import debug
 from isycodes import EVENT_CTRL, formatwsitem
-import pygame, time
+import time
 import exitutils
+from controlevents import *
 from stores import valuestore
 import errno
 import isycodes
@@ -70,8 +71,7 @@ class ISYEventMonitor(object):
 
 	def FakeNodeChange(self):
 		# noinspection PyArgumentList
-		notice = pygame.event.Event(config.DS.HubNodeChange, hub=self.isy.name, node=None, value=-1)
-		pygame.fastevent.post(notice)
+		PostControl(HubNodeChange, hub=self.isy.name, node=None, value=-1)
 
 	def reinit(self):
 		self.watchstarttime = time.time()
@@ -269,9 +269,8 @@ class ISYEventMonitor(object):
 										logsupport.Logs.Log(self.hubname + " Node alert fired: " + str(a),
 															severity=ConsoleDetail)
 										# noinspection PyArgumentList
-										notice = pygame.event.Event(config.DS.ISYAlert,  hub=self.isy.name, node=enode,
-																	value=isycodes._NormalizeState(eaction), alert=a)
-										pygame.fastevent.post(notice)
+										PostControl(ISYAlert, hub=self.isy.name, node=enode,
+													value=isycodes._NormalizeState(eaction), alert=a)
 
 					if ecode in self.reportablecodes:
 						# Node change report
@@ -286,8 +285,8 @@ class ISYEventMonitor(object):
 										debug.debugPrint('DaemonCtl', time.time() - config.starttime, "ISY reports node change(screen): ",
 												   "Key: ", self.isy.NodesByAddr[enode].name)
 										# noinspection PyArgumentList
-										notice = pygame.event.Event(config.DS.HubNodeChange, hub=self.isy.name, node=enode, value=isycodes._NormalizeState(eaction))
-										pygame.fastevent.post(notice)
+										PostControl(HubNodeChange, hub=self.isy.name, node=enode,
+													value=isycodes._NormalizeState(eaction))
 
 					elif (prcode == 'Trigger') and (eaction == '6'):
 						vinfo = eInfo['var']

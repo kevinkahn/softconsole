@@ -1,12 +1,15 @@
 import pygame
 import debug
+import screen
+import stores.valuestore as valuestore
+import stores.paramstore as paramstore
 
 import config
 import utilities
 from utilities import scaleW, scaleH
 from utilfuncs import wc
 
-import eventlist
+from eventlist import ProcEventItem, AlertEventItem, EventItem
 import functools
 
 
@@ -39,31 +42,43 @@ class ManualKeyDesc(TouchPoint):
 	that is passed in.
 	"""
 
+	def __setattr__(self, key, value):
+		if key not in screen.ScreenParams:
+			object.__setattr__(self, key, value)
+		else:
+			self.userstore.SetVal(key, value)
+
+	# object.__setattr__(self, key, value)
+
+	def __getattr__(self, key):
+		return self.userstore.GetVal(key)
+
+
 	# noinspection PyMissingConstructor
 	def __init__(self, *args, **kwargs):
 		self.State = True
 		self.UnknownState = False
-		self.Verify = False
-		self.GoMsg = ['Proceed']
-		self.NoGoMsg = ['Back']
-		self.FastPress = False
-		self.KeyColor = ''
-		self.KeyColorOn = ''
-		self.KeyColorOff = ''
-		self.KeyCharColorOn = ''
-		self.KeyCharColorOff = ''
-		self.KeyOutlineOffset = config.KeyOutlineOffset
-		self.label = ''
-		self.KeyOnOutlineColor = ''
-		self.KeyOffOutlineColor = ''
-		self.Blink = 0
+		# self.Verify = False
+		# self.GoMsg = ['Proceed']
+		# self.NoGoMsg = ['Back']
+		# self.FastPress = False
+		# self.KeyColor = ''
+		# self.KeyColorOn = ''
+		# self.KeyColorOff = ''
+		# self.KeyCharColorOn = ''
+		# self.KeyCharColorOff = ''
+		# self.KeyOutlineOffset = config.KeyOutlineOffset
+		# self.label = ''
+		# self.KeyOnOutlineColor = ''
+		# self.KeyOffOutlineColor = ''
+		#self.Blink = 0
 		self.KeyOnImage = None # type: pygame.Surface
 		self.KeyOffImage = None # type: pygame.Surface
 		self.KeyOnImageBase = None # type: pygame.Surface
 		self.KeyOffImageBase = None # type: pygame.Surface
 		self.KeyUnknownOverlay = None # type: pygame.Surface
-		self.KeyLabelOn = ''
-		self.KeyLabelOff = ''
+		# self.KeyLabelOn = ''
+		#self.KeyLabelOff = ''
 
 
 		# alternate creation signatures
@@ -85,35 +100,52 @@ class ManualKeyDesc(TouchPoint):
 			self.FinishKey((0, 0), (0, 0))
 		utilities.register_example("ManualKeyDesc", self)
 
-	def docodeinit(self, screen, keyname, label, bcolor, charcoloron, charcoloroff, center=(0, 0), size=(0, 0), KOn='',
+	def docodeinit(self, thisscreen, keyname, label, bcolor, charcoloron, charcoloroff, center=(0, 0), size=(0, 0), KOn='',
 				   KOff='', proc=None, KCon='', KCoff='', KLon=('',), KLoff=('',), State=True, Blink=0, Verify=False):
 		# NOTE: do not put defaults for KOn/KOff in signature - imports and arg parsing subtleties will cause error
 		# because of when config is imported and what walues are at that time versus at call time
+		self.userstore = valuestore.NewValueStore(
+			paramstore.ParamStore('Screen-' + thisscreen.name + '-' + keyname, dp=thisscreen.userstore))
 
 		TouchPoint.__init__(self, keyname, center, size, proc=proc)
-		self.Screen = screen
+		self.Screen = thisscreen
 		self.State = State
-		self.Screen = screen
-		self.KeyColor = bcolor
-		self.KeyColorOn = KCon
-		self.KeyColorOff = KCoff
-		self.KeyLabelOn = list(KLon)
-		self.KeyLabelOff = list(KLoff)
-		self.KeyCharColorOn = charcoloron
-		self.KeyCharColorOff = charcoloroff
-		self.label = label
-		self.KeyOnOutlineColor = config.KeyOnOutlineColor if KOn == '' else KOn
-		self.KeyOffOutlineColor = config.KeyOffOutlineColor if KOff == '' else KOff
-		self.Blink = Blink
+		self.Screen = thisscreen
+		screen.IncorporateParams(self, 'TouchArea',
+								 {'KeyColor': bcolor,
+								  'KeyOffOutlineColor': config.KeyOffOutlineColor if KOff == '' else KOff,
+								  'KeyOnOutlineColor': config.KeyOnOutlineColor if KOn == '' else KOn,
+								  'KeyCharColorOn': charcoloron, 'KeyCharColorOff': charcoloroff,
+								  'KeyOutlineOffset': config.KeyOutlineOffset, 'KeyColorOn': KCon, 'KeyColorOff': KCoff,
+								  'KeyLabelOn': list(KLon), 'KeyLabelOff': list(KLoff)}, {})
+		# self.KeyColor = bcolor
+		# self.KeyColorOn = KCon
+		# self.KeyColorOff = KCoff
+		# self.KeyLabelOn = list(KLon)
+		# self.KeyLabelOff = list(KLoff)
+		# self.KeyCharColorOn = charcoloron
+		# self.KeyCharColorOff = charcoloroff
+		# self.label = label
+		# self.KeyOnOutlineColor = config.KeyOnOutlineColor if KOn == '' else KOn
+		# self.KeyOffOutlineColor = config.KeyOffOutlineColor if KOff == '' else KOff
+		# self.KeyOutlineOffset = config.KeyOutlineOffset # todo wrong defaulting - should be screen value
+		# self.FastPress = False # todo is this the right init?
+		# self.Verify = False # todo is this right
+		# self.Blink = Blink
+		screen.AddUndefaultedParams(self, {}, FastPress=False, Verify=False, Blink=Blink, label=label)
 
-	def dosectioninit(self, screen, keysection, keyname):
+	def dosectioninit(self, thisscreen, keysection, keyname):
+		self.userstore = valuestore.NewValueStore(
+			paramstore.ParamStore('Screen-' + thisscreen.name + '-' + keyname, dp=thisscreen.userstore))
 		TouchPoint.__init__(self, keyname, (0, 0), (0, 0))
-		utilities.LocalizeParams(self, keysection, '--', 'KeyColor', 'KeyOffOutlineColor', 'KeyOnOutlineColor',
+		screen.IncorporateParams(self, 'TouchArea', {'KeyColor', 'KeyOffOutlineColor', 'KeyOnOutlineColor',
 								 'KeyCharColorOn', 'KeyCharColorOff', 'KeyOutlineOffset', 'KeyColorOn', 'KeyColorOff',
-								 'KeyLabelOn', 'KeyLabelOff', FastPress=0, Verify=0, Blink=0, label=[''])
+													 'KeyLabelOn', 'KeyLabelOff'}, keysection)
+		screen.AddUndefaultedParams(self, keysection, FastPress=0, Verify=False, Blink=0, label=[''])
+
 		if self.Verify:
-			utilities.LocalizeExtra(self, keysection, GoMsg=['Proceed'], NoGoMsg=['Cancel'])
-		self.Screen = screen
+			screen.AddUndefaultedParams(thisscreen, keysection, GoMsg=['Proceed'], NoGoMsg=['Cancel'])
+		self.Screen = thisscreen
 		self.State = True
 
 
@@ -132,9 +164,8 @@ class ManualKeyDesc(TouchPoint):
 			config.screen.blit(self.KeyUnknownOverlay, (x, y))
 
 	def ScheduleBlinkKey(self, cycle):
-		E = eventlist.ProcEventItem(id(self.Screen), 'keyblink',
-									functools.partial(self.BlinkKey, cycle))
-		config.DS.Tasks.AddTask(E, .5)
+		config.DS.Tasks.AddTask(ProcEventItem(id(self.Screen), 'keyblink',
+											  functools.partial(self.BlinkKey, cycle)), .5)
 
 	def BlinkKey(self, cycle):
 		if cycle > 0:
@@ -142,10 +173,9 @@ class ManualKeyDesc(TouchPoint):
 				self.PaintKey(ForceDisplay=True, DisplayState=True)  # force on
 			else:
 				self.PaintKey(ForceDisplay=True, DisplayState=False)  # force off
-			E = eventlist.ProcEventItem(id(self.Screen), 'keyblink',
-										functools.partial(self.BlinkKey, cycle - 1))
 			pygame.display.update()  # actually change the display - used to do in PaintKey but that causes redundancy
-			config.DS.Tasks.AddTask(E, .5)
+			config.DS.Tasks.AddTask(ProcEventItem(id(self.Screen), 'keyblink',
+												  functools.partial(self.BlinkKey, cycle - 1)), .5)
 		else:
 			self.PaintKey()  # make sure to leave it in real state
 

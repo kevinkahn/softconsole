@@ -2,7 +2,7 @@ import pygame
 import logsupport
 from logsupport import ConsoleWarning
 from pygame import gfxdraw
-import eventlist
+from eventlist import ProcEventItem, AlertEventItem, EventItem
 
 import config
 import debug
@@ -23,13 +23,12 @@ def trifromtop(h, v, n, size, c, invert):
 
 class NestThermostatScreenDesc(screen.BaseKeyScreenDesc):
 	def __init__(self, screensection, screenname):
-		self.KeyColor = ''
-
 		debug.debugPrint('Screen', "New Nest ThermostatScreenDesc ", screenname)
 		screen.BaseKeyScreenDesc.__init__(self, screensection, screenname)
-		utilities.LocalizeParams(self, screensection, '-', 'KeyColor', 'KeyOffOutlineColor', 'KeyOnOutlineColor')
+		screen.IncorporateParams(self, 'NestThermostatScreen', {'KeyColor', 'KeyOffOutlineColor', 'KeyOnOutlineColor'},
+								 screensection)
 		self.fsize = (30, 50, 80, 160)
-		self.HA = self.DefaultHub
+		self.HA = self.DefaultHubObj
 		self.ThermNode = self.HA.GetNode(screenname)[0]  # use ControlObj (0)
 		if self.ThermNode is None:
 			logsupport.Logs.Log("No Thermostat: " + screenname, severity=ConsoleWarning)
@@ -126,11 +125,10 @@ class NestThermostatScreenDesc(screen.BaseKeyScreenDesc):
 			config.screen.blit(rH, (self.SPHPosR - self.SPWdt // 2, self.SPVPos))
 			pygame.display.update(pygame.Rect(self.SPHPosR - self.SPWdt // 2, self.SPVPos, self.SPWdt, self.SPHgt))
 		config.DS.Tasks.RemoveAllGrp(id(self))  # remove any pending pushtemp
-		E = eventlist.ProcEventItem(id(self), 'pushsetpoint',self.PushTemp)
-		config.DS.Tasks.AddTask(E, 2) # push setpoint change after 2 seconds of idle
+		config.DS.Tasks.AddTask(ProcEventItem(id(self), 'pushsetpoint', self.PushTemp), 2)
 
-		#self.isy.try_ISY_comm('nodes/' + self.ISYObj.address + '/cmd/' + setpoint + '/' + str(
-				#self.info[setpoint][0] + degrees))
+	# push setpoint change after 2 seconds of idle
+
 
 	def PushTemp(self):
 		# called on callback timeout
@@ -152,8 +150,9 @@ class NestThermostatScreenDesc(screen.BaseKeyScreenDesc):
 		debug.debugPrint('Main', "Bump mode: ", self.mode)
 		self.ShowScreen()
 		config.DS.Tasks.RemoveAllGrp(id(self)+1)  # remove any pending pushtemp
-		E = eventlist.ProcEventItem(id(self)+1, 'pushmodes',self.PushModes)
-		config.DS.Tasks.AddTask(E, 2) # push setpoint change after 2 seconds of idle
+		config.DS.Tasks.AddTask(ProcEventItem(id(self) + 1, 'pushmodes', self.PushModes), 2)
+
+	# push setpoint change after 2 seconds of idle
 
 	def BumpFan(self, presstype):
 		self.FanLocal = 0.5 # just do a show screen for mode and fan
@@ -163,8 +162,9 @@ class NestThermostatScreenDesc(screen.BaseKeyScreenDesc):
 		debug.debugPrint('Main', "Bump fa: ", self.fan)
 		self.ShowScreen()
 		config.DS.Tasks.RemoveAllGrp(id(self)+1)  # remove any pending pushtemp
-		E = eventlist.ProcEventItem(id(self)+1, 'pushmodes',self.PushFanState)
-		config.DS.Tasks.AddTask(E, 2) # push setpoint change after 2 seconds of idle
+		config.DS.Tasks.AddTask(ProcEventItem(id(self) + 1, 'pushmodes', self.PushFanState), 2)
+
+	# push setpoint change after 2 seconds of idle
 
 	def ShowScreen(self):
 

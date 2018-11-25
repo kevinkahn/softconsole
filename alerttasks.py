@@ -4,7 +4,7 @@ from configobjects import Section
 import screen
 from logsupport import ConsoleWarning, ConsoleDetail, ConsoleError
 from stores import valuestore
-import pygame
+from controlevents import *
 import debug
 from screens import alertscreen
 from datetime import datetime
@@ -82,8 +82,7 @@ class NodeChgtrigger(object):
 def VarChanged(storeitem, old, new, param, modifier):
 	debug.debugPrint('DaemonCtl','Var changed ',storeitem.name,' from ',old,' to ',new)
 	# noinspection PyArgumentList
-	notice = pygame.event.Event(config.DS.ISYVar, hub='AlertTasksVarChange', alert=param)
-	pygame.fastevent.post(notice)
+	PostControl(ISYVar, hub='AlertTasksVarChange', alert=param)
 
 class VarChangeTrigger(object):
 	def __init__(self, var, params):
@@ -220,7 +219,7 @@ def ParseAlertParams(nm, spec):
 		n = spec.get('Node', '').split(':')
 		if len(n) == 1:
 			nd = n[0] # unqualified node - use default hub
-			hub = config.defaulthub
+			hub = config.defaulthub  # todo rethink in terms of the store stuff for the default hub then config.defaulthub coule go away
 		else:
 			nd = n[1]
 			hub = config.Hubs[n[0]]

@@ -21,35 +21,16 @@ def extref(listitem, indexitem):
 class TimeTempScreenDesc(screen.ScreenDesc):
 
 	def __init__(self, screensection, screenname):
-		self.Font = None
-		self.ClockSize = -1
-		self.LocationSize=-1
-		self.ConditionFormat = []
-		self.ConditionFields = []
-		self.CondSize = []
-		self.CondIcon = True
-		self.TimeFormat = []
-		self.ForecastFormat = []
-		self.ForecastFields = []
-		self.ForecastDays=1
-		self.FcstSize = []
-		self.FcstLayout = 'Block'
-		self.FcstIcon = True
-		self.WunderKey = ''
-		self.location = ''
-		self.SkipDays = 0
-		self.CharSize = None # type: list
-
-
+		screen.ScreenDesc.__init__(self, screensection, screenname)
 		debug.debugPrint('Screen', "New TimeTempDesc ", screenname)
 
-		screen.ScreenDesc.__init__(self, screensection, screenname)
-		utilities.LocalizeParams(self, screensection, '-', 'WunderKey', location='', CharSize=[-1],
+		screen.AddUndefaultedParams(self, screensection, location='', CharSize=[-1],
 								 ClockSize=-1,LocationSize=-1,CondSize=[20],FcstSize=[20],
 								 Font=config.monofont, FcstLayout = 'Block',
 								 FcstIcon=True,CondIcon=True,
 								 TimeFormat=[], ConditionFields=[], ConditionFormat=[], ForecastFields=[],
 								 ForecastFormat=[], ForecastDays=1, SkipDays=0)
+
 		if self.CharSize != [-1]:
 			# old style
 			logsupport.Logs.Log("TimeTemp screen CharSize parameter deprecated, change to specific block size parameters", severity=ConsoleWarning)
@@ -66,7 +47,6 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 			self.FcstLayout = "Block"
 		self.scrlabel = screen.FlatenScreenLabel(self.label)
 		self.store = valuestore.ValueStores[self.location]
-		# todo self.store = valuestore.NewValueStore(weatherstore.WeatherVals(self.location, self.WunderKey))
 		self.DecodedCondFields = []
 		for f in self.ConditionFields:
 			if ':' in f:

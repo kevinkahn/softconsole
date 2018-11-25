@@ -92,8 +92,12 @@ def syncKeytoStore(storeitem, old, new, key, chgsource):
 # noinspection PyUnusedLocal
 def setdbg(K, presstype):
 	st = debug.dbgStore.GetVal(K.name)
-	debug.dbgStore.SetVal(K.name,not st)
-	K.State = debug.dbgStore.GetVal(K.name) # this allows for case where flag gets reset by proc called servicing the set
+	K.State = not st
+	K.PaintKey()
+	pygame.display.update()
+	debug.dbgStore.SetVal(K.name, not st)
+	K.State = debug.dbgStore.GetVal(K.name)
+	# this allows for case where flag gets reset by proc called servicing the set
 	K.PaintKey()
 	pygame.display.update()
 	logsupport.Logs.Log("Debug flag ", K.name, ' = ', K.State, severity=ConsoleWarning)
@@ -201,10 +205,10 @@ def fetch_beta():
 
 class LogDisplayScreen(screen.BaseKeyScreenDesc):
 	def __init__(self):
+		screen.BaseKeyScreenDesc.__init__(self, None, 'LOG')
 		self.item = 0
 		self.pageno = -1
 		self.PageStartItem = [0]
-		screen.BaseKeyScreenDesc.__init__(self, None, 'LOG')
 		self.Keys = {'nextpage': toucharea.TouchPoint('nextpage', (config.screenwidth/2, 3*config.screenheight/4),
 													  (config.screenwidth, config.screenheight), proc=self.NextPage),
 					 'prevpage': toucharea.TouchPoint('prevpage', (config.screenwidth/2, config.screenheight/4),
@@ -252,11 +256,11 @@ class LogDisplayScreen(screen.BaseKeyScreenDesc):
 
 class MaintScreenDesc(screen.BaseKeyScreenDesc):
 	def __init__(self, name, keys, overrides=fixedoverrides):
+		screen.BaseKeyScreenDesc.__init__(self, overrides, name)
+		debug.debugPrint('Screen', "Build Maintenance Screen")
 		self.TitleFontSize = 0
 		self.SubFontSize = 0
 
-		debug.debugPrint('Screen', "Build Maintenance Screen")
-		screen.BaseKeyScreenDesc.__init__(self, overrides, name)
 		utilities.LocalizeParams(self, None, '-', TitleFontSize=40, SubFontSize=25)
 		for k, kt in keys.items():
 			NK = toucharea.ManualKeyDesc(self, k, [kt[0]], 'gold', 'black', 'red', KOn='black', KOff='red')

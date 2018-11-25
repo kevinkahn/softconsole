@@ -15,17 +15,17 @@ from eventlist import ProcEventItem
 
 class OctoPrintScreenDesc(screen.BaseKeyScreenDesc):
 	def __init__(self, screensection, screenname):
+		screen.ScreenDesc.__init__(self, screensection, screenname)
+		debug.debugPrint('Screen', "New OctoPrintScreenDesc ", screenname)
 		self.JobKeys = {}
 		self.files = []
 		self.filepaths = []
 		self.PowerKeys = {}
 		self.address = ''
 		self.apikey = ''
-		self.BackgroundColor = ''
 		self.KeyColor = ''
-		debug.debugPrint('Screen', "New OctoPrintScreenDesc ", screenname)
-		screen.ScreenDesc.__init__(self, screensection, screenname)
-		utilities.LocalizeParams(self, screensection, '-', 'KeyColor', 'BackgroundColor', address='', apikey='')
+
+		utilities.LocalizeParams(self, screensection, '-', 'KeyColor', address='', apikey='')
 		self.title, th, self.tw = screenutil.CreateTextBlock(self.name, config.screenheight / 12, self.CharColor, True)
 		self.titlespace = th + config.screenheight / 32
 		useablescreenheight = config.screenheight - config.topborder - config.botborder - self.titlespace
@@ -44,39 +44,39 @@ class OctoPrintScreenDesc(screen.BaseKeyScreenDesc):
 		self.VerifyScreenPause = supportscreens.VerifyScreen(self, ('Pause', 'Job'), ('Back',), self.DoCancel,
 															 screen, self.KeyColor, self.CharColor, self.CharColor,
 															 True, None)
-		self.PowerKeys['printeron'] = toucharea.ManualKeyDesc(self.name, 'PowerOn', ['Power On'], self.KeyColor,
+		self.PowerKeys['printeron'] = toucharea.ManualKeyDesc(self, 'PowerOn', ['Power On'], self.KeyColor,
 															  self.CharColor, self.CharColor,
 															  center=(config.screenwidth // 4, ctlpos * 4),
 															  size=(config.screenwidth // 3, ctlhgt), KOn='', KOff='',
 															  proc=functools.partial(self.Power, 'printeron'))
-		self.PowerKeys['printeroff'] = toucharea.ManualKeyDesc(self.name, 'PowerOff', ['Power Off'], self.KeyColor,
+		self.PowerKeys['printeroff'] = toucharea.ManualKeyDesc(self, 'PowerOff', ['Power Off'], self.KeyColor,
 															   self.CharColor, self.CharColor,
 															   center=(3 * config.screenwidth // 4, ctlpos * 4),
 															   size=(config.screenwidth // 3, ctlhgt), KOn='', KOff='',
 															   proc=functools.partial(self.Power, 'printeroff'))
-		self.PowerKeys['connect'] = toucharea.ManualKeyDesc(self.name, 'Connect', ['Connect'], self.KeyColor,
+		self.PowerKeys['connect'] = toucharea.ManualKeyDesc(self, 'Connect', ['Connect'], self.KeyColor,
 															self.CharColor, self.CharColor,
 															center=(config.screenwidth // 4, ctlpos * 5),
 															size=(config.screenwidth // 3, ctlhgt), KOn='', KOff='',
 															proc=functools.partial(self.Connect, 'connect'))
-		self.PowerKeys['disconnect'] = toucharea.ManualKeyDesc(self.name, 'Disconnect', ['Disconnect'], self.KeyColor,
+		self.PowerKeys['disconnect'] = toucharea.ManualKeyDesc(self, 'Disconnect', ['Disconnect'], self.KeyColor,
 															   self.CharColor, self.CharColor,
 															   center=(3 * config.screenwidth // 4, ctlpos * 5),
 															   size=(config.screenwidth // 3, ctlhgt), KOn='', KOff='',
 															   proc=functools.partial(self.Connect, 'disconnect'))
 		self.PowerPlusKeys = self.PowerKeys.copy()
-		self.PowerPlusKeys['Print'] = toucharea.ManualKeyDesc(self.name, 'Print', ['Print'], self.KeyColor,
+		self.PowerPlusKeys['Print'] = toucharea.ManualKeyDesc(self, 'Print', ['Print'], self.KeyColor,
 															  self.CharColor, self.CharColor,
 															  center=(config.screenwidth // 2, ctlpos * 6),
 															  size=(config.screenwidth // 3, ctlhgt), KOn='', KOff='',
 															  proc=self.SelectFile)
 
-		self.JobKeys['Cancel'] = toucharea.ManualKeyDesc(self.name, 'Cancel', ['Cancel'], self.KeyColor,
+		self.JobKeys['Cancel'] = toucharea.ManualKeyDesc(self, 'Cancel', ['Cancel'], self.KeyColor,
 														 self.CharColor, self.CharColor,
 														 center=(config.screenwidth // 4, ctlpos * 5),
 														 size=(config.screenwidth // 3, ctlhgt), KOn='', KOff='',
 														 proc=self.PreDoCancel, Verify=True)
-		self.JobKeys['Pause'] = toucharea.ManualKeyDesc(self.name, 'Pause', ['Pause'], self.KeyColor,
+		self.JobKeys['Pause'] = toucharea.ManualKeyDesc(self, 'Pause', ['Pause'], self.KeyColor,
 														self.CharColor, self.CharColor,
 														center=(3 * config.screenwidth // 4, ctlpos * 5),
 														size=(config.screenwidth // 3, ctlhgt), KOn='', KOff='',

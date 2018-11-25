@@ -105,9 +105,8 @@ FcstFieldMap = {'Day': (str, ('date', 'weekday_short')),  # convert to day name
 				}
 
 CommonFieldMap = {'FcstDays': 10, 'FcstEpoch': (int, ('forecast', 'simpleforecast', 'forecastday', 0, 'date', 'epoch')),
-				  'FcstDate': (strtime, ('forecast', 'simpleforecast', 'forecastday', 0, 'date',
-										 'epoch')),
-				  'Rawjson': (savjson, ('forecast',), 'json')}
+				  'FcstDate': (strtime, ('forecast', 'simpleforecast', 'forecastday', 0, 'date', 'epoch'))}  # ,
+# 'Rawjson': (savjson, ('forecast',), 'json')}
 
 # icondir = config.exdir+'/auxinfo/apixuicons/'
 icondir = '/home/pi/consolerem' + '/auxinfo/apixuicons/'

@@ -13,17 +13,10 @@ from weatherfromatting import CreateWeathBlock
 
 class ClockScreenDesc(screen.ScreenDesc):
 	def __init__(self, screensection, screenname):
-		self.CharSize=[0]
-		self.Font=''
-		self.OutFormat=[]
-		self.ExtraFields=[]
-		self.ExtraFormat=[]
-		self.ExtraSize=[]
-
-
-		debug.debugPrint('Screen', "Build Clock Screen")
 		screen.ScreenDesc.__init__(self, screensection, screenname)
-		utilities.LocalizeParams(self, screensection, '-', CharSize=[20], Font=config.monofont, OutFormat=[],ExtraFields=[],
+		debug.debugPrint('Screen', "Build Clock Screen")
+		screen.AddUndefaultedParams(self, screensection, CharSize=[20], Font=config.monofont, OutFormat=[],
+									ExtraFields=[],
 								 ExtraSize=[0], ExtraFormat=[])
 		for i in range(len(self.CharSize), len(self.OutFormat)):
 			self.CharSize.append(self.CharSize[-1])

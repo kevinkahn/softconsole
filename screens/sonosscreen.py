@@ -16,14 +16,14 @@ import functools
 
 class SonosScreenDesc(screen.BaseKeyScreenDesc):
 	def __init__(self, screensection, screenname):
+		debug.debugPrint('Screen', "New SonosScreenDesc ", screenname)
+		screen.BaseKeyScreenDesc.__init__(self, screensection, screenname)
 		self.numplayers = 0  # if 0 then Sonos didn't get set up correctly
 		self.KeyColor = ''
 		self.PlayerInputs = []
-		debug.debugPrint('Screen', "New SonosScreenDesc ", screenname)
-		screen.BaseKeyScreenDesc.__init__(self, screensection, screenname)
 		utilities.LocalizeParams(self, screensection, '-', 'KeyColor')
 		self.DullKeyColor = wc(self.KeyColor, .5, self.BackgroundColor)
-		self.HA = self.DefaultHub
+		self.HA = self.DefaultHubObj
 		self.HubInterestList[self.HA.name] = {}
 		self.title, th, self.tw = screenutil.CreateTextBlock('Sonos', config.screenheight / 12, self.CharColor, True)
 		self.titlespace = th + config.screenheight / 32
@@ -45,7 +45,7 @@ class SonosScreenDesc(screen.BaseKeyScreenDesc):
 		self.SourceItem = 0
 		self.SourceSelection = ''
 		self.ExtraSource = {}
-		if isinstance(self.DefaultHub, hasshub.HA):
+		if isinstance(self.DefaultHubObj, hasshub.HA):
 			for n, p in self.HA.MediaPlayers.items():
 				if p.Sonos:
 					self.SonosNodes[p.entity_id] = p
@@ -84,14 +84,14 @@ class SonosScreenDesc(screen.BaseKeyScreenDesc):
 		self.KeysSrc['Next'] = toucharea.TouchPoint('Next' + str(i), self.SrcNext,
 													(self.sourceheight, self.sourceheight),
 													proc=functools.partial(self.PrevNext, True))
-		self.KeysSrc['OKSrc'] = toucharea.ManualKeyDesc(screen, 'OKSrc', ['OK'], self.BackgroundColor,
+		self.KeysSrc['OKSrc'] = toucharea.ManualKeyDesc(self, 'OKSrc', ['OK'], self.BackgroundColor,
 														self.CharColor, self.CharColor,
 														center=(
 														self.SrcNext[0] - 2.5 * self.sourceheight, self.SrcNext[1]),
 														size=(2 * self.sourceheight, self.sourceheight), KOn='',
 														KOff='',
 														proc=functools.partial(self.PickSourceOK, True))
-		self.KeysSrc['CnclSrc'] = toucharea.ManualKeyDesc(screen, 'CnclSrc', ['Back'], self.BackgroundColor,
+		self.KeysSrc['CnclSrc'] = toucharea.ManualKeyDesc(self, 'CnclSrc', ['Back'], self.BackgroundColor,
 														  self.CharColor, self.CharColor,
 														  center=(
 														  self.SrcNext[0] - 5 * self.sourceheight, self.SrcNext[1]),
@@ -147,21 +147,21 @@ class SonosScreenDesc(screen.BaseKeyScreenDesc):
 																   (3 * config.screenwidth // 4, butvert), butsz,
 																   proc=functools.partial(self.VolChange, i, 0))
 
-		self.KeysGpCtl['Source'] = toucharea.ManualKeyDesc(screen, 'Source', ['Source'], self.BackgroundColor,
+		self.KeysGpCtl['Source'] = toucharea.ManualKeyDesc(self, 'Source', ['Source'], self.BackgroundColor,
 														   self.CharColor, self.CharColor,
 														   center=(3 * config.screenwidth // 4,
 																   self.GPCtlVPos[-1] + self.ctlhgt),
 														   size=(config.screenwidth // 3, self.ctlhgt), KOn='', KOff='',
 														   proc=self.SetSource)
 
-		self.KeysGpCtl['OKCtl'] = toucharea.ManualKeyDesc(screen, 'OKCtl', ['OK'], self.BackgroundColor,
+		self.KeysGpCtl['OKCtl'] = toucharea.ManualKeyDesc(self, 'OKCtl', ['OK'], self.BackgroundColor,
 														  self.CharColor, self.CharColor,
 														  center=(
 														  config.screenwidth // 4, self.GPCtlVPos[-1] + self.ctlhgt),
 														  size=(config.screenwidth // 3, self.ctlhgt), KOn='', KOff='',
 														  proc=self.GpCtlOK)
 
-		self.KeysGC['OK'] = toucharea.ManualKeyDesc(screen, 'OK', ['OK'], self.BackgroundColor,
+		self.KeysGC['OK'] = toucharea.ManualKeyDesc(self, 'OK', ['OK'], self.BackgroundColor,
 													self.CharColor, self.CharColor,
 													center=(config.screenwidth // 2, self.GCVPos[-1] + 30),
 													size=(config.screenwidth // 4, self.ctlhgt), KOn='', KOff='',

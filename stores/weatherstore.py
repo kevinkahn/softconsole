@@ -7,7 +7,6 @@ import json
 import time
 import datetime
 import requests
-import utilities
 import config
 from stores import valuestore
 from collections import OrderedDict

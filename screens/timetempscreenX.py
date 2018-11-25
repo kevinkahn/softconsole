@@ -23,6 +23,8 @@ def extref(listitem, indexitem):
 class TimeTempScreenDesc(screen.ScreenDesc):
 
 	def __init__(self, screensection, screenname):
+		screen.ScreenDesc.__init__(self, screensection, screenname)
+		debug.debugPrint('Screen', "New TimeTempDesc ", screenname)
 		self.Font = None
 		self.ClockSize = -1
 		self.LocationSize = -1
@@ -42,9 +44,6 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 		self.SkipDays = 0
 		self.CharSize = None  # type: list
 
-		debug.debugPrint('Screen', "New TimeTempDesc ", screenname)
-
-		screen.ScreenDesc.__init__(self, screensection, screenname)
 		utilities.LocalizeParams(self, screensection, '-', 'WunderKey', location='', CharSize=[-1],
 								 ClockSize=-1, LocationSize=-1, CondSize=[20], FcstSize=[20],
 								 Font=config.monofont, FcstLayout='Block',

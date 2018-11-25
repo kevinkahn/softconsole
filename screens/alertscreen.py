@@ -16,23 +16,11 @@ class AlertsScreenDesc(screen.ScreenDesc):
 	global alertscreens
 	def __init__(self, screensection, screenname):
 		global alertscreens
-		self.KeyColor = ''
-		self.KeyCharColorOn = ''
-		self.KeyCharColorOff = ''
-		self.CharSize = [0]
-		self.Message = []
-		self.MessageBack = ''
-		self.DeferTime = ''
-		self.BlinkTime = 0
-		self.Font = ''
-
-		debug.debugPrint('Screen', "Build Alerts Screen")
-
 		screen.ScreenDesc.__init__(self, screensection, screenname)
-		utilities.LocalizeParams(self, screensection, '-', 'KeyColor', 'KeyCharColorOn', 'KeyCharColorOff',
-								 CharSize=[20], Font=config.monofont, MessageBack='',
+		debug.debugPrint('Screen', "Build Alerts Screen")
+		screen.IncorporateParams(self, screenname, {'KeyColor', 'KeyCharColorOn', 'KeyCharColorOff'}, screensection)
+		screen.AddUndefaultedParams(self, screensection, CharSize=[20], Font=config.monofont, MessageBack='',
 								 Message=[], DeferTime="2 minutes", BlinkTime=0)
-
 		if self.MessageBack == '':
 			self.MessageBack = self.BackgroundColor
 		self.DimTO = 0  # alert screens don't dim or yield voluntarily
@@ -106,8 +94,7 @@ class AlertsScreenDesc(screen.ScreenDesc):
 		debug.debugPrint('Screen', 'Alertscreen manual defer: ' + self.name)
 		config.DS.Tasks.RemoveAllGrp(id(self))
 		self.Alert.state = 'Deferred'
-		E = AlertEventItem(id(self), 'self deferred screen: ' + self.name, self.Alert)
-		config.DS.Tasks.AddTask(E, self.Defer)
+		config.DS.Tasks.AddTask(AlertEventItem(id(self), 'self deferred screen: ' + self.name, self.Alert), self.Defer)
 		config.DS.SwitchScreen(config.HomeScreen, 'Bright', 'Home', 'Manual defer an alert')
 
 	def BlinkMsg(self):
@@ -138,8 +125,8 @@ class AlertsScreenDesc(screen.ScreenDesc):
 	def ExitScreen(self):
 		config.DS.Tasks.RemoveAllGrp(id(self))
 		if self.Alert.trigger.IsTrue():  # if the trigger condition is still true requeue post deferral
-			E = AlertEventItem(id(self), 'external deferred screen: ' + self.name, self.Alert)
-			config.DS.Tasks.AddTask(E, self.Defer)
+			config.DS.Tasks.AddTask(AlertEventItem(id(self), 'external deferred screen: ' + self.name, self.Alert),
+									self.Defer)
 			debug.debugPrint('Screen', 'Alert screen defer to another screen: ' + self.name)
 			logsupport.Logs.Log("Alert screen " + self.name + " deferring", severity=ConsoleDetail)
 		else:

@@ -16,11 +16,11 @@ import screenutil
 class VerifyScreen(screen.BaseKeyScreenDesc):
 
 	def __init__(self, key, gomsg, nogomsg, proc, callingscreen, bcolor, keycoloroff, charcolor, state, interestlist):
+		screen.BaseKeyScreenDesc.__init__(self, {}, key.name + '-Verify')
+		debug.debugPrint('Screen', "Build Verify Screen")
 		self.TitleFontSize=0
 		self.SubFontSize=0
 
-		debug.debugPrint('Screen', "Build Verify Screen")
-		screen.BaseKeyScreenDesc.__init__(self, {}, key.name+' Verify')
 		self.HubInterestList = interestlist
 		self.DimTO = 20
 		self.PersistTO = 10
@@ -72,6 +72,7 @@ class ValueChangeScreen(screen.ScreenDesc): # todo may need to call super class
 
 	# noinspection PyMissingConstructor
 	def __init__(self, BackgroundColor, Outline, CharColor, label, initvalue, changevals, setvalueproc, returnscreen):
+		screen.ScreenDesc.__init__(self, {}, label + ' -ValChange')
 		self.BackgroundColor = BackgroundColor
 		self.Outline = Outline
 		self.CharColor = CharColor
@@ -183,6 +184,7 @@ class ListChooserSubScreen(screen.ScreenDesc):
 		:param voffset: vertical offset for start of area to be used
 		:param proc: function called with resultant selection index or -1 if cancelled
 		"""
+		screen.ScreenDesc.__init__(self, {}, masterscreen.name + ' -ListChooser')
 		self.Result = proc
 		self.masterscreen = masterscreen
 		self.firstitem = 0
@@ -215,7 +217,7 @@ class ListChooserSubScreen(screen.ScreenDesc):
 		self.ListKeySlots['Next'] = toucharea.TouchPoint('Next' + str(i), self.SrcNext,
 														 (self.sourceheight, self.sourceheight),
 														 proc=functools.partial(self.PrevNext, True))
-		self.ListKeySlots['OKSrc'] = toucharea.ManualKeyDesc(screen, 'OKSrc', ['OK'], self.BackgroundColor,
+		self.ListKeySlots['OKSrc'] = toucharea.ManualKeyDesc(self, 'OKSrc', ['OK'], self.BackgroundColor,
 															 self.CharColor, self.CharColor,
 															 center=(
 																 self.SrcNext[0] - 2.5 * self.sourceheight,
@@ -223,7 +225,7 @@ class ListChooserSubScreen(screen.ScreenDesc):
 															 size=(2 * self.sourceheight, self.sourceheight), KOn='',
 															 KOff='',
 															 proc=functools.partial(self.PickItemOK, True))
-		self.ListKeySlots['CnclSrc'] = toucharea.ManualKeyDesc(screen, 'CnclSrc', ['Back'], self.BackgroundColor,
+		self.ListKeySlots['CnclSrc'] = toucharea.ManualKeyDesc(self, 'CnclSrc', ['Back'], self.BackgroundColor,
 															   self.CharColor, self.CharColor,
 															   center=(
 																   self.SrcNext[0] - 5 * self.sourceheight,

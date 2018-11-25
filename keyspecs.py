@@ -1,7 +1,6 @@
 import functools
-import pygame
 import config
-import eventlist
+from eventlist import ProcEventItem, AlertEventItem, EventItem
 import supportscreens
 import utilities
 import debug
@@ -9,6 +8,7 @@ import logsupport
 from logsupport import ConsoleWarning, ConsoleDetail
 from toucharea import ManualKeyDesc
 from stores import valuestore
+from controlevents import *
 import shlex
 from utilfuncs import *
 
@@ -16,8 +16,7 @@ from utilfuncs import *
 def KeyWithVarChanged(storeitem, old, new, param, modifier):
 	debug.debugPrint('DaemonCtl','Var changed for key ',storeitem.name,' from ',old,' to ',new)
 	# noinspection PyArgumentList
-	notice = pygame.event.Event(config.DS.HubNodeChange, hub='*VARSTORE*', varinfo=param)
-	pygame.fastevent.post(notice)
+	PostControl(HubNodeChange, hub='*VARSTORE*', varinfo=param)
 
 def _resolvekeyname(kn,DefHub):
 	t = kn.split(':')
@@ -191,6 +190,7 @@ class SetVarKey(ManualKeyDesc):
 			self.Proc = self.SetVarKeyPressed
 			if self.VarType != 'undef': # deprecate
 
+				# todo the default hub name stuff is wrong - not updated to store stuff
 				if self.VarType == 'State':
 					self.VarName = (config.defaulthub.name,'State',self.Var) # use default hub for each of these 2
 				elif self.VarType == 'Int':
@@ -235,7 +235,7 @@ class RunProgram(ManualKeyDesc):
 		utilities.LocalizeParams(self, keysection, '--', ProgramName='')
 		ManualKeyDesc.__init__(self, screen, keysection, keyname)
 		self.State = False
-		pn, self.Hub = _resolvekeyname(self.ProgramName,screen.DefaultHub)
+		pn, self.Hub = _resolvekeyname(self.ProgramName, screen.DefaultHubObj)
 		self.Program = self.Hub.GetProgram(pn)
 		if self.Program is None:
 			self.Program = DummyProgram(keyname,self.Hub.name,self.ProgramName)
@@ -252,8 +252,8 @@ class RunProgram(ManualKeyDesc):
 			self.Program.RunProgram()
 			config.DS.SwitchScreen(self.Screen, 'Bright', config.DS.state, 'Verify Run ' + self.Screen.name)
 			if self.Blink != 0:
-				E = eventlist.ProcEventItem(id(self.Screen), 'keyblink', functools.partial(self.BlinkKey, self.Blink))
-				config.DS.Tasks.AddTask(E, .5)
+				config.DS.Tasks.AddTask(
+					ProcEventItem(id(self.Screen), 'keyblink', functools.partial(self.BlinkKey, self.Blink)), .5)
 		else:
 			config.DS.SwitchScreen(self.Screen, 'Bright', config.DS.state, 'Verify Run ' + self.Screen.name)
 
@@ -270,7 +270,7 @@ class OnOffKey(ManualKeyDesc):
 	def __init__(self, screen, keysection, kn, keytype):
 		self.SceneProxy = ''
 		self.NodeName = ''
-		keyname, self.Hub = _resolvekeyname(kn, screen.DefaultHub)
+		keyname, self.Hub = _resolvekeyname(kn, screen.DefaultHubObj)
 		self.ControlObj = None # object on which to make operation calls
 		self.DisplayObj = None # object whose state is reflected in key
 

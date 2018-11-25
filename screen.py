@@ -7,6 +7,55 @@ import collections
 from utilfuncs import wc, tint
 import debug
 import pygame
+import stores.valuestore as valuestore
+import stores.paramstore as paramstore
+
+ScreenParams = {'DimTO': 99,
+				'CharColor': "white",
+				'PersistTO': 20,
+				'BackgroundColor': 'maroon',
+				'CmdKeyCol': "red",
+				'CmdCharCol': "white",
+				'DefaultHub': '',
+				'KeyColor': "aqua",
+				'KeyColorOn': "",
+				'KeyColorOff': "",
+				'KeyCharColorOn': "white",
+				'KeyCharColorOff': "black",
+				'KeyOnOutlineColor': "white",
+				'KeyOffOutlineColor': "black",
+				'KeyOutlineOffset': 3,
+				'KeyLabelOn': ['', ],
+				'KeyLabelOff': ['', ]
+				}
+
+screenStore = valuestore.NewValueStore(paramstore.ParamStore('ScreenParams'))
+
+
+def InitScreenParams(parseconfig):
+	for p, v in ScreenParams.items():
+		screenStore.SetVal(p, type(v)(parseconfig.get(p, v)))
+
+
+def IncorporateParams(this, clsnm, theseparams, screensection):
+	paramset = set(theseparams)
+	if type(this) not in config.screenparamuse:
+		config.screenparamuse[type(this)] = {clsnm: paramset}
+	else:
+		config.screenparamuse[type(this)][clsnm] = paramset
+	if screensection is None: screensection = {}
+	for p in theseparams:
+		if isinstance(theseparams, dict):
+			this.userstore.SetVal(p, theseparams[p])
+		else:
+			if p in screensection:
+				this.userstore.SetVal(p, type(ScreenParams[p])(screensection.get(p, 1)))  # default gets ignored
+
+
+def AddUndefaultedParams(this, screensection, **kwargs):
+	if screensection is None: screensection = {}
+	for n, v in kwargs.items():
+		this.userstore.SetVal(n, type(v)(screensection.get(n, v)))
 
 
 def FlatenScreenLabel(label):
@@ -38,15 +87,21 @@ class ScreenDesc(object):
 	Basic information about a screen, subclassed by all other screens to handle this information
 	"""
 
+	def __setattr__(self, key, value):
+		if key not in ScreenParams:
+			object.__setattr__(self, key, value)
+		else:
+			self.userstore.SetVal(key, value)
+
+	# object.__setattr__(self, key, value)
+
+	def __getattr__(self, key):
+		return self.userstore.GetVal(key)
+
+
 	def __init__(self, screensection, screenname):
-		self.CharColor = None
-		self.DimTO = 0
-		self.PersistTO = 0
-		self.BackgroundColor = None
-		self.CmdKeyCol = None
-		self.CmdCharCol = None
-		self.label = None # type: list
-		self.DefaultHub = None
+		self.userstore = valuestore.NewValueStore(paramstore.ParamStore('Screen-' + screenname, dp=screenStore))
+
 		self.markradius = int(min(config.screenwidth, config.screenheight) * .025)
 
 		self.name = screenname
@@ -55,10 +110,13 @@ class ScreenDesc(object):
 		self.WithNav = True
 		self.HubInterestList = {} # one entry per hub, each entry is a dict mapping addr to Node
 
-		utilities.LocalizeParams(self, screensection, '-', 'CharColor', 'DimTO', 'PersistTO', 'BackgroundColor',
-								 'CmdKeyCol', 'CmdCharCol', label=[screenname],DefaultHub=config.defaulthubname)
+		IncorporateParams(self, 'Screen',
+						  {'CharColor', 'DimTO', 'PersistTO', 'BackgroundColor', 'CmdKeyCol', 'CmdCharCol',
+						   'DefaultHub'}, screensection)
+		AddUndefaultedParams(self, screensection, label=[screenname])
+
 		try:
-			self.DefaultHub = config.Hubs[self.DefaultHub]
+			self.DefaultHubObj = config.Hubs[self.DefaultHub]
 		except KeyError:
 			logsupport.Logs.Log("Bad default hub name for screen: ",screenname,severity=ConsoleError)
 
@@ -108,12 +166,9 @@ class ScreenDesc(object):
 
 class BaseKeyScreenDesc(ScreenDesc):
 	def __init__(self, screensection, screenname):
-		self.KeysPerColumn = 0
-		self.KeysPerRow = 0
-
-
 		ScreenDesc.__init__(self, screensection, screenname)
-		utilities.LocalizeParams(self, screensection, '-', 'KeysPerColumn', 'KeysPerRow')
+
+		AddUndefaultedParams(self, screensection, KeysPerColumn=0, KeysPerRow=0)
 
 		self.buttonsperrow = -1
 		self.buttonspercol = -1

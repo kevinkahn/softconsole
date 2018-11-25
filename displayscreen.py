@@ -3,7 +3,6 @@ import sys
 import time
 from collections import OrderedDict
 
-import pygame
 import exitutils
 import alerttasks
 import config
@@ -11,6 +10,7 @@ import debug
 import hw
 import logsupport
 import threadmanager
+from controlevents import *
 from eventlist import AlertEventItem, ProcEventItem
 from eventlist import EventList
 from logsupport import ConsoleWarning, ConsoleError, ConsoleDetail
@@ -33,17 +33,6 @@ class DisplayScreen(object):
 		self.Deferrals = []
 		self.WatchVarVals = {}  # most recent reported watched variable values
 
-		# Events that drive the main control loop
-		# self.ACTIVITYTIMER = pygame.event.Event(
-		#	pygame.USEREVENT + 1)  # screen activity timing (Dimming, persistence etc)
-		self.ACTIVITYTIMER = pygame.USEREVENT + 1
-		self.HubNodeChange = pygame.USEREVENT + 2  # Node state change in a current screen watched node on the ISY
-		self.ISYAlert = pygame.USEREVENT + 3  # Mpde state change in watched node for alerts
-		self.ISYVar = pygame.USEREVENT + 4  # Var value change for a watched variable on ISY
-		self.GeneralRepaint = pygame.USEREVENT + 5 # force a repaint of current screen
-		# noinspection PyArgumentList
-		self.NOEVENT = pygame.event.Event(pygame.NOEVENT)
-
 		self.AS = None  # Active Screen
 		self.ScreensDict = {}  # all the sceens by name for setting navigation keys
 		self.Chain = 0  # which screen chain is active 0: Main chain 1: Secondary Chain
@@ -59,7 +48,7 @@ class DisplayScreen(object):
 		hw.GoBright(int(config.sysStore.GetVal('BrightLevel')))
 
 	def SetActivityTimer(self, timeinsecs, dbgmsg):
-		pygame.time.set_timer(self.ACTIVITYTIMER, timeinsecs*1000)  #todo .type deleted
+		pygame.time.set_timer(ACTIVITYTIMER, timeinsecs * 1000)  # todo .type deleted
 		debug.debugPrint('Dispatch', 'Set activity timer: ', timeinsecs, ' ', dbgmsg)
 
 	def SwitchScreen(self, NS, newdim, newstate, reason, NavKeys=True):
@@ -131,14 +120,12 @@ class DisplayScreen(object):
 			logsupport.Logs.Log("->" + str(a), severity=ConsoleDetail)
 
 			if a.type == 'Periodic':
-				E = AlertEventItem(id(a), a.name, a)
-				self.Tasks.AddTask(E, a.trigger.NextInterval())
+				self.Tasks.AddTask(AlertEventItem(id(a), a.name, a), a.trigger.NextInterval())
 			elif a.type == 'NodeChange':
 				a.trigger.node.Hub.SetAlertWatch(a.trigger.node, a)
 				if a.trigger.IsTrue():
 					# noinspection PyArgumentList
-					notice = pygame.event.Event(config.DS.ISYAlert, hub = 'DS-NodeChange', alert=a)
-					pygame.fastevent.post(notice)
+					PostControl(ISYAlert, hub='DS-NodeChange', alert=a)
 			elif a.type == 'VarChange':
 				a.state = 'Init'
 				# Note: VarChange alerts don't need setup because the store has an alert proc
@@ -181,7 +168,7 @@ class DisplayScreen(object):
 					else:
 						debug.debugPrint('QDump', "Empty queue")
 						time.sleep(0.01)
-				event = self.NOEVENT
+				event = pygame.event.Event(NOEVENT)
 			else:
 				event = pygame.fastevent.wait()  # wait for the next event: touches, timeouts, ISY changes on note
 
@@ -189,8 +176,8 @@ class DisplayScreen(object):
 				self.HBEvents.Entry('MouseDown' + str(event.pos))
 				debug.debugPrint('Touch','MouseDown'+str(event.pos))
 				# screen touch events; this includes touches to non-sensitive area of screen
-				self.SetActivityTimer(self.AS.DimTO,
-									  'Screen touch')  # refresh non-dimming in all cases including non=sensitive areas
+				self.SetActivityTimer(self.AS.DimTO, 'Screen touch')
+				# refresh non-dimming in all cases including non=sensitive areas
 				# this refresh is redundant in some cases where the touch causes other activities
 
 				if self.dim == 'Dim':
@@ -212,7 +199,7 @@ class DisplayScreen(object):
 						debug.debugPrint('Touch','Follow MouseDown'+str(event.pos))
 						tapcount += 1
 						pygame.time.delay(config.sysStore.GetVal('MultiTapTime'))
-					elif eventx.type == pygame.NOEVENT:
+					elif eventx.type == NOEVENT:
 						break
 					else:
 						if eventx.type >= pygame.USEREVENT:  # it isn't a screen related event
@@ -249,7 +236,7 @@ class DisplayScreen(object):
 					if K.touched(pos):
 						K.Proc(config.PRESS)  # same action whether single or double tap
 
-			elif event.type == self.ACTIVITYTIMER:  # todo .type:
+			elif event.type == ACTIVITYTIMER:  # todo .type:
 				self.HBEvents.Entry('ActivityTimer' + str(self.state))
 				debug.debugPrint('Dispatch', 'Activity timer fired State=', self.state, '/', self.dim)
 
@@ -272,12 +259,12 @@ class DisplayScreen(object):
 					else:  # Maint or Alert - todo?
 						debug.debugPrint('Dispatch', 'TO while in: ', self.state)
 
-			elif event.type == self.GeneralRepaint:
+			elif event.type == GeneralRepaint:
 				self.HBEvents.Entry('General Repaint' + repr(event))
 				debug.debugPrint('Dispatch', 'General Repaint Event', event)
 				self.AS.InitDisplay()
 
-			elif event.type == self.HubNodeChange:
+			elif event.type == HubNodeChange:
 				self.HBEvents.Entry('Hub Change' + repr(event))
 				debug.debugPrint('Dispatch', 'Hub Change Event', event)
 				if hasattr(event, 'node'):
@@ -288,9 +275,9 @@ class DisplayScreen(object):
 					debug.debugPrint('Dispatch', 'Bad Node Change Event: ', event)
 					logsupport.Logs.Log('Bad Node Change Event ', event, severity=ConsoleWarning)
 
-			elif event.type in (self.ISYVar, self.ISYAlert):
+			elif event.type in (ISYVar, ISYAlert):
 				self.HBEvents.Entry('Var or Alert' + repr(event))
-				evtype = 'variable' if event.type == self.ISYVar else 'node'
+				evtype = 'variable' if event.type == ISYVar else 'node'
 				debug.debugPrint('Dispatch', 'ISY ', evtype, ' change', event)
 				alert = event.alert
 				if alert.state in ('Armed', 'Init'):
@@ -298,8 +285,8 @@ class DisplayScreen(object):
 						if alert.trigger.delay != 0:  # delay invocation
 							alert.state = 'Delayed'
 							debug.debugPrint('Dispatch', "Post with delay:", alert.name, alert.trigger.delay)
-							E = AlertEventItem(id(alert), 'delayed' + evtype, alert)
-							self.Tasks.AddTask(E, alert.trigger.delay)
+							self.Tasks.AddTask(AlertEventItem(id(alert), 'delayed' + evtype, alert),
+											   alert.trigger.delay)
 						else:  # invoke now
 							alert.state = 'FiredNoDelay'
 							debug.debugPrint('Dispatch', "Invoke: ", alert.name)

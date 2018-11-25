@@ -80,7 +80,6 @@ def ParseParam(param, parseconfig):
 				# can't log directly because logger isn't initialized yet at the point this is called
 				paramlog.append('Param: ' + p + ": " + str(config.__dict__[p2]))
 
-
 def LogParams():
 	global paramlog
 	for p in paramlog:
@@ -241,6 +240,9 @@ def LocalizeParams(inst, configsection, indent, *args, **kwargs):
 		if (lclval[i] != val) and (lcllist[i] in args):
 			logsupport.Logs.Log(indent + 'LParam: ' + lcllist[i] + ': ' + str(val), severity=ConsoleDetailHigh)
 		inst.__dict__[lcllist[i]] = val
+
+
+# if 'userstore' in inst.__dict__: inst.__dict__['userstore'].SetVal(lcllist[i],val)
 
 
 def LocalizeExtra(inst, configsection, **kwargs):

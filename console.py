@@ -40,9 +40,10 @@ import logsupport
 import maintscreen
 import utilities
 from logsupport import ConsoleWarning,ConsoleError
-from stores import mqttsupport, valuestore, localvarsupport, sysstore
+from stores import mqttsupport, valuestore, localvarsupport, sysstore, paramstore
 import alerttasks
 from stores.weathprov.providerutils import SetUpTermShortener
+import screen
 
 
 class ExitHooks(object):
@@ -259,6 +260,7 @@ debug.InitFlags(config.ParsedConfigFile)
 
 
 utilities.ParseParam(globalparams, config.ParsedConfigFile)  # add global parameters to config file
+screen.InitScreenParams(config.ParsedConfigFile)
 for nm, val in config.sysvals.items():
 	config.sysStore.SetVal([nm], val[0](config.ParsedConfigFile.get(nm, val[1])))
 	if val[2] is not None: config.sysStore.AddAlert(nm, val[2])
@@ -376,22 +378,22 @@ for i, v in config.ParsedConfigFile.items():
 										severity=ConsoleError, tb=False)
 				del config.ParsedConfigFile[i]
 
+# config.defaulthubname = config.ParsedConfigFile.get('DefaultHub','')
 
-
-config.defaulthubname = config.ParsedConfigFile.get('DefaultHub','')
-
-if config.defaulthubname == '':  # todo handle no hub case for screen testing
+if screen.screenStore.GetVal('DefaultHub') == '':  # todo handle no hub case for screen testing
 	if len(config.Hubs) == 1:
-		config.defaulthubname = list(config.Hubs.keys())[0]
-		config.defaulthub = config.Hubs[config.defaulthubname] # grab the only element
-		logsupport.Logs.Log("Default (only) hub is: ", config.defaulthubname)
+		nm = list(config.Hubs.keys())[0]
+		screen.screenStore.SetVal('DefaultHub', nm)
+		config.defaulthub = config.Hubs[nm]  # grab the only element
+		logsupport.Logs.Log("Default (only) hub is: ", nm)
 	else:
 		logsupport.Logs.Log("No default Hub specified", severity=ConsoleWarning)
 		config.defaulthub = None
 else:
 	try:
-		config.defaulthub = config.Hubs[config.defaulthubname]
-		logsupport.Logs.Log("Default hub is: ", config.defaulthubname)
+		nm = screen.screenStore.GetVal('DefaultHub')
+		config.defaulthub = config.Hubs[nm]
+		logsupport.Logs.Log("Default hub is: ", nm)
 	except KeyError:
 		logsupport.Logs.Log("Specified default Hub doesn't exist", severity=ConsoleWarning)
 		config.defaulthub = None

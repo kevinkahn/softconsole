@@ -1,6 +1,7 @@
 import hw
 
 screentypes = {}  # set by each module for screens of the type that module creates (see last line in any XxxScreen module
+screenparamuse = {}
 
 hubtypes = {}
 Hubs = {}

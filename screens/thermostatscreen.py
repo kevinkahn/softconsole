@@ -24,16 +24,15 @@ def trifromtop(h, v, n, size, c, invert):
 
 class ThermostatScreenDesc(screen.BaseKeyScreenDesc):
 	def __init__(self, screensection, screenname):
-		self.KeyColor = ''
-
 		debug.debugPrint('Screen', "New ThermostatScreenDesc ", screenname)
 		screen.BaseKeyScreenDesc.__init__(self, screensection, screenname)
-		utilities.LocalizeParams(self, screensection, '-', 'KeyColor', 'KeyOffOutlineColor', 'KeyOnOutlineColor')
+		screen.IncorporateParams(self, 'ThermostatScreen', {'KeyColor', 'KeyOffOutlineColor', 'KeyOnOutlineColor'},
+								 screensection)
 		self.info = {}
 		self.oldinfo = {}
 		self.fsize = (30, 50, 80, 160)
-		if isinstance(self.DefaultHub,isy.ISY):
-			self.isy = self.DefaultHub
+		if isinstance(self.DefaultHubObj, isy.ISY):
+			self.isy = self.DefaultHubObj
 			self.ISYObj = self.isy.GetNode(screenname)[0]  # use ControlObj (0)
 			if self.ISYObj is None:
 				logsupport.Logs.Log("No Thermostat: " + screenname, severity=ConsoleWarning)

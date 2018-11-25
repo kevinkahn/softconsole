@@ -11,8 +11,8 @@ import pygame
 
 class KeyScreenDesc(screen.BaseKeyScreenDesc):
 	def __init__(self, screensection, screenname):
-		debug.debugPrint('Screen', "New KeyScreenDesc ", screenname)
 		screen.BaseKeyScreenDesc.__init__(self, screensection, screenname)
+		debug.debugPrint('Screen', "New KeyScreenDesc ", screenname)
 
 		# Build the Key objects
 		for keyname in screensection:

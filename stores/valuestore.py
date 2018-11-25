@@ -226,7 +226,7 @@ class ValueStore(object):
 	def LockStore(self):
 		self.locked = True
 
-	def GetVal(self,name):
+	def GetVal(self, name, failok=False):
 		if self.refreshinterval != 0 and time.time()>self.fetchtime+self.refreshinterval:
 			self.BlockRefresh()
 		n2=''
@@ -242,7 +242,9 @@ class ValueStore(object):
 			else:
 				return V
 		except Exception as e:
-			logsupport.Logs.Log("Error accessing ", self.name, ":", str(name), str(n2), repr(e), severity=ConsoleError,
+			if not failok:
+				logsupport.Logs.Log("Error accessing ", self.name, ":", str(name), str(n2), repr(e),
+									severity=ConsoleError,
 								tb=False)
 			return None
 
@@ -386,13 +388,16 @@ class ValueStore(object):
 
 	def items(self, parents=(), d=None):
 		if d is None: d = self.vars
-		for n, i in d.items():
-			if isinstance(i, dict):
-				np = parents + (n,)
-				for b in self.items(parents=np, d=i):
-					yield b
-			else:
-				yield (parents + (n,))
+		try:
+			for n, i in d.items():
+				if isinstance(i, dict):
+					np = parents + (n,)
+					for b in self.items(parents=np, d=i):
+						yield b
+				else:
+					yield (parents + (n,))
+		except Exception as e:
+			raise
 
 	def __iter__(self):
 		self.iternames = list(self.vars)
