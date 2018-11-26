@@ -57,13 +57,14 @@ class ISYEventMonitor(object):
 		logsupport.Logs.Log(self.hubname + ": Attempt query (" + str(seq) + ") in errored node: " + enode,
 							severity=ConsoleWarning)
 		r = self.isy.try_ISY_comm('query/' + enode, timeout=120, closeonfail=False)
+		logsupport.Logs.Log('Temp: ', repr(r))
 		if r == '':
 			logsupport.Logs.Log(self.hubname + ": Query (" + str(seq) + ") attempt failed for node: " + enode,
 								severity=ConsoleWarning)
 		else:
 			logsupport.Logs.Log(self.hubname + ": Query (" + str(seq) + ") attempt succeeded for node: " + enode)
 		if enode in self.isy.ErrNodes: del self.isy.ErrNodes[enode]
-		if enode in self.isy.queryqueued: del self.queryqueued[enode]
+		if enode in self.queryqueued: del self.queryqueued[enode]
 
 	def DoNodeQuery(self, enode):
 		if enode not in self.queryqueued:
@@ -336,7 +337,7 @@ class ISYEventMonitor(object):
 					if ecode == "ERR":
 						logsupport.Logs.Log(self.hubname + " shows comm error for node: " + str(isynd),
 											severity=ConsoleWarning)
-						# logsupport.Logs.Log("-Temp- ", repr(m), repr(message), severity=ConsoleWarning)
+						logsupport.Logs.Log("-Temp- ", repr(m), repr(message), severity=ConsoleWarning, hb=True)
 						if enode not in self.isy.ErrNodes:
 							self.isy.ErrNodes[enode] = self.DoNodeQuery(enode)
 					else:
@@ -352,7 +353,8 @@ class ISYEventMonitor(object):
 					logsupport.Logs.Log(self.hubname + " Strange item in event stream: " + str(m),
 										severity=ConsoleWarning)
 			except Exception as E:
-				logsupport.Logs.Log(self.hubname + " Exception in QH on message: ", repr(m), ' Excp: ', repr(E))
+				logsupport.Logs.Log(self.hubname + " Exception in QH on message: ", repr(m), ' Excp: ', repr(E),
+									severity=ConsoleWarning)
 
 		self.THstate = 'delaying'
 		logsupport.Logs.Log(self.hubname + " stream thread " + str(self.QHnum) + " setup")
