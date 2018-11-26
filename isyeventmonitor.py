@@ -300,11 +300,12 @@ class ISYEventMonitor(object):
 						vartype = int(vinfo['@type'])
 						varid = int(vinfo['@id'])
 						varval = int(vinfo['val'])
-						debug.debugPrint('DaemonCtl', 'Var change: ', valuestore.GetNameFromAttr(self.hubname,(vartype,varid)),' set to ', varval)
+						debug.debugPrint('DaemonCtl', 'Var change: ', self.Vars.GetNameFromAttr((vartype, varid)),
+										 ' set to ', varval)
 						debug.debugPrint('DaemonCtl', 'Var change:', ('Unkn', 'Integer', 'State')[vartype], ' variable ', varid,
 								   ' set to ', varval)
 						try:
-							valuestore.SetValByAttr(self.hubname,(vartype,varid),varval, modifier=True)
+							self.Vars.SetValByAttr((vartype, varid), varval, modifier=True)
 						except KeyError:
 							logsupport.Logs.Log(
 								"Unknown variable from " + self.hubname + " - probably added since startup",

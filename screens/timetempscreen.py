@@ -5,7 +5,7 @@ import screen
 import utilities
 import debug
 from utilfuncs import wc
-from stores import valuestore, weatherstore
+from stores import valuestore
 from weatherfromatting import CreateWeathBlock, WFormatter
 import pygame
 from eventlist import ProcEventItem

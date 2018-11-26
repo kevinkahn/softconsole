@@ -104,7 +104,8 @@ class WeatherVals(valuestore.ValueStore):
 					   'WindSpd': (float, ('avewind', 'mph')),
 					   'Iconurl': (str, ('icon_url',))}
 
-		super(WeatherVals,self).__init__(location, refreshinterval = 60*30)
+		super(WeatherVals, self).__init__(location)
+		self.refreshinterval = 60 * 30
 		self.fetchcount = 0
 		self.vars = {'Cond':OrderedDict(),'Fcst':OrderedDict()}
 		csynthmap = {'Icon':('synthetic', self.geticon, 'Cond'),

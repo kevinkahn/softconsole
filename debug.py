@@ -99,7 +99,7 @@ def DumpStore(f, store, name, indent):
 	notdumped = True
 	while notdumped:
 		try:
-			f.write('\n' + indent + name + '->\n')
+			f.write('\n' + indent + name + ' -->\n')
 			for i in store.items():
 				f.write(indent + '  ' + str(i) + ' ' + str(store.GetVal(i)) + '\n')
 				f.flush()
@@ -116,10 +116,7 @@ def StoresDump(store, old, new, param, _):
 	if not new: return
 	with open('/home/pi/Console/StoresDump.txt', mode='w') as f:
 		for store in valuestore.ValueStores.values():
-			if not hasattr(store, 'defaultparent'):
-				DumpStore(f, store, store.name, '')
-			elif store.defaultparent == None:
-				DumpStore(f, store, store.name, '')
+			DumpStore(f, store, store.name, '')
 
 	dbgStore.SetVal('StoresDump',False)
 

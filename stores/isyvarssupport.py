@@ -1,12 +1,16 @@
 import debug
 import xmltodict
 from stores import valuestore
+import logsupport
+from logsupport import ConsoleError
 
 
 class ISYVars(valuestore.ValueStore):
 	def __init__(self, thisisy):
 		super(ISYVars,self).__init__(thisisy.name)
 		self.isy = thisisy
+		self.attrs = {}
+		self.attrnames = {}
 
 	def GetVal(self, name, forceactual=True):
 		V =  super(ISYVars,self).GetVal(name)
@@ -24,8 +28,26 @@ class ISYVars(valuestore.ValueStore):
 				V = -999999
 		return V
 
+	def SetAttr(self, name, attr):
+		# noinspection PyBroadException
+		try:
+			n = self._normalizename(name)
+			item, index = self._accessitem(n)
+			if index is None:
+				if item.Attribute is None:
+					item.Attribute = attr
+					self.attrs[attr] = item
+					self.attrnames[attr] = name
+				else:
+					logsupport.Logs.Log("Attribute already set for ", self.name, " new attr: ", attr)
+			else:
+				logsupport.Logs.Log("Can't set attribute on array element for ", self.name, " new attr: ", attr)
+		except:
+			logsupport.Logs.Log("Attribute setting error", self.name, " new attr: ", attr)
+
 	def GetValByAttr(self, attr):
-		V = super(ISYVars,self).GetValByAttr(attr)
+		V = self.attrs[attr].Value
+
 		if V is None: # why would val not be in attrlist of store already?
 			text = self.isy.try_ISY_comm('vars/get/' + str(attr[0]) + '/' + str(attr[1]))
 			if text != "":
@@ -33,6 +55,26 @@ class ISYVars(valuestore.ValueStore):
 			else:
 				V = -999999
 		return V
+
+	def GetNameFromAttr(self, attr):
+		return self.attrs[attr].name
+
+	def GetAttr(self, name):
+		# noinspection PyBroadException
+		try:
+			n2 = self._normalizename(name)
+			item, index = self._accessitem(n2)
+			return item.Attribute
+		except:
+			logsupport.Logs.Log("Error accessing attribute ", self.name, ":", str(name), severity=ConsoleError)
+			return None
+
+	def SetValByAttr(self, attr, val, modifier=None):
+		storeitem = self.attrs[attr]
+		oldval = storeitem.Value
+		storeitem.Value = val if storeitem.Type is None else storeitem.Type(val)
+		for notify in storeitem.Alerts:
+			notify[0](storeitem, oldval, val, notify[1], modifier)
 
 	def BlockRefresh(self):
 

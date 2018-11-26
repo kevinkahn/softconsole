@@ -48,6 +48,7 @@ def SetUpMaintScreens():
 	flagsperrow = config.screenwidth // 120
 	flagoverrides = fixedoverrides.copy()
 	flagoverrides.update(KeysPerColumn=flagspercol, KeysPerRow=flagsperrow)
+	flagscreencnt = 0
 	while nflags > 0:
 		thisscrn = min(nflags, flagspercol*flagsperrow)
 		nflags = nflags - flagspercol*flagsperrow + 1
@@ -60,7 +61,8 @@ def SetUpMaintScreens():
 			'Next', functools.partial(goto, config.MaintScreen))  # this gets fixed below to be a real next
 		else:
 			tmp['return'] = ('Return', functools.partial(goto, config.MaintScreen))
-		FlagsScreens.append(MaintScreenDesc('Flags', tmp, overrides=flagoverrides))
+		FlagsScreens.append(MaintScreenDesc('Flags' + str(flagscreencnt), tmp, overrides=flagoverrides))
+		flagscreencnt += 1
 		FlagsScreens[-1].KeysPerColumn = flagspercol
 		FlagsScreens[-1].KeysPerRow = flagsperrow
 
@@ -69,6 +71,7 @@ def SetUpMaintScreens():
 
 
 	for s in FlagsScreens:
+		s.userstore.ReParent(config.MaintScreen)
 		debug.DebugFlagKeys.update(s.Keys)
 		for kn, k in s.Keys.items():
 			if kn in debug.DbgFlags:
@@ -85,6 +88,9 @@ def SetUpMaintScreens():
 	config.MaintScreen.Keys['flags'].Proc = functools.partial(goto, FlagsScreens[0], config.MaintScreen.Keys['flags'])
 	Exits.Keys['return'].Proc = functools.partial(goto, config.MaintScreen, Exits.Keys['return'])
 	Beta.Keys['return'].Proc = functools.partial(goto, config.MaintScreen, Beta.Keys['return'])
+	Exits.userstore.ReParent(config.MaintScreen)
+	Beta.userstore.ReParent(config.MaintScreen)
+	LogDisp.userstore.ReParent(config.MaintScreen)
 
 def syncKeytoStore(storeitem, old, new, key, chgsource):
 	key.State = new
@@ -100,7 +106,7 @@ def setdbg(K, presstype):
 	# this allows for case where flag gets reset by proc called servicing the set
 	K.PaintKey()
 	pygame.display.update()
-	logsupport.Logs.Log("Debug flag ", K.name, ' = ', K.State, severity=ConsoleWarning)
+	logsupport.Logs.Log("Debug flag ", K.name, ' = ', K.State)
 
 # noinspection PyUnusedLocal
 def adjloglevel(K, presstype):

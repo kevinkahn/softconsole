@@ -71,13 +71,13 @@ class ThermostatScreenDesc(screen.BaseKeyScreenDesc):
 		self.Keys['Mode'] = toucharea.ManualKeyDesc(self, "Mode", ["Mode"],
 													self.KeyColor, self.CharColor, self.CharColor,
 													center=(config.screenwidth//4, self.ModeButPos), size=bsize,
-													KOn=config.KeyOffOutlineColor,
+													KOn=self.KeyOffOutlineColor,
 													proc=functools.partial(self.BumpMode, 'CLIMD', range(8)))
 
 		self.Keys['Fan'] = toucharea.ManualKeyDesc(self, "Fan", ["Fan"],
 												   self.KeyColor, self.CharColor, self.CharColor,
 												   center=(3*config.screenwidth//4, self.ModeButPos), size=bsize,
-												   KOn=config.KeyOffOutlineColor,
+												   KOn=self.KeyOffOutlineColor,
 												   proc=functools.partial(self.BumpMode, 'CLIFS', (7, 8)))
 
 		self.ModesPos = self.ModeButPos + bsize[1]//2 + scaleH(5)

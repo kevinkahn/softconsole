@@ -1,7 +1,7 @@
 import pygame
 import config
 import debug
-from stores import valuestore, weatherstore, genericweatherstore
+from stores import valuestore
 import screen
 import logsupport
 from weatherfromatting import CreateWeathBlock, WFormatter
@@ -42,7 +42,6 @@ class WeatherScreenDesc(screen.ScreenDesc):
 		self.fcstformat = u"{d[0]}   {d[1]}\u00B0/{d[2]}\u00B0 {d[3]}", "Wind: {d[4]}"
 		self.fcstfields = list(((self.location, 'Fcst', x) for x in ('Day', 'High', 'Low', 'Sky', 'WindSpd')))
 
-		# self.store = valuestore.NewValueStore(genericweatherstore.WeatherVals(self.location, self.WunderKey)) #todo
 		self.store = valuestore.ValueStores[self.location]
 		self.loggedonce = False
 		utilities.register_example("WeatherScreenDesc", self)

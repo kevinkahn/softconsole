@@ -24,13 +24,17 @@ import sys
 import time
 
 import pygame
-# noinspection PyProtectedMember
 from configobj import ConfigObj, Section
 
 import config
+import debug
+from stores import mqttsupport, valuestore, localvarsupport, sysstore, paramstore
+
+config.sysStore = valuestore.NewValueStore(sysstore.SystemStore('System'))
+
 import configobjects
 import atexit
-import debug
+
 import displayscreen
 import exitutils
 import globalparams
@@ -40,7 +44,7 @@ import logsupport
 import maintscreen
 import utilities
 from logsupport import ConsoleWarning,ConsoleError
-from stores import mqttsupport, valuestore, localvarsupport, sysstore, paramstore
+
 import alerttasks
 from stores.weathprov.providerutils import SetUpTermShortener
 import screen
@@ -91,8 +95,6 @@ def handler(signum, frame):
 
 signal.signal(signal.SIGTERM, handler)
 signal.signal(signal.SIGINT, handler)
-
-config.sysStore = valuestore.NewValueStore(sysstore.SystemStore('System'))
 
 config.Console_pid = os.getpid()
 config.exdir = os.path.dirname(os.path.abspath(__file__))
@@ -423,7 +425,7 @@ if 'Variables' in config.ParsedConfigFile:
 		logsupport.Logs.Log("Local variable: " + nm + "(" + str(i) + ") = " + str(val))
 		tn[1] = nm
 		valuestore.SetVal(tn, val)
-		valuestore.SetAttr(tn, (3, i))
+		# valuestore.SetAttr(tn, (3, i)) todo del
 		i += 1
 	del config.ParsedConfigFile['Variables']
 

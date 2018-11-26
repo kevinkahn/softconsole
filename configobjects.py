@@ -94,16 +94,16 @@ class MyScreens(object):
 			nextk = config.MainDict[config.MainChain[(i + 1)%len(config.MainChain)]].screen
 			config.MainDict[kn].prevkey = toucharea.ManualKeyDesc(config.MainDict[kn].screen, 'Nav<' + prevk.name,
 																  prevk.label,
-																  config.CmdKeyCol, config.CmdCharCol,
-																  config.CmdCharCol,
+																  prevk.CmdKeyCol, prevk.CmdCharCol,
+																  prevk.CmdCharCol,
 																  proc=functools.partial(config.DS.NavPress, prevk),
 																  center=(
 																  config.horizborder + .5*cbutwidth, cvertcenter),
 																  size=(cbutwidth, cbutheight))
 			config.MainDict[kn].nextkey = toucharea.ManualKeyDesc(config.MainDict[kn].screen, 'Nav>' + nextk.name,
 																  nextk.label,
-																  config.CmdKeyCol, config.CmdCharCol,
-																  config.CmdCharCol,
+																  nextk.CmdKeyCol, nextk.CmdCharCol,
+																  nextk.CmdCharCol,
 																  proc=functools.partial(config.DS.NavPress, nextk),
 																  center=(
 																	  config.horizborder + 1.5*cbutwidth, cvertcenter),
@@ -115,8 +115,8 @@ class MyScreens(object):
 			config.SecondaryDict[kn].prevkey = toucharea.ManualKeyDesc(config.SecondaryDict[kn].screen,
 																	   'Nav<' + prevk.name,
 																	   prevk.label,
-																	   config.CmdKeyCol, config.CmdCharCol,
-																	   config.CmdCharCol,
+																	   prevk.CmdKeyCol, prevk.CmdCharCol,
+																	   prevk.CmdCharCol,
 																	   proc=functools.partial(config.DS.NavPress,
 																							  prevk),
 																	   center=(
@@ -125,8 +125,8 @@ class MyScreens(object):
 			config.SecondaryDict[kn].nextkey = toucharea.ManualKeyDesc(config.SecondaryDict[kn].screen,
 																	   'Nav>' + nextk.name,
 																	   nextk.label,
-																	   config.CmdKeyCol, config.CmdCharCol,
-																	   config.CmdCharCol,
+																	   nextk.CmdKeyCol, nextk.CmdCharCol,
+																	   nextk.CmdCharCol,
 																	   proc=functools.partial(config.DS.NavPress,
 																							  nextk),
 																	   center=(config.horizborder + 1.5*cbutwidth,

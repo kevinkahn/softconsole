@@ -90,13 +90,13 @@ class NestThermostatScreenDesc(screen.BaseKeyScreenDesc):
 		self.Keys['Mode'] = toucharea.ManualKeyDesc(self, "Mode", ["Mode"],
 													self.KeyColor, self.CharColor, self.CharColor,
 													center=(self.SPHPosL, self.ModeButPos), size=bsize,
-													KOn=config.KeyOffOutlineColor,
+													KOn=self.KeyOffOutlineColor,
 													proc=self.BumpMode)
 
 		self.Keys['Fan'] = toucharea.ManualKeyDesc(self, "Fan", ["Fan"],
 												   self.KeyColor, self.CharColor, self.CharColor,
 												   center=(self.SPHPosR, self.ModeButPos), size=bsize,
-												   KOn=config.KeyOffOutlineColor,
+												   KOn=self.KeyOffOutlineColor,
 												   proc=self.BumpFan)
 
 		self.ModesPos = self.ModeButPos + bsize[1]//2 + scaleH(5)

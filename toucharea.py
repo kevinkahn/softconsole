@@ -83,13 +83,13 @@ class ManualKeyDesc(TouchPoint):
 			self.FinishKey((0, 0), (0, 0))
 		utilities.register_example("ManualKeyDesc", self)
 
-	def docodeinit(self, thisscreen, keyname, label, bcolor, charcoloron, charcoloroff, center=(0, 0), size=(0, 0), KOn='',
-				   KOff='', proc=None, KCon='', KCoff='', KLon=('',), KLoff=('',), State=True, Blink=0, Verify=False):
+	def docodeinit(self, thisscreen, keyname, label, bcolor, charcoloron, charcoloroff, center=(0, 0), size=(0, 0),
+				   KOn=None,
+				   KOff=None, proc=None, KCon='', KCoff='', KLon=('',), KLoff=('',), State=True, Blink=0, Verify=False):
 		# NOTE: do not put defaults for KOn/KOff in signature - imports and arg parsing subtleties will cause error
 		# because of when config is imported and what walues are at that time versus at call time
-		self.userstore = valuestore.NewValueStore(
-			paramstore.ParamStore('Screen-' + thisscreen.name + '-' + keyname, dp=thisscreen.userstore,
-								  locname=keyname))
+		self.userstore = paramstore.ParamStore('Screen-' + thisscreen.name + '-' + keyname, dp=thisscreen.userstore,
+											   locname=keyname)
 
 		TouchPoint.__init__(self, keyname, center, size, proc=proc)
 		self.Screen = thisscreen
@@ -97,21 +97,17 @@ class ManualKeyDesc(TouchPoint):
 		self.Screen = thisscreen
 		screen.IncorporateParams(self, 'TouchArea',
 								 {'KeyColor': bcolor,
-								  'KeyOffOutlineColor': config.KeyOffOutlineColor if KOff == '' else KOff,
-								  'KeyOnOutlineColor': config.KeyOnOutlineColor if KOn == '' else KOn,
+								  'KeyOffOutlineColor': KOff,
+								  'KeyOnOutlineColor': KOn,
 								  'KeyCharColorOn': charcoloron, 'KeyCharColorOff': charcoloroff,
-								  'KeyOutlineOffset': config.KeyOutlineOffset, 'KeyColorOn': KCon, 'KeyColorOff': KCoff,
+								  'KeyColorOn': KCon, 'KeyColorOff': KCoff,
 								  'KeyLabelOn': list(KLon), 'KeyLabelOff': list(KLoff)}, {})
-		# self.KeyOutlineOffset = config.KeyOutlineOffset # todo wrong defaulting - should be screen value
-		# self.FastPress = False # todo is this the right init?
-		# self.Verify = False # todo is this right
-		# self.Blink = Blink
+
 		screen.AddUndefaultedParams(self, {}, FastPress=False, Verify=False, Blink=Blink, label=label)
 
 	def dosectioninit(self, thisscreen, keysection, keyname):
-		self.userstore = valuestore.NewValueStore(
-			paramstore.ParamStore('Screen-' + thisscreen.name + '-' + keyname, dp=thisscreen.userstore,
-								  locname=keyname))
+		self.userstore = paramstore.ParamStore('Screen-' + thisscreen.name + '-' + keyname, dp=thisscreen.userstore,
+											   locname=keyname)
 		TouchPoint.__init__(self, keyname, (0, 0), (0, 0))
 		screen.IncorporateParams(self, 'TouchArea', {'KeyColor', 'KeyOffOutlineColor', 'KeyOnOutlineColor',
 								 'KeyCharColorOn', 'KeyCharColorOff', 'KeyOutlineOffset', 'KeyColorOn', 'KeyColorOff',

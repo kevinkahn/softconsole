@@ -46,7 +46,7 @@ def IncorporateParams(this, clsnm, theseparams, screensection):
 	if screensection is None: screensection = {}
 	for p in theseparams:
 		if isinstance(theseparams, dict):
-			this.userstore.SetVal(p, theseparams[p])
+			if theseparams[p] is not None: this.userstore.SetVal(p, theseparams[p])
 		else:
 			if p in screensection:
 				this.userstore.SetVal(p, type(ScreenParams[p])(screensection.get(p, 1)))  # default gets ignored
@@ -99,9 +99,9 @@ class ScreenDesc(object):
 		return self.userstore.GetVal(key)
 
 	def __init__(self, screensection, screenname, parentscreen=None):
-		self.userstore = valuestore.NewValueStore(paramstore.ParamStore('Screen-' + screenname,
-																		dp=screenStore if parentscreen is None else parentscreen.userstore,
-																		locname=screenname))
+		self.userstore = paramstore.ParamStore('Screen-' + screenname,
+											   dp=screenStore if parentscreen is None else parentscreen.userstore,
+											   locname=screenname)
 
 		self.markradius = int(min(config.screenwidth, config.screenheight) * .025)
 

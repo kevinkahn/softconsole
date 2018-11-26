@@ -13,12 +13,13 @@ class MQitem(valuestore.StoreItem):
 	def __init__(self, name, Topic, Type, Expires, jsonflds, Store):
 		self.Topic = Topic
 		self.jsonflds = jsonflds
-		super(MQitem,self).__init__(name, None, store = Store, vt = Type,Expires = Expires)
+		self.Expires = Expires
+		super(MQitem, self).__init__(name, None, store=Store, vt=Type)
 
 class MQTTBroker(valuestore.ValueStore):
 
 	def __init__(self, name, configsect):
-		super(MQTTBroker,self).__init__(name,refreshinterval=0,itemtyp=MQitem)
+		super(MQTTBroker, self).__init__(name, itemtyp=MQitem)
 
 		# noinspection PyUnusedLocal
 		def on_connect(client, userdata, flags, rc):
@@ -148,6 +149,24 @@ class MQTTBroker(valuestore.ValueStore):
 
 	def SetVal(self,name, val, modifier = None):
 		logsupport.Logs.Log("Can't set MQTT subscribed var within console: ",name)
+
+	def GetVal(self, name, failok=False):
+		n2 = ''
+		# noinspection PyBroadException
+		try:
+			n2 = self._normalizename(name)
+			item, _ = self._accessitem(n2)
+			if item.Expires + item.SetTime < time.time():
+				# value is stale
+				return None
+			else:
+				return item.Value
+		except Exception as e:
+			if not failok:
+				logsupport.Logs.Log("Error accessing ", self.name, ":", str(name), str(n2), repr(e),
+									severity=ConsoleError,
+									tb=False)
+			return None
 
 	# noinspection PyUnusedLocal
 	@staticmethod

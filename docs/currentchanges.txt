@@ -13,3 +13,4 @@ Some other changes:
 V3.11 is a very minor clean up from 3.1.  It fixes some benign error reports that didn't belong in the code.  It also continues to imporve some of the communication error reports that can occur when packets get dropped between hubs and the console.  A general improvement is that when you access the maintenance log when there is an outstanding "error in the log" indicator (see 3.1 release) the console auto pages to the first unseen Warning or higher message in the log.  For Home Assistant hubs it handles a few more types of node report messages without logging them as anomolous and fixes issues with running HA scripts from a console key.
 
 
+Kill off WU

@@ -3,9 +3,12 @@ import logsupport
 import time
 import debug
 import inspect
+from collections import OrderedDict
 
-ValueStores = {} # General store for named values storename:itemname accessed as ValueStore[storename].GetVal(itemname)
-				# or GetVal([itemname]) for a nested name
+ValueStores = OrderedDict()  # General store for named values storename:itemname accessed as ValueStore[storename].GetVal(itemname)
+
+
+# or GetVal([itemname]) for a nested name
 
 def _normalizename(name):
 	if isinstance(name, tuple):
@@ -53,17 +56,18 @@ def SetVal(name,val, modifier = None):
 		return None
 	return ValueStores[n[0]].SetVal(n[1:],val, modifier)
 
-def GetAttr(name):
-	n = _normalizename(name)
-	if not n[0] in ValueStores:
-		callloc = inspect.stack()[1].filename + ':' + str(inspect.stack()[1].lineno)
-		logsupport.Logs.Log("(Generic GetAttr) No store named: ", n[0], ' at: ', callloc, severity=ConsoleError,
-							tb=False)
-		return None
-	return ValueStores[n[0].GetAttr(n[1:])]
 
-def GetNameFromAttr(name, attr):
-		return ValueStores[name].GetNameFromAttr(attr)
+# def GetAttr(name):
+#	n = _normalizename(name)
+#	if not n[0] in ValueStores:
+#		callloc = inspect.stack()[1].filename + ':' + str(inspect.stack()[1].lineno)
+#		logsupport.Logs.Log("(Generic GetAttr) No store named: ", n[0], ' at: ', callloc, severity=ConsoleError,
+#							tb=False)
+#		return None
+#	return ValueStores[n[0].GetAttr(n[1:])]
+
+# def GetNameFromAttr(name, attr):
+#		return ValueStores[name].GetNameFromAttr(attr)
 
 def AddAlert(name,a):
 	n = _normalizename(name)
@@ -74,31 +78,28 @@ def AddAlert(name,a):
 		return None
 	return ValueStores[n[0]].AddAlert(n[1:],a)
 
-def SetAttr(name,attr):
-	n = _normalizename(name)
-	if not n[0] in ValueStores:
-		callloc = inspect.stack()[1].filename + ':' + str(inspect.stack()[1].lineno)
-		logsupport.Logs.Log("(Generic SetAttr) No store named: ", n[0], ' at: ', callloc, severity=ConsoleError,
-							tb=False)
-		return None
-	return ValueStores[n[0]].SetAttr(n[1:],attr)
 
-def GetValByAttr(name, attr):
-	return ValueStores[name].GetValByAttr(attr)
+# def SetAttr(name,attr): todo del
+#	n = _normalizename(name)
+#	if not n[0] in ValueStores:
+#		callloc = inspect.stack()[1].filename + ':' + str(inspect.stack()[1].lineno)
+#		logsupport.Logs.Log("(Generic SetAttr) No store named: ", n[0], ' at: ', callloc, severity=ConsoleError,
+#							tb=False)
+#		return None
+#	return ValueStores[n[0]].SetAttr(n[1:],attr)
 
-def SetValByAttr(name, attr, val, modifier = None):
-	return ValueStores[name].SetValByAttr(attr,val,modifier)
+# def GetValByAttr(name, attr):
+#	return ValueStores[name].GetValByAttr(attr)
 
-def BlockRefresh(name):
-	ValueStores[name].BlockRefresh()
+# def SetValByAttr(name, attr, val, modifier = None):
+#	return ValueStores[name].SetValByAttr(attr,val,modifier)
+
 
 class StoreList(object):
 	def __init__(self,parent):
 		self.parent = parent
 		self._List = []
 
-	def ClearList(self):
-		self._List = []
 
 	def __getitem__(self, item):
 		return self._List[item]
@@ -131,13 +132,12 @@ def NewValueStore(store):
 		return ValueStores[store.name]
 
 class StoreItem(object):
-	def __init__(self, name, initval, store = None, vt = None, Expires=9999999999999999.0, attribute=None):
+	def __init__(self, name, initval, store=None, vt=None, attribute=None):
 
 		self._Value = None
 		self.name = name
 		self.Attribute = attribute
 		self.SetTime = 0
-		self.Expires = Expires
 		self.Alerts = []
 		if vt is None:
 			self.Type = None if initval is None else type(initval)
@@ -186,14 +186,11 @@ class StoreItem(object):
 		self.SetTime = time.time()
 
 class ValueStore(object):
-	def __init__(self, name, refreshinterval = 0, itemtyp=StoreItem):
+	def __init__(self, name, itemtyp=StoreItem):
 		self.name = name
 		self.itemtyp = itemtyp
 		self.fetchtime = 0 # time of last block refresh if handled as such
-		self.refreshinterval = refreshinterval
 		self.vars = {}
-		self.attrs = {}
-		self.attrnames = {}
 		self.locked = False
 
 	def CheckValsUpToDate(self):
@@ -227,20 +224,13 @@ class ValueStore(object):
 		self.locked = True
 
 	def GetVal(self, name, failok=False):
-		if self.refreshinterval != 0 and time.time()>self.fetchtime+self.refreshinterval:
-			self.BlockRefresh()
 		n2=''
 		# noinspection PyBroadException
 		try:
 			n2 = self._normalizename(name)
 			item, index = self._accessitem(n2)
-			V = item.Value if index is None else item.Value[index]
+			return item.Value if index is None else item.Value[index]
 
-			if item.Expires + item.SetTime < time.time():
-				# value is stale
-				return None
-			else:
-				return V
 		except Exception as e:
 			if not failok:
 				logsupport.Logs.Log("Error accessing ", self.name, ":", str(name), str(n2), repr(e),
@@ -248,28 +238,23 @@ class ValueStore(object):
 								tb=False)
 			return None
 
-	def GetValByAttr(self, attr):
-		return self.attrs[attr].Value
+	def GetValByAttr(self, attr):  # todo
+		logsupport.Logs.Log('Attribute (val) call to other than ISY store: ', self.name, severity=ConsoleError, tb=True)
 
-	def GetNameFromAttr(self, attr):
-		return self.attrs[attr].name
+	def GetNameFromAttr(self, attr):  # todo
+		logsupport.Logs.Log('Attribute (name) call to other than ISY store: ', self.name, severity=ConsoleError, tb=True)
 
-	def SetAttr(self,name,attr):
-		# noinspection PyBroadException
-		try:
-			n = self._normalizename(name)
-			item, index = self._accessitem(n)
-			if index is None:
-				if item.Attribute is None:
-					item.Attribute = attr
-					self.attrs[attr] = item
-					self.attrnames[attr] = name
-				else:
-					logsupport.Logs.Log("Attribute already set for ",self.name," new attr: ", attr)
-			else:
-				logsupport.Logs.Log("Can't set attribute on array element for ",self.name," new attr: ",attr)
-		except:
-			logsupport.Logs.Log("Attribute setting error", self.name, " new attr: ", attr)
+	def SetAttr(self, name, attr):
+		logsupport.Logs.Log('Attribute (set) call to other than ISY store: ', self.name, severity=ConsoleError,
+							tb=True)
+
+	def GetAttr(self, name):
+		logsupport.Logs.Log('Attribute (getattr) call to other than ISY store: ', self.name, severity=ConsoleError,
+							tb=True)
+
+	def SetValByAttr(self, attr, val, modifier=None):
+		logsupport.Logs.Log('Attribute (setval) call to other than ISY store: ', self.name, severity=ConsoleError,
+							tb=True)
 
 	def AddAlert(self,name,a):
 		# alert is proc to be called with signature (storeitem, old, new, param, chgsource)
@@ -302,16 +287,6 @@ class ValueStore(object):
 				logsupport.Logs.Log("Can't set Type on array element for ", self.name, " new type: ", vtype)
 		except:
 			logsupport.Logs.Log("Type setting error", self.name, " new type: ", vtype)
-
-	def GetAttr(self,name):
-		# noinspection PyBroadException
-		try:
-			n2 = self._normalizename(name)
-			item, index = self._accessitem(n2)
-			return item.Attribute
-		except:
-			logsupport.Logs.Log("Error accessing attribute ", self.name, ":", str(name), severity=ConsoleError)
-			return None
 
 	def SimpleInit(self, nmlist, init):
 		if self.itemtyp != StoreItem:
@@ -379,13 +354,6 @@ class ValueStore(object):
 				for notify in t.Alerts:
 					notify[0](t,oldval,t.Value,notify[1],modifier)
 
-	def SetValByAttr(self, attr, val, modifier = None):
-		storeitem = self.attrs[attr]
-		oldval = storeitem.Value
-		storeitem.Value = val if storeitem.Type is None else storeitem.Type(val)
-		for notify in storeitem.Alerts:
-			notify[0](storeitem,oldval,val,notify[1], modifier)
-
 	def items(self, parents=(), d=None):
 		if d is None: d = self.vars
 		try:
@@ -432,6 +400,3 @@ class ValueStore(object):
 				return True if n2[0] in t else False
 		except:
 			return False
-
-	def BlockRefresh(self):
-		pass
