@@ -38,6 +38,7 @@ class ISYEventMonitor(object):
 		self.THstate = 'init'
 		self.querycnt = 0
 		self.queryqueued = {}
+		self.LastMsgErr = None
 
 		self.lasterror = 'Init'
 		debug.debugPrint('DaemonCtl', "Queue Handler ", self.QHnum, " started: ", self.watchstarttime)
@@ -334,20 +335,38 @@ class ISYEventMonitor(object):
 						isynd = self.isy.NodesByAddr[enode].name
 					except (KeyError, AttributeError):
 						isynd = enode
-					if ecode == "ERR":
-						logsupport.Logs.Log(self.hubname + " shows comm error for node: " + str(isynd),
-											severity=ConsoleWarning)
-						logsupport.Logs.Log("-Temp- ", repr(m), repr(message), severity=ConsoleWarning, hb=True)
-						if enode not in self.isy.ErrNodes:
-							self.isy.ErrNodes[enode] = self.DoNodeQuery(enode)
-					else:
-						if enode in self.isy.ErrNodes and (ecode == "ST" or (ecode == "_3" and eaction == "CE")):
+
+					if (ecode == "ST" or (ecode == "_3" and eaction == "CE")):
+						if self.LastMsgErr == enode:
+							# ERR msg followed by clearing - ISY weirdness?
+							self.LastMsgErr = None
+							logsupport.Logs.Log(
+								self.hubname + " reported and immediately cleared error for node: " + str(isynd),
+								severity=ConsoleWarning, hb=True)  # todo downgrade msg or delete
+						elif enode in self.isy.ErrNodes:
 							logsupport.Logs.Log(
 								self.hubname + " cleared comm error for node: " + str(isynd))
+							logsupport.Logs.Log("-Temp- ", repr(m), repr(message), severity=ConsoleWarning, hb=True)
 							if enode in self.isy.ErrNodes:
 								# logsupport.Logs.Log("Query thread still running")
 								del self.isy.ErrNodes[enode]
-						#logsupport.Logs.Log("-Temp- ", repr(m), repr(message))
+
+					if self.LastMsgErr is not None:
+						# previous message was ERR and wasn't immediately cleared
+						logsupport.Logs.Log(self.hubname + " shows comm error for node: " + str(isynd),
+											severity=ConsoleWarning, hb=True)
+						if enode not in self.isy.ErrNodes:
+							self.isy.ErrNodes[enode] = eseq
+							self.DoNodeQuery(enode)
+
+					if ecode == "ERR":
+						# Note the error and wait one message to see if it immediately clears
+						self.LastMsgErr = enode
+
+					if ecode == "_3" and eaction == "NE":
+						logsupport.Logs.Log("Temp: Saw comm error code on WS stream: ", str(isynd), hb=True)
+						logsupport.Logs.Log("-Temp- ", repr(m), repr(message), severity=ConsoleWarning, hb=True)
+
 
 				else:
 					logsupport.Logs.Log(self.hubname + " Strange item in event stream: " + str(m),
