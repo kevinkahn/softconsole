@@ -272,7 +272,7 @@ class ISYEventMonitor(object):
 										if self.THstate != 'running':
 											# this is a restart or initial dump so indicate upwards to avoid misleading log entry
 											if a.state == 'Armed':
-												a.state == 'Init'
+												a.state = 'Init'
 										logsupport.Logs.Log(self.hubname + " Node alert fired: " + str(a),
 															severity=ConsoleDetail)
 										# noinspection PyArgumentList
@@ -300,12 +300,12 @@ class ISYEventMonitor(object):
 						vartype = int(vinfo['@type'])
 						varid = int(vinfo['@id'])
 						varval = int(vinfo['val'])
-						debug.debugPrint('DaemonCtl', 'Var change: ', self.Vars.GetNameFromAttr((vartype, varid)),
+						debug.debugPrint('DaemonCtl', 'Var change: ', self.isy.Vars.GetNameFromAttr((vartype, varid)),
 										 ' set to ', varval)
 						debug.debugPrint('DaemonCtl', 'Var change:', ('Unkn', 'Integer', 'State')[vartype], ' variable ', varid,
 								   ' set to ', varval)
 						try:
-							self.Vars.SetValByAttr((vartype, varid), varval, modifier=True)
+							self.isy.Vars.SetValByAttr((vartype, varid), varval, modifier=True)
 						except KeyError:
 							logsupport.Logs.Log(
 								"Unknown variable from " + self.hubname + " - probably added since startup",

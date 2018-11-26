@@ -183,6 +183,7 @@ def InitializeEnvironment():
 	pygame.fastevent.init()
 
 
+'''
 def LocalizeParams(inst, configsection, indent, *args, **kwargs):
 	"""
 	Merge screen specific parameter values into self.<var> entries for the class
@@ -240,7 +241,7 @@ def LocalizeParams(inst, configsection, indent, *args, **kwargs):
 		if (lclval[i] != val) and (lcllist[i] in args):
 			logsupport.Logs.Log(indent + 'LParam: ' + lcllist[i] + ': ' + str(val), severity=ConsoleDetailHigh)
 		inst.__dict__[lcllist[i]] = val
-
+'''
 
 def DumpDocumentation():
 	docfile = open('docs/params.txt', 'w')
