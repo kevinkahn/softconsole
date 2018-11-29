@@ -79,9 +79,12 @@ class StatefulHAnode(HAnode):
 
 	def Update(self,**ns):
 		self.__dict__.update(ns)
+		oldstate = self.internalstate
 		self.internalstate = _NormalizeState(self.state)
 		if self.internalstate == -1:
 			logsupport.Logs.Log("Node "+self.name+" set unavailable")
+		if oldstate == -1 and self.internalstate != -1:
+			logsupport.Logs.Log("Node " + self.name + " became available (" + str(self.internalstate) + ")")
 		if config.DS.AS is not None:
 			if self.Hub.name in config.DS.AS.HubInterestList:
 				if self.entity_id in config.DS.AS.HubInterestList[self.Hub.name]:
@@ -499,7 +502,8 @@ class HA(object):
 						debug.debugPrint('HASSgeneral', self.name,
 										 ' WS Stream item for unhandled entity type: ' + ent + ' Added: ' + str(
 											 adds) + ' Deleted: ' + str(dels) + ' Changed: ' + str(chgs))
-						logsupport.Logs.Log("New entity since startup seen from ", self.name, ": ", ent)
+						logsupport.Logs.Log("New entity since startup seen from ", self.name, ": ", ent,
+											"(Old: " + repr(old) + '  New: ' + repr(new) + ')')
 						self.IgnoredEntities[ent] = None
 						return
 					if ent in self.IgnoredEntities:

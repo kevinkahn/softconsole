@@ -11,14 +11,14 @@ LogLevel = 3
 
 
 cfglib = "/home/pi/Console/cfglib"
-include = /home/pi/Console/local/authpga.cfg, pgawBRmain.cfg, pgaTstat.cfg, timetempLQ.cfg, weathCC.cfg, timetempPDX.cfg, myclock2.cfg,weathPDX.cfg,weathPump.cfg,weathersources.cfg,pgawmqtt.cfg, pgaalerts.cfg
+include = /home/pi/Console/local/authpga.cfg, pgawBRmain.cfg, pgaTstat.cfg, timetempLQ.cfg, timetempPDX.cfg, myclock2.cfg,weathPDX.cfg,weathPump.cfg,weathersources.cfg,pgawmqtt.cfg, pgaalerts.cfg
 HomeScreenName = LQ
 DimLevel = 25
 DimTO = 25
-DimIdleListNames = MyClock, Portland, LaQuinta
+DimIdleListNames = MyClock, Portland, LaQuinta, TimeTemp
 DimIdleListTimes =	20, 20, 20
 
-MainChain = pgaBR, LQTT, climate.master_bedroom, climate.living_room
+MainChain = pgawBR, LQTT, climate.master_bedroom, climate.living_room
 SecondaryChain = Portland, Pumpkin
 
 DefaultHub = HASSpga

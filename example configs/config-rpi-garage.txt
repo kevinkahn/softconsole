@@ -1,5 +1,5 @@
 cfglib = cfglib
-include = /home/pi/Console/local/auth.cfg, pdxalerts.cfg, pdxmqtt.cfg, inetalert.cfg, weathLQ.cfg, weathCC.cfg, weathDownTown.cfg, weathPDX.cfg,timetempPDX.cfg,tstat.cfg,garage.cfg, octoprint.cfg, weathersources.cfg, timetempLQ.cfg
+include = /home/pi/Console/local/auth.cfg, pdxalerts.cfg, pdxmqtt.cfg, inetalert.cfg, weathLQ.cfg, weathCC.cfg, weathPDX.cfg,timetempPDX.cfg,tstat.cfg,garage.cfg, octoprint.cfg, weathersources.cfg, timetempLQ.cfg
 
 HomeScreenName = Garage
 DimLevel = 5
@@ -8,7 +8,7 @@ DimIdleListNames = TimeTemp, LQTT
 DimIdleListTimes = 20,20
 
 MainChain = Garage, Creator Pro, TimeTemp, Sonos
-SecondaryChain = Thermostat - Main, Local, Portland, Downtown, La Quinta
+SecondaryChain = Thermostat - Main, Local, Portland, La Quinta
 
 [Sonos]
     type = Sonos

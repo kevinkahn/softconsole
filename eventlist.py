@@ -93,7 +93,7 @@ class EventList(object):
 		self.finder[id(evnt)] = evnt
 		for i in self.List:
 			if i[1] == evnt:
-				logsupport.Logs.Log("Event add task error", repr(evnt), severity=ConsoleError)
+				logsupport.Logs.Log("Event add task error: ", repr(evnt), severity=ConsoleError, hb=True)
 		evnt.abstime = time.time() + dt
 		evnt.deleted = False
 		evnt.onlist = True
