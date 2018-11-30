@@ -37,7 +37,6 @@ import atexit
 
 import displayscreen
 import exitutils
-import globalparams
 import hw
 import isy
 import logsupport
@@ -100,7 +99,7 @@ config.Console_pid = os.getpid()
 config.exdir = os.path.dirname(os.path.abspath(__file__))
 os.chdir(config.exdir)  # make sure we are in the directory we are executing from
 config.homedir = os.path.dirname(config.exdir)
-logsupport.Logs.Log(u"Console (" + str(config.Console_pid) + u") starting in " + os.getcwd())
+logsupport.Logs.Log(u"Console ( " + str(config.Console_pid) + u") starting in " + os.getcwd())
 
 sectionget = Section.get
 
@@ -260,12 +259,10 @@ while includes:
 debug.InitFlags(config.ParsedConfigFile)
 
 
-
-utilities.ParseParam(globalparams, config.ParsedConfigFile)  # add global parameters to config file
-screen.InitScreenParams(config.ParsedConfigFile)
 for nm, val in config.sysvals.items():
 	config.sysStore.SetVal([nm], val[0](config.ParsedConfigFile.get(nm, val[1])))
 	if val[2] is not None: config.sysStore.AddAlert(nm, val[2])
+screen.InitScreenParams(config.ParsedConfigFile)
 
 logsupport.Logs.Log("Parsed globals")
 logsupport.Logs.Log("Switching to real log")

@@ -69,16 +69,18 @@ def scaleH(p):
 	return int(round(float(p)*float(config.dispratioH)))
 
 
+'''
 def ParseParam(param, parseconfig):
 	global paramlog
 	for p in param.__dict__:
 		if '__' not in p:
 			p2 = p.replace('_', '', 1) if p.startswith('_') else p
-			config.__dict__[p2] = type(param.__dict__[p])(parseconfig.get(p2, param.__dict__[p]))
+			config.__dict__[p2] = type(param.__dict__[p])(parseconfig.get(p2, param.__dict__[p],delkey=False))
 			globdoc[p2] = (type(param.__dict__[p]), param.__dict__[p])
 			if not p.startswith('_'):
 				# can't log directly because logger isn't initialized yet at the point this is called
 				paramlog.append('Param: ' + p + ": " + str(config.__dict__[p2]))
+'''
 
 def LogParams():
 	global paramlog

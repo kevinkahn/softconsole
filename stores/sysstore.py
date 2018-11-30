@@ -8,3 +8,9 @@ class SystemStore(valuestore.ValueStore):
 	def SetVal(self, name, val, modifier = None):
 		logsupport.Logs.Log("SysParam: ",valuestore.ExternalizeVarName(name),": ", val)
 		super(SystemStore, self).SetVal(name,val,modifier=None)
+
+	#	def __setattr__(self, key, value):
+	#		super(SystemStore, self).SetVal(self, key, value)
+
+	def __getattr__(self, key):
+		return self.GetVal(key)

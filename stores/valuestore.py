@@ -7,9 +7,6 @@ from collections import OrderedDict
 
 ValueStores = OrderedDict()  # General store for named values storename:itemname accessed as ValueStore[storename].GetVal(itemname)
 
-
-# or GetVal([itemname]) for a nested name
-
 def _normalizename(name):
 	if isinstance(name, tuple):
 		return list(name)
@@ -56,19 +53,6 @@ def SetVal(name,val, modifier = None):
 		return None
 	return ValueStores[n[0]].SetVal(n[1:],val, modifier)
 
-
-# def GetAttr(name):
-#	n = _normalizename(name)
-#	if not n[0] in ValueStores:
-#		callloc = inspect.stack()[1].filename + ':' + str(inspect.stack()[1].lineno)
-#		logsupport.Logs.Log("(Generic GetAttr) No store named: ", n[0], ' at: ', callloc, severity=ConsoleError,
-#							tb=False)
-#		return None
-#	return ValueStores[n[0].GetAttr(n[1:])]
-
-# def GetNameFromAttr(name, attr):
-#		return ValueStores[name].GetNameFromAttr(attr)
-
 def AddAlert(name,a):
 	n = _normalizename(name)
 	if not n[0] in ValueStores:
@@ -77,23 +61,6 @@ def AddAlert(name,a):
 							tb=False)
 		return None
 	return ValueStores[n[0]].AddAlert(n[1:],a)
-
-
-# def SetAttr(name,attr): todo del
-#	n = _normalizename(name)
-#	if not n[0] in ValueStores:
-#		callloc = inspect.stack()[1].filename + ':' + str(inspect.stack()[1].lineno)
-#		logsupport.Logs.Log("(Generic SetAttr) No store named: ", n[0], ' at: ', callloc, severity=ConsoleError,
-#							tb=False)
-#		return None
-#	return ValueStores[n[0]].SetAttr(n[1:],attr)
-
-# def GetValByAttr(name, attr):
-#	return ValueStores[name].GetValByAttr(attr)
-
-# def SetValByAttr(name, attr, val, modifier = None):
-#	return ValueStores[name].SetValByAttr(attr,val,modifier)
-
 
 class StoreList(object):
 	def __init__(self,parent):
@@ -192,6 +159,7 @@ class ValueStore(object):
 		self.fetchtime = 0 # time of last block refresh if handled as such
 		self.vars = {}
 		self.locked = False
+		self.children = None
 
 	def CheckValsUpToDate(self):
 		pass
@@ -234,14 +202,15 @@ class ValueStore(object):
 		except Exception as e:
 			if not failok:
 				logsupport.Logs.Log("Error accessing ", self.name, ":", str(name), str(n2), repr(e),
-									severity=ConsoleError,
-								tb=False)
-			return None
+									severity=ConsoleError, tb=False)
+				raise AttributeError
+			else:
+				return None
 
-	def GetValByAttr(self, attr):  # todo
+	def GetValByAttr(self, attr):  # todo delete all these
 		logsupport.Logs.Log('Attribute (val) call to other than ISY store: ', self.name, severity=ConsoleError, tb=True)
 
-	def GetNameFromAttr(self, attr):  # todo
+	def GetNameFromAttr(self, attr):
 		logsupport.Logs.Log('Attribute (name) call to other than ISY store: ', self.name, severity=ConsoleError, tb=True)
 
 	def SetAttr(self, name, attr):
@@ -382,8 +351,6 @@ class ValueStore(object):
 			return self.vars[self.iternames.pop(0)]
 		except IndexError:
 			raise StopIteration
-
-
 
 	def Contains(self,name):
 		n2 = self._normalizename(name)

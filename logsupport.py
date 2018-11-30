@@ -61,9 +61,10 @@ class Logger(object):
 			cwd = os.getcwd()
 			os.chdir(dirnm)
 			q = [k for k in os.listdir('.') if 'Console.log' in k]
-			if "Console.log." + str(config.MaxLogFiles) in q:
-				os.remove('Console.log.' + str(config.MaxLogFiles))
-			for i in range(config.MaxLogFiles - 1, 0, -1):
+			maxf = config.sysStore.MaxLogFiles
+			if "Console.log." + str(maxf) in q:
+				os.remove('Console.log.' + str(maxf))
+			for i in range(maxf - 1, 0, -1):
 				if "Console.log." + str(i) in q:
 					os.rename('Console.log.' + str(i), "Console.log." + str(i + 1))
 			# noinspection PyBroadException
@@ -73,7 +74,7 @@ class Logger(object):
 				pass
 			self.disklogfile = open('Console.log', 'w')
 			os.chmod('Console.log', 0o555)
-			historybuffer.SetupHistoryBuffers(dirnm, config.MaxLogFiles)
+			historybuffer.SetupHistoryBuffers(dirnm, maxf)
 			os.chdir(cwd)
 
 	def Log(self, *args, **kwargs):
@@ -142,7 +143,7 @@ class Logger(object):
 		ltext = re.split('([ :,])', text)
 		ltext.append('')
 		ptext = []
-		logfont = config.fonts.Font(config.LogFontSize, face=config.monofont)
+		logfont = config.fonts.Font(config.sysStore.LogFontSize, face=config.monofont)
 		while len(ltext) > 1:
 			ptext.append(ltext[0])
 			del ltext[0]

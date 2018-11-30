@@ -62,7 +62,7 @@ class MQTTBroker(valuestore.ValueStore):
 							if payload is not None:
 								v.Value = v.Type(payload)
 							else:
-								v.Value = None# todo check nan case
+								v.Value = None
 						#debug.debugPrint('StoreTrack', "Store(mqtt): ", self.name, ':', v, ' Value: ', v.Value)
 						except Exception as e:
 							logsupport.Logs.Log('Error handling json MQTT item: ', v.name, str(v.jsonflds),

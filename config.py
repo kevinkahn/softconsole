@@ -74,8 +74,6 @@ DimIdleTimes = []
 MainDict = {}  # map: name:screen
 SecondaryDict = {}
 ExtraDict = {}
-MainChain = []
-SecondaryChain = []
 ExtraChain = []
 # _____________________________
 
@@ -83,21 +81,23 @@ ExtraChain = []
 sysStore = None
 
 sysvals = {
-	'DimLevel':(int,10,(hw.ResetScreenLevel, True)), 'BrightLevel':(int,100,(hw.ResetScreenLevel, False)), 'MultiTapTime':(int,400,None)
-	}
+	'DimLevel': (int, 10, (hw.ResetScreenLevel, True)),
+	'BrightLevel': (int, 100, (hw.ResetScreenLevel, False)),
+	'MultiTapTime': (int, 400, None),
+	'HomeScreenName': (str, '', None),
+	'MaxLogFiles': (int, 5, None),
+	'LogFontSize': (int, 14, None),
+	'DimHomeScreenCoverName': (str, "", None),
+	'MainChain': (list, [], None),
+	'SecondaryChain': (list, [], None),
+	'DimIdleListNames': (list, [], None),
+	'DimIdleListTimes': (list, [], None)
+}
 
-HomeScreenName = ""
-DimTO = 20
-PersistTO = 20
-DimHomeScreenCoverName = ""
-DimIdleListNames = []
-DimIdleListTimes = []
-
-MaxLogFiles = 5  # would be nice to get these in globalparams but right now there is an ordering issue since logging starts before global sucking
-LogFontSize = 23
-
-_MainChain = []  # defaults to order based on config file
-_SecondaryChain = []  # if spec'd used for secondary screens else random order
-_ExtraChain = []  # defaults to empty, unused screens
+# DimIdleListNames = []
+# DimIdleListTimes = []
 
 
+# _MainChain = []  # defaults to order based on config file
+# _SecondaryChain = []  # if spec'd used for secondary screens else random order
+# _ExtraChain = []  # defaults to empty, unused screens

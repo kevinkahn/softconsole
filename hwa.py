@@ -31,4 +31,4 @@ def GoDim():
 
 def GoBright():
 	global backlight
-	backlight.ChangeDutyCycle(config.sysStore.GetVal('BrightLevel'))
+	backlight.ChangeDutyCycle(config.sysStoreBrightLevel)

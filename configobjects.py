@@ -44,10 +44,10 @@ class MyScreens(object):
 					del thisconfig[screenitem]
 					pass
 			if NewScreen is not None:
-				if NewScreen.name in config.MainChain:
+				if NewScreen.name in config.sysStore.MainChain:
 					# entry filled in later with prev and next key pointers
 					config.MainDict[NewScreen.name] = self.scrlistitem(NewScreen)
-				elif NewScreen.name in config.SecondaryChain:
+				elif NewScreen.name in config.sysStore.SecondaryChain:
 					config.SecondaryDict[NewScreen.name] = self.scrlistitem(NewScreen)
 				else:
 					config.ExtraDict[NewScreen.name] = self.scrlistitem(NewScreen)
@@ -64,24 +64,24 @@ class MyScreens(object):
 		# Validate screen lists and log them
 
 		logsupport.Logs.Log("Main Screen List:")
-		tmpchain = config.MainChain[:]  # copy MainChain (not pointer to) because of possiblity of deletions
+		tmpchain = config.sysStore.MainChain[:]  # copy MainChain (not pointer to) because of possiblity of deletions
 		for scr in tmpchain:
 			if not scr in config.MainDict:
 				logsupport.Logs.Log("-- Undefined Screen:", scr, severity=ConsoleWarning)
-				config.MainChain.remove(scr)
+				config.sysStore.MainChain.remove(scr)
 			else:
 				logsupport.Logs.Log("---" + scr)
 		logsupport.Logs.Log("Secondary Screen List:")
-		tmpchain = config.SecondaryChain[:]
+		tmpchain = config.sysStore.SecondaryChain[:]
 		for scr in tmpchain:
 			if not scr in config.SecondaryDict:
 				logsupport.Logs.Log("-- Undefined Screen:", scr, severity=ConsoleWarning)
-				config.SecondaryChain.remove(scr)
+				config.sysStore.SecondaryChain.remove(scr)
 			else:
 				logsupport.Logs.Log("---" + scr)
 
 		# Make sure we have screens defined
-		if not config.MainChain:
+		if not config.sysStore.MainChain:
 			logsupport.Logs.Log("No screens defined for Main Chain", severity=ConsoleError)
 			exitutils.errorexit(exitutils.ERRORDIE)
 
@@ -89,9 +89,9 @@ class MyScreens(object):
 		cbutwidth = (config.screenwidth - 2*config.horizborder)/2
 		cvertcenter = config.screenheight - config.botborder/2
 		cbutheight = config.botborder - config.cmdvertspace*2
-		for i, kn in enumerate(config.MainChain):
-			prevk = config.MainDict[config.MainChain[i - 1]].screen
-			nextk = config.MainDict[config.MainChain[(i + 1)%len(config.MainChain)]].screen
+		for i, kn in enumerate(config.sysStore.MainChain):
+			prevk = config.MainDict[config.sysStore.MainChain[i - 1]].screen
+			nextk = config.MainDict[config.sysStore.MainChain[(i + 1) % len(config.sysStore.MainChain)]].screen
 			config.MainDict[kn].prevkey = toucharea.ManualKeyDesc(config.MainDict[kn].screen, 'Nav<' + prevk.name,
 																  prevk.label,
 																  prevk.CmdKeyCol, prevk.CmdCharCol,
@@ -109,9 +109,10 @@ class MyScreens(object):
 																	  config.horizborder + 1.5*cbutwidth, cvertcenter),
 																  size=(cbutwidth, cbutheight))
 
-		for i, kn in enumerate(config.SecondaryChain):
-			prevk = config.SecondaryDict[config.SecondaryChain[i - 1]].screen
-			nextk = config.SecondaryDict[config.SecondaryChain[(i + 1)%len(config.SecondaryChain)]].screen
+		for i, kn in enumerate(config.sysStore.SecondaryChain):
+			prevk = config.SecondaryDict[config.sysStore.SecondaryChain[i - 1]].screen
+			nextk = config.SecondaryDict[
+				config.sysStore.SecondaryChain[(i + 1) % len(config.sysStore.SecondaryChain)]].screen
 			config.SecondaryDict[kn].prevkey = toucharea.ManualKeyDesc(config.SecondaryDict[kn].screen,
 																	   'Nav<' + prevk.name,
 																	   prevk.label,
@@ -133,16 +134,15 @@ class MyScreens(object):
 																			   cvertcenter),
 																	   size=(cbutwidth, cbutheight))
 
-
-		if config.HomeScreenName in config.MainChain:
-			config.HomeScreen = config.MainDict[config.HomeScreenName].screen
+		if config.sysStore.HomeScreenName in config.sysStore.MainChain:
+			config.HomeScreen = config.MainDict[config.sysStore.HomeScreenName].screen
 		else:
 			logsupport.Logs.Log("Error in Home Screen Name", severity=ConsoleWarning)
-			config.HomeScreen = config.MainDict[config.MainChain[0]].screen
+			config.HomeScreen = config.MainDict[config.sysStore.MainChain[0]].screen
 		logsupport.Logs.Log("Home Screen: " + config.HomeScreen.name)
 
-		if config.SecondaryChain:
-			config.HomeScreen2 = config.SecondaryDict[config.SecondaryChain[0]].screen
+		if config.sysStore.SecondaryChain:
+			config.HomeScreen2 = config.SecondaryDict[config.sysStore.SecondaryChain[0]].screen
 			logsupport.Logs.Log("Secondary home screen: " + config.HomeScreen2.name)
 		else:
 			config.HomeScreen2 = config.HomeScreen
@@ -150,8 +150,8 @@ class MyScreens(object):
 
 		# noinspection PyBroadException
 		try:
-			for sn, st in zip(config.DimIdleListNames, config.DimIdleListTimes):
-				for l, d in zip((config.MainChain, config.SecondaryChain, config.ExtraChain),
+			for sn, st in zip(config.sysStore.DimIdleListNames, config.sysStore.DimIdleListTimes):
+				for l, d in zip((config.sysStore.MainChain, config.sysStore.SecondaryChain, config.ExtraChain),
 								(config.MainDict, config.SecondaryDict, config.ExtraDict)):
 					if sn in l:
 						logsupport.Logs.Log('Cover Screen: ' + sn + '/' + st)
@@ -161,11 +161,13 @@ class MyScreens(object):
 			logsupport.Logs.Log("Error specifying idle screens - check config", severity=ConsoleWarning)
 
 		# handle deprecated DimHomeScreenCoverName
-		if config.DimHomeScreenCoverName != "" and not config.DimIdleList:
-			if config.DimHomeScreenCoverName in config.MainChain:
-				config.DimIdleList.append(config.MainDict[config.DimHomeScreenCoverName].screen)
+		cn = config.sysStore.DimHomeScreenCoverName
+		if cn != "" and not config.DimIdleList:
+			if cn in config.sysStore.MainChain:
+				config.DimIdleList.append(config.MainDict[cn].screen)
 				config.DimIdleTimes.append(1000000)
-				logsupport.Logs.Log("DimHS(deprecated): " + config.DimHomeScreenCoverName)
+				logsupport.Logs.Log("DimHS(deprecated): " + cn, severity=ConsoleWarning)
+				logsupport.Logs.Log('Replace with DimIdleListNames = [<list of screen names>]', severity=ConsoleWarning)
 		if not config.DimIdleList:
 			config.DimIdleList = [config.HomeScreen]
 			config.DimIdleTimes = [1000000]

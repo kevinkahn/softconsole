@@ -106,7 +106,7 @@ def DumpStore(f, store, name, indent):
 			notdumped = False
 		except Exception as e:
 			f.write(store.name + " changed - retry dump\n  (" + repr(e) + ")\n")
-		if hasattr(store, 'children'):
+		if store.children is not None:
 			for child, childstore in store.children.items():
 				DumpStore(f, childstore, child, indent + '    ')
 

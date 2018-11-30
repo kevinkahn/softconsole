@@ -122,7 +122,7 @@ class APIXUWeatherSource(object):
 			val = self.MapItem(self.json, entry)
 			self.thisStore.SetVal(fn, val)
 
-		return 0  # success todo other returns?
+		return 0  # success
 
 
 config.WeathProvs['APIXU'] = [APIXUWeatherSource, '']  # api key gets filled in from config file
