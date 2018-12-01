@@ -3,6 +3,7 @@ import shutil, os
 
 Buffers = {}
 HBdir = ''
+bufdumpseq = 0
 
 
 def SetupHistoryBuffers(dirnm, maxlogs):
@@ -22,7 +23,9 @@ def SetupHistoryBuffers(dirnm, maxlogs):
 
 
 def DumpAll1(idline, entrytime):
-	with open(HBdir + entrytime, 'w') as f:
+	global bufdumpseq
+	bufdumpseq += 1
+	with open(HBdir + str(bufdumpseq) + '-' + entrytime, 'w') as f:
 		f.write(entrytime + ': ' + idline + '\n')
 		for nm, HB in Buffers.items():
 			f.write('-----------' + nm + '-----------\n')
@@ -31,6 +34,8 @@ def DumpAll1(idline, entrytime):
 
 
 def DumpAll(idline, entrytime):
+	global bufdumpseq
+	bufdumpseq += 1
 	t = {}
 	curfirst = {}
 	curtime = {}
@@ -46,7 +51,9 @@ def DumpAll(idline, entrytime):
 			if nm in curfirst: del curfirst[nm]
 			if nm in curtime:  del curtime[nm]
 		initial[nm] = '*'
-	with open(HBdir + entrytime, 'w') as f:
+	if curfirst == {} or curtime == {}:
+		more = False
+	with open(HBdir + str(bufdumpseq) + '-' + entrytime, 'w') as f:
 		prevtime = 0
 		f.write(entrytime + ': ' + idline + '\n')
 		while more:

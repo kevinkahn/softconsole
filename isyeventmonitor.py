@@ -39,6 +39,7 @@ class ISYEventMonitor(object):
 		self.querycnt = 0
 		self.queryqueued = {}
 		self.LastMsgErr = None
+		self.Busy = False
 
 		self.lasterror = 'Init'
 		debug.debugPrint('DaemonCtl', "Queue Handler ", self.QHnum, " started: ", self.watchstarttime)
@@ -336,6 +337,19 @@ class ISYEventMonitor(object):
 					except (KeyError, AttributeError):
 						isynd = enode
 
+					if ecode == '_5':
+						if str(eaction) == '1':
+							logsupport.Logs.Log(self.hubname, ' went busy')
+							self.Busy = True
+						elif str(eaction) == '0':
+							if self.Busy:
+								logsupport.Logs.Log(self.hubname, " cleared busy")
+								self.Busy = False
+							else:
+								logsupport.Logs.Log(self.hubname, " reported stand-alone not busy")
+						else:
+							logsupport.Logs.Log(self.hubname, " reported System Status: ", str(eaction))
+
 					if (ecode == "ST" or (ecode == "_3" and eaction == "CE")):
 						if self.LastMsgErr == enode:
 							# ERR msg followed by clearing - ISY weirdness?
@@ -353,11 +367,16 @@ class ISYEventMonitor(object):
 
 					if self.LastMsgErr is not None:
 						# previous message was ERR and wasn't immediately cleared
-						logsupport.Logs.Log(self.hubname + " shows comm error for node: " + str(isynd),
+						try:
+							isyerrnd = self.isy.NodesByAddr[self.LastMsgErr].name
+						except (KeyError, AttributeError):
+							isyerrnd = self.LastMsgErr
+						logsupport.Logs.Log(self.hubname + " shows comm error for node: " + str(isyerrnd),
 											severity=ConsoleWarning, hb=True)
-						if enode not in self.isy.ErrNodes:
-							self.isy.ErrNodes[enode] = eseq
-							self.DoNodeQuery(enode)
+						if self.LastMsgErr not in self.isy.ErrNodes:
+							self.isy.ErrNodes[self.LastMsgErr] = eseq
+							self.DoNodeQuery(self.LastMsgErr)
+							self.LastMsgErr = None
 
 					if ecode == "ERR":
 						# Note the error and wait one message to see if it immediately clears
