@@ -65,9 +65,9 @@ def DumpAll(idline, entrytime):
 				prevtime = 0
 			if now - curfirst[nextup][1] < 300:  # limit history dump to 5 minutes worth
 				f.write(
-					'{:1s}{:10s}:({:3d}) {.5f}: {}\n'.format(initial[nextup], nextup, curfirst[nextup][0],
-													  now - curfirst[nextup][1],
-													  curfirst[nextup][2]))
+					'{:1s}{:10s}:({:3d}) {:.5f}: {}\n'.format(initial[nextup], nextup, curfirst[nextup][0],
+															  now - curfirst[nextup][1],
+															  curfirst[nextup][2]))
 				# f.write(nextup + ': (' + str(curfirst[nextup][0]) + ') ' + str(curfirst[nextup][1]) + ': ' + repr(curfirst[nextup][2]) + '\n')
 				initial[nextup] = ' '
 			try:

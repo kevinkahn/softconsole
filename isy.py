@@ -537,7 +537,7 @@ class ISY(object):
 					return r.text
 			except CommsError:
 				if self.Busy != 0:
-					logsupport.Logs.Log("{} comm error while busy for {.2f} seconds".format(self.name, self.Busy))
+					logsupport.Logs.Log("{} comm error while busy for {:.2f} seconds".format(self.name, self.Busy))
 				time.sleep(5)
 				logsupport.Logs.Log(self.name + " Attempting retry " + str(i + 1), severity=ConsoleDetailHigh, tb=False)
 		if closeonfail:
