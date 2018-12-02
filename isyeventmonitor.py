@@ -39,7 +39,7 @@ class ISYEventMonitor(object):
 		self.querycnt = 0
 		self.queryqueued = {}
 		self.LastMsgErr = None
-		self.Busy = False
+		self.Busy = 0
 
 		self.lasterror = 'Init'
 		debug.debugPrint('DaemonCtl', "Queue Handler ", self.QHnum, " started: ", self.watchstarttime)
@@ -338,13 +338,17 @@ class ISYEventMonitor(object):
 						isynd = enode
 
 					if ecode == '_5':
+						now = time.time()
 						if str(eaction) == '1':
-							logsupport.Logs.Log(self.hubname, ' went busy')
-							self.Busy = True
+							# logsupport.Logs.Log(self.hubname, ' went busy')
+							self.Busy = now
 						elif str(eaction) == '0':
-							if self.Busy:
-								logsupport.Logs.Log(self.hubname, " cleared busy")
-								self.Busy = False
+							if self.Busy != 0:
+								# logsupport.Logs.Log(self.hubname, " cleared busy")
+								if now - self.Busy > 2:
+									logsupport.Logs.Log(self.hubname, " busy for ", str(now - self.Busy), ' seconds',
+														severity=ConsoleWarning, hb=True)
+								self.Busy = 0
 							else:
 								logsupport.Logs.Log(self.hubname, " reported stand-alone not busy")
 						else:

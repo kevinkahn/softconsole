@@ -43,8 +43,6 @@ fonts = None
 
 configfilelist = {}  # list of configfiles and their timestamps
 
-TermShortener = {}
-
 versionname = ""
 versionsha = ""
 versiondnld = ""
