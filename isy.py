@@ -164,7 +164,7 @@ class ISY(object):
 	def __init__(self, name, isyaddr, user, pwd):
 
 		if isyaddr == '' or user == '':
-			logsupport.Logs.Log("ISY id info missing:  addr: ", isyaddr, " user: ", user, severity=ConsoleError)
+			logsupport.Logs.Log("ISY id info missing:  addr: {} user: {}".format(isyaddr, user), severity=ConsoleError)
 			raise ValueError
 
 		if isyaddr.startswith('http'):
@@ -194,6 +194,7 @@ class ISY(object):
 		self._HubOnline = False
 		self.Vars = None
 		self.ErrNodes = {}
+		self.Busy = 0
 
 
 		"""
@@ -206,7 +207,7 @@ class ISY(object):
 			# noinspection PyBroadException
 			try:
 				r = self.ISYrequestsession.get(self.ISYprefix + 'nodes', verify=False, timeout=5)
-				logsupport.Logs.Log('Successful node read: ' + str(r.status_code))
+				logsupport.Logs.Log('{}: Successful node read: {}'.format(name, r.status_code))
 				break
 			except:
 				# after total power outage ISY is slower to come back than RPi so
@@ -214,7 +215,7 @@ class ISY(object):
 				# is what is hosed
 				trycount -= 1
 				if trycount > 0:
-					logsupport.Logs.Log('Hub not responding: ',self.name)
+					logsupport.Logs.Log('{}:  Hub not responding: '.format(self.name))
 					logsupport.Logs.Log('-ISY (nodes): ' + self.ISYprefix)
 					time.sleep(15)
 				else:
@@ -345,7 +346,7 @@ class ISY(object):
 				if r.status_code != 200:
 					logsupport.Logs.Log('Hub (' + self.name + ') bad program read' + r.text, severity=ConsoleWarning)
 					raise requests.exceptions.ConnectionError  # fake a connection error if we didn't get a good read
-				logsupport.Logs.Log('Successful programs read: ' + str(r.status_code))
+				logsupport.Logs.Log('{}: Successful programs read: {}'.format(self.name, r.status_code))
 				break
 			# except requests.exceptions.ConnectTimeout:
 			except:
@@ -393,7 +394,8 @@ class ISY(object):
 				if r1.status_code != 200 or r2.status_code != 200:
 					logsupport.Logs.Log("Bad ISY var read" + r1.text + r2.text, severity=ConsoleWarning)
 					raise requests.exceptions.ConnectionError  # fake connection error on bad read
-				logsupport.Logs.Log('Successful variable read: ' + str(r1.status_code) + '/' + str(r2.status_code))
+				logsupport.Logs.Log(
+					'{}: Successful variable read: {}/{}'.format(self.name, r1.status_code, r2.status_code))
 				break
 			except:
 				# after total power outage ISY is slower to come back than RPi so we wait testing periodically
@@ -459,8 +461,7 @@ class ISY(object):
 		self.HBDirect = historybuffer.HistoryBuffer(40, self.name + '-Direct')
 		self.isyEM = isyeventmonitor.ISYEventMonitor(self)
 		threadmanager.SetUpHelperThread(self.name,self.isyEM.QHandler,prerestart=self.isyEM.PreRestartQHThread,poststart=self.isyEM.PostStartQHThread,postrestart=self.isyEM.PostStartQHThread)
-		logsupport.Logs.Log("Finished creating Structure for ISY hub: ", name)
-
+		logsupport.Logs.Log("Finished creating Structure for ISY hub: {}".format(name))
 	# noinspection PyUnusedLocal
 	def _ISYVarChanged(self, storeitem, old, new, param, chgsource):
 		if not chgsource:  # only send to ISY if change didn't originate there
@@ -535,6 +536,8 @@ class ISY(object):
 					self.HBDirect.Entry(r.text)
 					return r.text
 			except CommsError:
+				if self.Busy != 0:
+					logsupport.Logs.Log("{} comm error while busy for {.2f} seconds".format(self.name, self.Busy))
 				time.sleep(5)
 				logsupport.Logs.Log(self.name + " Attempting retry " + str(i + 1), severity=ConsoleDetailHigh, tb=False)
 		if closeonfail:

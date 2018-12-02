@@ -600,7 +600,7 @@ class HA(object):
 
 		def on_open(qws):
 			self.HB.Entry('Open')
-			logsupport.Logs.Log(self.name + " WS stream " + str(self.HAnum) + " opened for " + self.name)
+			logsupport.Logs.Log(self.name + " WS stream " + str(self.HAnum) + " opened")
 			#if self.password != '':
 			#	ws.send({"type": "auth","api_password": self.password})
 			#ws.send(json.dumps({'id': self.HAnum, 'type': 'subscribe_events'})) #, 'event_type': 'state_changed'}))
@@ -649,7 +649,7 @@ class HA(object):
 			self.wsurl = 'wss://' + self.addr[8:] + ':8123/api/websocket'
 		else:
 			self.wsurl = 'ws://' +self.addr + ':8123/api/websocket'
-		self.HAnum = 1
+		self.HAnum = 0
 		self.ws = None  # websocket client instance
 		self.msgcount = 0
 		self.watchstarttime = time.time()

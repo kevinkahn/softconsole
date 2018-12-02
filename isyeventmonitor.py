@@ -39,7 +39,7 @@ class ISYEventMonitor(object):
 		self.querycnt = 0
 		self.queryqueued = {}
 		self.LastMsgErr = None
-		self.Busy = 0
+		self.isy.Busy = 0
 
 		self.lasterror = 'Init'
 		debug.debugPrint('DaemonCtl', "Queue Handler ", self.QHnum, " started: ", self.watchstarttime)
@@ -186,15 +186,14 @@ class ISYEventMonitor(object):
 		# noinspection PyUnusedLocal
 		def on_close(qws, code, reason):
 			self.isy.HBWS.Entry("Close")
-			logsupport.Logs.Log(
-				self.hubname + " Websocket stream " + str(self.QHnum) + " closed: " + str(code) + ' : ' + str(reason),
-				severity=ConsoleWarning, hb=True)
+			logsupport.Logs.Log("{} WS stream {} closed: {}:{}".format(self.hubname, self.QHnum, code, reason),
+								severity=ConsoleWarning, hb=True)
 			debug.debugPrint('DaemonCtl', "ISY Websocket stream closed", str(code), str(reason))
 
 		def on_open(qws):
 			self.isy.HBWS.Entry("Open")
 			self.THstate = 'starting'
-			logsupport.Logs.Log(self.hubname + " Websocket stream " + str(self.QHnum) + " opened")
+			logsupport.Logs.Log("{} WS stream {} opened".format(self.hubname, self.QHnum))
 			debug.debugPrint('DaemonCtl', "Websocket stream opened: ", self.QHnum, self.streamid)
 			self.WS = qws
 
@@ -341,14 +340,15 @@ class ISYEventMonitor(object):
 						now = time.time()
 						if str(eaction) == '1':
 							# logsupport.Logs.Log(self.hubname, ' went busy')
-							self.Busy = now
+							self.isy.Busy = now
 						elif str(eaction) == '0':
-							if self.Busy != 0:
+							if self.isy.Busy != 0:
 								# logsupport.Logs.Log(self.hubname, " cleared busy")
-								if now - self.Busy > 2:
-									logsupport.Logs.Log(self.hubname, " busy for ", str(now - self.Busy), ' seconds',
+								if now - self.isy.Busy > 2:
+									logsupport.Logs.Log(
+										"{} busy for {.4d} seconds".format(self.hubname, now - self.isy.Busy),
 														severity=ConsoleWarning, hb=True)
-								self.Busy = 0
+								self.isy.Busy = 0
 							else:
 								logsupport.Logs.Log(self.hubname, " reported stand-alone not busy")
 						else:
