@@ -18,6 +18,10 @@ import threading
 class ISYEMInternalError(Exception):
 	pass
 
+
+def BaseAddr(addr):
+	return None if addr is None else ' '.join(addr.split(' ')[0:-1])
+
 class ISYEventMonitor(object):
 
 
@@ -355,15 +359,16 @@ class ISYEventMonitor(object):
 							logsupport.Logs.Log(self.hubname, " reported System Status: ", str(eaction))
 
 					if (ecode == "ST" or (ecode == "_3" and eaction == "CE")):
-						if self.LastMsgErr == enode:
+						if BaseAddr(self.LastMsgErr) == BaseAddr(enode):
 							# ERR msg followed by clearing - ISY weirdness?
 							self.LastMsgErr = None
 							logsupport.Logs.Log(
-								self.hubname + " reported and immediately cleared error for node: " + str(isynd),
+								"{} reported and immediately cleared error for node: {} ({})".format(self.hubname,
+																									 isynd, BaseAddr(
+										self.LastMsgErr)),
 								severity=ConsoleWarning, hb=True)  # todo downgrade msg or delete
 						elif enode in self.isy.ErrNodes:
-							logsupport.Logs.Log(
-								self.hubname + " cleared comm error for node: " + str(isynd))
+							logsupport.Logs.Log("{} cleared comm error for node: {}".format(self.hubname, isynd))
 							if enode in self.isy.ErrNodes:
 								# logsupport.Logs.Log("Query thread still running")
 								del self.isy.ErrNodes[enode]
@@ -374,12 +379,12 @@ class ISYEventMonitor(object):
 							isyerrnd = self.isy.NodesByAddr[self.LastMsgErr].name
 						except (KeyError, AttributeError):
 							isyerrnd = self.LastMsgErr
-						logsupport.Logs.Log(self.hubname + " shows comm error for node: " + str(isyerrnd),
+						logsupport.Logs.Log("{} shows comm error for node: {}".format(self.hubname, isyerrnd),
 											severity=ConsoleWarning, hb=True)
 						if self.LastMsgErr not in self.isy.ErrNodes:
 							self.isy.ErrNodes[self.LastMsgErr] = eseq
 							self.DoNodeQuery(self.LastMsgErr)
-							self.LastMsgErr = None
+						self.LastMsgErr = None
 
 					if ecode == "ERR":
 						# Note the error and wait one message to see if it immediately clears
