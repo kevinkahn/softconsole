@@ -59,10 +59,10 @@ def setAge(param, loc):
 
 def makeTime(h, m):
 	try:
-		strtime = "{0:02d}:{1:02d}".format(h, m)
+		thistime = "{0:02d}:{1:02d}".format(h, m)
 	except ValueError:
-		strtime = " n/a "
-	return strtime
+		thistime = " n/a "
+	return thistime
 
 
 def savjson(param, rawjson):
@@ -150,6 +150,7 @@ class WUWeatherSource(object):
 			# logsupport.Logs.Log("Bad WU json for value mapping: ",repr(src),repr(item),severity=ConsoleWarning)
 			return None
 
+	# noinspection PyUnboundLocalVariable
 	def FetchWeather(self):
 		global WUcount
 		if self.apikey == '*':  # marker for bad key

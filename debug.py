@@ -120,6 +120,8 @@ def StoresDump(store, old, new, param, _):
 
 	dbgStore.SetVal('StoresDump',False)
 
+
+# noinspection PyUnusedLocal,PyUnusedLocal,PyUnusedLocal
 def AlertsCheck(store,old,new,param,_):
 	if not new: return
 	DumpAlerts()

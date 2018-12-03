@@ -10,13 +10,12 @@ https://home-assistant.io/developers/python_api/
 from datetime import datetime
 import enum
 import json
-import logging
 import urllib.parse
 import logsupport
 
-from typing import Optional, Dict, Any, List
+from typing import Optional, Dict, Any
 
-from aiohttp.hdrs import METH_GET, METH_POST, METH_DELETE, CONTENT_TYPE
+from aiohttp.hdrs import METH_GET, METH_POST, CONTENT_TYPE
 import requests
 
 from homeassistant import core as ha
@@ -33,9 +32,6 @@ URL_API_SERVICES_SERVICE = '/api/services/{}/{}'
 
 class HomeAssistantError(Exception):
 	pass
-
-
-_LOGGER = logging.getLogger(__name__)
 
 
 class APIStatus(enum.Enum):
@@ -107,12 +103,10 @@ class API:
 				headers=self._headers)
 
 		except requests.exceptions.ConnectionError:
-			# _LOGGER.exception("Error connecting to server")
 			raise HomeAssistantError("Error connecting to server")
 
 		except requests.exceptions.Timeout:
 			error = "Timeout when talking to {}".format(self.host)
-			#_LOGGER.exception(error)
 			raise HomeAssistantError(error)
 
 	def __repr__(self) -> str:
@@ -199,7 +193,6 @@ def get_state(api: API, entity_id: str):
 
 	except (HomeAssistantError, ValueError):
 		# ValueError if req.json() can't parse the json
-		# _LOGGER.exception("Error fetching state")
 		logsupport.Logs.Log("Error fetching state", severity=logsupport.ConsoleWarning)
 
 		return None
@@ -290,8 +283,7 @@ def get_services(api: API) -> Dict:
 
 	except (HomeAssistantError, ValueError):
 		# ValueError if req.json() can't parse the json
-		_LOGGER.exception("Got unexpected services result")
-
+		logsupport.Logs.Log("HA Got unexpected services result")
 		return {}
 
 
@@ -305,17 +297,16 @@ def call_service(api: API, domain: str, service: str,
 				  service_data, timeout=timeout)
 
 		if req.status_code != 200:
-			_LOGGER.error("Error calling service: %d - %s",
-						  req.status_code, req.text)
+			logsupport.Logs.Log("HA Error calling service {} - {}".format(req.status_code, req.text))
 
 	except HomeAssistantError as e:
-		# _LOGGER.exception("Error calling service")
 		logsupport.Logs.Log("HA service call failed", repr(e), severity=logsupport.ConsoleWarning)
 		raise
 
 
 def get_config(api: API) -> Dict:
 	"""Return configuration."""
+	req = "*empty*"
 	try:
 		req = api(METH_GET, URL_API_CONFIG)
 
@@ -327,9 +318,9 @@ def get_config(api: API) -> Dict:
 			result['components'] = set(result['components'])
 		return result  # type: ignore
 
-	except (HomeAssistantError, ValueError):
+	except (HomeAssistantError, ValueError) as E:
 		# ValueError if req.json() can't parse the JSON
-		logsupport.Logs.Log("Got unexpected configuration results from HA", severity=logsupport.ConsoleWarning)
-		# _LOGGER.exception("Got unexpected configuration results")
-
+		logsupport.Logs.Log("Got unexpected configuration results from HA:{}".format(repr(E)),
+							severity=logsupport.ConsoleWarning, hb=True)
+		logsupport.Logs.Log("Result: " + repr(req))
 		return {}

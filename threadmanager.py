@@ -1,5 +1,5 @@
 import logsupport
-from logsupport import ConsoleWarning, ConsoleError
+from logsupport import ConsoleWarning
 import threading
 import time
 from exitutils import FatalError
@@ -23,8 +23,9 @@ class ThreadItem(object):
 		self.Thread = None
 		self.CheckOk = checkok
 
-	def StopThread(self):
-		self.Thread.stop()
+
+#	def StopThread(self):
+#		self.Thread.stop()
 
 def SetUpHelperThread(name, proc, prestart=None, poststart=None, prerestart=None, postrestart=None, checkok=None):
 	global HelperThreads
@@ -55,11 +56,11 @@ def CheckThreads():
 				FatalError("Unrecoverable helper thread error(is_alive): " + T.name)
 		if T.CheckOk is not None:
 			if not T.CheckOk():
-				T.StopThread()
+				# T.StopThread()
 				logsupport.Logs.Log("Thread for: "+T.name+" reports not ok; stopping/restarting",severity=ConsoleWarning)
-				if not DoRestart(T):
+				#if not DoRestart(T):
 					# Fatal Error
-					FatalError("Unrecoverable helper thread error(CheckOK): " + T.name)
+				FatalError("Unrecoverable helper thread error(CheckOK): " + T.name)
 
 def StartThreads():
 	global Watcher

@@ -24,11 +24,12 @@ import sys
 import time
 
 import pygame
+# noinspection PyProtectedMember
 from configobj import ConfigObj, Section
 
 import config
 import debug
-from stores import mqttsupport, valuestore, localvarsupport, sysstore, paramstore
+from stores import mqttsupport, valuestore, localvarsupport, sysstore
 
 config.sysStore = valuestore.NewValueStore(sysstore.SystemStore('System'))
 
@@ -242,6 +243,7 @@ while includes:
 	else:
 		pfiles.append(f)
 	cfiles.append(f)
+	# noinspection PyBroadException
 	try:
 		tmpconf = ConfigObj(f)
 		includes = includes + tmpconf.get('include', [])
@@ -347,7 +349,10 @@ for i, v in config.ParsedConfigFile.items():
 			del config.ParsedConfigFile[i]
 		elif stype == "WeatherProvider":
 			apikey = v.get('apikey', 'N/A')
-			config.WeathProvs[i][1] = apikey
+			if i in config.WeathProvs:
+				config.WeathProvs[i][1] = apikey
+			else:
+				logsupport.Logs.Log("No weather provider type: {}".format(i), severity=ConsoleWarning)
 			del config.ParsedConfigFile[i]
 		for hubtyp, pkg in config.hubtypes.items():
 			if stype == hubtyp:
@@ -363,7 +368,9 @@ from stores import genericweatherstore
 
 for i, v in config.ParsedConfigFile.items():
 	if isinstance(v, Section):
+		# noinspection PyArgumentList
 		stype = v.get('type', None, delkey=False)
+		loccode = '*unset*'
 		for wptyp, info in config.WeathProvs.items():
 			if stype == wptyp:
 				try:

@@ -1,6 +1,4 @@
 import os
-from stores import valuestore
-
 import RPi.GPIO as GPIO
 
 import config
@@ -26,9 +24,9 @@ def initOS():
 
 def GoDim():
 	global backlight
-	backlight.ChangeDutyCycle(valuestore.GetVal('DimLevel'))
+	backlight.ChangeDutyCycle(config.sysStore.DimLevel)
 
 
 def GoBright():
 	global backlight
-	backlight.ChangeDutyCycle(config.sysStoreBrightLevel)
+	backlight.ChangeDutyCycle(config.sysStore.BrightLevel)

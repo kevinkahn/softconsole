@@ -92,6 +92,8 @@ def SetUpMaintScreens():
 	Beta.userstore.ReParent(config.MaintScreen)
 	LogDisp.userstore.ReParent(config.MaintScreen)
 
+
+# noinspection PyUnusedLocal,PyUnusedLocal,PyUnusedLocal
 def syncKeytoStore(storeitem, old, new, key, chgsource):
 	key.State = new
 
@@ -261,6 +263,7 @@ class LogDisplayScreen(screen.BaseKeyScreenDesc):
 
 
 class MaintScreenDesc(screen.BaseKeyScreenDesc):
+	# noinspection PyDefaultArgument
 	def __init__(self, name, keys, overrides=fixedoverrides):
 		screen.BaseKeyScreenDesc.__init__(self, overrides, name)
 		debug.debugPrint('Screen', "Build Maintenance Screen")

@@ -85,11 +85,12 @@ class APIXUWeatherSource(object):
 		self.thisStore = None
 		self.location = location
 		self.json = {}
-		logsupport.Logs.Log('Created APIXU weather for: ', location, ' as ', storename)
+		logsupport.Logs.Log('APIXU: Created weather for ', location, ' as ', storename)
 
 	def ConnectStore(self, store):
 		self.thisStore = store
 
+	# noinspection PyMethodMayBeStatic
 	def MapItem(self, src, item):
 		if isinstance(item, tuple):
 			return item[0](TreeDict(src, item[1]))

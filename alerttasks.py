@@ -42,6 +42,7 @@ class Alert(object):
 		else:
 			self.state = 'Active'
 			self.actiontarget(self)  # target is the proc
+			# noinspection PyAttributeOutsideInit
 			self.state = "Armed"
 
 	def __repr__(self):

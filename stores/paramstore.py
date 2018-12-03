@@ -3,6 +3,7 @@ import collections
 
 
 class ParamStore(valuestore.ValueStore):
+	# noinspection PyProtectedMember
 	def __init__(self, name, dp=None, locname=''):
 		super(ParamStore, self).__init__(name)
 		self.localname = locname if locname != '' else name
@@ -25,6 +26,7 @@ class ParamStore(valuestore.ValueStore):
 	def _MakeChild(self, child, nm):
 		self.children[nm] = child
 
+	# noinspection PyProtectedMember
 	def ReParent(self, newparent):
 		del self.defaultparent.children[self.localname]
 		newparent.userstore._MakeChild(self, self.localname)

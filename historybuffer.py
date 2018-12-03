@@ -14,6 +14,7 @@ def SetupHistoryBuffers(dirnm, maxlogs):
 	for i in range(maxlogs - 1, 0, -1):
 		if ".HistoryBuffer." + str(i) in r:
 			os.rename('.HistoryBuffer.' + str(i), ".HistoryBuffer." + str(i + 1))
+	# noinspection PyBroadException
 	try:
 		os.rename('.HistoryBuffer', '.HistoryBuffer.1')
 	except:

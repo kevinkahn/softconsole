@@ -42,6 +42,7 @@ def TryShorten(term):
 	return newterm
 
 
+# noinspection PyBroadException
 def SetUpTermShortener():
 	global TermShortener
 	try:

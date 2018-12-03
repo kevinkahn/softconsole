@@ -4,7 +4,7 @@ import time
 from stores import valuestore
 from collections import OrderedDict
 import logsupport
-from logsupport import ConsoleWarning, ConsoleDetail, ConsoleError
+from logsupport import ConsoleWarning
 
 
 '''
@@ -30,7 +30,6 @@ class WeatherItem(valuestore.StoreItem):
 
 
 class WeatherVals(valuestore.ValueStore):
-	global WUcount
 
 	def __init__(self, location, weathersource, refresh):
 		self.fetchtime = 0
@@ -73,7 +72,7 @@ class WeatherVals(valuestore.ValueStore):
 			logsupport.Logs.Log('Error processing forecast for: ', self.name, ' ', repr(e), severity=ConsoleWarning)
 			self.failedfetch = True
 
-	def GetVal(self, name):
+	def GetVal(self, name, failok=False):
 		# if config.BadWunderKey:
 		#	return None
 		self.BlockRefresh()

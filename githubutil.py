@@ -40,6 +40,7 @@ def StageVersion(vdir, tag, label):
 	os.chdir(cwd)
 
 
+# noinspection PyBroadException
 def InstallStagedVersion(d):
 	shutil.rmtree(d + '/previousversion', True)  # don't keep multiple previous version in tree
 	os.rename(d, d + '.TMP')  # move active directory to temp
@@ -48,6 +49,7 @@ def InstallStagedVersion(d):
 	os.chdir(d)
 
 	if os.path.exists('../homesystem'):
+		# noinspection PyBroadException
 		try:
 			subprocess.call('cp -r --backup=numbered "example configs"/* ../Console', shell=True)
 		# os.remove('../Console/termshortenlist')

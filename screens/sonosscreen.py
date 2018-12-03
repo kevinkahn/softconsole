@@ -1,7 +1,7 @@
 import pygame
 import logsupport
 import supportscreens
-from logsupport import ConsoleWarning, ConsoleError
+from logsupport import ConsoleError
 from utilfuncs import wc
 import hasshub  # only to test that the hub for this is an HA hub
 
@@ -14,12 +14,17 @@ import toucharea
 import functools
 
 
+# noinspection PyUnusedLocal
 class SonosScreenDesc(screen.BaseKeyScreenDesc):
 	def __init__(self, screensection, screenname):
 		debug.debugPrint('Screen', "New SonosScreenDesc ", screenname)
 		screen.BaseKeyScreenDesc.__init__(self, screensection, screenname)
 		self.numplayers = 0  # if 0 then Sonos didn't get set up correctly
+		self.numgroups = 0
+		self.nms = []
+		self.gpingrms = []
 		self.PlayerInputs = []
+		self.SourceSet = None
 		screen.IncorporateParams(self, 'SonosScreen', {'KeyColor'}, screensection)
 		self.DullKeyColor = wc(self.KeyColor, .5, self.BackgroundColor)
 		self.HA = self.DefaultHubObj
@@ -77,10 +82,10 @@ class SonosScreenDesc(screen.BaseKeyScreenDesc):
 		config.screenwidth - self.sourceheight - config.horizborder, self.titlespace - self.sourceheight // 2)
 		self.SrcNext = (config.screenwidth - self.sourceheight - config.horizborder,
 						vpos + self.sourceheight // 2 + 10)  # for appearance
-		self.KeysSrc['Prev'] = toucharea.TouchPoint('Prev' + str(i), self.SrcPrev,
+		self.KeysSrc['Prev'] = toucharea.TouchPoint('Prev', self.SrcPrev,
 													(self.sourceheight, self.sourceheight),
 													proc=functools.partial(self.PrevNext, False))
-		self.KeysSrc['Next'] = toucharea.TouchPoint('Next' + str(i), self.SrcNext,
+		self.KeysSrc['Next'] = toucharea.TouchPoint('Next', self.SrcNext,
 													(self.sourceheight, self.sourceheight),
 													proc=functools.partial(self.PrevNext, True))
 		self.KeysSrc['OKSrc'] = toucharea.ManualKeyDesc(self, 'OKSrc', ['OK'], self.BackgroundColor,
@@ -243,7 +248,6 @@ class SonosScreenDesc(screen.BaseKeyScreenDesc):
 
 	def UpdateGroups(self):
 		assigned = 0
-		gpassign = {}
 		for n, p in self.SonosNodes.items():
 			if p.sonos_group[0] == n:  # we are a group master
 				if p.internalstate != -1:
@@ -297,6 +301,7 @@ class SonosScreenDesc(screen.BaseKeyScreenDesc):
 				self.SlotToGp[slot] = e
 				slot += 1
 				lineoff = self.NodeVPos[slot]
+			# noinspection PyUnboundLocalVariable
 			pygame.draw.line(config.screen, wc(self.CharColor), (config.horizborder, lineoff),
 							 (config.screenwidth - config.horizborder, lineoff), 3)
 		pygame.draw.line(config.screen, wc(self.CharColor), (config.horizborder, self.NodeVPos[0]),
@@ -304,7 +309,8 @@ class SonosScreenDesc(screen.BaseKeyScreenDesc):
 		pygame.draw.line(config.screen, wc(self.CharColor), (config.screenwidth - config.horizborder, self.NodeVPos[0]),
 						 (config.screenwidth - config.horizborder, lineoff), 3)
 
-	def _Speaker(self, c, hgt):
+	@staticmethod
+	def _Speaker(c, hgt):
 		h = .8 * hgt
 		left = c[0] - h // 2
 		right = c[0] + h // 2
@@ -382,13 +388,13 @@ class SonosScreenDesc(screen.BaseKeyScreenDesc):
 															True), 3)
 
 	def ShowScreen(self):
-		stable = self.UpdateGroups()
+		_ = self.UpdateGroups()
 		# self.ReInitDisplay()
 		if self.numplayers == 0:
 			pass  # no players - probably startup sequencing error
 		elif self.Subscreen == -1:
 			self.SummaryScreen()
-		elif self.Subscreen >= 100 and self.Subscreen < 200:
+		elif 100 <= self.Subscreen < 200:
 			self.ChangeGroupingScreen(self.SlotToGp[self.Subscreen - 100])
 		elif self.Subscreen >= 200:
 			self.SourceSelectScreen()

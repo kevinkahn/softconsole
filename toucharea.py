@@ -1,7 +1,6 @@
 import pygame
 import debug
 import screen
-import stores.valuestore as valuestore
 import stores.paramstore as paramstore
 
 import config
@@ -9,7 +8,7 @@ import utilities
 from utilities import scaleW, scaleH
 from utilfuncs import wc
 
-from eventlist import ProcEventItem, AlertEventItem, EventItem
+from eventlist import ProcEventItem
 import functools
 
 
@@ -63,6 +62,7 @@ class ManualKeyDesc(TouchPoint):
 		self.KeyOnImageBase = None # type: pygame.Surface
 		self.KeyOffImageBase = None # type: pygame.Surface
 		self.KeyUnknownOverlay = None # type: pygame.Surface
+		self.userstore = None
 
 		# alternate creation signatures
 		self.ButtonFontSizes = (31, 28, 25, 22, 20, 18, 16)
@@ -83,6 +83,7 @@ class ManualKeyDesc(TouchPoint):
 			self.FinishKey((0, 0), (0, 0))
 		utilities.register_example("ManualKeyDesc", self)
 
+	# noinspection PyUnusedLocal
 	def docodeinit(self, thisscreen, keyname, label, bcolor, charcoloron, charcoloroff, center=(0, 0), size=(0, 0),
 				   KOn=None,
 				   KOff=None, proc=None, KCon='', KCoff='', KLon=('',), KLoff=('',), State=True, Blink=0, Verify=False):
@@ -208,7 +209,7 @@ class ManualKeyDesc(TouchPoint):
 		pygame.draw.line(self.KeyUnknownOverlay,wc(self.KeyCharColorOn),(0,self.Size[1]),(self.Size[0],0),bord)
 		self.KeyUnknownOverlay.set_alpha(128)
 
-
+	# noinspection PyAttributeOutsideInit
 	def FinishKey(self,center,size,firstfont=0,shrink=True):
 		if size[0] != 0: # if size is not zero then set the pos/size of the key; otherwise it was previously set in manual creation
 			self.Center = center
@@ -218,6 +219,7 @@ class ManualKeyDesc(TouchPoint):
 				if self.ControlObj.FriendlyName != '':
 					self.label = [self.ControlObj.FriendlyName]
 			except AttributeError:
+				# noinspection PyAttributeOutsideInit
 				self.label = [self.name]
 		if self.KeyLabelOn == ['', ]:
 			self.KeyLabelOn = self.label

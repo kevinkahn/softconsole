@@ -1,6 +1,6 @@
 import functools
 import config
-from eventlist import ProcEventItem, AlertEventItem, EventItem
+from eventlist import ProcEventItem
 import supportscreens
 import utilities
 import debug

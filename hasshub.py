@@ -12,16 +12,18 @@ from controlevents import *
 from stores import valuestore
 from logsupport import ConsoleWarning, ConsoleError, ConsoleDetail
 import functools
-from eventlist import ProcEventItem, AlertEventItem, EventItem
+from eventlist import ProcEventItem
 
 def stringtonumeric(v):
 	if not isinstance(v,str):
 		return v
+	# noinspection PyBroadException
 	try:
 		f = float(v)
 		return f
 	except:
 		pass
+	# noinspection PyBroadException
 	try:
 		i = int(v)
 		return i
@@ -103,8 +105,8 @@ class Script(HAnode):
 		self.Hub.Scripts[self.entity_id] = self
 
 	def RunProgram(self):
-		ha.call_service(self.Hub.api, 'script', self.object_id)
-		debug.debugPrint('HASSgeneral', "Script execute sent to: script.", self.object_id)
+		ha.call_service(self.Hub.api, 'script', self.entity_id)
+		debug.debugPrint('HASSgeneral', "Script execute sent to: script.", self.entity_id)
 
 class Automation(HAnode):
 	def __init__(self, HAitem, d):
@@ -133,6 +135,7 @@ class Light(StatefulHAnode):
 		if 'brightness' in self.attributes:
 			self.internalstate = _NormalizeState(self.state, int(self.attributes['brightness']))
 
+	# noinspection PyUnusedLocal
 	def SendOnOffCommand(self, settoon, presstype):
 		selcmd = ('turn_off', 'turn_on')
 		ha.call_service(self.Hub.api, 'light', selcmd[settoon], {'entity_id': '{}'.format(self.entity_id)})
@@ -143,6 +146,7 @@ class Switch(StatefulHAnode):
 		super(Switch, self).__init__(HAitem, **d)
 		self.Hub.Switches[self.entity_id] = self
 
+	# noinspection PyUnusedLocal
 	def SendOnOffCommand(self, settoon, presstype):
 		selcmd = ('turn_off', 'turn_on')
 		ha.call_service(self.Hub.api, 'switch', selcmd[settoon], {'entity_id': '{}'.format(self.entity_id)})
@@ -314,6 +318,7 @@ class Thermostat(HAnode): # not stateful since has much state info
 		else:
 			return self.curtemp, self.temperature, self.temperature, self.HVAC_state, self.mode, self.fan
 
+	# noinspection PyUnusedLocal,PyUnusedLocal,PyUnusedLocal
 	def _HVACstatechange(self, storeitem, old, new, param, chgsource):
 		self.HVAC_state = new
 		if config.DS.AS is not None:
@@ -355,6 +360,7 @@ class HA(object):
 	class HAClose(Exception):
 		pass
 
+	# noinspection PyUnusedLocal
 	def GetNode(self, name, proxy = ''):
 		# noinspection PyBroadException
 		try:
@@ -366,7 +372,7 @@ class HA(object):
 	def GetProgram(self, name):
 		try:
 			return self.Automations['automation.' + name]
-		except:
+		except KeyError:
 			pass
 
 		try:
@@ -384,6 +390,7 @@ class HA(object):
 			return None
 
 	def CheckStates(self):
+		# noinspection PyBroadException
 		try:
 			for n, s in self.Sensors.items():
 				cacheval = self.sensorstore.GetVal(s.entity_id)
@@ -410,7 +417,15 @@ class HA(object):
 		for n, nd in self.Entities.items():
 			print('Node(', type(nd),'): ', n, ' -> ', nd.internalstate, nd.state, type(nd.state))
 
+	def HACheckThread(self):
+		if self.haconnectstate != "Running":
+			logsupport.Logs.Log("{} failed thread check; state: {}".format(self.name, self.haconnectstate),
+								severity=ConsoleWarning)
+			return False
+		return True
+
 	def PreRestartHAEvents(self):
+		self.haconnectstate = "Prestart"
 		self.config = ha.get_config(self.api)
 		if self.config == {}:
 			# HA not responding yet - long delay
@@ -421,6 +436,16 @@ class HA(object):
 		self.HAnum += 1
 
 	def PostStartHAEvents(self):
+		while self.haconnectstate == "Delaying":
+			time.sleep(1)
+		i = 0
+		while self.haconnectstate != "Running":
+			i += 1
+			if i > 60:
+				logsupport.Logs.Log("{} not running after thread start ({})".format(self.name, self.haconnectstate),
+									severity=ConsoleError)
+				raise threadmanager.ThreadStartException
+			time.sleep(1)
 		try:
 			ha.call_service(self.api, 'logbook', 'log',
 							{'name': 'Softconsole', 'message': config.hostname + ' connected'})
@@ -453,11 +478,13 @@ class HA(object):
 					dels[k] = old[k]
 			return chg, dels, adds
 
+		# noinspection PyUnusedLocal
 		def on_message(qws, message):
 			self.HB.Entry(repr(message))
 			try:
 				self.msgcount += 1
 				# if self.msgcount <4: logsupport.Logs.Log(self.name + " Message "+str(self.msgcount)+':'+ repr(message))
+				# noinspection PyBroadException
 				try:
 					mdecode = json.loads(message)
 				except:
@@ -493,19 +520,21 @@ class HA(object):
 				if m['event_type'] == 'state_changed':
 					del m['event_type']
 					ent = d['entity_id']
+					dom = ent.split('.')[0]
 					new = d['new_state']
 					old = d['old_state']
 					del d['new_state']
 					del d['old_state']
 					del d['entity_id']
 					chgs, dels, adds = findDiff(old, new)
-					if not ent in self.Entities and not ent in self.IgnoredEntities:
+					if not ent in self.Entities and not ent in self.IgnoredEntities and not dom in self.haignoreandskipdomains:
 						# not an entitity type that is currently known
 						debug.debugPrint('HASSgeneral', self.name,
 										 ' WS Stream item for unhandled entity type: ' + ent + ' Added: ' + str(
 											 adds) + ' Deleted: ' + str(dels) + ' Changed: ' + str(chgs))
 						logsupport.Logs.Log("New entity since startup seen from ", self.name, ": ", ent,
 											"(Old: " + repr(old) + '  New: ' + repr(new) + ')')
+						# noinspection PyTypeChecker
 						self.IgnoredEntities[ent] = None
 						return
 					if ent in self.IgnoredEntities:
@@ -544,11 +573,11 @@ class HA(object):
 				else:
 					debug.debugPrint('HASSgeneral', "Unknown event: " + str(m))
 					logsupport.Logs.Log("Previously unknown event seen: " + str(m))
-			except Exception as e:
-				logsupport.Logs.Log("Exception handling HA message: ", repr(e), repr(message), severity=ConsoleWarning)
+			except Exception as E:
+				logsupport.Logs.Log("Exception handling HA message: ", repr(E), repr(message), severity=ConsoleWarning)
 
 		def on_error(qws, error):
-			self.HB.Entry('ERROR: ', repr(error))
+			self.HB.Entry('ERROR: ' + repr(error))
 			self.lasterror = error
 			# noinspection PyBroadException
 			try:
@@ -575,19 +604,22 @@ class HA(object):
 					logsupport.Logs.Log(self.name + " WS network down", severity=ConsoleWarning)
 				else:
 					self.delaystart = 21  # likely router reboot delay
-					logsupport.Logs.Log(self.hubname + ' WS OS error', repr(error), severity=ConsoleError, tb=False)
+					logsupport.Logs.Log(self.name + ' WS OS error', repr(error), severity=ConsoleError, tb=False)
 			else:
 				self.delaystart = 15
 				logsupport.Logs.Log(self.name + ": Unknown Error in WS stream " + str(self.HAnum) + ':' + repr(error),
 									severity=ConsoleWarning)
+			# noinspection PyBroadException
 			try:
 				if isinstance(error, AttributeError):
 					# error = (errno.ETIMEDOUT,"Websock bug catch")
 					logsupport.Logs.Log("WS lib workaround hit (3)")  # todo remove
 			except:
 				pass
+			self.haconnectstate = "Failed"
 			qws.close()
 
+		# noinspection PyUnusedLocal
 		def on_close(qws, code, reason):
 			"""
 			:param reason:  str
@@ -600,11 +632,14 @@ class HA(object):
 			logsupport.Logs.Log(
 				self.name + " WS stream " + str(self.HAnum) + " closed: " + str(code) + ' : ' + str(reason),
 				severity=ConsoleWarning, tb=False, hb=True)
+			if self.haconnectstate != "Failed": self.haconnectstate = "Closed"
 			raise self.HAClose
 
+		# noinspection PyUnusedLocal
 		def on_open(qws):
 			self.HB.Entry('Open')
-			logsupport.Logs.Log(self.name + " WS stream " + str(self.HAnum) + " opened")
+			logsupport.Logs.Log(self.name + ": WS stream " + str(self.HAnum) + " opened")
+			self.haconnectstate = "Running"
 			#if self.password != '':
 			#	ws.send({"type": "auth","api_password": self.password})
 			#ws.send(json.dumps({'id': self.HAnum, 'type': 'subscribe_events'})) #, 'event_type': 'state_changed'}))
@@ -612,8 +647,10 @@ class HA(object):
 		if self.delaystart > 0:
 			logsupport.Logs.Log(
 				self.name + ' thread delaying start for ' + str(self.delaystart) + ' seconds to allow HA to restart')
+			self.haconnectstate = "Delaying"
 			time.sleep(self.delaystart)
 		self.delaystart = 0
+		self.haconnectstate = "Starting"
 		websocket.setdefaulttimeout(30)
 		while True:
 			try:
@@ -627,25 +664,29 @@ class HA(object):
 				logsupport.Logs.Log(self.name + ": Problem starting WS handler - retrying: ", repr(e),
 									severity=ConsoleWarning)
 		try:
+			self.haconnectstate = "Running"
 			self.ws.run_forever(ping_timeout=999)
 		except self.HAClose:
 			logsupport.Logs.Log(self.name + " Event thread got close")
 		logsupport.Logs.Log(self.name + " Event Thread " + str(self.HAnum) + " exiting", severity=ConsoleWarning,
 							tb=False)
+		if self.haconnectstate not in ("Failed", "Closed"): self.haconnectstate = "Exited"
 
+	# noinspection PyUnusedLocal
 	def __init__(self, hubname, addr, user, password):
 		self.HB = historybuffer.HistoryBuffer(40, hubname)
-		logsupport.Logs.Log("Creating Structure for Home Assistant hub: ", hubname)
+		logsupport.Logs.Log("{}: Creating structure for Home Assistant hub at {}".format(hubname, addr))
 
 		hadomains = {'group': Group, 'light': Light, 'switch': Switch, 'sensor': Sensor, 'automation': Automation,
 					 'climate': Thermostat, 'media_player': MediaPlayer, 'binary_sensor': BinarySensor, 'script': Script}
 		haignoredomains = {'zwave': ZWave, 'sun': HAnode, 'notifications': HAnode, 'persistent_notification': HAnode}
-		haignoreandskipdomains = ('history_graph','updater')
+		self.haignoreandskipdomains = ('history_graph', 'updater')
 
 		self.sensorstore = valuestore.NewValueStore(valuestore.ValueStore(hubname,itemtyp=valuestore.StoreItem))
 		self.name = hubname
 		self.addr = addr
 		self.url = addr
+		self.config = None
 		self.password = password
 		if self.addr.startswith('http://'):
 			self.wsurl = 'ws://' + self.addr[7:] + ':8123/api/websocket'
@@ -690,13 +731,13 @@ class HA(object):
 			else:
 				hassok = True
 				break
+		# noinspection PyUnboundLocalVariable
 		if hassok:
-			logsupport.Logs.Log('HA access accepted for: ' + self.name)
+			logsupport.Logs.Log('{}: Access accepted'.format(self.name))
 		else:
 			logsupport.Logs.Log('HA access failed multiple trys for: ' + self.name, severity=ConsoleError, tb=False)
 			raise ValueError
 
-		# self.config = ha.get_config(self.api)
 		entities = ha.get_states(self.api)
 		for e in entities:
 			if e.domain not in self.Domains:
@@ -709,7 +750,7 @@ class HA(object):
 			elif e.domain in haignoredomains:
 				N = HAnode(self, **p2)
 				self.IgnoredEntities[e.entity_id] = N
-			elif e.domain in haignoreandskipdomains:
+			elif e.domain in self.haignoreandskipdomains:
 				N = None
 				pass # totally ignore these
 			else:
@@ -724,19 +765,16 @@ class HA(object):
 		for n, T in self.Thermostats.items():
 			tname = n.split('.')[1]
 			tsensor = self.Sensors['sensor.'+tname+'_thermostat_hvac_state']
+			# noinspection PyProtectedMember
 			T._connectsensors(tsensor)
-
+		self.haconnectstate = "Init"
 		services = ha.get_services(self.api)
 		#listeners = ha.get_event_listeners(self.api)
-		logsupport.Logs.Log(self.name + " Processed " + str(len(self.Entities)) + " total entities")
+		logsupport.Logs.Log(self.name + ": Processed " + str(len(self.Entities)) + " total entities")
 		logsupport.Logs.Log("    Lights: " + str(len(self.Lights)) + " Switches: " + str(len(self.Switches)) +
 							" Sensors: " + str(len(self.Sensors)) + " BinarySensors: " + str(len(self.BinarySensors)) +
 							" Automations: " + str(len(self.Automations)))
 		threadmanager.SetUpHelperThread(self.name, self.HAevents, prerestart=self.PreRestartHAEvents,
 										poststart=self.PostStartHAEvents, postrestart=self.PostStartHAEvents,
-										prestart=self.PreRestartHAEvents)
-		logsupport.Logs.Log("Finished creating Structure for Home Assistant hub: ", self.name)
-
-
-
-
+										prestart=self.PreRestartHAEvents, checkok=self.HACheckThread)
+		logsupport.Logs.Log("{}: Finished creating tructure for hub".format(self.name))

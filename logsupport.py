@@ -3,7 +3,6 @@ import pygame
 import webcolors
 import sys
 import traceback
-import shutil
 
 wc = webcolors.name_to_rgb  # can't use the safe version from utilities due to import loop but this is only used with
 # known color names
@@ -39,10 +38,13 @@ ErrorNotice = -1
 LogLevel = 3
 
 def StringLike(obj):
-	try:
-		return isinstance(obj, basestring)
-	except NameError:
-		return isinstance(obj, str)
+	return isinstance(obj, str)  # todo del
+
+
+# try:
+#	return isinstance(obj, basestring)
+# except NameError:
+#	return isinstance(obj, str)
 
 
 def InitLogs(screen,dirnm):
@@ -133,11 +135,12 @@ class Logger(object):
 	def RenderLogLine(self, itext, clr, pos):
 		# odd logic below is to make sure that if an unbroken item would by itself exceed line length it gets forced out
 		# thus avoiding an infinite loop
-		if isinstance(itext, str):
-			try:
-				text = itext.decode(encoding='UTF-8')  # unicode(v,'UTF-8')
-			except AttributeError:
-				text = itext
+		text = itext  # todo del
+		# if isinstance(itext, str):
+		#	try:
+		#		text = itext.decode(encoding='UTF-8')  # unicode(v,'UTF-8')
+		#	except AttributeError:
+		#		text = itext
 		# noinspection PyUnboundLocalVariable
 		text = re.sub('\s\s+', ' ', text.rstrip())
 		ltext = re.split('([ :,])', text)

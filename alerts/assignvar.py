@@ -14,6 +14,7 @@ class AssignVar(object):
 		params: Var Var, . . .
 		"""
 		params = (alert.param,) if isinstance(alert.param, str) else alert.param
+		val = -99999
 		for p in params:
 			item = p.split('=')
 			# noinspection PyBroadException

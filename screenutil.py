@@ -32,11 +32,11 @@ def CreateTextBlock(textlines, fontsizes, color, center, font=config.monofont, F
 			if line.get_width() < MaxWidth: break
 		if line.get_width() > MaxWidth:
 			usesz = fitFont(font, s // 2, FitLine)
-			mid = len(l) // 2 + 1
 			breaks = [i for i, ltr in enumerate(l) if ltr == ' '] + [len(l) - 1]
 			for indx, val in enumerate(breaks):
 				if config.fonts.Font(usesz, font).size(l[:breaks[indx]])[0] > MaxWidth:
 					break
+			# noinspection PyUnboundLocalVariable
 			lleft = l[:breaks[indx - 1]]
 			lright = '  ' + l[breaks[indx - 1]:]
 			usesz = fitFont(font, s // 2, FitLine)

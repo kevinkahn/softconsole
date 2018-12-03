@@ -11,7 +11,6 @@ import utilities
 import logsupport
 from logsupport import ConsoleWarning, ConsoleError, ConsoleDetailHigh
 import sys
-import errno
 import isyeventmonitor, threadmanager
 from stores import valuestore, isyvarssupport
 
@@ -200,7 +199,7 @@ class ISY(object):
 		"""
 		Build the Folder/Node/Scene tree
 		"""
-		logsupport.Logs.Log("Create Structure for ISY hub: ", name, ' at ', isyaddr, ' for user ', user)
+		logsupport.Logs.Log("{}: Create Structure for ISY hub at {} for user {}".format(name, isyaddr, user))
 
 		trycount = 20
 		while True:
@@ -461,7 +460,7 @@ class ISY(object):
 		self.HBDirect = historybuffer.HistoryBuffer(40, self.name + '-Direct')
 		self.isyEM = isyeventmonitor.ISYEventMonitor(self)
 		threadmanager.SetUpHelperThread(self.name,self.isyEM.QHandler,prerestart=self.isyEM.PreRestartQHThread,poststart=self.isyEM.PostStartQHThread,postrestart=self.isyEM.PostStartQHThread)
-		logsupport.Logs.Log("Finished creating Structure for ISY hub: {}".format(name))
+		logsupport.Logs.Log("{}: Finished creating structure for hub".format(name))
 	# noinspection PyUnusedLocal
 	def _ISYVarChanged(self, storeitem, old, new, param, chgsource):
 		if not chgsource:  # only send to ISY if change didn't originate there

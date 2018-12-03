@@ -2,7 +2,6 @@ import pygame
 
 import debug
 import utilities
-import logsupport
 import config
 
 
@@ -19,10 +18,10 @@ class Fonts(object):
 	# initialize with 1 font for use in early abort messages (40,"",True,True)
 
 	def Font(self, fsize, face="", bold=False, italic=False):
-		def gennewfont(name, size, bold, italic):
+		def gennewfont(gname, gsize, gbold, gitalic):
 			# logsupport.Logs.Log('Generated Font: ', repr(name), str(size), str(utilities.scaleH(size)), str(bold),
 			#					str(italic))
-			return pygame.font.SysFont(name, utilities.scaleH(size), bold, italic)
+			return pygame.font.SysFont(gname, utilities.scaleH(gsize), gbold, gitalic)
 
 		size = int(fsize)
 		try:

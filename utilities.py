@@ -12,7 +12,7 @@ import config
 import fonts
 import hw
 import logsupport
-from logsupport import ConsoleError, ConsoleDetail, ConsoleDetailHigh, ConsoleWarning
+from logsupport import ConsoleDetail
 import debug
 
 globdoc = {}

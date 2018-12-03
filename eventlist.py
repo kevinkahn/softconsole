@@ -106,6 +106,7 @@ class EventList(object):
 	def RemoveTask(self, evnt):
 		self.HB.Entry('RemoveTask: ' + repr(evnt))
 		debug.debugPrint('EventList', self.RelNow(), ' Remove: ', evnt)
+		# noinspection PyBroadException
 		try:
 			self.finder[id(evnt)].deleted = True
 		except Exception:

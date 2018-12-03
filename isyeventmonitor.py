@@ -9,7 +9,6 @@ from isycodes import EVENT_CTRL, formatwsitem
 import time
 import exitutils
 from controlevents import *
-from stores import valuestore
 import errno
 import isycodes
 from threadmanager import ThreadStartException
@@ -105,15 +104,15 @@ class ISYEventMonitor(object):
 			time.sleep(1)
 		hungcount = 60
 		while self.THstate == 'starting':
-			logsupport.Logs.Log(self.hubname + " Waiting initial status dump")
+			logsupport.Logs.Log(self.hubname + ": Waiting initial status dump")
 			time.sleep(2)
 			hungcount -= 1
 			if hungcount < 0: raise ThreadStartException
 		if self.THstate == 'running':
 			self.isy._HubOnline = True
-			logsupport.Logs.Log(self.hubname + " initial status streamed ", self.seq, " items")
+			logsupport.Logs.Log(self.hubname + ": Initial status streamed ", self.seq, " items")
 			self.isy.Vars.CheckValsUpToDate(reload=True)
-			logsupport.Logs.Log(self.hubname + " vars updated")
+			logsupport.Logs.Log(self.hubname + ": Vars updated")
 		elif self.THstate == 'failed':
 			logsupport.Logs.Log(self.hubname + " Failed Thread Restart", severity=ConsoleWarning)
 		else:
@@ -197,11 +196,11 @@ class ISYEventMonitor(object):
 		def on_open(qws):
 			self.isy.HBWS.Entry("Open")
 			self.THstate = 'starting'
-			logsupport.Logs.Log("{} WS stream {} opened".format(self.hubname, self.QHnum))
+			logsupport.Logs.Log("{}: WS stream {} opened".format(self.hubname, self.QHnum))
 			debug.debugPrint('DaemonCtl', "Websocket stream opened: ", self.QHnum, self.streamid)
 			self.WS = qws
 
-		# noinspection PyUnusedLocal
+		# noinspection PyUnusedLocal,PyUnboundLocalVariable
 		def on_message(qws, message):
 			self.isy.HBWS.Entry(repr(message))
 			try:
@@ -214,7 +213,7 @@ class ISYEventMonitor(object):
 					sr = m['SubscriptionResponse']
 					if self.streamid != sr['SID']:
 						self.streamid = sr['SID']
-						logsupport.Logs.Log("Opened event stream: " + self.streamid)
+						logsupport.Logs.Log("{}: Stream id: {}".format(self.hubname, self.streamid))
 
 				elif 'Event' in m:
 					E = m['Event']
@@ -358,7 +357,7 @@ class ISYEventMonitor(object):
 						else:
 							logsupport.Logs.Log(self.hubname, " reported System Status: ", str(eaction))
 
-					if (ecode == "ST" or (ecode == "_3" and eaction == "CE")):
+					if ecode == "ST" or (ecode == "_3" and eaction == "CE"):
 						if BaseAddr(self.LastMsgErr) == BaseAddr(enode):
 							# ERR msg followed by clearing - ISY weirdness?
 							self.LastMsgErr = None
@@ -403,7 +402,7 @@ class ISYEventMonitor(object):
 									severity=ConsoleWarning)
 
 		self.THstate = 'delaying'
-		logsupport.Logs.Log(self.hubname + " stream thread " + str(self.QHnum) + " setup")
+		logsupport.Logs.Log("{}: WS stream thread {} setup".format(self.hubname, self.QHnum))
 		if self.delayedstart != 0:
 			logsupport.Logs.Log(self.hubname + " Delaying Hub restart for probable network reset: ",
 								str(self.delayedstart), ' seconds')

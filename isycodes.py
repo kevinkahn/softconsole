@@ -53,12 +53,6 @@ AlertNodes = {}
 
 def _NormalizeState(stateval):
 	t = stateval
-	# noinspection PyBroadException
-	try:
-		if isinstance(stateval, unicode):
-			t = str(stateval)
-	except:
-		pass
 	if isinstance(t, str):
 		return int(t) if t.isdigit() else 0
 	return t
@@ -103,6 +97,7 @@ def formatwsitem(sid, seq, code, action, node, info, extra, hub):
 			else:
 				stat = ''
 			paddr = str("0x%0.4X"%int(info['id'], 16))[2:]
+			# noinspection PyProtectedMember
 			return pretty + 'ProgRun ' + hub._ProgramsByAddr[paddr].name + runinfo + stat + other
 		elif EC == "System Status":
 			return pretty + "System Status " + ('Not Busy', 'Busy', 'Idle', 'Safe Mode')[int(action)]

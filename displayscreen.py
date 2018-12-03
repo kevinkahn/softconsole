@@ -47,8 +47,9 @@ class DisplayScreen(object):
 		self.dim = 'Bright'
 		hw.GoBright(int(config.sysStore.BrightLevel))
 
-	def SetActivityTimer(self, timeinsecs, dbgmsg):
-		pygame.time.set_timer(ACTIVITYTIMER, timeinsecs * 1000)  # todo .type deleted
+	@staticmethod
+	def SetActivityTimer(timeinsecs, dbgmsg):
+		pygame.time.set_timer(ACTIVITYTIMER, timeinsecs * 1000)
 		debug.debugPrint('Dispatch', 'Set activity timer: ', timeinsecs, ' ', dbgmsg)
 
 	def SwitchScreen(self, NS, newdim, newstate, reason, NavKeys=True):
@@ -168,7 +169,7 @@ class DisplayScreen(object):
 					else:
 						debug.debugPrint('QDump', "Empty queue")
 						time.sleep(0.01)
-				event = pygame.event.Event(NOEVENT)
+				event = pygame.event.Event(NOEVENT, dict={})
 			else:
 				event = pygame.fastevent.wait()  # wait for the next event: touches, timeouts, ISY changes on note
 

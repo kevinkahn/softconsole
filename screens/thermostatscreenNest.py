@@ -2,7 +2,7 @@ import pygame
 import logsupport
 from logsupport import ConsoleWarning
 from pygame import gfxdraw
-from eventlist import ProcEventItem, AlertEventItem, EventItem
+from eventlist import ProcEventItem
 
 import config
 import debug
@@ -154,6 +154,7 @@ class NestThermostatScreenDesc(screen.BaseKeyScreenDesc):
 
 	# push setpoint change after 2 seconds of idle
 
+	# noinspection PyUnusedLocal
 	def BumpFan(self, presstype):
 		self.FanLocal = 0.5 # just do a show screen for mode and fan
 		self.fanstates = self.fanstates[1:] + self.fanstates[:1]

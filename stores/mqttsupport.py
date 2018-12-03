@@ -1,8 +1,7 @@
 import paho.mqtt.client as mqtt
-import debug
 import logsupport
 import json
-from logsupport import ConsoleWarning
+from logsupport import ConsoleWarning, ConsoleError
 # noinspection PyProtectedMember
 from configobj import Section
 import time
@@ -24,7 +23,7 @@ class MQTTBroker(valuestore.ValueStore):
 		# noinspection PyUnusedLocal
 		def on_connect(client, userdata, flags, rc):
 			logm = "Connected" if self.loopexited else "Reconnected"
-			logsupport.Logs.Log(logm + " to ", self.name, " result code: " + str(rc))
+			logsupport.Logs.Log("{}: {} with result code {}".format(self.name, logm, rc))
 			for i, _ in userdata.topicindex.items():
 				client.subscribe(i)
 			self.loopexited = False
@@ -34,7 +33,7 @@ class MQTTBroker(valuestore.ValueStore):
 
 		# noinspection PyUnusedLocal
 		def on_disconnect(client, userdata, rc):
-			logsupport.Logs.Log("Disconnected from ", self.name, " result code: " + str(rc))
+			logsupport.Logs.Log("{}: Disconnected with result code {}".format(self.name, rc))
 
 		# noinspection PyUnusedLocal
 		def on_message(client, userdata, msg):
@@ -50,12 +49,12 @@ class MQTTBroker(valuestore.ValueStore):
 			else:
 				for v in var:
 					v.SetTime = time.time()
-					if v.jsonflds == []:
+					if not v.jsonflds:
 						v.Value = v.Type(msg.payload)
 					# debug.debugPrint('StoreTrack', "Store(mqtt): ", self.name, ':', v, ' Value: ', v.Value)
 					else:
+						payload = '*bad json*' + msg.payload.decode('ascii')  # for exception log below
 						try:
-							payload = '*bad json*'+msg.payload.decode('ascii') # for exception log below
 							payload = json.loads(msg.payload.decode('ascii').replace('nan','null')) # work around bug in tasmota returning bad json
 							for i in v.jsonflds:
 								payload = payload[i]
@@ -78,8 +77,8 @@ class MQTTBroker(valuestore.ValueStore):
 			if tp == 'group':
 				thistopic = sect.get('Topic', nm[-1])
 				rtn = {}
-				for itemname, value in sect.items():
-					rtn[itemname] = _parsesection(nm + [itemname], value, prefix=prefix + '/' + thistopic)
+				for itemnm, val in sect.items():
+					rtn[itemnm] = _parsesection(nm + [itemnm], val, prefix=prefix + '/' + thistopic)
 				return rtn
 			else:
 				if tp == 'float':
@@ -90,7 +89,7 @@ class MQTTBroker(valuestore.ValueStore):
 					tpcvrt = str
 				thistopic = sect.get('Topic', nm[-1])
 				jsonflds = sect.get('json', [])
-				if jsonflds != []: jsonflds = jsonflds.split(':')
+				if jsonflds: jsonflds = jsonflds.split(':')
 				tpc = (prefix + '/' + thistopic).lstrip('/')
 				rtn = MQitem(nm, tpc, tpcvrt, int(sect.get('Expires', 99999999999999999)), jsonflds, self)
 				if tpc in self.topicindex:
@@ -164,8 +163,7 @@ class MQTTBroker(valuestore.ValueStore):
 		except Exception as e:
 			if not failok:
 				logsupport.Logs.Log("Error accessing ", self.name, ":", str(name), str(n2), repr(e),
-									severity=ConsoleError,
-									tb=False)
+									severity=ConsoleError, tb=False)
 			return None
 
 	# noinspection PyUnusedLocal

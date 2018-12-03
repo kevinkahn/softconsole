@@ -2,7 +2,6 @@ import time
 
 import config
 import screen
-import utilities
 import debug
 from utilfuncs import wc
 from stores import valuestore

@@ -10,17 +10,16 @@ ICONSPACE = 10
 
 
 def CreateWeathBlock(Format, Fields, WeathFont, FontSize, WeathColor, icon, centered, day=-1, useicon=True):
-	erroronce = False
 	rf = []
 	fh = 0
 	fw = 0
 	FS = FontSize[:] if isinstance(FontSize, list) else [FontSize]
 	fsize = int(FS.pop(0))
 	usefont = config.fonts.Font(fsize, WeathFont)
+	fcstdays = 0
 
 	fld = ''
 	vals = []
-	iconref = []
 	try:
 		for fld in Fields:
 			if day == -1:
@@ -39,11 +38,9 @@ def CreateWeathBlock(Format, Fields, WeathFont, FontSize, WeathColor, icon, cent
 						vals.append(t)
 				else:
 					vals.append(None)
-					if not erroronce:
-						logsupport.Logs.Log(
-							"Attempt to forecast(day " + str(day) + ") beyond " + str(fcstdays) + " returned by WU",
+					logsupport.Logs.Log(
+						"Attempt to forecast(day " + str(day) + ") beyond " + str(fcstdays) + " returned",
 							severity=ConsoleDetailHigh)
-						erroronce = True
 	except Exception as e:
 		logsupport.Logs.Log('Weather Block field access error: '+str(fld)+' Exc: '+str(e))
 
@@ -58,7 +55,7 @@ def CreateWeathBlock(Format, Fields, WeathFont, FontSize, WeathColor, icon, cent
 	except Exception as e:
 		logsupport.Logs.Log('TimeTemp Weather Formatting Error: ', repr(e), severity=ConsoleWarning)
 		if isinstance(e, KeyError):
-			logsupport.Logs.Log(' No such weather field: ',e.message, severity=ConsoleWarning)
+			logsupport.Logs.Log(' No such weather field: ', e.args, severity=ConsoleWarning)
 		rf.append(usefont.render('Weather N/A', 0, wc(WeathColor)))
 		fh = rf[-1].get_height()*len(Format)  # force the height to always be equal even if error
 		if rf[-1].get_width() > fw: fw = rf[-1].get_width()
@@ -72,9 +69,7 @@ def CreateWeathBlock(Format, Fields, WeathFont, FontSize, WeathColor, icon, cent
 				iconref = icon[1:] + (day,)
 			else:
 				iconref = None
-				if not erroronce:
-					erroronce = True
-					logsupport.Logs.Log(
+				logsupport.Logs.Log(
 						"Attempt to forecast(day " + str(day) + ") beyond " + str(fcstdays) + " returned by provider",
 						severity=ConsoleDetailHigh)
 	else:

@@ -2,7 +2,6 @@ import requests
 import screen
 import config
 import debug
-import utilities
 import logsupport
 from logsupport import ConsoleWarning
 import screenutil
@@ -13,6 +12,7 @@ import functools
 from eventlist import ProcEventItem
 
 
+# noinspection PyUnusedLocal
 class OctoPrintScreenDesc(screen.BaseKeyScreenDesc):
 	def __init__(self, screensection, screenname):
 		screen.ScreenDesc.__init__(self, screensection, screenname)
@@ -21,6 +21,7 @@ class OctoPrintScreenDesc(screen.BaseKeyScreenDesc):
 		self.files = []
 		self.filepaths = []
 		self.PowerKeys = {}
+		self.Subscreen = -1
 
 		screen.IncorporateParams(self, 'OctoPrint', {'KeyColor'}, screensection)
 		screen.AddUndefaultedParams(self, screensection, address='', apikey='')
@@ -98,6 +99,7 @@ class OctoPrintScreenDesc(screen.BaseKeyScreenDesc):
 		except Exception as e:
 			logsupport.Logs.Log('Bad octoprint get: ', repr(e), severity=ConsoleWarning)
 			for i in range(5):
+				# noinspection PyBroadException
 				try:
 					r = requests.get(self.url + '/api/' + item, headers=self.head)
 					return r
@@ -108,19 +110,21 @@ class OctoPrintScreenDesc(screen.BaseKeyScreenDesc):
 
 
 	def OctoPost(self, item, senddata):
+		r = None
 		try:
 			r = requests.post(self.url + '/api/' + item, json=senddata, headers=self.head)
 		except Exception as e:
-			print('Exc4' + repr(e))
+			logsupport.Logs.Log("Octopost error {}".format(repr(e)), severity=ConsoleWarning)
 		return r
 
+	# noinspection PyUnusedLocal
 	def Power(self, opt, presstype):
-		r = self.OctoPost('system/commands/custom/' + opt, {})
+		_ = self.OctoPost('system/commands/custom/' + opt, {})
 		self.PowerKeys[opt].BlinkKey(3)
 
+	# noinspection PyUnusedLocal
 	def Connect(self, opt, presstype):
-		cmd = {'command': 'connect'} if opt else {'command': 'disconnect'}
-		r = self.OctoPost('connection', senddata={'command': opt})
+		_ = self.OctoPost('connection', senddata={'command': opt})
 		self.PowerKeys[opt].BlinkKey(3)
 
 	def SelectFile(self, presstype):
@@ -194,11 +198,13 @@ class OctoPrintScreenDesc(screen.BaseKeyScreenDesc):
 			# self.ReInitDisplay()
 			r = self.OctoGet('printer').json()
 			temp1 = r['temperature']['tool1']
+			# noinspection PyBroadException
 			try:
 				OPtemp1 = 'Extruder: {0:.0f}/{1:.0f}'.format(temp1['actual'], temp1['target'])
 			except:
 				OPtemp1 = '-/-'
 			bed = r['temperature']['bed']
+			# noinspection PyBroadException
 			try:
 				OPbed = 'Bed: {0:.0f}/{1:.0f}'.format(bed['actual'], bed['target'])
 			except:

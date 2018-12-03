@@ -186,6 +186,8 @@ class ListChooserSubScreen(screen.ScreenDesc):
 								   parentscreen=masterscreen)
 		self.Result = proc
 		self.masterscreen = masterscreen
+		self.selection = -1
+		self.itemlist = []
 		self.firstitem = 0
 		self.NumSlots = slots
 		self.ListKeySlots = {}
@@ -210,10 +212,10 @@ class ListChooserSubScreen(screen.ScreenDesc):
 						voffset - self.sourceheight // 2)
 		self.SrcNext = (config.screenwidth - self.sourceheight - config.horizborder,
 						vpos + self.sourceheight // 2 + 10)  # for appearance
-		self.ListKeySlots['Prev'] = toucharea.TouchPoint('Prev' + str(i), self.SrcPrev,
+		self.ListKeySlots['Prev'] = toucharea.TouchPoint('Prev', self.SrcPrev,
 														 (self.sourceheight, self.sourceheight),
 														 proc=functools.partial(self.PrevNext, False))
-		self.ListKeySlots['Next'] = toucharea.TouchPoint('Next' + str(i), self.SrcNext,
+		self.ListKeySlots['Next'] = toucharea.TouchPoint('Next', self.SrcNext,
 														 (self.sourceheight, self.sourceheight),
 														 proc=functools.partial(self.PrevNext, True))
 		self.ListKeySlots['OKSrc'] = toucharea.ManualKeyDesc(self, 'OKSrc', ['OK'], self.BackgroundColor,
@@ -233,18 +235,21 @@ class ListChooserSubScreen(screen.ScreenDesc):
 															   KOff='',
 															   proc=functools.partial(self.PickItemOK, False))
 
+	# noinspection PyUnusedLocal
 	def PickItem(self, slotnum, presstype):
 		# print(slotnum)
 		# change the source
 		self.selection = self.firstitem + slotnum
 		self.masterscreen.ShowScreen()
 
+	# noinspection PyUnusedLocal
 	def PickItemOK(self, doit, presstype):
 		if doit:
 			self.Result(self.selection)
 		else:
 			self.Result(-1)
 
+	# noinspection PyUnusedLocal
 	def PrevNext(self, nxt, presstype):
 		if nxt:
 			if self.firstitem + self.NumSlots < len(self.itemlist):

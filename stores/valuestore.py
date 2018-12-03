@@ -134,7 +134,9 @@ class StoreItem(object):
 		elif type(val) == self.Type:
 			self.Value = val
 		else:
+			# noinspection PyBroadException
 			try:
+				# noinspection PyAttributeOutsideInit
 				self.Value = val if self.Type is None else self.Type(val)
 			except:
 				logsupport.Logs.Log("Can't coerce type in UpdateVal required: " + repr(self.Type) + " got " + type(val),
@@ -266,9 +268,6 @@ class ValueStore(object):
 			for n in nmlist:
 				self.vars[n] = self.itemtyp(n, init, store=self)
 
-	def ClearValList(self, name):
-		n2 = self._normalizename(name)
-		t = self.vars
 
 	def SetVal(self,name, val, modifier = None): # modifier can be set by the caller if who caused the Val change is significant to any alerts
 		# currently only isyvarchange uses to avoid looping by changing the value as a result of an ISY message causing a send
@@ -334,7 +333,7 @@ class ValueStore(object):
 				else:
 					yield (parents + (n,))
 		except Exception as e:
-			raise
+			raise e
 
 	def __iter__(self):
 		self.iternames = list(self.vars)
