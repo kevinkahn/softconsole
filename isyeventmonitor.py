@@ -346,7 +346,7 @@ class ISYEventMonitor(object):
 								# logsupport.Logs.Log(self.hubname, " cleared busy")
 								if now - self.isy.Busy > 2:
 									logsupport.Logs.Log(
-										"{} busy for {:.4d} seconds".format(self.hubname, now - self.isy.Busy),
+										"{} busy for {:.4f} seconds".format(self.hubname, now - self.isy.Busy),
 														severity=ConsoleWarning, hb=True)
 								self.isy.Busy = 0
 							else:

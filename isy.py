@@ -482,8 +482,25 @@ class ISY(object):
 		# todo suppress error messages unless multiple failures but keep track of number for patterning consistent recoverable failures
 		# or perhaps informative message when recovery happens (e.g, recovered on try "n"
 		error = ['Errors']
+		busyloop = 0
+		while self.Busy != 0:
+			busyloop += 1
+			time.sleep(1)
+			if busyloop % 30 == 0:
+				logsupport.Logs.Log("{} comm request waiting on busy ISY for {} seconds".format(self.name, busyloop))
+			if busyloop > 180:
+				if closeonfail:
+					logsupport.Logs.Log("{} seems stuck busy (fatal)".format(self.name), severity=ConsoleError, hb=True)
+					self._HubOnline = False
+					self.isyEM.EndWSServer()
+					return ""
+				else:
+					logsupport.Logs.Log("{} seems stuck busy (non-fatal)".format(self.name), severity=ConsoleError,
+										hb=True)
+					return ""
+
 		reqtm = time.time()
-		for i in range(10):
+		for i in range(5):
 			try:
 				try:
 					self.HBDirect.Entry('(' + str(i) + ') Cmd: ' + self.ISYprefix + urlcmd)

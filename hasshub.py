@@ -479,6 +479,8 @@ class HA(object):
 										severity=ConsoleError,
 										tb=False)  # since already validate with API shouldn't get here
 					return
+				if mdecode['type'] == 'platform_discovered':  # todo temp
+					logsupport.Logs.Log('{} discovered platform: {}'.format(self.name, message))
 				if mdecode['type'] in ('result', 'service_registered', 'zwave.network_complete', 'platform_discovered'):
 					return
 				if mdecode['type'] != 'event':
@@ -531,9 +533,11 @@ class HA(object):
 				elif m['event_type'] == 'system_log_event':
 					logsupport.Logs.Log('Hub: ' + self.name + ' logged at level: ' + d['level'] + ' Msg: ' + d[
 						'message'])  # todo fake an event for Nest error?
+				elif m['event_type'] == 'config_entry_discovered':  # todo temp
+					logsupport.Logs.Log("{} config entry discovered: {}".format(self.name, message))
 				elif m['event_type'] in (
 				'call_service', 'service_executed', 'zwave.scene_activated', 'logbook_entry', 'service_registered',
-				'service_removed',
+				'service_removed', 'timer_out_of_sync',
 				'config_entry_discovered', 'persistent_notifications_updated'):
 					# debug.debugPrint('HASSchg', "Other expected event" + str(m))
 					pass
