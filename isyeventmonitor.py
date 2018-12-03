@@ -58,7 +58,7 @@ class ISYEventMonitor(object):
 			return
 		logsupport.Logs.Log(self.hubname + ": Attempt query (" + str(seq) + ") in errored node: " + enode,
 							severity=ConsoleWarning)
-		r = self.isy.try_ISY_comm('query/' + enode, timeout=120, closeonfail=False)
+		r = self.isy.try_ISY_comm('query/' + enode, timeout=60, closeonfail=False)
 		logsupport.Logs.Log('Temp: ', repr(r))
 		if r == '':
 			logsupport.Logs.Log(self.hubname + ": Query (" + str(seq) + ") attempt failed for node: " + enode,
@@ -364,7 +364,6 @@ class ISYEventMonitor(object):
 						elif enode in self.isy.ErrNodes:
 							logsupport.Logs.Log(
 								self.hubname + " cleared comm error for node: " + str(isynd))
-							logsupport.Logs.Log("-Temp- ", repr(m), repr(message), severity=ConsoleWarning, hb=True)
 							if enode in self.isy.ErrNodes:
 								# logsupport.Logs.Log("Query thread still running")
 								del self.isy.ErrNodes[enode]
@@ -387,9 +386,9 @@ class ISYEventMonitor(object):
 						self.LastMsgErr = enode
 
 					if ecode == "_3" and eaction == "NE":
-						logsupport.Logs.Log("Temp: Saw comm error code on WS stream: ", str(isynd), hb=True)
-						logsupport.Logs.Log("-Temp- ", repr(m), repr(message), severity=ConsoleWarning, hb=True)
-
+						self.LastMsgErr = enode
+						logsupport.Logs.Log(
+							"{} saw comm error code on WS stream for node{}".format(self.hubname, isynd), hb=True)
 
 				else:
 					logsupport.Logs.Log(self.hubname + " Strange item in event stream: " + str(m),
