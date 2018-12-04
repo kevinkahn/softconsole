@@ -40,6 +40,7 @@ import displayscreen
 import exitutils
 import hw
 import isy
+import hasshub
 import logsupport
 import maintscreen
 import utilities
@@ -75,9 +76,7 @@ config.hooks.hook()
 atexit.register(exitutils.exitlogging)
 
 config.hubtypes['ISY'] = isy.ISY
-if sys.version_info[0] == 3:  # todo remove and force v3.5
-	import hasshub
-	config.hubtypes['HASS'] = hasshub.HA
+config.hubtypes['HASS'] = hasshub.HA
 
 # noinspection PyUnusedLocal
 def handler(signum, frame):
@@ -429,7 +428,6 @@ if 'Variables' in config.ParsedConfigFile:
 		logsupport.Logs.Log("Local variable: " + nm + "(" + str(i) + ") = " + str(val))
 		tn[1] = nm
 		valuestore.SetVal(tn, val)
-		# valuestore.SetAttr(tn, (3, i)) todo del
 		i += 1
 	del config.ParsedConfigFile['Variables']
 

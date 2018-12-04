@@ -209,24 +209,6 @@ class ValueStore(object):
 			else:
 				return None
 
-	def GetValByAttr(self, attr):  # todo delete all these
-		logsupport.Logs.Log('Attribute (val) call to other than ISY store: ', self.name, severity=ConsoleError, tb=True)
-
-	def GetNameFromAttr(self, attr):
-		logsupport.Logs.Log('Attribute (name) call to other than ISY store: ', self.name, severity=ConsoleError, tb=True)
-
-	def SetAttr(self, name, attr):
-		logsupport.Logs.Log('Attribute (set) call to other than ISY store: ', self.name, severity=ConsoleError,
-							tb=True)
-
-	def GetAttr(self, name):
-		logsupport.Logs.Log('Attribute (getattr) call to other than ISY store: ', self.name, severity=ConsoleError,
-							tb=True)
-
-	def SetValByAttr(self, attr, val, modifier=None):
-		logsupport.Logs.Log('Attribute (setval) call to other than ISY store: ', self.name, severity=ConsoleError,
-							tb=True)
-
 	def AddAlert(self,name,a):
 		# alert is proc to be called with signature (storeitem, old, new, param, chgsource)
 		# a is passed in here as either just the proc or a 2-tuple (proc, param)

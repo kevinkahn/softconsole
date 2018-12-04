@@ -347,10 +347,10 @@ class ISYEventMonitor(object):
 						elif str(eaction) == '0':
 							if self.isy.Busy != 0:
 								# logsupport.Logs.Log(self.hubname, " cleared busy")
-								if now - self.isy.Busy > 2:
+								if now - self.isy.Busy > 10:
 									logsupport.Logs.Log(
-										"{} busy for {:.4f} seconds".format(self.hubname, now - self.isy.Busy),
-														severity=ConsoleWarning, hb=True)
+										"{}: busy for {:.4f} seconds".format(self.hubname, now - self.isy.Busy),
+										hb=True)
 								self.isy.Busy = 0
 							else:
 								logsupport.Logs.Log(self.hubname, " reported stand-alone not busy")

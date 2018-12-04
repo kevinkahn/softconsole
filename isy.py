@@ -478,8 +478,6 @@ class ISY(object):
 			if isinstance(N, Node): self._check_real_time_node_status(N)
 
 	def try_ISY_comm(self, urlcmd, timeout=5, closeonfail=True):
-		# todo suppress error messages unless multiple failures but keep track of number for patterning consistent recoverable failures
-		# or perhaps informative message when recovery happens (e.g, recovered on try "n"
 		error = ['Errors']
 		busyloop = 0
 		while self.Busy != 0:

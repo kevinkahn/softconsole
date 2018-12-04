@@ -64,7 +64,6 @@ class EventList(object):
 		self.finder = {}
 		self.TASKREADY = pygame.event.Event(pygame.USEREVENT,{})
 		self.HB = historybuffer.HistoryBuffer(100, 'EventList')
-		# todo think this could just be the int constant and remove .type below where used
 
 	def StartLongOp(self):
 		self.HB.Entry('StartLongOp')

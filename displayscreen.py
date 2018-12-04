@@ -237,7 +237,7 @@ class DisplayScreen(object):
 					if K.touched(pos):
 						K.Proc(config.PRESS)  # same action whether single or double tap
 
-			elif event.type == ACTIVITYTIMER:  # todo .type:
+			elif event.type == ACTIVITYTIMER:
 				self.HBEvents.Entry('ActivityTimer' + str(self.state))
 				debug.debugPrint('Dispatch', 'Activity timer fired State=', self.state, '/', self.dim)
 
