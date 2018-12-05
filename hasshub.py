@@ -516,8 +516,9 @@ class HA(object):
 				m = mdecode['event']
 				del mdecode['event']
 				d = m['data']
-				if m['event_type'] != 'state_changed': logsupport.Logs.Log(
-					'{} Event: {}'.format(self.name, message))  # todo temp
+				if m['event_type'] not in (
+				'state_changed', 'system_log_event', 'call_service', 'service_executed', 'logbook_entry'):
+					logsupport.Logs.Log('{} Event: {}'.format(self.name, message))  # todo temp
 				if m['event_type'] == 'state_changed':
 					del m['event_type']
 					ent = d['entity_id']

@@ -258,7 +258,8 @@ class LogDisplayScreen(screen.BaseKeyScreenDesc):
 			startat = config.sysStore.ErrorNotice
 			config.sysStore.ErrorNotice = -1
 			config.primaryBroker.Publish('set',
-										 payload='{"name":"System:GlobalLogViewTime","value":' + config.sysStore.LogStartTime + '}',
+										 payload='{"name":"System:GlobalLogViewTime","value":' + str(
+											 config.sysStore.LogStartTime) + '}',
 										 node='all')
 		else:
 			startat = 0

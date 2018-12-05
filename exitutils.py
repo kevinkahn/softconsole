@@ -63,7 +63,7 @@ def EarlyAbort(scrnmsg):
 
 def Exit(ecode, immediate=False):
 	consoleup = time.time() - config.starttime
-	logsupport.Logs.Log("Console was up: ", interval_str(consoleup), severity=ConsoleWarning)
+	logsupport.Logs.Log("Console was up: ", interval_str(consoleup))
 	with open(config.homedir + "/.RelLog", "a") as f:
 		f.write('Exit ' + str(ecode) + '\n')
 	os.chdir(config.exdir)  # set cwd to be correct when dirs move underneath us so that scripts execute
