@@ -112,7 +112,10 @@ class DisplayScreen(object):
 
 	def MainControlLoop(self, InitScreen):
 
+		config.sysStore.ErrorNotice = -1  # don't pester for errors during startup
+
 		threadmanager.StartThreads()
+		config.sysStore.LogStartTime = time.time()  # MQTT will start tracking other console errors now
 
 		if config.primaryBroker is not None: config.primaryBroker.ReportStatus('running')  #todo
 

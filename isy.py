@@ -214,8 +214,7 @@ class ISY(object):
 				# is what is hosed
 				trycount -= 1
 				if trycount > 0:
-					logsupport.Logs.Log('{}:  Hub not responding: '.format(self.name))
-					logsupport.Logs.Log('-ISY (nodes): ' + self.ISYprefix)
+					logsupport.Logs.Log('{}:  Hub not responding (nodes) at: {}'.format(self.name, self.ISYprefix))
 					time.sleep(15)
 				else:
 					logsupport.Logs.Log('No ISY response restart (nodes)')
@@ -353,8 +352,7 @@ class ISY(object):
 				# Eventually we try rebooting just in case our own network is what is hosed
 				trycount -= 1
 				if trycount > 0:
-					logsupport.Logs.Log('Hub not responding: ', self.name)
-					logsupport.Logs.Log('-ISY(programs): ' + self.ISYprefix)
+					logsupport.Logs.Log('{}:  Hub not responding (programs) at: {}'.format(self.name, self.ISYprefix))
 					time.sleep(15)
 				else:
 					logsupport.Logs.Log('No ISY response restart (programs)')
@@ -401,8 +399,7 @@ class ISY(object):
 				# Eventually we try rebooting just in case our own network is what is hosed
 				trycount -= 1
 				if trycount > 0:
-					logsupport.Logs.Log('Hub not responding: ', self.name)
-					logsupport.Logs.Log('-ISY(vars): ' + self.ISYprefix)
+					logsupport.Logs.Log('{}:  Hub not responding (variables) at: {}'.format(self.name, self.ISYprefix))
 					time.sleep(15)
 				else:
 					logsupport.Logs.Log('No ISY response restart (vars)')

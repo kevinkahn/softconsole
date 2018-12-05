@@ -444,7 +444,6 @@ class HA(object):
 			if i > 60:
 				logsupport.Logs.Log("{} not running after thread start ({})".format(self.name, self.haconnectstate),
 									severity=ConsoleError)
-				raise threadmanager.ThreadStartException
 			time.sleep(1)
 		try:
 			ha.call_service(self.api, 'logbook', 'log',
@@ -517,6 +516,8 @@ class HA(object):
 				m = mdecode['event']
 				del mdecode['event']
 				d = m['data']
+				if m['event_type'] != 'state_changed': logsupport.Logs.Log(
+					'{} Event: {}'.format(self.name, message))  # todo temp
 				if m['event_type'] == 'state_changed':
 					del m['event_type']
 					ent = d['entity_id']
@@ -723,15 +724,21 @@ class HA(object):
 		for i in range(9):
 			hassok = False
 			apistat = ha.validate_api(self.api)
-			if apistat.value != 'ok':  # todo check not connected response and give different message
-				logsupport.Logs.Log(self.name + ' access validation - retrying (' + repr(apistat) + ')',
-									severity=ConsoleWarning)
-				# if this is a system boot or whole house power hit it may take a while for HA to be ready so stretch the wait out
-				time.sleep(10 * i)
-			else:
+			if apistat == ha.APIStatus.OK:
 				hassok = True
 				break
-		# noinspection PyUnboundLocalVariable
+			elif apistat == ha.APIStatus.CANNOT_CONNECT:
+				logsupport.Logs.Log('{}: Not yet responding (starting up?)'.format(self.name))
+				time.sleep(10 * i)
+			elif apistat == ha.APIStatus.INVALID_PASSWORD:
+				logsupport.Logs.Log('{}: Bad access key'.format(self.name), severity=ConsoleError)
+				raise ValueError
+			else:
+				logsupport.Logs.Log(
+					'{}: Failed access validation for unknown reasons ({})'.format(self.name, repr(apistat)),
+					severity=ConsoleWarning)
+				time.sleep(5)
+
 		if hassok:
 			logsupport.Logs.Log('{}: Access accepted'.format(self.name))
 		else:
@@ -777,4 +784,4 @@ class HA(object):
 		threadmanager.SetUpHelperThread(self.name, self.HAevents, prerestart=self.PreRestartHAEvents,
 										poststart=self.PostStartHAEvents, postrestart=self.PostStartHAEvents,
 										prestart=self.PreRestartHAEvents, checkok=self.HACheckThread)
-		logsupport.Logs.Log("{}: Finished creating tructure for hub".format(self.name))
+		logsupport.Logs.Log("{}: Finished creating structure for hub".format(self.name))

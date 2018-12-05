@@ -115,6 +115,7 @@ class Logger(object):
 						{'node': config.hostname, 'sev': severity, 'time': entrytime, 'entry': entry}), node='all')
 
 			if severity in [ConsoleWarning, ConsoleError] and config.sysStore.ErrorNotice == -1:
+				config.sysStore.FirstUnseenErrorTime = time.time()
 				config.sysStore.ErrorNotice = len(self.log) - 1
 		if disklogging:
 			self.disklogfile.write(entrytime + ' Sev: ' + str(severity) + " " + entry + '\n')

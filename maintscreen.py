@@ -91,6 +91,12 @@ def SetUpMaintScreens():
 	Exits.userstore.ReParent(config.MaintScreen)
 	Beta.userstore.ReParent(config.MaintScreen)
 	LogDisp.userstore.ReParent(config.MaintScreen)
+	config.sysStore.AddAlert("GlobalLogViewTime", CheckIfLogSeen)
+
+
+def CheckIfLogSeen(storeitem, old, new, param, chgsource):
+	if new <= config.sysStore.FirstUnseenErrorTime:
+		config.sysStore.ErrorNotice = -1
 
 
 # noinspection PyUnusedLocal,PyUnusedLocal,PyUnusedLocal
@@ -129,6 +135,7 @@ def adjloglevel(K, presstype):
 
 # noinspection PyUnusedLocal
 def gohome(K, presstype):  # neither peram used
+	logsupport.Logs.Log('Exiting Maintenance Screen')
 	config.DS.SwitchScreen(config.HomeScreen, 'Bright', 'Home', 'Maint exit', NavKeys=True)
 
 # noinspection PyUnusedLocal
@@ -250,8 +257,9 @@ class LogDisplayScreen(screen.BaseKeyScreenDesc):
 		if config.sysStore.ErrorNotice != -1:
 			startat = config.sysStore.ErrorNotice
 			config.sysStore.ErrorNotice = -1
-			logsupport.Logs.Log("Space")
-			config.primaryBroker.Publish('set', payload='{"name":"System:ErrorNotice","value":-1}', node='all')
+			config.primaryBroker.Publish('set',
+										 payload='{"name":"System:GlobalLogViewTime","value":' + config.sysStore.LogStartTime + '}',
+										 node='all')
 		else:
 			startat = 0
 		self.item = 0

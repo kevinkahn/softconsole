@@ -465,6 +465,7 @@ Run the main console loop
 for n in alerttasks.monitoredvars:  # make sure vars used in alerts are updated to starting values
 	valuestore.GetVal(n)
 #config.sysStore.ErrorNotice = -1  # if -1 no unseen, else entry number of first unseen todo reenable
+config.sysStore.LogStartTime = time.time()  # todo move to after MQTT start
 config.DS.MainControlLoop(config.HomeScreen)
 logsupport.Logs.Log("Main line exit: ", config.ecode)
 pygame.quit()

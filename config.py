@@ -91,7 +91,10 @@ sysvals = {
 	'DimIdleListNames': (list, [], None),
 	'DimIdleListTimes': (list, [], None),
 	'CurrentScreen': (str, '*None*', None),
-	'ErrorNotice': (int, -1, None)
+	'ErrorNotice': (int, -1, None),
+	'LogStartTime': (int, 0, None),
+	'FirstUnseenErrorTime': (int, 0, None),
+	'GlobalLogViewTime': (int, 0, None)
 }
 
 # DimIdleListNames = []
