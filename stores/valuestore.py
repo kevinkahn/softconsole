@@ -22,9 +22,12 @@ def InternalizeVarName(name):
 	return name.split(':')
 
 def ExternalizeVarName(name):
-	n = name[0]
-	for i in name[1:]:
-		n = n + ':' + i
+	if isinstance(name, str):
+		n = name
+	else:
+		n = name[0]
+		for i in name[1:]:
+			n = n + ':' + i
 	return n
 
 def PrettyVarName(store,name):

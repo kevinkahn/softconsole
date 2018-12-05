@@ -89,7 +89,9 @@ sysvals = {
 	'MainChain': (list, [], None),
 	'SecondaryChain': (list, [], None),
 	'DimIdleListNames': (list, [], None),
-	'DimIdleListTimes': (list, [], None)
+	'DimIdleListTimes': (list, [], None),
+	'CurrentScreen': (str, '*None*', None),
+	'ErrorNotice': (int, -1, None)
 }
 
 # DimIdleListNames = []
@@ -99,3 +101,4 @@ sysvals = {
 # _MainChain = []  # defaults to order based on config file
 # _SecondaryChain = []  # if spec'd used for secondary screens else random order
 # _ExtraChain = []  # defaults to empty, unused screens
+primaryBroker = None

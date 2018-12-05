@@ -173,7 +173,7 @@ class MyScreens(object):
 			config.DimIdleTimes = [1000000]
 			logsupport.Logs.Log("No Dim Home Screen Cover Set")
 
-		logsupport.Logs.Log("Not on screen list and not cover screen:")
+		logsupport.Logs.Log("Defined but nused screens:")
 		for nm, scr in config.ExtraDict.items():
 			if (not isinstance(scr.screen, config.screentypes["Alert"])) and (not scr.screen in config.DimIdleList):
-				logsupport.Logs.Log("---" + nm, severity=ConsoleWarning)
+				logsupport.Logs.Log("---Unused: " + nm, severity=ConsoleWarning)

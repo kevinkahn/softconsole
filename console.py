@@ -434,7 +434,6 @@ if 'Variables' in config.ParsedConfigFile:
 """
 Build the Hub(s) object structure and connect the configured screens to it
 """
-
 configobjects.MyScreens()
 logsupport.Logs.Log("Linked config to Hubs")
 
@@ -457,13 +456,15 @@ Dump documentation if development version
 """
 #if config.versionname == 'development':
 #	utilities.DumpDocumentation()
+# for p in config.sysStore.items(): todo
+#	config.sysStore.AddAlert(p,config.primaryBroker.PushToMQTT)
 
 """
 Run the main console loop
 """
 for n in alerttasks.monitoredvars:  # make sure vars used in alerts are updated to starting values
 	valuestore.GetVal(n)
-logsupport.ErrorNotice = -1  # if -1 no unseen, else entry number of first unseen
+#config.sysStore.ErrorNotice = -1  # if -1 no unseen, else entry number of first unseen todo reenable
 config.DS.MainControlLoop(config.HomeScreen)
 logsupport.Logs.Log("Main line exit: ", config.ecode)
 pygame.quit()

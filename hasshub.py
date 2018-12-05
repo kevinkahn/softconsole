@@ -724,7 +724,7 @@ class HA(object):
 			hassok = False
 			apistat = ha.validate_api(self.api)
 			if apistat.value != 'ok':  # todo check not connected response and give different message
-				logsupport.Logs.Log(self.name + ' access failed validation - retrying (' + repr(apistat) + ')',
+				logsupport.Logs.Log(self.name + ' access validation - retrying (' + repr(apistat) + ')',
 									severity=ConsoleWarning)
 				# if this is a system boot or whole house power hit it may take a while for HA to be ready so stretch the wait out
 				time.sleep(10 * i)

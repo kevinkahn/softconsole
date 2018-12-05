@@ -161,7 +161,7 @@ class ScreenDesc(object):
 
 	def PaintBase(self):
 		config.screen.fill(wc(self.BackgroundColor))
-		if logsupport.ErrorNotice != -1:
+		if config.sysStore.ErrorNotice != -1:
 			pygame.draw.circle(config.screen, tint(self.BackgroundColor, tint_factor=.5),
 							   (self.markradius, self.markradius), self.markradius, 0)
 

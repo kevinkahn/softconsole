@@ -1,12 +1,17 @@
 import paho.mqtt.client as mqtt
+import paho.mqtt.publish as publish
 import logsupport
+import config
 import json
+
+from config import primaryBroker
 from logsupport import ConsoleWarning, ConsoleError
 # noinspection PyProtectedMember
 from configobj import Section
 import time
 from stores import valuestore
 import threadmanager
+
 
 class MQitem(valuestore.StoreItem):
 	def __init__(self, name, Topic, Type, Expires, jsonflds, Store):
@@ -26,6 +31,12 @@ class MQTTBroker(valuestore.ValueStore):
 			logsupport.Logs.Log("{}: {} with result code {}".format(self.name, logm, rc))
 			for i, _ in userdata.topicindex.items():
 				client.subscribe(i)
+			if config.primaryBroker == self:
+				client.subscribe('consoles/all/errors')
+				client.subscribe('consoles/all/cmd')
+				client.subscribe('consoles/' + config.hostname + '/cmd')
+				client.subscribe('consoles/' + config.hostname + '/set')
+				client.subscribe('consoles/all/set')
 			self.loopexited = False
 
 		#			for i, v in userdata.vars.items():
@@ -42,6 +53,25 @@ class MQTTBroker(valuestore.ValueStore):
 			for t, item in userdata.topicindex.items():
 				if t == msg.topic:
 					var.extend(item)
+
+			if msg.topic in ('consoles/all/cmd', 'consoles/' + config.hostname + '/cmd'):
+				logsupport.Logs.Log('MQTT command received: {}::{}'.format(msg.topic, repr(msg.payload)))
+				return
+			elif msg.topic == 'consoles/all/errors':
+				d = json.loads(msg.payload.decode('ascii'))
+				if d['node'] != config.hostname:
+					logsupport.Logs.Log('[{}]: {}'.format(d['node'], d['entry']), severity=d['sev'],
+										entrytime=d['time'], localonly=True)
+				return
+			elif msg.topic in ('consoles/all/set', 'consoles/' + config.hostname + '/set'):
+				d = json.loads(msg.payload.decode('ascii'))
+				try:
+					store = valuestore.SetVal(d['name'], d['value'])
+					logsupport.Logs.Log('MQTT set {} = {}'.format(d['name'], d['value']))
+				except Exception as E:
+					logsupport.Logs.Log('Bad set via MQTT: {} Exc: {}'.format(repr(d), E), severity=ConsoleWarning)
+				return
+			# todo set
 
 			# noinspection PySimplifyBooleanCheck
 			if var == []:
@@ -102,27 +132,12 @@ class MQTTBroker(valuestore.ValueStore):
 
 		self.address = configsect.get('address',None)
 		self.password = configsect.get('password',None)
+		self.reportstatus = configsect.get('ReportStatus', False)
 		self.vars = {}
 		self.ids = {}
 		self.topicindex = {}  # dict from full topics to MQitems
 		self.loopexited = True
-		'''
-		for itemname,value in configsect.items():
-			if isinstance(value,Section):
-				tp = value.get('TopicType', str)
-				if tp == 'group':
-					pass
-				elif tp == 'float':
-					tpcvrt = float
-				elif tp == 'int':
-					tpcvrt = int
-				else:
-					tpcvrt = str
-				tpc = value.get('Topic',None)
-				jsonflds = value.get('json', '').split(':')
-				self.vars[itemname] = MQitem(itemname, tpc, tpcvrt,int(value.get('Expires',99999999999999999)),jsonflds,self)
-				self.ids[tpc] = itemname
-		'''
+
 		for itemname, value in configsect.items():
 			if isinstance(value, Section):
 				self.vars[itemname] = _parsesection([itemname], value)
@@ -131,13 +146,19 @@ class MQTTBroker(valuestore.ValueStore):
 		self.MQTTclient.on_connect = on_connect
 		self.MQTTclient.on_message = on_message
 		self.MQTTclient.on_disconnect = on_disconnect
+		if self.reportstatus or primaryBroker is None:
+			topic = 'consoles/' + config.hostname + '/status'
+			self.MQTTclient.will_set(topic, 'dead', retain=True)
+			publish.single(topic, 'initializing', hostname=self.address, will={'topic': topic, 'payload': 'dead1'})
+			config.primaryBroker = self
 		threadmanager.SetUpHelperThread(self.name,self.MQTTLoop)
-		#self.MQTTclient.on_log = on_log
+
+	#self.MQTTclient.on_log = on_log
 		#self.MQTTclient.connect(self.address)
 		#self.MQTTclient.loop_start()
 
 	def MQTTLoop(self):
-		self.MQTTclient.connect(self.address)
+		self.MQTTclient.connect(self.address, keepalive=20)
 		self.MQTTclient.loop_forever()
 		self.MQTTclient.disconnect()
 		logsupport.Logs.Log("MQTT handler thread ended for: "+self.name,severity=ConsoleWarning)
@@ -171,9 +192,16 @@ class MQTTBroker(valuestore.ValueStore):
 	def SetValByID(lclid, val):
 		logsupport.Logs.Log("Can't set MQTT subscribed var by id within console: ", str(lclid))
 
+	def Publish(self, topic, payload=None, node=config.hostname, qos=2, retain=False):
+		fulltopic = 'consoles/' + node + '/' + topic
+		self.MQTTclient.publish(fulltopic, payload, qos, retain)
 
+	def ReportStatus(self, status):
+		self.MQTTclient.publish('consoles/' + config.hostname + '/status', status, retain=True, qos=1)
 
+	def PushToMQTT(self, storeitem, old, new, param, modifier):
+		self.Publish('/'.join(storeitem.name), str(new))
 
-
-
-
+	def Publish1(self, topic, payload, node=config.hostname):
+		fulltopic = 'consoles/' + node + '/' + topic
+		publish.single(fulltopic, payload, hostname=self.address)

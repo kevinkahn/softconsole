@@ -8,6 +8,7 @@ from stores import valuestore
 from logsupport import ConsoleWarning
 import historybuffer
 import time
+import config
 
 
 class NetCmd(object):
@@ -61,7 +62,7 @@ class NetCmd(object):
 			historybuffer.DumpAll('Command Dump', entrytime)
 		elif varval == 8:
 			logsupport.Logs.Log('Remote error indicator cleared')
-			logsupport.ErrorNotice = -1
+			config.sysStore.ErrorNotice = -1
 		elif varval in range(100, 100 + len(debug.DbgFlags)):
 			flg = debug.DbgFlags[varval - 100]
 			valuestore.SetVal(('Debug',flg), True)

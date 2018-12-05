@@ -247,9 +247,11 @@ class LogDisplayScreen(screen.BaseKeyScreenDesc):
 		debug.debugPrint('Main', "Enter to screen: ", self.name)
 		super(LogDisplayScreen, self).InitDisplay(nav)
 		logsupport.Logs.Log('Entering Log Screen')
-		if logsupport.ErrorNotice != -1:
-			startat = logsupport.ErrorNotice
-			logsupport.ErrorNotice = -1
+		if config.sysStore.ErrorNotice != -1:
+			startat = config.sysStore.ErrorNotice
+			config.sysStore.ErrorNotice = -1
+			logsupport.Logs.Log("Space")
+			config.primaryBroker.Publish('set', payload='{"name":"System:ErrorNotice","value":-1}', node='all')
 		else:
 			startat = 0
 		self.item = 0

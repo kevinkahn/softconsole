@@ -57,6 +57,8 @@ class DisplayScreen(object):
 		self.HBScreens.Entry(
 			NS.name + ' was ' + ASname + ' dim: ' + str(newdim) + ' state: ' + str(newstate) + ' reason: ' + str(
 				reason))
+		# config.sysStore.SetVal(['CurrentScreen'],NS.name) #todo temp
+		config.sysStore.CurrentScreen = NS.name
 		oldstate = self.state
 		olddim = self.dim
 		if NS == config.HomeScreen:  # always force home state on move to actual home screen
@@ -111,6 +113,8 @@ class DisplayScreen(object):
 	def MainControlLoop(self, InitScreen):
 
 		threadmanager.StartThreads()
+
+		if config.primaryBroker is not None: config.primaryBroker.ReportStatus('running')  #todo
 
 		self.ScreensDict = config.SecondaryDict.copy()
 		self.ScreensDict.update(config.MainDict)

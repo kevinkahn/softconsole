@@ -3,6 +3,7 @@ import pygame
 import webcolors
 import sys
 import traceback
+import json
 
 wc = webcolors.name_to_rgb  # can't use the safe version from utilities due to import loop but this is only used with
 # known color names
@@ -33,7 +34,6 @@ ConsoleDetail = 2
 ConsoleInfo = 3
 ConsoleWarning = 4
 ConsoleError = 5
-ErrorNotice = -1
 
 LogLevel = 3
 
@@ -83,11 +83,11 @@ class Logger(object):
 		"""
 		params: args is one or more strings (like for print) and kwargs is severity=
 		"""
-		global ErrorNotice
 		severity = kwargs.pop('severity', ConsoleInfo)
-		entrytime = time.strftime('%m-%d-%y %H:%M:%S')
+		entrytime = kwargs.pop('entrytime', time.strftime('%m-%d-%y %H:%M:%S'))
 		tb = kwargs.pop('tb', True)
 		hb = kwargs.pop('hb', False)
+		localonly = kwargs.pop('localonly', False)
 
 
 		if severity < LogLevel:
@@ -109,7 +109,13 @@ class Logger(object):
 
 		if not diskonly:
 			self.log.append((severity, entry, entrytime))
-			if severity in [ConsoleWarning, ConsoleError] and ErrorNotice == -1: ErrorNotice = len(self.log) - 1
+			if severity in [ConsoleWarning, ConsoleError]:
+				if config.primaryBroker is not None and not localonly:
+					config.primaryBroker.Publish1('errors', json.dumps(
+						{'node': config.hostname, 'sev': severity, 'time': entrytime, 'entry': entry}), node='all')
+
+			if severity in [ConsoleWarning, ConsoleError] and config.sysStore.ErrorNotice == -1:
+				config.sysStore.ErrorNotice = len(self.log) - 1
 		if disklogging:
 			self.disklogfile.write(entrytime + ' Sev: ' + str(severity) + " " + entry + '\n')
 			if severity == ConsoleError and tb:
