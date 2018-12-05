@@ -3,6 +3,11 @@ import paho.mqtt.publish as publish
 import logsupport
 import config
 import json
+import controlevents
+import exitutils
+import maintscreen
+import subprocess
+import historybuffer
 
 from config import primaryBroker
 from logsupport import ConsoleWarning, ConsoleError
@@ -48,6 +53,26 @@ class MQTTBroker(valuestore.ValueStore):
 			logsupport.Logs.Log("{}: Disconnected stream {} with result code {}".format(self.name, self.MQTTnum, rc))
 
 		# noinspection PyUnusedLocal
+		def DoRestart():
+			exitutils.Exit_Screen_Message('Remote restart requested', 'Remote Restart')
+			exitutils.Exit(exitutils.REMOTERESTART)
+
+		def GetStable():
+			maintscreen.fetch_stable()  # todo these fetches should have a screen message
+
+		def GetBeta():
+			maintscreen.fetch_beta()
+
+		def UseStable():
+			subprocess.Popen('sudo rm /home/pi/usebeta', shell=True)  # should move all these to some common place todo
+
+		def UseBeta():
+			subprocess.Popen('sudo touch /home/pi/usebeta', shell=True)
+
+		def DumpHB():
+			entrytime = time.strftime('%m-%d-%y %H:%M:%S')
+			historybuffer.DumpAll('Command Dump', entrytime)
+
 		def on_message(client, userdata, msg):
 			#print time.ctime() + " Received message " + str(msg.payload) + " on topic "  + msg.topic + " with QoS " + str(msg.qos)
 			var = []
@@ -56,7 +81,22 @@ class MQTTBroker(valuestore.ValueStore):
 					var.extend(item)
 
 			if msg.topic in ('consoles/all/cmd', 'consoles/' + config.hostname + '/cmd'):
-				logsupport.Logs.Log('MQTT command received: {}::{}'.format(msg.topic, repr(msg.payload)))
+				cmd = msg.payload.decode('ascii')
+				logsupport.Logs.Log('{}: Remote command received on {}: {}'.format(self.name, msg.topic, cmd))
+				cmdcalls = {'restart': DoRestart,
+							'getstable': GetStable,
+							'getbeta': GetBeta,
+							'usestable': UseStable,
+							'usebeta': UseBeta,
+							'hbdump': DumpHB}
+				if cmd.lower() in cmdcalls:
+					try:
+						controlevents.PostControl(controlevents.RunProc, name=cmd, proc=cmdcalls[cmd.lower()])
+					except Exception as E:
+						logsupport.Logs.Log('Exc: {}'.format(repr(E)))
+				else:
+					logsupport.Logs.Log('{}: Unknown remote command request: {}'.format(self.name, cmd),
+										severity=ConsoleWarning)
 				return
 			elif msg.topic == 'consoles/all/errors':
 				d = json.loads(msg.payload.decode('ascii'))
@@ -72,7 +112,6 @@ class MQTTBroker(valuestore.ValueStore):
 				except Exception as E:
 					logsupport.Logs.Log('Bad set via MQTT: {} Exc: {}'.format(repr(d), E), severity=ConsoleWarning)
 				return
-			# todo set
 
 			# noinspection PySimplifyBooleanCheck
 			if var == []:

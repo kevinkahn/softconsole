@@ -244,6 +244,10 @@ class DisplayScreen(object):
 					if K.touched(pos):
 						K.Proc(config.PRESS)  # same action whether single or double tap
 
+			elif event.type in (pygame.MOUSEBUTTONUP, pygame.MOUSEMOTION):
+				pass
+			# ignore for now - handle more complex gestures here if ever needed
+
 			elif event.type == ACTIVITYTIMER:
 				self.HBEvents.Entry('ActivityTimer' + str(self.state))
 				debug.debugPrint('Dispatch', 'Activity timer fired State=', self.state, '/', self.dim)
@@ -366,6 +370,14 @@ class DisplayScreen(object):
 					self.HBEvents.Entry('Unknown Event' + repr(E))
 					# unknown eevent?
 					debug.debugPrint('Dispatch', 'TASKREADY found unknown event: ', E)
+
+			elif event.type == RunProc:
+				self.HBEvents.Entry('Run procedure {}'.format(event.name))
+				event.proc()
+
+			else:
+				logsupport.Logs.Log("Unknown main event {}".format(repr(event)), severity=ConsoleError, hb=True,
+									tb=False)
 
 		logsupport.Logs.Log('Main Loop Exit: ', config.ecode)
 		pygame.quit()

@@ -33,7 +33,11 @@ def TryShorten(term):
 				if word[0].isupper(): phrase[i] = phrase[i].capitalize()
 		if chg:
 			newterm = ' '.join(phrase)
-			logsupport.Logs.Log("Long term: ", term, ' generically shortened to: ', newterm)
+			if len(newterm) > 12:
+				logsupport.Logs.Log("Long term: ", term, ' generically shortened to: ', newterm,
+									severity=ConsoleWarning)
+			else:
+				logsupport.Logs.Log("Long term: ", term, ' generically shortened to: ', newterm)
 		else:
 			logsupport.Logs.Log("Long term: " + term, severity=ConsoleWarning)
 		TermShortener[term] = newterm  # only report once
