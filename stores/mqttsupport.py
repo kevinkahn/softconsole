@@ -8,7 +8,7 @@ import exitutils
 import maintscreen
 import subprocess
 import historybuffer
-from utilities import ReportStatus
+from utilities import ReportStatus, RegisterConsole
 
 from logsupport import ConsoleWarning, ConsoleError
 # noinspection PyProtectedMember
@@ -38,11 +38,11 @@ class MQTTBroker(valuestore.ValueStore):
 			for i, _ in userdata.topicindex.items():
 				client.subscribe(i)
 			if config.primaryBroker == self:
-				client.subscribe('consoles/all/errors')
-				client.subscribe('consoles/all/cmd')
-				client.subscribe('consoles/' + config.hostname + '/cmd')
-				client.subscribe('consoles/' + config.hostname + '/set')
-				client.subscribe('consoles/all/set')
+				client.subscribe([('consoles/all/errors', 1),
+								  ('consoles/all/cmd', 1),
+								  ('consoles/' + config.hostname + '/cmd', 1),
+								  ('consoles/' + config.hostname + '/set', 1),
+								  ('consoles/all/set', 1)])
 			self.loopexited = False
 
 		#			for i, v in userdata.vars.items():
@@ -195,6 +195,7 @@ class MQTTBroker(valuestore.ValueStore):
 			topic = 'consoles/' + config.hostname + '/status'
 			self.MQTTclient.will_set(topic, json.dumps({'status': 'dead'}), retain=True)
 			config.primaryBroker = self
+			RegisterConsole()
 			ReportStatus('initializing')
 		threadmanager.SetUpHelperThread(self.name,self.MQTTLoop)
 

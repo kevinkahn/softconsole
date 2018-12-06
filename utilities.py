@@ -69,20 +69,6 @@ def scaleW(p):
 def scaleH(p):
 	return int(round(float(p)*float(config.dispratioH)))
 
-
-'''
-def ParseParam(param, parseconfig):
-	global paramlog
-	for p in param.__dict__:
-		if '__' not in p:
-			p2 = p.replace('_', '', 1) if p.startswith('_') else p
-			config.__dict__[p2] = type(param.__dict__[p])(parseconfig.get(p2, param.__dict__[p],delkey=False))
-			globdoc[p2] = (type(param.__dict__[p]), param.__dict__[p])
-			if not p.startswith('_'):
-				# can't log directly because logger isn't initialized yet at the point this is called
-				paramlog.append('Param: ' + p + ": " + str(config.__dict__[p2]))
-'''
-
 def LogParams():
 	global paramlog
 	for p in paramlog:
@@ -186,65 +172,6 @@ def InitializeEnvironment():
 	pygame.fastevent.init()
 
 
-'''
-def LocalizeParams(inst, configsection, indent, *args, **kwargs):
-	"""
-	Merge screen specific parameter values into self.<var> entries for the class
-	inst is the class object (self), configsection is the Section of the config.txt file for this object,
-		args are any global parameters (see globalparams.py) for which local overrides make sense and are used
-	after the call there will be self.xxx variables for all relevant paramters
-	kwargs are locally defined parameters for this object and a default value which also gets added as self.xxx and
-		a value is taken from the config section if present
-	:param inst:
-	:param configsection:
-	:param indent:
-	:param args
-	:param kwargs:
-	:return:
-	"""
-	global moddoc
-	if not inst.__class__.__name__ in moddoc:
-		moddoc[inst.__class__.__name__] = {'loc': {}, 'ovrd': set()}
-	if configsection is None:
-		configsection = {}
-	lcllist = []
-	lclval = []
-	for nametoadd in kwargs:
-		if nametoadd not in inst.__dict__:
-			logsupport.Logs.Log('Adding keyword without previous definition(internal anomoly): ', nametoadd)
-			lcllist.append(nametoadd)
-			lclval.append(kwargs[nametoadd])
-			moddoc[inst.__class__.__name__]['loc'][lcllist[-1]] = type(lclval[-1])
-		else:
-			lcllist.append(nametoadd)
-			lclval.append(kwargs[nametoadd])
-			moddoc[inst.__class__.__name__]['loc'][lcllist[-1]] = type(lclval[-1])
-			#logsupport.Logs.Log('Duplicated keyword localization (internal error): ' + nametoadd)
-	for nametoadd in args:
-		if nametoadd in config.__dict__:
-			lcllist.append(nametoadd)
-			lclval.append(config.__dict__[nametoadd])
-			moddoc[inst.__class__.__name__]['ovrd'].add(lcllist[-1])
-		else:
-			logsupport.Logs.Log("Obj " + inst.__class__.__name__ + ' attempted import of non-existent global ' + nametoadd,
-							severity=ConsoleError)
-
-	for i in range(len(lcllist)):
-		if isinstance(lclval[i], bool):
-			val = (configsection.get(lcllist[i], 'True' if lclval[i] else 'False') == 'True')
-		else:
-			val = type(lclval[i])(configsection.get(lcllist[i], lclval[i]))
-		if isinstance(val, list):
-			for j, v in enumerate(val):
-				if isinstance(v, str):
-					try:
-						val[j] = v.decode(encoding='UTF-8')#unicode(v,'UTF-8')
-					except AttributeError:
-						val[j] = v
-		if (lclval[i] != val) and (lcllist[i] in args):
-			logsupport.Logs.Log(indent + 'LParam: ' + lcllist[i] + ': ' + str(val), severity=ConsoleDetailHigh)
-		inst.__dict__[lcllist[i]] = val
-'''
 
 def DumpDocumentation():
 	docfile = open('docs/params.txt', 'w')
@@ -336,3 +263,12 @@ def ReportStatus(status):
 	if config.primaryBroker is not None:
 		stat = json.dumps({'status': status, "uptime": time.time() - config.starttime})
 		config.primaryBroker.MQTTclient.publish('consoles/' + config.hostname + '/status', stat, retain=True, qos=1)
+
+
+def RegisterConsole():
+	if config.primaryBroker is not None:
+		config.primaryBroker.MQTTclient.publish('consoles/all/nodes/' + config.hostname,
+												json.dumps(
+													{'registered': time.time(), 'versionname': config.versionname,
+													 'versionsha': config.versionsha, 'versiondnld': config.versiondnld,
+													 'versioncommit': config.versioncommit}), retain=True, qos=1)
