@@ -9,11 +9,13 @@ import config
 import toucharea
 import debug
 import exitutils
+from exitutils import MAINTEXIT, Exit_Screen_Message, MAINTRESTART, MAINTPISHUT, MAINTPIREBOOT, Exit
 from utilfuncs import interval_str, wc
 import logsupport
 from logsupport import ConsoleWarning
 import time
 import utilities
+from utilities import ReportStatus
 import screen
 import githubutil as U
 
@@ -145,7 +147,7 @@ def goto(newscreen, K, presstype):
 # noinspection PyUnusedLocal
 def handleexit(K, YesKey, presstype):
 	# YesKey, presstype are ignored in this use - needed by the key press invokation for other purposes
-	exitutils.domaintexit(K.name)
+	domaintexit(K.name)
 
 # noinspection PyUnusedLocal
 def doexit(K, presstype):
@@ -187,7 +189,7 @@ def dobeta(K, presstype):
 
 def fetch_stable():
 	basedir = os.path.dirname(config.exdir)
-
+	ReportStatus("updating stable")
 	# noinspection PyBroadException
 	try:
 		if os.path.exists(basedir + '/homesystem'):
@@ -203,10 +205,12 @@ def fetch_stable():
 		logsupport.Logs.Log("Staged version installed in consolestable")
 	except:
 		logsupport.Logs.Log('Failed release download', severity=ConsoleWarning)
+	ReportStatus("running")
 
 
 def fetch_beta():
 	basedir = os.path.dirname(config.exdir)
+	ReportStatus("updating beta")
 	logsupport.Logs.Log("New version fetch(currentbeta)")
 	print ("New Version Fetch Requested (currentbeta)")
 	# noinspection PyBroadException
@@ -216,7 +220,7 @@ def fetch_beta():
 		logsupport.Logs.Log("Staged version installed in consolebeta")
 	except:
 		logsupport.Logs.Log('Failed beta download', severity=ConsoleWarning)
-
+	ReportStatus("running")
 
 class LogDisplayScreen(screen.BaseKeyScreenDesc):
 	def __init__(self):
@@ -257,10 +261,9 @@ class LogDisplayScreen(screen.BaseKeyScreenDesc):
 		if config.sysStore.ErrorNotice != -1:
 			startat = config.sysStore.ErrorNotice
 			config.sysStore.ErrorNotice = -1
-			config.primaryBroker.Publish('set',
-										 payload='{"name":"System:GlobalLogViewTime","value":' + str(
-											 config.sysStore.LogStartTime) + '}',
-										 node='all')
+			if config.primaryBroker is not None:
+				config.primaryBroker.Publish('set', payload='{"name":"System:GlobalLogViewTime","value":' + str(
+					config.sysStore.LogStartTime) + '}', node='all')
 		else:
 			startat = 0
 		self.item = 0
@@ -309,3 +312,27 @@ class MaintScreenDesc(screen.BaseKeyScreenDesc):
 		logsupport.Logs.Log('Entering Maintenance Screen: ' + self.name)
 		super(MaintScreenDesc, self).InitDisplay(nav)
 		self.ShowScreen()
+
+
+def domaintexit(ExitKey):
+	if ExitKey == 'shut':
+		ReportStatus('shutting down')
+		ExitCode = MAINTEXIT
+		Exit_Screen_Message("Manual Shutdown Requested", "Maintenance Request", "Shutting Down")
+	elif ExitKey == 'restart':
+		ReportStatus('restarting')
+		ExitCode = MAINTRESTART
+		Exit_Screen_Message("Console Restart Requested", "Maintenance Request", "Restarting")
+	elif ExitKey == 'shutpi':
+		ReportStatus('pi shutdown')
+		ExitCode = MAINTPISHUT
+		Exit_Screen_Message("Shutdown Pi Requested", "Maintenance Request", "Shutting Down Pi")
+	elif ExitKey == 'reboot':
+		ReportStatus('pi reboot')
+		ExitCode = MAINTPIREBOOT
+		Exit_Screen_Message("Reboot Pi Requested", "Maintenance Request", "Rebooting Pi")
+	else:
+		ReportStatus('unknown maintenance restart')
+		ExitCode = MAINTRESTART
+		Exit_Screen_Message("Unknown Exit Requested", "Maintenance Error", "Trying a Restart")
+	Exit(ExitCode)

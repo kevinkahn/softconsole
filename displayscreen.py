@@ -15,6 +15,7 @@ from eventlist import AlertEventItem, ProcEventItem
 from eventlist import EventList
 from logsupport import ConsoleWarning, ConsoleError, ConsoleDetail
 import historybuffer
+from utilities import ReportStatus
 
 
 class DisplayScreen(object):
@@ -117,8 +118,6 @@ class DisplayScreen(object):
 		threadmanager.StartThreads()
 		config.sysStore.LogStartTime = time.time()  # MQTT will start tracking other console errors now
 
-		if config.primaryBroker is not None: config.primaryBroker.ReportStatus('running')  #todo
-
 		self.ScreensDict = config.SecondaryDict.copy()
 		self.ScreensDict.update(config.MainDict)
 
@@ -150,7 +149,12 @@ class DisplayScreen(object):
 		if config.Running:  # allow for a very early restart request from things like autoversion
 			self.SwitchScreen(InitScreen, 'Bright', 'Home', 'Startup')
 
+		statusperiod = time.time()
+
 		while config.Running:  # Operational Control Loop
+			if statusperiod <= time.time():
+				ReportStatus('running')
+				statusperiod += 60
 
 			if not threadmanager.Watcher.is_alive():
 				logsupport.Logs.Log("Threadmanager Failure", severity=ConsoleError,tb=False)

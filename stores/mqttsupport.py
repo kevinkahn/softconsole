@@ -8,8 +8,8 @@ import exitutils
 import maintscreen
 import subprocess
 import historybuffer
+from utilities import ReportStatus
 
-from config import primaryBroker
 from logsupport import ConsoleWarning, ConsoleError
 # noinspection PyProtectedMember
 from configobj import Section
@@ -74,7 +74,7 @@ class MQTTBroker(valuestore.ValueStore):
 			historybuffer.DumpAll('Command Dump', entrytime)
 
 		def EchoStat():
-			config.primaryBroker.ReportStatus({'status': 'running', "uptime": time.time() - config.starttime})
+			ReportStatus('running')
 
 		def on_message(client, userdata, msg):
 			#print time.ctime() + " Received message " + str(msg.payload) + " on topic "  + msg.topic + " with QoS " + str(msg.qos)
@@ -191,11 +191,11 @@ class MQTTBroker(valuestore.ValueStore):
 		self.MQTTclient.on_connect = on_connect
 		self.MQTTclient.on_message = on_message
 		self.MQTTclient.on_disconnect = on_disconnect
-		if self.reportstatus or primaryBroker is None:
+		if self.reportstatus or config.primaryBroker is None:
 			topic = 'consoles/' + config.hostname + '/status'
 			self.MQTTclient.will_set(topic, json.dumps({'status': 'dead'}), retain=True)
-			publish.single(topic, 'initializing', hostname=self.address, will={'topic': topic, 'payload': 'dead1'})
 			config.primaryBroker = self
+			ReportStatus('initializing')
 		threadmanager.SetUpHelperThread(self.name,self.MQTTLoop)
 
 
@@ -238,13 +238,6 @@ class MQTTBroker(valuestore.ValueStore):
 	def Publish(self, topic, payload=None, node=config.hostname, qos=2, retain=False):
 		fulltopic = 'consoles/' + node + '/' + topic
 		self.MQTTclient.publish(fulltopic, payload, qos, retain)
-
-	def ReportStatus(self, status):
-		stat = json.dumps(status) if isinstance(status, dict) else status
-		self.MQTTclient.publish('consoles/' + config.hostname + '/status', stat, retain=True, qos=1)
-
-	# todo: status should have state, thread numbers for subhandlers, uptime, etc. as a json record
-	# todo: for dead can we have been broadcasting last up every so often?
 
 	def PushToMQTT(self, storeitem, old, new, param, modifier):
 		self.Publish('/'.join(storeitem.name), str(new))

@@ -1,4 +1,5 @@
 import config
+from utilities import ReportStatus
 import githubutil
 import exitutils
 import sys
@@ -28,11 +29,13 @@ class AutoVersion(object):
 					logsupport.Logs.Log(
 						'Running (' + config.versionname + '): ' + config.versionsha + ' of ' + config.versioncommit)
 					logsupport.Logs.Log('Getting: ' + sha + ' of ' + c)
+					ReportStatus("updating firmware")
 					githubutil.StageVersion(config.exdir, config.versionname, 'Automatic download')
 					githubutil.InstallStagedVersion(config.exdir)
 					logsupport.Logs.Log("Staged version installed in ", config.exdir)
 					exiting = True
 					logsupport.Logs.Log('Restart for new version')
+					ReportStatus('rebooting')
 					exitutils.Exit(exitutils.AUTORESTART)
 				elif sha == 'no current sha':
 					logsupport.Logs.Log('No sha for autoversion: ',config.versionname,severity=ConsoleWarning)

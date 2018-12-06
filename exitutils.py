@@ -7,7 +7,7 @@ import pygame
 
 import config
 import logsupport
-from logsupport import ConsoleWarning, ConsoleError
+from logsupport import ConsoleError
 import historybuffer
 
 from utilfuncs import *
@@ -103,23 +103,6 @@ def Exit(ecode, immediate=False):
 		config.ecode = ecode
 		config.Running = False  # make sure the main loop ends even if this exit call returns
 
-def domaintexit(ExitKey):
-	if ExitKey == 'shut':
-		ExitCode = MAINTEXIT
-		Exit_Screen_Message("Manual Shutdown Requested", "Maintenance Request", "Shutting Down")
-	elif ExitKey == 'restart':
-		ExitCode = MAINTRESTART
-		Exit_Screen_Message("Console Restart Requested", "Maintenance Request", "Restarting")
-	elif ExitKey == 'shutpi':
-		ExitCode = MAINTPISHUT
-		Exit_Screen_Message("Shutdown Pi Requested", "Maintenance Request", "Shutting Down Pi")
-	elif ExitKey == 'reboot':
-		ExitCode = MAINTPIREBOOT
-		Exit_Screen_Message("Reboot Pi Requested", "Maintenance Request", "Rebooting Pi")
-	else:
-		ExitCode = MAINTRESTART
-		Exit_Screen_Message("Unknown Exit Requested", "Maintenance Error", "Trying a Restart")
-	Exit(ExitCode)
 
 def errorexit(opt):
 	if opt == ERRORRESTART:

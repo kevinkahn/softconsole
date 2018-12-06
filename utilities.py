@@ -4,6 +4,7 @@ import signal
 import time
 import socket
 import threadmanager  # should not depend on in project files - move somewhere else
+import json
 # from sets import Set
 
 import pygame
@@ -328,3 +329,10 @@ class Enumerate(object):
 	def __init__(self, names):
 		for number, name in enumerate(names.split()):
 			setattr(self, name, name)
+
+
+def ReportStatus(status):
+	# todo: status should have lasterror, thread numbers for subhandlers, uptime, etc. as a json record
+	if config.primaryBroker is not None:
+		stat = json.dumps({'status': status, "uptime": time.time() - config.starttime})
+		config.primaryBroker.MQTTclient.publish('consoles/' + config.hostname + '/status', stat, retain=True, qos=1)
