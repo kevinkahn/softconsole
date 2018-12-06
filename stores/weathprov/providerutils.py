@@ -14,7 +14,8 @@ GenericShortener = {
 	'heavy': 'hvy',
 	'shower': 'shwr',
 	'drizzle': 'drzl',
-	'rain': 'rn'
+	'rain': 'rn',
+	'snow': 'snw'
 }
 
 

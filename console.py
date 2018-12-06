@@ -316,8 +316,9 @@ logsupport.Logs.Log("Log level: ", logsupport.LogLevel)
 config.DS = displayscreen.DisplayScreen()  # create the actual device screen and touch manager
 
 utilities.LogParams()
-for i in config.sysStore:
-	logsupport.Logs.Log('SysParam: ' + valuestore.ExternalizeVarName(i.name) + ": " + str(i.Value))
+for n, param in config.sysvals.items():
+	if param[3]:
+		logsupport.Logs.Log('SysParam: ' + n + ": " + str(config.sysStore.GetVal(n)))
 
 """
 Fake an ISY Hub section if old style auth present

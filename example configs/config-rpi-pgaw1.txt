@@ -12,7 +12,7 @@ LogLevel = 3
 
 cfglib = "/home/pi/Console/cfglib"
 include = /home/pi/Console/local/authpga.cfg, pgawBRmain.cfg, pgaTstat.cfg, timetempLQ.cfg, timetempPDX.cfg, myclock2.cfg,weathPDX.cfg,weathPump.cfg,weathersources.cfg,pgawmqtt.cfg, pgaalerts.cfg
-HomeScreenName = LQ
+HomeScreenName = pgawBR
 DimLevel = 25
 DimTO = 25
 DimIdleListNames = MyClock, Portland, LaQuinta, TimeTemp

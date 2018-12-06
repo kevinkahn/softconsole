@@ -73,6 +73,9 @@ class MQTTBroker(valuestore.ValueStore):
 			entrytime = time.strftime('%m-%d-%y %H:%M:%S')
 			historybuffer.DumpAll('Command Dump', entrytime)
 
+		def EchoStat():
+			config.primaryBroker.ReportStatus({'status': 'running', "uptime": time.time() - config.starttime})
+
 		def on_message(client, userdata, msg):
 			#print time.ctime() + " Received message " + str(msg.payload) + " on topic "  + msg.topic + " with QoS " + str(msg.qos)
 			var = []
@@ -88,7 +91,8 @@ class MQTTBroker(valuestore.ValueStore):
 							'getbeta': GetBeta,
 							'usestable': UseStable,
 							'usebeta': UseBeta,
-							'hbdump': DumpHB}
+							'hbdump': DumpHB,
+							'status': EchoStat}
 				if cmd.lower() in cmdcalls:
 					try:
 						controlevents.PostControl(controlevents.RunProc, name=cmd, proc=cmdcalls[cmd.lower()])
@@ -108,7 +112,7 @@ class MQTTBroker(valuestore.ValueStore):
 				d = json.loads(msg.payload.decode('ascii'))
 				try:
 					store = valuestore.SetVal(d['name'], d['value'])
-					logsupport.Logs.Log('MQTT set {} = {}'.format(d['name'], d['value']))
+					logsupport.Logs.Log('{}: set {} = {}'.format(self.name, d['name'], d['value']))
 				except Exception as E:
 					logsupport.Logs.Log('Bad set via MQTT: {} Exc: {}'.format(repr(d), E), severity=ConsoleWarning)
 				return
@@ -189,7 +193,7 @@ class MQTTBroker(valuestore.ValueStore):
 		self.MQTTclient.on_disconnect = on_disconnect
 		if self.reportstatus or primaryBroker is None:
 			topic = 'consoles/' + config.hostname + '/status'
-			self.MQTTclient.will_set(topic, 'dead', retain=True)
+			self.MQTTclient.will_set(topic, json.dumps({'status': 'dead'}), retain=True)
 			publish.single(topic, 'initializing', hostname=self.address, will={'topic': topic, 'payload': 'dead1'})
 			config.primaryBroker = self
 		threadmanager.SetUpHelperThread(self.name,self.MQTTLoop)
@@ -236,7 +240,11 @@ class MQTTBroker(valuestore.ValueStore):
 		self.MQTTclient.publish(fulltopic, payload, qos, retain)
 
 	def ReportStatus(self, status):
-		self.MQTTclient.publish('consoles/' + config.hostname + '/status', status, retain=True, qos=1)
+		stat = json.dumps(status) if isinstance(status, dict) else status
+		self.MQTTclient.publish('consoles/' + config.hostname + '/status', stat, retain=True, qos=1)
+
+	# todo: status should have state, thread numbers for subhandlers, uptime, etc. as a json record
+	# todo: for dead can we have been broadcasting last up every so often?
 
 	def PushToMQTT(self, storeitem, old, new, param, modifier):
 		self.Publish('/'.join(storeitem.name), str(new))

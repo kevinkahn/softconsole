@@ -79,22 +79,23 @@ ExtraChain = []
 sysStore = None
 
 sysvals = {
-	'DimLevel': (int, 10, (hw.ResetScreenLevel, True)),
-	'BrightLevel': (int, 100, (hw.ResetScreenLevel, False)),
-	'MultiTapTime': (int, 400, None),
-	'HomeScreenName': (str, '', None),
-	'MaxLogFiles': (int, 5, None),
-	'LogFontSize': (int, 14, None),
-	'DimHomeScreenCoverName': (str, "", None),
-	'MainChain': (list, [], None),
-	'SecondaryChain': (list, [], None),
-	'DimIdleListNames': (list, [], None),
-	'DimIdleListTimes': (list, [], None),
-	'CurrentScreen': (str, '*None*', None),
-	'ErrorNotice': (int, -1, None),
-	'LogStartTime': (int, 0, None),
-	'FirstUnseenErrorTime': (int, 0, None),
-	'GlobalLogViewTime': (int, 0, None)
+	# name: (type, value, (AddAlertproc, param) or None, write to log)
+	'DimLevel': (int, 10, (hw.ResetScreenLevel, True), True),
+	'BrightLevel': (int, 100, (hw.ResetScreenLevel, False), True),
+	'MultiTapTime': (int, 400, None, True),
+	'HomeScreenName': (str, '', None, True),
+	'MaxLogFiles': (int, 5, None, True),
+	'LogFontSize': (int, 14, None, True),
+	'DimHomeScreenCoverName': (str, "", None, False),
+	'MainChain': (list, [], None, False),
+	'SecondaryChain': (list, [], None, False),
+	'DimIdleListNames': (list, [], None, True),
+	'DimIdleListTimes': (list, [], None, True),
+	'CurrentScreen': (str, '*None*', None, False),
+	'ErrorNotice': (int, -1, None, False),
+	'LogStartTime': (int, 0, None, False),
+	'FirstUnseenErrorTime': (int, 0, None, False),
+	'GlobalLogViewTime': (int, 0, None, False)
 }
 
 # DimIdleListNames = []
