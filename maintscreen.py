@@ -261,11 +261,11 @@ class LogDisplayScreen(screen.BaseKeyScreenDesc):
 		if config.sysStore.ErrorNotice != -1:
 			startat = config.sysStore.ErrorNotice
 			config.sysStore.ErrorNotice = -1
-			if config.primaryBroker is not None:
-				config.primaryBroker.Publish('set', payload='{"name":"System:GlobalLogViewTime","value":' + str(
-					config.sysStore.LogStartTime) + '}', node='all')
 		else:
 			startat = 0
+		if config.primaryBroker is not None:
+			config.primaryBroker.Publish('set', payload='{"name":"System:GlobalLogViewTime","value":' + str(
+				config.sysStore.LogStartTime) + '}', node='all')
 		self.item = 0
 		self.PageStartItem = [0]
 		self.pageno = -1

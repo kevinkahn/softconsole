@@ -106,7 +106,7 @@ class MQTTBroker(valuestore.ValueStore):
 				d = json.loads(msg.payload.decode('ascii'))
 				if d['node'] != config.hostname:
 					logsupport.Logs.Log('[{}]: {}'.format(d['node'], d['entry']), severity=d['sev'],
-										entrytime=d['time'], localonly=True)
+										entrytime=d['time'], localonly=True, tb=False, hb=False)
 				return
 			elif msg.topic in ('consoles/all/set', 'consoles/' + config.hostname + '/set'):
 				d = json.loads(msg.payload.decode('ascii'))
