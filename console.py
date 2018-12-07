@@ -95,6 +95,11 @@ def handler(signum, frame):
 signal.signal(signal.SIGTERM, handler)
 signal.signal(signal.SIGINT, handler)
 
+with open('/proc/stat', 'r') as f:
+	for line in f:
+		if line.startswith('btime'):
+			config.bootime = int(line.split()[1])
+
 config.Console_pid = os.getpid()
 config.exdir = os.path.dirname(os.path.abspath(__file__))
 os.chdir(config.exdir)  # make sure we are in the directory we are executing from

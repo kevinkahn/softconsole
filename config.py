@@ -1,5 +1,9 @@
 import hw
 
+bootime = 0
+consolestatus = 'started'
+prevstatus = ''
+
 screentypes = {}  # set by each module for screens of the type that module creates (see last line in any XxxScreen module
 screenparamuse = {}
 

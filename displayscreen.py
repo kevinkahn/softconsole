@@ -152,9 +152,10 @@ class DisplayScreen(object):
 		statusperiod = time.time()
 
 		while config.Running:  # Operational Control Loop
-			if statusperiod <= time.time():
-				ReportStatus('running')
-				statusperiod += 60
+			if statusperiod <= time.time() or config.prevstatus != config.consolestatus:
+				ReportStatus(config.consolestatus)
+				config.prevstatus = config.consolestatus
+				statusperiod = time.time() + 60
 
 			if not threadmanager.Watcher.is_alive():
 				logsupport.Logs.Log("Threadmanager Failure", severity=ConsoleError,tb=False)
@@ -194,6 +195,7 @@ class DisplayScreen(object):
 
 				if self.dim == 'Dim':
 					# wake up the screen and if in a cover state go home
+					config.consolestatus = 'active'
 					if self.state == 'Cover':
 						self.SwitchScreen(config.HomeScreen, 'Bright', 'Home', 'Wake up from cover')
 					else:
@@ -257,6 +259,7 @@ class DisplayScreen(object):
 				debug.debugPrint('Dispatch', 'Activity timer fired State=', self.state, '/', self.dim)
 
 				if self.dim == 'Bright':
+					config.consolestatus = 'idle'
 					self.Dim()
 					self.SetActivityTimer(self.AS.PersistTO, 'Go dim and wait persist')
 				else:

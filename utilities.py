@@ -261,7 +261,8 @@ class Enumerate(object):
 def ReportStatus(status):
 	# todo: status should have lasterror, thread numbers for subhandlers, uptime, etc. as a json record
 	if config.primaryBroker is not None:
-		stat = json.dumps({'status': status, "uptime": time.time() - config.starttime})
+		stat = json.dumps({'status': status, "uptime": time.time() - config.starttime,
+						   "error": config.sysStore.ErrorNotice})
 		config.primaryBroker.MQTTclient.publish('consoles/' + config.hostname + '/status', stat, retain=True, qos=1)
 
 
@@ -271,4 +272,6 @@ def RegisterConsole():
 												json.dumps(
 													{'registered': time.time(), 'versionname': config.versionname,
 													 'versionsha': config.versionsha, 'versiondnld': config.versiondnld,
-													 'versioncommit': config.versioncommit}), retain=True, qos=1)
+													 'versioncommit': config.versioncommit,
+													 'boottime': config.bootime}),
+												retain=True, qos=1)
