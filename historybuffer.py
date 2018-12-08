@@ -23,64 +23,56 @@ def SetupHistoryBuffers(dirnm, maxlogs):
 	HBdir = dirnm + '/.HistoryBuffer/'
 
 
-def DumpAll1(idline, entrytime):
-	global bufdumpseq
-	bufdumpseq += 1
-	with open(HBdir + str(bufdumpseq) + '-' + entrytime, 'w') as f:
-		f.write(entrytime + ': ' + idline + '\n')
-		for nm, HB in Buffers.items():
-			f.write('-----------' + nm + '-----------\n')
-			HB.Dump(f)
-			f.write('\n')
-
-
 def DumpAll(idline, entrytime):
-	global bufdumpseq
-	bufdumpseq += 1
-	t = {}
-	curfirst = {}
-	curtime = {}
-	initial = {}
-	now = time.time()
-	more = True
-	for nm, HB in Buffers.items():
-		t[nm] = HB.content()
-		try:
-			curfirst[nm] = next(t[nm])
-			curtime[nm] = curfirst[nm][1]
-		except StopIteration:
-			if nm in curfirst: del curfirst[nm]
-			if nm in curtime:  del curtime[nm]
-		initial[nm] = '*'
-	if curfirst == {} or curtime == {}:
-		more = False
-	with open(HBdir + str(bufdumpseq) + '-' + entrytime, 'w') as f:
-		prevtime = 0
-		f.write(entrytime + ': ' + idline + '\n')
-		while more:
-			nextup = min(curtime, key=curtime.get)
-			if curtime[nextup] > prevtime:
-				prevtime = curtime[nextup]
-			else:
-				f.write('seq error:' + str(prevtime) + ' ' + str(curtime[nextup]) + '\n')
-				prevtime = 0
-			if now - curfirst[nextup][1] < 300:  # limit history dump to 5 minutes worth
-				f.write(
-					'{:1s}{:10s}:({:3d}) {:.5f}: {}\n'.format(initial[nextup], nextup, curfirst[nextup][0],
-															  now - curfirst[nextup][1],
-															  curfirst[nextup][2]))
-				# f.write(nextup + ': (' + str(curfirst[nextup][0]) + ') ' + str(curfirst[nextup][1]) + ': ' + repr(curfirst[nextup][2]) + '\n')
-				initial[nextup] = ' '
+	try:
+		global bufdumpseq
+		bufdumpseq += 1
+		fn = HBdir + str(bufdumpseq) + '-' + entrytime
+		t = {}
+		curfirst = {}
+		curtime = {}
+		initial = {}
+		now = time.time()
+		more = True
+		for nm, HB in Buffers.items():
+			t[nm] = HB.content()
 			try:
-				curfirst[nextup] = next(t[nextup])
-				curtime[nextup] = curfirst[nextup][1]
+				curfirst[nm] = next(t[nm])
+				curtime[nm] = curfirst[nm][1]
 			except StopIteration:
-				del curfirst[nextup]
-				del curtime[nextup]
-			if curfirst == {} or curtime == {}: more = False
-
-
-
+				if nm in curfirst: del curfirst[nm]
+				if nm in curtime:  del curtime[nm]
+			initial[nm] = '*'
+		if curfirst == {} or curtime == {}:
+			more = False
+		with open(fn, 'w') as f:
+			prevtime = 0
+			f.write(entrytime + ': ' + idline + '\n')
+			while more:
+				nextup = min(curtime, key=curtime.get)
+				if curtime[nextup] > prevtime:
+					prevtime = curtime[nextup]
+				else:
+					f.write('seq error:' + str(prevtime) + ' ' + str(curtime[nextup]) + '\n')
+					prevtime = 0
+				if now - curfirst[nextup][1] < 300:  # limit history dump to 5 minutes worth
+					f.write(
+						'{:1s}{:10s}:({:3d}) {:.5f}: {}\n'.format(initial[nextup], nextup, curfirst[nextup][0],
+																  now - curfirst[nextup][1],
+																  curfirst[nextup][2]))
+					# f.write(nextup + ': (' + str(curfirst[nextup][0]) + ') ' + str(curfirst[nextup][1]) + ': ' + repr(curfirst[nextup][2]) + '\n')
+					initial[nextup] = ' '
+				try:
+					curfirst[nextup] = next(t[nextup])
+					curtime[nextup] = curfirst[nextup][1]
+				except StopIteration:
+					del curfirst[nextup]
+					del curtime[nextup]
+				if curfirst == {} or curtime == {}: more = False
+	except Exception as E:
+		with open(fn, 'a') as ef:
+			ef.write('Error dumping buffer for: ' + entrytime + ': ' + idline + '\n')
+			ef.write('Exception was: ' + repr(E) + '\n')
 
 
 class EntryItem(object):

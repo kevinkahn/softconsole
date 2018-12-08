@@ -51,6 +51,8 @@ versionname = ""
 versionsha = ""
 versiondnld = ""
 versioncommit = ""
+osversion = ""
+hwinfo = ""
 
 # Screen Display Info
 screenwidth = 0

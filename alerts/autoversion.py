@@ -30,7 +30,7 @@ class AutoVersion(object):
 						'Running (' + config.versionname + '): ' + config.versionsha + ' of ' + config.versioncommit)
 					logsupport.Logs.Log('Getting: ' + sha + ' of ' + c)
 					ReportStatus("updating firmware")
-					githubutil.StageVersion(config.exdir, config.versionname, 'Automatic download')
+					githubutil.StageVersion(config.exdir, config.versionname, 'Auto Dnld')
 					githubutil.InstallStagedVersion(config.exdir)
 					logsupport.Logs.Log("Staged version installed in ", config.exdir)
 					exiting = True

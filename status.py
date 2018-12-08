@@ -3,6 +3,7 @@ from datetime import datetime
 import os
 import time
 import json
+import sys
 
 nodetable = {}
 tm = time.time()
@@ -24,6 +25,18 @@ def paint():
 			print("{:^19.19}".format('unknown'))
 		else:
 			print("{:%Y-%m-%d %H:%M:%S}".format(datetime.fromtimestamp(info['boottime'])))
+
+
+def baseinfo():
+	os.system('clear')
+	print("Info:")
+	for n, info in nodetable.items():
+		offline = ' (offline)' if info['status'] in ('dead', 'unknown') else ''
+		print("{:12.12s} ({})  {}".format(n, info['reginfo']['versionname'], offline))
+		for key, title, nl in zip(('hw', 'osversion', 'versioncommit', 'versiondnld'), ('', '', '', '', '',),
+								  ('\n', '\n', '', '\n')):
+			if key in info['reginfo']:
+				print(' {} {}'.format(title, info['reginfo'][key]), end=nl)
 
 
 def interval_str(sec_elapsed):
@@ -51,6 +64,7 @@ def on_message(client, ud, msg):
 		if topic[2] == 'nodes':
 			nd = topic[-1]
 			if nd not in nodetable: nodetable[nd] = {'status': 'unknown', 'boottime': 0, 'uptime': 0, 'error': '-'}
+			nodetable[nd]['reginfo'] = msgdcd
 			if 'boottime' in msgdcd: nodetable[nd]['boottime'] = msgdcd['boottime']
 		elif topic[2] == 'status':
 			nd = topic[1]
@@ -62,7 +76,10 @@ def on_message(client, ud, msg):
 	except Exception as E:
 		print("Exception: {}".format(repr(E)))
 	if time.time() - tm > 2:
-		paint()
+		if len(sys.argv) > 1:
+			baseinfo()
+		else:
+			paint()
 
 
 client = mqtt.Client()
@@ -73,11 +90,13 @@ client.loop_start()
 client.connect('rpi-kck.pdxhome')
 try:
 	time.sleep(1)
-	try:
+	if len(sys.argv) > 1:
+		baseinfo()
+	else:
 		paint()
-	except Exception as E:
-		print(repr(E))
 	while True:
 		pass
 except KeyboardInterrupt:
 	print()
+except Exception as E:
+	print('Exc: {}'.format(repr(E)))

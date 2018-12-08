@@ -24,30 +24,18 @@ for pdir in ('Console', 'consolestable', 'consolebeta', 'consolerem'):
 
 if os.path.exists('homesystem'):
 	# personal system
-	U.StageVersion('consolestable', 'homerelease', 'InitialInstall')
+	U.StageVersion('consolestable', 'homerelease', 'Initial Install')
 	print("Stage homerelease as stable")
 else:
-	U.StageVersion('consolestable', 'currentrelease', 'InitialInstall')
+	U.StageVersion('consolestable', 'currentrelease', 'Initial Install')
 	print("Stage standard stable release")
 U.InstallStagedVersion('consolestable')
 print("Installed staged stable")
 
-# U.StageVersion('consolebeta', 'currentbeta', 'InitialInstall')
-# print("Stage current beta release")
-# U.InstallStagedVersion('consolebeta')
-# print("Installed staged beta")
 
 if os.path.exists('homesystem'):
 	os.mkdir('consolecur')
 	os.chown('consolecur', piuid, pigrp)
-# U.StageVersion('consolecur', 'currenttest', 'InitialInstall')
-# print("Stage test version")
-# U.InstallStagedVersion('consolecur')
-# print("Installed test version")
-# U.StageVersion('consolerem', '*live*', 'InitialInstall')
-# print("Stage live development version")
-# U.InstallStagedVersion('consolerem')
-#print("Installed live development version")
 
 
 subprocess.call("cp -r /home/pi/consolestable/'example configs'/* /home/pi/Console", shell=True)

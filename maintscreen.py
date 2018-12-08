@@ -196,11 +196,11 @@ def fetch_stable():
 			# personal system
 			logsupport.Logs.Log("New version fetch(homerelease)")
 			print ("New Version Fetch Requested (homesystem)")
-			U.StageVersion(basedir + '/consolestable', 'homerelease', 'RequestedDownload')
+			U.StageVersion(basedir + '/consolestable', 'homerelease', 'Maint Dnld')
 		else:
 			logsupport.Logs.Log("New version fetch(currentrelease)")
 			print ("New Version Fetch Requested (currentrelease)")
-			U.StageVersion(basedir + '/consolestable', 'currentrelease', 'RequestedDownload')
+			U.StageVersion(basedir + '/consolestable', 'currentrelease', 'Maint Dnld')
 		U.InstallStagedVersion(basedir + '/consolestable')
 		logsupport.Logs.Log("Staged version installed in consolestable")
 	except:
@@ -215,7 +215,7 @@ def fetch_beta():
 	print ("New Version Fetch Requested (currentbeta)")
 	# noinspection PyBroadException
 	try:
-		U.StageVersion(basedir + '/consolebeta', 'currentbeta', 'RequestedDownload')
+		U.StageVersion(basedir + '/consolebeta', 'currentbeta', 'Maint Dnld')
 		U.InstallStagedVersion(basedir + '/consolebeta')
 		logsupport.Logs.Log("Staged version installed in consolebeta")
 	except:

@@ -273,5 +273,6 @@ def RegisterConsole():
 													{'registered': time.time(), 'versionname': config.versionname,
 													 'versionsha': config.versionsha, 'versiondnld': config.versiondnld,
 													 'versioncommit': config.versioncommit,
-													 'boottime': config.bootime}),
+													 'boottime': config.bootime, 'osversion': config.osversion,
+													 'hw': config.hwinfo}),
 												retain=True, qos=1)

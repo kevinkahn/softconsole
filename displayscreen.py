@@ -117,6 +117,8 @@ class DisplayScreen(object):
 
 		threadmanager.StartThreads()
 		config.sysStore.LogStartTime = time.time()  # MQTT will start tracking other console errors now
+		# so we can start broadcasting our errors
+		logsupport.LocalOnly = False
 
 		self.ScreensDict = config.SecondaryDict.copy()
 		self.ScreensDict.update(config.MainDict)

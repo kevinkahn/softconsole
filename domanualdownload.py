@@ -21,7 +21,7 @@ try:  # if network is down or other error occurs just skip for now rather than b
 		print('Current hub version different')
 		print('Running (' + versionname + '): ' + versionsha + ' of ' + versioncommit)
 		print('Getting: ' + sha + ' of ' + c)
-		githubutil.StageVersion(exdir, versionname, 'Manual offline download')
+		githubutil.StageVersion(exdir, versionname, 'Offline Dnld')
 		githubutil.InstallStagedVersion(exdir)
 		print("Staged version installed in " + exdir)
 	elif sha == 'no current sha':

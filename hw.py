@@ -1,5 +1,7 @@
 import os
 import wiringpi
+import config
+import platform
 
 disklogging = True
 touchdevice = True
@@ -38,6 +40,15 @@ def ResetScreenLevel(storeitem, old, val, dim, unusedsrc):
 # noinspection PyBroadException
 def initOS(screentype):
 	global PWMDim
+	# get platform info
+	with open('/proc/stat', 'r') as f:
+		for line in f:
+			if line.startswith('btime'):
+				config.bootime = int(line.split()[1])
+	config.osversion = platform.platform()
+	with open('/proc/device-tree/model') as f:
+		config.hwinfo = f.read()
+
 	if screentype == 'pi7':
 		os.environ['SDL_FBDEV'] = '/dev/fb0'
 		os.environ['SDL_NOMOUSE'] = '1'

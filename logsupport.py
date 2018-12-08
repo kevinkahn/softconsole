@@ -36,6 +36,7 @@ ConsoleWarning = 4
 ConsoleError = 5
 
 LogLevel = 3
+LocalOnly = True
 
 def StringLike(obj):
 	return isinstance(obj, str)  # todo del
@@ -87,7 +88,7 @@ class Logger(object):
 		entrytime = kwargs.pop('entrytime', time.strftime('%m-%d-%y %H:%M:%S'))
 		tb = kwargs.pop('tb', True)
 		hb = kwargs.pop('hb', False)
-		localonly = kwargs.pop('localonly', False)
+		localonly = kwargs.pop('localonly', False) or LocalOnly  # don't brcst error unti mqtt is up
 
 
 		if severity < LogLevel:

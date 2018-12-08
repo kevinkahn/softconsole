@@ -14,6 +14,10 @@ from logsupport import ConsoleWarning, ConsoleError, ConsoleDetail
 import functools
 from eventlist import ProcEventItem
 
+haignoreandskipdomains = ('history_graph', 'updater')
+ignoredeventtypes = ('system_log_event', 'call_service', 'service_executed', 'logbook_entry', 'timer_out_of_sync',
+					 'persistent_notifications_updated')
+
 def stringtonumeric(v):
 	if not isinstance(v,str):
 		return v
@@ -516,9 +520,7 @@ class HA(object):
 				m = mdecode['event']
 				del mdecode['event']
 				d = m['data']
-				if m['event_type'] not in (
-				'state_changed', 'system_log_event', 'call_service', 'service_executed', 'logbook_entry'):
-					logsupport.Logs.Log('{} Event: {}'.format(self.name, message))  # todo temp
+
 				if m['event_type'] == 'state_changed':
 					del m['event_type']
 					ent = d['entity_id']
@@ -529,7 +531,7 @@ class HA(object):
 					del d['old_state']
 					del d['entity_id']
 					chgs, dels, adds = findDiff(old, new)
-					if not ent in self.Entities and not ent in self.IgnoredEntities and not dom in self.haignoreandskipdomains:
+					if not ent in self.Entities and not ent in self.IgnoredEntities and not dom in haignoreandskipdomains:
 						# not an entitity type that is currently known
 						debug.debugPrint('HASSgeneral', self.name,
 										 ' WS Stream item for unhandled entity type: ' + ent + ' Added: ' + str(
@@ -566,15 +568,10 @@ class HA(object):
 						'message'])  # todo fake an event for Nest error?
 				elif m['event_type'] == 'config_entry_discovered':  # todo temp
 					logsupport.Logs.Log("{} config entry discovered: {}".format(self.name, message))
-				elif m['event_type'] in (
-				'call_service', 'service_executed', 'zwave.scene_activated', 'logbook_entry', 'service_registered',
-				'service_removed', 'timer_out_of_sync',
-				'config_entry_discovered', 'persistent_notifications_updated'):
+				elif m['event_type'] not in ignoredeventtypes:
 					# debug.debugPrint('HASSchg', "Other expected event" + str(m))
-					pass
-				else:
+					logsupport.Logs.Log('{} Event: {}'.format(self.name, message))  # todo temp
 					debug.debugPrint('HASSgeneral', "Unknown event: " + str(m))
-					logsupport.Logs.Log("Previously unknown event seen: " + str(m))
 			except Exception as E:
 				logsupport.Logs.Log("Exception handling HA message: ", repr(E), repr(message), severity=ConsoleWarning)
 
@@ -682,7 +679,6 @@ class HA(object):
 		hadomains = {'group': Group, 'light': Light, 'switch': Switch, 'sensor': Sensor, 'automation': Automation,
 					 'climate': Thermostat, 'media_player': MediaPlayer, 'binary_sensor': BinarySensor, 'script': Script}
 		haignoredomains = {'zwave': ZWave, 'sun': HAnode, 'notifications': HAnode, 'persistent_notification': HAnode}
-		self.haignoreandskipdomains = ('history_graph', 'updater')
 
 		self.sensorstore = valuestore.NewValueStore(valuestore.ValueStore(hubname,itemtyp=valuestore.StoreItem))
 		self.name = hubname
@@ -758,7 +754,7 @@ class HA(object):
 			elif e.domain in haignoredomains:
 				N = HAnode(self, **p2)
 				self.IgnoredEntities[e.entity_id] = N
-			elif e.domain in self.haignoreandskipdomains:
+			elif e.domain in haignoreandskipdomains:
 				N = None
 				pass # totally ignore these
 			else:
