@@ -8,7 +8,7 @@ import exitutils
 import maintscreen
 import subprocess
 import historybuffer
-from utilities import ReportStatus, RegisterConsole
+from utilities import ReportStatus
 
 from logsupport import ConsoleWarning, ConsoleError
 # noinspection PyProtectedMember
@@ -195,18 +195,31 @@ class MQTTBroker(valuestore.ValueStore):
 			topic = 'consoles/' + config.hostname + '/status'
 			self.MQTTclient.will_set(topic, json.dumps({'status': 'dead'}), retain=True)
 			config.primaryBroker = self
-			RegisterConsole()
-			ReportStatus('initializing')
+			self.MQTTrunning = False
+			# register the console
+			self.Publish(node='all/nodes', topic=config.hostname,
+						 payload=json.dumps(
+							 {'registered': time.time(),
+							  'versionname': config.versionname,
+							  'versionsha': config.versionsha,
+							  'versiondnld': config.versiondnld,
+							  'versioncommit': config.versioncommit,
+							  'boottime': config.bootime,
+							  'osversion': config.osversion,
+							  'hw': config.hwinfo}),
+						 retain=True, qos=1)
 		threadmanager.SetUpHelperThread(self.name,self.MQTTLoop)
 
 
 	def MQTTLoop(self):
 		self.MQTTclient.connect(self.address, keepalive=20)
+		self.MQTTrunning = True
 		self.MQTTnum += 1
 		self.MQTTclient.loop_forever()
 		# self.MQTTclient.disconnect()
 		logsupport.Logs.Log("MQTT handler thread ended for: "+self.name,severity=ConsoleWarning)
 		self.loopexited = True
+		self.MQTTrunning = False
 
 	def GetValByID(self, lclid):
 		self.GetVal(self.ids[lclid])
@@ -236,13 +249,16 @@ class MQTTBroker(valuestore.ValueStore):
 	def SetValByID(lclid, val):
 		logsupport.Logs.Log("Can't set MQTT subscribed var by id within console: ", str(lclid))
 
-	def Publish(self, topic, payload=None, node=config.hostname, qos=2, retain=False):
+	def Publish(self, topic, payload=None, node=config.hostname, qos=1, retain=False, viasvr=False):
 		fulltopic = 'consoles/' + node + '/' + topic
-		self.MQTTclient.publish(fulltopic, payload, qos, retain)
+		if self.MQTTrunning:
+			self.MQTTclient.publish(fulltopic, payload, qos=qos, retain=retain)
+		else:
+			if viasvr:
+				logsupport.Logs.Log("{}: Publish attempt with server not running ({})".format(self.name, repr(payload)),
+									severity=ConsoleWarning)
+			else:
+				publish.single(fulltopic, payload, hostname=self.address, qos=qos, retain=retain)
 
 	def PushToMQTT(self, storeitem, old, new, param, modifier):
 		self.Publish('/'.join(storeitem.name), str(new))
-
-	def Publish1(self, topic, payload, node=config.hostname):
-		fulltopic = 'consoles/' + node + '/' + topic
-		publish.single(fulltopic, payload, hostname=self.address)

@@ -34,7 +34,7 @@ def baseinfo():
 		offline = ' (offline)' if info['status'] in ('dead', 'unknown') else ''
 		print("{:12.12s} ({})  {}".format(n, info['reginfo']['versionname'], offline))
 		for key, title, nl in zip(('hw', 'osversion', 'versioncommit', 'versiondnld'), ('', '', '', '', '',),
-								  ('\n', '\n', '', '\n')):
+								  (' running', '\n', '', '\n')):
 			if key in info['reginfo']:
 				print(' {} {}'.format(title, info['reginfo'][key]), end=nl)
 
@@ -62,6 +62,8 @@ def on_message(client, ud, msg):
 		topic = msg.topic.split('/')
 		msgdcd = json.loads(msg.payload.decode('ascii'))
 		if topic[2] == 'nodes':
+			print(topic)
+			print(msgdcd)
 			nd = topic[-1]
 			if nd not in nodetable: nodetable[nd] = {'status': 'unknown', 'boottime': 0, 'uptime': 0, 'error': '-'}
 			nodetable[nd]['reginfo'] = msgdcd
@@ -90,10 +92,13 @@ client.loop_start()
 client.connect('rpi-kck.pdxhome')
 try:
 	time.sleep(1)
-	if len(sys.argv) > 1:
-		baseinfo()
-	else:
-		paint()
+	try:
+		if len(sys.argv) > 1:
+			baseinfo()
+		else:
+			paint()
+	except RuntimeError:
+		pass
 	while True:
 		pass
 except KeyboardInterrupt:
