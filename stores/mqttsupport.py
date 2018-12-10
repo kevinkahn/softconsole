@@ -9,6 +9,7 @@ import maintscreen
 import subprocess
 import historybuffer
 from utilities import ReportStatus
+import functools
 
 from logsupport import ConsoleWarning, ConsoleError, ConsoleInfo
 # noinspection PyProtectedMember
@@ -77,7 +78,7 @@ class MQTTBroker(valuestore.ValueStore):
 			ReportStatus('running')
 
 		def LogItem(sev):
-			logsupport.Logs.Log('Remotely forced test message', severity=sev)
+			logsupport.Logs.Log('Remotely forced test message', severity=sev, tb=False, hb=False)
 
 		def on_message(client, userdata, msg):
 			#print time.ctime() + " Received message " + str(msg.payload) + " on topic "  + msg.topic + " with QoS " + str(msg.qos)
@@ -96,9 +97,9 @@ class MQTTBroker(valuestore.ValueStore):
 							'usebeta': UseBeta,
 							'hbdump': DumpHB,
 							'status': EchoStat,
-							'issueerror': LogItem(ConsoleError),
-							'issuewarning': LogItem(ConsoleWarning),
-							'issueinfo': LogItem(ConsoleInfo)}
+							'issueerror': functools.partial(LogItem, ConsoleError),
+							'issuewarning': functools.partial(LogItem, ConsoleWarning),
+							'issueinfo': functools.partial(LogItem, ConsoleInfo)}
 				if cmd.lower() in cmdcalls:
 					try:
 						controlevents.PostControl(controlevents.RunProc, name=cmd, proc=cmdcalls[cmd.lower()])
