@@ -90,13 +90,16 @@ class EventList(object):
 		if self.BaseTime == 0: self.BaseTime = time.time()
 
 		self.finder[id(evnt)] = evnt
+		skipadd = False
 		for i in self.List:
 			if i[1] == evnt:
 				logsupport.Logs.Log("Event add task error: ", repr(evnt), severity=ConsoleError, hb=True)
-		evnt.abstime = time.time() + dt
-		evnt.deleted = False
-		evnt.onlist = True
-		heappush(self.List, (evnt.abstime, evnt))
+				skipadd = True
+		if not skipadd:
+			evnt.abstime = time.time() + dt
+			evnt.deleted = False
+			evnt.onlist = True
+			heappush(self.List, (evnt.abstime, evnt))
 		T = self.TimeToNext()
 		debug.debugPrint('EventList', self.RelNow(), ' Add: ', dt, evnt, T)
 		# debug.debugPrint('EventList', self.RelNow(), ' Add: ', dt, item,T,self.PrettyList(self.List))
