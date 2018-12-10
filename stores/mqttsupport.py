@@ -10,6 +10,7 @@ import subprocess
 import historybuffer
 from utilities import ReportStatus
 import functools
+import threading
 
 from logsupport import ConsoleWarning, ConsoleError, ConsoleInfo
 # noinspection PyProtectedMember
@@ -31,6 +32,7 @@ class MQTTBroker(valuestore.ValueStore):
 	def __init__(self, name, configsect):
 		super(MQTTBroker, self).__init__(name, itemtyp=MQitem)
 		MQTTnum = 0
+		self.fetcher = None
 
 		# noinspection PyUnusedLocal
 		def on_connect(client, userdata, flags, rc):
@@ -55,14 +57,23 @@ class MQTTBroker(valuestore.ValueStore):
 
 		# noinspection PyUnusedLocal
 		def DoRestart():
+			while self.fetcher is not None and self.fetcher.is_alive():
+				logsupport.Logs.Log('Delaying restart until fetch completes')
+				time.sleep(30)
 			exitutils.Exit_Screen_Message('Remote restart requested', 'Remote Restart')
 			exitutils.Exit(exitutils.REMOTERESTART)
 
 		def GetStable():
-			maintscreen.fetch_stable()  # todo these fetches should have a screen message
+			self.fetcher = threading.Thread(name='FetchStableRemote', target=maintscreen.fetch_stable, daemon=True)
+			self.fetcher.start()
+
+		# maintscreen.fetch_stable()  # todo should do in separate thread
 
 		def GetBeta():
-			maintscreen.fetch_beta()
+			self.fetcher = threading.Thread(name='FetchBetaRemote', target=maintscreen.fetch_beta, daemon=True)
+			self.fetcher.start()
+
+		#maintscreen.fetch_beta()
 
 		def UseStable():
 			subprocess.Popen('sudo rm /home/pi/usebeta', shell=True)  # should move all these to some common place todo

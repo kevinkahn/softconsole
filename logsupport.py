@@ -92,24 +92,33 @@ class Logger(object):
 			config.sysStore.ErrorNotice = len(self.log) - 1
 
 	def LogRemote(self, node, entry, etime, severity):
-		locked = self.lock.acquire(timeout=1)
-		if not locked:
+		try:
+			locked = self.lock.acquire(timeout=1)
+			if not locked:
+				self.disklogfile.write(
+					time.strftime('%m-%d-%y %H:%M:%S') + ' Sev: ' + str(5) + " " + 'Log lock failed (Remote) \n')
+				self.disklogfile.flush()
+				os.fsync(self.disklogfile.fileno())
+
+			if entry == self.lastremotemes:
+				if node in self.remotenodes:
+					self.remotenodes[node] = (self.remotenodes[node][0], self.remotenodes[node][1] + 1)
+				else:
+					self.remotenodes[node] = (etime, 1)
+			else:
+				self.DumpRemoteMes(disklogging)
+				self.lastremotemes = entry
+				self.lastremotesev = severity
+				self.remotenodes = {node: (etime, 1)}
+			if locked: self.lock.release()
+		except Exception as E:
 			self.disklogfile.write(
-				time.strftime('%m-%d-%y %H:%M:%S') + ' Sev: ' + str(5) + " " + 'Log lock failed (Remote) \n')
+				time.strftime('%m-%d-%y %H:%M:%S') + ' Sev: ' + str(
+					5) + " " + 'Exception while remote logging: {}\n'.format(repr(E)))
 			self.disklogfile.flush()
 			os.fsync(self.disklogfile.fileno())
+			if locked: self.lock.release()
 
-		if entry == self.lastremotemes:
-			if node in self.remotenodes:
-				self.remotenodes[node] = (self.remotenodes[node][0], self.remotenodes[node][1] + 1)
-			else:
-				self.remotenodes[node:(etime, 1)]
-		else:
-			self.DumpRemoteMes(disklogging)
-			self.lastremotemes = entry
-			self.lastremotesev = severity
-			self.remotenodes = {node: (etime, 1)}
-		if locked: self.lock.release()
 
 	def DumpRemoteMes(self, disklogging):
 		now = time.strftime('%m-%d-%y %H:%M:%S')
@@ -133,83 +142,91 @@ class Logger(object):
 		"""
 		params: args is one or more strings (like for print) and kwargs is severity=
 		"""
-		locked = self.lock.acquire(timeout=1)
-		if not locked:
-			self.disklogfile.write(
-				time.strftime('%m-%d-%y %H:%M:%S') + ' Sev: ' + str(5) + " " + 'Log lock failed (Local)\n')
-			self.disklogfile.flush()
-			os.fsync(self.disklogfile.fileno())
+		try:
+			locked = self.lock.acquire(timeout=1)
+			if not locked:
+				self.disklogfile.write(
+					time.strftime('%m-%d-%y %H:%M:%S') + ' Sev: ' + str(5) + " " + 'Log lock failed (Local)\n')
+				self.disklogfile.flush()
+				os.fsync(self.disklogfile.fileno())
 
-		mqtterr = ''
-		now = time.time()
-		localnow = time.localtime(now)
-		severity = kwargs.pop('severity', ConsoleInfo)
-		entrytime = kwargs.pop('entrytime', time.strftime('%m-%d-%y %H:%M:%S', localnow))
-		tb = kwargs.pop('tb', True)
-		hb = kwargs.pop('hb', False)
-		localonly = kwargs.pop('localonly', False) or LocalOnly  # don't brcst error unti mqtt is up
+			mqtterr = ''
+			now = time.time()
+			localnow = time.localtime(now)
+			severity = kwargs.pop('severity', ConsoleInfo)
+			entrytime = kwargs.pop('entrytime', time.strftime('%m-%d-%y %H:%M:%S', localnow))
+			tb = kwargs.pop('tb', True)
+			hb = kwargs.pop('hb', False)
+			localonly = kwargs.pop('localonly', False) or LocalOnly  # don't brcst error unti mqtt is up
 
-
-		if severity < LogLevel:
-			if locked: self.lock.release()
-			return
-		diskonly = kwargs.pop('diskonly', False)
-		#entry = "".join([unicode(i) for i in args])
-		entry = ''
-		for i in args:
-			if StringLike(i):
-				if not isinstance(i, str):
-					entry = entry + i.encode('UTF-8', errors='backslashreplace')
+			if severity < LogLevel:
+				if locked: self.lock.release()
+				return
+			diskonly = kwargs.pop('diskonly', False)
+			# entry = "".join([unicode(i) for i in args])
+			entry = ''
+			for i in args:
+				if StringLike(i):
+					if not isinstance(i, str):
+						entry = entry + i.encode('UTF-8', errors='backslashreplace')
+					else:
+						entry = entry + i
 				else:
-					entry = entry + i
-			else:
-				entry = entry + str(i)
+					entry = entry + str(i)
 
-		if hb: historybuffer.DumpAll(entry, entrytime)
+			if entry != self.lastremotemes:
+				self.DumpRemoteMes(disklogging)
 
+			if hb: historybuffer.DumpAll(entry, entrytime)
 
-		if not diskonly:
-			self.log.append((severity, entry, entrytime))
-			if severity in [ConsoleWarning, ConsoleError]:
-				if config.primaryBroker is not None and not localonly:
-					try:
-						config.primaryBroker.Publish('errors', json.dumps(
-							{'node': config.hostname, 'sev': severity, 'time': entrytime, 'etime': repr(now),
-							 'entry': entry}), node='all')
-					except Exception as E:
-						mqtterr = "Logger/MQTT error: {}".format(repr(E))
-						self.log.append((ConsoleError, mqtterr, entrytime))
+			if not diskonly:
+				self.log.append((severity, entry, entrytime))
+				if severity in [ConsoleWarning, ConsoleError]:
+					if config.primaryBroker is not None and not localonly:
+						try:
+							config.primaryBroker.Publish('errors', json.dumps(
+								{'node': config.hostname, 'sev': severity, 'time': entrytime, 'etime': repr(now),
+								 'entry': entry}), node='all')
+						except Exception as E:
+							mqtterr = "Logger/MQTT error: {}".format(repr(E))
+							self.log.append((ConsoleError, mqtterr, entrytime))
 
-			self.SetSeverePointer(severity)
+				self.SetSeverePointer(severity)
 
-		if disklogging:
-			self.disklogfile.write(entrytime + ' Sev: ' + str(severity) + " " + entry + '\n')
-			if severity == ConsoleError and tb:
-				# traceback.print_stack(file=self.disklogfile)
-				for line in traceback.format_stack():
-					print(line.strip())
-				frames = traceback.extract_tb(sys.exc_info()[2])
-				for f in frames:
-					fname, lineno, fn, text = f
-					self.disklogfile.write(
-						'-----------------' + fname + ':' + str(lineno) + ' ' + fn + ' ' + text + '\n')
-			if mqtterr != '': self.disklogfile.write(entrytime + ' Sev: ' + str(ConsoleError) + " " + mqtterr + '\n')
+			if disklogging:
+				self.disklogfile.write(entrytime + ' Sev: ' + str(severity) + " " + entry + '\n')
+				if severity == ConsoleError and tb:
+					# traceback.print_stack(file=self.disklogfile)
+					for line in traceback.format_stack():
+						print(line.strip())
+					frames = traceback.extract_tb(sys.exc_info()[2])
+					for f in frames:
+						fname, lineno, fn, text = f
+						self.disklogfile.write(
+							'-----------------' + fname + ':' + str(lineno) + ' ' + fn + ' ' + text + '\n')
+				if mqtterr != '': self.disklogfile.write(
+					entrytime + ' Sev: ' + str(ConsoleError) + " " + mqtterr + '\n')
+				self.disklogfile.flush()
+				os.fsync(self.disklogfile.fileno())
+
+			if self.livelog and not diskonly:
+				if self.livelogpos == 0:
+					config.screen.fill(wc('royalblue'))
+				self.livelogpos = self.RenderLogLine(entry, self.LogColors[severity], self.livelogpos)
+				if self.livelogpos > config.screenheight - config.botborder:
+					time.sleep(1)
+					self.livelogpos = 0
+				pygame.display.update()
+
+			self.lastlocalmes = entry
+			if locked: self.lock.release()
+		except Exception as E:
+			self.disklogfile.write(
+				time.strftime('%m-%d-%y %H:%M:%S') + ' Sev: ' + str(
+					5) + " " + 'Exception while local logging: {}\n'.format(repr(E)))
 			self.disklogfile.flush()
 			os.fsync(self.disklogfile.fileno())
-
-		if self.livelog and not diskonly:
-			if self.livelogpos == 0:
-				config.screen.fill(wc('royalblue'))
-			self.livelogpos = self.RenderLogLine(entry, self.LogColors[severity], self.livelogpos)
-			if self.livelogpos > config.screenheight - config.botborder:
-				time.sleep(1)
-				self.livelogpos = 0
-			pygame.display.update()
-
-		if entry != self.lastremotemes:
-			self.DumpRemoteMes(disklogging)
-		self.lastlocalmes = entry
-		if locked: self.lock.release()
+			if locked: self.lock.release()
 
 	def RenderLogLine(self, itext, clr, pos):
 		# odd logic below is to make sure that if an unbroken item would by itself exceed line length it gets forced out
