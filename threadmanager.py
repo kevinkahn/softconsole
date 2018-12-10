@@ -48,19 +48,23 @@ def DoRestart(T):
 
 
 def CheckThreads():
-	for T in HelperThreads.values():
-		if not T.Thread.is_alive(): # or T.ServiceNotOK this would be an optional procedure to do semantic checking a la heartbeat
-			logsupport.Logs.Log("Thread for: "+T.name+" is dead",severity=ConsoleWarning)
-			if not DoRestart(T):
-				# Fatal Error
-				FatalError("Unrecoverable helper thread error(is_alive): " + T.name)
-		if T.CheckOk is not None:
-			if not T.CheckOk():
-				# T.StopThread()
-				logsupport.Logs.Log("Thread for: "+T.name+" reports not ok; stopping/restarting",severity=ConsoleWarning)
-				#if not DoRestart(T):
+	try:
+		for T in HelperThreads.values():
+			if not T.Thread.is_alive():  # or T.ServiceNotOK this would be an optional procedure to do semantic checking a la heartbeat
+				logsupport.Logs.Log("Thread for: " + T.name + " is dead", severity=ConsoleWarning)
+				if not DoRestart(T):
 					# Fatal Error
-				FatalError("Unrecoverable helper thread error(CheckOK): " + T.name)
+					FatalError("Unrecoverable helper thread error(is_alive): " + T.name)
+			if T.CheckOk is not None:
+				if not T.CheckOk():
+					# T.StopThread()
+					logsupport.Logs.Log("Thread for: " + T.name + " reports not ok; stopping/restarting",
+										severity=ConsoleWarning)
+					# if not DoRestart(T):
+					# Fatal Error
+					FatalError("Unrecoverable helper thread error(CheckOK): " + T.name)
+	except Exception as E:
+		logsupport.Logs.Log("Check threads fatal error: {}".format(repr(E)))
 
 def StartThreads():
 	global Watcher

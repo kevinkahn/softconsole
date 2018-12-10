@@ -84,6 +84,7 @@ class Logger(object):
 		"""
 		params: args is one or more strings (like for print) and kwargs is severity=
 		"""
+		mqtterr = ''
 		severity = kwargs.pop('severity', ConsoleInfo)
 		entrytime = kwargs.pop('entrytime', time.strftime('%m-%d-%y %H:%M:%S'))
 		tb = kwargs.pop('tb', True)
@@ -112,8 +113,12 @@ class Logger(object):
 			self.log.append((severity, entry, entrytime))
 			if severity in [ConsoleWarning, ConsoleError]:
 				if config.primaryBroker is not None and not localonly:
-					config.primaryBroker.Publish1('errors', json.dumps(
-						{'node': config.hostname, 'sev': severity, 'time': entrytime, 'entry': entry}), node='all')
+					try:
+						config.primaryBroker.Publish('errors', json.dumps(
+							{'node': config.hostname, 'sev': severity, 'time': entrytime, 'entry': entry}), node='all')
+					except Exception as E:
+						mqtterr = "Logger/MQTT error: {}".format(repr(E))
+						self.log.append((ConsoleError, mqtterr, entrytime))
 
 			if severity in [ConsoleWarning, ConsoleError] and config.sysStore.ErrorNotice == -1:
 				config.sysStore.FirstUnseenErrorTime = time.time()
@@ -129,6 +134,7 @@ class Logger(object):
 					fname, lineno, fn, text = f
 					self.disklogfile.write(
 						'-----------------' + fname + ':' + str(lineno) + ' ' + fn + ' ' + text + '\n')
+			if mqtterr != '': self.disklogfile.write(entrytime + ' Sev: ' + str(ConsoleError) + " " + mqtterr + '\n')
 			self.disklogfile.flush()
 			os.fsync(self.disklogfile.fileno())
 		if self.livelog and not diskonly:

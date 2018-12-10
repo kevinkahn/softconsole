@@ -79,6 +79,7 @@ MainDict = {}  # map: name:screen
 SecondaryDict = {}
 ExtraDict = {}
 ExtraChain = []
+SonosScreen = None  # todo hack to handle late appearing players
 # _____________________________
 
 # Global Defaults Settable in config.txt in Console
