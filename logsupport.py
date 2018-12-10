@@ -94,21 +94,28 @@ class Logger(object):
 	def LogRemote(self, node, entry, etime, severity):
 		self.lock.acquire()
 		if entry == self.lastremotemes:
-			self.remotenodes[node] = etime
+			if node in self.remotenodes:
+				self.remotenodes[node] = (self.remotenodes[node][0], self.remotenodes[node][1] + 1)
+			else:
+				self.remotenodes[node:(etime, 1)]
 		else:
-			self.DumpRemoteMes()
+			self.DumpRemoteMes(disklogging)
 			self.lastremotemes = entry
 			self.lastremotesev = severity
-			self.remotenodes = {node: etime}
+			self.remotenodes = {node: (etime, 1)}
 		self.lock.release()
 
 	def DumpRemoteMes(self, disklogging):
 		now = time.strftime('%m-%d-%y %H:%M:%S')
 		if self.lastremotemes == '': return
+		ndlist = []
+		for nd, info in self.remotenodes.items():
+			ndlist.append(nd)
+			if info[1] != 1: ndlist[-1] = ndlist[-1] + '(' + str(info[1]) + ')'
 		if self.lastremotemes == self.lastlocalmes:
-			remoteentry = "Also from: " + ', '.join(self.remotenodes.keys())
+			remoteentry = "Also from: " + ', '.join(ndlist)
 		else:
-			remoteentry = '[' + ', '.join(self.remotenodes.keys()) + ']' + self.lastremotemes
+			remoteentry = '[' + ', '.join(ndlist) + ']' + self.lastremotemes
 		self.log.append((self.lastremotesev, remoteentry, now))
 		if disklogging: self.disklogfile.write(now + ' Sev: ' + str(self.lastremotesev) + " " + remoteentry + '\n')
 		self.lastremotemes = ''

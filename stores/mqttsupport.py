@@ -78,7 +78,7 @@ class MQTTBroker(valuestore.ValueStore):
 			ReportStatus('running')
 
 		def LogItem(sev):
-			logsupport.Logs.Log('Remotely forced test message', severity=sev, tb=False, hb=False)
+			logsupport.Logs.Log('Remotely forced test message ({})'.format(sev), severity=sev, tb=False, hb=False)
 
 		def on_message(client, userdata, msg):
 			#print time.ctime() + " Received message " + str(msg.payload) + " on topic "  + msg.topic + " with QoS " + str(msg.qos)
@@ -112,8 +112,8 @@ class MQTTBroker(valuestore.ValueStore):
 			elif msg.topic == 'consoles/all/errors':
 				d = json.loads(msg.payload.decode('ascii'))
 				if d['node'] != config.hostname:
-					logsupport.Logs.LogRemote(d.node, d['entry'], severity=d['sev'],
-											  entrytime=d['etime'] if 'etime' in d else 0)
+					logsupport.Logs.LogRemote(d['node'], d['entry'], severity=d['sev'],
+											  etime=d['etime'] if 'etime' in d else 0)
 				return
 			elif msg.topic in ('consoles/all/set', 'consoles/' + config.hostname + '/set'):
 				d = json.loads(msg.payload.decode('ascii'))
