@@ -1,7 +1,7 @@
 import pygame
 import logsupport
 import supportscreens
-from logsupport import ConsoleError
+from logsupport import ConsoleError, ConsoleWarning
 from utilfuncs import wc
 import hasshub  # only to test that the hub for this is an HA hub
 
@@ -13,25 +13,15 @@ import utilities
 import toucharea
 import functools
 
-
 # noinspection PyUnusedLocal
 class SonosScreenDesc(screen.BaseKeyScreenDesc):
-	def __init__(self, screensection, screenname):
-		debug.debugPrint('Screen', "New SonosScreenDesc ", screenname)
-		screen.BaseKeyScreenDesc.__init__(self, screensection, screenname)
+	def SetScreenContents(self):
 		self.numplayers = 0  # if 0 then Sonos didn't get set up correctly
 		self.numgroups = 0
 		self.nms = []
 		self.gpingrms = []
 		self.PlayerInputs = []
 		self.SourceSet = None
-		screen.IncorporateParams(self, 'SonosScreen', {'KeyColor'}, screensection)
-		self.DullKeyColor = wc(self.KeyColor, .5, self.BackgroundColor)
-		self.HA = self.DefaultHubObj
-		self.HubInterestList[self.HA.name] = {}
-		self.title, th, self.tw = screenutil.CreateTextBlock('Sonos', config.screenheight / 12, self.CharColor, True)
-		self.titlespace = th + config.screenheight / 32
-		useablescreenheight = config.screenheight - config.topborder - config.botborder - self.titlespace
 		self.SonosNodes = {}
 		self.NodeVPos = []
 		self.KeysSum = {}
@@ -49,71 +39,25 @@ class SonosScreenDesc(screen.BaseKeyScreenDesc):
 		self.SourceItem = 0
 		self.SourceSelection = ''
 		self.ExtraSource = {}
-		if isinstance(self.DefaultHubObj, hasshub.HA):
-			for n, p in self.HA.MediaPlayers.items():
-				if p.Sonos:
-					self.SonosNodes[p.entity_id] = p
-					self.SlotToGp.append('')
-					self.HubInterestList[self.HA.name][p.entity_id] = p.entity_id
-		else:
-			logsupport.Logs.Log("Sonos Default Hub is not HA hub", severity=ConsoleError, tb=False)
-			return
+		self.HubInterestList[self.HA.name] = {}
+		for n, p in self.HA.MediaPlayers.items():
+			if p.Sonos:
+				self.SonosNodes[p.entity_id] = p
+				self.SlotToGp.append('')
+				self.HubInterestList[self.HA.name][p.entity_id] = p.entity_id
 		self.numplayers = len(self.SonosNodes)
-		if self.numplayers == 0:
-			logsupport.Logs.Log("No Sonos Players reported - check network", severity=ConsoleError)
-			return
-
-		# set up source selection screen
-		self.SourceSlot = []
-		vpos = self.titlespace
-		self.sourceslots = 8
-		self.sourceheight = useablescreenheight // (self.sourceslots + 1)  # allow space at bottom right for arrow
-
-		for i in range(self.sourceslots):
-			self.SrcSlotsVPos.append(vpos)
-			self.KeysSrc['Src' + str(i)] = toucharea.TouchPoint('Scr' + str(i),
-																(
-																config.screenwidth // 2, vpos + self.sourceheight // 2),
-																(config.screenwidth, self.sourceheight),
-																proc=functools.partial(self.PickSource, i))
-			vpos += self.sourceheight
-			self.SourceSlot.append('')
-		self.SrcPrev = (
-		config.screenwidth - self.sourceheight - config.horizborder, self.titlespace - self.sourceheight // 2)
-		self.SrcNext = (config.screenwidth - self.sourceheight - config.horizborder,
-						vpos + self.sourceheight // 2 + 10)  # for appearance
-		self.KeysSrc['Prev'] = toucharea.TouchPoint('Prev', self.SrcPrev,
-													(self.sourceheight, self.sourceheight),
-													proc=functools.partial(self.PrevNext, False))
-		self.KeysSrc['Next'] = toucharea.TouchPoint('Next', self.SrcNext,
-													(self.sourceheight, self.sourceheight),
-													proc=functools.partial(self.PrevNext, True))
-		self.KeysSrc['OKSrc'] = toucharea.ManualKeyDesc(self, 'OKSrc', ['OK'], self.BackgroundColor,
-														self.CharColor, self.CharColor,
-														center=(
-														self.SrcNext[0] - 2.5 * self.sourceheight, self.SrcNext[1]),
-														size=(2 * self.sourceheight, self.sourceheight), KOn='',
-														KOff='',
-														proc=functools.partial(self.PickSourceOK, True))
-		self.KeysSrc['CnclSrc'] = toucharea.ManualKeyDesc(self, 'CnclSrc', ['Back'], self.BackgroundColor,
-														  self.CharColor, self.CharColor,
-														  center=(
-														  self.SrcNext[0] - 5 * self.sourceheight, self.SrcNext[1]),
-														  size=(2 * self.sourceheight, self.sourceheight), KOn='',
-														  KOff='',
-														  proc=functools.partial(self.PickSourceOK, False))
 
 		for i in range(self.numplayers + 1):
 			self.GCVPos.append(self.titlespace + i * 50)
 
 		# set up the control screen for a group
-		self.ctlhgt = useablescreenheight // (2 * self.numplayers + 2)
+		self.ctlhgt = self.useablescreenheight // (2 * self.numplayers + 2)
 		for i in range(self.numplayers + 1):
 			self.GPCtlVPos.append(self.titlespace + i * 2 * self.ctlhgt)
 
 		# set up the main summary screen
 		vpos = self.titlespace
-		self.roomheight = useablescreenheight // self.numplayers
+		self.roomheight = self.useablescreenheight // self.numplayers
 		self.roomdisplayinfo = (1.5, 1, 1, 1)
 		for n, p in self.SonosNodes.items():
 			self.NodeVPos.append(vpos)
@@ -172,7 +116,75 @@ class SonosScreenDesc(screen.BaseKeyScreenDesc):
 													proc=self.GroupMemberOK)
 
 		self.Keys = self.KeysSum
+
+	def __init__(self, screensection, screenname):
+		config.SonosScreen = self  # todo hack to handle late appearing players
+		debug.debugPrint('Screen', "New SonosScreenDesc ", screenname)
+		screen.BaseKeyScreenDesc.__init__(self, screensection, screenname)
+		screen.IncorporateParams(self, 'SonosScreen', {'KeyColor'}, screensection)
+		self.DullKeyColor = wc(self.KeyColor, .5, self.BackgroundColor)
+		self.HA = self.DefaultHubObj
+
+		self.title, th, self.tw = screenutil.CreateTextBlock('Sonos', config.screenheight / 12, self.CharColor, True)
+		self.titlespace = th + config.screenheight / 32
+		self.useablescreenheight = config.screenheight - config.topborder - config.botborder - self.titlespace
+		if not isinstance(self.DefaultHubObj, hasshub.HA):
+			logsupport.Logs.Log("Sonos Default Hub is not HA hub", severity=ConsoleError, tb=False)
+			return
+
+		self.SetScreenContents()
+
+		if self.numplayers == 0:
+			logsupport.Logs.Log("No Sonos Players reported - check network", severity=ConsoleWarning)
+			return
+
+		# set up source selection screen
+		self.SourceSlot = []
+		vpos = self.titlespace
+		self.sourceslots = 8
+		self.sourceheight = self.useablescreenheight // (self.sourceslots + 1)  # allow space at bottom right for arrow
+
+		for i in range(self.sourceslots):
+			self.SrcSlotsVPos.append(vpos)
+			self.KeysSrc['Src' + str(i)] = toucharea.TouchPoint('Scr' + str(i),
+																(
+																	config.screenwidth // 2,
+																	vpos + self.sourceheight // 2),
+																(config.screenwidth, self.sourceheight),
+																proc=functools.partial(self.PickSource, i))
+			vpos += self.sourceheight
+			self.SourceSlot.append('')
+		self.SrcPrev = (
+			config.screenwidth - self.sourceheight - config.horizborder, self.titlespace - self.sourceheight // 2)
+		self.SrcNext = (config.screenwidth - self.sourceheight - config.horizborder,
+						vpos + self.sourceheight // 2 + 10)  # for appearance
+		self.KeysSrc['Prev'] = toucharea.TouchPoint('Prev', self.SrcPrev,
+													(self.sourceheight, self.sourceheight),
+													proc=functools.partial(self.PrevNext, False))
+		self.KeysSrc['Next'] = toucharea.TouchPoint('Next', self.SrcNext,
+													(self.sourceheight, self.sourceheight),
+													proc=functools.partial(self.PrevNext, True))
+		self.KeysSrc['OKSrc'] = toucharea.ManualKeyDesc(self, 'OKSrc', ['OK'], self.BackgroundColor,
+														self.CharColor, self.CharColor,
+														center=(
+															self.SrcNext[0] - 2.5 * self.sourceheight, self.SrcNext[1]),
+														size=(2 * self.sourceheight, self.sourceheight), KOn='',
+														KOff='',
+														proc=functools.partial(self.PickSourceOK, True))
+		self.KeysSrc['CnclSrc'] = toucharea.ManualKeyDesc(self, 'CnclSrc', ['Back'], self.BackgroundColor,
+														  self.CharColor, self.CharColor,
+														  center=(
+															  self.SrcNext[0] - 5 * self.sourceheight, self.SrcNext[1]),
+														  size=(2 * self.sourceheight, self.sourceheight), KOn='',
+														  KOff='',
+														  proc=functools.partial(self.PickSourceOK, False))
+
+
 		utilities.register_example("SonosScreenDesc", self)
+
+	def _check_for_new(self):
+		if config.SonosScreen is None:
+			self.SetScreenContents()
 
 	def NodeEvent(self, hub='', node=0, value=0, varinfo=()):
 		# Watched node reported change event is ("Node", addr, value, seq)
@@ -260,6 +272,7 @@ class SonosScreenDesc(screen.BaseKeyScreenDesc):
 		return assigned == self.numplayers
 
 	def InitDisplay(self, nav):
+		self._check_for_new()
 		super(SonosScreenDesc, self).InitDisplay(nav)
 		self.Subscreen = -1
 		self.ShowScreen()

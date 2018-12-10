@@ -212,6 +212,12 @@ class MediaPlayer(HAnode):
 			self.artist = self.attributes['media_artist'] if 'media_artist' in self.attributes else ''
 			self.album = self.attributes['media_album_name'] if 'media_album_name' in self.attributes else ''
 
+	def AddPlayer(self):
+		if self.Sonos:
+			logsupport.Logs.Log("{}: added new Sonos player {}".format(self.Hub.name, self.name))
+			config.SonosScreen = None
+
+
 	def Update(self, **ns):
 		oldst = self.state
 		if 'attributes' in ns: self.attributes = ns['attributes']
@@ -265,6 +271,8 @@ class MediaPlayer(HAnode):
 																	  'is_volume_muted': domute})
 		if not domute:  # implicitly start playing if unmuting in case source was stopped
 			ha.call_service(self.Hub.api, 'media_player', 'media_play', {'entity_id': '{}'.format(roomname)})
+
+	# todo add a Media stop to actually stop rather than mute things media_player/media_stop
 
 	def Source(self, roomname, sourcename):
 		ha.call_service(self.Hub.api, 'media_player', 'select_source', {'entity_id': '{}'.format(roomname),
@@ -524,7 +532,7 @@ class HA(object):
 				if m['event_type'] == 'state_changed':
 					del m['event_type']
 					ent = d['entity_id']
-					dom = ent.split('.')[0]
+					dom, nm = ent.split('.')
 					new = d['new_state']
 					old = d['old_state']
 					del d['new_state']
@@ -536,6 +544,11 @@ class HA(object):
 						debug.debugPrint('HASSgeneral', self.name,
 										 ' WS Stream item for unhandled entity type: ' + ent + ' Added: ' + str(
 											 adds) + ' Deleted: ' + str(dels) + ' Changed: ' + str(chgs))
+						if dom in self.addibledomains:
+							p2 = dict(new.as_dict(), **{'domain': dom, 'name': nm, 'object_id': ent})
+							N = self.hadomains[dom](self, p2)
+							self.Entities[ent] = N
+							N.AddPlayer()
 						logsupport.Logs.Log("New entity since startup seen from ", self.name, ": ", ent,
 											"(Old: " + repr(old) + '  New: ' + repr(new) + ')')
 						# noinspection PyTypeChecker
@@ -568,6 +581,8 @@ class HA(object):
 						'message'])  # todo fake an event for Nest error?
 				elif m['event_type'] == 'config_entry_discovered':  # todo temp
 					logsupport.Logs.Log("{} config entry discovered: {}".format(self.name, message))
+				elif m['event_type'] == 'service_registered':
+					logsupport.Logs.Log("{} has new service: {}".format(self.name, message))
 				elif m['event_type'] not in ignoredeventtypes:
 					# debug.debugPrint('HASSchg', "Other expected event" + str(m))
 					logsupport.Logs.Log('{} Event: {}'.format(self.name, message))  # todo temp
@@ -632,7 +647,8 @@ class HA(object):
 				self.name + " WS stream " + str(self.HAnum) + " closed: " + str(code) + ' : ' + str(reason),
 				severity=ConsoleWarning, tb=False, hb=True)
 			if self.haconnectstate != "Failed": self.haconnectstate = "Closed"
-			raise self.HAClose
+
+		#raise self.HAClose
 
 		# noinspection PyUnusedLocal
 		def on_open(qws):
@@ -665,7 +681,7 @@ class HA(object):
 		try:
 			self.haconnectstate = "Running"
 			self.ws.run_forever(ping_timeout=999)
-		except self.HAClose:
+		except self.HAClose:  # todo this can't happen
 			logsupport.Logs.Log(self.name + " Event thread got close")
 		logsupport.Logs.Log(self.name + " Event Thread " + str(self.HAnum) + " exiting", severity=ConsoleWarning,
 							tb=False)
@@ -676,9 +692,11 @@ class HA(object):
 		self.HB = historybuffer.HistoryBuffer(40, hubname)
 		logsupport.Logs.Log("{}: Creating structure for Home Assistant hub at {}".format(hubname, addr))
 
-		hadomains = {'group': Group, 'light': Light, 'switch': Switch, 'sensor': Sensor, 'automation': Automation,
+		self.hadomains = {'group': Group, 'light': Light, 'switch': Switch, 'sensor': Sensor, 'automation': Automation,
 					 'climate': Thermostat, 'media_player': MediaPlayer, 'binary_sensor': BinarySensor, 'script': Script}
 		haignoredomains = {'zwave': ZWave, 'sun': HAnode, 'notifications': HAnode, 'persistent_notification': HAnode}
+
+		self.addibledomains = {'media_player': MediaPlayer}
 
 		self.sensorstore = valuestore.NewValueStore(valuestore.ValueStore(hubname,itemtyp=valuestore.StoreItem))
 		self.name = hubname
@@ -748,8 +766,8 @@ class HA(object):
 				self.Domains[e.domain] = {}
 			p2 = dict(e.as_dict(),**{'domain':e.domain, 'name':e.name, 'object_id':e.object_id})
 
-			if e.domain in hadomains:
-				N = hadomains[e.domain](self, p2)
+			if e.domain in self.hadomains:
+				N = self.hadomains[e.domain](self, p2)
 				self.Entities[e.entity_id] = N
 			elif e.domain in haignoredomains:
 				N = HAnode(self, **p2)
