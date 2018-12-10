@@ -92,7 +92,13 @@ class Logger(object):
 			config.sysStore.ErrorNotice = len(self.log) - 1
 
 	def LogRemote(self, node, entry, etime, severity):
-		self.lock.acquire()
+		locked = self.lock.acquire(timeout=1)
+		if not locked:
+			self.disklogfile.write(
+				time.strftime('%m-%d-%y %H:%M:%S') + ' Sev: ' + str(5) + " " + 'Log lock failed (Remote) \n')
+			self.disklogfile.flush()
+			os.fsync(self.disklogfile.fileno())
+
 		if entry == self.lastremotemes:
 			if node in self.remotenodes:
 				self.remotenodes[node] = (self.remotenodes[node][0], self.remotenodes[node][1] + 1)
@@ -103,7 +109,7 @@ class Logger(object):
 			self.lastremotemes = entry
 			self.lastremotesev = severity
 			self.remotenodes = {node: (etime, 1)}
-		self.lock.release()
+		if locked: self.lock.release()
 
 	def DumpRemoteMes(self, disklogging):
 		now = time.strftime('%m-%d-%y %H:%M:%S')
@@ -117,14 +123,23 @@ class Logger(object):
 		else:
 			remoteentry = '[' + ', '.join(ndlist) + ']' + self.lastremotemes
 		self.log.append((self.lastremotesev, remoteentry, now))
-		if disklogging: self.disklogfile.write(now + ' Sev: ' + str(self.lastremotesev) + " " + remoteentry + '\n')
+		if disklogging:
+			self.disklogfile.write(now + ' Sev: ' + str(self.lastremotesev) + " " + remoteentry + '\n')
+			self.disklogfile.flush()
+			os.fsync(self.disklogfile.fileno())
 		self.lastremotemes = ''
 
 	def Log(self, *args, **kwargs):
 		"""
 		params: args is one or more strings (like for print) and kwargs is severity=
 		"""
-		self.lock.acquire()
+		locked = self.lock.acquire(timeout=1)
+		if not locked:
+			self.disklogfile.write(
+				time.strftime('%m-%d-%y %H:%M:%S') + ' Sev: ' + str(5) + " " + 'Log lock failed (Local)\n')
+			self.disklogfile.flush()
+			os.fsync(self.disklogfile.fileno())
+
 		mqtterr = ''
 		now = time.time()
 		localnow = time.localtime(now)
@@ -136,7 +151,7 @@ class Logger(object):
 
 
 		if severity < LogLevel:
-			self.lock.release()
+			if locked: self.lock.release()
 			return
 		diskonly = kwargs.pop('diskonly', False)
 		#entry = "".join([unicode(i) for i in args])
@@ -194,7 +209,7 @@ class Logger(object):
 		if entry != self.lastremotemes:
 			self.DumpRemoteMes(disklogging)
 		self.lastlocalmes = entry
-		self.lock.release()
+		if locked: self.lock.release()
 
 	def RenderLogLine(self, itext, clr, pos):
 		# odd logic below is to make sure that if an unbroken item would by itself exceed line length it gets forced out
