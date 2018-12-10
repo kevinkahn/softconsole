@@ -13,6 +13,7 @@ import errno
 import isycodes
 from threadmanager import ThreadStartException
 import threading
+import random
 
 class ISYEMInternalError(Exception):
 	pass
@@ -55,7 +56,7 @@ class ISYEventMonitor(object):
 
 	def RealQuery(self, enode, seq):
 		logsupport.Logs.Log("Queued query attempt (" + str(seq) + ") for: " + enode)
-		time.sleep(120)  # allow any in progress query at ISY a chance to clear
+		time.sleep(105 + random.randint(0, 30))  # allow any in progress query at ISY a chance to clear
 		if enode not in self.isy.ErrNodes:
 			logsupport.Logs.Log("Node error cleared without need of query (" + str(seq) + ") for: " + enode)
 			return

@@ -457,6 +457,7 @@ class HA(object):
 				logsupport.Logs.Log("{} not running after thread start ({})".format(self.name, self.haconnectstate),
 									severity=ConsoleError)
 			time.sleep(1)
+			i = 0
 		try:
 			ha.call_service(self.api, 'logbook', 'log',
 							{'name': 'Softconsole', 'message': config.hostname + ' connected'})
