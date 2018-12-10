@@ -10,7 +10,7 @@ import subprocess
 import historybuffer
 from utilities import ReportStatus
 
-from logsupport import ConsoleWarning, ConsoleError
+from logsupport import ConsoleWarning, ConsoleError, ConsoleInfo
 # noinspection PyProtectedMember
 from configobj import Section
 import time
@@ -76,6 +76,9 @@ class MQTTBroker(valuestore.ValueStore):
 		def EchoStat():
 			ReportStatus('running')
 
+		def LogItem(sev):
+			logsupport.Logs.Log('Remotely forced test message', severity=sev)
+
 		def on_message(client, userdata, msg):
 			#print time.ctime() + " Received message " + str(msg.payload) + " on topic "  + msg.topic + " with QoS " + str(msg.qos)
 			var = []
@@ -92,7 +95,10 @@ class MQTTBroker(valuestore.ValueStore):
 							'usestable': UseStable,
 							'usebeta': UseBeta,
 							'hbdump': DumpHB,
-							'status': EchoStat}
+							'status': EchoStat,
+							'issueerror': LogItem(ConsoleError),
+							'issuewarning': LogItem(ConsoleWarning),
+							'issueinfo': LogItem(ConsoleInfo)}
 				if cmd.lower() in cmdcalls:
 					try:
 						controlevents.PostControl(controlevents.RunProc, name=cmd, proc=cmdcalls[cmd.lower()])
@@ -105,8 +111,8 @@ class MQTTBroker(valuestore.ValueStore):
 			elif msg.topic == 'consoles/all/errors':
 				d = json.loads(msg.payload.decode('ascii'))
 				if d['node'] != config.hostname:
-					logsupport.Logs.Log('[{}]: {}'.format(d['node'], d['entry']), severity=d['sev'],
-										entrytime=d['time'], localonly=True, tb=False, hb=False)
+					logsupport.Logs.LogRemote(d.node, d['entry'], severity=d['sev'],
+											  entrytime=d['etime'] if 'etime' in d else 0)
 				return
 			elif msg.topic in ('consoles/all/set', 'consoles/' + config.hostname + '/set'):
 				d = json.loads(msg.payload.decode('ascii'))

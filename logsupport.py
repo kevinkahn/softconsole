@@ -4,6 +4,7 @@ import webcolors
 import sys
 import traceback
 import json
+import threading
 
 wc = webcolors.name_to_rgb  # can't use the safe version from utilities due to import loop but this is only used with
 # known color names
@@ -59,7 +60,12 @@ class Logger(object):
 	LogColors = ("teal", "lightgreen", "darkgreen", "white", "yellow", "red")
 
 	def __init__(self, screen, dirnm):
+		self.lock = threading.Lock()
 		self.screen = screen
+		self.remotenodes = {}
+		self.lastremotemes = ''
+		self.lastremotesev = ConsoleInfo
+		self.lastlocalmes = ''
 		if disklogging:
 			cwd = os.getcwd()
 			os.chdir(dirnm)
@@ -80,19 +86,50 @@ class Logger(object):
 			historybuffer.SetupHistoryBuffers(dirnm, maxf)
 			os.chdir(cwd)
 
+	def SetSeverePointer(self, severity):
+		if severity in [ConsoleWarning, ConsoleError] and config.sysStore.ErrorNotice == -1:
+			config.sysStore.FirstUnseenErrorTime = time.time()
+			config.sysStore.ErrorNotice = len(self.log) - 1
+
+	def LogRemote(self, node, entry, etime, severity):
+		self.lock.acquire()
+		if entry == self.lastremotemes:
+			self.remotenodes[node] = etime
+		else:
+			self.DumpRemoteMes()
+			self.lastremotemes = entry
+			self.lastremotesev = severity
+			self.remotenodes = {node: etime}
+		self.lock.release()
+
+	def DumpRemoteMes(self, disklogging):
+		now = time.strftime('%m-%d-%y %H:%M:%S')
+		if self.lastremotemes == '': return
+		if self.lastremotemes == self.lastlocalmes:
+			remoteentry = "Also from: " + ', '.join(self.remotenodes.keys())
+		else:
+			remoteentry = '[' + ', '.join(self.remotenodes.keys()) + ']' + self.lastremotemes
+		self.log.append((self.lastremotesev, remoteentry, now))
+		if disklogging: self.disklogfile.write(now + ' Sev: ' + str(self.lastremotesev) + " " + remoteentry + '\n')
+		self.lastremotemes = ''
+
 	def Log(self, *args, **kwargs):
 		"""
 		params: args is one or more strings (like for print) and kwargs is severity=
 		"""
+		self.lock.acquire()
 		mqtterr = ''
+		now = time.time()
+		localnow = time.localtime(now)
 		severity = kwargs.pop('severity', ConsoleInfo)
-		entrytime = kwargs.pop('entrytime', time.strftime('%m-%d-%y %H:%M:%S'))
+		entrytime = kwargs.pop('entrytime', time.strftime('%m-%d-%y %H:%M:%S', localnow))
 		tb = kwargs.pop('tb', True)
 		hb = kwargs.pop('hb', False)
 		localonly = kwargs.pop('localonly', False) or LocalOnly  # don't brcst error unti mqtt is up
 
 
 		if severity < LogLevel:
+			self.lock.release()
 			return
 		diskonly = kwargs.pop('diskonly', False)
 		#entry = "".join([unicode(i) for i in args])
@@ -115,14 +152,14 @@ class Logger(object):
 				if config.primaryBroker is not None and not localonly:
 					try:
 						config.primaryBroker.Publish('errors', json.dumps(
-							{'node': config.hostname, 'sev': severity, 'time': entrytime, 'entry': entry}), node='all')
+							{'node': config.hostname, 'sev': severity, 'time': entrytime, 'etime': repr(now),
+							 'entry': entry}), node='all')
 					except Exception as E:
 						mqtterr = "Logger/MQTT error: {}".format(repr(E))
 						self.log.append((ConsoleError, mqtterr, entrytime))
 
-			if severity in [ConsoleWarning, ConsoleError] and config.sysStore.ErrorNotice == -1:
-				config.sysStore.FirstUnseenErrorTime = time.time()
-				config.sysStore.ErrorNotice = len(self.log) - 1
+			self.SetSeverePointer(severity)
+
 		if disklogging:
 			self.disklogfile.write(entrytime + ' Sev: ' + str(severity) + " " + entry + '\n')
 			if severity == ConsoleError and tb:
@@ -137,6 +174,7 @@ class Logger(object):
 			if mqtterr != '': self.disklogfile.write(entrytime + ' Sev: ' + str(ConsoleError) + " " + mqtterr + '\n')
 			self.disklogfile.flush()
 			os.fsync(self.disklogfile.fileno())
+
 		if self.livelog and not diskonly:
 			if self.livelogpos == 0:
 				config.screen.fill(wc('royalblue'))
@@ -145,6 +183,11 @@ class Logger(object):
 				time.sleep(1)
 				self.livelogpos = 0
 			pygame.display.update()
+
+		if entry != self.lastremotemes:
+			self.DumpRemoteMes(disklogging)
+		self.lastlocalmes = entry
+		self.lock.release()
 
 	def RenderLogLine(self, itext, clr, pos):
 		# odd logic below is to make sure that if an unbroken item would by itself exceed line length it gets forced out
