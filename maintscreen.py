@@ -97,6 +97,7 @@ def SetUpMaintScreens():
 
 
 def CheckIfLogSeen(storeitem, old, new, param, chgsource):
+	logsupport.Logs.Log('GlobalErrReset: new: {}  was {}'.format(new, config.sysStore.FirstUnseenErrorTime))
 	if new <= config.sysStore.FirstUnseenErrorTime:
 		config.sysStore.ErrorNotice = -1
 
