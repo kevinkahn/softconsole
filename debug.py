@@ -34,7 +34,7 @@ def debugPrintReal(flag, *args):
 					for line in traceback.format_stack():
 						print(line.strip())
 				if logsupport.Logs is not None:
-					logsupport.Logs.Log(flag, '-> ', *args, severity=ConsoleDebug, diskonly=True)
+					logsupport.Logs.Log(flag, '-> ', *args, severity=ConsoleDebug, debugitem=True)
 			except:
 				logsupport.Logs.Log("Internal debug print error: ", flag, ' ', repr(args), severity=ConsoleError)
 	else:

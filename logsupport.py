@@ -39,10 +39,6 @@ ConsoleError = 5
 LogLevel = 3
 LocalOnly = True
 
-def StringLike(obj):
-	return isinstance(obj, str)  # todo del
-
-
 # try:
 #	return isinstance(obj, basestring)
 # except NameError:
@@ -92,13 +88,11 @@ class Logger(object):
 			config.sysStore.ErrorNotice = len(self.log) - 1
 
 	def LogRemote(self, node, entry, etime, severity):
+		locked = False
 		try:
 			locked = self.lock.acquire(timeout=1)
 			if not locked:
-				self.disklogfile.write(
-					time.strftime('%m-%d-%y %H:%M:%S') + ' Sev: ' + str(5) + " " + 'Log lock failed (Remote) \n')
-				self.disklogfile.flush()
-				os.fsync(self.disklogfile.fileno())
+				self.RecordMessage(ConsoleError, 'Log lock failed (Remote)', '*****Remote******', False, False)
 
 			if entry == self.lastremotemes:
 				if node in self.remotenodes:
@@ -106,21 +100,17 @@ class Logger(object):
 				else:
 					self.remotenodes[node] = (etime, 1)
 			else:
-				self.DumpRemoteMes(disklogging)
+				self.DumpRemoteMes()
 				self.lastremotemes = entry
 				self.lastremotesev = severity
 				self.remotenodes = {node: (etime, 1)}
 			if locked: self.lock.release()
 		except Exception as E:
-			self.disklogfile.write(
-				time.strftime('%m-%d-%y %H:%M:%S') + ' Sev: ' + str(
-					5) + " " + 'Exception while remote logging: {}\n'.format(repr(E)))
-			self.disklogfile.flush()
-			os.fsync(self.disklogfile.fileno())
+			self.RecordMessage(ConsoleError, 'Exception while remote logging: {}'.format(repr(E)), '*****Remote******',
+							   False, False)
 			if locked: self.lock.release()
 
-
-	def DumpRemoteMes(self, disklogging):
+	def DumpRemoteMes(self):
 		now = time.strftime('%m-%d-%y %H:%M:%S')
 		if self.lastremotemes == '': return
 		ndlist = []
@@ -131,28 +121,59 @@ class Logger(object):
 			remoteentry = "Also from: " + ', '.join(ndlist)
 		else:
 			remoteentry = '[' + ', '.join(ndlist) + ']' + self.lastremotemes
-		self.log.append((self.lastremotesev, remoteentry, now))
+		self.RecordMessage(self.lastremotesev, remoteentry, now, False, False)
+
+		self.lastremotemes = ''
+
+	def RecordMessage(self, severity, entry, entrytime, debugitem, tb):
+		if not debugitem:
+			self.log.append((severity, entry, entrytime))
+			self.SetSeverePointer(severity)
 		if disklogging:
-			self.disklogfile.write(now + ' Sev: ' + str(self.lastremotesev) + " " + remoteentry + '\n')
+			self.disklogfile.write(entrytime + ' Sev: ' + str(severity) + " " + entry + '\n')
+			if severity == ConsoleError and tb:
+				# traceback.print_stack(file=self.disklogfile)
+				for line in traceback.format_stack():
+					print(line.strip())
+				frames = traceback.extract_tb(sys.exc_info()[2])
+				for f in frames:
+					fname, lineno, fn, text = f
+					self.disklogfile.write(
+						'-----------------' + fname + ':' + str(lineno) + ' ' + fn + ' ' + text + '\n')
 			self.disklogfile.flush()
 			os.fsync(self.disklogfile.fileno())
-		self.lastremotemes = ''
+
+	def PeriodicRemoteDump(self):
+		locked = False
+		defentrytime = time.strftime('%m-%d-%y %H:%M:%S')
+		try:
+			locked = self.lock.acquire(timeout=1)
+
+			if not locked:
+				self.RecordMessage(ConsoleError, 'Log lock failed (PeriodicRemote)', defentrytime, False, False)
+			self.DumpRemoteMes()
+			if locked: self.lock.release()
+		except Exception as E:
+			self.RecordMessage(ConsoleError, 'Exception while dumping periodic remotes: {}'.format(repr(E)),
+							   defentrytime, False, False)
+			if locked: self.lock.release()
+
+
 
 	def Log(self, *args, **kwargs):
 		"""
 		params: args is one or more strings (like for print) and kwargs is severity=
 		"""
+		locked = False
+		now = time.time()
+		localnow = time.localtime(now)
+		defentrytime = time.strftime('%m-%d-%y %H:%M:%S', localnow)
 		try:
 			locked = self.lock.acquire(timeout=1)
-			if not locked:
-				self.disklogfile.write(
-					time.strftime('%m-%d-%y %H:%M:%S') + ' Sev: ' + str(5) + " " + 'Log lock failed (Local)\n')
-				self.disklogfile.flush()
-				os.fsync(self.disklogfile.fileno())
 
-			mqtterr = ''
-			now = time.time()
-			localnow = time.localtime(now)
+			if not locked:
+				self.RecordMessage(ConsoleError, 'Log lock failed (Local)', defentrytime, False, False)
+
 			severity = kwargs.pop('severity', ConsoleInfo)
 			entrytime = kwargs.pop('entrytime', time.strftime('%m-%d-%y %H:%M:%S', localnow))
 			tb = kwargs.pop('tb', True)
@@ -162,54 +183,38 @@ class Logger(object):
 			if severity < LogLevel:
 				if locked: self.lock.release()
 				return
-			diskonly = kwargs.pop('diskonly', False)
-			# entry = "".join([unicode(i) for i in args])
+			debugitem = kwargs.pop('debugitem', False)
 			entry = ''
 			for i in args:
-				if StringLike(i):
-					if not isinstance(i, str):
-						entry = entry + i.encode('UTF-8', errors='backslashreplace')
-					else:
-						entry = entry + i
-				else:
-					entry = entry + str(i)
+				entry = entry + str(i)
+			# if isinstance(i, str): todo del
+			#	if not isinstance(i, str):
+			#		entry = entry + i.encode('UTF-8', errors='backslashreplace')
+			#	else:
+			#		entry = entry + i
+			# else:
+			#	entry = entry + str(i)
 
 			if entry != self.lastremotemes:
-				self.DumpRemoteMes(disklogging)
+				self.DumpRemoteMes()
 
 			if hb: historybuffer.DumpAll(entry, entrytime)
 
-			if not diskonly:
-				self.log.append((severity, entry, entrytime))
-				if severity in [ConsoleWarning, ConsoleError]:
-					if config.primaryBroker is not None and not localonly:
-						try:
-							config.primaryBroker.Publish('errors', json.dumps(
-								{'node': config.hostname, 'sev': severity, 'time': entrytime, 'etime': repr(now),
-								 'entry': entry}), node='all')
-						except Exception as E:
-							mqtterr = "Logger/MQTT error: {}".format(repr(E))
-							self.log.append((ConsoleError, mqtterr, entrytime))
+			self.RecordMessage(severity, entry, entrytime, debugitem, tb)
 
-				self.SetSeverePointer(severity)
+			# If MQTT is running then broadcast the error
+			if severity in [ConsoleWarning, ConsoleError] and not debugitem:
+				if config.primaryBroker is not None and not localonly:
+					try:
+						config.primaryBroker.Publish('errors', json.dumps(
+							{'node': config.hostname, 'sev': severity, 'time': entrytime, 'etime': repr(now),
+							 'entry': entry}), node='all')
+					except Exception as E:
+						self.RecordMessage(ConsoleError, "Logger/MQTT error: {}".format(repr(E)),
+										   entrytime, debugitem, False)
 
-			if disklogging:
-				self.disklogfile.write(entrytime + ' Sev: ' + str(severity) + " " + entry + '\n')
-				if severity == ConsoleError and tb:
-					# traceback.print_stack(file=self.disklogfile)
-					for line in traceback.format_stack():
-						print(line.strip())
-					frames = traceback.extract_tb(sys.exc_info()[2])
-					for f in frames:
-						fname, lineno, fn, text = f
-						self.disklogfile.write(
-							'-----------------' + fname + ':' + str(lineno) + ' ' + fn + ' ' + text + '\n')
-				if mqtterr != '': self.disklogfile.write(
-					entrytime + ' Sev: ' + str(ConsoleError) + " " + mqtterr + '\n')
-				self.disklogfile.flush()
-				os.fsync(self.disklogfile.fileno())
-
-			if self.livelog and not diskonly:
+			# Paint live log to screen during boot
+			if self.livelog and not debugitem:
 				if self.livelogpos == 0:
 					config.screen.fill(wc('royalblue'))
 				self.livelogpos = self.RenderLogLine(entry, self.LogColors[severity], self.livelogpos)
@@ -221,24 +226,15 @@ class Logger(object):
 			self.lastlocalmes = entry
 			if locked: self.lock.release()
 		except Exception as E:
-			self.disklogfile.write(
-				time.strftime('%m-%d-%y %H:%M:%S') + ' Sev: ' + str(
-					5) + " " + 'Exception while local logging: {}\n'.format(repr(E)))
-			self.disklogfile.flush()
-			os.fsync(self.disklogfile.fileno())
+			self.RecordMessage(ConsoleError, 'Exception while local logging: {}'.format(repr(E)),
+							   defentrytime, False, False)
 			if locked: self.lock.release()
 
 	def RenderLogLine(self, itext, clr, pos):
 		# odd logic below is to make sure that if an unbroken item would by itself exceed line length it gets forced out
 		# thus avoiding an infinite loop
-		text = itext  # todo del
-		# if isinstance(itext, str):
-		#	try:
-		#		text = itext.decode(encoding='UTF-8')  # unicode(v,'UTF-8')
-		#	except AttributeError:
-		#		text = itext
-		# noinspection PyUnboundLocalVariable
-		text = re.sub('\s\s+', ' ', text.rstrip())
+
+		text = re.sub('\s\s+', ' ', itext.rstrip())
 		ltext = re.split('([ :,])', text)
 		ltext.append('')
 		ptext = []

@@ -269,3 +269,4 @@ def ReportStatus(status, retain=True):
 						   "error": config.sysStore.ErrorNotice})
 		config.primaryBroker.Publish(node=config.hostname, topic='status', payload=stat, retain=retain, qos=1,
 									 viasvr=True)
+		logsupport.Logs.PeriodicRemoteDump()
