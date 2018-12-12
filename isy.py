@@ -462,9 +462,10 @@ class ISY(object):
 	def _ISYVarChanged(self, storeitem, old, new, param, chgsource):
 		if not chgsource:  # only send to ISY if change didn't originate there
 			if new is not None:
-				val = int(new)  # ISY V4 only allows integer variable values - may change in V5
-				varid = storeitem.Attribute
-				self.try_ISY_comm('vars/set/' + str(varid[0]) + '/' + str(varid[1]) + '/' + str(val))
+				if old != new:
+					val = int(new)  # ISY V4 only allows integer variable values - may change in V5
+					varid = storeitem.Attribute
+					self.try_ISY_comm('vars/set/' + str(varid[0]) + '/' + str(varid[1]) + '/' + str(val))
 			else:
 				logsupport.Logs.Log("Attempt to set ISY var to None: ", storeitem.name)
 

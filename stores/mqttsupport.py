@@ -129,8 +129,8 @@ class MQTTBroker(valuestore.ValueStore):
 			elif msg.topic in ('consoles/all/set', 'consoles/' + config.hostname + '/set'):
 				d = json.loads(msg.payload.decode('ascii'))
 				try:
-					store = valuestore.SetVal(d['name'], d['value'])
 					logsupport.Logs.Log('{}: set {} = {}'.format(self.name, d['name'], d['value']))
+					store = valuestore.SetVal(d['name'], d['value'])
 				except Exception as E:
 					logsupport.Logs.Log('Bad set via MQTT: {} Exc: {}'.format(repr(d), E), severity=ConsoleWarning)
 				return

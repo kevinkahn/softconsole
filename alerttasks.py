@@ -83,7 +83,7 @@ class NodeChgtrigger(object):
 def VarChanged(storeitem, old, new, param, modifier):
 	debug.debugPrint('DaemonCtl','Var changed ',storeitem.name,' from ',old,' to ',new)
 	# noinspection PyArgumentList
-	PostControl(ISYVar, hub='AlertTasksVarChange', alert=param)
+	if old != new: PostControl(ISYVar, hub='AlertTasksVarChange', alert=param)
 
 class VarChangeTrigger(object):
 	def __init__(self, var, params):

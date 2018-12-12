@@ -287,8 +287,10 @@ class ValueStore(object):
 				# noinspection PyArgumentList
 				t = self.itemtyp(n2, StoreList(t),parent=self)
 				t.UpdateArrayVal(n2[0],val)
-			if t.Value[n2[0]] != oldval: # for array need the element indexed by n2[0]
-				for notify in t.Alerts: # notify doesn't get sent the index - is this an issue ever?  could use modifier for that?
+			if t.Value[n2[0]] == oldval:  # for array need the element indexed by n2[0]
+				# always send the update - message here to watch if this is an issue
+				logsupport.Logs.Log('Store {} set to same value: {}'.format(repr(n2)), oldval)
+			for notify in t.Alerts:  # notify doesn't get sent the index - is this an issue ever?  could use modifier for that?
 					notify[0](t,oldval,t.Value[n2[0]],notify[1],modifier)
 		else:
 			# name has symbolic last part - not an array
