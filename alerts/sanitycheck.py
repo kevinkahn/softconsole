@@ -19,7 +19,7 @@ class CheckIntegrity(object):
 
 		hubname = alert.param
 		thishub = config.Hubs[hubname]
-		T = threading.Thread(name='IntegrityCheck', target=DoCheck,args=(hubname,thishub))
+		T = threading.Thread(name='IntegrityCheck', target=DoCheck, args=(hubname, thishub), daemon=True)
 		T.start()
 
 

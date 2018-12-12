@@ -147,7 +147,7 @@ class Logger(object):
 		locked = False
 		defentrytime = time.strftime('%m-%d-%y %H:%M:%S')
 		try:
-			locked = self.lock.acquire(timeout=1)
+			locked = self.lock.acquire(timeout=3)
 
 			if not locked:
 				self.RecordMessage(ConsoleError, 'Log lock failed (PeriodicRemote)', defentrytime, False, False)
@@ -169,7 +169,7 @@ class Logger(object):
 		localnow = time.localtime(now)
 		defentrytime = time.strftime('%m-%d-%y %H:%M:%S', localnow)
 		try:
-			locked = self.lock.acquire(timeout=1)
+			locked = self.lock.acquire(timeout=3)
 
 			if not locked:
 				self.RecordMessage(ConsoleError, 'Log lock failed (Local)', defentrytime, False, False)

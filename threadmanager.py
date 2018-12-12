@@ -37,8 +37,7 @@ def DoRestart(T):
 	for i in range(10):
 		try:
 			if T.PreRestartThread is not None: T.PreRestartThread()
-			T.Thread = threading.Thread(name=T.name, target=T.Proc)
-			T.Thread.setDaemon(True)
+			T.Thread = threading.Thread(name=T.name, target=T.Proc, daemon=True)
 			T.Thread.start()
 			if T.PostRestartThread is not None: T.PostRestartThread()
 			return True
@@ -73,12 +72,10 @@ def StartThreads():
 		T.seq += 1
 		logsupport.Logs.Log("Starting helper thread (", T.seq,") for: ", T.name)
 		if T.PreStartThread is not None: T.PreStartThread()
-		T.Thread = threading.Thread(name=T.name, target=T.Proc)
-		T.Thread.setDaemon(True)
+		T.Thread = threading.Thread(name=T.name, target=T.Proc, daemon=True)
 		T.Thread.start()
 		if T.PostStartThread is not None: T.PostStartThread()
-	Watcher = threading.Thread(name='Watcher', target=Watch)
-	Watcher.setDaemon(True)
+	Watcher = threading.Thread(name='Watcher', target=Watch, daemon=True)
 	Watcher.start()
 
 def Watch():

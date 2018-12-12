@@ -42,7 +42,7 @@ class ISYEventMonitor(object):
 		self.THstate = 'init'
 		self.querycnt = 0
 		self.queryqueued = {}
-		self.LastMsgErr = None
+		self.LastMsgErr = ('', -99)
 		self.isy.Busy = 0
 
 		self.lasterror = 'Init'
@@ -54,34 +54,34 @@ class ISYEventMonitor(object):
 		self.lasterror = "DirectCommError"
 		self.WS.close()
 
-	def RealQuery(self, enode, seq):
-		logsupport.Logs.Log("Queued query attempt (" + str(seq) + ") for: " + enode)
+	def RealQuery(self, enode, seq, ndnm):
+		logsupport.Logs.Log("Queued query attempt (" + str(seq) + ") for: " + ndnm)
 		time.sleep(105 + random.randint(0, 30))  # allow any in progress query at ISY a chance to clear
 		if enode not in self.isy.ErrNodes:
-			logsupport.Logs.Log("Node error cleared without need of query (" + str(seq) + ") for: " + enode)
+			logsupport.Logs.Log("Node error cleared without need of query (" + str(seq) + ") for: " + ndnm)
 			return
-		logsupport.Logs.Log(self.hubname + ": Attempt query (" + str(seq) + ") in errored node: " + enode,
+		logsupport.Logs.Log(self.hubname + ": Attempt query (" + str(seq) + ") in errored node: " + ndnm,
 							severity=ConsoleWarning)
 		r = self.isy.try_ISY_comm('query/' + enode, timeout=60, closeonfail=False)
-		logsupport.Logs.Log('Temp: ', repr(r))
 		if r == '':
-			logsupport.Logs.Log(self.hubname + ": Query (" + str(seq) + ") attempt failed for node: " + enode,
+			logsupport.Logs.Log(self.hubname + ": Query (" + str(seq) + ") attempt failed for node: " + ndnm,
 								severity=ConsoleWarning)
 		else:
-			logsupport.Logs.Log(self.hubname + ": Query (" + str(seq) + ") attempt succeeded for node: " + enode)
+			time.sleep(2)  # todo allow other nodes to report clearing - perhaps should make message Detail only
+			logsupport.Logs.Log(self.hubname + ": Query (" + str(seq) + ") attempt succeeded for node: " + ndnm)
 		if enode in self.isy.ErrNodes: del self.isy.ErrNodes[enode]
 		if enode in self.queryqueued: del self.queryqueued[enode]
 
-	def DoNodeQuery(self, enode):
+	def DoNodeQuery(self, enode, ndnm):
 		if enode not in self.queryqueued:
 			self.querycnt += 1
 			self.queryqueued[enode] = self.querycnt
 			t = threading.Thread(name='Query-' + str(self.querycnt) + '-' + enode, target=self.RealQuery, daemon=True,
-							 args=(enode, self.querycnt))
+								 args=(enode, self.querycnt, ndnm))
 			t.start()
 		else:
 			logsupport.Logs.Log(
-				self.hubname + ": Query " + str(self.queryqueued[enode]) + " already queued for node: " + enode)
+				self.hubname + ": Query " + str(self.queryqueued[enode]) + " already queued for node: " + ndnm)
 
 	def FakeNodeChange(self):
 		# noinspection PyArgumentList
@@ -359,41 +359,45 @@ class ISYEventMonitor(object):
 							logsupport.Logs.Log(self.hubname, " reported System Status: ", str(eaction))
 
 					if ecode == "ST" or (ecode == "_3" and eaction == "CE"):
-						if BaseAddr(self.LastMsgErr) == BaseAddr(enode):
+						if BaseAddr(self.LastMsgErr[0]) == BaseAddr(enode):
 							# ERR msg followed by clearing - ISY weirdness?
-							self.LastMsgErr = None
 							logsupport.Logs.Log(
-								"{} reported and immediately cleared error for node: {} ({})".format(self.hubname,
-																									 isynd, BaseAddr(
-										self.LastMsgErr)),
+								"{} reported and immediately cleared error for node: {} ({}) (seq:{}/{})".format(
+									self.hubname,
+									isynd, BaseAddr(self.LastMsgErr[0]), self.LastMsgErr[1], eseq),
 								severity=ConsoleWarning, hb=True)  # todo downgrade msg or delete
+							self.LastMsgErr = ('', -99)
 						elif enode in self.isy.ErrNodes:
 							logsupport.Logs.Log("{} cleared comm error for node: {}".format(self.hubname, isynd))
 							if enode in self.isy.ErrNodes:
 								# logsupport.Logs.Log("Query thread still running")
 								del self.isy.ErrNodes[enode]
 
-					if self.LastMsgErr is not None:
+					if self.LastMsgErr != ('', -99):
 						# previous message was ERR and wasn't immediately cleared
 						try:
-							isyerrnd = self.isy.NodesByAddr[self.LastMsgErr].name
+							isyerrnd = self.isy.NodesByAddr[self.LastMsgErr[0]].name
 						except (KeyError, AttributeError):
-							isyerrnd = self.LastMsgErr
-						logsupport.Logs.Log("{} shows comm error for node: {}".format(self.hubname, isyerrnd),
+							isyerrnd = self.LastMsgErr[0]
+						logsupport.Logs.Log(
+							"{} WS stream shows comm error for node: {}(Seq:{})".format(self.hubname, isyerrnd,
+																						self.LastMsgErr[1]),
 											severity=ConsoleWarning, hb=True)
-						if self.LastMsgErr not in self.isy.ErrNodes:
-							self.isy.ErrNodes[self.LastMsgErr] = eseq
-							self.DoNodeQuery(self.LastMsgErr)
-						self.LastMsgErr = None
+						if self.LastMsgErr[0] not in self.isy.ErrNodes:
+							self.isy.ErrNodes[self.LastMsgErr[0]] = eseq
+							self.DoNodeQuery(self.LastMsgErr[0], isyerrnd)
+						self.LastMsgErr = ('', -99)
 
 					if ecode == "ERR":
 						# Note the error and wait one message to see if it immediately clears
-						self.LastMsgErr = enode
+						self.LastMsgErr = (enode, eseq)
 
 					if ecode == "_3" and eaction == "NE":
-						self.LastMsgErr = enode
+						self.LastMsgErr = (enode, eseq)
 						logsupport.Logs.Log(
-							"{} saw comm error code on WS stream for node{}".format(self.hubname, isynd), hb=True)
+							"{} WS stream reported NE error code on WS stream for node{}(Seq:{})".format(self.hubname,
+																										 isynd, eseq),
+							hb=True)
 
 				else:
 					logsupport.Logs.Log(self.hubname + " Strange item in event stream: " + str(m),

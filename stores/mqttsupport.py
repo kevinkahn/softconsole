@@ -274,7 +274,7 @@ class MQTTBroker(valuestore.ValueStore):
 		else:
 			if viasvr:
 				logsupport.Logs.Log("{}: Publish attempt with server not running ({})".format(self.name, repr(payload)),
-									severity=ConsoleWarning)
+									severity=ConsoleWarning)  # todo wrong = happens under lock
 			else:
 				publish.single(fulltopic, payload, hostname=self.address, qos=qos, retain=retain)
 

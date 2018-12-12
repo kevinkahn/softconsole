@@ -16,7 +16,7 @@ from eventlist import ProcEventItem
 
 haignoreandskipdomains = ('history_graph', 'updater')
 ignoredeventtypes = ('system_log_event', 'call_service', 'service_executed', 'logbook_entry', 'timer_out_of_sync',
-					 'persistent_notifications_updated')
+					 'persistent_notifications_updated', 'zwave.network_complete')  # todo zwave complete do something
 
 def stringtonumeric(v):
 	if not isinstance(v,str):
@@ -583,7 +583,8 @@ class HA(object):
 				elif m['event_type'] == 'config_entry_discovered':  # todo temp
 					logsupport.Logs.Log("{} config entry discovered: {}".format(self.name, message))
 				elif m['event_type'] == 'service_registered':
-					logsupport.Logs.Log("{} has new service: {}".format(self.name, message))
+					logsupport.Logs.Log(
+						"{} has new service: {}".format(self.name, message))  # all the zwave services todo
 				elif m['event_type'] not in ignoredeventtypes:
 					# debug.debugPrint('HASSchg', "Other expected event" + str(m))
 					logsupport.Logs.Log('{} Event: {}'.format(self.name, message))  # todo temp

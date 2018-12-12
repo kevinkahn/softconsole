@@ -2,7 +2,7 @@ import os
 import subprocess
 import time
 import sys
-
+import threading
 import pygame
 
 import config
@@ -36,6 +36,7 @@ ERRORPIREBOOT  = 43
 
 
 def exitlogging():
+	logsupport.Logs.Log("Exittime threads: {}".format(repr(threading.enumerate())))
 	if config.hooks.exit_code not in (
 	EARLYABORT, MAINTEXIT, MAINTPISHUT, MAINTRESTART, AUTORESTART, REMOTERESTART, EXTERNALSIGTERM, MAINTPIREBOOT,
 	REMOTEREBOOT):
@@ -43,6 +44,12 @@ def exitlogging():
 		historybuffer.DumpAll('Exit Trace', time.strftime('%m-%d-%y %H:%M:%S'))
 	else:
 		logsupport.Logs.Log("Exiting without history trace")
+	wtcnt = 10
+	while threading.active_count() > 1:
+		logsupport.Logs.Log("Thread count: {}: {}".format(threading.active_count(), threading.enumerate()))
+		time.sleep(1)
+		wtcnt -= 1
+		if wtcnt < 0: break
 
 def EarlyAbort(scrnmsg):
 	config.screen.fill(wc("red"))
