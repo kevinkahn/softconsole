@@ -87,6 +87,8 @@ def handler(signum, frame):
 		pygame.quit()
 		# noinspection PyProtectedMember
 		# os._exit(0)
+		config.Running = False
+		time.sleep(1)
 		sys.exit(0)
 	else:
 		logsupport.Logs.Log(u"Console received signal " + str(signum) + u" Ignoring")

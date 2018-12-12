@@ -35,8 +35,11 @@ REMOTEREBOOT   = 42
 ERRORPIREBOOT  = 43
 
 
+def listthreads(l):
+	return ' ,'.join([i.name for i in l])
+
 def exitlogging():
-	logsupport.Logs.Log("Exittime threads: {}".format(repr(threading.enumerate())))
+	# logsupport.Logs.Log("Exittime threads: {}".format(listthreads(threading.enumerate())))
 	if config.hooks.exit_code not in (
 	EARLYABORT, MAINTEXIT, MAINTPISHUT, MAINTRESTART, AUTORESTART, REMOTERESTART, EXTERNALSIGTERM, MAINTPIREBOOT,
 	REMOTEREBOOT):
@@ -44,12 +47,19 @@ def exitlogging():
 		historybuffer.DumpAll('Exit Trace', time.strftime('%m-%d-%y %H:%M:%S'))
 	else:
 		logsupport.Logs.Log("Exiting without history trace")
-	wtcnt = 10
+	'''
+	wtcnt = 20
 	while threading.active_count() > 1:
-		logsupport.Logs.Log("Thread count: {}: {}".format(threading.active_count(), threading.enumerate()))
-		time.sleep(1)
+		thrds = threading.enumerate()
+		logsupport.Logs.Log("{} threads: {}: {}".format(len(thrds), listthreads(thrds)))
+		time.sleep(3)
 		wtcnt -= 1
 		if wtcnt < 0: break
+	if wtcnt < 0:
+		logsupport.Logs.Log("All threads exited")
+	else:
+		logsupport.Logs.Log('Thread hang? {}')
+	'''
 
 def EarlyAbort(scrnmsg):
 	config.screen.fill(wc("red"))
