@@ -1,5 +1,5 @@
 # Installation
-* The system has currently been tested on Raspberry Pi Zero, Pi Zero W, 2, and 3 using an Adafruit 3.5" resistive PiTFT, Official Raspberry Pi 7" Capacitive Touchscreen, Adafruit 2.8" capacitive PiTFT, and a Waveshare 3.5" screen.  Note that some screens support dimming (the Adafruit ones for example) but some don't (the Waveshare).  Some limited testing has been done on Chinese clone screens - no guarantees there as you may have to work on their calibrations.  The current install scripts now change the system  to run under Python 3 as distributed with Raspbian.  However, the code may still be compatible with Python 2.7 which is the default Python version distributed with Raspbian but I can no longer test for that.
+* The system has currently been tested on Raspberry Pi Zero, Pi Zero W, 2, and 3 using an Adafruit 3.5" resistive PiTFT, Official Raspberry Pi 7" Capacitive Touchscreen, Adafruit 2.8" capacitive PiTFT, and a Waveshare 3.5" screen.  Note that some screens support dimming (the Adafruit ones for example) but some don't (the Waveshare).  Some limited testing has been done on Chinese clone screens - no guarantees there as you may have to work on their calibrations.  The current install scripts change the system  to run under Python 3 as distributed with Raspbian.  The code is no longer comatible with Python 2 due to requirements on the libraries it uses.
 
   To set up a system use one of the following methods:
 
@@ -16,7 +16,7 @@
           }
           ```
              Also, if it finds an ssh file (content of no importance) it will enable ssh access.  So I find it easiest when I finish burning the OS image on the SD card, to then copy my wpa file and an empty ssh file to the boot partition (it will be available on your PC).  Then when you first boot the Pi you will be able to immediately log into it over the network via ssh and run the pisetup script with no need to ever use an HDMI cable.  In the same spirit as this, my script looks for a directory called "auth" and copies its contents to ~pi/Console/local so you can create your password stuff once and put it in a file that gets included in your config file.
-        * Note: Various subscripts get run by pisetup some of which ask you to reboot the system.  *DO NOT REBOOT* from these subscripts - none should interactively give you that option in any case.  If you select auto reboots in the initial prompts, you should never have to manually reboot and eventually the system should finish and either open a desktop or if you autorun the console, start the console.  Manual reboot would only be needed if you do not ask for auto reboots during install (see below).  If you answer y to the continue install question then you should have to answer a few questions at the start and then nothing more.
+        * Note: Various subscripts get run by pisetup some of which may ask you to reboot the system.  *DO NOT REBOOT* from these subscripts - none should interactively give you that option in any case.  If you select auto reboots in the initial prompts, you should never have to manually reboot and eventually the system should finish and either open a desktop or if you autorun the console, start the console.  Manual reboot would only be needed if you do not ask for auto reboots during install (see below).  If you answer y to the continue install question then you should have to answer a few questions at the start and then nothing more.
 
         This script will ask questions needed to configure the console hardware and software:
         * A node name: allows the node to be addressed by name on the network versus only by it's IP address.  Set this and make sure it is unique on your network.  You should be able to address the node later as <nodename>.local.
@@ -37,6 +37,7 @@
     * Version 2.8 made variables first class citizens that appear in "stores" that can be referenced in alerts, alert screens, and weather screens using the format STORENAME:VAR:VAR . . .  All weather stations create a store for all their current conditions and forecasts.  MQTT broker clients create a store for any items they subscribe to.  There is a system store **System** that holds some system wide parameters (currently only the Dim and Bright values).  As of this release ISY variable references that use "StateVar" parameters are deprecated in favor of the general form of variable reference ISY:State:name and ISY:Int:name (or console local variables as LocalVar:Name).  The old forms are supported for now in the config files but will eventually disappear.  This release also add the VARKEY option.
     * Version 3 code made hubs a configurable part of the console which means that console now can support multiple hubs of multiple types.  Currently ISY and Home Assistant hubs are supported.  If multipe hubs are specified a DefaultHub=name directive sets the hub to be used when no other hub is specified.  Within a screen a DefaultHub directive can be given to change the default hub for that screen.  It is always possible to specify the hub for a node using the NODE:nodename syntax like that used for stores.
     * Version 3.1 adds support for weather providers other than Weather Underground and allows multiple such suppliers.  Unfortunately, this requires a small change to the configuration file even if you are continuing to use WU (see below).  The TimeTemp screen type required non-compatible changes to work with the new approach so I have left a TimeTempX screen type that should continue to work with the old approach using the WunderKey to set the api key.  I'll delete this soon since the changes to use the new approach are pretty minimal.  If you want to add another weather provider, it should be pretty easy to write the code using the apixustore.py module as a model.  It mostly handles mapping from the provider specific json response to the one used elsewhere in the console.
+    * Version 3.2 adds support for consoles to be aware of other running consoles and coalesce serious error messages to their logs as well as their error in log indicators.  This makes running multiple console around the house much simpler since accessing the log from any of them will let you see Warnings or Errors reported by any of them and will correspondingly clear the other error indicators when it is known that the message has been seen for sure on another consoles log scan.  It also added some mostly hidden diagnostic capabilities and greatly improved handling of errors from the hubs, particularly ISY reported communication errors.  With the demise of WeatherUnderground as an available weather provider, support for accessing their api has been removed (code was moved to deprecated folder in the source).  Their API is changing with no way for me to access the new one given it is no longer free.
     * Note that all the source code for the console is available on github under kevinkahn/softconsole and you are free to examine and/or modify as you like.
 
 # Console Directory and Files
@@ -87,13 +88,11 @@ The console has a general notion of stored values that some of the screens and a
 
 Stores are created for ISY variables (ISY:State:<varname> and ISY:Int:<varname>), local variables (LocalVar:<varname>), the weather stations, any MQTT brokers (<brokername>:<varname>), and console debug flags (Debug:<flagname>).  There is also a System store (entries of the form System:DimLevel) that holds some global system parameters that may be displayed or changed at runtime (currently mainly the DimLevel and BrightLevel values).  Store values may be referenced on weather and timetemp screens, in alerts, and alert screen actions.  There is also an **assignvar** alert (referenced as AssignVar.Assign) that may be used to assign a literal or another variable value to a store element.  An example of its use is to change the dim level of the screen at certain times of day.
 
-# Weather Providers
-Screens that display weather need to have a store populated with the current information.  You define a weather provider like you do a hub.  Currently there is support for WeatherUnderground and APIXU.  Define a provider and its key in the config file or an included subfile as:
-```
-    [WU]
-    type = WeatherProvider
-    apikey = <key>
+Stores are also used to store all major system and screen parameters.  System parameters are in the **System** store, while screen parameters are in a store named with the name of the screen.  Use the maintenance screen, set flags, dump stores to create a StoresDump file in the Console directory if you want to see all the stores and field names.  Inaddition to the alert and screen references described above there is a general ability to set a store value while the console is running via MQTT.  This is definitely not for the faint of heart - feel free to contact me directly if you need to use this and the discussion below isn't adequate.
 
+# Weather Providers
+Screens that display weather need to have a store populated with the current information.  You define a weather provider like you do a hub.  Currently there is support for APIXU.  Define a provider and its key in the config file or an included subfile as:
+```
     [APIXU]
     type = WeatherProvider
     apikey = <key>
@@ -105,9 +104,9 @@ The section names designate the provider and one or both can be used.  Locations
 type = APIXU
 location = 'Portland, OR'
 refresh = 59
-[PumpkinW]
-type = WU
-location = pws:KORNORTH18
+[PDX]
+type = APIXU
+location = '45.586497654,-122.591830966'
 ```  
 The section name will be the name of the store that will hold the weather and can be referenced where ever store references are allowed, most likely on a weather screen or timetemp screen.  Location is the string that the provider will use to return the weather.  Refresh is the optional refresh interval for getting new data in minutes (default 60).  Most providers limit calls per day so this provides some control over the demand you create.
 
@@ -151,6 +150,7 @@ The weather information is available in a store named as above with entries unde
  ```
 
 # MQTT Broker Reference
+## MQTT for Information Access
 The console can subscribe to an MQTT broker and get variables updated via that route.  To do this create a separate section named as you with for each MQTT broker you wish to subscribe to.  Provide parameters that specify its type as MQTT, its address, password (if needed), and then a sequence of subsections each of which names a variable to be subscribed to.  These sections have parameters Topic, TopicType, and Expires that describe how the value will be stored in the console.  If Expires is left out then values will be valid forever, otherwise they will disappear after the listed number of seconds.
 
 For example, the following might subscribe to a broker running in the house to which local sensors publish the current temperature and humidity on the patio.  One can then reference the current patio temperature on, for example, a timetempscreen, as myBroker:PatioTemp.  If the sensor stops posting for over 2 minutes then the console will show no value.
@@ -168,6 +168,22 @@ For example, the following might subscribe to a broker running in the house to w
             TopicType = float
             Expires = 120
 ```
+
+## MQTT for Console Management
+If the console subscribes to MQTT then additional function is enabled for managing the consoles.  If the console subscribes to multiple MQTT brokers than the first one configured is the default management broker.  You can force a specific MQTT broker to be the management broker by specifying **ReportStatus = True** in the configuration file for that broker.  The rest of this section describes the management related functions enabled by a management broker.
+
+At startup the console registers itself with the broker with a message to **consoles/all/nodes/\<hostname\>** containing information about the version running (version name, github sha, time of download), the time of the registration, the boottime of the pi running the console, the OS version running on the pi, and the hardware version of the pi. The console will then periodically publish to the broker at **consoles/\<hostname\>/status** a status update containing its status, uptime, and the state of the error indicator flag that notes an unseen Warning or Error in the log.  If the console goes down for any reason, the broker will publish a **dead** status. There is a short python program in the download directory called status.py that is an example of how to do a quick check of whatever consoles are running.  A console will also publish to **consoles/all/errors** a message whenever a Warning or Error level message is logged.
+
+The consoles will also coordinate their Warning/Error messages.  A console log will now contain a copy of such messges issued by other consoles.  An attempt is made to coalesce messages when multiple consoles see the same issue at the same time.  If you scan the log from any one console, in addition to clearing its own error indicator, it will also cause the indicators for other consoles to be cleared provided that the log you scanned has been up long enough to have contained all the errors from that other console.  This generally means that scanning the log of a single console will let you see any errors that have occurred elsewhere in the house.
+
+Finally, the consoles will accept commands from MQTT.  A console listens on the topics **consoles/all/set** and **consoles/\<hostname\>/set** for store name and value to be set in a variable (json encoded).  A console also listens on **consoles/all/cmd** and /**consoles/\<hostname\>/cmd** for the following commands:
+* DoRestart: restart the console
+* GetStable: fetch the current stable release
+* GetBeta: fetch the current beta release
+* UseStable: set the console to start the stable version at next restart
+* UseBeta: set the console to start the beta version at the next restart
+* Status: issue a status message to MQTT
+* IssueError, IssueWarning, IssueInfo,HBDump: diagnostic/debug commands
 
 # Currently supported screens
 * Keypad: mimics the KPL.  Can support any number of buttons from 1 to 25 and will autoplace/autosize buttons in this range.  Parmetrs KeysPerColumn and KeysPerRow may be used to override the auto placement of the keys.  Keys may be colored as desired.  Key types are:
@@ -258,6 +274,6 @@ New screens can be developed/deployed by subclassing screen.ScreenDesc and placi
 ## Defining New Alert Procs
 Alert procs are defined as methods in classes stored in the alerts directory.  They have a single module level line of code of the form "config.alertprocs["*classname*"] = *classname*" where *classname* is the name of the class defined in the module.  The class will be instantiated once at console start time.  It may define one or more methods that will be called based on the definition of Alerts in the config file that the console reads.
 
-## Attribute Use and Classes
-The file classstruct.txt in docs provides an automatically generated list of Classes, their subclasses, and the attributes defined at each level of the class structure.  This may be a useful aid if a new screen is being written or new types of keys need to be created.
+## Diagnostic Support
+Corresponding to each Console.log file in the Console directory there is a hidden directory **.HistoryBuffer that may contain diagnostic information.  When certain errors occur or upon user command the console will dump a recent history of all key events that have occurred over as much as the previous 5 minutes.  This includes very detailed diagnostic information from internal task lists and event queues as well as items that have been received from the hubs.
 
