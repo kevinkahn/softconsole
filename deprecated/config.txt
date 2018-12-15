@@ -1,0 +1,138 @@
+ISYaddr = 192.168.1.15
+ISYuser = kahnhome
+ISYpassword = kahns3324
+HomeScreenName = BR
+HomeScreenTO = 90
+DimLevel = 5
+DimTO = 25
+DimHomeScreenCoverName = TimeTemp
+KeyOutlineOffset = 0
+KeyColor = white
+BackgroundColor = white
+KeyOffOutlineColor = black
+KeyOnOutlineColor = black
+KeyCharColorOn = black
+KeyCharColorOff = black
+
+MainChain = BR, TimeTemp, Suzi Misc
+SecondaryChain = Thermostat - Main, Local, Portland, Downtown, La Quinta, Downstairs
+
+[Thermostat - Main]
+    type = Thermostat
+    label = House, Climate
+    BackgroundColor = orchid
+    CharColor = black
+
+[La Quinta]
+    label = La Quinta,
+    type = Weather
+    location = pws:KCALAQUI7
+    WunderKey = 47dc922e667b69a1
+
+[Local]
+    type = Weather
+    label = Council, Crest
+    location = pws:KORPORTL244
+    WunderKey = 47dc922e667b69a1
+
+[Portland]
+    type = Weather
+    location = KPDX
+    WunderKey = 47dc922e667b69a1
+
+[Downtown]
+    type = Weather
+    location = pws:KORPORTL280
+    WunderKey = 47dc922e667b69a1
+
+[MyClock]
+    type = Clock
+    label = Time, and, Date
+    BackgroundColor = black
+    CharColor = white
+    CharSize = 50, 38, 38, 30
+    CmdKeyCol = blue
+    OutFormat = %-l:%M:%S%P, %A, %b %-d %Y, Day:  %-j, Week: %-U
+
+[TimeTemp]
+    type= TimeTemp
+    label = 'Portland',
+    location = KPDX
+    WunderKey = 47dc922e667b69a1
+    TimeFormat = "%-l:%M:%S%P","%a %b %-d"
+    ConditionFields = Sky,Temp
+    ConditionFormat = "{d[0]} {d[1]:.0f}",
+    ForecastDays = 2
+    ForecastFields = Day,Sky,High,Low
+    ForecastFormat = "{d[0]} {d[1]}","{d[2]}/{d[3]}"
+    CharSize = 50, 35, 25
+    CmdKeyCol = blue
+    BackgroundColor = black
+
+[BR]
+    type = Keypad
+    label = Bedroom,
+    [[Window Sconce]]
+        KeyColor = white
+        label = Window, Bed
+    [[Inside Sconce]]
+        KeyColor = white
+        label = Inside, Bed, Light
+    [[BR Ambient]]
+        KeyColor = white
+    [[Pucks]]
+    [[Art Wall]]
+    [[Bath Prep]]
+        type = ONBLINKRUNTHEN
+        KeyColor = white
+        label = Setup, Bathroom
+        KeyRunThenName = Prep Bath
+    [[BR All On]]
+        type = ONBLINKRUNTHEN
+        label = Bedroom, All On
+        KeyRunThenName = MBR Room On
+    [[Light Up]]
+        label = Emergency, Lights
+        type = ONBLINKRUNTHEN
+        KeyColor = white
+        KeyRunThenName = LightUp
+
+[Suzi Misc]
+    type = Keypad
+    label = Upstairs,
+    [[Changing Room]]
+        label = Main, Closet
+    [[Back Closet]]
+        label = Back, Closet
+    [[Toe Kick]]
+    [[Vanity]]
+        label = Vanity, Lights
+    [[Kitchen Path]]
+        SceneProxy = 3B 92 51 3
+        KeyColor = violet
+        label = Kitchen, Path
+    [[Laundry Path]]
+        KeyColor = violet
+        label = Laundry, Path
+        SceneProxy = 3B 92 51 4
+    [[Upper Hall]]
+        KeyColor = grey
+
+[Downstairs]
+    type = Keypad
+    label = Downstairs,
+    [[LR Pict Spot]]
+        label = Art Spot,
+    [[Counter Lights]]
+        label = Kitchen, Counter
+    [[Cooktop Lights]]
+        label = Kitchen, Cooktop
+    [[Kitchen Dimmer]]
+        label = Kitchen, Ceiling
+    [[Railings]]
+    [[Downlights]]
+    [[Landscape]]
+    [[Garage Door (Relay)]]
+        SceneProxy = 3B 92 51 6
+        label = Garage, Door
+        KeyColor = red
