@@ -4,8 +4,6 @@ import signal
 import time
 import socket
 import threadmanager  # should not depend on in project files - move somewhere else
-import json
-from paho.mqtt.client import MQTT_ERR_SUCCESS
 # from sets import Set
 
 import pygame
@@ -262,11 +260,3 @@ class Enumerate(object):
 mqttregistered = False
 
 
-def ReportStatus(status, retain=True):
-	# todo: status should have lasterror, thread numbers for subhandlers, uptime, etc. as a json record
-	if config.primaryBroker is not None:
-		stat = json.dumps({'status': status, "uptime": time.time() - config.starttime,
-						   "error": config.sysStore.ErrorNotice})
-		config.primaryBroker.Publish(node=config.hostname, topic='status', payload=stat, retain=retain, qos=1,
-									 viasvr=True)
-		logsupport.Logs.PeriodicRemoteDump()

@@ -21,6 +21,9 @@ class TempLogger(object):
 		if not isinstance(entry, str): entry =  entry.encode('UTF-8', errors='backslashreplace')
 		print(time.strftime('%m-%d-%y %H:%M:%S') + " " + entry)
 
+	def PeriodicRemoteDump(self):
+		pass  # dummy to satisfy static method check
+
 Logs = TempLogger()
 import config
 import time
@@ -35,6 +38,7 @@ ConsoleDetail = 2
 ConsoleInfo = 3
 ConsoleWarning = 4
 ConsoleError = 5
+primaryBroker = None  # for cross system reporting if mqtt is running
 
 LogLevel = 3
 LocalOnly = True
@@ -47,6 +51,7 @@ LocalOnly = True
 
 def InitLogs(screen,dirnm):
 	return Logger(screen,dirnm)
+
 
 class Logger(object):
 	livelog = True
@@ -204,9 +209,9 @@ class Logger(object):
 
 			# If MQTT is running then broadcast the error
 			if severity in [ConsoleWarning, ConsoleError] and not debugitem:
-				if config.primaryBroker is not None and not localonly:
+				if primaryBroker is not None and not localonly:
 					try:
-						config.primaryBroker.Publish('errors', json.dumps(
+						primaryBroker.Publish('errors', json.dumps(
 							{'node': config.hostname, 'sev': severity, 'time': entrytime, 'etime': repr(now),
 							 'entry': entry}), node='all')
 					except Exception as E:
@@ -270,3 +275,19 @@ class Logger(object):
 				return (i + 1) if (i + 1) < len(self.log) else -1
 
 		return -1
+
+
+def ReportStatus(status, retain=True):
+	# todo: status should have lasterror, thread numbers for subhandlers, uptime, etc. as a json record
+	if primaryBroker is not None:
+		stat = json.dumps({'status': status, "uptime": time.time() - config.starttime,
+						   "error": config.sysStore.ErrorNotice})
+		primaryBroker.Publish(node=config.hostname, topic='status', payload=stat, retain=retain, qos=1,
+							  viasvr=True)
+		Logs.PeriodicRemoteDump()
+
+
+def UpdateGlobalErrorPointer():
+	if primaryBroker is not None:
+		primaryBroker.Publish('set', payload='{"name":"System:GlobalLogViewTime","value":' + str(
+			config.sysStore.LogStartTime) + '}', node='all')

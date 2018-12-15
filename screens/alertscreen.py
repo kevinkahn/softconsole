@@ -1,3 +1,4 @@
+import screens.__screens as screens
 from utilfuncs import wc
 import config
 import toucharea
@@ -95,7 +96,7 @@ class AlertsScreenDesc(screen.ScreenDesc):
 		config.DS.Tasks.RemoveAllGrp(id(self))
 		self.Alert.state = 'Deferred'
 		config.DS.Tasks.AddTask(AlertEventItem(id(self), 'self deferred screen: ' + self.name, self.Alert), self.Defer)
-		config.DS.SwitchScreen(config.HomeScreen, 'Bright', 'Home', 'Manual defer an alert')
+		config.DS.SwitchScreen(screens.HomeScreen, 'Bright', 'Home', 'Manual defer an alert')
 
 	def BlinkMsg(self):
 		if self.Msg:

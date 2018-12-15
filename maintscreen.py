@@ -6,24 +6,25 @@ from collections import OrderedDict
 import pygame
 
 import config
+import screens.__screens as screens
 import toucharea
 import debug
-import exitutils
 from exitutils import MAINTEXIT, Exit_Screen_Message, MAINTRESTART, MAINTPISHUT, MAINTPIREBOOT, Exit
 from utilfuncs import interval_str, wc
 import logsupport
-from logsupport import ConsoleWarning
+from logsupport import ConsoleWarning, ReportStatus, UpdateGlobalErrorPointer
 import time
 import utilities
-from utilities import ReportStatus
 import screen
 import githubutil as U
 
+MaintScreen = None
 fixedoverrides = {'CharColor': 'white', 'BackgroundColor': 'royalblue', 'label': ['Maintenance'], 'DimTO': 60,
 				  'PersistTO': 5}
 
 
 def SetUpMaintScreens():
+	global MaintScreen
 	LogDisp = LogDisplayScreen()
 	Exits = MaintScreenDesc('Exits',
 							OrderedDict([('shut', ('Shutdown Console', doexit)),
@@ -35,8 +36,8 @@ def SetUpMaintScreens():
 										('beta', ('Use Beta Release', dobeta)),
 										('release', ('Download release', dobeta)), ('fetch', ('Download Beta', dobeta)),
 										('return', ('Return', None))]))  # proc filled in below due to circularity
-	config.MaintScreen = MaintScreenDesc('Maintenance',
-										 OrderedDict([('return', ('Exit Maintenance', gohome)),
+	MaintScreen = MaintScreenDesc('Maintenance',
+								  OrderedDict([('return', ('Exit Maintenance', gohome)),
 													  ('log', ('Show Log', functools.partial(goto, LogDisp))),
 													  ('beta', ('Select Version', functools.partial(goto, Beta))),
 													  ('flags', ('Set Flags', None)),
@@ -60,9 +61,9 @@ def SetUpMaintScreens():
 			tmp[flg] = (flg, setdbg)  # setdbg gets fixed below to be actually callable
 		if nflags > 0:  # will need another flag screen so build a "next"
 			tmp['next'] = (
-			'Next', functools.partial(goto, config.MaintScreen))  # this gets fixed below to be a real next
+				'Next', functools.partial(goto, MaintScreen))  # this gets fixed below to be a real next
 		else:
-			tmp['return'] = ('Return', functools.partial(goto, config.MaintScreen))
+			tmp['return'] = ('Return', functools.partial(goto, MaintScreen))
 		FlagsScreens.append(MaintScreenDesc('Flags' + str(flagscreencnt), tmp, overrides=flagoverrides))
 		flagscreencnt += 1
 		FlagsScreens[-1].KeysPerColumn = flagspercol
@@ -73,7 +74,7 @@ def SetUpMaintScreens():
 
 
 	for s in FlagsScreens:
-		s.userstore.ReParent(config.MaintScreen)
+		s.userstore.ReParent(MaintScreen)
 		debug.DebugFlagKeys.update(s.Keys)
 		for kn, k in s.Keys.items():
 			if kn in debug.DbgFlags:
@@ -87,15 +88,16 @@ def SetUpMaintScreens():
 	debug.DebugFlagKeys["LogLevelDown"].SetKeyImages(
 		("Log Detail", logsupport.LogLevels[logsupport.LogLevel] + '(' + str(logsupport.LogLevel) + ')', "More"))
 
-	config.MaintScreen.Keys['flags'].Proc = functools.partial(goto, FlagsScreens[0], config.MaintScreen.Keys['flags'])
-	Exits.Keys['return'].Proc = functools.partial(goto, config.MaintScreen, Exits.Keys['return'])
-	Beta.Keys['return'].Proc = functools.partial(goto, config.MaintScreen, Beta.Keys['return'])
-	Exits.userstore.ReParent(config.MaintScreen)
-	Beta.userstore.ReParent(config.MaintScreen)
-	LogDisp.userstore.ReParent(config.MaintScreen)
+	MaintScreen.Keys['flags'].Proc = functools.partial(goto, FlagsScreens[0], MaintScreen.Keys['flags'])
+	Exits.Keys['return'].Proc = functools.partial(goto, MaintScreen, Exits.Keys['return'])
+	Beta.Keys['return'].Proc = functools.partial(goto, MaintScreen, Beta.Keys['return'])
+	Exits.userstore.ReParent(MaintScreen)
+	Beta.userstore.ReParent(MaintScreen)
+	LogDisp.userstore.ReParent(MaintScreen)
 	config.sysStore.AddAlert("GlobalLogViewTime", CheckIfLogSeen)
 
 
+# noinspection PyUnusedLocal,PyUnusedLocal,PyUnusedLocal,PyUnusedLocal
 def CheckIfLogSeen(storeitem, old, new, param, chgsource):
 	logsupport.Logs.Log('GlobalErrReset: new: {}  was {}'.format(new, config.sysStore.FirstUnseenErrorTime))
 	if new <= config.sysStore.FirstUnseenErrorTime:
@@ -139,7 +141,7 @@ def adjloglevel(K, presstype):
 # noinspection PyUnusedLocal
 def gohome(K, presstype):  # neither peram used
 	logsupport.Logs.Log('Exiting Maintenance Screen')
-	config.DS.SwitchScreen(config.HomeScreen, 'Bright', 'Home', 'Maint exit', NavKeys=True)
+	config.DS.SwitchScreen(screens.HomeScreen, 'Bright', 'Home', 'Maint exit', NavKeys=True)
 
 # noinspection PyUnusedLocal
 def goto(newscreen, K, presstype):
@@ -162,7 +164,7 @@ def doexit(K, presstype):
 		verifymsg = 'Do Pi Reboot'
 	Verify = MaintScreenDesc('Verify',
 							 OrderedDict([('yes', (verifymsg, functools.partial(handleexit, K))),
-										  ('no', ('Cancel', functools.partial(goto, config.MaintScreen)))]))
+										  ('no', ('Cancel', functools.partial(goto, MaintScreen)))]))
 	config.DS.SwitchScreen(Verify, 'Bright', 'Maint', 'Verify exit', NavKeys=False)
 
 # noinspection PyUnusedLocal
@@ -244,7 +246,7 @@ class LogDisplayScreen(screen.BaseKeyScreenDesc):
 			if self.pageno + 1 == len(self.PageStartItem):
 				self.PageStartItem.append(self.item)
 		else:
-			config.DS.SwitchScreen(config.MaintScreen, 'Bright', 'Maint', 'Done (next) showing log', NavKeys=False)
+			config.DS.SwitchScreen(MaintScreen, 'Bright', 'Maint', 'Done (next) showing log', NavKeys=False)
 
 	# noinspection PyUnusedLocal
 	def PrevPage(self, presstype):
@@ -253,7 +255,7 @@ class LogDisplayScreen(screen.BaseKeyScreenDesc):
 			self.item = logsupport.Logs.RenderLog(self.BackgroundColor, start=self.PageStartItem[self.pageno],
 												  pageno=self.pageno + 1)
 		else:
-			config.DS.SwitchScreen(config.MaintScreen, 'Bright', 'Maint', 'Done (prev) showing log', NavKeys=False)
+			config.DS.SwitchScreen(MaintScreen, 'Bright', 'Maint', 'Done (prev) showing log', NavKeys=False)
 
 	def InitDisplay(self, nav):
 		debug.debugPrint('Main', "Enter to screen: ", self.name)
@@ -264,9 +266,7 @@ class LogDisplayScreen(screen.BaseKeyScreenDesc):
 			config.sysStore.ErrorNotice = -1
 		else:
 			startat = 0
-		if config.primaryBroker is not None:
-			config.primaryBroker.Publish('set', payload='{"name":"System:GlobalLogViewTime","value":' + str(
-				config.sysStore.LogStartTime) + '}', node='all')
+		UpdateGlobalErrorPointer()
 		self.item = 0
 		self.PageStartItem = [0]
 		self.pageno = -1
@@ -337,3 +337,4 @@ def domaintexit(ExitKey):
 		ExitCode = MAINTRESTART
 		Exit_Screen_Message("Unknown Exit Requested", "Maintenance Error", "Trying a Restart")
 	Exit(ExitCode)
+

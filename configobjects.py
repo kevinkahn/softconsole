@@ -4,6 +4,7 @@ from configobj import Section
 import config
 import debug
 import logsupport
+import screens.__screens as screens
 from logsupport import ConsoleWarning, ConsoleError, ConsoleDetail
 import toucharea
 import functools
@@ -17,9 +18,9 @@ class MyScreens(object):
 			self.prevkey = None
 			self.nextkey = None
 
-	def __init__(self):
+	def __init__(self, configfile):
 
-		thisconfig = config.ParsedConfigFile
+		thisconfig = configfile
 
 		debug.debugPrint('Screen', "Process Configuration File")
 
@@ -46,12 +47,12 @@ class MyScreens(object):
 			if NewScreen is not None:
 				if NewScreen.name in config.sysStore.MainChain:
 					# entry filled in later with prev and next key pointers
-					config.MainDict[NewScreen.name] = self.scrlistitem(NewScreen)
+					screens.MainDict[NewScreen.name] = self.scrlistitem(NewScreen)
 				elif NewScreen.name in config.sysStore.SecondaryChain:
-					config.SecondaryDict[NewScreen.name] = self.scrlistitem(NewScreen)
+					screens.SecondaryDict[NewScreen.name] = self.scrlistitem(NewScreen)
 				else:
-					config.ExtraDict[NewScreen.name] = self.scrlistitem(NewScreen)
-					config.ExtraChain.append(NewScreen.name)
+					screens.ExtraDict[NewScreen.name] = self.scrlistitem(NewScreen)
+					screens.ExtraChain.append(NewScreen.name)
 		'''
 		if not config.SecondaryDict:
 			# Secondary Dict empty
@@ -66,7 +67,7 @@ class MyScreens(object):
 		logsupport.Logs.Log("Main Screen List:")
 		tmpchain = config.sysStore.MainChain[:]  # copy MainChain (not pointer to) because of possiblity of deletions
 		for scr in tmpchain:
-			if not scr in config.MainDict:
+			if not scr in screens.MainDict:
 				logsupport.Logs.Log("-- Undefined Screen:", scr, severity=ConsoleWarning)
 				config.sysStore.MainChain.remove(scr)
 			else:
@@ -74,7 +75,7 @@ class MyScreens(object):
 		logsupport.Logs.Log("Secondary Screen List:")
 		tmpchain = config.sysStore.SecondaryChain[:]
 		for scr in tmpchain:
-			if not scr in config.SecondaryDict:
+			if not scr in screens.SecondaryDict:
 				logsupport.Logs.Log("-- Undefined Screen:", scr, severity=ConsoleWarning)
 				config.sysStore.SecondaryChain.remove(scr)
 			else:
@@ -90,90 +91,93 @@ class MyScreens(object):
 		cvertcenter = config.screenheight - config.botborder/2
 		cbutheight = config.botborder - config.cmdvertspace*2
 		for i, kn in enumerate(config.sysStore.MainChain):
-			prevk = config.MainDict[config.sysStore.MainChain[i - 1]].screen
-			nextk = config.MainDict[config.sysStore.MainChain[(i + 1) % len(config.sysStore.MainChain)]].screen
-			config.MainDict[kn].prevkey = toucharea.ManualKeyDesc(config.MainDict[kn].screen, 'Nav<' + prevk.name,
-																  prevk.label,
-																  prevk.CmdKeyCol, prevk.CmdCharCol,
-																  prevk.CmdCharCol,
-																  proc=functools.partial(config.DS.NavPress, prevk),
-																  center=(
+			prevk = screens.MainDict[config.sysStore.MainChain[i - 1]].screen
+			nextk = screens.MainDict[config.sysStore.MainChain[(i + 1) % len(config.sysStore.MainChain)]].screen
+			screens.MainDict[kn].prevkey = toucharea.ManualKeyDesc(screens.MainDict[kn].screen, 'Nav<' + prevk.name,
+																   prevk.label,
+																   prevk.CmdKeyCol, prevk.CmdCharCol,
+																   prevk.CmdCharCol,
+																   proc=functools.partial(config.DS.NavPress, prevk),
+																   center=(
 																  config.horizborder + .5*cbutwidth, cvertcenter),
-																  size=(cbutwidth, cbutheight))
-			config.MainDict[kn].nextkey = toucharea.ManualKeyDesc(config.MainDict[kn].screen, 'Nav>' + nextk.name,
-																  nextk.label,
-																  nextk.CmdKeyCol, nextk.CmdCharCol,
-																  nextk.CmdCharCol,
-																  proc=functools.partial(config.DS.NavPress, nextk),
-																  center=(
+																   size=(cbutwidth, cbutheight))
+			screens.MainDict[kn].nextkey = toucharea.ManualKeyDesc(screens.MainDict[kn].screen, 'Nav>' + nextk.name,
+																   nextk.label,
+																   nextk.CmdKeyCol, nextk.CmdCharCol,
+																   nextk.CmdCharCol,
+																   proc=functools.partial(config.DS.NavPress, nextk),
+																   center=(
 																	  config.horizborder + 1.5*cbutwidth, cvertcenter),
-																  size=(cbutwidth, cbutheight))
+																   size=(cbutwidth, cbutheight))
 
 		for i, kn in enumerate(config.sysStore.SecondaryChain):
-			prevk = config.SecondaryDict[config.sysStore.SecondaryChain[i - 1]].screen
-			nextk = config.SecondaryDict[
+			prevk = screens.SecondaryDict[config.sysStore.SecondaryChain[i - 1]].screen
+			nextk = screens.SecondaryDict[
 				config.sysStore.SecondaryChain[(i + 1) % len(config.sysStore.SecondaryChain)]].screen
-			config.SecondaryDict[kn].prevkey = toucharea.ManualKeyDesc(config.SecondaryDict[kn].screen,
+			screens.SecondaryDict[kn].prevkey = toucharea.ManualKeyDesc(
+				screens.SecondaryDict[kn].screen,
 																	   'Nav<' + prevk.name,
-																	   prevk.label,
-																	   prevk.CmdKeyCol, prevk.CmdCharCol,
-																	   prevk.CmdCharCol,
-																	   proc=functools.partial(config.DS.NavPress,
+				prevk.label,
+				prevk.CmdKeyCol, prevk.CmdCharCol,
+				prevk.CmdCharCol,
+				proc=functools.partial(config.DS.NavPress,
 																							  prevk),
-																	   center=(
+				center=(
 																	   config.horizborder + .5*cbutwidth, cvertcenter),
-																	   size=(cbutwidth, cbutheight))
-			config.SecondaryDict[kn].nextkey = toucharea.ManualKeyDesc(config.SecondaryDict[kn].screen,
+				size=(cbutwidth, cbutheight))
+			screens.SecondaryDict[kn].nextkey = toucharea.ManualKeyDesc(
+				screens.SecondaryDict[kn].screen,
 																	   'Nav>' + nextk.name,
-																	   nextk.label,
-																	   nextk.CmdKeyCol, nextk.CmdCharCol,
-																	   nextk.CmdCharCol,
-																	   proc=functools.partial(config.DS.NavPress,
+				nextk.label,
+				nextk.CmdKeyCol, nextk.CmdCharCol,
+				nextk.CmdCharCol,
+				proc=functools.partial(config.DS.NavPress,
 																							  nextk),
-																	   center=(config.horizborder + 1.5*cbutwidth,
-																			   cvertcenter),
-																	   size=(cbutwidth, cbutheight))
+				center=(config.horizborder + 1.5 * cbutwidth,
+						cvertcenter),
+				size=(cbutwidth, cbutheight))
 
 		if config.sysStore.HomeScreenName in config.sysStore.MainChain:
-			config.HomeScreen = config.MainDict[config.sysStore.HomeScreenName].screen
+			screens.HomeScreen = screens.MainDict[config.sysStore.HomeScreenName].screen
 		else:
 			logsupport.Logs.Log("Error in Home Screen Name", severity=ConsoleWarning)
-			config.HomeScreen = config.MainDict[config.sysStore.MainChain[0]].screen
-		logsupport.Logs.Log("Home Screen: " + config.HomeScreen.name)
+			screens.screens.HomeScreen = screens.MainDict[config.sysStore.MainChain[0]].screen
+		logsupport.Logs.Log("Home Screen: " + screens.HomeScreen.name)
 
 		if config.sysStore.SecondaryChain:
-			config.HomeScreen2 = config.SecondaryDict[config.sysStore.SecondaryChain[0]].screen
-			logsupport.Logs.Log("Secondary home screen: " + config.HomeScreen2.name)
+			screens.HomeScreen2 = screens.SecondaryDict[config.sysStore.SecondaryChain[0]].screen
+			logsupport.Logs.Log("Secondary home screen: " + screens.HomeScreen2.name)
 		else:
-			config.HomeScreen2 = config.HomeScreen
+			screens.HomeScreen2 = screens.HomeScreen
 			logsupport.Logs.Log("No secondary screen chain")  # just point secondary at main
 
 		# noinspection PyBroadException
 		try:
 			for sn, st in zip(config.sysStore.DimIdleListNames, config.sysStore.DimIdleListTimes):
-				for l, d in zip((config.sysStore.MainChain, config.sysStore.SecondaryChain, config.ExtraChain),
-								(config.MainDict, config.SecondaryDict, config.ExtraDict)):
+				for l, d in zip((config.sysStore.MainChain, config.sysStore.SecondaryChain,
+								 screens.ExtraChain),
+								(screens.MainDict, screens.SecondaryDict, screens.ExtraDict)):
 					if sn in l:
 						logsupport.Logs.Log('Cover Screen: ' + sn + '/' + st)
-						config.DimIdleList.append(d[sn].screen)
-						config.DimIdleTimes.append(int(st))
+						screens.DimIdleList.append(d[sn].screen)
+						screens.DimIdleTimes.append(int(st))
 		except:
 			logsupport.Logs.Log("Error specifying idle screens - check config", severity=ConsoleWarning)
 
 		# handle deprecated DimHomeScreenCoverName
 		cn = config.sysStore.DimHomeScreenCoverName
-		if cn != "" and not config.DimIdleList:
+		if cn != "" and not screens.DimIdleList:
 			if cn in config.sysStore.MainChain:
-				config.DimIdleList.append(config.MainDict[cn].screen)
-				config.DimIdleTimes.append(1000000)
+				screens.DimIdleList.append(screens.MainDict[cn].screen)
+				screens.DimIdleTimes.append(1000000)
 				logsupport.Logs.Log("DimHS(deprecated): " + cn, severity=ConsoleWarning)
 				logsupport.Logs.Log('Replace with DimIdleListNames = [<list of screen names>]', severity=ConsoleWarning)
-		if not config.DimIdleList:
-			config.DimIdleList = [config.HomeScreen]
-			config.DimIdleTimes = [1000000]
+		if not screens.DimIdleList:
+			screens.DimIdleList = [screens.HomeScreen]
+			screens.DimIdleTimes = [1000000]
 			logsupport.Logs.Log("No Dim Home Screen Cover Set")
 
 		logsupport.Logs.Log("Defined but unused screens:")
-		for nm, scr in config.ExtraDict.items():
-			if (not isinstance(scr.screen, config.screentypes["Alert"])) and (not scr.screen in config.DimIdleList):
+		for nm, scr in screens.ExtraDict.items():
+			if (not isinstance(scr.screen, config.screentypes["Alert"])) and (not scr.screen in screens.DimIdleList):
 				logsupport.Logs.Log("---Unused: " + nm, severity=ConsoleWarning)

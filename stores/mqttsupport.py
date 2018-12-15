@@ -8,11 +8,10 @@ import exitutils
 import maintscreen
 import subprocess
 import historybuffer
-from utilities import ReportStatus
 import functools
 import threading
 
-from logsupport import ConsoleWarning, ConsoleError, ConsoleInfo
+from logsupport import ConsoleWarning, ConsoleError, ConsoleInfo, ReportStatus
 # noinspection PyProtectedMember
 from configobj import Section
 import time
@@ -40,7 +39,7 @@ class MQTTBroker(valuestore.ValueStore):
 			logsupport.Logs.Log("{}: {} stream {} with result code {}".format(self.name, logm, self.MQTTnum, rc))
 			for i, _ in userdata.topicindex.items():
 				client.subscribe(i)
-			if config.primaryBroker == self:
+			if logsupport.primaryBroker == self:
 				client.subscribe([('consoles/all/errors', 1),
 								  ('consoles/all/cmd', 1),
 								  ('consoles/' + config.hostname + '/cmd', 1),
@@ -209,10 +208,10 @@ class MQTTBroker(valuestore.ValueStore):
 		self.MQTTclient.on_connect = on_connect
 		self.MQTTclient.on_message = on_message
 		self.MQTTclient.on_disconnect = on_disconnect
-		if self.reportstatus or config.primaryBroker is None:
+		if self.reportstatus or logsupport.primaryBroker is None:
 			topic = 'consoles/' + config.hostname + '/status'
 			self.MQTTclient.will_set(topic, json.dumps({'status': 'dead'}), retain=True)
-			config.primaryBroker = self
+			logsupport.primaryBroker = self
 			self.MQTTrunning = False
 			# register the console
 			self.Publish(node='all/nodes', topic=config.hostname,

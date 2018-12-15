@@ -1,6 +1,7 @@
 import pygame
 import config
 import debug
+import screens.__screens as screens
 from stores import valuestore
 import screen
 import logsupport
@@ -137,8 +138,9 @@ class WeatherScreenDesc(screen.ScreenDesc):
 	def InitDisplay(self, nav):
 		self.currentconditions = True
 		super(WeatherScreenDesc, self).InitDisplay(nav)
-		if self.ShowScreen(self.currentconditions) == -1:
-			config.DS.SwitchScreen(config.HomeScreen, 'Bright', 'Home', 'Weather screen error')
+		if self.ShowScreen(
+				self.currentconditions) == -1:  # todo should remove since errors are caught now in switch screen
+			config.DS.SwitchScreen(screens.HomeScreen, 'Bright', 'Home', 'Weather screen error')
 
 	def ExitScreen(self):
 		pass

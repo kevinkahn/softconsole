@@ -40,7 +40,6 @@ screen = None  # pygame screen to blit on etc
 backlight = None  # GPIO instance of pin 18
 DS = None  # GlDaemobal Display Screen handles running the button presses and touch recognition
 Alerts = []
-ParsedConfigFile = None  # config.txt internal version
 configfilebase = "/home/pi/Console/"  # default location of configfile, can be overridden by arg1.
 configfile = ""
 fonts = None
@@ -69,16 +68,6 @@ botborder = 80
 cmdvertspace = 10  # this is the space around the top/bot of  cmd button within the bot border
 
 # Operational global navigation roots
-HomeScreen = None
-HomeScreen2 = None
-MaintScreen = None
-DimHomeScreenCover = None
-DimIdleList = []
-DimIdleTimes = []
-MainDict = {}  # map: name:screen
-SecondaryDict = {}
-ExtraDict = {}
-ExtraChain = []
 SonosScreen = None  # todo hack to handle late appearing players
 # _____________________________
 
@@ -105,11 +94,3 @@ sysvals = {
 	'GlobalLogViewTime': (int, 0, None, False)
 }
 
-# DimIdleListNames = []
-# DimIdleListTimes = []
-
-
-# _MainChain = []  # defaults to order based on config file
-# _SecondaryChain = []  # if spec'd used for secondary screens else random order
-# _ExtraChain = []  # defaults to empty, unused screens
-primaryBroker = None

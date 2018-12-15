@@ -28,6 +28,7 @@ import pygame
 from configobj import ConfigObj, Section
 
 import config
+import screens.__screens as screens
 import debug
 from stores import mqttsupport, valuestore, localvarsupport, sysstore
 
@@ -173,7 +174,8 @@ logsupport.Logs.Log(
 
 
 """
-Dynamically load class definitions for all defined screen types and link them to how configuration happens
+Dynamically load class definitions for all defined screen types, slert types, hubtypes, weather provider types
+and link them to how configuration happens
 """
 for screentype in os.listdir(os.getcwd() + '/screens'):
 	if '__' not in screentype:
@@ -225,7 +227,7 @@ if not os.path.isfile(config.configfile):
 	logsupport.Logs.Log('Abort - no configuration file (' + config.hostname + ')')
 	exitutils.EarlyAbort('No Configuration File (' + config.hostname + ')')
 
-config.ParsedConfigFile = ConfigObj(config.configfile)  # read the config.txt file
+ParsedConfigFile = ConfigObj(config.configfile)  # read the config.txt file
 
 logsupport.Logs.Log("Parsed base config file")
 
@@ -235,12 +237,12 @@ config.configfilelist[config.configfile] = os.path.getmtime(config.configfile)
 
 cfiles = []
 pfiles = []
-cfglib = config.ParsedConfigFile.get('cfglib', '')
+cfglib = ParsedConfigFile.get('cfglib', '')
 if cfglib != '':
 	cfglib += '/'
 if cfglib[0] != '/':
 	cfglib = configdir + '/' + cfglib
-includes = config.ParsedConfigFile.get('include', [])
+includes = ParsedConfigFile.get('include', [])
 while includes:
 	f = includes.pop(0)
 	if f[0] != '/':
@@ -253,7 +255,7 @@ while includes:
 	try:
 		tmpconf = ConfigObj(f)
 		includes = includes + tmpconf.get('include', [])
-		config.ParsedConfigFile.merge(tmpconf)
+		ParsedConfigFile.merge(tmpconf)
 		logsupport.Logs.Log("Merged config file " + f)
 	except:
 		logsupport.Logs.Log("Error merging include file: ", f)
@@ -264,13 +266,13 @@ while includes:
 		logsupport.Logs.Log("MISSING config file " + f)
 		config.configfilelist[f] = 0
 
-debug.InitFlags(config.ParsedConfigFile)
+debug.InitFlags(ParsedConfigFile)
 
 
 for nm, val in config.sysvals.items():
-	config.sysStore.SetVal([nm], val[0](config.ParsedConfigFile.get(nm, val[1])))
+	config.sysStore.SetVal([nm], val[0](ParsedConfigFile.get(nm, val[1])))
 	if val[2] is not None: config.sysStore.AddAlert(nm, val[2])
-screen.InitScreenParams(config.ParsedConfigFile)
+screen.InitScreenParams(ParsedConfigFile)
 
 logsupport.Logs.Log("Parsed globals")
 logsupport.Logs.Log("Switching to real log")
@@ -318,7 +320,7 @@ for p, f in zip(pfiles, cfiles):
 		logsupport.Logs.Log("  ", p, time.strftime(' %c', time.localtime(config.configfilelist[f])))
 debug.LogDebugFlags()
 
-logsupport.LogLevel = int(config.ParsedConfigFile.get('LogLevel', logsupport.LogLevel))
+logsupport.LogLevel = int(ParsedConfigFile.get('LogLevel', logsupport.LogLevel))
 logsupport.Logs.Log("Log level: ", logsupport.LogLevel)
 config.DS = displayscreen.DisplayScreen()  # create the actual device screen and touch manager
 
@@ -330,18 +332,18 @@ for n, param in config.sysvals.items():
 """
 Fake an ISY Hub section if old style auth present
 """
-if "ISYaddr" in config.ParsedConfigFile:
+if "ISYaddr" in ParsedConfigFile:
 	logsupport.Logs.Log("Converting ISYaddr parameter style to hub named: ", config.defaultISYname)
-	tmp = {"address":config.ParsedConfigFile.get("ISYaddr",""),
-					 "password":config.ParsedConfigFile.get("ISYpassword",""),
-					 "user":config.ParsedConfigFile.get("ISYuser",""),
+	tmp = {"address": ParsedConfigFile.get("ISYaddr", ""),
+		   "password": ParsedConfigFile.get("ISYpassword", ""),
+		   "user": ParsedConfigFile.get("ISYuser", ""),
 					 "type":"ISY"}
-	config.ParsedConfigFile[config.defaultISYname] = tmp
+	ParsedConfigFile[config.defaultISYname] = tmp
 
 """
 Pull out non-screen sections
 """
-for i, v in config.ParsedConfigFile.items():
+for i, v in ParsedConfigFile.items():
 	if isinstance(v, Section):
 		# noinspection PyArgumentList
 		stype = v.get('type', None, delkey=False)
@@ -350,17 +352,17 @@ for i, v in config.ParsedConfigFile.items():
 			Set up mqtt brokers
 			"""
 			valuestore.NewValueStore(mqttsupport.MQTTBroker(i, v))
-			del config.ParsedConfigFile[i]
+			del ParsedConfigFile[i]
 		elif stype == "Locals":
 			valuestore.NewValueStore(localvarsupport.LocalVars(i, v))
-			del config.ParsedConfigFile[i]
+			del ParsedConfigFile[i]
 		elif stype == "WeatherProvider":
 			apikey = v.get('apikey', 'N/A')
 			if i in config.WeathProvs:
 				config.WeathProvs[i][1] = apikey
 			else:
 				logsupport.Logs.Log("No weather provider type: {}".format(i), severity=ConsoleWarning)
-			del config.ParsedConfigFile[i]
+			del ParsedConfigFile[i]
 		for hubtyp, pkg in config.hubtypes.items():
 			if stype == hubtyp:
 				# noinspection PyBroadException
@@ -369,11 +371,11 @@ for i, v in config.ParsedConfigFile.items():
 				except BaseException as e:
 					logsupport.Logs.Log("Fatal console error - fix config file: ", e, severity=ConsoleError, tb=False)
 					exitutils.Exit(exitutils.ERRORDIE, immediate=True)  # shutdown and don't try restart
-				del config.ParsedConfigFile[i]
+				del ParsedConfigFile[i]
 
 from stores import genericweatherstore
 
-for i, v in config.ParsedConfigFile.items():
+for i, v in ParsedConfigFile.items():
 	if isinstance(v, Section):
 		# noinspection PyArgumentList
 		stype = v.get('type', None, delkey=False)
@@ -389,9 +391,8 @@ for i, v in config.ParsedConfigFile.items():
 				except Exception as e:
 					logsupport.Logs.Log('Unhandled error creating weather location: ', loccode, repr(e),
 										severity=ConsoleError, tb=False)
-				del config.ParsedConfigFile[i]
+				del ParsedConfigFile[i]
 
-# config.defaulthubname = config.ParsedConfigFile.get('DefaultHub','')
 
 if screen.screenStore.GetVal('DefaultHub') == '':  # todo handle no hub case for screen testing
 	if len(config.Hubs) == 1:
@@ -420,29 +421,29 @@ alertspeclist = {}
 for n, hub in config.Hubs.items():
 	alertspeclist.update(hub.alertspeclist)
 
-if 'Alerts' in config.ParsedConfigFile:
-	alertspec = config.ParsedConfigFile['Alerts']
-	del config.ParsedConfigFile['Alerts']
+if 'Alerts' in ParsedConfigFile:
+	alertspec = ParsedConfigFile['Alerts']
+	del ParsedConfigFile['Alerts']
 else:
 	alertspec = ConfigObj()
 
 alertspec.merge(alertspeclist)
 
-if 'Variables' in config.ParsedConfigFile:
-	valuestore.NewValueStore(localvarsupport.LocalVars('LocalVars', config.ParsedConfigFile['Variables']))
+if 'Variables' in ParsedConfigFile:
+	valuestore.NewValueStore(localvarsupport.LocalVars('LocalVars', ParsedConfigFile['Variables']))
 	i = 0
 	tn = ['LocalVars', '']
-	for nm, val in config.ParsedConfigFile['Variables'].items():
+	for nm, val in ParsedConfigFile['Variables'].items():
 		logsupport.Logs.Log("Local variable: " + nm + "(" + str(i) + ") = " + str(val))
 		tn[1] = nm
 		valuestore.SetVal(tn, val)
 		i += 1
-	del config.ParsedConfigFile['Variables']
+	del ParsedConfigFile['Variables']
 
 """
 Build the Hub(s) object structure and connect the configured screens to it
 """
-configobjects.MyScreens()
+configobjects.MyScreens(ParsedConfigFile)
 logsupport.Logs.Log("Linked config to Hubs")
 
 """
@@ -457,15 +458,13 @@ Set up the Maintenance Screen
 maintscreen.SetUpMaintScreens()
 logsupport.Logs.Log("Built Maintenance Screen")
 
-LogBadParams(config.ParsedConfigFile, "Globals")
+LogBadParams(ParsedConfigFile, "Globals")
 LogBadParams(alertspec, "Alerts")
 """
 Dump documentation if development version
 """
 #if config.versionname == 'development':
 #	utilities.DumpDocumentation()
-# for p in config.sysStore.items(): todo
-#	config.sysStore.AddAlert(p,config.primaryBroker.PushToMQTT)
 
 """
 Run the main console loop
@@ -473,7 +472,7 @@ Run the main console loop
 for n in alerttasks.monitoredvars:  # make sure vars used in alerts are updated to starting values
 	valuestore.GetVal(n)
 #config.sysStore.ErrorNotice = -1  # if -1 no unseen, else entry number of first unseen todo reenable
-config.DS.MainControlLoop(config.HomeScreen)
+config.DS.MainControlLoop(screens.HomeScreen)
 logsupport.Logs.Log("Main line exit: ", config.ecode)
 pygame.quit()
 # noinspection PyProtectedMember

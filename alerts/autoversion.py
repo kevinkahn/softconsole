@@ -1,10 +1,9 @@
 import config
-from utilities import ReportStatus
 import githubutil
 import exitutils
 import sys
 import logsupport
-from logsupport import ConsoleWarning, ConsoleDetail
+from logsupport import ConsoleWarning, ConsoleDetail, ReportStatus
 import alerttasks
 
 

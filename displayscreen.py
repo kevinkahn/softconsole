@@ -9,13 +9,14 @@ import config
 import debug
 import hw
 import logsupport
+import screens.__screens as screens
 import threadmanager
 from controlevents import *
 from eventlist import AlertEventItem, ProcEventItem
 from eventlist import EventList
-from logsupport import ConsoleWarning, ConsoleError, ConsoleDetail
+from logsupport import ConsoleWarning, ConsoleError, ConsoleDetail, ReportStatus
 import historybuffer
-from utilities import ReportStatus
+import maintscreen
 
 
 class DisplayScreen(object):
@@ -62,7 +63,7 @@ class DisplayScreen(object):
 		config.sysStore.CurrentScreen = NS.name
 		oldstate = self.state
 		olddim = self.dim
-		if NS == config.HomeScreen:  # always force home state on move to actual home screen
+		if NS == screens.HomeScreen:  # always force home state on move to actual home screen
 			newstate = 'Home'
 		if NS == self.AS:
 			debug.debugPrint('Dispatch', 'Null SwitchScreen: ', reason)
@@ -78,7 +79,7 @@ class DisplayScreen(object):
 			if olddim == 'Dim':
 				if newstate == 'Cover':
 					# special case persist
-					self.SetActivityTimer(config.DimIdleTimes[0], reason + ' using cover time')
+					self.SetActivityTimer(screens.DimIdleTimes[0], reason + ' using cover time')
 				else:
 					self.SetActivityTimer(self.AS.PersistTO, reason)
 			else:
@@ -120,8 +121,8 @@ class DisplayScreen(object):
 		# so we can start broadcasting our errors
 		logsupport.LocalOnly = False
 
-		self.ScreensDict = config.SecondaryDict.copy()
-		self.ScreensDict.update(config.MainDict)
+		self.ScreensDict = screens.SecondaryDict.copy()
+		self.ScreensDict.update(screens.MainDict)
 
 		for a in config.Alerts.AlertsList.values():
 			a.state = 'Armed'
@@ -199,7 +200,7 @@ class DisplayScreen(object):
 					# wake up the screen and if in a cover state go home
 					config.consolestatus = 'active'
 					if self.state == 'Cover':
-						self.SwitchScreen(config.HomeScreen, 'Bright', 'Home', 'Wake up from cover')
+						self.SwitchScreen(screens.HomeScreen, 'Bright', 'Home', 'Wake up from cover')
 					else:
 						self.Brighten()  # if any other screen just brighten
 					continue  # wakeup touches are otherwise ignored
@@ -226,18 +227,18 @@ class DisplayScreen(object):
 						# Future add handling for hold here with checking for MOUSE UP etc.
 				if tapcount == 3:
 					# Switch screen chains
-					if config.HomeScreen != config.HomeScreen2:  # only do if there is a real secondary chain
+					if screens.HomeScreen != screens.HomeScreen2:  # only do if there is a real secondary chain
 						if self.Chain == 0:
 							self.Chain = 1
-							self.SwitchScreen(config.HomeScreen2, 'Bright', 'NonHome', 'Chain switch to secondary')
+							self.SwitchScreen(screens.HomeScreen2, 'Bright', 'NonHome', 'Chain switch to secondary')
 						else:
 							self.Chain = 0
-							self.SwitchScreen(config.HomeScreen, 'Bright', 'Home', 'Chain switch to main')
+							self.SwitchScreen(screens.HomeScreen, 'Bright', 'Home', 'Chain switch to main')
 					continue
 
 				elif tapcount > 3:
 					# Go to maintenance
-					self.SwitchScreen(config.MaintScreen, 'Bright', 'Maint', 'Tap to maintenance', NavKeys=False)
+					self.SwitchScreen(maintscreen.MaintScreen, 'Bright', 'Maint', 'Tap to maintenance', NavKeys=False)
 					continue
 
 				if self.AS.Keys is not None:
@@ -266,17 +267,17 @@ class DisplayScreen(object):
 					self.SetActivityTimer(self.AS.PersistTO, 'Go dim and wait persist')
 				else:
 					if self.state == 'NonHome':
-						self.SwitchScreen(config.HomeScreen, 'Dim', 'Home', 'Dim nonhome to dim home')
+						self.SwitchScreen(screens.HomeScreen, 'Dim', 'Home', 'Dim nonhome to dim home')
 					elif self.state == 'Home':
-						self.SwitchScreen(config.DimIdleList[0], 'Dim', 'Cover', 'Go to cover', NavKeys=False)
+						self.SwitchScreen(screens.DimIdleList[0], 'Dim', 'Cover', 'Go to cover', NavKeys=False)
 						# rotate covers - save even if only 1 cover
-						config.DimIdleList = config.DimIdleList[1:] + config.DimIdleList[:1]
-						config.DimIdleTimes = config.DimIdleTimes[1:] + config.DimIdleTimes[:1]
+						screens.DimIdleList = screens.DimIdleList[1:] + screens.DimIdleList[:1]
+						screens.DimIdleTimes = screens.DimIdleTimes[1:] + screens.DimIdleTimes[:1]
 					elif self.state == 'Cover':
-						if len(config.DimIdleList) > 1:
-							self.SwitchScreen(config.DimIdleList[0], 'Dim', 'Cover', 'Go to next cover', NavKeys=False)
-							config.DimIdleList = config.DimIdleList[1:] + config.DimIdleList[:1]
-							config.DimIdleTimes = config.DimIdleTimes[1:] + config.DimIdleTimes[:1]
+						if len(screens.DimIdleList) > 1:
+							self.SwitchScreen(screens.DimIdleList[0], 'Dim', 'Cover', 'Go to next cover', NavKeys=False)
+							screens.DimIdleList = screens.DimIdleList[1:] + screens.DimIdleList[:1]
+							screens.DimIdleTimes = screens.DimIdleTimes[1:] + screens.DimIdleTimes[:1]
 					else:  # Maint or Alert - todo?
 						debug.debugPrint('Dispatch', 'TO while in: ', self.state)
 
@@ -324,7 +325,7 @@ class DisplayScreen(object):
 				elif alert.state == 'Active' and not alert.trigger.IsTrue():  # alert condition has cleared and screen is up
 					debug.debugPrint('Dispatch', 'Active alert cleared', alert.name)
 					alert.state = 'Armed'  # just rearm the alert
-					self.SwitchScreen(config.HomeScreen, 'Dim', 'Home', 'Cleared alert')
+					self.SwitchScreen(screens.HomeScreen, 'Dim', 'Home', 'Cleared alert')
 				elif ((alert.state == 'Delayed') or (alert.state == 'Deferred')) and not alert.trigger.IsTrue():
 					# condition changed under a pending action (screen or proc) so just cancel and rearm
 					debug.debugPrint('Dispatch', 'Delayed event cleared before invoke', alert.name)
