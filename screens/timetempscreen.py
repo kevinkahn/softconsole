@@ -5,7 +5,7 @@ import fonts
 import hw
 import screen
 import debug
-import screens.__screens
+import screens.__screens as screens
 from utilfuncs import wc
 from stores import valuestore
 from weatherfromatting import CreateWeathBlock, WFormatter
@@ -27,11 +27,11 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 		debug.debugPrint('Screen', "New TimeTempDesc ", screenname)
 
 		screen.AddUndefaultedParams(self, screensection, location='', CharSize=[-1],
-								 ClockSize=-1,LocationSize=-1,CondSize=[20],FcstSize=[20],
-								 Font=config.monofont, FcstLayout = 'Block',
-								 FcstIcon=True,CondIcon=True,
-								 TimeFormat=[], ConditionFields=[], ConditionFormat=[], ForecastFields=[],
-								 ForecastFormat=[], ForecastDays=1, SkipDays=0)
+									ClockSize=-1, LocationSize=-1, CondSize=[20], FcstSize=[20],
+									Font=fonts.monofont, FcstLayout='Block',
+									FcstIcon=True, CondIcon=True,
+									TimeFormat=[], ConditionFields=[], ConditionFormat=[], ForecastFields=[],
+									ForecastFormat=[], ForecastDays=1, SkipDays=0)
 
 		if self.CharSize != [-1]:
 			# old style
@@ -75,7 +75,7 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 		self.repaintClock()
 
 	def repaintClock(self):
-		usefulheight = hw.screenheight - config.topborder - config.botborder
+		usefulheight = hw.screenheight - screens.topborder - screens.botborder
 		h = 0
 		renderedforecast  = []
 		sizeindex = 0
@@ -113,7 +113,7 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 			errmsg2 = fonts.fonts.Font(self.LocationSize, self.Font).render('unavailable', 0, wc(self.CharColor))
 			errmsg3 = fonts.fonts.Font(self.LocationSize, self.Font).render('or error', 0, wc(self.CharColor))
 			#self.PaintBase()
-			vert_off = config.topborder
+			vert_off = screens.topborder
 			self.ReInitDisplay()
 			for tmlbl in renderedtimelabel:
 				horiz_off = (hw.screenwidth - tmlbl.get_width()) / 2
@@ -153,7 +153,7 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 			extraspace = (usefulheight - h - s*(spaces + forecastlines - 1))/spaces
 
 			#self.PaintBase()
-			vert_off = config.topborder
+			vert_off = screens.topborder
 			self.ReInitDisplay()
 			for tmlbl in renderedtimelabel:
 				horiz_off = (hw.screenwidth - tmlbl.get_width()) // 2
@@ -192,4 +192,4 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 		config.DS.Tasks.AddTask(self.ClockRepaintEvent, 1)
 
 
-screens.__screens.screentypes["TimeTemp"] = TimeTempScreenDesc
+screens.screentypes["TimeTemp"] = TimeTempScreenDesc

@@ -3,6 +3,8 @@ import config
 import json
 from logsupport import ConsoleWarning
 
+WeathProvs = {}
+
 TermShortener = {}
 
 GenericShortener = {

@@ -2,7 +2,6 @@ import collections
 import os
 import signal
 import time
-import socket
 import threadmanager  # should not depend on in project files - move somewhere else
 # from sets import Set
 
@@ -11,7 +10,6 @@ import pygame
 import config
 import hw
 import logsupport
-from hw import scaleW, scaleH
 from logsupport import ConsoleDetail
 import debug
 
@@ -138,12 +136,6 @@ def InitializeEnvironment():
 	"""
 	Scale screen constants
 	"""
-	hw.dispratioW = float(hw.screenwidth) / float(hw.basewidth)
-	hw.dispratioH = float(hw.screenheight) / float(hw.baseheight)
-	config.horizborder = scaleW(config.horizborder)
-	config.topborder = scaleH(config.topborder)
-	config.botborder = scaleH(config.botborder)
-	config.cmdvertspace = scaleH(config.cmdvertspace)
 	signal.signal(signal.SIGALRM, alarm_handler)  # HACK
 	signal.alarm(3)  # HACK
 	try:  # HACK

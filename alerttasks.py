@@ -15,6 +15,8 @@ from dateutil.parser import parse
 alertprocs = {}  # set by modules from alerts directory
 monitoredvars = []
 
+AlertItems = []
+
 Tests = ('EQ', 'NE')
 AlertType = ('NodeChange', 'VarChange', 'StateVarChange', 'IntVarChange', 'LocalVarChange', 'Periodic', 'TOD', 'External', 'Init')
 
@@ -164,8 +166,7 @@ def ParseAlertParams(nm, spec):
 		cdelay = utilities.get_timedelta(cspec.get('Delay', None))
 		return ctest, cvalue, cdelay
 
-
-	VarsTypes = {'StateVarChange': (config.defaultISYname,'State'), 'IntVarChange': (config.defaultISYname,'Int'), 'LocalVarChange': ('LocalVars',)}
+	VarsTypes = {'StateVarChange': ('ISY', 'State'), 'IntVarChange': ('ISY', 'Int'), 'LocalVarChange': ('LocalVars',)}
 	t = spec.get('Invoke', None)
 	param = spec.get('Parameter', None)
 	if t is None:
@@ -286,5 +287,6 @@ class Alerts(object):
 
 def DumpAlerts():
 	with open('/home/pi/Console/AlertsDump.txt', mode='w') as f:
-		for _,a in config.Alerts.AlertsList.items():
+		for _, a in Alerts.AlertsList.items():
 			f.write(repr(a) + '\n')
+

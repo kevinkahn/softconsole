@@ -5,7 +5,7 @@ import screen
 import config
 import debug
 import logsupport
-import screens.__screens
+import screens.__screens as screens
 from logsupport import ConsoleWarning
 import screenutil
 import pygame
@@ -30,7 +30,7 @@ class OctoPrintScreenDesc(screen.BaseKeyScreenDesc):
 		screen.AddUndefaultedParams(self, screensection, address='', apikey='')
 		self.title, th, self.tw = screenutil.CreateTextBlock(self.name, hw.screenheight / 12, self.CharColor, True)
 		self.titlespace = th + hw.screenheight / 32
-		useablescreenheight = hw.screenheight - config.topborder - config.botborder - self.titlespace
+		useablescreenheight = hw.screenheight - screens.topborder - screens.botborder - self.titlespace
 		ctlpos = useablescreenheight / 5
 		ctlhgt = int(ctlpos * .9)
 		self.head = {"X-Api-Key": self.apikey}
@@ -236,4 +236,4 @@ class OctoPrintScreenDesc(screen.BaseKeyScreenDesc):
 		config.DS.Tasks.AddTask(self.PollStatus, 5)
 
 
-screens.__screens.screentypes["OctoPrint"] = OctoPrintScreenDesc
+screens.screentypes["OctoPrint"] = OctoPrintScreenDesc

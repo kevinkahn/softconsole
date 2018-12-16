@@ -3,7 +3,7 @@ import pygame
 import fonts
 import hw
 import logsupport
-import screens.__screens
+import screens.__screens as screens
 from logsupport import ConsoleWarning, ConsoleError
 from pygame import gfxdraw
 import isy # only to test that the hub for this is an ISY hub
@@ -46,8 +46,8 @@ class ThermostatScreenDesc(screen.BaseKeyScreenDesc):
 
 		self.TitleRen = fonts.fonts.Font(self.fsize[1]).render(screen.FlatenScreenLabel(self.label), 0,
 															   wc(self.CharColor))
-		self.TitlePos = ((hw.screenwidth - self.TitleRen.get_width()) // 2, config.topborder)
-		self.TempPos = config.topborder + self.TitleRen.get_height()
+		self.TitlePos = ((hw.screenwidth - self.TitleRen.get_width()) // 2, screens.topborder)
+		self.TempPos = screens.topborder + self.TitleRen.get_height()
 		self.StatePos = self.TempPos + fonts.fonts.Font(self.fsize[3]).get_linesize() - scaleH(20)
 		self.SPPos = self.StatePos + scaleH(25)
 		self.AdjButSurf = pygame.Surface((hw.screenwidth, scaleH(40)))
@@ -183,4 +183,4 @@ class ThermostatScreenDesc(screen.BaseKeyScreenDesc):
 		self.ShowScreen()
 
 
-screens.__screens.screentypes["Thermostat"] = ThermostatScreenDesc
+screens.screentypes["Thermostat"] = ThermostatScreenDesc

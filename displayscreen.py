@@ -124,7 +124,7 @@ class DisplayScreen(object):
 		self.ScreensDict = screens.SecondaryDict.copy()
 		self.ScreensDict.update(screens.MainDict)
 
-		for a in config.Alerts.AlertsList.values():
+		for a in alerttasks.AlertItems.AlertsList.values():
 			a.state = 'Armed'
 			logsupport.Logs.Log("Arming " + a.type + " alert " + a.name)
 			logsupport.Logs.Log("->" + str(a), severity=ConsoleDetail)

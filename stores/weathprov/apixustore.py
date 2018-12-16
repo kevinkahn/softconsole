@@ -6,7 +6,7 @@ from utilfuncs import interval_str, TreeDict
 import functools
 import config
 import logsupport
-from stores.weathprov.providerutils import TryShorten
+from stores.weathprov.providerutils import TryShorten, WeathProvs
 
 EmptyIcon = pygame.Surface((64, 64))
 EmptyIcon.fill((255, 255, 255))
@@ -126,4 +126,4 @@ class APIXUWeatherSource(object):
 		return 0  # success
 
 
-config.WeathProvs['APIXU'] = [APIXUWeatherSource, '']  # api key gets filled in from config file
+WeathProvs['APIXU'] = [APIXUWeatherSource, '']  # api key gets filled in from config file

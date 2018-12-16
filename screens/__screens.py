@@ -1,3 +1,4 @@
+from hw import scaleH, scaleW
 HomeScreen = None
 HomeScreen2 = None
 DimIdleList = []
@@ -7,4 +8,16 @@ SecondaryDict = {}
 ExtraDict = {}  # todo both extras could be local to configobjects
 ExtraChain = []
 
+horizborder = 20
+topborder = 20
+botborder = 80
+cmdvertspace = 10  # this is the space around the top/bot of  cmd button within the bot border
 screentypes = {}  # set by each module for screens of the type that module creates (see last line in any XxxScreen module
+
+
+def initScreensInfo():
+	global horizborder, topborder, botborder, cmdvertspace
+	horizborder = scaleW(horizborder)
+	topborder = scaleH(topborder)
+	botborder = scaleH(botborder)
+	cmdvertspace = scaleH(cmdvertspace)

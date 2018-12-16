@@ -1,6 +1,6 @@
 import fonts
 import hw
-import screens.__screens
+import screens.__screens as screens
 from utilfuncs import wc
 import config
 import time
@@ -18,9 +18,9 @@ class ClockScreenDesc(screen.ScreenDesc):
 	def __init__(self, screensection, screenname):
 		screen.ScreenDesc.__init__(self, screensection, screenname)
 		debug.debugPrint('Screen', "Build Clock Screen")
-		screen.AddUndefaultedParams(self, screensection, CharSize=[20], Font=config.monofont, OutFormat=[],
+		screen.AddUndefaultedParams(self, screensection, CharSize=[20], Font=fonts.monofont, OutFormat=[],
 									ExtraFields=[],
-								 ExtraSize=[0], ExtraFormat=[])
+									ExtraSize=[0], ExtraFormat=[])
 		for i in range(len(self.CharSize), len(self.OutFormat)):
 			self.CharSize.append(self.CharSize[-1])
 		self.KeyList = None  # no touch areas active on this screen
@@ -35,7 +35,7 @@ class ClockScreenDesc(screen.ScreenDesc):
 				logsupport.Logs.Log("Incomplete field specified on clockscreen", severity=ConsoleWarning)
 
 	def repaintClock(self):
-		usefulheight = hw.screenheight - config.topborder - config.botborder
+		usefulheight = hw.screenheight - screens.topborder - screens.botborder
 		h = 0
 		l = []
 
@@ -52,7 +52,7 @@ class ClockScreenDesc(screen.ScreenDesc):
 
 		# self.PaintBase()
 		self.ReInitDisplay()
-		vert_off = config.topborder
+		vert_off = screens.topborder
 		for i in range(len(l)):
 			horiz_off = (hw.screenwidth - l[i].get_width()) // 2
 			config.screen.blit(l[i], (horiz_off, vert_off))
@@ -69,4 +69,4 @@ class ClockScreenDesc(screen.ScreenDesc):
 		self.repaintClock()
 
 
-screens.__screens.screentypes["Clock"] = ClockScreenDesc
+screens.screentypes["Clock"] = ClockScreenDesc

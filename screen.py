@@ -1,6 +1,7 @@
 import config
 import hw
 import logsupport
+import screens.__screens as screens
 from logsupport import ConsoleError, ConsoleWarning
 import utilities
 import toucharea
@@ -78,9 +79,9 @@ def ButLayout(butcount):
 		return 5, 5
 
 def ButSize(bpr, bpc, height):
-	h = hw.screenheight - config.topborder - config.botborder if height == 0 else height
+	h = hw.screenheight - screens.topborder - screens.botborder if height == 0 else height
 	return (
-		(hw.screenwidth - 2 * config.horizborder) / bpr, h / bpc)
+		(hw.screenwidth - 2 * screens.horizborder) / bpr, h / bpc)
 
 
 
@@ -201,9 +202,9 @@ class BaseKeyScreenDesc(ScreenDesc):
 		hpos = []
 		vpos = []
 		for i in range(bpr):
-			hpos.append(config.horizborder + (.5 + i)*buttonsize[0])
+			hpos.append(screens.horizborder + (.5 + i) * buttonsize[0])
 		for i in range(bpc):
-			vpos.append(config.topborder + extraOffset + (.5 + i)*buttonsize[1])
+			vpos.append(screens.topborder + extraOffset + (.5 + i) * buttonsize[1])
 
 		for i, (kn, key) in enumerate(self.Keys.items()):
 			key.FinishKey((hpos[i%bpr], vpos[i//bpr]), buttonsize)

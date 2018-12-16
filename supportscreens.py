@@ -3,6 +3,7 @@ import hw
 import screen
 import debug
 import config
+import screens.__screens as screens
 import utilities
 from utilfuncs import wc
 import functools
@@ -33,7 +34,7 @@ class VerifyScreen(screen.BaseKeyScreenDesc):
 		self.Keys['no'].Proc = functools.partial(proc, False)
 
 		topoff = self.TitleFontSize + self.SubFontSize
-		self.LayoutKeys(topoff, hw.screenheight - 2 * config.topborder - topoff)
+		self.LayoutKeys(topoff, hw.screenheight - 2 * screens.topborder - topoff)
 		utilities.register_example("VerifyScreen", self)
 
 	def Invoke(self):
@@ -44,7 +45,7 @@ class VerifyScreen(screen.BaseKeyScreenDesc):
 		# self.PaintBase()
 		r = fonts.fonts.Font(self.TitleFontSize, '', True, True).render(self.label, 0, wc(self.CharColor))
 		rl = (hw.screenwidth - r.get_width()) / 2
-		config.screen.blit(r, (rl, config.topborder))
+		config.screen.blit(r, (rl, screens.topborder))
 		self.PaintKeys()
 		pygame.display.update()
 
@@ -210,9 +211,9 @@ class ListChooserSubScreen(screen.ScreenDesc):
 																	 proc=functools.partial(self.PickItem, i))
 			vpos += self.sourceheight
 			self.SlotItem.append('')
-		self.SrcPrev = (hw.screenwidth - self.sourceheight - config.horizborder,
+		self.SrcPrev = (hw.screenwidth - self.sourceheight - screens.horizborder,
 						voffset - self.sourceheight // 2)
-		self.SrcNext = (hw.screenwidth - self.sourceheight - config.horizborder,
+		self.SrcNext = (hw.screenwidth - self.sourceheight - screens.horizborder,
 						vpos + self.sourceheight // 2 + 10)  # for appearance
 		self.ListKeySlots['Prev'] = toucharea.TouchPoint('Prev', self.SrcPrev,
 														 (self.sourceheight, self.sourceheight),
@@ -272,10 +273,10 @@ class ListChooserSubScreen(screen.ScreenDesc):
 			slot = i - self.firstitem
 			clr = self.DullKeyColor if i == self.selection else self.CharColor
 			rs, h, w = screenutil.CreateTextBlock(self.itemlist[i], self.sourceheight, clr, False, FitLine=True,
-												  MaxWidth=hw.screenwidth - config.horizborder * 2)
+												  MaxWidth=hw.screenwidth - screens.horizborder * 2)
 			# self.SourceSlot[slot] = self.SourceSet[i]
 			voff = self.SlotsVPos[slot] + (self.sourceheight - h) // 2
-			config.screen.blit(rs, (config.horizborder, voff))
+			config.screen.blit(rs, (screens.horizborder, voff))
 		pygame.draw.polygon(config.screen, wc(self.CharColor),
 							_TriangleCorners(self.SrcPrev, self.sourceheight, False), 3)
 		pygame.draw.polygon(config.screen, wc(self.CharColor),

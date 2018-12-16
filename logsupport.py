@@ -8,6 +8,7 @@ import json
 import threading
 
 import hw
+import screens.__screens as screens
 
 wc = webcolors.name_to_rgb  # can't use the safe version from utilities due to import loop but this is only used with
 # known color names
@@ -226,7 +227,7 @@ class Logger(object):
 				if self.livelogpos == 0:
 					config.screen.fill(wc('royalblue'))
 				self.livelogpos = self.RenderLogLine(entry, self.LogColors[severity], self.livelogpos)
-				if self.livelogpos > hw.screenheight - config.botborder:
+				if self.livelogpos > hw.screenheight - screens.botborder:
 					time.sleep(1)
 					self.livelogpos = 0
 				pygame.display.update()
@@ -246,7 +247,7 @@ class Logger(object):
 		ltext = re.split('([ :,])', text)
 		ltext.append('')
 		ptext = []
-		logfont = fonts.fonts.Font(config.sysStore.LogFontSize, face=config.monofont)
+		logfont = fonts.fonts.Font(config.sysStore.LogFontSize, face=fonts.monofont)
 		while len(ltext) > 1:
 			ptext.append(ltext[0])
 			del ltext[0]
@@ -273,7 +274,7 @@ class Logger(object):
 			pos = self.RenderLogLine(self.log[start][2] + '          Page: ' + str(pageno), 'white', pos)
 		for i in range(start, len(self.log)):
 			pos = self.RenderLogLine(self.log[i][1], self.LogColors[self.log[i][0]], pos)
-			if pos > hw.screenheight - config.botborder:
+			if pos > hw.screenheight - screens.botborder:
 				pygame.display.update()
 				return (i + 1) if (i + 1) < len(self.log) else -1
 

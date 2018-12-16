@@ -48,7 +48,7 @@ import utilities
 from logsupport import ConsoleWarning,ConsoleError
 
 import alerttasks
-from stores.weathprov.providerutils import SetUpTermShortener
+from stores.weathprov.providerutils import SetUpTermShortener, WeathProvs
 import screen
 
 '''
@@ -141,6 +141,8 @@ if os.getegid() != 0:
 #os._exit(exitutils.EARLYABORT)
 
 utilities.InitializeEnvironment()
+
+screens.initScreensInfo()
 
 logsupport.Logs.Log(u'Environment initialized on host ' + hw.hostname)
 
@@ -333,12 +335,12 @@ for n, param in config.sysvals.items():
 Fake an ISY Hub section if old style auth present
 """
 if "ISYaddr" in ParsedConfigFile:
-	logsupport.Logs.Log("Converting ISYaddr parameter style to hub named: ", config.defaultISYname)
+	logsupport.Logs.Log("Converting ISYaddr parameter style to hub named: ", 'ISY')
 	tmp = {"address": ParsedConfigFile.get("ISYaddr", ""),
 		   "password": ParsedConfigFile.get("ISYpassword", ""),
 		   "user": ParsedConfigFile.get("ISYuser", ""),
 					 "type":"ISY"}
-	ParsedConfigFile[config.defaultISYname] = tmp
+	ParsedConfigFile['ISY'] = tmp
 
 """
 Pull out non-screen sections
@@ -358,8 +360,8 @@ for i, v in ParsedConfigFile.items():
 			del ParsedConfigFile[i]
 		elif stype == "WeatherProvider":
 			apikey = v.get('apikey', 'N/A')
-			if i in config.WeathProvs:
-				config.WeathProvs[i][1] = apikey
+			if i in WeathProvs:
+				WeathProvs[i][1] = apikey
 			else:
 				logsupport.Logs.Log("No weather provider type: {}".format(i), severity=ConsoleWarning)
 			del ParsedConfigFile[i]
@@ -380,7 +382,7 @@ for i, v in ParsedConfigFile.items():
 		# noinspection PyArgumentList
 		stype = v.get('type', None, delkey=False)
 		loccode = '*unset*'
-		for wptyp, info in config.WeathProvs.items():
+		for wptyp, info in WeathProvs.items():
 			if stype == wptyp:
 				try:
 					desc = i
@@ -449,7 +451,7 @@ logsupport.Logs.Log("Linked config to Hubs")
 """
 Build the alerts structures
 """
-config.Alerts = alerttasks.Alerts(alertspec)
+alerttasks.AlertItems = alerttasks.Alerts(alertspec)
 logsupport.Logs.Log("Alerts established")
 
 """

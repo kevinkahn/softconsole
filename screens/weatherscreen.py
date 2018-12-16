@@ -24,7 +24,7 @@ class WeatherScreenDesc(screen.ScreenDesc):
 
 		butsize = screen.ButSize(1, 1, 0)
 		self.Keys = OrderedDict({'condorfcst': toucharea.TouchPoint('condorfcst', (
-		config.horizborder + .5*butsize[0], config.topborder + .5*butsize[1]), butsize,
+			screens.horizborder + .5 * butsize[0], screens.topborder + .5 * butsize[1]), butsize,
 																	proc=self.CondOrFcst)})
 		self.currentconditions = True  # show conditions or forecast
 		screen.AddUndefaultedParams(self, screensection, location='')
@@ -61,8 +61,8 @@ class WeatherScreenDesc(screen.ScreenDesc):
 		self.ReInitDisplay()
 		self.store.BlockRefresh()
 
-		usefulheight = hw.screenheight - config.topborder - config.botborder
-		vert_off = config.topborder
+		usefulheight = hw.screenheight - screens.topborder - screens.botborder
+		vert_off = screens.topborder
 
 		if self.store.failedfetch:
 			renderedlines = [

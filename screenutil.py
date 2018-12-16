@@ -16,7 +16,7 @@ def fitFont(font, s, FitLine):
 	return s2
 
 
-def CreateTextBlock(textlines, fontsizes, color, center, font=config.monofont, FitLine=False, MaxWidth=1000000):
+def CreateTextBlock(textlines, fontsizes, color, center, font=fonts.monofont, FitLine=False, MaxWidth=1000000):
 	lines = textlines[:] if isinstance(textlines, list) else [textlines]
 	sizes = fontsizes[:] if isinstance(fontsizes, list) else [fontsizes]
 	h = 0

@@ -63,13 +63,16 @@ def ResetScreenLevel(storeitem, old, val, dim, unusedsrc):
 
 # noinspection PyBroadException
 def initOS(scrntyp):
-	global PWMDim, bootime, osversion, hwinfo, screentype, hostname, screenwidth, screenheight, portrait
+	global PWMDim, bootime, osversion, hwinfo, screentype, hostname, screenwidth, screenheight, portrait, dispratioW, dispratioH
 
 	screentype = scrntyp
 	pygame.display.init()
 	screenwidth, screenheight = (pygame.display.Info().current_w, pygame.display.Info().current_h)
 	if screenwidth > screenheight:
 		portrait = False
+
+	dispratioW = float(screenwidth) / float(basewidth)
+	dispratioH = float(screenheight) / float(baseheight)
 
 	hostname = socket.gethostname()
 	# get platform info

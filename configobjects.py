@@ -88,9 +88,9 @@ class MyScreens(object):
 			exitutils.errorexit(exitutils.ERRORDIE)
 
 		# Create the navigation keys
-		cbutwidth = (hw.screenwidth - 2 * config.horizborder) / 2
-		cvertcenter = hw.screenheight - config.botborder / 2
-		cbutheight = config.botborder - config.cmdvertspace*2
+		cbutwidth = (hw.screenwidth - 2 * screens.horizborder) / 2
+		cvertcenter = hw.screenheight - screens.botborder / 2
+		cbutheight = screens.botborder - screens.cmdvertspace * 2
 		for i, kn in enumerate(config.sysStore.MainChain):
 			prevk = screens.MainDict[config.sysStore.MainChain[i - 1]].screen
 			nextk = screens.MainDict[config.sysStore.MainChain[(i + 1) % len(config.sysStore.MainChain)]].screen
@@ -100,7 +100,8 @@ class MyScreens(object):
 																   prevk.CmdCharCol,
 																   proc=functools.partial(config.DS.NavPress, prevk),
 																   center=(
-																  config.horizborder + .5*cbutwidth, cvertcenter),
+																	   screens.horizborder + .5 * cbutwidth,
+																	   cvertcenter),
 																   size=(cbutwidth, cbutheight))
 			screens.MainDict[kn].nextkey = toucharea.ManualKeyDesc(screens.MainDict[kn].screen, 'Nav>' + nextk.name,
 																   nextk.label,
@@ -108,7 +109,8 @@ class MyScreens(object):
 																   nextk.CmdCharCol,
 																   proc=functools.partial(config.DS.NavPress, nextk),
 																   center=(
-																	  config.horizborder + 1.5*cbutwidth, cvertcenter),
+																	   screens.horizborder + 1.5 * cbutwidth,
+																	   cvertcenter),
 																   size=(cbutwidth, cbutheight))
 
 		for i, kn in enumerate(config.sysStore.SecondaryChain):
@@ -124,7 +126,7 @@ class MyScreens(object):
 				proc=functools.partial(config.DS.NavPress,
 																							  prevk),
 				center=(
-																	   config.horizborder + .5*cbutwidth, cvertcenter),
+					screens.horizborder + .5 * cbutwidth, cvertcenter),
 				size=(cbutwidth, cbutheight))
 			screens.SecondaryDict[kn].nextkey = toucharea.ManualKeyDesc(
 				screens.SecondaryDict[kn].screen,
@@ -134,7 +136,7 @@ class MyScreens(object):
 				nextk.CmdCharCol,
 				proc=functools.partial(config.DS.NavPress,
 																							  nextk),
-				center=(config.horizborder + 1.5 * cbutwidth,
+				center=(screens.horizborder + 1.5 * cbutwidth,
 						cvertcenter),
 				size=(cbutwidth, cbutheight))
 
@@ -142,7 +144,7 @@ class MyScreens(object):
 			screens.HomeScreen = screens.MainDict[config.sysStore.HomeScreenName].screen
 		else:
 			logsupport.Logs.Log("Error in Home Screen Name", severity=ConsoleWarning)
-			screens.screens.HomeScreen = screens.MainDict[config.sysStore.MainChain[0]].screen
+			screens.HomeScreen = screens.MainDict[config.sysStore.MainChain[0]].screen
 		logsupport.Logs.Log("Home Screen: " + screens.HomeScreen.name)
 
 		if config.sysStore.SecondaryChain:

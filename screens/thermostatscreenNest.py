@@ -3,7 +3,7 @@ import pygame
 import fonts
 import hw
 import logsupport
-import screens.__screens
+import screens.__screens as screens
 from logsupport import ConsoleWarning
 from pygame import gfxdraw
 from eventlist import ProcEventItem
@@ -50,8 +50,8 @@ class NestThermostatScreenDesc(screen.BaseKeyScreenDesc):
 
 		self.TitleRen = fonts.fonts.Font(self.fsize[1]).render(screen.FlatenScreenLabel(self.label), 0,
 															   wc(self.CharColor))
-		self.TitlePos = ((hw.screenwidth - self.TitleRen.get_width()) // 2, config.topborder)
-		self.TempPos = config.topborder + self.TitleRen.get_height()
+		self.TitlePos = ((hw.screenwidth - self.TitleRen.get_width()) // 2, screens.topborder)
+		self.TempPos = screens.topborder + self.TitleRen.get_height()
 		self.StatePos = self.TempPos + fonts.fonts.Font(self.fsize[3]).get_linesize() - scaleH(20)
 		self.SPVPos = self.StatePos + scaleH(25)
 		sp = fonts.fonts.Font(self.fsize[2]).render("{:2d}".format(99), 0, wc(self.CharColor))
@@ -220,4 +220,4 @@ class NestThermostatScreenDesc(screen.BaseKeyScreenDesc):
 		self.ShowScreen()
 
 
-screens.__screens.screentypes["NestThermostat"] = NestThermostatScreenDesc
+screens.screentypes["NestThermostat"] = NestThermostatScreenDesc

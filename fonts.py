@@ -1,17 +1,18 @@
 import pygame
 
 import debug
-import config
 import hw
 
+monofont = "notomono"  # gets reset to "droidsansmono" if noto not present to support pre Stretch
 
 class Fonts(object):
 	def __init__(self):
+		global monofont
 		pygame.font.init()
 		f = pygame.font.get_fonts()
-		if not config.monofont in f:
+		if not monofont in f:
 			# pre stretch system doesn't have noto mono
-			config.monofont = "droidsansmono"
+			monofont = "droidsansmono"
 		self.fontcache = {"": {40: {True: {True: pygame.font.SysFont("", hw.scaleH(40), True, True)}}}}
 
 	# cache is tree dir with first key as name, second as size, third as ital, fourth as bold
