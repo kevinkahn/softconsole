@@ -9,7 +9,7 @@ import collections
 nodetable = {}
 tm = time.time()
 
-nodes = {}
+nodes = collections.OrderedDict()
 noderecord = collections.namedtuple('noderecord', ['status', 'uptime', 'error', 'rpttime', 'FirstUnseenErrorTime',
 												   'GlobalLogViewTime', 'registered', 'versionname', 'versionsha',
 												   'versiondnld', 'versioncommit', 'boottime', 'osversion', 'hw'])
@@ -36,7 +36,12 @@ def paint():
 		if info.boottime == 0:
 			print("{:^19.19}".format('unknown'))
 		else:
-			print("{:%Y-%m-%d %H:%M:%S}".format(datetime.fromtimestamp(info.boottime)))
+			print("{:%Y-%m-%d %H:%M:%S}".format(datetime.fromtimestamp(info.boottime)), end='')
+		age = time.time() - info.rpttime if info.rpttime != 0 else 0
+		if age > 45:  # todo use to determine likely powerfail case
+			print(' (old)')
+		else:
+			print()
 
 
 def baseinfo():
@@ -88,7 +93,7 @@ def on_message(client, ud, msg):
 	#print(nodes)
 	except Exception as E:
 		print("Exception: {}".format(repr(E)))
-	if time.time() - tm > 2:
+	if time.time() - tm > 1:
 		if len(sys.argv) > 1:
 			baseinfo()
 		else:
@@ -103,13 +108,14 @@ client.loop_start()
 client.connect('rpi-kck.pdxhome')
 try:
 	#time.sleep(1)
+	print('Starting')
 	try:
 		if len(sys.argv) > 1:
 			baseinfo()
 		else:
 			paint()
 	except RuntimeError:
-		pass
+		print('Runtime error')
 	while True:
 		pass
 except KeyboardInterrupt:
