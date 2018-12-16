@@ -1,3 +1,4 @@
+import fonts
 import historybuffer
 import pygame
 import webcolors
@@ -5,6 +6,8 @@ import sys
 import traceback
 import json
 import threading
+
+import hw
 
 wc = webcolors.name_to_rgb  # can't use the safe version from utilities due to import loop but this is only used with
 # known color names
@@ -212,7 +215,7 @@ class Logger(object):
 				if primaryBroker is not None and not localonly:
 					try:
 						primaryBroker.Publish('errors', json.dumps(
-							{'node': config.hostname, 'sev': severity, 'time': entrytime, 'etime': repr(now),
+							{'node': hw.hostname, 'sev': severity, 'time': entrytime, 'etime': repr(now),
 							 'entry': entry}), node='all')
 					except Exception as E:
 						self.RecordMessage(ConsoleError, "Logger/MQTT error: {}".format(repr(E)),
@@ -223,7 +226,7 @@ class Logger(object):
 				if self.livelogpos == 0:
 					config.screen.fill(wc('royalblue'))
 				self.livelogpos = self.RenderLogLine(entry, self.LogColors[severity], self.livelogpos)
-				if self.livelogpos > config.screenheight - config.botborder:
+				if self.livelogpos > hw.screenheight - config.botborder:
 					time.sleep(1)
 					self.livelogpos = 0
 				pygame.display.update()
@@ -243,7 +246,7 @@ class Logger(object):
 		ltext = re.split('([ :,])', text)
 		ltext.append('')
 		ptext = []
-		logfont = config.fonts.Font(config.sysStore.LogFontSize, face=config.monofont)
+		logfont = fonts.fonts.Font(config.sysStore.LogFontSize, face=config.monofont)
 		while len(ltext) > 1:
 			ptext.append(ltext[0])
 			del ltext[0]
@@ -251,7 +254,7 @@ class Logger(object):
 				if len(ltext) == 0:
 					break
 				t = logfont.size(''.join(ptext) + ltext[0])[0]
-				if t > config.screenwidth - 10:
+				if t > hw.screenwidth - 10:
 					break
 				else:
 					ptext.append(ltext[0])
@@ -270,7 +273,7 @@ class Logger(object):
 			pos = self.RenderLogLine(self.log[start][2] + '          Page: ' + str(pageno), 'white', pos)
 		for i in range(start, len(self.log)):
 			pos = self.RenderLogLine(self.log[i][1], self.LogColors[self.log[i][0]], pos)
-			if pos > config.screenheight - config.botborder:
+			if pos > hw.screenheight - config.botborder:
 				pygame.display.update()
 				return (i + 1) if (i + 1) < len(self.log) else -1
 
@@ -282,7 +285,7 @@ def ReportStatus(status, retain=True):
 	if primaryBroker is not None:
 		stat = json.dumps({'status': status, "uptime": time.time() - config.starttime,
 						   "error": config.sysStore.ErrorNotice})
-		primaryBroker.Publish(node=config.hostname, topic='status', payload=stat, retain=retain, qos=1,
+		primaryBroker.Publish(node=hw.hostname, topic='status', payload=stat, retain=retain, qos=1,
 							  viasvr=True)
 		Logs.PeriodicRemoteDump()
 

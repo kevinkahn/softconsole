@@ -6,6 +6,8 @@ from collections import OrderedDict
 import pygame
 
 import config
+import fonts
+import hw
 import screens.__screens as screens
 import toucharea
 import debug
@@ -47,8 +49,8 @@ def SetUpMaintScreens():
 	nflags = len(debug.DbgFlags) + 3
 	# will need key for each debug flag plus a return plus a loglevel up and loglevel down
 	tmpDbgFlags = ["LogLevelUp", "LogLevelDown"] + debug.DbgFlags[:]  # temp copy of Flags
-	flagspercol = config.screenheight // 120
-	flagsperrow = config.screenwidth // 120
+	flagspercol = hw.screenheight // 120
+	flagsperrow = hw.screenwidth // 120
 	flagoverrides = fixedoverrides.copy()
 	flagoverrides.update(KeysPerColumn=flagspercol, KeysPerRow=flagsperrow)
 	flagscreencnt = 0
@@ -231,10 +233,10 @@ class LogDisplayScreen(screen.BaseKeyScreenDesc):
 		self.item = 0
 		self.pageno = -1
 		self.PageStartItem = [0]
-		self.Keys = {'nextpage': toucharea.TouchPoint('nextpage', (config.screenwidth/2, 3*config.screenheight/4),
-													  (config.screenwidth, config.screenheight), proc=self.NextPage),
-					 'prevpage': toucharea.TouchPoint('prevpage', (config.screenwidth/2, config.screenheight/4),
-													  (config.screenwidth, config.screenheight/2), proc=self.PrevPage)}
+		self.Keys = {'nextpage': toucharea.TouchPoint('nextpage', (hw.screenwidth / 2, 3 * hw.screenheight / 4),
+													  (hw.screenwidth, hw.screenheight), proc=self.NextPage),
+					 'prevpage': toucharea.TouchPoint('prevpage', (hw.screenwidth / 2, hw.screenheight / 4),
+													  (hw.screenwidth, hw.screenheight / 2), proc=self.PrevPage)}
 		self.name = 'Log'
 		utilities.register_example("LogDisplayScreen", self)
 
@@ -289,7 +291,7 @@ class MaintScreenDesc(screen.BaseKeyScreenDesc):
 				NK.Proc = functools.partial(kt[1], NK)
 			self.Keys[k] = NK
 		topoff = self.TitleFontSize + self.SubFontSize
-		self.LayoutKeys(topoff, config.screenheight - 2*config.topborder - topoff)
+		self.LayoutKeys(topoff, hw.screenheight - 2 * config.topborder - topoff)
 		self.DimTO = 60
 		self.PersistTO = 1  # setting to 0 would turn off timer and stick us here
 		utilities.register_example("MaintScreenDesc", self)
@@ -297,13 +299,13 @@ class MaintScreenDesc(screen.BaseKeyScreenDesc):
 	def ShowScreen(self):
 		self.ReInitDisplay()
 		# self.PaintBase()
-		r = config.fonts.Font(self.TitleFontSize, '', True, True).render("Console Maintenance", 0, wc(self.CharColor))
-		rl = (config.screenwidth - r.get_width())/2
+		r = fonts.fonts.Font(self.TitleFontSize, '', True, True).render("Console Maintenance", 0, wc(self.CharColor))
+		rl = (hw.screenwidth - r.get_width()) / 2
 		config.screen.blit(r, (rl, config.topborder))
-		r = config.fonts.Font(self.SubFontSize, '', True, True).render(
+		r = fonts.fonts.Font(self.SubFontSize, '', True, True).render(
 			"Up: " + interval_str(time.time() - config.starttime),
 			0, wc(self.CharColor))
-		rl = (config.screenwidth - r.get_width())/2
+		rl = (hw.screenwidth - r.get_width()) / 2
 		config.screen.blit(r, (rl, config.topborder + self.TitleFontSize))
 		self.PaintKeys()
 		pygame.display.update()

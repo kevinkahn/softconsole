@@ -1,6 +1,8 @@
 import pygame
 import config
 import debug
+import fonts
+import hw
 import screens.__screens as screens
 from stores import valuestore
 import screen
@@ -59,15 +61,15 @@ class WeatherScreenDesc(screen.ScreenDesc):
 		self.ReInitDisplay()
 		self.store.BlockRefresh()
 
-		usefulheight = config.screenheight - config.topborder - config.botborder
+		usefulheight = hw.screenheight - config.topborder - config.botborder
 		vert_off = config.topborder
 
 		if self.store.failedfetch:
 			renderedlines = [
-				config.fonts.Font(50, "").render(self.fmt.format("{d}", d=self.scrlabel), 0, wc(self.CharColor)),
-				config.fonts.Font(45, "").render('Weather Not Available', 0, wc(self.CharColor))]
+				fonts.fonts.Font(50, "").render(self.fmt.format("{d}", d=self.scrlabel), 0, wc(self.CharColor)),
+				fonts.fonts.Font(45, "").render('Weather Not Available', 0, wc(self.CharColor))]
 			for l in renderedlines:
-				config.screen.blit(l, ((config.screenwidth - l.get_width()) / 2, vert_off))
+				config.screen.blit(l, ((hw.screenwidth - l.get_width()) / 2, vert_off))
 				vert_off = vert_off + 60
 			if not self.loggedonce:
 				logsupport.Logs.Log('Weatherscreen missing weather ' + self.name, severity=logsupport.ConsoleWarning)
@@ -75,9 +77,9 @@ class WeatherScreenDesc(screen.ScreenDesc):
 		else:
 			self.loggedonce = False
 			renderedlines = [
-				config.fonts.Font(50, "").render(self.fmt.format("{d}", d=self.scrlabel), 0, wc(self.CharColor)),
-				config.fonts.Font(40, "").render(self.fmt.format("{d}", d=self.store.GetVal(('Cond', 'Location'))), 0,
-												 wc(self.CharColor))]
+				fonts.fonts.Font(50, "").render(self.fmt.format("{d}", d=self.scrlabel), 0, wc(self.CharColor)),
+				fonts.fonts.Font(40, "").render(self.fmt.format("{d}", d=self.store.GetVal(('Cond', 'Location'))), 0,
+												wc(self.CharColor))]
 
 			h = renderedlines[0].get_height() + renderedlines[1].get_height()
 			if conditions:
@@ -89,7 +91,7 @@ class WeatherScreenDesc(screen.ScreenDesc):
 				h = h + renderedlines[-1].get_height()
 				s = (usefulheight - h) / (len(renderedlines) - 1) if len(renderedlines) > 1 else 0
 				for l in renderedlines:
-					config.screen.blit(l, ((config.screenwidth - l.get_width())/2, vert_off))
+					config.screen.blit(l, ((hw.screenwidth - l.get_width()) / 2, vert_off))
 					vert_off = vert_off + l.get_height() + s
 
 			else:
@@ -104,32 +106,32 @@ class WeatherScreenDesc(screen.ScreenDesc):
 						if renderedlines[-1].get_width() > maxfcstwidth: maxfcstwidth = renderedlines[-1].get_width()
 						fcstlines += 1
 				else:
-					renderedlines.append(config.fonts.Font(35, "").render("No Forecast Available", 0,
-																		  wc(self.CharColor)))
+					renderedlines.append(fonts.fonts.Font(35, "").render("No Forecast Available", 0,
+																		 wc(self.CharColor)))
 
-				if config.screenwidth > 350:
+				if hw.screenwidth > 350:
 					h = h + renderedlines[-1].get_height() * 5
 					fcstlines = 2 + (fcstlines + 1) / 2
-					usewidth = config.screenwidth / 2
+					usewidth = hw.screenwidth / 2
 					lastfcst = 12
 				else:
 					h = h + renderedlines[-1].get_height() * 5
 					fcstlines = 5
-					usewidth = config.screenwidth
+					usewidth = hw.screenwidth
 					lastfcst = 7
 				s = (usefulheight - h) / (fcstlines+1)
 
-				config.screen.blit(renderedlines[0],((config.screenwidth - renderedlines[0].get_width())/2,vert_off))
+				config.screen.blit(renderedlines[0], ((hw.screenwidth - renderedlines[0].get_width()) / 2, vert_off))
 				vert_off = vert_off + renderedlines[0].get_height() + s
 				config.screen.blit(renderedlines[1],
-								   ((config.screenwidth - renderedlines[1].get_width()) / 2, vert_off))
+								   ((hw.screenwidth - renderedlines[1].get_width()) / 2, vert_off))
 				vert_off = vert_off + renderedlines[1].get_height() + s
 				startvert = vert_off
 				horiz_off = (usewidth - maxfcstwidth) / 2
 				for dy, fcst in enumerate(renderedlines[2:lastfcst]):
 					config.screen.blit(fcst, (horiz_off, vert_off))
 					vert_off = vert_off + s + fcst.get_height()
-					if (dy == 4) and (config.screenwidth > 350):
+					if (dy == 4) and (hw.screenwidth > 350):
 						horiz_off = horiz_off + usewidth
 						vert_off = startvert
 
@@ -145,4 +147,5 @@ class WeatherScreenDesc(screen.ScreenDesc):
 	def ExitScreen(self):
 		pass
 
-config.screentypes["Weather"] = WeatherScreenDesc
+
+screens.screentypes["Weather"] = WeatherScreenDesc

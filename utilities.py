@@ -9,9 +9,9 @@ import threadmanager  # should not depend on in project files - move somewhere e
 import pygame
 
 import config
-import fonts
 import hw
 import logsupport
+from hw import scaleW, scaleH
 from logsupport import ConsoleDetail
 import debug
 
@@ -61,13 +61,6 @@ def register_example(estr, obj):
 			clslst[t.__name__].addmem(e.__name__)
 
 
-def scaleW(p):
-	return int(round(float(p)*float(config.dispratioW)))
-
-
-def scaleH(p):
-	return int(round(float(p)*float(config.dispratioH)))
-
 def LogParams():
 	global paramlog
 	for p in paramlog:
@@ -88,20 +81,18 @@ def InitializeEnvironment():
 	# end hack
 	try:
 		with open(config.homedir + "/.Screentype") as f:
-			config.screentype = f.readline().rstrip('\n')
+			scrntyp = f.readline().rstrip('\n')
 	except IOError:
-		config.screentype = "*Unknown*"
+		scrntyp = "*Unknown*"
 
-	hw.initOS(config.screentype)
-	pygame.display.init()
-	config.hostname = socket.gethostname()
+	hw.initOS(scrntyp)
+
 	config.starttime = time.time()
-	config.fonts = fonts.Fonts()
-	config.screenwidth, config.screenheight = (pygame.display.Info().current_w, pygame.display.Info().current_h)
 
 	config.personalsystem = os.path.isfile(config.homedir + "/homesystem")
 
-	if config.screentype in ('pi7','35r','28c'):
+	# todo move touchhandler selection to hw - return the handler to start for the thread
+	if hw.screentype in ('pi7', '35r', '28c'):
 		from touchhandler import Touchscreen, TS_PRESS, TS_RELEASE, TS_MOVE
 		ts = Touchscreen()
 		def touchhandler(event,touch):
@@ -127,8 +118,6 @@ def InitializeEnvironment():
 
 		threadmanager.SetUpHelperThread('TouchHandler',ts.run)
 
-	if config.screenwidth > config.screenheight:
-		config.portrait = False
 	try:
 		config.lastup = os.path.getmtime(config.homedir + "/.ConsoleStart")
 		with open(config.homedir + "/.ConsoleStart") as f:
@@ -149,8 +138,8 @@ def InitializeEnvironment():
 	"""
 	Scale screen constants
 	"""
-	config.dispratioW = float(config.screenwidth)/float(config.basewidth)
-	config.dispratioH = float(config.screenheight)/float(config.baseheight)
+	hw.dispratioW = float(hw.screenwidth) / float(hw.basewidth)
+	hw.dispratioH = float(hw.screenheight) / float(hw.baseheight)
 	config.horizborder = scaleW(config.horizborder)
 	config.topborder = scaleH(config.topborder)
 	config.botborder = scaleH(config.botborder)
@@ -158,7 +147,7 @@ def InitializeEnvironment():
 	signal.signal(signal.SIGALRM, alarm_handler)  # HACK
 	signal.alarm(3)  # HACK
 	try:  # HACK
-		config.screen = pygame.display.set_mode((config.screenwidth, config.screenheight),
+		config.screen = pygame.display.set_mode((hw.screenwidth, hw.screenheight),
 												pygame.FULLSCREEN)  # real needed line
 		signal.alarm(0)  # HACK
 	except Alarm:  # HACK

@@ -1,5 +1,9 @@
 import pygame
+
+import fonts
+import hw
 import logsupport
+import screens.__screens
 from logsupport import ConsoleWarning
 from pygame import gfxdraw
 from eventlist import ProcEventItem
@@ -9,7 +13,7 @@ import debug
 import screen
 import toucharea
 import utilities
-from utilities import scaleW, scaleH
+from hw import scaleW, scaleH
 from utilfuncs import wc
 import functools
 
@@ -44,20 +48,20 @@ class NestThermostatScreenDesc(screen.BaseKeyScreenDesc):
 		#	self.self.ThermNode = None
 		#	raise ValueError
 
-		self.TitleRen = config.fonts.Font(self.fsize[1]).render(screen.FlatenScreenLabel(self.label), 0,
-																wc(self.CharColor))
-		self.TitlePos = ((config.screenwidth - self.TitleRen.get_width())//2, config.topborder)
+		self.TitleRen = fonts.fonts.Font(self.fsize[1]).render(screen.FlatenScreenLabel(self.label), 0,
+															   wc(self.CharColor))
+		self.TitlePos = ((hw.screenwidth - self.TitleRen.get_width()) // 2, config.topborder)
 		self.TempPos = config.topborder + self.TitleRen.get_height()
-		self.StatePos = self.TempPos + config.fonts.Font(self.fsize[3]).get_linesize() - scaleH(20)
+		self.StatePos = self.TempPos + fonts.fonts.Font(self.fsize[3]).get_linesize() - scaleH(20)
 		self.SPVPos = self.StatePos + scaleH(25)
-		sp = config.fonts.Font(self.fsize[2]).render("{:2d}".format(99), 0, wc(self.CharColor))
+		sp = fonts.fonts.Font(self.fsize[2]).render("{:2d}".format(99), 0, wc(self.CharColor))
 		self.SPHgt = sp.get_height()
 		self.SPWdt = sp.get_width()
 		self.SetPointSurf = pygame.Surface((self.SPWdt,self.SPHgt))
 		self.SetPointSurf.fill(wc(self.BackgroundColor))
-		self.AdjButSurf = pygame.Surface((config.screenwidth, scaleH(40)))
-		self.AdjButTops = self.SPVPos + config.fonts.Font(self.fsize[2]).get_linesize() - scaleH(5)
-		centerspacing = config.screenwidth//5
+		self.AdjButSurf = pygame.Surface((hw.screenwidth, scaleH(40)))
+		self.AdjButTops = self.SPVPos + fonts.fonts.Font(self.fsize[2]).get_linesize() - scaleH(5)
+		centerspacing = hw.screenwidth // 5
 		self.SPHPosL = int(1.5*centerspacing)
 		self.SPHPosR = int(3.5*centerspacing)
 		self.AdjButSurf.fill(wc(self.BackgroundColor))
@@ -113,15 +117,15 @@ class NestThermostatScreenDesc(screen.BaseKeyScreenDesc):
 		if heat:
 			self.t_low += change
 			config.screen.blit(self.SetPointSurf, (self.SPHPosL - self.SPWdt // 2, self.SPVPos))
-			rL = config.fonts.Font(self.fsize[2]).render("{:2d}".format(self.t_low), 0,
-														 wc(self.CharColor, factor=self.LocalOnly[0]))
+			rL = fonts.fonts.Font(self.fsize[2]).render("{:2d}".format(self.t_low), 0,
+														wc(self.CharColor, factor=self.LocalOnly[0]))
 			config.screen.blit(rL, (self.SPHPosL - self.SPWdt // 2, self.SPVPos))
 			pygame.display.update(pygame.Rect(self.SPHPosL- self.SPWdt // 2,self.SPVPos,self.SPWdt,self.SPHgt))
 		else:
 			self.t_high += change
 			config.screen.blit(self.SetPointSurf, (self.SPHPosR - self.SPWdt // 2, self.SPVPos))
-			rH = config.fonts.Font(self.fsize[2]).render("{:2d}".format(self.t_high), 0,
-														 wc(self.CharColor, factor=self.LocalOnly[1]))
+			rH = fonts.fonts.Font(self.fsize[2]).render("{:2d}".format(self.t_high), 0,
+														wc(self.CharColor, factor=self.LocalOnly[1]))
 			config.screen.blit(rH, (self.SPHPosR - self.SPWdt // 2, self.SPVPos))
 			pygame.display.update(pygame.Rect(self.SPHPosR - self.SPWdt // 2, self.SPVPos, self.SPWdt, self.SPHgt))
 		config.DS.Tasks.RemoveAllGrp(id(self))  # remove any pending pushtemp
@@ -177,20 +181,23 @@ class NestThermostatScreenDesc(screen.BaseKeyScreenDesc):
 		self.ReInitDisplay()
 		config.screen.blit(self.TitleRen, self.TitlePos)
 
-		r = config.fonts.Font(self.fsize[3], bold=True).render(u"{:4.1f}".format(self.t_cur), 0,
-															   wc(self.CharColor))
-		config.screen.blit(r, ((config.screenwidth - r.get_width())//2, self.TempPos))
-		r = config.fonts.Font(self.fsize[0]).render(self.t_state.capitalize(), 0, wc(self.CharColor))
-		config.screen.blit(r, ((config.screenwidth - r.get_width())//2, self.StatePos))
-		rL = config.fonts.Font(self.fsize[2]).render("{:2d}".format(self.t_low), 0, wc(self.CharColor, factor=self.LocalOnly[0]))
-		rH = config.fonts.Font(self.fsize[2]).render("{:2d}".format(self.t_high), 0, wc(self.CharColor, factor=self.LocalOnly[1]))
+		r = fonts.fonts.Font(self.fsize[3], bold=True).render(u"{:4.1f}".format(self.t_cur), 0,
+															  wc(self.CharColor))
+		config.screen.blit(r, ((hw.screenwidth - r.get_width()) // 2, self.TempPos))
+		r = fonts.fonts.Font(self.fsize[0]).render(self.t_state.capitalize(), 0, wc(self.CharColor))
+		config.screen.blit(r, ((hw.screenwidth - r.get_width()) // 2, self.StatePos))
+		rL = fonts.fonts.Font(self.fsize[2]).render("{:2d}".format(self.t_low), 0,
+													wc(self.CharColor, factor=self.LocalOnly[0]))
+		rH = fonts.fonts.Font(self.fsize[2]).render("{:2d}".format(self.t_high), 0,
+													wc(self.CharColor, factor=self.LocalOnly[1]))
 		config.screen.blit(self.SetPointSurf, (self.SPHPosL - self.SPWdt // 2, self.SPVPos))
 		config.screen.blit(self.SetPointSurf, (self.SPHPosR - self.SPWdt // 2, self.SPVPos))
 		config.screen.blit(rL, (self.SPHPosL - self.SPWdt // 2, self.SPVPos))
 		config.screen.blit(rH, (self.SPHPosR - self.SPWdt // 2, self.SPVPos))
 		config.screen.blit(self.AdjButSurf, (0, self.AdjButTops))
-		r1 = config.fonts.Font(self.fsize[1]).render(self.mode.capitalize(), 0, wc(self.CharColor, factor=self.ModeLocal))
-		r2 = config.fonts.Font(self.fsize[1]).render(self.fan.capitalize(), 0,  wc(self.CharColor, factor=self.FanLocal))
+		r1 = fonts.fonts.Font(self.fsize[1]).render(self.mode.capitalize(), 0,
+													wc(self.CharColor, factor=self.ModeLocal))
+		r2 = fonts.fonts.Font(self.fsize[1]).render(self.fan.capitalize(), 0, wc(self.CharColor, factor=self.FanLocal))
 		config.screen.blit(r1, (self.Keys['Mode'].Center[0] - r1.get_width()//2, self.ModesPos))
 		config.screen.blit(r2, (self.Keys['Fan'].Center[0] - r2.get_width()//2, self.ModesPos))
 		pygame.display.update()
@@ -212,4 +219,5 @@ class NestThermostatScreenDesc(screen.BaseKeyScreenDesc):
 		self.t_cur, self.t_low, self.t_high, self.t_state, self.mode, self.fan = self.ThermNode.GetThermInfo()
 		self.ShowScreen()
 
-config.screentypes["NestThermostat"] = NestThermostatScreenDesc
+
+screens.__screens.screentypes["NestThermostat"] = NestThermostatScreenDesc

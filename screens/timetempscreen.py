@@ -1,8 +1,11 @@
 import time
 
 import config
+import fonts
+import hw
 import screen
 import debug
+import screens.__screens
 from utilfuncs import wc
 from stores import valuestore
 from weatherfromatting import CreateWeathBlock, WFormatter
@@ -72,7 +75,7 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 		self.repaintClock()
 
 	def repaintClock(self):
-		usefulheight = config.screenheight - config.topborder - config.botborder
+		usefulheight = hw.screenheight - config.topborder - config.botborder
 		h = 0
 		renderedforecast  = []
 		sizeindex = 0
@@ -84,7 +87,7 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 
 		tw = 0
 		for i in range(len(self.TimeFormat)):
-			renderedtime.append(config.fonts.Font(self.ClockSize, self.Font).render(
+			renderedtime.append(fonts.fonts.Font(self.ClockSize, self.Font).render(
 					time.strftime(self.TimeFormat[i]), 0, wc(self.CharColor)))
 			h = h + renderedtime[-1].get_height()
 			if renderedtime[-1].get_width() > tw: tw = renderedtime[-1].get_width()
@@ -99,27 +102,27 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 
 		if self.LocationSize != 0:
 			renderedtimelabel.append(
-				config.fonts.Font(self.LocationSize, self.Font).render(
+				fonts.fonts.Font(self.LocationSize, self.Font).render(
 					self.fmt.format("{d}", d=self.scrlabel), 0, wc(self.CharColor)))
 			h = h + renderedtimelabel[-1].get_height()
 			spaces += 1
 		sizeindex += 1
 
 		if self.store.failedfetch:
-			errmsg1 = config.fonts.Font(self.LocationSize,self.Font).render('Weather',0,wc(self.CharColor))
-			errmsg2 = config.fonts.Font(self.LocationSize, self.Font).render('unavailable', 0, wc(self.CharColor))
-			errmsg3 = config.fonts.Font(self.LocationSize, self.Font).render('or error', 0, wc(self.CharColor))
+			errmsg1 = fonts.fonts.Font(self.LocationSize, self.Font).render('Weather', 0, wc(self.CharColor))
+			errmsg2 = fonts.fonts.Font(self.LocationSize, self.Font).render('unavailable', 0, wc(self.CharColor))
+			errmsg3 = fonts.fonts.Font(self.LocationSize, self.Font).render('or error', 0, wc(self.CharColor))
 			#self.PaintBase()
 			vert_off = config.topborder
 			self.ReInitDisplay()
 			for tmlbl in renderedtimelabel:
-				horiz_off = (config.screenwidth - tmlbl.get_width()) / 2
+				horiz_off = (hw.screenwidth - tmlbl.get_width()) / 2
 				config.screen.blit(tmlbl, (horiz_off, vert_off))
 				vert_off = vert_off + 20 + tmlbl.get_height()
-			config.screen.blit(errmsg1,((config.screenwidth - errmsg1.get_width())/2,vert_off))
-			config.screen.blit(errmsg2, ((config.screenwidth - errmsg2.get_width()) / 2, vert_off + errmsg1.get_height()))
+			config.screen.blit(errmsg1, ((hw.screenwidth - errmsg1.get_width()) / 2, vert_off))
+			config.screen.blit(errmsg2, ((hw.screenwidth - errmsg2.get_width()) / 2, vert_off + errmsg1.get_height()))
 			config.screen.blit(errmsg3,
-							   ((config.screenwidth - errmsg3.get_width()) / 2, vert_off + 2*errmsg1.get_height()))
+							   ((hw.screenwidth - errmsg3.get_width()) / 2, vert_off + 2 * errmsg1.get_height()))
 		else:
 			cb = CreateWeathBlock(self.ConditionFormat, self.DecodedCondFields,self.Font,
 								  self.CondSize,self.CharColor,self.condicon,
@@ -141,10 +144,10 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 			if self.FcstLayout in ('2ColVert','2ColHoriz'):
 				h = h + forecastitemheight * ((self.ForecastDays + 1) // 2)
 				forecastlines = (forecastlines + 1) // 2
-				usewidth = config.screenwidth // 2
+				usewidth = hw.screenwidth // 2
 			else:
 				h = h + forecastitemheight * self.ForecastDays
-				usewidth = config.screenwidth
+				usewidth = hw.screenwidth
 
 			s = (usefulheight - h)/(spaces + forecastlines - 1)
 			extraspace = (usefulheight - h - s*(spaces + forecastlines - 1))/spaces
@@ -153,11 +156,11 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 			vert_off = config.topborder
 			self.ReInitDisplay()
 			for tmlbl in renderedtimelabel:
-				horiz_off = (config.screenwidth - tmlbl.get_width())//2
+				horiz_off = (hw.screenwidth - tmlbl.get_width()) // 2
 				config.screen.blit(tmlbl, (horiz_off, vert_off))
 				vert_off = vert_off + s + tmlbl.get_height() + extraspace
 
-			config.screen.blit(cb, ((config.screenwidth - cb.get_width())//2, vert_off))
+			config.screen.blit(cb, ((hw.screenwidth - cb.get_width()) // 2, vert_off))
 			vert_off = vert_off + s + cb.get_height() + extraspace
 
 			startvert = vert_off
@@ -188,4 +191,5 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 		pygame.display.update()
 		config.DS.Tasks.AddTask(self.ClockRepaintEvent, 1)
 
-config.screentypes["TimeTemp"] = TimeTempScreenDesc
+
+screens.__screens.screentypes["TimeTemp"] = TimeTempScreenDesc

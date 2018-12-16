@@ -1,8 +1,11 @@
 import requests
+
+import hw
 import screen
 import config
 import debug
 import logsupport
+import screens.__screens
 from logsupport import ConsoleWarning
 import screenutil
 import pygame
@@ -25,9 +28,9 @@ class OctoPrintScreenDesc(screen.BaseKeyScreenDesc):
 
 		screen.IncorporateParams(self, 'OctoPrint', {'KeyColor'}, screensection)
 		screen.AddUndefaultedParams(self, screensection, address='', apikey='')
-		self.title, th, self.tw = screenutil.CreateTextBlock(self.name, config.screenheight / 12, self.CharColor, True)
-		self.titlespace = th + config.screenheight / 32
-		useablescreenheight = config.screenheight - config.topborder - config.botborder - self.titlespace
+		self.title, th, self.tw = screenutil.CreateTextBlock(self.name, hw.screenheight / 12, self.CharColor, True)
+		self.titlespace = th + hw.screenheight / 32
+		useablescreenheight = hw.screenheight - config.topborder - config.botborder - self.titlespace
 		ctlpos = useablescreenheight / 5
 		ctlhgt = int(ctlpos * .9)
 		self.head = {"X-Api-Key": self.apikey}
@@ -39,40 +42,40 @@ class OctoPrintScreenDesc(screen.BaseKeyScreenDesc):
 
 		self.PowerKeys['printeron'] = toucharea.ManualKeyDesc(self, 'PowerOn', ['Power On'], self.KeyColor,
 															  self.CharColor, self.CharColor,
-															  center=(config.screenwidth // 4, ctlpos * 4),
-															  size=(config.screenwidth // 3, ctlhgt), KOn='', KOff='',
+															  center=(hw.screenwidth // 4, ctlpos * 4),
+															  size=(hw.screenwidth // 3, ctlhgt), KOn='', KOff='',
 															  proc=functools.partial(self.Power, 'printeron'))
 		self.PowerKeys['printeroff'] = toucharea.ManualKeyDesc(self, 'PowerOff', ['Power Off'], self.KeyColor,
 															   self.CharColor, self.CharColor,
-															   center=(3 * config.screenwidth // 4, ctlpos * 4),
-															   size=(config.screenwidth // 3, ctlhgt), KOn='', KOff='',
+															   center=(3 * hw.screenwidth // 4, ctlpos * 4),
+															   size=(hw.screenwidth // 3, ctlhgt), KOn='', KOff='',
 															   proc=functools.partial(self.Power, 'printeroff'))
 		self.PowerKeys['connect'] = toucharea.ManualKeyDesc(self, 'Connect', ['Connect'], self.KeyColor,
 															self.CharColor, self.CharColor,
-															center=(config.screenwidth // 4, ctlpos * 5),
-															size=(config.screenwidth // 3, ctlhgt), KOn='', KOff='',
+															center=(hw.screenwidth // 4, ctlpos * 5),
+															size=(hw.screenwidth // 3, ctlhgt), KOn='', KOff='',
 															proc=functools.partial(self.Connect, 'connect'))
 		self.PowerKeys['disconnect'] = toucharea.ManualKeyDesc(self, 'Disconnect', ['Disconnect'], self.KeyColor,
 															   self.CharColor, self.CharColor,
-															   center=(3 * config.screenwidth // 4, ctlpos * 5),
-															   size=(config.screenwidth // 3, ctlhgt), KOn='', KOff='',
+															   center=(3 * hw.screenwidth // 4, ctlpos * 5),
+															   size=(hw.screenwidth // 3, ctlhgt), KOn='', KOff='',
 															   proc=functools.partial(self.Connect, 'disconnect'))
 		self.PowerPlusKeys = self.PowerKeys.copy()
 		self.PowerPlusKeys['Print'] = toucharea.ManualKeyDesc(self, 'Print', ['Print'], self.KeyColor,
 															  self.CharColor, self.CharColor,
-															  center=(config.screenwidth // 2, ctlpos * 6),
-															  size=(config.screenwidth // 3, ctlhgt), KOn='', KOff='',
+															  center=(hw.screenwidth // 2, ctlpos * 6),
+															  size=(hw.screenwidth // 3, ctlhgt), KOn='', KOff='',
 															  proc=self.SelectFile)
 
 		self.JobKeys['Cancel'] = toucharea.ManualKeyDesc(self, 'Cancel', ['Cancel'], self.KeyColor,
 														 self.CharColor, self.CharColor,
-														 center=(config.screenwidth // 4, ctlpos * 5),
-														 size=(config.screenwidth // 3, ctlhgt), KOn='', KOff='',
+														 center=(hw.screenwidth // 4, ctlpos * 5),
+														 size=(hw.screenwidth // 3, ctlhgt), KOn='', KOff='',
 														 proc=self.PreDoCancel, Verify=True)
 		self.JobKeys['Pause'] = toucharea.ManualKeyDesc(self, 'Pause', ['Pause'], self.KeyColor,
 														self.CharColor, self.CharColor,
-														center=(3 * config.screenwidth // 4, ctlpos * 5),
-														size=(config.screenwidth // 3, ctlhgt), KOn='', KOff='',
+														center=(3 * hw.screenwidth // 4, ctlpos * 5),
+														size=(hw.screenwidth // 3, ctlhgt), KOn='', KOff='',
 														proc=self.PreDoPause, Verify=True)
 		self.VerifyScreenCancel = supportscreens.VerifyScreen(self.JobKeys['Cancel'], ('Cancel', 'Job'), ('Back',),
 															  self.DoCancel,
@@ -171,7 +174,7 @@ class OctoPrintScreenDesc(screen.BaseKeyScreenDesc):
 			self.ShowControlScreen()
 		elif self.Subscreen > 0:
 			self.FileSubscreen.DisplayListSelect()
-		config.screen.blit(self.title, ((config.screenwidth - self.tw) / 2, 0))
+		config.screen.blit(self.title, ((hw.screenwidth - self.tw) / 2, 0))
 		pygame.display.update()
 
 	def ShowControlScreen(self):
@@ -210,7 +213,7 @@ class OctoPrintScreenDesc(screen.BaseKeyScreenDesc):
 			except:
 				OPbed = '-/-'
 			tool1, h, w = screenutil.CreateTextBlock([OPtemp1, OPbed], 25, self.CharColor, True)
-			toblit.append((tool1, ((config.screenwidth - w) // 2, vpos)))
+			toblit.append((tool1, ((hw.screenwidth - w) // 2, vpos)))
 			# config.screen.blit(tool1, ((config.screenwidth - w) // 2, vpos))
 			vpos = vpos + h
 
@@ -223,7 +226,7 @@ class OctoPrintScreenDesc(screen.BaseKeyScreenDesc):
 		self.ReInitDisplay()
 		for i in toblit:
 			config.screen.blit(i[0], i[1])
-		config.screen.blit(statusblock, ((config.screenwidth - statusw) // 2, self.titlespace))
+		config.screen.blit(statusblock, ((hw.screenwidth - statusw) // 2, self.titlespace))
 
 		if self.PollStatus.OnList():
 			# there are some races where this event is still on list (probably deleted) so can't reuse
@@ -233,4 +236,4 @@ class OctoPrintScreenDesc(screen.BaseKeyScreenDesc):
 		config.DS.Tasks.AddTask(self.PollStatus, 5)
 
 
-config.screentypes["OctoPrint"] = OctoPrintScreenDesc
+screens.__screens.screentypes["OctoPrint"] = OctoPrintScreenDesc

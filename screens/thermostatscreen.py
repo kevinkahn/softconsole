@@ -1,5 +1,9 @@
 import pygame
+
+import fonts
+import hw
 import logsupport
+import screens.__screens
 from logsupport import ConsoleWarning, ConsoleError
 from pygame import gfxdraw
 import isy # only to test that the hub for this is an ISY hub
@@ -10,7 +14,7 @@ import screen
 import xmltodict
 import toucharea
 import utilities
-from utilities import scaleW, scaleH
+from hw import scaleW, scaleH
 from utilfuncs import wc
 import functools
 
@@ -40,15 +44,15 @@ class ThermostatScreenDesc(screen.BaseKeyScreenDesc):
 			logsupport.Logs.Log("Thermostat screen only works with ISY hub", severity=ConsoleError)
 			self.ISYObj = None
 
-		self.TitleRen = config.fonts.Font(self.fsize[1]).render(screen.FlatenScreenLabel(self.label), 0,
-																wc(self.CharColor))
-		self.TitlePos = ((config.screenwidth - self.TitleRen.get_width())//2, config.topborder)
+		self.TitleRen = fonts.fonts.Font(self.fsize[1]).render(screen.FlatenScreenLabel(self.label), 0,
+															   wc(self.CharColor))
+		self.TitlePos = ((hw.screenwidth - self.TitleRen.get_width()) // 2, config.topborder)
 		self.TempPos = config.topborder + self.TitleRen.get_height()
-		self.StatePos = self.TempPos + config.fonts.Font(self.fsize[3]).get_linesize() - scaleH(20)
+		self.StatePos = self.TempPos + fonts.fonts.Font(self.fsize[3]).get_linesize() - scaleH(20)
 		self.SPPos = self.StatePos + scaleH(25)
-		self.AdjButSurf = pygame.Surface((config.screenwidth, scaleH(40)))
-		self.AdjButTops = self.SPPos + config.fonts.Font(self.fsize[2]).get_linesize() - scaleH(5)
-		centerspacing = config.screenwidth//5
+		self.AdjButSurf = pygame.Surface((hw.screenwidth, scaleH(40)))
+		self.AdjButTops = self.SPPos + fonts.fonts.Font(self.fsize[2]).get_linesize() - scaleH(5)
+		centerspacing = hw.screenwidth // 5
 		self.SPHPosL = int(1.5 * centerspacing)
 		self.SPHPosR = int(3.5 * centerspacing)
 		self.AdjButSurf.fill(wc(self.BackgroundColor))
@@ -70,13 +74,13 @@ class ThermostatScreenDesc(screen.BaseKeyScreenDesc):
 
 		self.Keys['Mode'] = toucharea.ManualKeyDesc(self, "Mode", ["Mode"],
 													self.KeyColor, self.CharColor, self.CharColor,
-													center=(config.screenwidth//4, self.ModeButPos), size=bsize,
+													center=(hw.screenwidth // 4, self.ModeButPos), size=bsize,
 													KOn=self.KeyOffOutlineColor,
 													proc=functools.partial(self.BumpMode, 'CLIMD', range(8)))
 
 		self.Keys['Fan'] = toucharea.ManualKeyDesc(self, "Fan", ["Fan"],
 												   self.KeyColor, self.CharColor, self.CharColor,
-												   center=(3*config.screenwidth//4, self.ModeButPos), size=bsize,
+												   center=(3 * hw.screenwidth // 4, self.ModeButPos), size=bsize,
 												   KOn=self.KeyOffOutlineColor,
 												   proc=functools.partial(self.BumpMode, 'CLIFS', (7, 8)))
 
@@ -133,38 +137,38 @@ class ThermostatScreenDesc(screen.BaseKeyScreenDesc):
 			return
 		self.ReInitDisplay()
 		config.screen.blit(self.TitleRen, self.TitlePos)
-		r = config.fonts.Font(self.fsize[3], bold=True).render(u"{:4.1f}".format(self.info["ST"][0]//2), 0,
-															   wc(self.CharColor))
-		config.screen.blit(r, ((config.screenwidth - r.get_width())//2, self.TempPos))
+		r = fonts.fonts.Font(self.fsize[3], bold=True).render(u"{:4.1f}".format(self.info["ST"][0] // 2), 0,
+															  wc(self.CharColor))
+		config.screen.blit(r, ((hw.screenwidth - r.get_width()) // 2, self.TempPos))
 		if isinstance(self.info["CLIHCS"][0], int):
-			r = config.fonts.Font(self.fsize[0]).render(("Idle", "Heating", "Cooling")[self.info["CLIHCS"][0]], 0,
-													wc(self.CharColor))
+			r = fonts.fonts.Font(self.fsize[0]).render(("Idle", "Heating", "Cooling")[self.info["CLIHCS"][0]], 0,
+													   wc(self.CharColor))
 		else:
-			r = config.fonts.Font(self.fsize[0]).render("n/a", 0, wc(self.CharColor))
-		config.screen.blit(r, ((config.screenwidth - r.get_width())//2, self.StatePos))
+			r = fonts.fonts.Font(self.fsize[0]).render("n/a", 0, wc(self.CharColor))
+		config.screen.blit(r, ((hw.screenwidth - r.get_width()) // 2, self.StatePos))
 		# r = config.fonts.Font(self.fsize[2]).render(
 		#	"{:2d}    {:2d}".format(self.info["CLISPH"][0]//2, self.info["CLISPC"][0]//2), 0,
 		#	wc(self.CharColor))
-		rL = config.fonts.Font(self.fsize[2]).render(
+		rL = fonts.fonts.Font(self.fsize[2]).render(
 			"{:2d}".format(self.info["CLISPH"][0] // 2), 0, wc(self.CharColor))
-		rH = config.fonts.Font(self.fsize[2]).render(
+		rH = fonts.fonts.Font(self.fsize[2]).render(
 			"{:2d}".format(self.info["CLISPC"][0] // 2), 0, wc(self.CharColor))
 		config.screen.blit(rL, (self.SPHPosL - rL.get_width() // 2, self.SPPos))
 		config.screen.blit(rH, (self.SPHPosR - rH.get_width() // 2, self.SPPos))
 		config.screen.blit(self.AdjButSurf, (0, self.AdjButTops))
 		# noinspection PyBroadException
 		try:
-			r1 = config.fonts.Font(self.fsize[1]).render(
+			r1 = fonts.fonts.Font(self.fsize[1]).render(
 				('Off', 'Heat', 'Cool', 'Auto', 'Fan', 'Prog Auto', 'Prog Heat', 'Prog Cool')[self.info["CLIMD"][0]], 0,
 				wc(self.CharColor))
 		except:
-			r1 = config.fonts.Font(self.fsize[1]).render('---', 0, wc(self.CharColor))
+			r1 = fonts.fonts.Font(self.fsize[1]).render('---', 0, wc(self.CharColor))
 		# noinspection PyBroadException
 		try:
-			r2 = config.fonts.Font(self.fsize[1]).render(('On', 'Auto')[self.info["CLIFS"][0] - 7], 0,
-														 wc(self.CharColor))
+			r2 = fonts.fonts.Font(self.fsize[1]).render(('On', 'Auto')[self.info["CLIFS"][0] - 7], 0,
+														wc(self.CharColor))
 		except:
-			r2 = config.fonts.Font(self.fsize[1]).render('---', 0, wc(self.CharColor))
+			r2 = fonts.fonts.Font(self.fsize[1]).render('---', 0, wc(self.CharColor))
 		config.screen.blit(r1, (self.Keys['Mode'].Center[0] - r1.get_width()//2, self.ModesPos))
 		config.screen.blit(r2, (self.Keys['Fan'].Center[0] - r2.get_width()//2, self.ModesPos))
 
@@ -178,4 +182,5 @@ class ThermostatScreenDesc(screen.BaseKeyScreenDesc):
 	def NodeEvent(self, hub ='', node=0, value=0, varinfo = ()):
 		self.ShowScreen()
 
-config.screentypes["Thermostat"] = ThermostatScreenDesc
+
+screens.__screens.screentypes["Thermostat"] = ThermostatScreenDesc

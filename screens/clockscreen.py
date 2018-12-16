@@ -1,3 +1,6 @@
+import fonts
+import hw
+import screens.__screens
 from utilfuncs import wc
 import config
 import time
@@ -32,14 +35,14 @@ class ClockScreenDesc(screen.ScreenDesc):
 				logsupport.Logs.Log("Incomplete field specified on clockscreen", severity=ConsoleWarning)
 
 	def repaintClock(self):
-		usefulheight = config.screenheight - config.topborder - config.botborder
+		usefulheight = hw.screenheight - config.topborder - config.botborder
 		h = 0
 		l = []
 
 		for i in range(len(self.OutFormat)):
 			l.append(
-				config.fonts.Font(self.CharSize[i], self.Font).render(time.strftime(self.OutFormat[i]),
-																	  0, wc(self.CharColor)))
+				fonts.fonts.Font(self.CharSize[i], self.Font).render(time.strftime(self.OutFormat[i]),
+																	 0, wc(self.CharColor)))
 			h = h + l[i].get_height()
 		if self.ExtraSize[0] != 0:
 			cb = CreateWeathBlock(self.ExtraFormat, self.DecodedExtraFields, self.Font,
@@ -51,12 +54,12 @@ class ClockScreenDesc(screen.ScreenDesc):
 		self.ReInitDisplay()
 		vert_off = config.topborder
 		for i in range(len(l)):
-			horiz_off = (config.screenwidth - l[i].get_width())//2
+			horiz_off = (hw.screenwidth - l[i].get_width()) // 2
 			config.screen.blit(l[i], (horiz_off, vert_off))
 			vert_off = vert_off + s + l[i].get_height()
 		if self.ExtraSize[0] != 0:
 			# noinspection PyUnboundLocalVariable
-			horiz_off = (config.screenwidth - cb.get_width())//2
+			horiz_off = (hw.screenwidth - cb.get_width()) // 2
 			config.screen.blit(cb, (horiz_off, vert_off))
 		pygame.display.update()
 		config.DS.Tasks.AddTask(self.ClockRepaintEvent, 1)
@@ -65,4 +68,5 @@ class ClockScreenDesc(screen.ScreenDesc):
 		super(ClockScreenDesc, self).InitDisplay(nav)
 		self.repaintClock()
 
-config.screentypes["Clock"] = ClockScreenDesc
+
+screens.__screens.screentypes["Clock"] = ClockScreenDesc

@@ -1,4 +1,5 @@
 import config
+import fonts
 
 from utilfuncs import wc
 import pygame
@@ -8,10 +9,10 @@ import pygame
 def fitFont(font, s, FitLine):
 	if not FitLine: return s
 	s2 = s
-	starg = config.fonts.Font(s2, font).get_linesize()
+	starg = fonts.fonts.Font(s2, font).get_linesize()
 	while starg > s:
 		s2 = s / starg * s2
-		starg = config.fonts.Font(s2, font).get_linesize()
+		starg = fonts.fonts.Font(s2, font).get_linesize()
 	return s2
 
 
@@ -28,20 +29,20 @@ def CreateTextBlock(textlines, fontsizes, color, center, font=config.monofont, F
 	for l, s in zip(lines, sizes):
 		for trys in [s, int(.75 * s), int(.625 * s)]:
 			usesz = fitFont(font, trys, FitLine)
-			line = config.fonts.Font(usesz, font).render(l, 0, wc(color))
+			line = fonts.fonts.Font(usesz, font).render(l, 0, wc(color))
 			if line.get_width() < MaxWidth: break
 		if line.get_width() > MaxWidth:
 			usesz = fitFont(font, s // 2, FitLine)
 			breaks = [i for i, ltr in enumerate(l) if ltr == ' '] + [len(l) - 1]
 			for indx, val in enumerate(breaks):
-				if config.fonts.Font(usesz, font).size(l[:breaks[indx]])[0] > MaxWidth:
+				if fonts.fonts.Font(usesz, font).size(l[:breaks[indx]])[0] > MaxWidth:
 					break
 			# noinspection PyUnboundLocalVariable
 			lleft = l[:breaks[indx - 1]]
 			lright = '  ' + l[breaks[indx - 1]:]
 			usesz = fitFont(font, s // 2, FitLine)
-			line1 = config.fonts.Font(usesz, font).render(lleft, 0, wc(color))
-			line2 = config.fonts.Font(usesz, font).render(lright, 0, wc(color))
+			line1 = fonts.fonts.Font(usesz, font).render(lleft, 0, wc(color))
+			line2 = fonts.fonts.Font(usesz, font).render(lright, 0, wc(color))
 			rl.append(line1)
 			rl.append(line2)
 			h += (rl[-1].get_height() + rl[-2].get_height())

@@ -1,4 +1,5 @@
 import config
+import fonts
 import logsupport
 from logsupport import ConsoleWarning, ConsoleDetailHigh
 from utilfuncs import wc
@@ -15,7 +16,7 @@ def CreateWeathBlock(Format, Fields, WeathFont, FontSize, WeathColor, icon, cent
 	fw = 0
 	FS = FontSize[:] if isinstance(FontSize, list) else [FontSize]
 	fsize = int(FS.pop(0))
-	usefont = config.fonts.Font(fsize, WeathFont)
+	usefont = fonts.fonts.Font(fsize, WeathFont)
 	fcstdays = 0
 
 	fld = ''
@@ -51,7 +52,7 @@ def CreateWeathBlock(Format, Fields, WeathFont, FontSize, WeathColor, icon, cent
 			if rf[-1].get_width() > fw: fw = rf[-1].get_width()
 			if FS:
 				fsize = int(FS.pop(0))
-				usefont = config.fonts.Font(fsize, WeathFont)
+				usefont = fonts.fonts.Font(fsize, WeathFont)
 	except Exception as e:
 		logsupport.Logs.Log('TimeTemp Weather Formatting Error: ', repr(e), severity=ConsoleWarning)
 		if isinstance(e, KeyError):

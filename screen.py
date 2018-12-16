@@ -1,4 +1,5 @@
 import config
+import hw
 import logsupport
 from logsupport import ConsoleError, ConsoleWarning
 import utilities
@@ -31,6 +32,7 @@ ScreenParams = {'DimTO': 99,
 
 screenStore = valuestore.NewValueStore(paramstore.ParamStore('ScreenParams'))
 
+screenparamuse = {}
 
 def InitScreenParams(parseconfig):
 	for p, v in ScreenParams.items():
@@ -39,10 +41,10 @@ def InitScreenParams(parseconfig):
 
 def IncorporateParams(this, clsnm, theseparams, screensection):
 	paramset = set(theseparams)
-	if type(this) not in config.screenparamuse:
-		config.screenparamuse[type(this)] = {clsnm: paramset}
+	if type(this) not in screenparamuse:
+		screenparamuse[type(this)] = {clsnm: paramset}
 	else:
-		config.screenparamuse[type(this)][clsnm] = paramset
+		screenparamuse[type(this)][clsnm] = paramset
 	if screensection is None: screensection = {}
 	for p in theseparams:
 		if isinstance(theseparams, dict):
@@ -76,9 +78,9 @@ def ButLayout(butcount):
 		return 5, 5
 
 def ButSize(bpr, bpc, height):
-	h = config.screenheight - config.topborder - config.botborder if height == 0 else height
+	h = hw.screenheight - config.topborder - config.botborder if height == 0 else height
 	return (
-		(config.screenwidth - 2*config.horizborder)/bpr, h/bpc)
+		(hw.screenwidth - 2 * config.horizborder) / bpr, h / bpc)
 
 
 
@@ -103,7 +105,7 @@ class ScreenDesc(object):
 											   dp=screenStore if parentscreen is None else parentscreen.userstore,
 											   locname=screenname)
 
-		self.markradius = int(min(config.screenwidth, config.screenheight) * .025)
+		self.markradius = int(min(hw.screenwidth, hw.screenheight) * .025)
 
 		self.name = screenname
 		self.NavKeys = collections.OrderedDict()
@@ -205,3 +207,4 @@ class BaseKeyScreenDesc(ScreenDesc):
 
 		for i, (kn, key) in enumerate(self.Keys.items()):
 			key.FinishKey((hpos[i%bpr], vpos[i//bpr]), buttonsize)
+

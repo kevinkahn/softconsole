@@ -1,3 +1,5 @@
+import fonts
+import hw
 import screen
 import debug
 import config
@@ -31,7 +33,7 @@ class VerifyScreen(screen.BaseKeyScreenDesc):
 		self.Keys['no'].Proc = functools.partial(proc, False)
 
 		topoff = self.TitleFontSize + self.SubFontSize
-		self.LayoutKeys(topoff, config.screenheight - 2*config.topborder - topoff)
+		self.LayoutKeys(topoff, hw.screenheight - 2 * config.topborder - topoff)
 		utilities.register_example("VerifyScreen", self)
 
 	def Invoke(self):
@@ -40,8 +42,8 @@ class VerifyScreen(screen.BaseKeyScreenDesc):
 	def ShowScreen(self):
 		self.ReInitDisplay()
 		# self.PaintBase()
-		r = config.fonts.Font(self.TitleFontSize, '', True, True).render(self.label, 0, wc(self.CharColor))
-		rl = (config.screenwidth - r.get_width())/2
+		r = fonts.fonts.Font(self.TitleFontSize, '', True, True).render(self.label, 0, wc(self.CharColor))
+		rl = (hw.screenwidth - r.get_width()) / 2
 		config.screen.blit(r, (rl, config.topborder))
 		self.PaintKeys()
 		pygame.display.update()
@@ -84,13 +86,13 @@ class ValueChangeScreen(screen.ScreenDesc): # todo may need to call super class
 		self.Value = initvalue
 		self.Keys = {}
 		vertzonepct = .8
-		vertzonesize = int(.25*config.screenheight)
-		screencenter = (config.screenwidth/2, config.screenheight/2)
+		vertzonesize = int(.25 * hw.screenheight)
+		screencenter = (hw.screenwidth / 2, hw.screenheight / 2)
 
-		self.font = config.fonts.Font(40)
+		self.font = fonts.fonts.Font(40)
 
 		self.arrowht = int(vertzonesize*vertzonepct)
-		self.arrowwd = min(.8*(config.screenwidth/len(changevals)), self.arrowht)
+		self.arrowwd = min(.8 * (hw.screenwidth / len(changevals)), self.arrowht)
 		self.uparrowcenter = []
 		self.dnarrowcenter = []
 		self.uparrowverts = []
@@ -102,13 +104,13 @@ class ValueChangeScreen(screen.ScreenDesc): # todo may need to call super class
 
 		for i in range(len(changevals)):
 			self.uparrowcenter.append(
-				((i + .5)*config.screenwidth/(len(changevals)), screencenter[1] + vertzonesize))
+				((i + .5) * hw.screenwidth / (len(changevals)), screencenter[1] + vertzonesize))
 			self.Keys['up' + str(i)] = TouchPoint('up' + str(i), self.uparrowcenter[
 				-1], self.arrowwd, functools.partial(self.ValChange, changevals[i]))
 			self.uparrowverts.append(
 				[functools.partial(self.offsetpoint, self.uparrowcenter[-1])(self.uparrow[k]) for k in range(3)])
 			self.dnarrowcenter.append(
-				((i + .5)*config.screenwidth/(len(changevals)), screencenter[1] - vertzonesize))
+				((i + .5) * hw.screenwidth / (len(changevals)), screencenter[1] - vertzonesize))
 			self.Keys['dn' + str(i)] = TouchPoint('up' + str(i), self.dnarrowcenter[
 				-1], self.arrowwd, functools.partial(self.ValChange, -changevals[i]))
 			self.dnarrowverts.append(
@@ -119,14 +121,14 @@ class ValueChangeScreen(screen.ScreenDesc): # todo may need to call super class
 
 		self.titlecenter = (screencenter[0] - int(1.75*vertzonesize), screencenter[1])
 		valuebuttoncenter = screencenter
-		valuebuttonsize = (config.screenwidth/2, int(vertzonesize*vertzonepct))
+		valuebuttonsize = (hw.screenwidth / 2, int(vertzonesize * vertzonepct))
 		labelcenter = (screencenter[0], screencenter[1] - int(1.75*vertzonesize))
 		self.labelrend = self.font.render(label, True, wc(CharColor))
 		labelsz = self.font.size(label)
 		self.labelloc = (labelcenter[0] - labelsz[0]/2, labelcenter[1] - labelsz[1]/2)
 
 		cancelcenter = (screencenter[0], screencenter[1] + int(1.75*vertzonesize))
-		cancelsize = (config.screenwidth/2, int(vertzonepct*config.screenheight*.125))
+		cancelsize = (hw.screenwidth / 2, int(vertzonepct * hw.screenheight * .125))
 
 		self.Keys['cancel'] = ManualKeyDesc(self, 'cancel', ['Cancel', ], BackgroundColor, CharColor, CharColor,
 											cancelcenter,
@@ -202,15 +204,15 @@ class ListChooserSubScreen(screen.ScreenDesc):
 			self.SlotsVPos.append(vpos)
 			self.ListKeySlots['Src' + str(i)] = toucharea.TouchPoint('Slot' + str(i),
 																	 (
-																		 config.screenwidth // 2,
+																		 hw.screenwidth // 2,
 																		 vpos + self.sourceheight // 2),
-																	 (config.screenwidth, self.sourceheight),
+																	 (hw.screenwidth, self.sourceheight),
 																	 proc=functools.partial(self.PickItem, i))
 			vpos += self.sourceheight
 			self.SlotItem.append('')
-		self.SrcPrev = (config.screenwidth - self.sourceheight - config.horizborder,
+		self.SrcPrev = (hw.screenwidth - self.sourceheight - config.horizborder,
 						voffset - self.sourceheight // 2)
-		self.SrcNext = (config.screenwidth - self.sourceheight - config.horizborder,
+		self.SrcNext = (hw.screenwidth - self.sourceheight - config.horizborder,
 						vpos + self.sourceheight // 2 + 10)  # for appearance
 		self.ListKeySlots['Prev'] = toucharea.TouchPoint('Prev', self.SrcPrev,
 														 (self.sourceheight, self.sourceheight),
@@ -270,7 +272,7 @@ class ListChooserSubScreen(screen.ScreenDesc):
 			slot = i - self.firstitem
 			clr = self.DullKeyColor if i == self.selection else self.CharColor
 			rs, h, w = screenutil.CreateTextBlock(self.itemlist[i], self.sourceheight, clr, False, FitLine=True,
-												  MaxWidth=config.screenwidth - config.horizborder * 2)
+												  MaxWidth=hw.screenwidth - config.horizborder * 2)
 			# self.SourceSlot[slot] = self.SourceSet[i]
 			voff = self.SlotsVPos[slot] + (self.sourceheight - h) // 2
 			config.screen.blit(rs, (config.horizborder, voff))

@@ -1,11 +1,12 @@
 import pygame
 import debug
+import fonts
 import screen
 import stores.paramstore as paramstore
 
 import config
 import utilities
-from utilities import scaleW, scaleH
+from hw import scaleW, scaleH
 from utilfuncs import wc
 
 from eventlist import ProcEventItem
@@ -160,7 +161,7 @@ class ManualKeyDesc(TouchPoint):
 		if shrink:
 			for l in range(lines):
 				for i in range(firstfont, len(self.ButtonFontSizes) - 1):
-					txtsize = config.fonts.Font(self.ButtonFontSizes[i], bold=True).size(lab[l])
+					txtsize = fonts.fonts.Font(self.ButtonFontSizes[i], bold=True).size(lab[l])
 					if lines*txtsize[1] >= textarea[1] or txtsize[0] >= textarea[0]:
 						fontchoice = self.ButtonFontSizes[i + 1]
 		return fontchoice
@@ -168,7 +169,7 @@ class ManualKeyDesc(TouchPoint):
 	def AddTitle(self,surface,label,fontchoice,color):
 		lines = len(label)
 		for i in range(lines):
-			ren = config.fonts.Font(fontchoice, bold=True).render(label[i], 0, wc(color))
+			ren = fonts.fonts.Font(fontchoice, bold=True).render(label[i], 0, wc(color))
 			vert_off = ((i + 1)*self.Size[1]/(1 + lines)) - ren.get_height()/2
 			horiz_off = (self.Size[0] - ren.get_width())/2
 			surface.blit(ren, (horiz_off,vert_off))

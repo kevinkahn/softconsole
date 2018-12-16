@@ -1,5 +1,7 @@
 import paho.mqtt.client as mqtt
 import paho.mqtt.publish as publish
+
+import hw
 import logsupport
 import config
 import json
@@ -42,8 +44,8 @@ class MQTTBroker(valuestore.ValueStore):
 			if logsupport.primaryBroker == self:
 				client.subscribe([('consoles/all/errors', 1),
 								  ('consoles/all/cmd', 1),
-								  ('consoles/' + config.hostname + '/cmd', 1),
-								  ('consoles/' + config.hostname + '/set', 1),
+								  ('consoles/' + hw.hostname + '/cmd', 1),
+								  ('consoles/' + hw.hostname + '/set', 1),
 								  ('consoles/all/set', 1)])
 			self.loopexited = False
 
@@ -97,7 +99,7 @@ class MQTTBroker(valuestore.ValueStore):
 				if t == msg.topic:
 					var.extend(item)
 
-			if msg.topic in ('consoles/all/cmd', 'consoles/' + config.hostname + '/cmd'):
+			if msg.topic in ('consoles/all/cmd', 'consoles/' + hw.hostname + '/cmd'):
 				cmd = msg.payload.decode('ascii')
 				logsupport.Logs.Log('{}: Remote command received on {}: {}'.format(self.name, msg.topic, cmd))
 				cmdcalls = {'restart': DoRestart,
@@ -121,11 +123,11 @@ class MQTTBroker(valuestore.ValueStore):
 				return
 			elif msg.topic == 'consoles/all/errors':
 				d = json.loads(msg.payload.decode('ascii'))
-				if d['node'] != config.hostname:
+				if d['node'] != hw.hostname:
 					logsupport.Logs.LogRemote(d['node'], d['entry'], severity=d['sev'],
 											  etime=d['etime'] if 'etime' in d else 0)
 				return
-			elif msg.topic in ('consoles/all/set', 'consoles/' + config.hostname + '/set'):
+			elif msg.topic in ('consoles/all/set', 'consoles/' + hw.hostname + '/set'):
 				d = json.loads(msg.payload.decode('ascii'))
 				try:
 					logsupport.Logs.Log('{}: set {} = {}'.format(self.name, d['name'], d['value']))
@@ -209,21 +211,21 @@ class MQTTBroker(valuestore.ValueStore):
 		self.MQTTclient.on_message = on_message
 		self.MQTTclient.on_disconnect = on_disconnect
 		if self.reportstatus or logsupport.primaryBroker is None:
-			topic = 'consoles/' + config.hostname + '/status'
+			topic = 'consoles/' + hw.hostname + '/status'
 			self.MQTTclient.will_set(topic, json.dumps({'status': 'dead'}), retain=True)
 			logsupport.primaryBroker = self
 			self.MQTTrunning = False
 			# register the console
-			self.Publish(node='all/nodes', topic=config.hostname,
+			self.Publish(node='all/nodes', topic=hw.hostname,
 						 payload=json.dumps(
 							 {'registered': time.time(),
 							  'versionname': config.versionname,
 							  'versionsha': config.versionsha,
 							  'versiondnld': config.versiondnld,
 							  'versioncommit': config.versioncommit,
-							  'boottime': config.bootime,
-							  'osversion': config.osversion,
-							  'hw': config.hwinfo}),
+							  'boottime': hw.bootime,
+							  'osversion': hw.osversion,
+							  'hw': hw.hwinfo}),
 						 retain=True, qos=1)
 		threadmanager.SetUpHelperThread(self.name,self.MQTTLoop)
 
@@ -266,7 +268,7 @@ class MQTTBroker(valuestore.ValueStore):
 	def SetValByID(lclid, val):
 		logsupport.Logs.Log("Can't set MQTT subscribed var by id within console: ", str(lclid))
 
-	def Publish(self, topic, payload=None, node=config.hostname, qos=1, retain=False, viasvr=False):
+	def Publish(self, topic, payload=None, node=hw.hostname, qos=1, retain=False, viasvr=False):
 		fulltopic = 'consoles/' + node + '/' + topic
 		if self.MQTTrunning:
 			self.MQTTclient.publish(fulltopic, payload, qos=qos, retain=retain)

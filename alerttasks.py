@@ -1,12 +1,14 @@
 import config, utilities, logsupport
 import exitutils
+from screens import alertscreen
+import screens.__screens as screens
 from configobjects import Section
 import screen
 from logsupport import ConsoleWarning, ConsoleDetail, ConsoleError
 from stores import valuestore
 from controlevents import *
 import debug
-from screens import alertscreen
+
 from datetime import datetime
 from dateutil.parser import parse
 
@@ -36,7 +38,7 @@ class Alert(object):
 		self._state = value
 
 	def Invoke(self):
-		if isinstance(self.actiontarget, config.screentypes["Alert"]):
+		if isinstance(self.actiontarget, screens.screentypes["Alert"]):
 			self.state = 'Active'
 			config.DS.SwitchScreen(self.actiontarget, 'Bright', 'Alert', 'Go to alert screen', NavKeys=False)
 		else:

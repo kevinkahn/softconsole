@@ -1,8 +1,8 @@
 # noinspection PyProtectedMember
 from configobj import Section
 import logsupport
+import screens.__screens
 from logsupport import ConsoleWarning
-import config
 import screen
 import utilities
 import debug
@@ -82,4 +82,4 @@ class KeyScreenDesc(screen.BaseKeyScreenDesc):
 				return
 
 
-config.screentypes["Keypad"] = KeyScreenDesc
+screens.__screens.screentypes["Keypad"] = KeyScreenDesc

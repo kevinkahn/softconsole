@@ -22,10 +22,10 @@ import maintscreen
 class DisplayScreen(object):
 	def __init__(self):
 
-		debug.debugPrint("Main", "Screensize: ", config.screenwidth, config.screenheight)
-		logsupport.Logs.Log("Screensize: " + str(config.screenwidth) + " x " + str(config.screenheight))
+		debug.debugPrint("Main", "Screensize: ", hw.screenwidth, hw.screenheight)
+		logsupport.Logs.Log("Screensize: " + str(hw.screenwidth) + " x " + str(hw.screenheight))
 		logsupport.Logs.Log(
-			"Scaling ratio: " + "{0:.2f} W ".format(config.dispratioW) + "{0:.2f} H".format(config.dispratioH))
+			"Scaling ratio: " + "{0:.2f} W ".format(hw.dispratioW) + "{0:.2f} H".format(hw.dispratioH))
 
 		self.dim = 'Bright'  # either Bright or Dim (or '' for don't change when a parameter
 		self.state = 'Home'  # one of Home, NonHome, Maint, Cover, Alert
@@ -153,11 +153,12 @@ class DisplayScreen(object):
 			self.SwitchScreen(InitScreen, 'Bright', 'Home', 'Startup')
 
 		statusperiod = time.time()
+		prevstatus = ''
 
 		while config.Running:  # Operational Control Loop
-			if statusperiod <= time.time() or config.prevstatus != config.consolestatus:
+			if statusperiod <= time.time() or prevstatus != config.consolestatus:
 				ReportStatus(config.consolestatus)
-				config.prevstatus = config.consolestatus
+				prevstatus = config.consolestatus
 				statusperiod = time.time() + 60
 
 			if not threadmanager.Watcher.is_alive():

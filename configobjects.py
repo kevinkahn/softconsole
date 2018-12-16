@@ -3,6 +3,7 @@ from configobj import Section
 
 import config
 import debug
+import hw
 import logsupport
 import screens.__screens as screens
 from logsupport import ConsoleWarning, ConsoleError, ConsoleDetail
@@ -32,9 +33,9 @@ class MyScreens(object):
 				tempscreentype = thisScreen.get("type", "unspec")
 				debug.debugPrint('Screen', "Screen of type ", tempscreentype)
 
-				if tempscreentype in config.screentypes:
+				if tempscreentype in screens.screentypes:
 					try:
-						NewScreen = config.screentypes[tempscreentype](thisScreen, screenitem)
+						NewScreen = screens.screentypes[tempscreentype](thisScreen, screenitem)
 						logsupport.Logs.Log(tempscreentype + " screen " + screenitem, severity=ConsoleDetail)
 					except ValueError:
 						NewScreen = None
@@ -87,8 +88,8 @@ class MyScreens(object):
 			exitutils.errorexit(exitutils.ERRORDIE)
 
 		# Create the navigation keys
-		cbutwidth = (config.screenwidth - 2*config.horizborder)/2
-		cvertcenter = config.screenheight - config.botborder/2
+		cbutwidth = (hw.screenwidth - 2 * config.horizborder) / 2
+		cvertcenter = hw.screenheight - config.botborder / 2
 		cbutheight = config.botborder - config.cmdvertspace*2
 		for i, kn in enumerate(config.sysStore.MainChain):
 			prevk = screens.MainDict[config.sysStore.MainChain[i - 1]].screen
@@ -179,5 +180,5 @@ class MyScreens(object):
 
 		logsupport.Logs.Log("Defined but unused screens:")
 		for nm, scr in screens.ExtraDict.items():
-			if (not isinstance(scr.screen, config.screentypes["Alert"])) and (not scr.screen in screens.DimIdleList):
+			if (not isinstance(scr.screen, screens.screentypes["Alert"])) and (not scr.screen in screens.DimIdleList):
 				logsupport.Logs.Log("---Unused: " + nm, severity=ConsoleWarning)

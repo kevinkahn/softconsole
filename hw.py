@@ -1,12 +1,36 @@
 import os
 import wiringpi
-import config
 import platform
+import pygame
+import socket
 
 disklogging = True
 touchdevice = True
 IsDim = False
 PWMDim = True
+
+baseheight = 480  # program design height
+basewidth = 320  # program design width
+dispratioW = 1
+dispratioH = 1
+screenwidth = 0
+screenheight = 0
+
+bootime = 0
+osversion = ""
+hwinfo = ""
+
+hostname = ""
+screentype = ""
+portrait = True
+
+
+def scaleW(p):
+	return int(round(float(p) * float(dispratioW)))
+
+
+def scaleH(p):
+	return int(round(float(p) * float(dispratioH)))
 
 # This version of hw uses the real hw pwm for screen dimming - much better appearance
 
@@ -38,16 +62,24 @@ def ResetScreenLevel(storeitem, old, val, dim, unusedsrc):
 
 
 # noinspection PyBroadException
-def initOS(screentype):
-	global PWMDim
+def initOS(scrntyp):
+	global PWMDim, bootime, osversion, hwinfo, screentype, hostname, screenwidth, screenheight, portrait
+
+	screentype = scrntyp
+	pygame.display.init()
+	screenwidth, screenheight = (pygame.display.Info().current_w, pygame.display.Info().current_h)
+	if screenwidth > screenheight:
+		portrait = False
+
+	hostname = socket.gethostname()
 	# get platform info
 	with open('/proc/stat', 'r') as f:
 		for line in f:
 			if line.startswith('btime'):
-				config.bootime = int(line.split()[1])
-	config.osversion = platform.platform()
+				bootime = int(line.split()[1])
+	osversion = platform.platform()
 	with open('/proc/device-tree/model') as f:
-		config.hwinfo = f.read()
+		hwinfo = f.read()
 
 	if screentype == 'pi7':
 		os.environ['SDL_FBDEV'] = '/dev/fb0'
@@ -100,6 +132,4 @@ def GoDimPWM(level):
 def GoDimPi7(level):
 	with open('/sys/devices/platform/rpi_backlight/backlight/rpi_backlight/brightness', 'w') as f:
 		f.write(str(level*255//100))
-
-
 

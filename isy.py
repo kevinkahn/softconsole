@@ -1,4 +1,6 @@
 import collections
+
+import hw
 import isycodes
 import historybuffer
 
@@ -439,7 +441,7 @@ class ISY(object):
 		'''
 		Add command varibles if needed
 		'''
-		cmdvar = valuestore.InternalizeVarName(self.name+':Int:Command.' + config.hostname.replace('-', '.'))
+		cmdvar = valuestore.InternalizeVarName(self.name + ':Int:Command.' + hw.hostname.replace('-', '.'))
 		self.alertspeclist = {}
 		for k in valuestore.ValueStores[self.name].items():
 			if k == tuple(cmdvar[1:]):

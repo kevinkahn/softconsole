@@ -1,5 +1,8 @@
 import pygame
+
+import hw
 import logsupport
+import screens.__screens
 import supportscreens
 from logsupport import ConsoleError, ConsoleWarning
 from utilfuncs import wc
@@ -69,50 +72,50 @@ class SonosScreenDesc(screen.BaseKeyScreenDesc):
 
 		for i in range(self.numplayers):
 			self.KeysSum['Slot' + str(i)] = toucharea.TouchPoint('Slot' + str(i),
-																 (config.screenwidth // 2,
+																 (hw.screenwidth // 2,
 																  (self.NodeVPos[i] + self.NodeVPos[i + 1]) // 2),
-																 (config.screenwidth, self.roomheight),
+																 (hw.screenwidth, self.roomheight),
 																 proc=functools.partial(self.RoomSelect, i))
 			self.KeysGC['SlotGC' + str(i)] = toucharea.TouchPoint('SlotGC' + str(i),
-																  (config.screenwidth // 2,
+																  (hw.screenwidth // 2,
 																   (self.GCVPos[i] + self.GCVPos[i + 1]) // 2),
-																  (config.screenwidth, 50),
+																  (hw.screenwidth, 50),
 																  proc=functools.partial(self.GroupMemberToggle, i))
 			butvert = self.GPCtlVPos[i] + self.ctlhgt * 1.5
 			butsz = (self.ctlhgt, self.ctlhgt)
-			self.ButLocSize.append({'Dn': ((config.screenwidth // 4, butvert), butsz)})
-			self.KeysGpCtl['Dn' + str(i)] = toucharea.TouchPoint('Dn' + str(i), (config.screenwidth // 4, butvert),
+			self.ButLocSize.append({'Dn': ((hw.screenwidth // 4, butvert), butsz)})
+			self.KeysGpCtl['Dn' + str(i)] = toucharea.TouchPoint('Dn' + str(i), (hw.screenwidth // 4, butvert),
 																 butsz,
 																 proc=functools.partial(self.VolChange, i, -1))
 
-			self.ButLocSize[i]['Up'] = ((config.screenwidth // 2, butvert), butsz)
-			self.KeysGpCtl['Up' + str(i)] = toucharea.TouchPoint('Up' + str(i), (config.screenwidth // 2, butvert),
+			self.ButLocSize[i]['Up'] = ((hw.screenwidth // 2, butvert), butsz)
+			self.KeysGpCtl['Up' + str(i)] = toucharea.TouchPoint('Up' + str(i), (hw.screenwidth // 2, butvert),
 																 butsz,
 																 proc=functools.partial(self.VolChange, i, 1))
 
-			self.ButLocSize[i]['Mute'] = ((3 * config.screenwidth // 4, butvert), butsz)
+			self.ButLocSize[i]['Mute'] = ((3 * hw.screenwidth // 4, butvert), butsz)
 			self.KeysGpCtl['Mute' + str(i)] = toucharea.TouchPoint('Mute' + str(i),
-																   (3 * config.screenwidth // 4, butvert), butsz,
+																   (3 * hw.screenwidth // 4, butvert), butsz,
 																   proc=functools.partial(self.VolChange, i, 0))
 
 		self.KeysGpCtl['Source'] = toucharea.ManualKeyDesc(self, 'Source', ['Source'], self.BackgroundColor,
 														   self.CharColor, self.CharColor,
-														   center=(3 * config.screenwidth // 4,
+														   center=(3 * hw.screenwidth // 4,
 																   self.GPCtlVPos[-1] + self.ctlhgt),
-														   size=(config.screenwidth // 3, self.ctlhgt), KOn='', KOff='',
+														   size=(hw.screenwidth // 3, self.ctlhgt), KOn='', KOff='',
 														   proc=self.SetSource)
 
 		self.KeysGpCtl['OKCtl'] = toucharea.ManualKeyDesc(self, 'OKCtl', ['OK'], self.BackgroundColor,
 														  self.CharColor, self.CharColor,
 														  center=(
-														  config.screenwidth // 4, self.GPCtlVPos[-1] + self.ctlhgt),
-														  size=(config.screenwidth // 3, self.ctlhgt), KOn='', KOff='',
+															  hw.screenwidth // 4, self.GPCtlVPos[-1] + self.ctlhgt),
+														  size=(hw.screenwidth // 3, self.ctlhgt), KOn='', KOff='',
 														  proc=self.GpCtlOK)
 
 		self.KeysGC['OK'] = toucharea.ManualKeyDesc(self, 'OK', ['OK'], self.BackgroundColor,
 													self.CharColor, self.CharColor,
-													center=(config.screenwidth // 2, self.GCVPos[-1] + 30),
-													size=(config.screenwidth // 4, self.ctlhgt), KOn='', KOff='',
+													center=(hw.screenwidth // 2, self.GCVPos[-1] + 30),
+													size=(hw.screenwidth // 4, self.ctlhgt), KOn='', KOff='',
 													proc=self.GroupMemberOK)
 
 		self.Keys = self.KeysSum
@@ -125,9 +128,9 @@ class SonosScreenDesc(screen.BaseKeyScreenDesc):
 		self.DullKeyColor = wc(self.KeyColor, .5, self.BackgroundColor)
 		self.HA = self.DefaultHubObj
 
-		self.title, th, self.tw = screenutil.CreateTextBlock('Sonos', config.screenheight / 12, self.CharColor, True)
-		self.titlespace = th + config.screenheight / 32
-		self.useablescreenheight = config.screenheight - config.topborder - config.botborder - self.titlespace
+		self.title, th, self.tw = screenutil.CreateTextBlock('Sonos', hw.screenheight / 12, self.CharColor, True)
+		self.titlespace = th + hw.screenheight / 32
+		self.useablescreenheight = hw.screenheight - config.topborder - config.botborder - self.titlespace
 		if not isinstance(self.DefaultHubObj, hasshub.HA):
 			logsupport.Logs.Log("Sonos Default Hub is not HA hub", severity=ConsoleError, tb=False)
 			return
@@ -148,15 +151,15 @@ class SonosScreenDesc(screen.BaseKeyScreenDesc):
 			self.SrcSlotsVPos.append(vpos)
 			self.KeysSrc['Src' + str(i)] = toucharea.TouchPoint('Scr' + str(i),
 																(
-																	config.screenwidth // 2,
+																	hw.screenwidth // 2,
 																	vpos + self.sourceheight // 2),
-																(config.screenwidth, self.sourceheight),
+																(hw.screenwidth, self.sourceheight),
 																proc=functools.partial(self.PickSource, i))
 			vpos += self.sourceheight
 			self.SourceSlot.append('')
 		self.SrcPrev = (
-			config.screenwidth - self.sourceheight - config.horizborder, self.titlespace - self.sourceheight // 2)
-		self.SrcNext = (config.screenwidth - self.sourceheight - config.horizborder,
+			hw.screenwidth - self.sourceheight - config.horizborder, self.titlespace - self.sourceheight // 2)
+		self.SrcNext = (hw.screenwidth - self.sourceheight - config.horizborder,
 						vpos + self.sourceheight // 2 + 10)  # for appearance
 		self.KeysSrc['Prev'] = toucharea.TouchPoint('Prev', self.SrcPrev,
 													(self.sourceheight, self.sourceheight),
@@ -288,7 +291,7 @@ class SonosScreenDesc(screen.BaseKeyScreenDesc):
 		self.ReInitDisplay()
 		slot = 0
 		pygame.draw.line(config.screen, wc(self.CharColor), (config.horizborder, self.NodeVPos[0]),
-						 (config.screenwidth - config.horizborder, self.NodeVPos[0]), 3)
+						 (hw.screenwidth - config.horizborder, self.NodeVPos[0]), 3)
 		for e, g in self.SonosGroups.items():
 			ginfo = self.SonosNodes[g[0]]
 			if ginfo.internalstate == -1:
@@ -296,7 +299,7 @@ class SonosScreenDesc(screen.BaseKeyScreenDesc):
 														  self.roomheight // (
 																  sum(self.roomdisplayinfo) / self.roomdisplayinfo[1]),
 														  self.CharColor, False, FitLine=True
-														  , MaxWidth=config.screenwidth - 2 * config.horizborder - 15)
+														  , MaxWidth=hw.screenwidth - 2 * config.horizborder - 15)
 				config.screen.blit(unav, (config.horizborder + 15,
 										  self.NodeVPos[slot] + self.roomheight // (
 												  sum(self.roomdisplayinfo) / self.roomdisplayinfo[0])))
@@ -305,7 +308,7 @@ class SonosScreenDesc(screen.BaseKeyScreenDesc):
 														  self.roomheight // (
 																  sum(self.roomdisplayinfo) / self.roomdisplayinfo[1]),
 														  self.CharColor, False, FitLine=True
-														  , MaxWidth=config.screenwidth - 2 * config.horizborder - 15)
+														  , MaxWidth=hw.screenwidth - 2 * config.horizborder - 15)
 				config.screen.blit(song, (config.horizborder + 15,
 										  self.NodeVPos[slot] + self.roomheight // (
 												  sum(self.roomdisplayinfo) / self.roomdisplayinfo[0])))
@@ -316,11 +319,11 @@ class SonosScreenDesc(screen.BaseKeyScreenDesc):
 				lineoff = self.NodeVPos[slot]
 			# noinspection PyUnboundLocalVariable
 			pygame.draw.line(config.screen, wc(self.CharColor), (config.horizborder, lineoff),
-							 (config.screenwidth - config.horizborder, lineoff), 3)
+							 (hw.screenwidth - config.horizborder, lineoff), 3)
 		pygame.draw.line(config.screen, wc(self.CharColor), (config.horizborder, self.NodeVPos[0]),
 						 (config.horizborder, lineoff), 3)
-		pygame.draw.line(config.screen, wc(self.CharColor), (config.screenwidth - config.horizborder, self.NodeVPos[0]),
-						 (config.screenwidth - config.horizborder, lineoff), 3)
+		pygame.draw.line(config.screen, wc(self.CharColor), (hw.screenwidth - config.horizborder, self.NodeVPos[0]),
+						 (hw.screenwidth - config.horizborder, lineoff), 3)
 
 	@staticmethod
 	def _Speaker(c, hgt):
@@ -343,7 +346,7 @@ class SonosScreenDesc(screen.BaseKeyScreenDesc):
 		for p in self.SonosGroups[gpentity]:
 			self.nms.append(self.SonosNodes[p])
 			rn = screenutil.CreateTextBlock(self.nms[-1].FriendlyName, self.ctlhgt, self.CharColor, True, FitLine=True,
-											MaxWidth=config.screenwidth - 2 * config.horizborder + 10)
+											MaxWidth=hw.screenwidth - 2 * config.horizborder + 10)
 			vol = self.nms[-1].volume * 100
 			volrndr, h, w = screenutil.CreateTextBlock(str(int(vol)), .8 * self.ctlhgt, self.CharColor, True,
 													   FitLine=True)
@@ -376,7 +379,7 @@ class SonosScreenDesc(screen.BaseKeyScreenDesc):
 			config.screen.blit(screenutil.CreateTextBlock(rm[0].FriendlyName, 40,
 														  (self.DullKeyColor, self.CharColor)[rm[1]], False,
 														  FitLine=True,
-														  MaxWidth=config.screenwidth - config.horizborder)[0],
+														  MaxWidth=hw.screenwidth - config.horizborder)[0],
 							   (20, self.GCVPos[i]))
 
 
@@ -389,7 +392,7 @@ class SonosScreenDesc(screen.BaseKeyScreenDesc):
 			slot = i - self.SourceItem
 			clr = self.DullKeyColor if self.SourceSet[i] == self.SourceSelection else self.CharColor
 			rs, h, w = screenutil.CreateTextBlock(self.SourceSet[i], self.sourceheight, clr, False, FitLine=True,
-												  MaxWidth=config.screenwidth - config.horizborder * 2)
+												  MaxWidth=hw.screenwidth - config.horizborder * 2)
 			self.SourceSlot[slot] = self.SourceSet[i]
 			voff = self.SrcSlotsVPos[slot] + (self.sourceheight - h) // 2
 			config.screen.blit(rs, (config.horizborder, voff))
@@ -413,9 +416,9 @@ class SonosScreenDesc(screen.BaseKeyScreenDesc):
 			self.SourceSelectScreen()
 		else:
 			self.GroupScreen(self.SlotToGp[self.Subscreen])
-		config.screen.blit(self.title, ((config.screenwidth - self.tw) / 2, 0))
+		config.screen.blit(self.title, ((hw.screenwidth - self.tw) / 2, 0))
 
 		pygame.display.update()
 
 
-config.screentypes["Sonos"] = SonosScreenDesc
+screens.__screens.screentypes["Sonos"] = SonosScreenDesc

@@ -1,8 +1,8 @@
 import pygame
 
 import debug
-import utilities
 import config
+import hw
 
 
 class Fonts(object):
@@ -12,7 +12,7 @@ class Fonts(object):
 		if not config.monofont in f:
 			# pre stretch system doesn't have noto mono
 			config.monofont = "droidsansmono"
-		self.fontcache = {"": {40: {True: {True: pygame.font.SysFont("", utilities.scaleH(40), True, True)}}}}
+		self.fontcache = {"": {40: {True: {True: pygame.font.SysFont("", hw.scaleH(40), True, True)}}}}
 
 	# cache is tree dir with first key as name, second as size, third as ital, fourth as bold
 	# initialize with 1 font for use in early abort messages (40,"",True,True)
@@ -21,7 +21,7 @@ class Fonts(object):
 		def gennewfont(gname, gsize, gbold, gitalic):
 			# logsupport.Logs.Log('Generated Font: ', repr(name), str(size), str(utilities.scaleH(size)), str(bold),
 			#					str(italic))
-			return pygame.font.SysFont(gname, utilities.scaleH(gsize), gbold, gitalic)
+			return pygame.font.SysFont(gname, hw.scaleH(gsize), gbold, gitalic)
 
 		size = int(fsize)
 		try:
@@ -44,3 +44,6 @@ class Fonts(object):
 			debug.debugPrint('Fonts', 'New font: ', face if face != "" else '-Sys-', ' :', size, (' b', ' B')[bold],
 							 (' i', ' I')[italic])
 			return self.fontcache[face][size][italic][bold]
+
+
+fonts = Fonts()

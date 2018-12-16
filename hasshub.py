@@ -6,6 +6,8 @@ import time
 import errno
 import debug
 import websocket
+
+import hw
 import threadmanager
 import logsupport
 from controlevents import *
@@ -460,7 +462,7 @@ class HA(object):
 			i = 0
 		try:
 			ha.call_service(self.api, 'logbook', 'log',
-							{'name': 'Softconsole', 'message': config.hostname + ' connected'})
+							{'name': 'Softconsole', 'message': hw.hostname + ' connected'})
 		except ha.HomeAssistantError:
 			logsupport.Logs.Log(self.name + " not responding to service call after restart", severity=ConsoleWarning)
 

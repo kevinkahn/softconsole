@@ -51,6 +51,12 @@ import alerttasks
 from stores.weathprov.providerutils import SetUpTermShortener
 import screen
 
+'''
+Constants
+'''
+configfilebase = "/home/pi/Console/"  # actual config file can be overridden from arg1
+configfilelist = {}  # list of configfiles and their timestamps
+
 
 class ExitHooks(object):
 	def __init__(self):
@@ -98,11 +104,6 @@ def handler(signum, frame):
 signal.signal(signal.SIGTERM, handler)
 signal.signal(signal.SIGINT, handler)
 
-with open('/proc/stat', 'r') as f:
-	for line in f:
-		if line.startswith('btime'):
-			config.bootime = int(line.split()[1])
-
 config.Console_pid = os.getpid()
 config.exdir = os.path.dirname(os.path.abspath(__file__))
 os.chdir(config.exdir)  # make sure we are in the directory we are executing from
@@ -141,7 +142,7 @@ if os.getegid() != 0:
 
 utilities.InitializeEnvironment()
 
-logsupport.Logs.Log(u'Environment initialized on host ' + config.hostname)
+logsupport.Logs.Log(u'Environment initialized on host ' + hw.hostname)
 
 lastfn = u""
 lastmod = 0
@@ -185,7 +186,6 @@ for screentype in os.listdir(os.getcwd() + '/screens'):
 
 logsupport.Logs.Log("Screen types imported")
 
-# for alertproctype in os.listdir(os.path.dirname(os.path.abspath(sys.argv[0])) + '/alerts'):
 for alertproctype in os.listdir(os.getcwd() + '/alerts'):
 	if '__' not in alertproctype:
 		splitname = os.path.splitext(alertproctype)
@@ -215,17 +215,17 @@ SetUpTermShortener()
 
 if len(sys.argv) == 2:
 	config.configfile = sys.argv[1]
-elif os.path.isfile(config.configfilebase + "config.txt"):
-	config.configfile = config.configfilebase + "config.txt"
+elif os.path.isfile(configfilebase + "config.txt"):
+	config.configfile = configfilebase + "config.txt"
 else:
-	config.configfile = config.configfilebase + "config-" + config.hostname + ".txt"
+	config.configfile = configfilebase + "config-" + hw.hostname + ".txt"
 
 logsupport.Logs.Log("Configuration file: " + config.configfile)
 
 if not os.path.isfile(config.configfile):
 	print ("Abort - no configuration file found")
 	logsupport.Logs.Log('Abort - no configuration file (' + config.hostname + ')')
-	exitutils.EarlyAbort('No Configuration File (' + config.hostname + ')')
+	exitutils.EarlyAbort('No Configuration File (' + hw.hostname + ')')
 
 ParsedConfigFile = ConfigObj(config.configfile)  # read the config.txt file
 
@@ -233,7 +233,7 @@ logsupport.Logs.Log("Parsed base config file")
 
 configdir = os.path.dirname(config.configfile)
 
-config.configfilelist[config.configfile] = os.path.getmtime(config.configfile)
+configfilelist[config.configfile] = os.path.getmtime(config.configfile)
 
 cfiles = []
 pfiles = []
@@ -261,10 +261,10 @@ while includes:
 		logsupport.Logs.Log("Error merging include file: ", f)
 	# noinspection PyBroadException
 	try:
-		config.configfilelist[f] = os.path.getmtime(f)
+		configfilelist[f] = os.path.getmtime(f)
 	except:
 		logsupport.Logs.Log("MISSING config file " + f)
-		config.configfilelist[f] = 0
+		configfilelist[f] = 0
 
 debug.InitFlags(ParsedConfigFile)
 
@@ -298,9 +298,9 @@ logsupport.Logs.Log("Start time: ", time.ctime(config.starttime))
 with open(config.homedir + "/.ConsoleStart", "w") as f:
 	f.write(str(config.starttime) + '\n')
 logsupport.Logs.Log("Console Starting  pid: ", config.Console_pid)
-logsupport.Logs.Log("Host name: ", config.hostname)
-logsupport.Logs.Log("Screen type: ", config.screentype)
-logsupport.Logs.Log("Screen Orientation: ", ("Landscape", "Portrait")[config.portrait])
+logsupport.Logs.Log("Host name: ", hw.hostname)
+logsupport.Logs.Log("Screen type: ", hw.screentype)
+logsupport.Logs.Log("Screen Orientation: ", ("Landscape", "Portrait")[hw.portrait])
 if config.personalsystem:
 	logsupport.Logs.Log("Personal System")
 if config.previousup > 0:
@@ -310,14 +310,14 @@ if config.lastup > 0:
 	logsupport.Logs.Log("Previous Console Downtime: ",
 						str(datetime.timedelta(seconds=(config.starttime - config.lastup))))
 logsupport.Logs.Log("Main config file: ", config.configfile,
-					time.strftime(' %c', time.localtime(config.configfilelist[config.configfile])))
+					time.strftime(' %c', time.localtime(configfilelist[config.configfile])))
 logsupport.Logs.Log("Default config file library: ", cfglib)
 logsupport.Logs.Log("Including config files:")
 for p, f in zip(pfiles, cfiles):
-	if config.configfilelist[f] == 0:
+	if configfilelist[f] == 0:
 		logsupport.Logs.Log("  ", p, " No Such File", severity=ConsoleWarning)
 	else:
-		logsupport.Logs.Log("  ", p, time.strftime(' %c', time.localtime(config.configfilelist[f])))
+		logsupport.Logs.Log("  ", p, time.strftime(' %c', time.localtime(configfilelist[f])))
 debug.LogDebugFlags()
 
 logsupport.LogLevel = int(ParsedConfigFile.get('LogLevel', logsupport.LogLevel))
