@@ -4,39 +4,49 @@ import os
 import time
 import json
 import sys
+import collections
 
 nodetable = {}
 tm = time.time()
+
+nodes = {}
+noderecord = collections.namedtuple('noderecord', ['status', 'uptime', 'error', 'rpttime', 'FirstUnseenErrorTime',
+												   'GlobalLogViewTime', 'registered', 'versionname', 'versionsha',
+												   'versiondnld', 'versioncommit', 'boottime', 'osversion', 'hw'])
+
+defaults = {k: v for (k, v) in zip(noderecord._fields, (
+	'unknown', 0, -2, 0, 0, 0, 0, '*unknown*', '*unknown*', '*unknown*', '*unknown*', 0, '*unknown*', '*unknown*'))}
+
+
+# emptynode = noderecord(**{k:None for k in noderecord._fields})
 
 
 def paint():
 	os.system('clear')
 	print("{:^12s} {:^10s} E {:^25s}  {:^19s}".format('Node', 'Status', 'Uptime', 'Last Boot'))
-	for n, info in nodetable.items():
+	# for n, info in nodetable.items():
+	for n, info in nodes.items():
 		print("{:12.12s} ".format(n), end='')
-		print("{:10.10s} ".format(info['status']), end='')
-		if info['status'] == 'dead':
+		print("{:10.10s} ".format(info.status), end='')
+		if info.status in ('dead', 'unknown'):
 			print("{:29.29s}".format(' '), end='')
 		else:
-			print(info['error'], end='')
-			if 'uptime' in info:
-				print(" {:>25.25s}  ".format(interval_str(info['uptime'])), end='')
-		if info['boottime'] == 0:
+			print(' ' if info.error == -1 else '?' if info.error == -1 else '*', end='')
+			print(" {:>25.25s}  ".format(interval_str(info.uptime)), end='')
+		if info.boottime == 0:
 			print("{:^19.19}".format('unknown'))
 		else:
-			print("{:%Y-%m-%d %H:%M:%S}".format(datetime.fromtimestamp(info['boottime'])))
+			print("{:%Y-%m-%d %H:%M:%S}".format(datetime.fromtimestamp(info.boottime)))
 
 
 def baseinfo():
 	os.system('clear')
 	print("Info:")
-	for n, info in nodetable.items():
-		offline = ' (offline)' if info['status'] in ('dead', 'unknown') else ''
-		print("{:12.12s} ({})  {}".format(n, info['reginfo']['versionname'], offline))
-		for key, title, nl in zip(('hw', 'osversion', 'versioncommit', 'versiondnld'), ('', '', '', '', '',),
-								  (' running', '\n', '', '\n')):
-			if key in info['reginfo']:
-				print(' {} {}'.format(title, info['reginfo'][key]), end=nl)
+	for n, info in nodes.items():
+		offline = ' (offline)' if info.status in ('dead', 'unknown') else ''
+		print("{:12.12s} ({})  {}".format(n, info.versionname, offline))
+		print(' HW: {} OS: {}'.format(info.hw, info.osversion))
+		print(' Console: {} Dnld: {}'.format(info.versioncommit, info.versiondnld))
 
 
 def interval_str(sec_elapsed):
@@ -62,19 +72,20 @@ def on_message(client, ud, msg):
 		topic = msg.topic.split('/')
 		msgdcd = json.loads(msg.payload.decode('ascii'))
 		if topic[2] == 'nodes':
-			print(topic)
-			print(msgdcd)
+			# print(topic)
+			# print(msgdcd)
 			nd = topic[-1]
-			if nd not in nodetable: nodetable[nd] = {'status': 'unknown', 'boottime': 0, 'uptime': 0, 'error': '-'}
-			nodetable[nd]['reginfo'] = msgdcd
-			if 'boottime' in msgdcd: nodetable[nd]['boottime'] = msgdcd['boottime']
+			if nd not in nodes:
+				nodes[nd] = noderecord(**defaults)
+			nodes[nd] = nodes[nd]._replace(**msgdcd)
+
 		elif topic[2] == 'status':
 			nd = topic[1]
-			if nd not in nodetable: nodetable[nd] = {'status': 'unknown', 'boottime': 0, 'uptime': 0, 'error': '-'}
-			nodetable[nd]['status'] = msgdcd['status']
-			nodetable[nd]['uptime'] = msgdcd['uptime']
-			if 'error' in msgdcd:
-				nodetable[nd]['error'] = (' ', '*')[msgdcd['error'] != -1]
+			if nd not in nodes:
+				nodes[nd] = noderecord(**defaults)
+			nodes[nd] = nodes[nd]._replace(**msgdcd)
+
+	#print(nodes)
 	except Exception as E:
 		print("Exception: {}".format(repr(E)))
 	if time.time() - tm > 2:
@@ -91,7 +102,7 @@ client.on_message = on_message
 client.loop_start()
 client.connect('rpi-kck.pdxhome')
 try:
-	time.sleep(1)
+	#time.sleep(1)
 	try:
 		if len(sys.argv) > 1:
 			baseinfo()

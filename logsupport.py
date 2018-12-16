@@ -282,10 +282,11 @@ class Logger(object):
 
 
 def ReportStatus(status, retain=True):
-	# todo: status should have lasterror, thread numbers for subhandlers, uptime, etc. as a json record
 	if primaryBroker is not None:
 		stat = json.dumps({'status': status, "uptime": time.time() - config.starttime,
-						   "error": config.sysStore.ErrorNotice})
+						   "error": config.sysStore.ErrorNotice, 'rpttime': time.time(),
+						   "FirstUnseenErrorTime": config.sysStore.FirstUnseenErrorTime,
+						   "GlobalLogViewTime": config.sysStore.GlobalLogViewTime})
 		primaryBroker.Publish(node=hw.hostname, topic='status', payload=stat, retain=retain, qos=1,
 							  viasvr=True)
 		Logs.PeriodicRemoteDump()
