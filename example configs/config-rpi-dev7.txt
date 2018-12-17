@@ -1,6 +1,7 @@
 LogLevel = 3
+#Touch = True
 #Screen = True
-#Main = True
+#Main = Trueq
 #Dispatch = True
 #DaemonCtl = True
 

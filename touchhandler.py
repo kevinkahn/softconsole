@@ -8,7 +8,6 @@ import struct
 from collections import namedtuple
 import select
 import queue
-import pygame
 import debug
 
 TOUCH_X = 0
@@ -270,6 +269,7 @@ class Touchscreen(object):
 		return next(iter(self))
 
 
+'''
 if __name__ == "__main__":
 	import signal
 
@@ -313,3 +313,4 @@ if __name__ == "__main__":
 		print("Stopping thread...")
 		ts.stop()
 		exit()
+'''

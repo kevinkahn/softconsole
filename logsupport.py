@@ -212,7 +212,8 @@ class Logger(object):
 			self.RecordMessage(severity, entry, entrytime, debugitem, tb)
 
 			# If MQTT is running then broadcast the error
-			if severity in [ConsoleWarning, ConsoleError] and not debugitem:
+			# suppress reports from development systems
+			if severity in [ConsoleWarning, ConsoleError] and not debugitem and config.versionname != 'development':
 				if primaryBroker is not None and not localonly:
 					try:
 						primaryBroker.Publish('errors', json.dumps(

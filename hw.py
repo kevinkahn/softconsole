@@ -66,13 +66,6 @@ def initOS(scrntyp):
 	global PWMDim, bootime, osversion, hwinfo, screentype, hostname, screenwidth, screenheight, portrait, dispratioW, dispratioH
 
 	screentype = scrntyp
-	pygame.display.init()
-	screenwidth, screenheight = (pygame.display.Info().current_w, pygame.display.Info().current_h)
-	if screenwidth > screenheight:
-		portrait = False
-
-	dispratioW = float(screenwidth) / float(basewidth)
-	dispratioH = float(screenheight) / float(baseheight)
 
 	hostname = socket.gethostname()
 	# get platform info
@@ -126,6 +119,14 @@ def initOS(scrntyp):
 		wiringpi.pwmSetMode(wiringpi.PWM_MODE_MS)  # default balanced mode makes screen dark at about 853/1024
 		wiringpi.pwmWrite(18, 1024)
 		PWMDim = True
+
+	pygame.display.init()
+	screenwidth, screenheight = (pygame.display.Info().current_w, pygame.display.Info().current_h)
+	if screenwidth > screenheight:
+		portrait = False
+
+	dispratioW = float(screenwidth) / float(basewidth)
+	dispratioH = float(screenheight) / float(baseheight)
 
 	GoBright(100)
 

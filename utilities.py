@@ -18,6 +18,8 @@ moddoc = {}
 paramlog = []
 exemplarobjs = collections.OrderedDict()
 
+evntcnt = 0
+
 # next several lines stolen from https://stackoverflow.com/questions/39198961/pygame-init-fails-when-run-with-systemd
 # this handles some weird random SIGHUP when initializing pygame, it's really a hack to work around it
 # Not really sure what other ill effects this might have!!!
@@ -94,18 +96,20 @@ def InitializeEnvironment():
 		from touchhandler import Touchscreen, TS_PRESS, TS_RELEASE, TS_MOVE
 		ts = Touchscreen()
 		def touchhandler(event,touch):
+			global evntcnt
+			evntcnt += 1
 			p = (touch.x,touch.y)
 			if event == TS_PRESS:
-				e = pygame.event.Event(pygame.MOUSEBUTTONDOWN, {'pos': p})
-				debug.debugPrint('Touch','Press: '+str(p))
+				e = pygame.event.Event(pygame.MOUSEBUTTONDOWN, {'pos': p, 'seq': evntcnt})
+				debug.debugPrint('Touch', 'Press: ' + str(p) + repr(e))
 				pygame.fastevent.post(e)
 			elif event == TS_RELEASE:
-				e = pygame.event.Event(pygame.MOUSEBUTTONUP, {'pos': p})
-				debug.debugPrint('Touch', 'Release: ' + str(p))
+				e = pygame.event.Event(pygame.MOUSEBUTTONUP, {'pos': p, 'seq': evntcnt})
+				debug.debugPrint('Touch', 'Release: ' + str(p) + repr(e))
 				pygame.fastevent.post(e)
 			elif event == TS_MOVE:
-				e = pygame.event.Event(pygame.MOUSEMOTION, {'pos': p})
-				debug.debugPrint('Touch', 'Motion: ' + str(p))
+				e = pygame.event.Event(pygame.MOUSEMOTION, {'pos': p, 'seq': evntcnt})
+				debug.debugPrint('Touch', 'Motion: ' + str(p) + repr(e))
 				pygame.fastevent.post(e)
 
 
