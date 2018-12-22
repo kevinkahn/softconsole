@@ -548,7 +548,7 @@ class HA(object):
 										 ' WS Stream item for unhandled entity type: ' + ent + ' Added: ' + str(
 											 adds) + ' Deleted: ' + str(dels) + ' Changed: ' + str(chgs))
 						if dom in self.addibledomains:
-							p2 = dict(new.as_dict(), **{'domain': dom, 'name': nm, 'object_id': ent})
+							p2 = dict(new, **{'domain': dom, 'name': nm, 'object_id': ent})
 							N = self.hadomains[dom](self, p2)
 							self.Entities[ent] = N
 							N.AddPlayer()
