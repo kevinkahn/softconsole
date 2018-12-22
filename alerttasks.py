@@ -97,14 +97,17 @@ class VarChangeTrigger(object):
 		self.delay = params[2]
 
 	def IsTrue(self):
-		val = valuestore.GetVal(self.var)
-		if self.test == 'EQ':
-			return int(val) == int(self.value)
-		elif self.test == 'NE':
-			return int(val) != int(self.value)
-		else:
-			logsupport.Logs.Log('Bad test in IsTrue',self.test,severity=ConsoleError)
-			return False # shouldn't happen
+		try:
+			val = valuestore.GetVal(self.var)
+			if self.test == 'EQ':
+				return int(val) == int(self.value)
+			elif self.test == 'NE':
+				return int(val) != int(self.value)
+			else:
+				logsupport.Logs.Log('Bad test in IsTrue',self.test,severity=ConsoleError)
+				return False # shouldn't happen
+		except Exception as E:
+			logsupport.Logs.Log('Exception in IsTrue: {} Test: {} Val: {} Compare Val: {}'.format(repr(E),self.test,val,self.value), severity=ConsoleError)
 
 	def __repr__(self):
 		return ' Variable ' + valuestore.ExternalizeVarName(self.var) + ' ' + self.test + ' ' + str(
