@@ -100,30 +100,35 @@ class APIXUWeatherSource(object):
 	def FetchWeather(self):
 		temp = {}
 		r = requests.get(self.baseurl, params=self.args)
-		self.json = r.json()
-		for fn, entry in CondFieldMap.items():
-			val = self.MapItem(self.json, entry)
-			self.thisStore.SetVal(('Cond', fn), val)
-			temp[fn] = val
-		fcstdays = len(self.json['forecast']['forecastday'])
-		for i in range(fcstdays):
-			try:
-				temp = {}
-				fcst = self.json['forecast']['forecastday'][i]
-				for fn, entry in FcstFieldMap.items():
-					val = self.MapItem(fcst, entry)
-					self.thisStore.GetVal(('Fcst', fn)).append(val)
+		try:
+			self.json = r.json()
+			for fn, entry in CondFieldMap.items():
+				val = self.MapItem(self.json, entry)
+				self.thisStore.SetVal(('Cond', fn), val)
+				temp[fn] = val
+			fcstdays = len(self.json['forecast']['forecastday'])
+			for i in range(fcstdays):
+				try:
+					temp = {}
+					fcst = self.json['forecast']['forecastday'][i]
+					for fn, entry in FcstFieldMap.items():
+						val = self.MapItem(fcst, entry)
+						self.thisStore.GetVal(('Fcst', fn)).append(val)
 
-					temp[fn] = val
-			except Exception as e:
-				logsupport.Logs.Log('Exception in apixu forecast processing: ', repr(e),
-									severity=logsupport.ConsoleWarning)
+						temp[fn] = val
+				except Exception as E:
+					logsupport.Logs.Log('Exception in apixu forecast processing day {}: '.format(i), repr(E),
+										severity=logsupport.ConsoleWarning)
+					raise
 
-		for fn, entry in CommonFieldMap.items():
-			val = self.MapItem(self.json, entry)
-			self.thisStore.SetVal(fn, val)
+			for fn, entry in CommonFieldMap.items():
+				val = self.MapItem(self.json, entry)
+				self.thisStore.SetVal(fn, val)
 
-		return 0  # success
+			return 0  # success
+		except Exception as E:
+			logsupport.Logs.Log('Exception in apixu report processing: ', repr(E),self.json, r.text)
+			raise
 
 
 WeathProvs['APIXU'] = [APIXUWeatherSource, '']  # api key gets filled in from config file
