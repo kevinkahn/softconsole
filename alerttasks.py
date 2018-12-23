@@ -108,6 +108,7 @@ class VarChangeTrigger(object):
 				return False # shouldn't happen
 		except Exception as E:
 			logsupport.Logs.Log('Exception in IsTrue: {} Test: {} Val: {} Compare Val: {}'.format(repr(E),self.test,val,self.value), severity=ConsoleError)
+			return False
 
 	def __repr__(self):
 		return ' Variable ' + valuestore.ExternalizeVarName(self.var) + ' ' + self.test + ' ' + str(

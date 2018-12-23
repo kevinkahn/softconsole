@@ -127,7 +127,8 @@ class APIXUWeatherSource(object):
 
 			return 0  # success
 		except Exception as E:
-			logsupport.Logs.Log('Exception in apixu report processing: ', repr(E),self.json, r.text)
+			logsupport.Logs.Log('Exception in apixu report processing: ', repr(E),self.json, severity=logsupport.ConsoleWarning)
+			logsupport.Logs.Log('Returned text: ',r.text)
 			raise
 
 

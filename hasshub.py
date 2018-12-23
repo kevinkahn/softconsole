@@ -170,8 +170,11 @@ class Sensor(HAnode): # not stateful since it updates directly to store value
 	def Update(self,**ns):
 		#super(Sensor,self).Update(**ns)
 		if 'attributes' in ns: self.attributes = ns['attributes']
-		if 'state' in ns and ns['state'] != 'unknown':
-			self.Hub.sensorstore.SetVal(self.entity_id, stringtonumeric(ns['state']))
+		try: # todo delete?
+			if 'state' in ns and ns['state'] not in ('', 'unknown'):
+				self.Hub.sensorstore.SetVal(self.entity_id, stringtonumeric(ns['state']))
+		except Exception as E:
+			logsupport.Logs.Log('Sensor update error: State: {}  Exc:{}'.format(repr(ns), repr(E)))
 
 class BinarySensor(HAnode):
 	def __init__(self, HAitem, d):
