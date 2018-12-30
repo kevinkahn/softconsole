@@ -6,12 +6,11 @@ import historybuffer
 
 import xmltodict
 import requests, time
-import config
 import debug
 import exitutils
 import utilities
 import logsupport
-from logsupport import ConsoleWarning, ConsoleError, ConsoleDetailHigh
+from logsupport import ConsoleWarning, ConsoleError, ConsoleDetailHigh, ConsoleDetail
 import sys
 import isyeventmonitor, threadmanager
 from stores import valuestore, isyvarssupport
@@ -286,10 +285,16 @@ class ISY(object):
 				n = Node(self, flg, nm, addr, ptyp, parentaddr, enabld, prop)
 				fixlist.append((n, pnd))
 				self.NodesByAddr[n.address] = n
-			except:
-				logsupport.Logs.Log("Problem with processing node: ", nm, ' Address: ', str(addr), ' Pnode: ', str(pnd),
-								' ', str(flg), '/', str(enabld), '/', repr(prop), severity=ConsoleWarning)
-				# for now at least try to avoid nodes without properties which apparently Zwave devices may have
+			except Exception as E:
+				if prop == 'unknown':
+					# probably a v3 polyglot node or zwave
+					logsupport.Logs.Log("Probable v3 node seen: {}  Address: {}  Parent: {} ".format(nm, addr, pnd), severity=ConsoleDetail)
+					logsupport.Logs.Log("ISY item: {}".format(repr(node)), severity = ConsoleDetail)
+				else:
+					logsupport.Logs.Log("Problem with processing node: ", nm, '  Address: ', str(addr), ' Pnode: ', str(pnd),
+									' ', str(flg), '/', str(enabld), '/', repr(prop), severity=ConsoleWarning)
+					logsupport.Logs.Log("Exc: {}  ISY item: {}".format(repr(E), repr(node)), severity=ConsoleWarning)
+					# for now at least try to avoid nodes without properties which apparently Zwave devices may have
 		self._LinkChildrenParents(self.NodesByAddr, self._NodesByName, self._FoldersByAddr, self.NodesByAddr)
 		for fixitem in fixlist:
 			# noinspection PyBroadException

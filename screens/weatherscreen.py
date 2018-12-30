@@ -27,7 +27,7 @@ class WeatherScreenDesc(screen.ScreenDesc):
 			screens.horizborder + .5 * butsize[0], screens.topborder + .5 * butsize[1]), butsize,
 																	proc=self.CondOrFcst)})
 		self.currentconditions = True  # show conditions or forecast
-		screen.AddUndefaultedParams(self, screensection, location='')
+		screen.AddUndefaultedParams(self, screensection, location='', LocationSize=40)
 
 		self.scrlabel = screen.FlatenScreenLabel(self.label)
 
@@ -76,12 +76,13 @@ class WeatherScreenDesc(screen.ScreenDesc):
 				self.loggedonce = True
 		else:
 			self.loggedonce = False
-			renderedlines = [
-				fonts.fonts.Font(50, "").render(self.fmt.format("{d}", d=self.scrlabel), 0, wc(self.CharColor)),
-				fonts.fonts.Font(40, "").render(self.fmt.format("{d}", d=self.store.GetVal(('Cond', 'Location'))), 0,
-												wc(self.CharColor))]
-
-			h = renderedlines[0].get_height() + renderedlines[1].get_height()
+			renderedlines = [fonts.fonts.Font(50, "").render(self.fmt.format("{d}", d=self.scrlabel), 0, wc(self.CharColor))]
+			h = renderedlines[0].get_height()
+			if self.LocationSize != 0:
+				renderedlines.append(
+				fonts.fonts.Font(self.LocationSize, "").render(self.fmt.format("{d}", d=self.store.GetVal(('Cond', 'Location'))), 0,
+												wc(self.CharColor)))
+				h = h + renderedlines[1].get_height()
 			if conditions:
 				renderedlines.append(CreateWeathBlock(self.condformat, self.condfields, "", [45, 25, 35], self.CharColor, (self.location, 'Cond', 'Icon'), False))
 				h = h + renderedlines[-1].get_height()
