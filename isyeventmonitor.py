@@ -60,7 +60,7 @@ class ISYEventMonitor(object):
 		if enode not in self.isy.ErrNodes:
 			logsupport.Logs.Log("Node error cleared without need of query (" + str(seq) + ") for: " + ndnm)
 			return
-		logsupport.Logs.Log(self.hubname + ": Attempt query (" + str(seq) + ") in errored node: " + ndnm,
+		logsupport.Logs.Log(self.hubname + ": Attempt query (" + str(seq) + ") for errored node: " + ndnm,
 							severity=ConsoleWarning)
 		r = self.isy.try_ISY_comm('query/' + enode, timeout=60, closeonfail=False)
 		if r == '':

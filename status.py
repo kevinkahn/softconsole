@@ -38,8 +38,10 @@ def paint():
 		else:
 			print("{:%Y-%m-%d %H:%M:%S}".format(datetime.fromtimestamp(info.boottime)), end='')
 		age = time.time() - info.rpttime if info.rpttime != 0 else 0
-		if age > 45:  # todo use to determine likely powerfail case
-			print(' (old)')
+		#print("{:%Y-%m-%d %H:%M:%S}".format(datetime.fromtimestamp(info.rpttime)), end='')
+		if age > 180:  # seconds?  todo use to determine likely powerfail case
+			print(' (old:{})'.format(age))
+			print('Boottime: {}'.format(info.boottime))
 		else:
 			print()
 
@@ -105,7 +107,8 @@ client.on_connect = on_connect
 client.on_message = on_message
 
 client.loop_start()
-client.connect('rpi-kck.pdxhome')
+#client.connect('rpi-kck.pdxhome')
+client.connect('rpi-pgaw1.pgawhome')
 try:
 	#time.sleep(1)
 	print('Starting')
