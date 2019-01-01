@@ -195,6 +195,7 @@ class ISY(object):
 		self.Vars = None
 		self.ErrNodes = {}
 		self.Busy = 0
+		self.V3Nodes = [] # temporary way to track and suppress errors from nodes we don't currently handle (todo V3)
 
 
 		"""
@@ -290,6 +291,7 @@ class ISY(object):
 					# probably a v3 polyglot node or zwave
 					logsupport.Logs.Log("Probable v3 node seen: {}  Address: {}  Parent: {} ".format(nm, addr, pnd), severity=ConsoleDetail)
 					logsupport.Logs.Log("ISY item: {}".format(repr(node)), severity = ConsoleDetail)
+					self.V3Nodes.append(addr)
 				else:
 					logsupport.Logs.Log("Problem with processing node: ", nm, '  Address: ', str(addr), ' Pnode: ', str(pnd),
 									' ', str(flg), '/', str(enabld), '/', repr(prop), severity=ConsoleWarning)

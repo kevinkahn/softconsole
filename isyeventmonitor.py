@@ -329,9 +329,10 @@ class ISYEventMonitor(object):
 						pass  # handle any other?
 					efmtact = E.pop('fmtAct', 'v4stream')
 					if E:
+						lev = ConsoleDetailHigh if str(enode) in self.isy.V3Nodes else ConsoleWarning # supress to detail if it is a V3 node
 						logsupport.Logs.Log(
 							self.hubname + " Extra info in event: " + str(ecode) + '/' + str(prcode) + '/' + str(
-								eaction) + '/' + str(enode) + '/' + str(eInfo) + str(E), severity=ConsoleWarning)
+								eaction) + '/' + str(enode) + '/' + str(eInfo) + str(E), severity=lev)
 					debug.debugPrint('DaemonStream', time.time() - config.starttime,
 									 formatwsitem(esid, eseq, ecode, eaction, enode, eInfo, E, self.isy))
 
@@ -389,8 +390,12 @@ class ISYEventMonitor(object):
 						self.LastMsgErr = ('', -99)
 
 					if ecode == "ERR":
-						# Note the error and wait one message to see if it immediately clears
-						self.LastMsgErr = (enode, eseq)
+						if str(eaction) == "0":
+							logsupport.Logs.Log("ERR(0) seen: {}".format(repr(m)))
+						else:
+							# Note the error and wait one message to see if it immediately clears
+							self.LastMsgErr = (enode, eseq)
+							logsupport.Logs.Log("ERR(1) seen: {}".format(repr(m)), severity=ConsoleWarning)
 
 					if ecode == "_3" and eaction == "NE":
 						self.LastMsgErr = (enode, eseq)
