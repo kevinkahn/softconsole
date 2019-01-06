@@ -289,7 +289,7 @@ class ISY(object):
 			except Exception as E:
 				if prop == 'unknown':
 					# probably a v3 polyglot node or zwave
-					logsupport.Logs.Log("Probable v3 node seen: {}  Address: {}  Parent: {} ".format(nm, addr, pnd), severity=ConsoleDetail)
+					logsupport.Logs.Log("Probable v5 node seen: {}  Address: {}  Parent: {} ".format(nm, addr, pnd), severity=ConsoleDetail)
 					logsupport.Logs.Log("ISY item: {}".format(repr(node)), severity = ConsoleDetail)
 					self.V3Nodes.append(addr)
 				else:

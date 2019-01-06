@@ -42,7 +42,7 @@ class ISYEventMonitor(object):
 		self.THstate = 'init'
 		self.querycnt = 0
 		self.queryqueued = {}
-		self.LastMsgErr = ('', -99)
+		self.LastMsgErr = ('***', -99)
 		self.isy.Busy = 0
 
 		self.lasterror = 'Init'
@@ -360,21 +360,21 @@ class ISYEventMonitor(object):
 							logsupport.Logs.Log(self.hubname, " reported System Status: ", str(eaction))
 
 					if ecode == "ST" or (ecode == "_3" and eaction == "CE"):
-						if BaseAddr(self.LastMsgErr[0]) == BaseAddr(enode):
+						if self.LastMsgErr[0] != '***' and (BaseAddr(self.LastMsgErr[0]) == BaseAddr(enode)): # fix someday for v5
 							# ERR msg followed by clearing - ISY weirdness?
 							logsupport.Logs.Log(
 								"{} reported and immediately cleared error for node: {} ({}) (seq:{}/{})".format(
 									self.hubname,
 									isynd, BaseAddr(self.LastMsgErr[0]), self.LastMsgErr[1], eseq),
 								severity=ConsoleWarning, hb=True)  # todo downgrade msg or delete
-							self.LastMsgErr = ('', -99)
+							self.LastMsgErr = ('***', -99)
 						elif enode in self.isy.ErrNodes:
 							logsupport.Logs.Log("{} cleared comm error for node: {}".format(self.hubname, isynd))
 							if enode in self.isy.ErrNodes:
 								# logsupport.Logs.Log("Query thread still running")
 								del self.isy.ErrNodes[enode]
 
-					if self.LastMsgErr != ('', -99):
+					if self.LastMsgErr != ('***', -99):
 						# previous message was ERR and wasn't immediately cleared
 						try:
 							isyerrnd = self.isy.NodesByAddr[self.LastMsgErr[0]].name
@@ -387,7 +387,7 @@ class ISYEventMonitor(object):
 						if self.LastMsgErr[0] not in self.isy.ErrNodes:
 							self.isy.ErrNodes[self.LastMsgErr[0]] = eseq
 							self.DoNodeQuery(self.LastMsgErr[0], isyerrnd)
-						self.LastMsgErr = ('', -99)
+						self.LastMsgErr = ('***', -99)
 
 					if ecode == "ERR":
 						if str(eaction) == "0":
