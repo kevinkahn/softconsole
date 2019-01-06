@@ -60,7 +60,10 @@ class SonosScreenDesc(screen.BaseKeyScreenDesc):
 
 		# set up the main summary screen
 		vpos = self.titlespace
-		self.roomheight = self.useablescreenheight // self.numplayers
+		if self.numplayers != 0:
+			self.roomheight = self.useablescreenheight // self.numplayers
+		else:
+			self.roomheight = self.useablescreenheight # dummy value to avoid div by 0 in error case
 		self.roomdisplayinfo = (1.5, 1, 1, 1)
 		for n, p in self.SonosNodes.items():
 			self.NodeVPos.append(vpos)
