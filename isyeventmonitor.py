@@ -14,6 +14,9 @@ import isycodes
 from threadmanager import ThreadStartException
 import threading
 import random
+import ssl
+
+
 
 class ISYEMInternalError(Exception):
 	pass
@@ -437,7 +440,7 @@ class ISYEventMonitor(object):
 				logsupport.Logs.Log(self.hubname + " Problem starting WS handler - retrying: ", repr(e))
 				print(e)
 		self.lastheartbeat = time.time()
-		ws.run_forever(ping_timeout=999)
+		ws.run_forever(ping_timeout=999,sslopt={"cert_reqs": ssl.CERT_NONE})
 		self.THstate = 'failed'
 		self.isy._HubOnline = False
 		logsupport.Logs.Log(self.hubname + " QH Thread " + str(self.QHnum) + " exiting", severity=ConsoleWarning,
