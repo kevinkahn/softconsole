@@ -48,7 +48,11 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 							screenname,severity=ConsoleWarning)
 			self.FcstLayout = "Block"
 		self.scrlabel = screen.FlatenScreenLabel(self.label)
-		self.store = valuestore.ValueStores[self.location]
+		try:
+			self.store = valuestore.ValueStores[self.location]
+		except KeyError:
+			logsupport.Logs.Log("Timetemp screen {} using non-existent location {}".format(screenname, self.location), severity = ConsoleWarning)
+			raise ValueError
 		self.DecodedCondFields = []
 		for f in self.ConditionFields:
 			if ':' in f:

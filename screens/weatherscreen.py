@@ -45,7 +45,11 @@ class WeatherScreenDesc(screen.ScreenDesc):
 		self.fcstformat = u"{d[0]}   {d[1]}\u00B0/{d[2]}\u00B0 {d[3]}", "Wind: {d[4]}"
 		self.fcstfields = list(((self.location, 'Fcst', x) for x in ('Day', 'High', 'Low', 'Sky', 'WindSpd')))
 
-		self.store = valuestore.ValueStores[self.location]
+		try:
+			self.store = valuestore.ValueStores[self.location]
+		except KeyError:
+			logsupport.Logs.Log("Weather screen {} using non-existent location {}".format(screenname, self.location), severity = logsupport.ConsoleWarning)
+			raise ValueError
 		self.loggedonce = False
 		utilities.register_example("WeatherScreenDesc", self)
 

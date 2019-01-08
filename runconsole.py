@@ -1,7 +1,7 @@
-#!/usr/bin/python -u
+#!/usr/bin/python3 -u
 
 """
-This is run by systemd from any /home/pi/xxx where xxx contains a softconsole source.  It moves up a directory level
+This is run by systemd from /home/pi
 and selects the version of console to actually use.
 For now it looks for a file usebeta to select the beta version.  If a file versionselector exists that is used instead after prefixing with "console".
 This might make some testing scenarios easier
@@ -24,7 +24,7 @@ if os.path.isfile('versionselector'):
 print('Starting using directory: '+versdir)
 os.chdir(versdir)
 
-consolepid = subprocess.Popen(['python','console.py']).pid
+consolepid = subprocess.Popen(['python3','console.py']).pid
 
 with open('../console.pid','w') as f:
 	f.write(str(consolepid))
