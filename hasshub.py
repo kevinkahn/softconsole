@@ -90,9 +90,9 @@ class StatefulHAnode(HAnode):
 		oldstate = self.internalstate
 		self.internalstate = _NormalizeState(self.state)
 		if self.internalstate == -1:
-			logsupport.Logs.Log("Node "+self.name+" set unavailable")  # todo add a times check to see if becomes available since seem to miss that at times
+			logsupport.Logs.Log("Node "+self.name+" set unavailable", severity = ConsoleDetail)
 		if oldstate == -1 and self.internalstate != -1:
-			logsupport.Logs.Log("Node " + self.name + " became available (" + str(self.internalstate) + ")")
+			logsupport.Logs.Log("Node " + self.name + " became available (" + str(self.internalstate) + ")", severity = ConsoleDetail)
 		if config.DS.AS is not None:
 			if self.Hub.name in config.DS.AS.HubInterestList:
 				if self.entity_id in config.DS.AS.HubInterestList[self.Hub.name]:
