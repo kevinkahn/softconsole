@@ -1,7 +1,7 @@
 import logsupport
 import config
 import json
-from logsupport import ConsoleWarning
+from logsupport import ConsoleWarning, ConsoleDetail
 
 WeathProvs = {}
 
@@ -15,9 +15,11 @@ GenericShortener = {
 	'light': 'lt',
 	'heavy': 'hvy',
 	'shower': 'shwr',
+	'showers': 'shwrs',
 	'drizzle': 'drzl',
 	'rain': 'rn',
-	'snow': 'snw'
+	'snow': 'snw',
+	'or': '/'
 }
 
 
@@ -35,12 +37,13 @@ def TryShorten(term):
 				phrase[i] = GenericShortener[word.lower()]
 				if word[0].isupper(): phrase[i] = phrase[i].capitalize()
 		if chg:
-			newterm = ' '.join(phrase)
+			newterm = ' '.join(phrase).replace(' / ','/')
 			if len(newterm) > 12:
 				logsupport.Logs.Log("Long term: ", term, ' generically shortened to: ', newterm,
 									severity=ConsoleWarning)
 			else:
-				logsupport.Logs.Log("Long term: ", term, ' generically shortened to: ', newterm)
+				logsupport.Logs.Log("Long term: ", term, ' generically shortened to: ', newterm,
+									severity=ConsoleDetail)
 		else:
 			logsupport.Logs.Log("Long term: " + term, severity=ConsoleWarning)
 		TermShortener[term] = newterm  # only report once
