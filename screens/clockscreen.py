@@ -35,7 +35,6 @@ class ClockScreenDesc(screen.ScreenDesc):
 				logsupport.Logs.Log("Incomplete field specified on clockscreen", severity=ConsoleWarning)
 
 	def repaintClock(self):
-		usefulheight = hw.screenheight - screens.topborder - screens.botborder
 		h = 0
 		l = []
 
@@ -48,11 +47,10 @@ class ClockScreenDesc(screen.ScreenDesc):
 			cb = CreateWeathBlock(self.ExtraFormat, self.DecodedExtraFields, self.Font,
 								  self.ExtraSize, self.CharColor, None, True, useicon=False)
 			h = h + cb.get_height()
-		s = (usefulheight - h)/(len(l))
+		s = (self.useablevertspace - h)/(len(l))
 
-		# self.PaintBase()
 		self.ReInitDisplay()
-		vert_off = screens.topborder
+		vert_off = self.startvertspace
 		for i in range(len(l)):
 			horiz_off = (hw.screenwidth - l[i].get_width()) // 2
 			config.screen.blit(l[i], (horiz_off, vert_off))

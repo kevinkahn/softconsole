@@ -12,9 +12,9 @@ HomeScreenName = 'Creator Pro'
 DimLevel = 10
 DimTO = 5
 #DimIdleListNames = Portland, PDXTTbig, MyClock, LQTTbig, Pumpkin
-DimIdleListNames = PDXTTbig, LQTTbig, Pumpkin
+DimIdleListNames = MyClock, PDXTTbig, LQTTbig, Pumpkin
 
-DimIdleListTimes =	5, 5, 5
+DimIdleListTimes =	5, 5, 5, 5
 
 MainChain = Creator Pro,LR1,Sonos,LR2, Pumpkin, Local, Upper Level, Test
 SecondaryChain = Portland, Bathroom, BR, Thermostat - Main,LQTTbig, climate.master_bedroom
