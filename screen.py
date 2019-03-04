@@ -11,6 +11,7 @@ import debug
 import pygame
 import stores.valuestore as valuestore
 import stores.paramstore as paramstore
+import fonts
 
 ScreenParams = {'DimTO': 99,
 				'CharColor': "white",
@@ -28,7 +29,10 @@ ScreenParams = {'DimTO': 99,
 				'KeyOffOutlineColor': "black",
 				'KeyOutlineOffset': 3,
 				'KeyLabelOn': ['', ],
-				'KeyLabelOff': ['', ]
+				'KeyLabelOff': ['', ],
+				'ScreenTitleColor': "white",
+				'ScreenTitleSize': 50,
+				'ScreenTitle': ''
 				}
 
 screenStore = valuestore.NewValueStore(paramstore.ParamStore('ScreenParams'))
@@ -78,13 +82,6 @@ def ButLayout(butcount):
 		logsupport.Logs.Log("Button layout error - too many or no buttons: " + butcount, ConsoleError)
 		return 5, 5
 
-def ButSize(bpr, bpc, height):
-	h = hw.screenheight - screens.topborder - screens.botborder if height == 0 else height
-	return (
-		(hw.screenwidth - 2 * screens.horizborder) / bpr, h / bpc)
-
-
-
 class ScreenDesc(object):
 	"""
 	Basic information about a screen, subclassed by all other screens to handle this information
@@ -112,11 +109,18 @@ class ScreenDesc(object):
 		self.NavKeys = collections.OrderedDict()
 		self.Keys = collections.OrderedDict()
 		self.WithNav = True
+		self.useablevertspace = hw.screenheight - screens.topborder - screens.botborder
+		self.initialvertspace = self.useablevertspace
+		self.useablehorizspace = hw.screenwidth - 2 * screens.horizborder
+		self.startvertspace = screens.topborder
+		self.starthorizspace = screens.horizborder
+		self.titleoffset = 0
 		self.HubInterestList = {} # one entry per hub, each entry is a dict mapping addr to Node
+		self.ScreenTitleBlk = None
 
 		IncorporateParams(self, 'Screen',
 						  {'CharColor', 'DimTO', 'PersistTO', 'BackgroundColor', 'CmdKeyCol', 'CmdCharCol',
-						   'DefaultHub'}, screensection)
+						   'DefaultHub', 'ScreenTitle', 'ScreenTitleColor', 'ScreenTitleSize'}, screensection)
 		AddUndefaultedParams(self, screensection, label=[screenname])
 
 		try:
@@ -124,7 +128,34 @@ class ScreenDesc(object):
 		except KeyError:
 			logsupport.Logs.Log("Bad default hub name for screen: ",screenname,severity=ConsoleError)
 
+		if self.ScreenTitle != '':
+			# adjust space for a title
+			self.ScreenTitleBlk = fonts.fonts.Font(self.ScreenTitleSize, bold=True).render(self.ScreenTitle, 0, wc(self.ScreenTitleColor))
+			h = self.ScreenTitleBlk.get_height()
+			w = self.ScreenTitleBlk.get_width()
+			titlegap = h // 10 # todo is this the best way to space?
+			self.startvertspace = self.startvertspace + h + titlegap
+			self.useablevertspace = self.useablevertspace - h - titlegap
+			self.titleoffset = screens.horizborder + (self.useablehorizspace - w) // 2
+
 		utilities.register_example('ScreenDesc', self)
+
+	def SetScreenTitle(self,name,fontsz,color):
+		if self.ScreenTitleBlk is not None:
+			return # User explicitly set a title so don't override it
+		self.ScreenTitleBlk = fonts.fonts.Font(fontsz).render(name, 0, wc(color))
+		h = self.ScreenTitleBlk.get_height()
+		w = self.ScreenTitleBlk.get_width()
+		titlegap = h // 10  # todo is this the best way to space?
+		self.startvertspace = self.startvertspace + h + titlegap
+		self.useablevertspace = self.useablevertspace - h - titlegap
+		self.titleoffset = screens.horizborder + (self.useablehorizspace - w) // 2
+
+
+	def ButSize(self, bpr, bpc, height):
+		h = self.useablevertspace if height == 0 else height
+		return (
+			self.useablehorizspace/ bpr, h / bpc)
 
 	def PaintKeys(self):
 		if self.Keys is not None:
@@ -145,10 +176,14 @@ class ScreenDesc(object):
 		self.PaintBase()
 		self.NavKeys = nav
 		self.PaintKeys()
+		if self.ScreenTitleBlk is not None:
+			config.screen.blit(self.ScreenTitleBlk,(self.titleoffset,screens.topborder))
 
 	def ReInitDisplay(self):
 		self.PaintBase()
 		self.PaintKeys()
+		if self.ScreenTitleBlk is not None:
+			config.screen.blit(self.ScreenTitleBlk,(self.titleoffset,screens.topborder))
 
 	def NodeEvent(self, hub='none', node=9999, value=9999, varinfo = ()):
 		if node is not None:
@@ -198,13 +233,13 @@ class BaseKeyScreenDesc(ScreenDesc):
 		self.buttonsperrow = bpr
 		self.buttonspercol = bpc
 
-		buttonsize = ButSize(bpr, bpc, height)
+		buttonsize = self.ButSize(bpr, bpc, height)
 		hpos = []
 		vpos = []
 		for i in range(bpr):
 			hpos.append(screens.horizborder + (.5 + i) * buttonsize[0])
 		for i in range(bpc):
-			vpos.append(screens.topborder + extraOffset + (.5 + i) * buttonsize[1])
+			vpos.append(self.startvertspace + extraOffset + (.5 + i) * buttonsize[1])
 
 		for i, (kn, key) in enumerate(self.Keys.items()):
 			key.FinishKey((hpos[i%bpr], vpos[i//bpr]), buttonsize)

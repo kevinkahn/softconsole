@@ -21,8 +21,10 @@ def extref(listitem, indexitem):
 		return listitem[-1]
 
 class TimeTempScreenDesc(screen.ScreenDesc):
+	# todo rethink title for these screens as it appears below the clock
 
 	def __init__(self, screensection, screenname):
+		# todo change to use screen title
 		screen.ScreenDesc.__init__(self, screensection, screenname)
 		debug.debugPrint('Screen', "New TimeTempDesc ", screenname)
 
@@ -79,8 +81,8 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 		self.repaintClock()
 
 	def repaintClock(self):
-		usefulheight = hw.screenheight - screens.topborder - screens.botborder
 		h = 0
+		#h = self.startvertspace
 		renderedforecast  = []
 		sizeindex = 0
 		renderedtime = []
@@ -153,11 +155,12 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 				h = h + forecastitemheight * self.ForecastDays
 				usewidth = hw.screenwidth
 
-			s = (usefulheight - h)/(spaces + forecastlines - 1)
-			extraspace = (usefulheight - h - s*(spaces + forecastlines - 1))/spaces
+			s = (self.useablevertspace - h)/(spaces + forecastlines - 1)
+			extraspace = (self.useablevertspace - h - s*(spaces + forecastlines - 1))/spaces
 
 			#self.PaintBase()
-			vert_off = screens.topborder
+			#vert_off = screens.topborder
+			vert_off = self.startvertspace
 			self.ReInitDisplay()
 			for tmlbl in renderedtimelabel:
 				horiz_off = (hw.screenwidth - tmlbl.get_width()) // 2

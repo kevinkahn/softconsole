@@ -32,7 +32,7 @@ class AlertsScreenDesc(screen.ScreenDesc):
 		self.Msg = True
 
 		messageareapart = .7
-		messageareaheight = (hw.screenheight - 2 * screens.topborder) * messageareapart  # no Nav keys
+		messageareaheight = (hw.screenheight - 2 * screens.topborder) * messageareapart  # no Nav keys todo switch to new screen sizing
 		alertbutheight = (hw.screenheight - messageareaheight - 2 * screens.topborder) / 2
 		self.upperleft = (screens.horizborder, screens.topborder)
 

@@ -31,7 +31,11 @@ class NestThermostatScreenDesc(screen.BaseKeyScreenDesc):
 		screen.BaseKeyScreenDesc.__init__(self, screensection, screenname)
 		screen.IncorporateParams(self, 'NestThermostatScreen', {'KeyColor', 'KeyOffOutlineColor', 'KeyOnOutlineColor'},
 								 screensection)
-		self.fsize = (30, 50, 80, 160)
+		nominalfontsz = (30, 50, 80, 160)
+		nominalspacers = (5, 20, 25, 40, 50, 85)
+		self.fsize = []
+		self.spacer = []
+
 		self.HA = self.DefaultHubObj
 		self.ThermNode = self.HA.GetNode(screenname)[0]  # use ControlObj (0)
 		if self.ThermNode is None:
@@ -48,23 +52,36 @@ class NestThermostatScreenDesc(screen.BaseKeyScreenDesc):
 		#	self.self.ThermNode = None
 		#	raise ValueError
 
-		self.TitleRen = fonts.fonts.Font(self.fsize[1]).render(screen.FlatenScreenLabel(self.label), 0,
-															   wc(self.CharColor))
-		self.TitlePos = ((hw.screenwidth - self.TitleRen.get_width()) // 2, screens.topborder)
-		self.TempPos = screens.topborder + self.TitleRen.get_height()
-		self.StatePos = self.TempPos + fonts.fonts.Font(self.fsize[3]).get_linesize() - scaleH(20)
-		self.SPVPos = self.StatePos + scaleH(25)
+		self.SetScreenTitle(screen.FlatenScreenLabel(self.label),nominalfontsz[1],self.CharColor) # todo enable
+		self.TempPos = self.startvertspace
+		'''
+		Size and positions based on nominal 480 vertical screen less top/bottom borders less default title size of 50
+		Compute other fonts sizes based on what is left after that given user ability to set actual title size
+		'''
+		tempsurf = fonts.fonts.Font(50).render('Temp', 0, wc(self.CharColor))
+		useable = self.useablevertspace/(self.initialvertspace - tempsurf.get_height())
+
+		for fs in nominalfontsz:
+			self.fsize.append(int(fs*useable))
+
+		for fs in nominalspacers:
+			self.spacer.append(int(fs*useable))
+
+
+		self.StatePos = self.TempPos + fonts.fonts.Font(self.fsize[3]).get_linesize() - scaleH(self.spacer[1])
+		self.SPVPos = self.StatePos + scaleH(self.spacer[2])
 		sp = fonts.fonts.Font(self.fsize[2]).render("{:2d}".format(99), 0, wc(self.CharColor))
 		self.SPHgt = sp.get_height()
 		self.SPWdt = sp.get_width()
 		self.SetPointSurf = pygame.Surface((self.SPWdt,self.SPHgt))
 		self.SetPointSurf.fill(wc(self.BackgroundColor))
-		self.AdjButSurf = pygame.Surface((hw.screenwidth, scaleH(40)))
-		self.AdjButTops = self.SPVPos + fonts.fonts.Font(self.fsize[2]).get_linesize() - scaleH(5)
+		self.AdjButSurf = pygame.Surface((hw.screenwidth, scaleH(self.spacer[3])))
+		self.AdjButTops = self.SPVPos + fonts.fonts.Font(self.fsize[2]).get_linesize() - scaleH(self.spacer[0])
 		centerspacing = hw.screenwidth // 5
 		self.SPHPosL = int(1.5*centerspacing)
 		self.SPHPosR = int(3.5*centerspacing)
 		self.AdjButSurf.fill(wc(self.BackgroundColor))
+		arrowsize = scaleH(self.spacer[3])  # pixel
 		self.LocalOnly = [0.0, 0.0]  # Heat setpoint, Cool setpoint:  0 is normal color
 		self.ModeLocal = 0.0
 		self.FanLocal = 0.0
@@ -87,9 +104,9 @@ class NestThermostatScreenDesc(screen.BaseKeyScreenDesc):
 																					 (True, True, False, False)[i],
 																					 (1, -1, 1, -1)[i]))
 
-		self.ModeButPos = self.AdjButTops + scaleH(85)  # pixel
+		self.ModeButPos = self.AdjButTops + scaleH(self.spacer[5])  # pixel
 
-		bsize = (scaleW(100), scaleH(50))  # pixel
+		bsize = (scaleW(100), scaleH(self.spacer[4]))  # pixel
 
 		self.Keys['Mode'] = toucharea.ManualKeyDesc(self, "Mode", ["Mode"],
 													self.KeyColor, self.CharColor, self.CharColor,
@@ -103,8 +120,7 @@ class NestThermostatScreenDesc(screen.BaseKeyScreenDesc):
 												   KOn=self.KeyOffOutlineColor,
 												   proc=self.BumpFan)
 
-		self.ModesPos = self.ModeButPos + bsize[1]//2 + scaleH(5)
-		# ----------  Above is all setup and could be shared as a single routine with ISY tstat
+		self.ModesPos = self.ModeButPos + bsize[1]//2 + scaleH(self.spacer[0])
 		if self.ThermNode is not None:
 			self.HubInterestList[self.HA.name] = {self.ThermNode.address: self.Keys['Mode']} # placeholder for thermostat node
 		utilities.register_example("NestThermostatScreenDesc", self)
@@ -179,7 +195,7 @@ class NestThermostatScreenDesc(screen.BaseKeyScreenDesc):
 		self.fanstates = self.fanstates[m:] + self.fanstates[:m]
 
 		self.ReInitDisplay()
-		config.screen.blit(self.TitleRen, self.TitlePos)
+		#config.screen.blit(self.TitleRen, self.TitlePos)  # todo disable
 
 		r = fonts.fonts.Font(self.fsize[3], bold=True).render(u"{:4.1f}".format(self.t_cur), 0,
 															  wc(self.CharColor))

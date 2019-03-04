@@ -34,7 +34,7 @@ class VerifyScreen(screen.BaseKeyScreenDesc):
 		self.Keys['no'].Proc = functools.partial(proc, False)
 
 		topoff = self.TitleFontSize + self.SubFontSize
-		self.LayoutKeys(topoff, hw.screenheight - 2 * screens.topborder - topoff)
+		self.LayoutKeys(topoff, hw.screenheight - 2 * screens.topborder - topoff) # todo switch to new screen sizing
 		utilities.register_example("VerifyScreen", self)
 
 	def Invoke(self):
@@ -87,8 +87,8 @@ class ValueChangeScreen(screen.ScreenDesc): # todo may need to call super class
 		self.Value = initvalue
 		self.Keys = {}
 		vertzonepct = .8
-		vertzonesize = int(.25 * hw.screenheight)
-		screencenter = (hw.screenwidth / 2, hw.screenheight / 2)
+		vertzonesize = int(.25 * hw.screenheight) # todo switch to use useable vert hgt
+		screencenter = (hw.screenwidth / 2, hw.screenheight / 2) # todo switch to use useable vert hgt
 
 		self.font = fonts.fonts.Font(40)
 
@@ -129,7 +129,7 @@ class ValueChangeScreen(screen.ScreenDesc): # todo may need to call super class
 		self.labelloc = (labelcenter[0] - labelsz[0]/2, labelcenter[1] - labelsz[1]/2)
 
 		cancelcenter = (screencenter[0], screencenter[1] + int(1.75*vertzonesize))
-		cancelsize = (hw.screenwidth / 2, int(vertzonepct * hw.screenheight * .125))
+		cancelsize = (hw.screenwidth / 2, int(vertzonepct * hw.screenheight * .125)) # todo switch to use useable vert hgt
 
 		self.Keys['cancel'] = ManualKeyDesc(self, 'cancel', ['Cancel', ], BackgroundColor, CharColor, CharColor,
 											cancelcenter,

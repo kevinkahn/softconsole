@@ -228,7 +228,7 @@ class Logger(object):
 				if self.livelogpos == 0:
 					config.screen.fill(wc('royalblue'))
 				self.livelogpos = self.RenderLogLine(entry, self.LogColors[severity], self.livelogpos)
-				if self.livelogpos > hw.screenheight - screens.botborder:
+				if self.livelogpos > hw.screenheight - screens.botborder: # todo switch to new screen size stuff
 					time.sleep(1)
 					self.livelogpos = 0
 				pygame.display.update()

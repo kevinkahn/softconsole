@@ -49,7 +49,7 @@ def SetUpMaintScreens():
 	nflags = len(debug.DbgFlags) + 3
 	# will need key for each debug flag plus a return plus a loglevel up and loglevel down
 	tmpDbgFlags = ["LogLevelUp", "LogLevelDown"] + debug.DbgFlags[:]  # temp copy of Flags
-	flagspercol = hw.screenheight // 120
+	flagspercol = hw.screenheight // 120 # todo switch to new screen sizing
 	flagsperrow = hw.screenwidth // 120
 	flagoverrides = fixedoverrides.copy()
 	flagoverrides.update(KeysPerColumn=flagspercol, KeysPerRow=flagsperrow)
@@ -233,10 +233,10 @@ class LogDisplayScreen(screen.BaseKeyScreenDesc):
 		self.item = 0
 		self.pageno = -1
 		self.PageStartItem = [0]
-		self.Keys = {'nextpage': toucharea.TouchPoint('nextpage', (hw.screenwidth / 2, 3 * hw.screenheight / 4),
-													  (hw.screenwidth, hw.screenheight), proc=self.NextPage),
-					 'prevpage': toucharea.TouchPoint('prevpage', (hw.screenwidth / 2, hw.screenheight / 4),
-													  (hw.screenwidth, hw.screenheight / 2), proc=self.PrevPage)}
+		self.Keys = {'nextpage': toucharea.TouchPoint('nextpage', (hw.screenwidth / 2, 3 * hw.screenheight / 4),# todo switch to use useable vert hgt
+													  (hw.screenwidth, hw.screenheight), proc=self.NextPage),# todo switch to use useable vert hgt
+					 'prevpage': toucharea.TouchPoint('prevpage', (hw.screenwidth / 2, hw.screenheight / 4),# todo switch to use useable vert hgt
+													  (hw.screenwidth, hw.screenheight / 2), proc=self.PrevPage)}# todo switch to use useable vert hgt
 		self.name = 'Log'
 		utilities.register_example("LogDisplayScreen", self)
 
@@ -291,7 +291,7 @@ class MaintScreenDesc(screen.BaseKeyScreenDesc):
 				NK.Proc = functools.partial(kt[1], NK)
 			self.Keys[k] = NK
 		topoff = self.TitleFontSize + self.SubFontSize
-		self.LayoutKeys(topoff, hw.screenheight - 2 * screens.topborder - topoff)
+		self.LayoutKeys(topoff, hw.screenheight - 2 * screens.topborder - topoff) # todo switch to use useable vert hgt
 		self.DimTO = 60
 		self.PersistTO = 1  # setting to 0 would turn off timer and stick us here
 		utilities.register_example("MaintScreenDesc", self)

@@ -34,7 +34,11 @@ class ThermostatScreenDesc(screen.BaseKeyScreenDesc):
 								 screensection)
 		self.info = {}
 		self.oldinfo = {}
-		self.fsize = (30, 50, 80, 160)
+		nominalfontsz = (30, 50, 80, 160)
+		nominalspacers = (5, 20, 25, 40, 50, 85)
+
+		self.fsize = []
+		self.spacer = []
 		if isinstance(self.DefaultHubObj, isy.ISY):
 			self.isy = self.DefaultHubObj
 			self.ISYObj = self.isy.GetNode(screenname)[0]  # use ControlObj (0)
@@ -44,19 +48,29 @@ class ThermostatScreenDesc(screen.BaseKeyScreenDesc):
 			logsupport.Logs.Log("Thermostat screen only works with ISY hub", severity=ConsoleError)
 			self.ISYObj = None
 
-		self.TitleRen = fonts.fonts.Font(self.fsize[1]).render(screen.FlatenScreenLabel(self.label), 0,
-															   wc(self.CharColor))
-		self.TitlePos = ((hw.screenwidth - self.TitleRen.get_width()) // 2, screens.topborder)
-		self.TempPos = screens.topborder + self.TitleRen.get_height()
-		self.StatePos = self.TempPos + fonts.fonts.Font(self.fsize[3]).get_linesize() - scaleH(20)
-		self.SPPos = self.StatePos + scaleH(25)
-		self.AdjButSurf = pygame.Surface((hw.screenwidth, scaleH(40)))
-		self.AdjButTops = self.SPPos + fonts.fonts.Font(self.fsize[2]).get_linesize() - scaleH(5)
+		self.SetScreenTitle(screen.FlatenScreenLabel(self.label),nominalfontsz[1],self.CharColor) # todo enable
+		self.TempPos = self.startvertspace
+		'''
+		Size and positions based on nominal 480 vertical screen less top/bottom borders less default title size of 50
+		Compute other fonts sizes based on what is left after that given user ability to set actual title size
+		'''
+		tempsurf = fonts.fonts.Font(50).render('Temp', 0, wc(self.CharColor))
+		useable = self.useablevertspace/(self.initialvertspace - tempsurf.get_height())
+
+		for fs in nominalfontsz:
+			self.fsize.append(int(fs*useable))
+		for fs in nominalspacers:
+			self.spacer.append(int(fs*useable))
+
+		self.StatePos = self.TempPos + fonts.fonts.Font(self.fsize[3]).get_linesize() - scaleH(self.spacer[1])
+		self.SPPos = self.StatePos + scaleH(self.spacer[2])
+		self.AdjButSurf = pygame.Surface((hw.screenwidth, scaleH(self.spacer[3])))
+		self.AdjButTops = self.SPPos + fonts.fonts.Font(self.fsize[2]).get_linesize() - scaleH(self.spacer[0])
 		centerspacing = hw.screenwidth // 5
 		self.SPHPosL = int(1.5 * centerspacing)
 		self.SPHPosR = int(3.5 * centerspacing)
 		self.AdjButSurf.fill(wc(self.BackgroundColor))
-		arrowsize = scaleH(40)  # pixel
+		arrowsize = scaleH(self.spacer[3])  # pixel
 
 		for i in range(4):
 			gfxdraw.filled_trigon(self.AdjButSurf, *trifromtop(centerspacing, arrowsize//2, i + 1, arrowsize,
@@ -68,23 +82,23 @@ class ThermostatScreenDesc(screen.BaseKeyScreenDesc):
 																					 ('CLISPH', 'CLISPH', 'CLISPC', 'CLISPC')[i],
 																					 (2, -2, 2, -2)[i]))
 
-		self.ModeButPos = self.AdjButTops + scaleH(85)  # pixel
+		self.ModeButPos = self.AdjButTops + scaleH(self.spacer[5])  # pixel
 
-		bsize = (scaleW(100), scaleH(50))  # pixel
+		bsize = (scaleW(100), scaleH(self.spacer[4]))  # pixel
 
 		self.Keys['Mode'] = toucharea.ManualKeyDesc(self, "Mode", ["Mode"],
 													self.KeyColor, self.CharColor, self.CharColor,
-													center=(hw.screenwidth // 4, self.ModeButPos), size=bsize,
+													center=(self.SPHPosL, self.ModeButPos), size=bsize,
 													KOn=self.KeyOffOutlineColor,
 													proc=functools.partial(self.BumpMode, 'CLIMD', range(8)))
 
 		self.Keys['Fan'] = toucharea.ManualKeyDesc(self, "Fan", ["Fan"],
 												   self.KeyColor, self.CharColor, self.CharColor,
-												   center=(3 * hw.screenwidth // 4, self.ModeButPos), size=bsize,
+												   center=(self.SPHPosR, self.ModeButPos), size=bsize,
 												   KOn=self.KeyOffOutlineColor,
 												   proc=functools.partial(self.BumpMode, 'CLIFS', (7, 8)))
 
-		self.ModesPos = self.ModeButPos + bsize[1]//2 + scaleH(5)
+		self.ModesPos = self.ModeButPos + bsize[1]//2 + scaleH(self.spacer[0])
 		if self.ISYObj is not None:
 			self.HubInterestList[self.isy.name] = {self.ISYObj.address: self.Keys['Mode']} # placeholder for thermostat node
 		utilities.register_example("ThermostatScreenDesc", self)
@@ -136,7 +150,7 @@ class ThermostatScreenDesc(screen.BaseKeyScreenDesc):
 		if not updtneeded:
 			return
 		self.ReInitDisplay()
-		config.screen.blit(self.TitleRen, self.TitlePos)
+		#config.screen.blit(self.TitleRen, self.TitlePos) # todo disable
 		r = fonts.fonts.Font(self.fsize[3], bold=True).render(u"{:4.1f}".format(self.info["ST"][0] // 2), 0,
 															  wc(self.CharColor))
 		config.screen.blit(r, ((hw.screenwidth - r.get_width()) // 2, self.TempPos))

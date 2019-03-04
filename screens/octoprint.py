@@ -17,6 +17,7 @@ from eventlist import ProcEventItem
 
 # noinspection PyUnusedLocal
 class OctoPrintScreenDesc(screen.BaseKeyScreenDesc):
+	# todo switch to screen title
 	def __init__(self, screensection, screenname):
 		screen.ScreenDesc.__init__(self, screensection, screenname)
 		debug.debugPrint('Screen', "New OctoPrintScreenDesc ", screenname)
@@ -28,7 +29,7 @@ class OctoPrintScreenDesc(screen.BaseKeyScreenDesc):
 
 		screen.IncorporateParams(self, 'OctoPrint', {'KeyColor'}, screensection)
 		screen.AddUndefaultedParams(self, screensection, address='', apikey='')
-		self.title, th, self.tw = screenutil.CreateTextBlock(self.name, hw.screenheight / 12, self.CharColor, True)
+		self.title, th, self.tw = screenutil.CreateTextBlock(self.name, hw.screenheight / 12, self.CharColor, True) #todo switch to new screen sizing for title
 		self.titlespace = th + hw.screenheight / 32
 		useablescreenheight = hw.screenheight - screens.topborder - screens.botborder - self.titlespace
 		ctlpos = useablescreenheight / 5
