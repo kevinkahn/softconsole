@@ -5,6 +5,13 @@
       <list>
         <remote-mappings server-id="python@ssh://pi@192.168.1.23:22/home/pi/python-sudo.sh" />
         <remote-mappings server-id="python@sftp://pi@rpi-dev.local:22/home/pi/python-sudo.sh" />
+        <remote-mappings server-id="python@sftp://pi@rpi-dev.pgawhome:8623/home/pi/python-sudo.sh">
+          <settings>
+            <list>
+              <mapping local-root="$PROJECT_DIR$" remote-root="/home/pi/consolerem" />
+            </list>
+          </settings>
+        </remote-mappings>
       </list>
     </list>
   </component>

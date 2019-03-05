@@ -17,3 +17,4 @@ V3.2 is a notable release that will mainly be of interest if running more than o
 V3.2.1 is a very minor bug fix release.  It improves some error handling for the new APIXU weather service reports, supports LocationSize = 0 directive for weatherscreens (like it does for timetemp screens), avoids extraneous log messages for users running node servers on V3 ISY firmware, and allows SSL connection to an ISY using self generated keys (actually by turning off SSL certificate validation).  It also includes some internal structural cleanups that should have no visible impacts.
 
 
+Screen title support for clockscreen, keyscreen, thermostatscreen(Nest), timetemscreen, weatherscreen

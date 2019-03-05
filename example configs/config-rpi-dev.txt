@@ -110,6 +110,9 @@ SecondaryChain = Portland, Bathroom, BR, Thermostat - Main
 #    NormalOn = Main Hall, Landscape, LR Dual Spots
 
 [LR1]
+ScreenTitle = Test Title
+ScreenTitleColor = yellow
+ScreenTitleSize = 30
     type = Keypad
     label = Living, Room 1
     [[Office Ceiling]]

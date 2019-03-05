@@ -51,19 +51,19 @@ class SonosScreenDesc(screen.BaseKeyScreenDesc):
 		self.numplayers = len(self.SonosNodes)
 
 		for i in range(self.numplayers + 1):
-			self.GCVPos.append(self.titlespace + i * 50)
+			self.GCVPos.append(self.startvertspace + i * 50)
 
 		# set up the control screen for a group
-		self.ctlhgt = self.useablescreenheight // (2 * self.numplayers + 2)
+		self.ctlhgt = self.useablevertspace // (2 * self.numplayers + 2)
 		for i in range(self.numplayers + 1):
-			self.GPCtlVPos.append(self.titlespace + i * 2 * self.ctlhgt)
+			self.GPCtlVPos.append(self.startvertspace + i * 2 * self.ctlhgt)
 
 		# set up the main summary screen
-		vpos = self.titlespace
+		vpos = self.startvertspace
 		if self.numplayers != 0:
-			self.roomheight = self.useablescreenheight // self.numplayers
+			self.roomheight = self.useablevertspace // self.numplayers
 		else:
-			self.roomheight = self.useablescreenheight # dummy value to avoid div by 0 in error case
+			self.roomheight = self.useablevertspace # dummy value to avoid div by 0 in error case
 		self.roomdisplayinfo = (1.5, 1, 1, 1)
 		for n, p in self.SonosNodes.items():
 			self.NodeVPos.append(vpos)
@@ -131,9 +131,7 @@ class SonosScreenDesc(screen.BaseKeyScreenDesc):
 		self.DullKeyColor = wc(self.KeyColor, .5, self.BackgroundColor)
 		self.HA = self.DefaultHubObj
 
-		self.title, th, self.tw = screenutil.CreateTextBlock('Sonos', hw.screenheight / 12, self.CharColor, True)
-		self.titlespace = th + hw.screenheight / 32
-		self.useablescreenheight = hw.screenheight - screens.topborder - screens.botborder - self.titlespace
+		self.SetScreenTitle('Sonos',hw.screenheight /12, self.CharColor) # todo correct the fontsize and maybe the color choice and change to useable vert
 		if not isinstance(self.DefaultHubObj, hasshub.HA):
 			logsupport.Logs.Log("Sonos Default Hub is not HA hub", severity=ConsoleError, tb=False)
 			return
@@ -146,9 +144,9 @@ class SonosScreenDesc(screen.BaseKeyScreenDesc):
 
 		# set up source selection screen
 		self.SourceSlot = []
-		vpos = self.titlespace
+		vpos = self.startvertspace #todo add buffer?
 		self.sourceslots = 8
-		self.sourceheight = self.useablescreenheight // (self.sourceslots + 1)  # allow space at bottom right for arrow
+		self.sourceheight = self.useablevertspace // (self.sourceslots + 1)  # allow space at bottom right for arrow
 
 		for i in range(self.sourceslots):
 			self.SrcSlotsVPos.append(vpos)
@@ -161,7 +159,7 @@ class SonosScreenDesc(screen.BaseKeyScreenDesc):
 			vpos += self.sourceheight
 			self.SourceSlot.append('')
 		self.SrcPrev = (
-			hw.screenwidth - self.sourceheight - screens.horizborder, self.titlespace - self.sourceheight // 2)
+			hw.screenwidth - self.sourceheight - screens.horizborder, self.startvertspace - self.sourceheight // 2) # todo change to horizstart + useablehoriz - sourceheight
 		self.SrcNext = (hw.screenwidth - self.sourceheight - screens.horizborder,
 						vpos + self.sourceheight // 2 + 10)  # for appearance
 		self.KeysSrc['Prev'] = toucharea.TouchPoint('Prev', self.SrcPrev,
@@ -419,7 +417,7 @@ class SonosScreenDesc(screen.BaseKeyScreenDesc):
 			self.SourceSelectScreen()
 		else:
 			self.GroupScreen(self.SlotToGp[self.Subscreen])
-		config.screen.blit(self.title, ((hw.screenwidth - self.tw) / 2, 0))
+		config.screen.blit(self.ScreenTitle, (self.titleoffset, 0))
 
 		pygame.display.update()
 
