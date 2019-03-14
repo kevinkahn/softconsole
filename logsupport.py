@@ -66,6 +66,7 @@ class Logger(object):
 
 	def __init__(self, screen, dirnm):
 		self.lock = threading.Lock()
+		self.lockerid = (0,'init')
 		self.screen = screen
 		self.remotenodes = {}
 		self.lastremotemes = ''
@@ -101,7 +102,9 @@ class Logger(object):
 		try:
 			locked = self.lock.acquire(timeout=1)
 			if not locked:
-				self.RecordMessage(ConsoleError, 'Log lock failed (Remote)', '*****Remote******', False, False)
+				self.RecordMessage(ConsoleError, 'Log lock failed (Remote)'+repr(self.lockerid), '*****Remote******', False, False)
+			else:
+				self.lockerid = (etime,'remote')
 
 			if entry == self.lastremotemes:
 				if node in self.remotenodes:
@@ -113,11 +116,15 @@ class Logger(object):
 				self.lastremotemes = entry
 				self.lastremotesev = severity
 				self.remotenodes = {node: (etime, 1)}
-			if locked: self.lock.release()
+			if locked:
+				self.lock.release()
+				self.lockerid = (etime,'remunlock')
 		except Exception as E:
 			self.RecordMessage(ConsoleError, 'Exception while remote logging: {}'.format(repr(E)), '*****Remote******',
 							   False, False)
-			if locked: self.lock.release()
+			if locked:
+				self.lock.release()
+				self.lockerid = (etime,'remunlockexc')
 
 	def DumpRemoteMes(self):
 		now = time.strftime('%m-%d-%y %H:%M:%S')
@@ -159,13 +166,19 @@ class Logger(object):
 			locked = self.lock.acquire(timeout=3)
 
 			if not locked:
-				self.RecordMessage(ConsoleError, 'Log lock failed (PeriodicRemote)', defentrytime, False, False)
+				self.RecordMessage(ConsoleError, 'Log lock failed (PeriodicRemote)'+repr(self.lockerid), defentrytime, False, False)
+			else:
+				self.lockerid = (defentrytime, 'remotedump')
 			self.DumpRemoteMes()
-			if locked: self.lock.release()
+			if locked:
+				self.lock.release()
+				self.lockerid = (defentrytime, 'remotedumpunlk')
 		except Exception as E:
 			self.RecordMessage(ConsoleError, 'Exception while dumping periodic remotes: {}'.format(repr(E)),
 							   defentrytime, False, False)
-			if locked: self.lock.release()
+			if locked:
+				self.lock.release()
+				self.lockerid = (defentrytime, 'remotedumpunlkexc')
 
 
 
@@ -178,10 +191,12 @@ class Logger(object):
 		localnow = time.localtime(now)
 		defentrytime = time.strftime('%m-%d-%y %H:%M:%S', localnow)
 		try:
-			locked = self.lock.acquire(timeout=3)
+			locked = self.lock.acquire(timeout=5)
 
 			if not locked:
-				self.RecordMessage(ConsoleError, 'Log lock failed (Local)', defentrytime, False, False)
+				self.RecordMessage(ConsoleError, 'Log lock failed (Local)'+repr(self.lockerid), defentrytime, False, False)
+			else:
+				self.lockerid = (defentrytime,'locallock')
 
 			severity = kwargs.pop('severity', ConsoleInfo)
 			entrytime = kwargs.pop('entrytime', time.strftime('%m-%d-%y %H:%M:%S', localnow))
@@ -234,11 +249,15 @@ class Logger(object):
 				pygame.display.update()
 
 			self.lastlocalmes = entry
-			if locked: self.lock.release()
+			if locked:
+				self.lock.release()
+				self.lockerid = (defentrytime,'localunlock')
 		except Exception as E:
 			self.RecordMessage(ConsoleError, 'Exception while local logging: {}'.format(repr(E)),
 							   defentrytime, False, False)
-			if locked: self.lock.release()
+			if locked:
+				self.lock.release()
+				self.lockerid = (defentrytime,'localunlockexc')
 
 	def RenderLogLine(self, itext, clr, pos):
 		# odd logic below is to make sure that if an unbroken item would by itself exceed line length it gets forced out
