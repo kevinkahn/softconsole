@@ -18,7 +18,8 @@ from eventlist import ProcEventItem
 
 haignoreandskipdomains = ('history_graph', 'updater')
 ignoredeventtypes = ('system_log_event', 'call_service', 'service_executed', 'logbook_entry', 'timer_out_of_sync',
-					 'persistent_notifications_updated', 'zwave.network_complete', 'zwave.scene_activated')  # todo zwave complete do something
+					 'persistent_notifications_updated', 'zwave.network_complete', 'zwave.scene_activated',
+					 'zwave.network_ready')  # todo zwave complete do something
 
 def stringtonumeric(v):
 	if not isinstance(v,str):
@@ -588,8 +589,13 @@ class HA(object):
 				elif m['event_type'] == 'config_entry_discovered':  # todo temp
 					logsupport.Logs.Log("{} config entry discovered: {}".format(self.name, message))
 				elif m['event_type'] == 'service_registered':
+					d = m['data']
+					if d['domain'] not in self.knownservices:
+						self.knownservices[d['domain']] = []
+					if d['service'] not in self.knownservices[d['domain']]:
+						self.knownservices[d['domain']].append(d['service'])
 					logsupport.Logs.Log(
-						"{} has new service: {}".format(self.name, message))  # all the zwave services todo
+							"{} has new service: {}".format(self.name, message), severity=ConsoleDetail)  # all the zwave services todo
 				elif m['event_type'] not in ignoredeventtypes:
 					# debug.debugPrint('HASSchg', "Other expected event" + str(m))
 					logsupport.Logs.Log('{} Event: {}'.format(self.name, message))  # todo temp
@@ -696,6 +702,7 @@ class HA(object):
 
 	# noinspection PyUnusedLocal
 	def __init__(self, hubname, addr, user, password):
+		self.knownservices = []
 		self.HB = historybuffer.HistoryBuffer(40, hubname)
 		logsupport.Logs.Log("{}: Creating structure for Home Assistant hub at {}".format(hubname, addr))
 
@@ -797,7 +804,11 @@ class HA(object):
 			# noinspection PyProtectedMember
 			T._connectsensors(tsensor)
 		self.haconnectstate = "Init"
-		services = ha.get_services(self.api)
+		self.knownservices = ha.get_services(self.api)
+		print('Services:')
+		for d in self.knownservices:
+			print(d['domain'])
+			print(d['services']) #todo
 		#listeners = ha.get_event_listeners(self.api)
 		logsupport.Logs.Log(self.name + ": Processed " + str(len(self.Entities)) + " total entities")
 		logsupport.Logs.Log("    Lights: " + str(len(self.Lights)) + " Switches: " + str(len(self.Switches)) +
