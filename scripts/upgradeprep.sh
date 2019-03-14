@@ -18,3 +18,5 @@ else
     python ../setupsystemd.py
     # this runs in previous version so the new python code is up a level
 fi
+cd alerts
+wget https://github.com/ScrewLooseDan/softconsole_sensor_alert/raw/master/lightsensor.py
