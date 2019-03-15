@@ -417,7 +417,7 @@ class SonosScreenDesc(screen.BaseKeyScreenDesc):
 			self.SourceSelectScreen()
 		else:
 			self.GroupScreen(self.SlotToGp[self.Subscreen])
-		config.screen.blit(self.ScreenTitle, (self.titleoffset, 0))
+		config.screen.blit(self.ScreenTitleBlk, (self.titleoffset, 0))
 
 		pygame.display.update()
 
