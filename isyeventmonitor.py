@@ -394,7 +394,8 @@ class ISYEventMonitor(object):
 
 					if ecode == "ERR":
 						if str(eaction) == "0":
-							logsupport.Logs.Log("ERR(0) seen: {}".format(repr(m)))
+							pass
+							#logsupport.Logs.Log("ERR(0) seen: {}".format(repr(m)))
 						else:
 							# Note the error and wait one message to see if it immediately clears
 							self.LastMsgErr = (enode, eseq)

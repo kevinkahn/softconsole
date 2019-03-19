@@ -178,5 +178,6 @@ class EventList(object):
 		for e in self.finder.values():
 			if e.gpid == gpid:
 				self.RemoveTask(e)
+				#print('Removed'+repr(e))
 
 

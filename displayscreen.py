@@ -274,13 +274,13 @@ class DisplayScreen(object):
 					elif self.state == 'Home':
 						self.SwitchScreen(screens.DimIdleList[0], 'Dim', 'Cover', 'Go to cover', NavKeys=False)
 						# rotate covers - save even if only 1 cover
-						screens.DimIdleList = screens.DimIdleList[1:] + screens.DimIdleList[:1]
-						screens.DimIdleTimes = screens.DimIdleTimes[1:] + screens.DimIdleTimes[:1]
+						screens.DimIdleList = screens.DimIdleList[1:] + [screens.DimIdleList[0]]
+						screens.DimIdleTimes = screens.DimIdleTimes[1:] + [screens.DimIdleTimes[0]]
 					elif self.state == 'Cover':
 						if len(screens.DimIdleList) > 1:
 							self.SwitchScreen(screens.DimIdleList[0], 'Dim', 'Cover', 'Go to next cover', NavKeys=False)
-							screens.DimIdleList = screens.DimIdleList[1:] + screens.DimIdleList[:1]
-							screens.DimIdleTimes = screens.DimIdleTimes[1:] + screens.DimIdleTimes[:1]
+							screens.DimIdleList = screens.DimIdleList[1:] + [screens.DimIdleList[0]]
+							screens.DimIdleTimes = screens.DimIdleTimes[1:] + [screens.DimIdleTimes[0]]
 					else:  # Maint or Alert - todo?
 						debug.debugPrint('Dispatch', 'TO while in: ', self.state)
 
@@ -356,6 +356,9 @@ class DisplayScreen(object):
 					self.HBEvents.Entry('Task Empty')
 					debug.debugPrint('Dispatch', 'Empty Task Event fired')
 					continue  # some deleted task cleared
+				elif time.time() - E.abstime > 1:
+					if config.versionname in ('development', 'homerelease'):
+						logsupport.Logs.Log("Late task" + str(time.time()-E.abstime) + ' ' + repr(E), severity=ConsoleError)
 				if isinstance(E, ProcEventItem):  # internal proc fired
 					self.HBEvents.Entry('Proc Event' + repr(E))
 					debug.debugPrint('Dispatch', 'Task ProcEvent fired: ', E)

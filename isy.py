@@ -474,7 +474,7 @@ class ISY(object):
 				if old != new:
 					val = int(new)  # ISY V4 only allows integer variable values - may change in V5
 					varid = storeitem.Attribute
-					self.try_ISY_comm('vars/set/' + str(varid[0]) + '/' + str(varid[1]) + '/' + str(val))
+					self.try_ISY_comm('vars/set/' + str(varid[0]) + '/' + str(varid[1]) + '/' + str(val), retryasync=True)
 			else:
 				logsupport.Logs.Log("Attempt to set ISY var to None: ", storeitem.name)
 
@@ -484,9 +484,9 @@ class ISY(object):
 		for nm, N in self._NodesByFullName.items():
 			if isinstance(N, Node): self._check_real_time_node_status(N)
 
-	def try_ISY_comm(self, urlcmd, timeout=5, closeonfail=True):
+	def try_ISY_comm(self, urlcmd, timeout=5, closeonfail=True, retryasync=False):
 		error = ['Errors']
-		busyloop = 0
+		busyloop = 0 #todo do Busy case and retry case async
 		while self.Busy != 0:
 			busyloop += 1
 			time.sleep(1)

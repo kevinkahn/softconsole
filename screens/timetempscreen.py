@@ -72,7 +72,8 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 				self.DecodedFcstFields.append((self.location,'Fcst',f))
 		self.fcsticon = (self.location,'Fcst','Icon') if self.FcstIcon else None
 
-		self.ClockRepaintEvent = ProcEventItem(id(self), 'repaintTimeTemp', self.repaintClock)
+		self.ClockRepaintEvent = ProcEventItem(id(self), 'repaintTimeTemp-'+self.name, self.repaintClock)
+		self.nextt = 0
 		self.fmt = WFormatter()
 
 	def InitDisplay(self, nav):
@@ -80,7 +81,12 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 		super(TimeTempScreenDesc, self).InitDisplay(nav)
 		self.repaintClock()
 
+	def ExitScreen(self):
+		super(TimeTempScreenDesc, self).ExitScreen()
+		self.nextt = 0
+
 	def repaintClock(self):
+		if (self.nextt != 0) and (time.time()-self.nextt > 2): print('Late clock' + str(time.time() - self.nextt) + ' ' + str(self.nextt))
 		h = 0
 		#h = self.startvertspace
 		renderedforecast  = []
@@ -196,7 +202,9 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 			if self.FcstLayout == '2ColVert': pygame.draw.line(config.screen,wc('white'),(usewidth,startvert+fcstvert//3),(usewidth,maxvert + 2*fcstvert/3))
 
 		pygame.display.update()
+		#print(self.name+' AddTask')
 		config.DS.Tasks.AddTask(self.ClockRepaintEvent, 1)
+		self.nextt = self.ClockRepaintEvent.abstime
 
 
 screens.screentypes["TimeTemp"] = TimeTempScreenDesc

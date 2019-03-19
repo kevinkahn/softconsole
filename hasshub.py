@@ -805,10 +805,16 @@ class HA(object):
 			T._connectsensors(tsensor)
 		self.haconnectstate = "Init"
 		self.knownservices = ha.get_services(self.api)
-		print('Services:')
-		for d in self.knownservices:
-			print(d['domain'])
-			print(d['services']) #todo
+		if config.versionname == 'development':
+			with open(config.homedir + '/Console/HAservices', 'w') as f:
+				for d in self.knownservices:
+
+					print(d['domain'], file=f)
+					for s, c in d['services'].items():
+						print('    {}'.format(s), file = f)
+						print('         {}'.format(c) , file=f)
+					#todo
+					print('==================', file=f)
 		#listeners = ha.get_event_listeners(self.api)
 		logsupport.Logs.Log(self.name + ": Processed " + str(len(self.Entities)) + " total entities")
 		logsupport.Logs.Log("    Lights: " + str(len(self.Lights)) + " Switches: " + str(len(self.Switches)) +
