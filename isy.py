@@ -488,7 +488,7 @@ class ISY(object):
 	def try_ISY_comm(self, urlcmd, timeout=5, closeonfail=True, doasync=False):
 
 		if doasync:
-			print('Push to async' + urlcmd + ' Async:' + str(doasync) + str(timeout) + str(closeonfail))
+			#print('Push to async' + urlcmd + ' Async:' + str(doasync) + str(timeout) + str(closeonfail))
 			#print(str(threading.active_count()) + ' threads active')
 			t = threading.Thread(name='ISY-' + urlcmd, target=self.try_ISY_comm, daemon=True,
 								 args=(urlcmd, timeout, closeonfail, False))
