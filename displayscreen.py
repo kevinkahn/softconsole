@@ -356,9 +356,9 @@ class DisplayScreen(object):
 					self.HBEvents.Entry('Task Empty')
 					debug.debugPrint('Dispatch', 'Empty Task Event fired')
 					continue  # some deleted task cleared
-				elif time.time() - E.abstime > 1:
+				elif time.time() - E.abstime > 2:
 					if config.versionname in ('development', 'homerelease'):
-						logsupport.Logs.Log("Late task" + str(time.time()-E.abstime) + ' ' + repr(E), severity=ConsoleError)
+						logsupport.Logs.Log("Late task" + str(time.time()-E.abstime) + ' ' + repr(E), severity=ConsoleError, hb=True)
 				if isinstance(E, ProcEventItem):  # internal proc fired
 					self.HBEvents.Entry('Proc Event' + repr(E))
 					debug.debugPrint('Dispatch', 'Task ProcEvent fired: ', E)

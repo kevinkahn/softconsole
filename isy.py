@@ -1,6 +1,7 @@
 import collections
 
 import hw
+import threading
 import isycodes
 import historybuffer
 
@@ -474,7 +475,7 @@ class ISY(object):
 				if old != new:
 					val = int(new)  # ISY V4 only allows integer variable values - may change in V5
 					varid = storeitem.Attribute
-					self.try_ISY_comm('vars/set/' + str(varid[0]) + '/' + str(varid[1]) + '/' + str(val), retryasync=True)
+					self.try_ISY_comm('vars/set/' + str(varid[0]) + '/' + str(varid[1]) + '/' + str(val), doasync=True)
 			else:
 				logsupport.Logs.Log("Attempt to set ISY var to None: ", storeitem.name)
 
@@ -484,22 +485,36 @@ class ISY(object):
 		for nm, N in self._NodesByFullName.items():
 			if isinstance(N, Node): self._check_real_time_node_status(N)
 
-	def try_ISY_comm(self, urlcmd, timeout=5, closeonfail=True, retryasync=False):
+	def try_ISY_comm(self, urlcmd, timeout=5, closeonfail=True, doasync=False):
+
+		if doasync:
+			print('Push to async' + urlcmd + ' Async:' + str(doasync) + str(timeout) + str(closeonfail))
+			#print(str(threading.active_count()) + ' threads active')
+			t = threading.Thread(name='ISY-' + urlcmd, target=self.try_ISY_comm, daemon=True,
+								 args=(urlcmd, timeout, closeonfail, False))
+			t.start()
+			return ""
+		else:
+			if threading.current_thread() == threading.main_thread():
+				thrd = 'main thread'
+			else:
+				thrd = 'asyn thread'
+			#print('Do cmd in ' + threading.current_thread().name + ' ' + urlcmd + ' Async:' + str(doasync) + str(timeout) + str(closeonfail))
 		error = ['Errors']
 		busyloop = 0 #todo do Busy case and retry case async
 		while self.Busy != 0:
 			busyloop += 1
 			time.sleep(1)
 			if busyloop % 30 == 0:
-				logsupport.Logs.Log("{} comm request waiting on busy ISY for {} seconds".format(self.name, busyloop))
+				logsupport.Logs.Log("{} comm request waiting on busy ISY for {} seconds in {}".format(self.name, busyloop, thrd))
 			if busyloop > 180:
 				if closeonfail:
-					logsupport.Logs.Log("{} seems stuck busy (fatal)".format(self.name), severity=ConsoleError, hb=True)
+					logsupport.Logs.Log("{} seems stuck busy (fatal) in {}".format(self.name, thrd), severity=ConsoleError, hb=True)
 					self._HubOnline = False
 					self.isyEM.EndWSServer()
 					return ""
 				else:
-					logsupport.Logs.Log("{} seems stuck busy (non-fatal)".format(self.name), severity=ConsoleError,
+					logsupport.Logs.Log("{} seems stuck busy (non-fatal) in {}".format(self.name, thrd), severity=ConsoleError,
 										hb=True)
 					return ""
 
@@ -553,7 +568,7 @@ class ISY(object):
 				else:
 					if i != 0:
 						logsupport.Logs.Log(self.name + " required ", str(i + 1) + " tries over " +
-											str(time.time() - reqtm) + " seconds " + str(error))
+											str(time.time() - reqtm) + " seconds in" + thrd + ' ' + str(error) + ' Cmd: ' + urlcmd)
 					self.HBDirect.Entry(r.text)
 					return r.text
 			except CommsError:
