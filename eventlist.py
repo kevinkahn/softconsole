@@ -101,6 +101,7 @@ class EventList(object):
 			evnt.onlist = True
 			heappush(self.List, (evnt.abstime, evnt))
 		T = self.TimeToNext()
+		self.HB.Entry('Set next: {} delta {}'.format(time.time()+T, T))
 		debug.debugPrint('EventList', self.RelNow(), ' Add: ', dt, evnt, T)
 		# debug.debugPrint('EventList', self.RelNow(), ' Add: ', dt, item,T,self.PrettyList(self.List))
 		pygame.time.set_timer(self.TASKREADY.type, T)
