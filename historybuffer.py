@@ -47,7 +47,7 @@ def DumpAll(idline, entrytime):
 			more = False
 		with open(fn, 'w') as f:
 			prevtime = 0
-			f.write(entrytime + ': ' + idline + '\n')
+			f.write('{} ({}): '.format(entrytime, now) + idline + '\n')
 			while more:
 				nextup = min(curtime, key=curtime.get)
 				if curtime[nextup] > prevtime:
