@@ -148,7 +148,7 @@ class EventList(object):
 		if T is not None:
 			DiffToSched = T[0] - time.time()
 			if DiffToSched <= epsilon:  # task is due
-				self.HB.Entry('PopTask: ' + repr(T))
+				self.HB.Entry('PopTask: ' + str(time.time()) + ' Item: '+ repr(T))
 				I = heappop(self.List)[1]
 				I.onlist = False
 				del self.finder[id(I)]

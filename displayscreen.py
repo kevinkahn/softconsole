@@ -1,7 +1,7 @@
 import os
 import sys
 import time
-from collections import OrderedDict
+from collections import OrderedDict, deque
 
 import exitutils
 import alerttasks
@@ -153,13 +153,15 @@ class DisplayScreen(object):
 			self.SwitchScreen(InitScreen, 'Bright', 'Home', 'Startup')
 
 		statusperiod = time.time()
+		cyclehistory = deque((-1, -1, -1, -1, -1, -1, -1, -1, -1, -1))
 		prevstatus = ''
 
 		while config.Running:  # Operational Control Loop
-			if statusperiod <= time.time() or prevstatus != config.consolestatus:
+			nowtime = time.time()
+			if statusperiod <= nowtime or prevstatus != config.consolestatus:
 				ReportStatus(config.consolestatus)
 				prevstatus = config.consolestatus
-				statusperiod = time.time() + 60
+				statusperiod = nowtime + 60
 
 			if not threadmanager.Watcher.is_alive():
 				logsupport.Logs.Log("Threadmanager Failure", severity=ConsoleError,tb=False)
@@ -188,6 +190,10 @@ class DisplayScreen(object):
 				event = pygame.event.Event(NOEVENT, dict={})
 			else:
 				event = pygame.fastevent.wait()  # wait for the next event: touches, timeouts, ISY changes on note
+
+			#print(cyclehistory)#  todo del
+			cyclehistory.pop()
+			cyclehistory.appendleft((nowtime%1000, event.type))
 
 			if event.type == pygame.MOUSEBUTTONDOWN:
 				self.HBEvents.Entry('MouseDown' + str(event.pos))
@@ -352,13 +358,14 @@ class DisplayScreen(object):
 
 			elif event.type == self.Tasks.TASKREADY.type:
 				E = self.Tasks.PopTask()
+				now = time.time()
 				if E is None:
 					self.HBEvents.Entry('Task Empty')
 					debug.debugPrint('Dispatch', 'Empty Task Event fired')
 					continue  # some deleted task cleared
-				elif time.time() - E.abstime > 2:
+				elif now - E.abstime > 2:
 					if config.versionname in ('development', 'homerelease'):
-						logsupport.Logs.Log("Late task" + str(time.time()-E.abstime) + ' ' + repr(E), severity=ConsoleError, hb=True)
+						logsupport.Logs.Log("Late task by: {} Time: ".format(now - E.abstime, now) + 'Cyclestart: {} CycleHistory: {} Event: {} '.format(nowtime,cyclehistory,E), severity=ConsoleError, hb=True)
 				if isinstance(E, ProcEventItem):  # internal proc fired
 					self.HBEvents.Entry('Proc Event' + repr(E))
 					debug.debugPrint('Dispatch', 'Task ProcEvent fired: ', E)
