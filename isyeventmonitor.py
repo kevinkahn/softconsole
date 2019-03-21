@@ -414,6 +414,8 @@ class ISYEventMonitor(object):
 			except Exception as E:
 				logsupport.Logs.Log(self.hubname + " Exception in QH on message: ", repr(m), ' Excp: ', repr(E),
 									severity=ConsoleWarning)
+			self.isy.HBWS.Entry('Done: '+repr(message)) #todo try to force other thread to run
+			time.sleep(.01)
 
 		self.THstate = 'delaying'
 		logsupport.Logs.Log("{}: WS stream thread {} setup".format(self.hubname, self.QHnum))
