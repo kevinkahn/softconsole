@@ -3,11 +3,13 @@ import shutil, os
 
 Buffers = {}
 HBdir = ''
+GCBuf = None
 bufdumpseq = 0
+import gc
 
 
 def SetupHistoryBuffers(dirnm, maxlogs):
-	global HBdir
+	global HBdir, GCBuf
 	r = [k for k in os.listdir('.') if '.HistoryBuffer' in k]
 	if ".HistoryBuffer." + str(maxlogs) in r:
 		shutil.rmtree(".HistoryBuffer." + str(maxlogs))
@@ -21,6 +23,11 @@ def SetupHistoryBuffers(dirnm, maxlogs):
 		pass
 	os.mkdir('.HistoryBuffer')
 	HBdir = dirnm + '/.HistoryBuffer/'
+	gc.callbacks.append(NoteGCs)
+	GCBuf = HistoryBuffer(50,'GC')
+
+def NoteGCs(phase,info):
+	GCBuf.Entry('GC Call' + phase+repr(info))
 
 
 def DumpAll(idline, entrytime):

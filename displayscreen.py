@@ -162,7 +162,6 @@ class DisplayScreen(object):
 				ReportStatus(config.consolestatus)
 				prevstatus = config.consolestatus
 				statusperiod = nowtime + 60
-			nowtime2 = time.time()
 
 			if not threadmanager.Watcher.is_alive():
 				logsupport.Logs.Log("Threadmanager Failure", severity=ConsoleError,tb=False)
@@ -177,8 +176,10 @@ class DisplayScreen(object):
 
 			if self.Deferrals:  # an event was deferred mid screen touches - handle now
 				event = self.Deferrals.pop(0)
+				nowtime2 = 0
 				debug.debugPrint('EventList', 'Deferred Event Pop', event)
 			elif debug.dbgStore.GetVal('QDump'):
+				nowtime2 = 1
 				events = pygame.fastevent.get()
 				if events:
 					debug.debugPrint('QDump', 'Time: ', time.time())
@@ -190,6 +191,7 @@ class DisplayScreen(object):
 						time.sleep(0.01)
 				event = pygame.event.Event(NOEVENT, dict={})
 			else:
+				nowtime2 = time.time()
 				event = pygame.fastevent.wait()  # wait for the next event: touches, timeouts, ISY changes on note
 
 			nowtime3 = time.time()
