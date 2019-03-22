@@ -162,6 +162,7 @@ class DisplayScreen(object):
 				ReportStatus(config.consolestatus)
 				prevstatus = config.consolestatus
 				statusperiod = nowtime + 60
+			nowtime2 = time.time()
 
 			if not threadmanager.Watcher.is_alive():
 				logsupport.Logs.Log("Threadmanager Failure", severity=ConsoleError,tb=False)
@@ -191,8 +192,9 @@ class DisplayScreen(object):
 			else:
 				event = pygame.fastevent.wait()  # wait for the next event: touches, timeouts, ISY changes on note
 
+			nowtime3 = time.time()
 			cyclehistory.pop()
-			cyclehistory.appendleft((nowtime%1000, event.type))
+			cyclehistory.appendleft((nowtime%1000, nowtime2%1000, nowtime3%1000, event.type))
 
 			if event.type == pygame.MOUSEBUTTONDOWN:
 				self.HBEvents.Entry('MouseDown' + str(event.pos))
