@@ -67,6 +67,8 @@ def initOS(scrntyp):
 
 	screentype = scrntyp
 
+	os.nice(-10)
+
 	hostname = socket.gethostname()
 	# get platform info
 	with open('/proc/stat', 'r') as f:

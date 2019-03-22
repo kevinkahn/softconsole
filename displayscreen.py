@@ -191,7 +191,6 @@ class DisplayScreen(object):
 			else:
 				event = pygame.fastevent.wait()  # wait for the next event: touches, timeouts, ISY changes on note
 
-			#print(cyclehistory)#  todo del
 			cyclehistory.pop()
 			cyclehistory.appendleft((nowtime%1000, event.type))
 
@@ -365,7 +364,7 @@ class DisplayScreen(object):
 					continue  # some deleted task cleared
 				elif now - E.abstime > 2:
 					if config.versionname in ('development', 'homerelease'):
-						logsupport.Logs.Log("Late task by: {} Time: ".format(now - E.abstime, now) + 'Cyclestart: {} CycleHistory: {} Event: {} '.format(nowtime,cyclehistory,E), severity=ConsoleError, hb=True)
+						logsupport.Logs.Log("Late task by: {} Time: ".format(now - E.abstime, now) + 'Cyclestart: {} CycleHistory: {} Event: {} '.format(nowtime,cyclehistory,E), severity=ConsoleError, hb=True, localonly= True)
 				if isinstance(E, ProcEventItem):  # internal proc fired
 					self.HBEvents.Entry('Proc Event' + repr(E))
 					debug.debugPrint('Dispatch', 'Task ProcEvent fired: ', E)

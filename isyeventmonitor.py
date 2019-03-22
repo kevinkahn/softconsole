@@ -415,7 +415,7 @@ class ISYEventMonitor(object):
 				logsupport.Logs.Log(self.hubname + " Exception in QH on message: ", repr(m), ' Excp: ', repr(E),
 									severity=ConsoleWarning)
 			self.isy.HBWS.Entry('Done: '+repr(message)) #todo try to force other thread to run
-			time.sleep(.01)
+			time.sleep(.01) # force thread to give up processor to allow response to time events
 
 		self.THstate = 'delaying'
 		logsupport.Logs.Log("{}: WS stream thread {} setup".format(self.hubname, self.QHnum))
