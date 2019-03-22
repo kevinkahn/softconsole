@@ -364,7 +364,7 @@ class DisplayScreen(object):
 					self.HBEvents.Entry('Task Empty')
 					debug.debugPrint('Dispatch', 'Empty Task Event fired')
 					continue  # some deleted task cleared
-				elif now - E.abstime > 2:
+				elif now - E.abstime > 3:  # the value here is a tolerance for reporting purposes; mostly HA seems to grab a cpu and cause issues
 					if config.versionname in ('development', 'homerelease'):
 						logsupport.Logs.Log("Late task by: {} Time: ".format(now - E.abstime, now) + 'Cyclestart: {} CycleHistory: {} Event: {} '.format(nowtime,cyclehistory,E), severity=ConsoleError, hb=True, localonly= True)
 				if isinstance(E, ProcEventItem):  # internal proc fired

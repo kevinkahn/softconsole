@@ -70,8 +70,9 @@ class EventList(object):
 		pygame.time.set_timer(self.TASKREADY.type, 0)
 
 	def EndLongOp(self):
-		self.HB.Entry('EndLongOp')
-		pygame.time.set_timer(self.TASKREADY.type, self.TimeToNext())
+		nextdelay = self.TimeToNext()
+		self.HB.Entry('EndLongOp Next: {}'.format(nextdelay))
+		pygame.time.set_timer(self.TASKREADY.type, nextdelay)
 
 	def PrettyTime(self, t):
 		return t - self.BaseTime
@@ -138,8 +139,11 @@ class EventList(object):
 		# time in milliseconds to next task
 		T = self._TopItem()
 		if T is not None:
-			return max(int(round((T[0] - time.time())*1000)), 1)  # always at least 1 millisec if list non-empty
+			interval = max(int(round((T[0] - time.time())*1000)), 1)  # always at least 1 millisec if list non-empty
+			self.HB.Entry('TimeToNext: Abs: {} Now: {} Delta: {}'.format(T[0], time.time(), interval))
+			return interval
 		else:
+			self.HB.Entry('No TimeToNext')
 			return 0
 
 	def PopTask(self):
@@ -148,11 +152,11 @@ class EventList(object):
 		if T is not None:
 			DiffToSched = T[0] - time.time()
 			if DiffToSched <= epsilon:  # task is due
-				self.HB.Entry('PopTask: ' + str(time.time()) + ' Item: '+ repr(T))
 				I = heappop(self.List)[1]
 				I.onlist = False
 				del self.finder[id(I)]
 				nextdelay = self.TimeToNext()
+				self.HB.Entry('PopTask: ' + str(time.time()) + ' Item: {} Next: {}'.format(repr(T), nextdelay))
 				pygame.time.set_timer(self.TASKREADY.type, nextdelay)
 				debug.debugPrint('EventList', self.RelNow(), ' Pop: ', I, ' Nextdelay: ', nextdelay)
 				return I
