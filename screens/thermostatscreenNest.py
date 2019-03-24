@@ -6,7 +6,6 @@ import logsupport
 import screens.__screens as screens
 from logsupport import ConsoleWarning
 from pygame import gfxdraw
-from eventlist import ProcEventItem
 
 import config
 import debug
@@ -16,6 +15,7 @@ import utilities
 from hw import scaleW, scaleH
 from utilfuncs import wc
 import functools
+import timers
 
 
 def trifromtop(h, v, n, size, c, invert):
@@ -93,6 +93,10 @@ class NestThermostatScreenDesc(screen.BaseKeyScreenDesc):
 		self.mode = 'auto'
 		self.fan = 'auto'
 		self.modes, self.fanstates = self.ThermNode.GetModeInfo()
+		self.TimeBumpSP = None
+		self.TimeBumpModes = None
+		self.TimeBumpFan = None
+		self.TimerName = 0
 
 		for i in range(4):
 			gfxdraw.filled_trigon(self.AdjButSurf, *trifromtop(centerspacing, arrowsize//2, i + 1, arrowsize,
@@ -129,6 +133,8 @@ class NestThermostatScreenDesc(screen.BaseKeyScreenDesc):
 	def BumpTemp(self, heat, change, presstype):
 		# heat: True if heat setpoint touched False for cool
 		# change: 1 for up, -1 for down
+		if self.TimeBumpSP is not None:
+			self.TimeBumpSP.cancel() # cancel any pending timer
 		self.LocalOnly[not heat] = 0.50
 		if heat:
 			self.t_low += change
@@ -144,8 +150,9 @@ class NestThermostatScreenDesc(screen.BaseKeyScreenDesc):
 														wc(self.CharColor, factor=self.LocalOnly[1]))
 			config.screen.blit(rH, (self.SPHPosR - self.SPWdt // 2, self.SPVPos))
 			pygame.display.update(pygame.Rect(self.SPHPosR - self.SPWdt // 2, self.SPVPos, self.SPWdt, self.SPHgt))
-		config.DS.Tasks.RemoveAllGrp(id(self))  # remove any pending pushtemp
-		config.DS.Tasks.AddTask(ProcEventItem(id(self), 'pushsetpoint', self.PushTemp), 2)
+		self.TimerName += 1
+		self.TimeBumpSP = timers.OnceTimer(2.0,name='ThermostatSP'+str(self.TimerName), proc=self.PushTemp)
+		self.TimeBumpSP.start()
 
 	# push setpoint change after 2 seconds of idle
 
@@ -163,27 +170,33 @@ class NestThermostatScreenDesc(screen.BaseKeyScreenDesc):
 
 	# noinspection PyUnusedLocal
 	def BumpMode(self, presstype):
+		if self.TimeBumpModes is not None:
+			self.TimeBumpModes.cancel() # cancel any pending timer
 		self.ModeLocal = 0.5 # just do a show screen for mode and fan
 		self.modes = self.modes[1:] + self.modes[:1]
 		self.mode = self.modes[0]
 
 		debug.debugPrint('Main', "Bump mode: ", self.mode)
 		self.ShowScreen()
-		config.DS.Tasks.RemoveAllGrp(id(self)+1)  # remove any pending pushtemp
-		config.DS.Tasks.AddTask(ProcEventItem(id(self) + 1, 'pushmodes', self.PushModes), 2)
+		self.TimerName += 1
+		self.TimeBumpModes = timers.OnceTimer(2.0,name='ThermostatModes'+str(self.TimerName), proc=self.PushModes)
+		self.TimeBumpModes.start()
 
 	# push setpoint change after 2 seconds of idle
 
 	# noinspection PyUnusedLocal
 	def BumpFan(self, presstype):
+		if self.TimeBumpFan is not None:
+			self.TimeBumpFan.cancel() # cancel any pending timer
 		self.FanLocal = 0.5 # just do a show screen for mode and fan
 		self.fanstates = self.fanstates[1:] + self.fanstates[:1]
 		self.fan = self.fanstates[0]
 
-		debug.debugPrint('Main', "Bump fa: ", self.fan)
+		debug.debugPrint('Main', "Bump fan: ", self.fan)
 		self.ShowScreen()
-		config.DS.Tasks.RemoveAllGrp(id(self)+1)  # remove any pending pushtemp
-		config.DS.Tasks.AddTask(ProcEventItem(id(self) + 1, 'pushmodes', self.PushFanState), 2)
+		self.TimerName += 1
+		self.TimeBumpFan = timers.OnceTimer(2.0,name='ThermostatFan'+str(self.TimerName), proc=self.PushFanState)
+		self.TimeBumpFan.start()
 
 	# push setpoint change after 2 seconds of idle
 

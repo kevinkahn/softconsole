@@ -8,7 +8,6 @@ import pygame
 import debug
 import screen
 import utilities
-#from eventlist import ProcEventItem
 import logsupport
 from logsupport import ConsoleWarning
 from weatherfromatting import CreateWeathBlock
@@ -26,7 +25,6 @@ class ClockScreenDesc(screen.ScreenDesc):
 			self.CharSize.append(self.CharSize[-1])
 		self.KeyList = None  # no touch areas active on this screen
 		utilities.register_example("ClockScreen", self)
-		#self.ClockRepaintEvent = ProcEventItem(id(self), 'clockrepaint', self.repaintClock)
 
 		self.DecodedExtraFields = []
 		for f in self.ExtraFields:

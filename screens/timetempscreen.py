@@ -10,7 +10,6 @@ from utilfuncs import wc
 from stores import valuestore
 from weatherfromatting import CreateWeathBlock, WFormatter
 import pygame
-#from eventlist import ProcEventItem
 import logsupport
 from logsupport import ConsoleWarning
 from timers import RepeatingPost
@@ -74,7 +73,6 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 				self.DecodedFcstFields.append((self.location,'Fcst',f))
 		self.fcsticon = (self.location,'Fcst','Icon') if self.FcstIcon else None
 
-		#self.ClockRepaintEvent = ProcEventItem(id(self), 'repaintTimeTemp-'+self.name, self.repaintClock)
 		self.poster = RepeatingPost(1,paused=True, name=self.name,proc=self.repaintClock)
 		self.poster.start()
 		self.fmt = WFormatter()

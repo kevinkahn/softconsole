@@ -27,9 +27,7 @@ def SetupHistoryBuffers(dirnm, maxlogs):
 	GCBuf = HistoryBuffer(50,'GC')
 
 def NoteGCs(phase,info):
-	if GCBuf is None:
-		print('GC before setup')
-	else:
+	if GCBuf is not None:
 		#print('GC {} {}'.format(phase, repr(info)))
 		GCBuf.Entry('GC Call' + phase+repr(info))
 

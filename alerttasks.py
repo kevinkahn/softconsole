@@ -49,7 +49,7 @@ class Alert(object):
 			self.actiontarget(self)  # target is the proc
 			# noinspection PyAttributeOutsideInit
 			self.state = "Armed"
-		if isinstance(self.trigger, Periodictrigger):  # todo move inside the "proc"
+		if isinstance(self.trigger, Periodictrigger):  # todo move inside the "proc"? perhaps have a reset proc for all triggers and blindly call that here
 			SchedulePeriodicEvent(self)
 
 	def __repr__(self):
@@ -124,8 +124,6 @@ class InitTrigger(object):
 def SchedulePeriodicEvent(alert):
 	t = timers.OnceTimer(alert.trigger.NextInterval(), name=alert.name, alert=alert, type='Periodic', proc=alert.Invoke);
 	t.start()
-	# todo	perhaps	put the expected fire time in the params to check later
-
 
 class Periodictrigger(object):
 	def __init__(self, periodic, interval,timeslist):

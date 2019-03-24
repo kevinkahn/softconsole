@@ -18,7 +18,6 @@ from logsupport import ConsoleWarning, ConsoleError, ConsoleDetail, ReportStatus
 import historybuffer
 import maintscreen
 
-
 class DisplayScreen(object):
 	def __init__(self):
 
@@ -401,7 +400,9 @@ class DisplayScreen(object):
 
 			elif event.type == SchedEvent:
 				self.HBEvents.Entry('Sched event {}'.format(repr(event)))
-				print('{}: {}'.format(time.time()%1000,repr(event)))
+				print('Sched event {}'.format(repr(event)))
+				diff = time.time() - event.TargetTime
+				if abs(diff) > .4: print('{}: Late timer: {}  {}'.format(time.time(),diff%1000 ,repr(event))) #todo change to late event log
 				event.proc()
 
 
@@ -415,6 +416,5 @@ class DisplayScreen(object):
 
 		logsupport.Logs.Log('Main Loop Exit: ', config.ecode)
 		pygame.quit()
-		# noinspection PyProtectedMember
 		sys.exit(config.ecode)
-# os._exit(config.ecode)
+

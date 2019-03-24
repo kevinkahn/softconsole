@@ -1,5 +1,5 @@
 from threading import Thread, Event
-import pygame
+import pygame, time
 from controlevents import SchedEvent
 
 TimerList = {}
@@ -7,10 +7,14 @@ TimerList = {}
 
 def AddToTimerList(name, timer):
 	global TimerList
-	if name not in TimerList:
-		TimerList[name] = timer
-	else:
-		print("Dup Timer Name") # todo make log entry
+	if name in TimerList:
+		TimerList[name].cancel()
+		print("Dup Timer Name {}".format(name)) # todo make log entry
+		while name in TimerList:
+			print('Wait cancel')
+	TimerList[name] = timer
+	print("Timers : {}".format(list(TimerList.keys())))
+
 
 
 class RepeatingPost(Thread):
@@ -45,12 +49,16 @@ class RepeatingPost(Thread):
 		self.running.clear()
 
 	def run(self):
+		targettime = time.time() + self.interval
 		while not self.finished.wait(self.interval):
 			if self.running.is_set():
+				self.kwargs['TargetTime'] = targettime
 				pygame.fastevent.post(pygame.event.Event(SchedEvent, **self.kwargs))
+				targettime += self.interval
 				#self.function()
 			else:
 				self.running.wait()
+				targettime = time.time() + self.interval
 		del TimerList[self.name]
 
 
@@ -71,10 +79,13 @@ class CountedRepeatingPost(Thread):
 		self.finished.set()
 
 	def run(self):
+		targettime = time.time() + self.interval
 		while not self.finished.wait(self.interval) and self.count > 0:
+			self.kwargs['TargetTime'] = targettime
 			self.kwargs['count'] = self.count
 			self.count -= 1
 			pygame.fastevent.post(pygame.event.Event(SchedEvent, **self.kwargs))
+			targettime += self.interval
 		del TimerList[self.name]
 
 
@@ -91,6 +102,8 @@ class OnceTimer(Thread):
 		self.finished.set()
 
 	def run(self):
+
+		self.kwargs['TargetTime'] = time.time() + self.interval
 		self.finished.wait(self.interval)
 		if not self.finished.is_set():
 			pygame.fastevent.post(pygame.event.Event(SchedEvent, **self.kwargs))
