@@ -8,10 +8,11 @@ import pygame
 import debug
 import screen
 import utilities
-from eventlist import ProcEventItem
+#from eventlist import ProcEventItem
 import logsupport
 from logsupport import ConsoleWarning
 from weatherfromatting import CreateWeathBlock
+from timers import RepeatingPost
 
 
 class ClockScreenDesc(screen.ScreenDesc):
@@ -25,7 +26,7 @@ class ClockScreenDesc(screen.ScreenDesc):
 			self.CharSize.append(self.CharSize[-1])
 		self.KeyList = None  # no touch areas active on this screen
 		utilities.register_example("ClockScreen", self)
-		self.ClockRepaintEvent = ProcEventItem(id(self), 'clockrepaint', self.repaintClock)
+		#self.ClockRepaintEvent = ProcEventItem(id(self), 'clockrepaint', self.repaintClock)
 
 		self.DecodedExtraFields = []
 		for f in self.ExtraFields:
@@ -33,6 +34,8 @@ class ClockScreenDesc(screen.ScreenDesc):
 				self.DecodedExtraFields.append(f.split(':'))
 			else:
 				logsupport.Logs.Log("Incomplete field specified on clockscreen", severity=ConsoleWarning)
+		self.poster = RepeatingPost(1,paused=True, name=self.name,proc=self.repaintClock)
+		self.poster.start()
 
 	def repaintClock(self):
 		h = 0
@@ -60,11 +63,16 @@ class ClockScreenDesc(screen.ScreenDesc):
 			horiz_off = (hw.screenwidth - cb.get_width()) // 2
 			config.screen.blit(cb, (horiz_off, vert_off))
 		pygame.display.update()
-		config.DS.Tasks.AddTask(self.ClockRepaintEvent, 1)
+		#config.DS.Tasks.AddTask(self.ClockRepaintEvent, 1)
+		self.poster.resume()
 
 	def InitDisplay(self, nav):
 		super(ClockScreenDesc, self).InitDisplay(nav)
 		self.repaintClock()
+
+	def ExitScreen(self):
+		self.poster.pause()
+		screen.ScreenDesc.ExitScreen(self)
 
 
 screens.screentypes["Clock"] = ClockScreenDesc

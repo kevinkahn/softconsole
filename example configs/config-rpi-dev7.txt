@@ -11,6 +11,7 @@ include = /home/pi/Console/local/authpga.cfg, weathersources.cfg, pgaalerts.cfg,
 HomeScreenName = 'Creator Pro'
 DimLevel = 10
 DimTO = 5
+PersistTO = 3
 #DimIdleListNames = Portland, PDXTTbig, MyClock, LQTTbig, Pumpkin
 DimIdleListNames = MyClock, PDXTTbig, LQTTbig, Pumpkin
 
@@ -68,6 +69,10 @@ DefaultHub = ISY
 	Interval = 30 seconds
 	Invoke = AssignVar.Assign
 	Parameter = ISY:State:PipeTemp = MQTT:PipeTemp
+#	[[Test]]
+#	Type = Periodic
+#	Interval = 13 seconds
+#	Invoke = testalerts.AlertProc2
 
 [InternetAlertScreen]
     type = Alert

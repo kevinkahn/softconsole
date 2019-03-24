@@ -7,6 +7,7 @@ ISYAlert = pygame.USEREVENT + 3  # Mpde state change in watched node for alerts
 ISYVar = pygame.USEREVENT + 4  # Var value change for a watched variable on ISY
 GeneralRepaint = pygame.USEREVENT + 5  # force a repaint of current screen
 RunProc = pygame.USEREVENT + 6
+SchedEvent = pygame.USEREVENT + 7 # Event scheduled by new timer system
 
 NOEVENT = pygame.NOEVENT
 

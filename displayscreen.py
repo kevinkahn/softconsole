@@ -130,7 +130,8 @@ class DisplayScreen(object):
 			logsupport.Logs.Log("->" + str(a), severity=ConsoleDetail)
 
 			if a.type == 'Periodic':
-				self.Tasks.AddTask(AlertEventItem(id(a), a.name, a), a.trigger.NextInterval())
+				alerttasks.SchedulePeriodicEvent(a) #todo
+				#self.Tasks.AddTask(AlertEventItem(id(a), a.name, a), a.trigger.NextInterval())
 			elif a.type == 'NodeChange':
 				a.trigger.node.Hub.SetAlertWatch(a.trigger.node, a)
 				if a.trigger.IsTrue():
@@ -391,11 +392,18 @@ class DisplayScreen(object):
 												severity=ConsoleDetail, hb=True)
 						E.alert.state = 'Armed'
 					if isinstance(E.alert.trigger, alerttasks.Periodictrigger):
+						print("***Huh?***")
 						self.Tasks.AddTask(E, E.alert.trigger.NextInterval())
 				else:
 					self.HBEvents.Entry('Unknown Event' + repr(E))
 					# unknown eevent?
 					debug.debugPrint('Dispatch', 'TASKREADY found unknown event: ', E)
+
+			elif event.type == SchedEvent:
+				self.HBEvents.Entry('Sched event {}'.format(repr(event)))
+				print('{}: {}'.format(time.time()%1000,repr(event)))
+				event.proc()
+
 
 			elif event.type == RunProc:
 				self.HBEvents.Entry('Run procedure {}'.format(event.name))

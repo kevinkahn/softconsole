@@ -8,6 +8,7 @@ from logsupport import ConsoleWarning, ConsoleDetail, ConsoleError
 from stores import valuestore
 from controlevents import *
 import debug
+import timers
 
 from datetime import datetime
 from dateutil.parser import parse
@@ -48,6 +49,8 @@ class Alert(object):
 			self.actiontarget(self)  # target is the proc
 			# noinspection PyAttributeOutsideInit
 			self.state = "Armed"
+		if isinstance(self.trigger, Periodictrigger):  # todo move inside the "proc"
+			SchedulePeriodicEvent(self)
 
 	def __repr__(self):
 		if isinstance(self.actiontarget, screen.ScreenDesc):
@@ -117,6 +120,12 @@ class VarChangeTrigger(object):
 class InitTrigger(object):
 	def __init__(self):
 		pass
+
+def SchedulePeriodicEvent(alert):
+	t = timers.OnceTimer(alert.trigger.NextInterval(), name=alert.name, alert=alert, type='Periodic', proc=alert.Invoke);
+	t.start()
+	# todo	perhaps	put the expected fire time in the params to check later
+
 
 class Periodictrigger(object):
 	def __init__(self, periodic, interval,timeslist):

@@ -354,8 +354,7 @@ class ISYEventMonitor(object):
 								# logsupport.Logs.Log(self.hubname, " cleared busy")
 								if now - self.isy.Busy > 10:
 									logsupport.Logs.Log(
-										"{}: busy for {:.4f} seconds".format(self.hubname, now - self.isy.Busy),
-										hb=True)
+										"{}: busy for {:.4f} seconds".format(self.hubname, now - self.isy.Busy))
 								self.isy.Busy = 0
 							else:
 								logsupport.Logs.Log(self.hubname, " reported stand-alone not busy")
@@ -363,7 +362,7 @@ class ISYEventMonitor(object):
 							logsupport.Logs.Log(self.hubname, " reported System Status: ", str(eaction))
 
 					if ecode == "ST" or (ecode == "_3" and eaction == "CE"):
-						if self.LastMsgErr[0] != '***' and (BaseAddr(self.LastMsgErr[0]) == BaseAddr(enode)): # fix someday for v5
+						if self.LastMsgErr[0] != '***' and (BaseAddr(self.LastMsgErr[0]) == BaseAddr(enode)): # todo fix someday for v5
 							# ERR msg followed by clearing - ISY weirdness?
 							logsupport.Logs.Log(
 								"{} reported and immediately cleared error for node: {} ({}) (seq:{}/{})".format(

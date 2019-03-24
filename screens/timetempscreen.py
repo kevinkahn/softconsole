@@ -10,9 +10,11 @@ from utilfuncs import wc
 from stores import valuestore
 from weatherfromatting import CreateWeathBlock, WFormatter
 import pygame
-from eventlist import ProcEventItem
+#from eventlist import ProcEventItem
 import logsupport
 from logsupport import ConsoleWarning
+from timers import RepeatingPost
+
 
 def extref(listitem, indexitem):
 	try:
@@ -72,23 +74,21 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 				self.DecodedFcstFields.append((self.location,'Fcst',f))
 		self.fcsticon = (self.location,'Fcst','Icon') if self.FcstIcon else None
 
-		self.ClockRepaintEvent = ProcEventItem(id(self), 'repaintTimeTemp-'+self.name, self.repaintClock)
-		self.nextt = 0
+		#self.ClockRepaintEvent = ProcEventItem(id(self), 'repaintTimeTemp-'+self.name, self.repaintClock)
+		self.poster = RepeatingPost(1,paused=True, name=self.name,proc=self.repaintClock)
+		self.poster.start()
 		self.fmt = WFormatter()
 
 	def InitDisplay(self, nav):
-		# self.PaintBase()
 		super(TimeTempScreenDesc, self).InitDisplay(nav)
 		self.repaintClock()
 
 	def ExitScreen(self):
+		self.poster.pause()
 		super(TimeTempScreenDesc, self).ExitScreen()
-		self.nextt = 0
 
 	def repaintClock(self):
-		if (self.nextt != 0) and (time.time()-self.nextt > 2): print('Late clock' + str(time.time() - self.nextt) + ' ' + str(self.nextt))
 		h = 0
-		#h = self.startvertspace
 		renderedforecast  = []
 		sizeindex = 0
 		renderedtime = []
@@ -164,8 +164,6 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 			s = (self.useablevertspace - h)/(spaces + forecastlines - 1)
 			extraspace = (self.useablevertspace - h - s*(spaces + forecastlines - 1))/spaces
 
-			#self.PaintBase()
-			#vert_off = screens.topborder
 			vert_off = self.startvertspace
 			self.ReInitDisplay()
 			for tmlbl in renderedtimelabel:
@@ -202,9 +200,8 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 			if self.FcstLayout == '2ColVert': pygame.draw.line(config.screen,wc('white'),(usewidth,startvert+fcstvert//3),(usewidth,maxvert + 2*fcstvert/3))
 
 		pygame.display.update()
-		#print(self.name+' AddTask')
-		config.DS.Tasks.AddTask(self.ClockRepaintEvent, 1)
-		self.nextt = self.ClockRepaintEvent.abstime
+		self.poster.resume()
+		#config.DS.Tasks.AddTask(self.ClockRepaintEvent, 1)
 
 
 screens.screentypes["TimeTemp"] = TimeTempScreenDesc

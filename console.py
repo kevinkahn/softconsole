@@ -30,6 +30,7 @@ from configobj import ConfigObj, Section
 import config
 import screens.__screens as screens
 import debug
+import timers
 from stores import mqttsupport, valuestore, localvarsupport, sysstore
 
 config.sysStore = valuestore.NewValueStore(sysstore.SystemStore('System'))
@@ -90,6 +91,12 @@ def handler(signum, frame):
 	if signum in (signal.SIGTERM, signal.SIGINT):
 		logsupport.Logs.Log(u"Console received a termination signal ", str(signum), u" - Exiting")
 		hw.GoBright(100)
+		tList = dict(timers.TimerList)
+		for n, t in tList.items():
+			if t.is_alive():
+				print('Cancel {}'.format(n))
+				t.cancel()
+		time.sleep(1)
 		pygame.display.quit()
 		pygame.quit()
 		# noinspection PyProtectedMember
