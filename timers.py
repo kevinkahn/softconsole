@@ -50,7 +50,7 @@ def ShutTimers():
 	for n, t in tList.items():
 		if t.is_alive():
 			print('Cancel {}'.format(n))
-			logsupport.Logs.Log('Shutting down timer: {}:'.format(n))
+			logsupport.Logs.Log('Shutting down timer: {}'.format(n))
 			t.cancel()
 	time.sleep(1)
 
@@ -76,8 +76,14 @@ class RepeatingPost(Thread):
 		"""Stop the timer if it hasn't finished yet."""
 		self.finished.set()
 		self.running.set()
+		temp = 5
 		while self.is_alive():
+			TimerHB.Entry("Cancelling repeater: {}".format(self.name))
 			time.sleep(0) # wait for thread to finish to avoid any late activations causing races
+			temp -= 1
+			if temp < 0:
+				logsupport.Logs.Log("RepeatingPost {} won't cancel finished: {} running: {}".format(self.name,self.finished.is_set(),self.running.is_set()),severity=logsupport.ConsoleError,hb=True)
+				return
 		TimerHB.Entry("Canceled repeater: {}".format(self.name))
 
 	def resume(self):

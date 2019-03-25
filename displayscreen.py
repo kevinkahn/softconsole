@@ -191,10 +191,11 @@ class DisplayScreen(object):
 			else:
 				nowtime2 = time.time()
 				event = pygame.fastevent.wait()  # wait for the next event: touches, timeouts, ISY changes on note
+				self.HBEvents.Entry("Main event waited {} at {} in loop started at {} for {}".format(time.time()-nowtime2,time.time(), nowtime,event))
 
 			nowtime3 = time.time()
 			cyclehistory.pop()
-			cyclehistory.appendleft((nowtime%1000, nowtime2%1000, nowtime3%1000, event.type))
+			cyclehistory.appendleft((nowtime%1000, nowtime2%1000, nowtime3%1000, event.type)) #todo del
 
 			if event.type == pygame.MOUSEBUTTONDOWN:
 				self.HBEvents.Entry('MouseDown' + str(event.pos))
@@ -367,6 +368,7 @@ class DisplayScreen(object):
 					#print('{}: Late timer: {}  {}'.format(time.time(),diff%1000 ,repr(event))) #todo change to late event log
 					logsupport.Logs.Log('Timer late by {} seconds. Event: {}'.format(diff, repr(event)), severity=ConsoleWarning, hb=True)
 					self.HBEvents.Entry('Event late by {} target: {} now: {}'.format(diff,event.TargetTime, eventnow))
+					self.HBEvents.Entry('Cycle history: {}'.format(cyclehistory))
 				event.proc(event)
 
 			elif event.type == RunProc:
