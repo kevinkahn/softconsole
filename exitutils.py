@@ -10,6 +10,7 @@ import hw
 import logsupport
 from logsupport import ConsoleError
 import historybuffer
+import timers
 
 from utilfuncs import *
 
@@ -71,6 +72,7 @@ def EarlyAbort(scrnmsg):
 	pygame.display.update()
 	print (time.strftime('%m-%d-%y %H:%M:%S'), scrnmsg)
 	time.sleep(10)
+	timers.ShutTimers()
 	pygame.quit()
 	# noinspection PyProtectedMember
 	sys.exit(EARLYABORT)

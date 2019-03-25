@@ -378,6 +378,7 @@ class DisplayScreen(object):
 									tb=False)
 
 		logsupport.Logs.Log('Main Loop Exit: ', config.ecode)
+		timers.ShutTimers()
 		pygame.quit()
 		sys.exit(config.ecode)
 

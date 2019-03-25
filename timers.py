@@ -45,7 +45,14 @@ def AddToTimerList(name, timer):
 	TimerHB.Entry("Timers : {}".format(printlist))
 	#print("Timers : {}".format(printlist))
 
-
+def ShutTimers():
+	tList = dict(TimerList)
+	for n, t in tList.items():
+		if t.is_alive():
+			print('Cancel {}'.format(n))
+			logsupport.Logs.Log('Shutting down timer: {}:'.format(n))
+			t.cancel()
+	time.sleep(1)
 
 class RepeatingPost(Thread):
 	"""
