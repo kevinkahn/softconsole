@@ -177,13 +177,13 @@ At startup the console registers itself with the broker with a message to **cons
 The consoles will also coordinate their Warning/Error messages.  A console log will now contain a copy of such messges issued by other consoles.  An attempt is made to coalesce messages when multiple consoles see the same issue at the same time.  If you scan the log from any one console, in addition to clearing its own error indicator, it will also cause the indicators for other consoles to be cleared provided that the log you scanned has been up long enough to have contained all the errors from that other console.  This generally means that scanning the log of a single console will let you see any errors that have occurred elsewhere in the house.
 
 Finally, the consoles will accept commands from MQTT.  A console listens on the topics **consoles/all/set** and **consoles/\<hostname\>/set** for store name and value to be set in a variable (json encoded).  A console also listens on **consoles/all/cmd** and /**consoles/\<hostname\>/cmd** for the following commands:
-* DoRestart: restart the console
-* GetStable: fetch the current stable release
-* GetBeta: fetch the current beta release
-* UseStable: set the console to start the stable version at next restart
-* UseBeta: set the console to start the beta version at the next restart
-* Status: issue a status message to MQTT
-* IssueError, IssueWarning, IssueInfo,HBDump: diagnostic/debug commands
+* restart: restart the console
+* getstable: fetch the current stable release
+* getbeta: fetch the current beta release
+* usestable: set the console to start the stable version at next restart
+* usebeta: set the console to start the beta version at the next restart
+* status: issue a status message to MQTT
+* issueError, issueWarning, issueInfo,hbdump: diagnostic/debug commands
 
 # Currently supported screens
 * Keypad: mimics the KPL.  Can support any number of buttons from 1 to 25 and will autoplace/autosize buttons in this range.  Parmetrs KeysPerColumn and KeysPerRow may be used to override the auto placement of the keys.  Keys may be colored as desired.  Key types are:

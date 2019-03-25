@@ -312,7 +312,7 @@ def ReportStatus(status, retain=True):
 		Logs.PeriodicRemoteDump()
 
 
-def UpdateGlobalErrorPointer():
+def UpdateGlobalErrorPointer(force=False):
 	if primaryBroker is not None:
-		primaryBroker.Publish('set', payload='{"name":"System:GlobalLogViewTime","value":' + str(
-			config.sysStore.LogStartTime) + '}', node='all')
+		ltime = 0 if force else config.sysStore.LogStartTime
+		primaryBroker.Publish('set', payload='{"name":"System:GlobalLogViewTime","value":' + str(ltime) + '}', node='all')

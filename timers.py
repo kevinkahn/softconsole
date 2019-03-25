@@ -70,6 +70,7 @@ class RepeatingPost(Thread):
 		if not paused: self.running.set()
 		AddToTimerList(self.name, self)
 		if start: self.start()
+		self.cumulativeslip = 0 # for analysis purposes
 
 	def cancel(self):
 		"""Stop the timer if it hasn't finished yet."""
@@ -94,10 +95,11 @@ class RepeatingPost(Thread):
 			if not self.finished.is_set():
 				if self.running.is_set():
 					self.kwargs['TargetTime'] = targettime
-					TimerHB.Entry('Post repeater: {} diff: {} args: {}'.format(self.name, time.time()- targettime, self.kwargs))
+					diff = time.time()- targettime
+					self.cumulativeslip += diff
+					TimerHB.Entry('Post repeater: {} diff: {} cumm: {} args: {}'.format(self.name, diff, self.cumulativeslip, self.kwargs))
 					pygame.fastevent.post(pygame.event.Event(SchedEvent, **self.kwargs))
-					targettime += self.interval
-					#self.function()
+					targettime = time.time() + self.interval # don't accumulate errors
 				else:
 					self.running.wait()
 					targettime = time.time() + self.interval

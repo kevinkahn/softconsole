@@ -42,7 +42,7 @@ def debugPrintReal(flag, *args):
 
 debugPrint = debugPrintEarly
 DbgFlags = ['Main', 'DaemonCtl', 'DaemonStream', 'Screen', 'ISYdbg', 'ISYchg', 'HASSgeneral', 'HASSchg', 'Dispatch', 'EventList', 'Fonts', 'DebugSpecial',
-			'QDump', 'LLTouch', 'Touch', 'ISYDump', 'ISYLoad', 'StoreTrack', 'StoresDump', 'StatesDump', 'AlertsTrace', 'AlertsCheck']
+			'QDump', 'LLTouch', 'Touch', 'ISYDump', 'ISYLoad', 'StoreTrack', 'StoresDump', 'StatesDump', 'AlertsTrace', 'AlertsCheck','ForceLogClear']
 DebugFlagKeys = {}
 dbgStore = valuestore.NewValueStore(valuestore.ValueStore('Debug'))
 dbgStore.SimpleInit(DbgFlags,False)
@@ -76,6 +76,7 @@ def InitFlags(sect):
 		dbgStore.AddAlert(flg,OptimizeDebug)
 	dbgStore.AddAlert('StoresDump',StoresDump)
 	dbgStore.AddAlert('AlertsCheck',AlertsCheck)
+	dbgStore.AddAlert('ForceLogClear',ForceClear)
 	if flgCount > 0:
 		debugPrint = debugPrintReal
 	else:
@@ -126,4 +127,9 @@ def AlertsCheck(store,old,new,param,_):
 	if not new: return
 	DumpAlerts()
 	dbgStore.SetVal('AlertsCheck', False)
+
+def ForceClear(store,old,new,param,_):
+	if not new: return
+	logsupport.UpdateGlobalErrorPointer(force=True)
+	dbgStore.SetVal('ForceLogClear', False)
 
