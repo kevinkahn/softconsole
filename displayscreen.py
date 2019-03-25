@@ -366,7 +366,7 @@ class DisplayScreen(object):
 				diff = eventnow - event.TargetTime
 				if abs(diff) > 1.2:
 					#print('{}: Late timer: {}  {}'.format(time.time(),diff%1000 ,repr(event))) #todo change to late event log
-					logsupport.Logs.Log('Timer late by {} seconds. Event: {}'.format(diff, repr(event)), severity=ConsoleWarning, hb=True)
+					logsupport.Logs.Log('Timer late by {} seconds. Event: {}'.format(diff, repr(event)), severity=ConsoleWarning, hb=True, localonly=True)
 					self.HBEvents.Entry('Event late by {} target: {} now: {}'.format(diff,event.TargetTime, eventnow))
 					self.HBEvents.Entry('Cycle history: {}'.format(cyclehistory))
 				event.proc(event)
