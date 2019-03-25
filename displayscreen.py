@@ -12,8 +12,6 @@ import logsupport
 import screens.__screens as screens
 import threadmanager
 from controlevents import *
-from eventlist import ProcEventItem
-from eventlist import EventList
 from logsupport import ConsoleWarning, ConsoleError, ConsoleDetail, ReportStatus
 import historybuffer
 import maintscreen
@@ -30,8 +28,6 @@ class DisplayScreen(object):
 		self.dim = 'Bright'  # either Bright or Dim (or '' for don't change when a parameter
 		self.state = 'Home'  # one of Home, NonHome, Maint, Cover, Alert
 
-		# Central Task List
-		self.Tasks = EventList()
 		self.Deferrals = []
 		self.WatchVarVals = {}  # most recent reported watched variable values
 
@@ -272,14 +268,15 @@ class DisplayScreen(object):
 			# ignore for now - handle more complex gestures here if ever needed
 
 			elif event.type == ACTIVITYTIMER:
-				self.HBEvents.Entry('ActivityTimer' + str(self.state))
 				debug.debugPrint('Dispatch', 'Activity timer fired State=', self.state, '/', self.dim)
 
 				if self.dim == 'Bright':
+					self.HBEvents.Entry('ActivityTimer(Bright) state: {}'.format(self.state))
 					config.consolestatus = 'idle'
 					self.Dim()
 					self.SetActivityTimer(self.AS.PersistTO, 'Go dim and wait persist')
 				else:
+					self.HBEvents.Entry('ActivityTimer(non-Bright) state: {}'.format(self.state))
 					if self.state == 'NonHome':
 						self.SwitchScreen(screens.HomeScreen, 'Dim', 'Home', 'Dim nonhome to dim home')
 					elif self.state == 'Home':
@@ -293,7 +290,9 @@ class DisplayScreen(object):
 							screens.DimIdleList = screens.DimIdleList[1:] + [screens.DimIdleList[0]]
 							screens.DimIdleTimes = screens.DimIdleTimes[1:] + [screens.DimIdleTimes[0]]
 					else:  # Maint or Alert - todo?
+						logsupport.Logs.Log('Activity timer fired while in state: {}'.format(self.state),severity=ConsoleWarning)
 						debug.debugPrint('Dispatch', 'TO while in: ', self.state)
+
 
 			elif event.type == GeneralRepaint:
 				self.HBEvents.Entry('General Repaint' + repr(event))
@@ -344,8 +343,6 @@ class DisplayScreen(object):
 					# condition changed under a pending action (screen or proc) so just cancel and rearm
 					debug.debugPrint('Dispatch', 'Delayed event cleared before invoke', alert.name)
 					alert.state = 'Armed'
-					self.Tasks.RemoveAllGrp(id(alert))
-					self.Tasks.RemoveAllGrp(id(alert.actiontarget))
 					# todo - verify this is correct.  Issue is that the alert might have gotten here from a delay or from the
 					# alert screen deferring.  The screen uses it's own id for this alert to might be either.  Probably should
 					# distinguish based on if delay or defer but doing both should be same id(alert.actiontarget))  originally this was id-alert for some
@@ -361,21 +358,11 @@ class DisplayScreen(object):
 				# Active and true: extaneous report
 				# Delayed or deferred and true: redundant report
 
-			elif event.type == self.Tasks.TASKREADY.type:
-				E = self.Tasks.PopTask()
-				if False:
-					pass # temp before removing TASKREADY entirely todo
-				else:
-					self.HBEvents.Entry('Unknown Event' + repr(E))
-					logsupport.Logs.Log('TASKREADY error',severity=ConsoleError,hb=True)
-					# unknown eevent?
-					debug.debugPrint('Dispatch', 'TASKREADY found unknown event: ', E)
-
 			elif event.type == SchedEvent:
 				self.HBEvents.Entry('Sched event {}'.format(repr(event)))
 				#print('Sched event {}'.format(repr(event)))
 				diff = time.time() - event.TargetTime
-				if abs(diff) > .2:
+				if abs(diff) > .5:
 					print('{}: Late timer: {}  {}'.format(time.time(),diff%1000 ,repr(event))) #todo change to late event log
 					logsupport.Logs.Log('Timer late by {} seconds. Event: {}'.format(diff, repr(event)), severity=ConsoleWarning, hb=True)
 				event.proc(event)

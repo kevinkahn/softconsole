@@ -193,9 +193,7 @@ class ScreenDesc(object):
 				pass
 
 	def ExitScreen(self):
-		config.DS.Tasks.RemoveAllGrp(id(self))  # by default delete all pending tasks override if screen needs to
-
-	# keep some tasks going
+		pass
 
 	def PaintBase(self):
 		config.screen.fill(wc(self.BackgroundColor))

@@ -123,9 +123,11 @@ class VarChangeTrigger(object):
 class InitTrigger(object):
 	def __init__(self):
 		pass
-
+AlertUnigue = 0
 def SchedulePeriodicEvent(alert):
-	t = timers.OnceTimer(alert.trigger.NextInterval(), name=alert.name, alert=alert, type='Periodic', proc=alert.Invoke);
+	global AlertUnigue
+	AlertUnigue += 1
+	t = timers.OnceTimer(alert.trigger.NextInterval(), name=alert.name+'-Periodic-'+str(AlertUnigue), alert=alert, type='Periodic', proc=alert.Invoke);
 	t.start()
 
 class Periodictrigger(object):

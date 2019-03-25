@@ -3,6 +3,7 @@ import subprocess
 import alerttasks
 import logsupport
 from stores import valuestore
+import timers
 
 class NetworkHealth(object):
 	def __init__(self):
@@ -29,7 +30,7 @@ class NetworkHealth(object):
 		var = valuestore.InternalizeVarName(alert.param[1])
 		if alert.param[0] not in self.LastState:
 			self.LastState[alert.param[0]] = True  # assume up to start
-		config.DS.Tasks.StartLongOp()
+		timers.StartLongOp('NetworkHealth')
 		if self.RobustPing(alert.param[0]):
 			if not self.LastState[alert.param[0]]:
 				self.LastState[alert.param[0]] = True
@@ -41,7 +42,6 @@ class NetworkHealth(object):
 				self.LastState[alert.param[0]] = False
 				valuestore.SetVal(var, 0) # Set down seen
 				logsupport.Logs.Log("Network down to: " + alert.param[0])
-		config.DS.Tasks.EndLongOp()
-
+		timers.EndLongOp('NetworkHealth')
 
 alerttasks.alertprocs["NetworkHealth"] = NetworkHealth

@@ -5,6 +5,7 @@ import sys
 import logsupport
 from logsupport import ConsoleWarning, ConsoleDetail, ReportStatus
 import alerttasks
+import timers
 
 
 # noinspection PyUnusedLocal
@@ -17,7 +18,7 @@ class AutoVersion(object):
 	def CheckUpToDate(alert):
 		exiting = False
 		if config.versionname not in ('none', 'development'):  # skip if we don't know what is running
-			config.DS.Tasks.StartLongOp()
+			timers.StartLongOp('AutoVersion')
 			logsupport.Logs.Log("Autoversion found named version running: ",config.versionname, severity=ConsoleDetail)
 			# noinspection PyBroadException
 			try:  # if network is down or other error occurs just skip for now rather than blow up
@@ -47,7 +48,7 @@ class AutoVersion(object):
 					logsupport.Logs.Log(
 						'Github check not available' + str(sys.exc_info()[0]) + ': ' + str(sys.exc_info()[1]),
 						severity=ConsoleWarning)
-			config.DS.Tasks.EndLongOp()
+			timers.EndLongOp('AutoVersion')
 		else:
 			logsupport.Logs.Log("Auto version found special version running: ",config.versionname)
 
