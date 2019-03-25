@@ -361,10 +361,12 @@ class DisplayScreen(object):
 			elif event.type == SchedEvent:
 				self.HBEvents.Entry('Sched event {}'.format(repr(event)))
 				#print('Sched event {}'.format(repr(event)))
-				diff = time.time() - event.TargetTime
-				if abs(diff) > .5:
-					print('{}: Late timer: {}  {}'.format(time.time(),diff%1000 ,repr(event))) #todo change to late event log
+				eventnow = time.time()
+				diff = eventnow - event.TargetTime
+				if abs(diff) > 1.2:
+					#print('{}: Late timer: {}  {}'.format(time.time(),diff%1000 ,repr(event))) #todo change to late event log
 					logsupport.Logs.Log('Timer late by {} seconds. Event: {}'.format(diff, repr(event)), severity=ConsoleWarning, hb=True)
+					self.HBEvents.Entry('Event late by {} target: {} now: {}'.format(diff,event.TargetTime, eventnow))
 				event.proc(event)
 
 			elif event.type == RunProc:

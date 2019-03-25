@@ -23,7 +23,7 @@ def SetupHistoryBuffers(dirnm, maxlogs):
 		pass
 	os.mkdir('.HistoryBuffer')
 	HBdir = dirnm + '/.HistoryBuffer/'
-	gc.callbacks.append(NoteGCs)
+	#gc.callbacks.append(NoteGCs)  todo uncomment to see GC runs for timing analysis
 	GCBuf = HistoryBuffer(50,'GC')
 
 def NoteGCs(phase,info):
