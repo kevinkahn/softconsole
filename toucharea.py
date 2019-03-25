@@ -9,8 +9,7 @@ import utilities
 from hw import scaleW, scaleH
 from utilfuncs import wc
 
-from eventlist import ProcEventItem
-import functools
+import timers
 
 
 class TouchPoint(object):
@@ -137,20 +136,19 @@ class ManualKeyDesc(TouchPoint):
 			config.screen.blit(self.KeyUnknownOverlay, (x, y))
 
 	def ScheduleBlinkKey(self, cycle):
-		config.DS.Tasks.AddTask(ProcEventItem(id(self.Screen), 'keyblink',
-											  functools.partial(self.BlinkKey, cycle)), .5)
+		timers.CountedRepeatingPost(.5,cycle,start=True,name=self.name+'-Blink',proc=self.BlinkKey)
 
-	def BlinkKey(self, cycle):
-		if cycle > 0:
+	def BlinkKey(self, event):
+		cycle = event.count
+		if cycle > 1:
 			if cycle%2 == 0:
 				self.PaintKey(ForceDisplay=True, DisplayState=True)  # force on
 			else:
 				self.PaintKey(ForceDisplay=True, DisplayState=False)  # force off
-			pygame.display.update()  # actually change the display - used to do in PaintKey but that causes redundancy
-			config.DS.Tasks.AddTask(ProcEventItem(id(self.Screen), 'keyblink',
-												  functools.partial(self.BlinkKey, cycle - 1)), .5)
 		else:
 			self.PaintKey()  # make sure to leave it in real state
+		pygame.display.update()  # actually change the display - used to do in PaintKey but that causes redundancy
+
 
 	def FindFontSize(self,lab,firstfont,shrink):
 		lines = len(lab)

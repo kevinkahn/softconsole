@@ -35,7 +35,7 @@ class ClockScreenDesc(screen.ScreenDesc):
 		self.poster = RepeatingPost(1,paused=True, name=self.name,proc=self.repaintClock)
 		self.poster.start()
 
-	def repaintClock(self):
+	def repaintClock(self, param=None):
 		h = 0
 		l = []
 

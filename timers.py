@@ -26,7 +26,7 @@ class RepeatingPost(Thread):
 
 	"""
 
-	def __init__(self, interval, paused=False, name='', **kwargs):
+	def __init__(self, interval, paused=False, start=False, name='', **kwargs):
 		Thread.__init__(self, name=name)
 		self.interval = interval
 		#self.args = args if args is not None else []
@@ -36,11 +36,14 @@ class RepeatingPost(Thread):
 		self.running = Event()
 		if not paused: self.running.set()
 		AddToTimerList(self.name, self)
+		if start: self.start()
 
 	def cancel(self):
 		"""Stop the timer if it hasn't finished yet."""
 		self.finished.set()
 		self.running.set()
+		while self.is_alive():
+			time.sleep(0) # wait for thread to finish to avoid any late activations causing races
 
 	def resume(self):
 		self.running.set()
@@ -51,19 +54,20 @@ class RepeatingPost(Thread):
 	def run(self):
 		targettime = time.time() + self.interval
 		while not self.finished.wait(self.interval):
-			if self.running.is_set():
-				self.kwargs['TargetTime'] = targettime
-				pygame.fastevent.post(pygame.event.Event(SchedEvent, **self.kwargs))
-				targettime += self.interval
-				#self.function()
-			else:
-				self.running.wait()
-				targettime = time.time() + self.interval
+			if not self.finished.is_set():
+				if self.running.is_set():
+					self.kwargs['TargetTime'] = targettime
+					pygame.fastevent.post(pygame.event.Event(SchedEvent, **self.kwargs))
+					targettime += self.interval
+					#self.function()
+				else:
+					self.running.wait()
+					targettime = time.time() + self.interval
 		del TimerList[self.name]
 
 
 class CountedRepeatingPost(Thread):
-	def __init__(self, interval, count, paused=False, name='', **kwargs):
+	def __init__(self, interval, count, paused=False, start=False, name='', **kwargs):
 		Thread.__init__(self, name=name)
 		self.interval = interval
 		#self.args = args if args is not None else []
@@ -73,10 +77,13 @@ class CountedRepeatingPost(Thread):
 		self.finished = Event()
 		self.count = count
 		AddToTimerList(self.name, self)
+		if start: self.start()
 
 	def cancel(self):
 		"""Stop the timer if it hasn't finished yet."""
 		self.finished.set()
+		while self.is_alive():
+			time.sleep(0)
 
 	def run(self):
 		targettime = time.time() + self.interval
@@ -90,16 +97,19 @@ class CountedRepeatingPost(Thread):
 
 
 class OnceTimer(Thread):
-	def __init__(self, interval, paused=False, name='', **kwargs):
+	def __init__(self, interval, paused=False, start=False, name='', **kwargs):
 		Thread.__init__(self, name=name)
 		self.interval = interval
 		self.kwargs = kwargs if kwargs is not None else {}
 		self.kwargs['name'] = name
 		self.finished = Event()
 		AddToTimerList(self.name, self)
+		if start: self.start()
 
 	def cancel(self):
 		self.finished.set()
+		while self.is_alive():
+			time.sleep(0)
 
 	def run(self):
 

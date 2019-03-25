@@ -9,6 +9,7 @@ from stores import valuestore
 from controlevents import *
 import debug
 import timers
+import historybuffer
 
 from datetime import datetime
 from dateutil.parser import parse
@@ -20,6 +21,8 @@ AlertItems = []
 
 Tests = ('EQ', 'NE')
 AlertType = ('NodeChange', 'VarChange', 'StateVarChange', 'IntVarChange', 'LocalVarChange', 'Periodic', 'TOD', 'External', 'Init')
+
+AlertsHB = historybuffer.HistoryBuffer(100, 'Alerts')
 
 class Alert(object):
 	def __init__(self, nm, atype, trigger, action, actionname, param):
@@ -40,7 +43,7 @@ class Alert(object):
 		debug.debugPrint('AlertsTrace','Alert: '+self.name+' changed from ' + self._state + ' to '+ value)
 		self._state = value
 
-	def Invoke(self):
+	def Invoke(self, param=None):
 		if isinstance(self.actiontarget, screens.screentypes["Alert"]):
 			self.state = 'Active'
 			config.DS.SwitchScreen(self.actiontarget, 'Bright', 'Alert', 'Go to alert screen', NavKeys=False)
@@ -301,3 +304,23 @@ def DumpAlerts():
 		for _, a in Alerts.AlertsList.items():
 			f.write(repr(a) + '\n')
 
+
+def HandleDeferredAlert(param):
+	print(param)
+	print(param.param)
+	alert = param.param
+	AlertsHB.Entry('Deferred Alert' + repr(alert))
+	debug.debugPrint('Dispatch', 'Deferred alert fired: ', repr(alert))
+	logsupport.Logs.Log("Deferred alert event fired" + repr(alert), severity=ConsoleDetail)
+	alert.state = 'Fired'
+	if alert.trigger.IsTrue():
+		alert.Invoke()  # defered or delayed or scheduled alert firing or any periodic
+	else:
+		if isinstance(alert.trigger, NodeChgtrigger):
+			# why not cleared before getting here?
+			logsupport.Logs.Log('NodeChgTrigger cleared while deferred: ', repr(alert),
+								severity=ConsoleDetail, hb=True)
+		elif isinstance(alert.trigger, VarChangeTrigger):
+			logsupport.Logs.Log('VarChangeTrigger cleared while deferred: ', repr(alert),
+								severity=ConsoleDetail, hb=True)
+		alert.state = 'Armed'

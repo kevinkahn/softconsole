@@ -12,7 +12,7 @@ import pygame
 import toucharea
 import supportscreens
 import functools
-from eventlist import ProcEventItem
+import timers
 
 
 # noinspection PyUnusedLocal
@@ -27,6 +27,8 @@ class OctoPrintScreenDesc(screen.BaseKeyScreenDesc):
 		self.PowerKeys = {}
 		self.Subscreen = -1
 
+		self.PollTimer = timers.RepeatingPost(5,paused=True,start=True,name=self.name+'-Poll',proc=self.ShowScreen)
+
 		screen.IncorporateParams(self, 'OctoPrint', {'KeyColor'}, screensection)
 		screen.AddUndefaultedParams(self, screensection, address='', apikey='')
 		self.title, th, self.tw = screenutil.CreateTextBlock(self.name, hw.screenheight / 12, self.CharColor, True) #todo switch to new screen sizing for title
@@ -37,7 +39,6 @@ class OctoPrintScreenDesc(screen.BaseKeyScreenDesc):
 		self.head = {"X-Api-Key": self.apikey}
 		self.url = 'http://' + self.address + ':5000'
 		retp = self.OctoGet('connection')
-		self.PollStatus = ProcEventItem(id(self), 'octopoll', self.ShowScreen)
 		if retp.status_code != 200:
 			logsupport.Logs.Log('Access to OctoPrint denied: ', retp.text, severity=logsupport.ConsoleWarning)
 
@@ -141,7 +142,7 @@ class OctoPrintScreenDesc(screen.BaseKeyScreenDesc):
 			self.files.append(f['name'])
 			self.filepaths.append(f['path'])
 		self.FileSubscreen.Initialize(self.files)
-		config.DS.Tasks.RemoveTask(self.PollStatus)
+		# there was a task remove here for the poll = todo test it live
 		self.ShowScreen()
 
 	def PreDoCancel(self, presstype):
@@ -167,10 +168,10 @@ class OctoPrintScreenDesc(screen.BaseKeyScreenDesc):
 	def InitDisplay(self, nav):
 		super(OctoPrintScreenDesc, self).InitDisplay(nav)
 		self.Subscreen = -1
+		self.PollTimer.resume()
 		self.ShowScreen()
 
-	def ShowScreen(self):
-		config.DS.Tasks.RemoveTask(self.PollStatus)
+	def ShowScreen(self,param=None):
 		if self.Subscreen == -1:
 			self.ShowControlScreen()
 		elif self.Subscreen > 0:
@@ -229,12 +230,8 @@ class OctoPrintScreenDesc(screen.BaseKeyScreenDesc):
 			config.screen.blit(i[0], i[1])
 		config.screen.blit(statusblock, ((hw.screenwidth - statusw) // 2, self.titlespace))
 
-		if self.PollStatus.OnList():
-			# there are some races where this event is still on list (probably deleted) so can't reuse
-			# but no reason to create lots of events if not needed
-			config.DS.Tasks.RemoveTask(self.PollStatus)
-			self.PollStatus = ProcEventItem(id(self), 'octopoll', self.ShowScreen)
-		config.DS.Tasks.AddTask(self.PollStatus, 5)
+	def ExitScreen(self):
+		self.PollTimer.pause()
 
 
 screens.screentypes["OctoPrint"] = OctoPrintScreenDesc

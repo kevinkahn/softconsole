@@ -1,6 +1,4 @@
-import functools
 import config
-from eventlist import ProcEventItem
 import supportscreens
 import utilities
 import debug
@@ -208,7 +206,7 @@ class SetVarKey(ManualKeyDesc):
 	# noinspection PyUnusedLocal
 	def SetVarKeyPressed(self, presstype):
 		valuestore.SetVal(self.VarName,self.Value)
-		self.BlinkKey(self.Blink)
+		self.ScheduleBlinkKey(self.Blink)
 
 class DummyProgram(object):
 	def __init__(self,kn, hn, pn):
@@ -243,8 +241,7 @@ class RunProgram(ManualKeyDesc):
 			self.Program.RunProgram()
 			config.DS.SwitchScreen(self.Screen, 'Bright', config.DS.state, 'Verify Run ' + self.Screen.name)
 			if self.Blink != 0:
-				config.DS.Tasks.AddTask(
-					ProcEventItem(id(self.Screen), 'keyblink', functools.partial(self.BlinkKey, self.Blink)), .5)
+				self.ScheduleBlinkKey(self.Blink)
 		else:
 			config.DS.SwitchScreen(self.Screen, 'Bright', config.DS.state, 'Verify Run ' + self.Screen.name)
 
@@ -255,7 +252,7 @@ class RunProgram(ManualKeyDesc):
 			self.VerifyScreen.Invoke()
 		else:
 			self.Program.RunProgram()
-			self.BlinkKey(self.Blink)
+			self.ScheduleBlinkKey(self.Blink)
 
 class OnOffKey(ManualKeyDesc):
 	def __init__(self, thisscreen, keysection, kn, keytype):
@@ -322,11 +319,11 @@ class OnOffKey(ManualKeyDesc):
 
 			if self.ControlObj is not None:
 				self.ControlObj.SendOnOffCommand(self.State, presstype)
-				self.BlinkKey(self.Blink)
+				self.ScheduleBlinkKey(self.Blink)
 			else:
 				logsupport.Logs.Log("Screen: " + self.name + " press unbound key: " + self.name,
 								severity=ConsoleWarning)
-				self.BlinkKey(20)
+				self.ScheduleBlinkKey(20)
 
 	# noinspection PyUnusedLocal
 	def VerifyPressAndReturn(self, go, presstype):
@@ -344,6 +341,6 @@ class OnOffKey(ManualKeyDesc):
 								severity=ConsoleWarning)
 
 			config.DS.SwitchScreen(self.Screen, 'Bright', config.DS.state, 'Verify Run ' + self.Screen.name)
-			self.BlinkKey(self.Blink)
+			self.ScheduleBlinkKey(self.Blink)
 		else:
 			config.DS.SwitchScreen(self.Screen, 'Bright', config.DS.state, 'Verify Run ' + self.Screen.name)

@@ -48,15 +48,6 @@ class ProcEventItem(EventItem):
 		return EventItem.__repr__(self) + ' Proc: ' + repr(self.proc)
 
 
-class AlertEventItem(EventItem):
-	def __init__(self, gpid, name, alert):
-		EventItem.__init__(self, gpid, name)
-		self.alert = alert
-		debug.debugPrint('EventList', ' Alert Item Created: ', self)
-
-	def __repr__(self):
-		return EventItem.__repr__(self) + ' Alert: ' + repr(self.alert)
-
 class EventList(object):
 	def __init__(self):
 		self.BaseTime = 0

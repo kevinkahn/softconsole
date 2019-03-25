@@ -8,10 +8,11 @@ import pygame
 import debug
 import screen
 import utilities
-from eventlist import ProcEventItem, AlertEventItem
 import keyspecs
 import logsupport
 from logsupport import ConsoleDetail
+import timers
+import alerttasks
 
 alertscreens = {}
 
@@ -28,6 +29,9 @@ class AlertsScreenDesc(screen.ScreenDesc):
 			self.MessageBack = self.BackgroundColor
 		self.DimTO = 0  # alert screens don't dim or yield voluntarily
 		self.PersistTO = 0
+		self.BlinkTimer = None
+		self.TimerName = 0
+		self.DeferTimer = None
 
 		self.Msg = True
 
@@ -78,15 +82,13 @@ class AlertsScreenDesc(screen.ScreenDesc):
 		self.messageimage.fill(wc(self.MessageBack))
 		self.messageblank.fill(wc(self.BackgroundColor))
 
-		self.BlinkEvent = ProcEventItem(id(self), 'msgblink', self.BlinkMsg)
-
 		vert_off = s / 2
 		for i in range(len(l)):
 			horiz_off = (hw.screenwidth - l[i].get_width()) / 2 - screens.horizborder
 			self.messageimage.blit(l[i], (horiz_off, vert_off))
 			vert_off = vert_off + s + l[i].get_height()
 
-		self.Alert = None
+		self.Alert = None # gets filled in by code that parses/defines an alert that invokes the screen
 		alertscreens[screenname] = self
 		self.DimTO = 0
 		self.PersistTO = 0
@@ -95,19 +97,21 @@ class AlertsScreenDesc(screen.ScreenDesc):
 	# noinspection PyUnusedLocal
 	def DeferAction(self, presstype):
 		debug.debugPrint('Screen', 'Alertscreen manual defer: ' + self.name)
-		config.DS.Tasks.RemoveAllGrp(id(self))
 		self.Alert.state = 'Deferred'
-		config.DS.Tasks.AddTask(AlertEventItem(id(self), 'self deferred screen: ' + self.name, self.Alert), self.Defer)
+		self.TimerName += 1
+		self.DeferTimer = timers.OnceTimer(self.Defer,start=True, name=self.name+'-Defer-'+str(self.TimerName), proc=alerttasks.HandleDeferredAlert,param=self.Alert)
 		config.DS.SwitchScreen(screens.HomeScreen, 'Bright', 'Home', 'Manual defer an alert')
 
-	def BlinkMsg(self):
+	def BlinkMsg(self, param):
+		if not self.BlinkTimer.is_alive():
+			# race condition posted a blink just as screen was exiting so skip screen update
+			return
 		if self.Msg:
 			config.screen.blit(self.messageimage, self.upperleft)
 		else:
 			config.screen.blit(self.messageblank, self.upperleft)
 		pygame.display.update()
 		self.Msg = not self.Msg
-		config.DS.Tasks.AddTask(self.BlinkEvent, self.BlinkTime)
 
 	def InitDisplay(self, nav):
 		super(AlertsScreenDesc, self).InitDisplay(nav)
@@ -117,7 +121,8 @@ class AlertsScreenDesc(screen.ScreenDesc):
 		pygame.display.update()
 		self.Msg = True
 		if self.BlinkTime != 0:
-			config.DS.Tasks.AddTask(self.BlinkEvent, self.BlinkTime)
+			self.TimerName += 1
+			self.BlinkTimer = timers.RepeatingPost(self.BlinkTime, name=self.name+'-Blink-'+str(self.TimerName), proc= self.BlinkMsg, start=True)
 		else:
 			config.screen.blit(self.messageimage, self.upperleft)
 			pygame.display.update()
@@ -126,10 +131,13 @@ class AlertsScreenDesc(screen.ScreenDesc):
 		logsupport.Logs.Log("ISY event to alert screen: ", self.name+ ' ' + str(node) + ' ' + str(value), severity=ConsoleDetail)
 
 	def ExitScreen(self):
-		config.DS.Tasks.RemoveAllGrp(id(self))
+		if self.BlinkTimer is not None:
+			self.BlinkTimer.cancel()
+
 		if self.Alert.trigger.IsTrue():  # if the trigger condition is still true requeue post deferral
-			config.DS.Tasks.AddTask(AlertEventItem(id(self), 'external deferred screen: ' + self.name, self.Alert),
-									self.Defer)
+			self.TimerName += 1
+			self.DeferTimer = timers.OnceTimer(self.Defer, start=True, name=self.name + '-Defer-' + str(self.TimerName),
+											   proc=alerttasks.HandleDeferredAlert, param=self.Alert)
 			debug.debugPrint('Screen', 'Alert screen defer to another screen: ' + self.name)
 			logsupport.Logs.Log("Alert screen " + self.name + " deferring", severity=ConsoleDetail)
 		else:

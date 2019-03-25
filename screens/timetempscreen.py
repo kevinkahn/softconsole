@@ -85,7 +85,7 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 		self.poster.pause()
 		super(TimeTempScreenDesc, self).ExitScreen()
 
-	def repaintClock(self):
+	def repaintClock(self, param=None):
 		h = 0
 		renderedforecast  = []
 		sizeindex = 0

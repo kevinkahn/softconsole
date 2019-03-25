@@ -12,11 +12,12 @@ import logsupport
 import screens.__screens as screens
 import threadmanager
 from controlevents import *
-from eventlist import AlertEventItem, ProcEventItem
+from eventlist import ProcEventItem
 from eventlist import EventList
 from logsupport import ConsoleWarning, ConsoleError, ConsoleDetail, ReportStatus
 import historybuffer
 import maintscreen
+import timers
 
 class DisplayScreen(object):
 	def __init__(self):
@@ -113,6 +114,8 @@ class DisplayScreen(object):
 
 	def MainControlLoop(self, InitScreen):
 
+		TimerName = 0
+
 		config.sysStore.ErrorNotice = -1  # don't pester for errors during startup
 
 		threadmanager.StartThreads()
@@ -129,8 +132,7 @@ class DisplayScreen(object):
 			logsupport.Logs.Log("->" + str(a), severity=ConsoleDetail)
 
 			if a.type == 'Periodic':
-				alerttasks.SchedulePeriodicEvent(a) #todo
-				#self.Tasks.AddTask(AlertEventItem(id(a), a.name, a), a.trigger.NextInterval())
+				alerttasks.SchedulePeriodicEvent(a)
 			elif a.type == 'NodeChange':
 				a.trigger.node.Hub.SetAlertWatch(a.trigger.node, a)
 				if a.trigger.IsTrue():
@@ -319,8 +321,8 @@ class DisplayScreen(object):
 						if alert.trigger.delay != 0:  # delay invocation
 							alert.state = 'Delayed'
 							debug.debugPrint('Dispatch', "Post with delay:", alert.name, alert.trigger.delay)
-							self.Tasks.AddTask(AlertEventItem(id(alert), 'delayed' + evtype, alert),
-											   alert.trigger.delay)
+							TimerName += 1
+							timers.OnceTimer(alert.trigger.delay, start=True, name='MainLoop'+str(TimerName),proc=alerttasks.HandleDeferredAlert,param=alert)
 						else:  # invoke now
 							alert.state = 'FiredNoDelay'
 							debug.debugPrint('Dispatch', "Invoke: ", alert.name)
@@ -361,50 +363,22 @@ class DisplayScreen(object):
 
 			elif event.type == self.Tasks.TASKREADY.type:
 				E = self.Tasks.PopTask()
-				now = time.time()
-				if E is None:
-					self.HBEvents.Entry('Task Empty')
-					debug.debugPrint('Dispatch', 'Empty Task Event fired')
-					continue  # some deleted task cleared
-				elif now - E.abstime > 3:  # the value here is a tolerance for reporting purposes; mostly HA seems to grab a cpu and cause issues
-					if config.versionname in ('development', 'homerelease'):
-						logsupport.Logs.Log("Late task by: {} Time: ".format(now - E.abstime, now) + 'Cyclestart: {} CycleHistory: {} Event: {} '.format(nowtime,cyclehistory,E), severity=ConsoleError, hb=True, localonly= True)
-				if isinstance(E, ProcEventItem):  # internal proc fired
-					self.HBEvents.Entry('Proc Event' + repr(E))
-					debug.debugPrint('Dispatch', 'Task ProcEvent fired: ', E)
-					if callable(E.proc):
-						E.proc()
-				elif isinstance(E, AlertEventItem):
-					self.HBEvents.Entry('Alert Event' + repr(E))
-					debug.debugPrint('Dispatch', 'Task AlertEvent fired: ', E)
-					logsupport.Logs.Log("Alert event fired" + str(E.alert), severity=ConsoleDetail)
-					E.alert.state = 'Fired'
-					if E.alert.trigger.IsTrue():
-						E.alert.Invoke()  # defered or delayed or scheduled alert firing or any periodic
-					else:
-						if isinstance(E.alert.trigger, alerttasks.NodeChgtrigger):
-							# why not cleared before getting here?
-							logsupport.Logs.Log('NodeChgTrigger cleared while deferred: ', repr(E.alert),
-												severity=ConsoleDetail, hb=True)
-						elif isinstance(E.alert.trigger, alerttasks.VarChangeTrigger):
-							logsupport.Logs.Log('VarChangeTrigger cleared while deferred: ', repr(E.alert),
-												severity=ConsoleDetail, hb=True)
-						E.alert.state = 'Armed'
-					if isinstance(E.alert.trigger, alerttasks.Periodictrigger):
-						print("***Huh?***")
-						self.Tasks.AddTask(E, E.alert.trigger.NextInterval())
+				if False:
+					pass # temp before removing TASKREADY entirely todo
 				else:
 					self.HBEvents.Entry('Unknown Event' + repr(E))
+					logsupport.Logs.Log('TASKREADY error',severity=ConsoleError,hb=True)
 					# unknown eevent?
 					debug.debugPrint('Dispatch', 'TASKREADY found unknown event: ', E)
 
 			elif event.type == SchedEvent:
 				self.HBEvents.Entry('Sched event {}'.format(repr(event)))
-				print('Sched event {}'.format(repr(event)))
+				#print('Sched event {}'.format(repr(event)))
 				diff = time.time() - event.TargetTime
-				if abs(diff) > .4: print('{}: Late timer: {}  {}'.format(time.time(),diff%1000 ,repr(event))) #todo change to late event log
-				event.proc()
-
+				if abs(diff) > .2:
+					print('{}: Late timer: {}  {}'.format(time.time(),diff%1000 ,repr(event))) #todo change to late event log
+					logsupport.Logs.Log('Timer late by {} seconds. Event: {}'.format(diff, repr(event)), severity=ConsoleWarning, hb=True)
+				event.proc(event)
 
 			elif event.type == RunProc:
 				self.HBEvents.Entry('Run procedure {}'.format(event.name))

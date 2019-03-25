@@ -157,15 +157,15 @@ class NestThermostatScreenDesc(screen.BaseKeyScreenDesc):
 	# push setpoint change after 2 seconds of idle
 
 
-	def PushTemp(self):
+	def PushTemp(self, param):
 		# called on callback timeout
 		self.ThermNode.PushSetpoints(self.t_low,self.t_high)
 
-	def PushModes(self):
+	def PushModes(self, param):
 		# called on callback timeout
 		self.ThermNode.PushMode(self.mode)
 
-	def PushFanState(self):
+	def PushFanState(self, param):
 		self.ThermNode.PushFanState(self.fan)
 
 	# noinspection PyUnusedLocal
