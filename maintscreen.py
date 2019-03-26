@@ -19,6 +19,7 @@ import time
 import utilities
 import screen
 import githubutil as U
+import timers
 
 MaintScreen = None
 fixedoverrides = {'CharColor': 'white', 'BackgroundColor': 'royalblue', 'label': ['Maintenance'], 'DimTO': 60,
@@ -272,11 +273,13 @@ class LogDisplayScreen(screen.BaseKeyScreenDesc):
 		self.item = 0
 		self.PageStartItem = [0]
 		self.pageno = -1
+		timers.StartLongOp('logdisplay')
 		self.NextPage(0)
 		while (self.item < startat) and (
 				self.item != -1):  # if first error not yet up and not last page go to next page
 			time.sleep(.5)
 			self.NextPage(0)
+		timers.EndLongOp('logdisplay')
 
 
 class MaintScreenDesc(screen.BaseKeyScreenDesc):

@@ -389,7 +389,7 @@ class DisplayScreen(object):
 			else:
 				logsupport.Logs.Log("Unknown main event {}".format(repr(event)), severity=ConsoleError, hb=True,
 									tb=False)
-			if time.time() - postwaittime > 2: # this loop took a long time
+			if time.time() - postwaittime > 2 and not timers.LongOpInProgress: # this loop took a long time
 				logsupport.Logs.Log("Slow loop at {} took {} for {}".format(time.time(),time.time()-postwaittime,event),severity=ConsoleWarning, hb=True, localonly=True)
 
 		logsupport.Logs.Log('Main Loop Exit: ', config.ecode)
