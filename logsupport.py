@@ -314,5 +314,10 @@ def ReportStatus(status, retain=True):
 
 def UpdateGlobalErrorPointer(force=False):
 	if primaryBroker is not None:
-		ltime = 0 if force else config.sysStore.LogStartTime
-		primaryBroker.Publish('set', payload='{"name":"System:GlobalLogViewTime","value":' + str(ltime) + '}', node='all')
+		if force:
+			primaryBroker.Publish('set', payload='{"name":"System:GlobalLogViewTime","value":' + str(1) + '}',
+								  node='all')
+			primaryBroker.Publish('set', payload='{"name":"System:GlobalLogViewTime","value":' + str(0) + '}',
+								  node='all')
+		else:
+			primaryBroker.Publish('set', payload='{"name":"System:GlobalLogViewTime","value":' + str(config.sysStore.LogStartTime) + '}', node='all')
