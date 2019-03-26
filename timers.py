@@ -3,6 +3,7 @@ import pygame, time
 from controlevents import SchedEvent
 import historybuffer
 import logsupport
+import config, os, signal
 
 TimerList = {}
 TimerHB = historybuffer.HistoryBuffer(100, 'Timers')
@@ -45,12 +46,22 @@ def AddToTimerList(name, timer):
 	TimerHB.Entry("Timers : {}".format(printlist))
 	#print("Timers : {}".format(printlist))
 
+def KillMe():
+	print("Failsafe hit")
+	logsupport.Logs.log("Failsafe hit")
+	time.sleep(1)
+	os.kill(config.Console_pid,signal.SIGKILL)
+
+
 def ShutTimers():
+	failsafe = OnceTimer(5,start=False,name='Failsafe',proc=KillMe)
+	failsafe.daemon = True
+	failsafe.start()
 	tList = dict(TimerList)
 	for n, t in tList.items():
 		if t.is_alive():
-			print('Cancel {}'.format(n))
-			logsupport.Logs.Log('Shutting down timer: {}'.format(n))
+			print('Cancel {} {}'.format(n,t.name))
+			logsupport.Logs.Log('Shutting down timer: {} {}'.format(n,t.name))
 			t.cancel()
 	time.sleep(1)
 
@@ -74,14 +85,19 @@ class RepeatingPost(Thread):
 
 	def cancel(self):
 		"""Stop the timer if it hasn't finished yet."""
+		print("In cancel {}".format(self.name))
 		self.finished.set()
+		print("Set finished")
 		self.running.set()
+		print("Set running")
 		temp = 5
 		while self.is_alive():
+			print('Cancelling repeater {}'.format(self.name))
 			TimerHB.Entry("Cancelling repeater: {}".format(self.name))
 			time.sleep(0) # wait for thread to finish to avoid any late activations causing races
 			temp -= 1
 			if temp < 0:
+				print("Repeater won't cancel")
 				logsupport.Logs.Log("RepeatingPost {} won't cancel finished: {} running: {}".format(self.name,self.finished.is_set(),self.running.is_set()),severity=logsupport.ConsoleError,hb=True)
 				return
 		TimerHB.Entry("Canceled repeater: {}".format(self.name))
