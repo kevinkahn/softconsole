@@ -55,13 +55,14 @@ def KillMe():
 
 def ShutTimers():
 	failsafe = OnceTimer(5,start=False,name='Failsafe',proc=KillMe)
+	del TimerList['Failsafe']
 	failsafe.daemon = True
 	failsafe.start()
 	tList = dict(TimerList)
 	for n, t in tList.items():
 		if t.is_alive():
-			print('Cancel {} {}'.format(n,t.name))
-			logsupport.Logs.Log('Shutting down timer: {} {}'.format(n,t.name))
+			print('Cancel {}'.format(n))
+			logsupport.Logs.Log('Shutting down timer: {}'.format(n))
 			t.cancel()
 	time.sleep(1)
 
@@ -82,14 +83,17 @@ class RepeatingPost(Thread):
 		AddToTimerList(self.name, self)
 		if start: self.start()
 		self.cumulativeslip = 0 # for analysis purposes
+		self.cancelling = False
 
 	def cancel(self):
 		"""Stop the timer if it hasn't finished yet."""
 		print("In cancel {}".format(self.name))
-		self.finished.set()
+		self.cancelling = True
 		print("Set finished")
-		self.running.set()
+		self.finished.set()
 		print("Set running")
+		self.running.set()
+
 		temp = 5
 		while self.is_alive():
 			print('Cancelling repeater {}'.format(self.name))
@@ -98,9 +102,10 @@ class RepeatingPost(Thread):
 			temp -= 1
 			if temp < 0:
 				print("Repeater won't cancel")
-				logsupport.Logs.Log("RepeatingPost {} won't cancel finished: {} running: {}".format(self.name,self.finished.is_set(),self.running.is_set()),severity=logsupport.ConsoleError,hb=True)
+				logsupport.Logs.Log("RepeatingPost {} won't cancel finished: {} running: {}".format(self.name,self.finished.is_set(),self.running.is_set()),severity=logsupport.ConsoleError,hb=True,tb=False)
 				return
 		TimerHB.Entry("Canceled repeater: {}".format(self.name))
+		print('Cancelled {}({})'.format(self.name, temp))
 
 	def resume(self):
 		TimerHB.Entry('Resume repeater: {}'.format(self.name))
@@ -114,8 +119,11 @@ class RepeatingPost(Thread):
 		TimerHB.Entry('Start repeater: {}'.format(self.name))
 		targettime = time.time() + self.interval
 		while not self.finished.wait(self.interval):
+			if self.cancelling: print('C1')
 			if not self.finished.is_set():
+				if self.cancelling: print('C2')
 				if self.running.is_set():
+					if self.cancelling: print('C3')
 					self.kwargs['TargetTime'] = targettime
 					diff = time.time()- targettime
 					self.cumulativeslip += diff
@@ -123,8 +131,11 @@ class RepeatingPost(Thread):
 					pygame.fastevent.post(pygame.event.Event(SchedEvent, **self.kwargs))
 					targettime = time.time() + self.interval # don't accumulate errors
 				else:
+					if self.cancelling: print('C4')
 					self.running.wait()
+					if self.cancelling: print('C5')
 					targettime = time.time() + self.interval
+		if self.cancelling: print('C6')
 		del TimerList[self.name]
 		TimerHB.Entry('Exit repeater: {}'.format(self.name))
 

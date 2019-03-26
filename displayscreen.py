@@ -158,6 +158,7 @@ class DisplayScreen(object):
 
 		while config.Running:  # Operational Control Loop
 			nowtime = time.time()
+			postwaittime = nowtime
 			if statusperiod <= nowtime or prevstatus != config.consolestatus:
 				ReportStatus(config.consolestatus)
 				prevstatus = config.consolestatus
@@ -174,12 +175,11 @@ class DisplayScreen(object):
 					print('States dump for hub: ',h)
 					hub.StatesDump()
 
+			nowtime2 = time.time()
 			if self.Deferrals:  # an event was deferred mid screen touches - handle now
 				event = self.Deferrals.pop(0)
-				nowtime2 = 0
 				debug.debugPrint('EventList', 'Deferred Event Pop', event)
 			elif debug.dbgStore.GetVal('QDump'):
-				nowtime2 = 1
 				events = pygame.fastevent.get()
 				if events:
 					debug.debugPrint('QDump', 'Time: ', time.time())
@@ -191,10 +191,18 @@ class DisplayScreen(object):
 						time.sleep(0.01)
 				event = pygame.event.Event(NOEVENT, dict={})
 			else:
-				nowtime2 = time.time()
+
 				event = pygame.fastevent.wait()  # wait for the next event: touches, timeouts, ISY changes on note
-				if (time.time() - nowtime2 > .5) and (time.time() - event.TargetTime > LateTolerance):
-					self.HBEvents.Entry("Main event waited {} at {} in loop started at {} for {}".format(time.time()-nowtime2,time.time(), nowtime,event))
+				postwaittime = time.time()
+				if hasattr(event, 'TargetTime'):
+					if (postwaittime - nowtime2 > .5) and (postwaittime - event.TargetTime > LateTolerance):
+						self.HBEvents.Entry("Main event waited {} at {} in loop started at {} for {}".format(postwaittime-nowtime2,postwaittime, nowtime,event))
+				else:
+					if (time.time() - nowtime2 > 4):
+						self.HBEvents.Entry(
+							"Main event waited (nonsched) {} at {} in loop started at {} for {}".format(time.time() - nowtime2,
+																							 time.time(), nowtime,
+																							 event))
 
 			nowtime3 = time.time()
 			cyclehistory.pop()
@@ -381,8 +389,8 @@ class DisplayScreen(object):
 			else:
 				logsupport.Logs.Log("Unknown main event {}".format(repr(event)), severity=ConsoleError, hb=True,
 									tb=False)
-			if time.time() - nowtime > 2: # this loop took a long time
-				logsupport.Logs.Log("Slow loop at {} took {} for {}".format(time.time(),time.time()-nowtime,event),severity=ConsoleWarning, hb=True)
+			if time.time() - postwaittime > 2: # this loop took a long time
+				logsupport.Logs.Log("Slow loop at {} took {} for {}".format(time.time(),time.time()-postwaittime,event),severity=ConsoleWarning, hb=True, localonly=True)
 
 		logsupport.Logs.Log('Main Loop Exit: ', config.ecode)
 		timers.ShutTimers()
