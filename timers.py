@@ -54,7 +54,7 @@ def KillMe():
 
 
 def ShutTimers():
-	failsafe = OnceTimer(5,start=False,name='Failsafe',proc=KillMe)
+	failsafe = OnceTimer(10,start=False,name='Failsafe',proc=KillMe)
 	del TimerList['Failsafe']
 	failsafe.daemon = True
 	failsafe.start()
@@ -98,7 +98,7 @@ class RepeatingPost(Thread):
 		while self.is_alive():
 			print('Cancelling repeater {}'.format(self.name))
 			TimerHB.Entry("Cancelling repeater: {}".format(self.name))
-			time.sleep(0) # wait for thread to finish to avoid any late activations causing races
+			time.sleep(1) # wait for thread to finish to avoid any late activations causing races
 			temp -= 1
 			if temp < 0:
 				print("Repeater won't cancel")
@@ -119,11 +119,11 @@ class RepeatingPost(Thread):
 		TimerHB.Entry('Start repeater: {}'.format(self.name))
 		targettime = time.time() + self.interval
 		while not self.finished.wait(self.interval):
-			if self.cancelling: print('C1')
+			if self.cancelling: print('C1 {}'.format(self.name))
 			if not self.finished.is_set():
-				if self.cancelling: print('C2')
+				if self.cancelling: print('C2 {}'.format(self.name))
 				if self.running.is_set():
-					if self.cancelling: print('C3')
+					if self.cancelling: print('C3 {}'.format(self.name))
 					self.kwargs['TargetTime'] = targettime
 					diff = time.time()- targettime
 					self.cumulativeslip += diff
@@ -131,11 +131,11 @@ class RepeatingPost(Thread):
 					pygame.fastevent.post(pygame.event.Event(SchedEvent, **self.kwargs))
 					targettime = time.time() + self.interval # don't accumulate errors
 				else:
-					if self.cancelling: print('C4')
+					if self.cancelling: print('C4 {}'.format(self.name))
 					self.running.wait()
-					if self.cancelling: print('C5')
+					if self.cancelling: print('C5 {}'.format(self.name))
 					targettime = time.time() + self.interval
-		if self.cancelling: print('C6')
+		if self.cancelling: print('C6 {}'.format(self.name))
 		del TimerList[self.name]
 		TimerHB.Entry('Exit repeater: {}'.format(self.name))
 
