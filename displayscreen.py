@@ -17,6 +17,8 @@ import historybuffer
 import maintscreen
 import timers
 
+LateTolerance = 2
+
 class DisplayScreen(object):
 	def __init__(self):
 
@@ -191,7 +193,8 @@ class DisplayScreen(object):
 			else:
 				nowtime2 = time.time()
 				event = pygame.fastevent.wait()  # wait for the next event: touches, timeouts, ISY changes on note
-				self.HBEvents.Entry("Main event waited {} at {} in loop started at {} for {}".format(time.time()-nowtime2,time.time(), nowtime,event))
+				if (time.time() - nowtime2 > .5) and (time.time() - event.TargetTime > LateTolerance):
+					self.HBEvents.Entry("Main event waited {} at {} in loop started at {} for {}".format(time.time()-nowtime2,time.time(), nowtime,event))
 
 			nowtime3 = time.time()
 			cyclehistory.pop()
@@ -364,7 +367,7 @@ class DisplayScreen(object):
 				#print('Sched event {}'.format(repr(event)))
 				eventnow = time.time()
 				diff = eventnow - event.TargetTime
-				if abs(diff) > 1.2:
+				if abs(diff) > LateTolerance:
 					#print('{}: Late timer: {}  {}'.format(time.time(),diff%1000 ,repr(event))) #todo change to late event log
 					logsupport.Logs.Log('Timer late by {} seconds. Event: {}'.format(diff, repr(event)), severity=ConsoleWarning, hb=True, localonly=True)
 					self.HBEvents.Entry('Event late by {} target: {} now: {}'.format(diff,event.TargetTime, eventnow))
@@ -378,6 +381,8 @@ class DisplayScreen(object):
 			else:
 				logsupport.Logs.Log("Unknown main event {}".format(repr(event)), severity=ConsoleError, hb=True,
 									tb=False)
+			if time.time() - nowtime > 2: # this loop took a long time
+				logsupport.Logs.Log("Slow loop at {} took {} for {}".format(time.time(),time.time()-nowtime,event),severity=ConsoleWarning, hb=True)
 
 		logsupport.Logs.Log('Main Loop Exit: ', config.ecode)
 		timers.ShutTimers()
