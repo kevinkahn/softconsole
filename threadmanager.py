@@ -59,9 +59,9 @@ def CheckThreads():
 					# T.StopThread()
 					logsupport.Logs.Log("Thread for: " + T.name + " reports not ok; stopping/restarting",
 										severity=ConsoleWarning)
-					# if not DoRestart(T):
+					if not DoRestart(T):
 					# Fatal Error
-					FatalError("Unrecoverable helper thread error(CheckOK): " + T.name)
+						FatalError("Unrecoverable helper thread error(CheckOK): " + T.name)
 	except Exception as E:
 		logsupport.Logs.Log("Check threads fatal error: {}".format(repr(E)))
 

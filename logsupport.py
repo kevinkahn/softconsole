@@ -100,7 +100,7 @@ class Logger(object):
 	def LogRemote(self, node, entry, etime, severity):
 		locked = False
 		try:
-			locked = self.lock.acquire(timeout=1)
+			locked = self.lock.acquire(timeout=5)
 			if not locked:
 				self.RecordMessage(ConsoleError, 'Log lock failed (Remote)'+repr(self.lockerid), '*****Remote******', False, False)
 			else:
@@ -163,7 +163,7 @@ class Logger(object):
 		locked = False
 		defentrytime = time.strftime('%m-%d-%y %H:%M:%S')
 		try:
-			locked = self.lock.acquire(timeout=3)
+			locked = self.lock.acquire(timeout=5)
 
 			if not locked:
 				self.RecordMessage(ConsoleError, 'Log lock failed (PeriodicRemote)'+repr(self.lockerid), defentrytime, False, False)

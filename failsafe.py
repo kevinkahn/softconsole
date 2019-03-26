@@ -16,6 +16,7 @@ def MasterWatchDog():
 	try:
 		os.kill(config.Console_pid, 0)
 	except:
+		print('Normal watchdog exit')
 		logsupport.Logs.Log("Failsafe watchdog exiting normally")
 		return
 	logsupport.Logs.Log("Failsafe watchdog saw console go autistic - interrupting {}".format(config.Console_pid))
