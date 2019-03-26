@@ -122,7 +122,7 @@ class AlertsScreenDesc(screen.ScreenDesc):
 		self.Msg = True
 		if self.BlinkTime != 0:
 			self.TimerName += 1
-			self.BlinkTimer = timers.RepeatingPost(self.BlinkTime, name=self.name+'-Blink-'+str(self.TimerName), proc= self.BlinkMsg, start=True)
+			self.BlinkTimer = timers.RepeatingPost(float(self.BlinkTime), name=self.name+'-Blink-'+str(self.TimerName), proc= self.BlinkMsg, start=True)
 		else:
 			config.screen.blit(self.messageimage, self.upperleft)
 			pygame.display.update()

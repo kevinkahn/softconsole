@@ -27,7 +27,7 @@ class OctoPrintScreenDesc(screen.BaseKeyScreenDesc):
 		self.PowerKeys = {}
 		self.Subscreen = -1
 
-		self.PollTimer = timers.RepeatingPost(5,paused=True,start=True,name=self.name+'-Poll',proc=self.ShowScreen)
+		self.PollTimer = timers.RepeatingPost(5.0,paused=True,start=True,name=self.name+'-Poll',proc=self.ShowScreen)
 
 		screen.IncorporateParams(self, 'OctoPrint', {'KeyColor'}, screensection)
 		screen.AddUndefaultedParams(self, screensection, address='', apikey='')

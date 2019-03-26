@@ -73,7 +73,7 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 				self.DecodedFcstFields.append((self.location,'Fcst',f))
 		self.fcsticon = (self.location,'Fcst','Icon') if self.FcstIcon else None
 
-		self.poster = RepeatingPost(1,paused=True, name=self.name,proc=self.repaintClock)
+		self.poster = RepeatingPost(1.0,paused=True, name=self.name,proc=self.repaintClock)
 		self.poster.start()
 		self.fmt = WFormatter()
 

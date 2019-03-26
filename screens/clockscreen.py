@@ -32,7 +32,7 @@ class ClockScreenDesc(screen.ScreenDesc):
 				self.DecodedExtraFields.append(f.split(':'))
 			else:
 				logsupport.Logs.Log("Incomplete field specified on clockscreen", severity=ConsoleWarning)
-		self.poster = RepeatingPost(1,paused=True, name=self.name,proc=self.repaintClock)
+		self.poster = RepeatingPost(1.0,paused=True, name=self.name,proc=self.repaintClock)
 		self.poster.start()
 
 	def repaintClock(self, param=None):

@@ -71,10 +71,12 @@ class ExitHooks(object):
 		sys.excepthook = self.exc_handler
 
 	def exit(self, code=0):
+		print('exithook {}'.format(code))
 		self.exit_code = code
 		self._orig_exit(code)
 
 	def exc_handler(self, exc_type, exc, *args):
+		print('exc hdlr {}'.format(exc))
 		self.exception = exc
 		sys.__excepthook__(exc_type, exc, args)
 
@@ -91,14 +93,16 @@ def handler(signum, frame):
 	if signum in (signal.SIGTERM, signal.SIGINT):
 		logsupport.Logs.Log(u"Console received a termination signal ", str(signum), u" - Exiting")
 		hw.GoBright(100)
+		print('Exiting via handler')
 		timers.ShutTimers()
 		pygame.display.quit()
 		pygame.quit()
+		print('Exit handling done')
+		logsupport.Logs.Log('Console exit for interrupt')
 		# noinspection PyProtectedMember
 		# os._exit(0)
 		config.Running = False
-		time.sleep(1)
-		sys.exit(0)
+		os._exit(101)
 	else:
 		logsupport.Logs.Log(u"Console received signal " + str(signum) + u" Ignoring")
 

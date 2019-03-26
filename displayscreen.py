@@ -16,6 +16,7 @@ from logsupport import ConsoleWarning, ConsoleError, ConsoleDetail, ReportStatus
 import historybuffer
 import maintscreen
 import timers
+import failsafe
 
 LateTolerance = 2
 
@@ -156,7 +157,10 @@ class DisplayScreen(object):
 		cyclehistory = deque((-1, -1, -1, -1, -1, -1, -1, -1, -1, -1))
 		prevstatus = ''
 
+		failsafe.Failsafe.start()
+
 		while config.Running:  # Operational Control Loop
+			failsafe.KeepAlive.set()
 			nowtime = time.time()
 			postwaittime = nowtime
 			if statusperiod <= nowtime or prevstatus != config.consolestatus:
@@ -259,6 +263,7 @@ class DisplayScreen(object):
 
 				elif tapcount > 3:
 					# Go to maintenance
+					timers.StartLongOp('maintenance') # todo a bit ugly - start long op here but end in gohome in maint screen
 					self.SwitchScreen(maintscreen.MaintScreen, 'Bright', 'Maint', 'Tap to maintenance', NavKeys=False)
 					continue
 
