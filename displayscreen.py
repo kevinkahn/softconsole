@@ -157,7 +157,9 @@ class DisplayScreen(object):
 		cyclehistory = deque((-1, -1, -1, -1, -1, -1, -1, -1, -1, -1))
 		prevstatus = ''
 
+		failsafe.Injector.start()
 		failsafe.Failsafe.start()
+		logsupport.Logs.Log('Starting master watchdog {} for {}'.format(failsafe.Failsafe.pid, config.Console_pid))
 
 		while config.Running:  # Operational Control Loop
 			failsafe.KeepAlive.set()
@@ -193,7 +195,7 @@ class DisplayScreen(object):
 					else:
 						debug.debugPrint('QDump', "Empty queue")
 						time.sleep(0.01)
-				event = pygame.event.Event(NOEVENT, dict={})
+				event = pygame.event.Event(NOEVENT, dict={'inject':time.time(),'defer':True})
 			else:
 
 				event = pygame.fastevent.wait()  # wait for the next event: touches, timeouts, ISY changes on note
@@ -212,7 +214,11 @@ class DisplayScreen(object):
 			cyclehistory.pop()
 			cyclehistory.appendleft((nowtime%1000, nowtime2%1000, nowtime3%1000, event.type)) #todo del
 
-			if event.type == pygame.MOUSEBUTTONDOWN:
+			if event.type == NOEVENT:
+				#print('Saw NOEVENT {} after injection'.format(time.time()-event.inject))
+				self.HBEvents.Entry('Saw NOEVENT {} after injection at {}'.format(time.time()-event.inject, event.inject))
+				pass # these appear to make sure loop is running
+			elif event.type == pygame.MOUSEBUTTONDOWN:
 				self.HBEvents.Entry('MouseDown' + str(event.pos))
 				debug.debugPrint('Touch', 'MouseDown' + str(event.pos) + repr(event))
 				# screen touch events; this includes touches to non-sensitive area of screen

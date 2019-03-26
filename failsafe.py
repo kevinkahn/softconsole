@@ -1,15 +1,26 @@
-import multiprocessing
+import multiprocessing, threading
 import time
 import logsupport
 import config
 import os, signal
+import pygame
+import controlevents
 
 KeepAlive = multiprocessing.Event()
-FailsafeInterval = 15
+FailsafeInterval = 30 # todo need an injection of a no-op periodically to ensure not just long idle
 
+def NoEventInjector():
+	logsupport.Logs.Log('Starting watchdog activity injector')
+	while True:
+		try:
+			now = time.time()
+			#print('Inject: {}'.format(now))
+			pygame.fastevent.post(pygame.event.Event(controlevents.NOEVENT, {'inject': now}))
+			time.sleep(FailsafeInterval/2)
+		except Exception as E:
+			logsupport.Logs.Log("NoEvent Injector Exception {}".format(E), severity=logsupport.ConsoleWarning)
 
 def MasterWatchDog():
-	logsupport.Logs.Log('Starting master watchdog {} for {}'.format(os.getpid(), config.Console_pid))
 	while KeepAlive.wait(FailsafeInterval):
 		time.sleep(FailsafeInterval)
 		KeepAlive.clear()
@@ -31,3 +42,6 @@ def MasterWatchDog():
 		logsupport.Logs.Log("Failsafe successfully ended console (pid: {}), failsafe (pid: {}) exiting".format(config.Console_pid, os.getpid()))
 
 Failsafe = multiprocessing.Process(target=MasterWatchDog)
+Failsafe.daemon = True
+Injector = threading.Thread(target=NoEventInjector)
+Injector.daemon = True

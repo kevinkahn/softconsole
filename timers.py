@@ -12,6 +12,7 @@ LongOpStart = {}
 
 def StartLongOp(nm):
 	global LongOpInProgress, LongOpStart
+	print('StartLO {}'.format(nm))
 	if LongOpInProgress: logsupport.Logs.Log('Overlapped long ops: {} {}'.format(nm, LongOpStart),severity=logsupport.ConsoleWarning)
 	LongOpStart[nm] = time.time()
 	TimerHB.Entry('Start long op: {}'.format(nm))
@@ -19,6 +20,7 @@ def StartLongOp(nm):
 
 def EndLongOp(nm):
 	global LongOpInProgress, LongOpStart
+	print('EndLO {}'.format(nm))
 	if not LongOpInProgress: logsupport.Logs.Log('End non-existent long op: {} {}'.format(nm, LongOpStart),severity=logsupport.ConsoleWarning)
 	TimerHB.Entry('End long op: {} lasted: {}'.format(nm, time.time()-LongOpStart[nm]))
 	LongOpStart[nm]= 0
