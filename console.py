@@ -94,7 +94,7 @@ def handler(signum, frame):
 		logsupport.Logs.Log(u"Console received a termination signal ", str(signum), u" - Exiting")
 		hw.GoBright(100)
 		print('Exiting via handler')
-		timers.ShutTimers()
+		timers.ShutTimers('interrupt')
 		pygame.display.quit()
 		pygame.quit()
 		print('Exit handling done')
@@ -482,7 +482,7 @@ for n in alerttasks.monitoredvars:  # make sure vars used in alerts are updated 
 #config.sysStore.ErrorNotice = -1  # if -1 no unseen, else entry number of first unseen todo reenable
 config.DS.MainControlLoop(screens.HomeScreen)
 logsupport.Logs.Log("Main line exit: ", config.ecode)
-timers.ShutTimers()
+timers.ShutTimers('consoleexit')
 pygame.quit()
 # noinspection PyProtectedMember
 sys.exit(config.ecode)

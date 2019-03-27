@@ -18,7 +18,9 @@ def NoEventInjector():
 			pygame.fastevent.post(pygame.event.Event(controlevents.NOEVENT, {'inject': now}))
 			time.sleep(FailsafeInterval/2)
 		except Exception as E:
-			logsupport.Logs.Log("NoEvent Injector Exception {}".format(E), severity=logsupport.ConsoleWarning)
+			time.sleep(FailsafeInterval/2)
+			pass # spurious exceptions during shutdown
+			#logsupport.Logs.Log("NoEvent Injector Exception {}".format(E), severity=logsupport.ConsoleWarning)
 
 def MasterWatchDog():
 	while KeepAlive.wait(FailsafeInterval):

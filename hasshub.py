@@ -497,6 +497,7 @@ class HA(object):
 
 		# noinspection PyUnusedLocal
 		def on_message(qws, message):
+			loopstart = time.time()
 			self.HB.Entry(repr(message))
 			try:
 				self.msgcount += 1
@@ -601,6 +602,10 @@ class HA(object):
 					debug.debugPrint('HASSgeneral', "Unknown event: " + str(m))
 			except Exception as E:
 				logsupport.Logs.Log("Exception handling HA message: ", repr(E), repr(message), severity=ConsoleWarning)
+			loopend = time.time()
+			self.HB.Entry('Processing time: {} Done: {}'.format(loopend - loopstart, repr(message)))  # todo try to force other thread to run
+			time.sleep(.1)  # force thread to give up processor to allow response to time events
+			self.HB.Entry('Gave up control for: {}'.format(time.time() - loopend))
 
 		def on_error(qws, error):
 			self.HB.Entry('ERROR: ' + repr(error))

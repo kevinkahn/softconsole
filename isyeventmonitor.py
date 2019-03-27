@@ -206,6 +206,7 @@ class ISYEventMonitor(object):
 
 		# noinspection PyUnusedLocal,PyUnboundLocalVariable
 		def on_message(qws, message):
+			loopstart = time.time()
 			self.isy.HBWS.Entry(repr(message))
 			try:
 				m = 'parse error'
@@ -413,8 +414,10 @@ class ISYEventMonitor(object):
 			except Exception as E:
 				logsupport.Logs.Log(self.hubname + " Exception in QH on message: ", repr(m), ' Excp: ', repr(E),
 									severity=ConsoleWarning)
-			self.isy.HBWS.Entry('Done: '+repr(message)) #todo try to force other thread to run
-			time.sleep(.01) # force thread to give up processor to allow response to time events
+			loopend = time.time()
+			self.isy.HBWS.Entry('Processing time: {} Done: {}'.format(loopend-loopstart, repr(message))) #todo try to force other thread to run
+			time.sleep(.1) # force thread to give up processor to allow response to time events
+			self.isy.HBWS.Entry('Gave up control for: {}'.format(time.time()-loopend))
 
 		self.THstate = 'delaying'
 		logsupport.Logs.Log("{}: WS stream thread {} setup".format(self.hubname, self.QHnum))

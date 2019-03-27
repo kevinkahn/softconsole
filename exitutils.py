@@ -72,7 +72,7 @@ def EarlyAbort(scrnmsg):
 	pygame.display.update()
 	print (time.strftime('%m-%d-%y %H:%M:%S'), scrnmsg)
 	time.sleep(10)
-	timers.ShutTimers()
+	timers.ShutTimers('earlyabort')
 	pygame.quit()
 	# noinspection PyProtectedMember
 	sys.exit(EARLYABORT)

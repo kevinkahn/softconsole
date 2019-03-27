@@ -60,7 +60,7 @@ def KillMe():
 	os.kill(config.Console_pid,signal.SIGKILL)
 
 
-def ShutTimers():
+def ShutTimers(loc):
 	failsafe = OnceTimer(10.0,start=False,name='Failsafe',proc=KillMe)
 	del TimerList['Failsafe']
 	failsafe.daemon = True
@@ -70,7 +70,7 @@ def ShutTimers():
 		if t.is_alive():
 			logsupport.Logs.Log('Shutting down timer: {}'.format(n))
 			t.cancel()
-	logsupport.Logs.Log('All timers shut down')
+	logsupport.Logs.Log('All timers shut down {}'.format(loc))
 
 class RepeatingPost(Thread):
 	"""

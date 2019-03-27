@@ -9,6 +9,7 @@ from collections import namedtuple
 import select
 import queue
 import debug
+import time
 
 TOUCH_X = 0
 TOUCH_Y = 1
@@ -142,8 +143,10 @@ class Touchscreen(object):
 	def _run(self):
 		self._running = True
 		while self._running:
+			pollstart = time.time()
 			self.poll()
-			#time.sleep(0.00001)
+			pollend = time.time()
+			time.sleep(0.00001)  # todo deeper analysis of whether this loop can hog cpu
 
 	def run(self):
 		self._run()

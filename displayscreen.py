@@ -421,7 +421,7 @@ class DisplayScreen(object):
 				logsupport.Logs.Log("Slow loop at {} took {} for {}".format(time.time(),time.time()-postwaittime,event),severity=ConsoleWarning, hb=True, localonly=True)
 
 		logsupport.Logs.Log('Main Loop Exit: ', config.ecode)
-		timers.ShutTimers()
+		timers.ShutTimers('maincontrolloop')
 		pygame.quit()
 		sys.exit(config.ecode)
 
