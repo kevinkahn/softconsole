@@ -34,6 +34,7 @@ class MQTTBroker(valuestore.ValueStore):
 		super(MQTTBroker, self).__init__(name, itemtyp=MQitem)
 		MQTTnum = 0
 		self.fetcher = None
+		self.HB = historybuffer.HistoryBuffer(40, name)
 
 		# noinspection PyUnusedLocal
 		def on_connect(client, userdata, flags, rc):
@@ -94,6 +95,7 @@ class MQTTBroker(valuestore.ValueStore):
 
 		def on_message(client, userdata, msg):
 			#print time.ctime() + " Received message " + str(msg.payload) + " on topic "  + msg.topic + " with QoS " + str(msg.qos)
+			loopstart = time.time()
 			var = []
 			for t, item in userdata.topicindex.items():
 				if t == msg.topic:
@@ -159,6 +161,10 @@ class MQTTBroker(valuestore.ValueStore):
 						except Exception as e:
 							logsupport.Logs.Log('Error handling json MQTT item: ', v.name, str(v.jsonflds),
 												msg.payload.decode('ascii'), str(e), repr(payload), severity=ConsoleWarning)
+			loopend = time.time()
+			self.HB.Entry('Processing time: {} Done: {}'.format(loopend - loopstart, repr(msg)))  # todo try to force other thread to run
+			time.sleep(.1)  # force thread to give up processor to allow response to time events
+			self.HB.Entry('Gave up control for: {}'.format(time.time() - loopend))
 
 		# noinspection PyUnusedLocal
 		def on_log(client, userdata, level, buf):
