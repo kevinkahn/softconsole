@@ -161,6 +161,8 @@ class DisplayScreen(object):
 		failsafe.Failsafe.start()
 		logsupport.Logs.Log('Starting master watchdog {} for {}'.format(failsafe.Failsafe.pid, config.Console_pid))
 
+		ReadyList = []
+
 		while config.Running:  # Operational Control Loop
 			failsafe.KeepAlive.set()
 			nowtime = time.time()
@@ -196,8 +198,22 @@ class DisplayScreen(object):
 						debug.debugPrint('QDump', "Empty queue")
 						time.sleep(0.01)
 				event = pygame.event.Event(NOEVENT, dict={'inject':time.time(),'defer':True})
+			elif ReadyList:
+				event = ReadyList.pop(0)
+				self.HBEvents.Entry('Ready pop at {}: {} \nWaiting: {}'.format(time.time(), event, ReadyList))
 			else:
-
+				events = pygame.fastevent.get()
+				if events:
+					event = events.pop(0)
+					for e in events:
+						ReadyList.append(e)
+						self.HBEvents.Entry('Add to ready at {} {}'.format(time.time(),e))
+				else:
+					event = pygame.fastevent.wait()
+				self.HBEvents.Entry('Process at {}  {}'.format(time.time(),event))
+				postwaittime = time.time()
+				'''
+			else:
 				event = pygame.fastevent.wait()  # wait for the next event: touches, timeouts, ISY changes on note
 				postwaittime = time.time()
 				if hasattr(event, 'TargetTime'):
@@ -209,6 +225,7 @@ class DisplayScreen(object):
 							"Main event waited (nonsched) {} at {} in loop started at {} for {}".format(time.time() - nowtime2,
 																							 time.time(), nowtime,
 																							 event))
+				'''
 
 			nowtime3 = time.time()
 			cyclehistory.pop()
