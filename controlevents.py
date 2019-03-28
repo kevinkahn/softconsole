@@ -25,7 +25,7 @@ def NewRepr(self):
 		return rep+'>'
 
 
-ConsoleEvent = pygame.event.Event
+#ConsoleEvent = pygame.event.Event
 '''			
 			(pygame.event.EventType):
 

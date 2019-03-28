@@ -1,6 +1,6 @@
 from threading import Thread, Event
 import pygame, time
-from controlevents import SchedEvent, ConsoleEvent
+from controlevents import SchedEvent
 import historybuffer
 import logsupport
 import config, os, signal
@@ -123,7 +123,7 @@ class RepeatingPost(Thread):
 					diff = time.time()- targettime
 					self.cumulativeslip += diff
 					TimerHB.Entry('Post repeater: {} diff: {} cumm: {} args: {}'.format(self.name, diff, self.cumulativeslip, self.kwargs))
-					pygame.fastevent.post(ConsoleEvent(SchedEvent, **self.kwargs))
+					pygame.fastevent.post(pygame.event.Event(SchedEvent, **self.kwargs))
 					targettime = time.time() + self.interval # don't accumulate errors
 				else:
 					self.running.wait()
@@ -164,7 +164,7 @@ class CountedRepeatingPost(Thread):
 			self.count -= 1
 			TimerHB.Entry(
 				'Post counter: {} diff: {} args: {}'.format(self.name, time.time() - targettime, self.kwargs))
-			pygame.fastevent.post(ConsoleEvent(SchedEvent, **self.kwargs))
+			pygame.fastevent.post(pygame.event.Event(SchedEvent, **self.kwargs))
 			targettime += self.interval
 		del TimerList[self.name]
 		TimerHB.Entry('Exit counter: {}'.format(self.name))
@@ -196,7 +196,7 @@ class OnceTimer(Thread):
 		if not self.finished.is_set():
 			TimerHB.Entry(
 				'Post once: {} diff: {} args: {}'.format(self.name, time.time() - self.kwargs['TargetTime'], self.kwargs))
-			pygame.fastevent.post(ConsoleEvent(SchedEvent, **self.kwargs))
+			pygame.fastevent.post(pygame.event.Event(SchedEvent, **self.kwargs))
 		self.finished.set()
 		del TimerList[self.name]
 		TimerHB.Entry('Exit once: {}'.format(self.name))

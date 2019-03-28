@@ -199,7 +199,7 @@ class DisplayScreen(object):
 					else:
 						debug.debugPrint('QDump', "Empty queue")
 						time.sleep(0.01)
-				event = ConsoleEvent(NOEVENT, dict={'inject':time.time(),'defer':True})
+				event = pygame.event.Event(NOEVENT, dict={'inject':time.time(),'defer':True})
 			elif ReadyList:
 				event = ReadyList.pop(0)
 				self.HBEvents.Entry('Ready pop at {}: {} \nWaiting: {}'.format(time.time(), NewRepr(event), ReadyList))
@@ -211,7 +211,7 @@ class DisplayScreen(object):
 						ReadyList.append(e)
 						self.HBEvents.Entry('Add to ready at {} {}'.format(time.time(),NewRepr(e)))
 				else:
-					event = ConsoleEvent(NOEVENT)
+					event = pygame.event.Event(NOEVENT)
 					pollwait = time.time()
 					while event.type == NOEVENT:
 						time.sleep(.1)
