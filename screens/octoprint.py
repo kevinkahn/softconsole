@@ -125,12 +125,12 @@ class OctoPrintScreenDesc(screen.BaseKeyScreenDesc):
 	# noinspection PyUnusedLocal
 	def Power(self, opt, presstype):
 		_ = self.OctoPost('system/commands/custom/' + opt, {})
-		self.PowerKeys[opt].BlinkKey(3)
+		self.PowerKeys[opt].ScheduleBlinkKey(3)
 
 	# noinspection PyUnusedLocal
 	def Connect(self, opt, presstype):
 		_ = self.OctoPost('connection', senddata={'command': opt})
-		self.PowerKeys[opt].BlinkKey(3)
+		self.PowerKeys[opt].ScheduleBlinkKey(3)
 
 	def SelectFile(self, presstype):
 		self.Subscreen = 1
