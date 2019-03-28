@@ -80,12 +80,14 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 	def InitDisplay(self, nav):
 		super(TimeTempScreenDesc, self).InitDisplay(nav)
 		self.repaintClock()
+		self.poster.resume()
 
 	def ExitScreen(self):
 		self.poster.pause()
 		super(TimeTempScreenDesc, self).ExitScreen()
 
 	def repaintClock(self, param=None):
+		if not self.Active: return # handle race condition where repaint queued just before switch
 		h = 0
 		renderedforecast  = []
 		sizeindex = 0
@@ -198,7 +200,7 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 			if self.FcstLayout == '2ColVert': pygame.draw.line(config.screen,wc('white'),(usewidth,startvert+fcstvert//3),(usewidth,maxvert + 2*fcstvert/3))
 
 		pygame.display.update()
-		self.poster.resume()
+
 		#config.DS.Tasks.AddTask(self.ClockRepaintEvent, 1)
 
 

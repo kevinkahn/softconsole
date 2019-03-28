@@ -36,6 +36,7 @@ class ClockScreenDesc(screen.ScreenDesc):
 		self.poster.start()
 
 	def repaintClock(self, param=None):
+		if not self.Active: return # handle race conditions where repaint queued just before screen switch
 		h = 0
 		l = []
 
@@ -62,11 +63,12 @@ class ClockScreenDesc(screen.ScreenDesc):
 			config.screen.blit(cb, (horiz_off, vert_off))
 		pygame.display.update()
 		#config.DS.Tasks.AddTask(self.ClockRepaintEvent, 1)
-		self.poster.resume()
+
 
 	def InitDisplay(self, nav):
 		super(ClockScreenDesc, self).InitDisplay(nav)
 		self.repaintClock()
+		self.poster.resume()
 
 	def ExitScreen(self):
 		self.poster.pause()

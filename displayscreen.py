@@ -70,9 +70,11 @@ class DisplayScreen(object):
 		if self.AS is not None and self.AS != NS:
 			debug.debugPrint('Dispatch', "Switch from: ", self.AS.name, " to ", NS.name, "Nav=", NavKeys, ' State=',
 					   oldstate + '/' + newstate + ':' + olddim + '/' + newdim, ' ', reason)
+			self.AS.Active = False
 			self.AS.ExitScreen()
 		OS = self.AS
 		self.AS = NS
+		self.AS.Active = True
 		if newdim == 'Dim':
 			self.Dim()
 			if olddim == 'Dim':
@@ -197,20 +199,27 @@ class DisplayScreen(object):
 					else:
 						debug.debugPrint('QDump', "Empty queue")
 						time.sleep(0.01)
-				event = pygame.event.Event(NOEVENT, dict={'inject':time.time(),'defer':True})
+				event = ConsoleEvent(NOEVENT, dict={'inject':time.time(),'defer':True})
 			elif ReadyList:
 				event = ReadyList.pop(0)
-				self.HBEvents.Entry('Ready pop at {}: {} \nWaiting: {}'.format(time.time(), event, ReadyList))
+				self.HBEvents.Entry('Ready pop at {}: {} \nWaiting: {}'.format(time.time(), NewRepr(event), ReadyList))
 			else:
 				events = pygame.fastevent.get()
 				if events:
 					event = events.pop(0)
 					for e in events:
 						ReadyList.append(e)
-						self.HBEvents.Entry('Add to ready at {} {}'.format(time.time(),e))
+						self.HBEvents.Entry('Add to ready at {} {}'.format(time.time(),NewRepr(e)))
 				else:
-					event = pygame.fastevent.wait()
-				self.HBEvents.Entry('Process at {}  {}'.format(time.time(),event))
+					event = ConsoleEvent(NOEVENT)
+					pollwait = time.time()
+					while event.type == NOEVENT:
+						time.sleep(.1)
+						event = pygame.fastevent.poll()
+					self.HBEvents.Entry('Event arrived after wait of type {} {}'.format(time.time()-pollwait,event.type))
+					#event = pygame.fastevent.wait()
+				print(NewRepr(event))
+				self.HBEvents.Entry('Process at {}  {}'.format(time.time(),NewRepr(event)))
 				postwaittime = time.time()
 				'''
 			else:
@@ -267,7 +276,7 @@ class DisplayScreen(object):
 						break
 					else:
 						if eventx.type >= pygame.USEREVENT:  # it isn't a screen related event
-							self.HBEvents.Entry('Defer' + repr(eventx))
+							self.HBEvents.Entry('Defer' + NewRepr(eventx))
 							self.Deferrals.append(eventx)  # defer the event until after the clicks are sorted out
 						else:
 							debug.debugPrint('Touch',
@@ -329,18 +338,18 @@ class DisplayScreen(object):
 							self.SwitchScreen(screens.DimIdleList[0], 'Dim', 'Cover', 'Go to next cover', NavKeys=False)
 							screens.DimIdleList = screens.DimIdleList[1:] + [screens.DimIdleList[0]]
 							screens.DimIdleTimes = screens.DimIdleTimes[1:] + [screens.DimIdleTimes[0]]
-					else:  # Maint or Alert - todo?
-						logsupport.Logs.Log('Activity timer fired while in state: {}'.format(self.state),severity=ConsoleWarning)
+					else:  # Maint or Alert - just ignore the activity action
+						#logsupport.Logs.Log('Activity timer fired while in state: {}'.format(self.state),severity=ConsoleWarning)
 						debug.debugPrint('Dispatch', 'TO while in: ', self.state)
 
 
 			elif event.type == GeneralRepaint:
-				self.HBEvents.Entry('General Repaint' + repr(event))
+				self.HBEvents.Entry('General Repaint' + NewRepr(event))
 				debug.debugPrint('Dispatch', 'General Repaint Event', event)
 				self.AS.InitDisplay()
 
 			elif event.type == HubNodeChange:
-				self.HBEvents.Entry('Hub Change' + repr(event))
+				self.HBEvents.Entry('Hub Change' + NewRepr(event))
 				debug.debugPrint('Dispatch', 'Hub Change Event', event)
 				if hasattr(event, 'node'):
 					self.AS.NodeEvent(hub=event.hub, node=event.node, value=event.value)
@@ -351,7 +360,7 @@ class DisplayScreen(object):
 					logsupport.Logs.Log('Bad Node Change Event ', event, severity=ConsoleWarning)
 
 			elif event.type in (ISYVar, ISYAlert):
-				self.HBEvents.Entry('Var or Alert' + repr(event))
+				self.HBEvents.Entry('Var or Alert' + NewRepr(event))
 				evtype = 'variable' if event.type == ISYVar else 'node'
 				debug.debugPrint('Dispatch', 'ISY ', evtype, ' change', event)
 				alert = event.alert
@@ -399,7 +408,7 @@ class DisplayScreen(object):
 				# Delayed or deferred and true: redundant report
 
 			elif event.type == SchedEvent:
-				self.HBEvents.Entry('Sched event {}'.format(repr(event)))
+				self.HBEvents.Entry('Sched event {}'.format(NewRepr(event)))
 				#print('Sched event {}'.format(repr(event)))
 				eventnow = time.time()
 				diff = eventnow - event.TargetTime

@@ -196,7 +196,7 @@ class SonosScreenDesc(screen.BaseKeyScreenDesc):
 		stable = self.UpdateGroups()
 		if stable:
 			#print('stable')
-			self.ShowScreen()
+			if self.Active: self.ShowScreen() # handle any race with another screen just having come up
 
 	def VolChange(self, slotnum, chg, presstype):
 		if slotnum >= len(self.nms): return

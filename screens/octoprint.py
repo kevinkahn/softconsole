@@ -172,7 +172,7 @@ class OctoPrintScreenDesc(screen.BaseKeyScreenDesc):
 		self.ShowScreen()
 
 	def ShowScreen(self,param=None):
-		if not self.PollTimer.running.is_set():	return # handle race where poll refresh gets posted just as Maint screen comes up
+		if not self.Active:	return # handle race where poll refresh gets posted just as Maint screen comes up
 		if self.Subscreen == -1:
 			self.ShowControlScreen()
 		elif self.Subscreen > 0:

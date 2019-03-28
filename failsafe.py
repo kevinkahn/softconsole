@@ -15,7 +15,7 @@ def NoEventInjector():
 		try:
 			now = time.time()
 			#print('Inject: {}'.format(now))
-			pygame.fastevent.post(pygame.event.Event(controlevents.NOEVENT, {'inject': now}))
+			pygame.fastevent.post(controlevents.ConsoleEvent(controlevents.NOEVENT, {'inject': now}))
 			time.sleep(FailsafeInterval/2)
 		except Exception as E:
 			time.sleep(FailsafeInterval/2)

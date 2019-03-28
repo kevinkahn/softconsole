@@ -246,7 +246,7 @@ class NestThermostatScreenDesc(screen.BaseKeyScreenDesc):
 		self.ModeLocal = 0.0
 		self.FanLocal = 0.0
 		self.t_cur, self.t_low, self.t_high, self.t_state, self.mode, self.fan = self.ThermNode.GetThermInfo()
-		self.ShowScreen()
+		if self.Active: self.ShowScreen()
 
 
 screens.screentypes["NestThermostat"] = NestThermostatScreenDesc

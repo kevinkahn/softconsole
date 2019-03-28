@@ -106,6 +106,7 @@ class ScreenDesc(object):
 		self.markradius = int(min(hw.screenwidth, hw.screenheight) * .025)
 
 		self.name = screenname
+		self.Active = False # true if actually on screen
 		self.NavKeys = collections.OrderedDict()
 		self.Keys = collections.OrderedDict()
 		self.WithNav = True

@@ -103,7 +103,7 @@ class AlertsScreenDesc(screen.ScreenDesc):
 		config.DS.SwitchScreen(screens.HomeScreen, 'Bright', 'Home', 'Manual defer an alert')
 
 	def BlinkMsg(self, param):
-		if not self.BlinkTimer.is_alive():
+		if not self.Active:
 			# race condition posted a blink just as screen was exiting so skip screen update
 			return
 		if self.Msg:
