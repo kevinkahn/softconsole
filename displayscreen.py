@@ -1,5 +1,4 @@
 import os
-import sys
 import time
 from collections import OrderedDict, deque
 
@@ -51,7 +50,7 @@ class DisplayScreen(object):
 		hw.GoBright(int(config.sysStore.BrightLevel))
 
 	def SetActivityTimer(self, timeinsecs, dbgmsg):
-		pygame.time.set_timer(ACTIVITYTIMER, timeinsecs * 1000)
+		#pygame.time.set_timer(ACTIVITYTIMER, timeinsecs * 1000) #todo
 		self.activityseq += 1
 		self.ActivityTimer.set(ConsoleEvent(CEvent.ACTIVITYTIMER,seq=self.activityseq,msg=dbgmsg),timeinsecs)
 		debug.debugPrint('Dispatch', 'Set activity timer: ', timeinsecs, ' ', dbgmsg)
@@ -141,7 +140,7 @@ class DisplayScreen(object):
 				a.trigger.node.Hub.SetAlertWatch(a.trigger.node, a)
 				if a.trigger.IsTrue():
 					# noinspection PyArgumentList
-					PostControl(ISYAlert, hub='DS-NodeChange', alert=a)
+					#todo PostControl(ISYAlert, hub='DS-NodeChange', alert=a)
 					PostEvent(CEvent.ISYAlert,'DS-NodeChange', alert=a)
 			elif a.type == 'VarChange':
 				a.state = 'Init'
@@ -194,8 +193,9 @@ class DisplayScreen(object):
 				event = self.Deferrals.pop(0)
 				debug.debugPrint('EventList', 'Deferred Event Pop', event)
 			elif debug.dbgStore.GetVal('QDump'):
-				events = pygame.fastevent.get()
-				if events:
+				#events = pygame.fastevent.get()
+				#todo QDump with new event mechanism
+				'''if events:
 					debug.debugPrint('QDump', 'Time: ', time.time())
 					for e in events:
 						self.Deferrals.append(e)
@@ -204,6 +204,9 @@ class DisplayScreen(object):
 						debug.debugPrint('QDump', "Empty queue")
 						time.sleep(0.01)
 				event = pygame.event.Event(NOEVENT, dict={'inject':time.time(),'defer':True}) #eventfix
+				'''
+				pass
+			'''
 			elif ReadyList:
 				event = ReadyList.pop(0)
 				self.HBEvents.Entry('Ready pop at {}: {} \nWaiting: {}'.format(time.time(), NewRepr(event), ReadyList))
@@ -222,20 +225,22 @@ class DisplayScreen(object):
 						event = pygame.fastevent.poll()
 					self.HBEvents.Entry('Event arrived after wait of type {} {}'.format(time.time()-pollwait,event.type))
 					#event = pygame.fastevent.wait()
-			print('Fastevent: {}'.format(repr(event)))
+			'''
+			#print('Fastevent: {}'.format(repr(event)))
 			needvalidevent = True
 			while needvalidevent:
-				ee = GetEvent()
-				if (ee.type == CEvent.ACTIVITYTIMER):
-					if ee.seq == self.activityseq:
+				event = GetEvent()
+				if (event.type == CEvent.ACTIVITYTIMER):
+					if event.seq == self.activityseq:
 						print('valid activity')
 						needvalidevent = False
 					else:
-						print('outdated activity {} {}'.format(ee.seq,self.activityseq))
+						print('outdated activity {} {}'.format(event.seq,self.activityseq))
 				else:
 					needvalidevent = False
-			print('New-event: ' + repr(ee))  # eventfix
-			self.HBEvents.Entry('Process at {}  {}'.format(time.time(),NewRepr(event)))
+			pygame.fastevent.get() # todo temp empty queue
+			print('New-event: ' + repr(event))  # eventfix
+			self.HBEvents.Entry('Process at {}  {}'.format(time.time(),repr(event)))
 			postwaittime = time.time()
 			'''
 			else:
@@ -256,11 +261,11 @@ class DisplayScreen(object):
 			cyclehistory.pop()
 			cyclehistory.appendleft((nowtime%1000, nowtime2%1000, nowtime3%1000, event.type)) #todo del
 
-			if event.type == NOEVENT:
+			if event.type ==  CEvent.FailSafePing:
 				#print('Saw NOEVENT {} after injection'.format(time.time()-event.inject))
 				self.HBEvents.Entry('Saw NOEVENT {} after injection at {}'.format(time.time()-event.inject, event.inject))
 				pass # these appear to make sure loop is running
-			elif event.type == pygame.MOUSEBUTTONDOWN:
+			elif event.type == CEvent.MouseDown: #pygame.MOUSEBUTTONDOWN:
 				self.HBEvents.Entry('MouseDown' + str(event.pos))
 				debug.debugPrint('Touch', 'MouseDown' + str(event.pos) + repr(event))
 				# screen touch events; this includes touches to non-sensitive area of screen
@@ -282,21 +287,31 @@ class DisplayScreen(object):
 				tapcount = 1
 				pygame.time.delay(config.sysStore.MultiTapTime)
 				while True:
-					eventx = pygame.fastevent.poll()
-					if eventx.type == pygame.MOUSEBUTTONDOWN:
+					#eventx = pygame.fastevent.poll()
+					eventx = GetEventNoWait()
+					if eventx is None:
+						break
+					elif eventx.type == CEvent.MouseDown: #pygame.MOUSEBUTTONDOWN:
 						self.HBEvents.Entry('Follow MouseDown' + str(event.pos))
 						debug.debugPrint('Touch', 'Follow MouseDown' + str(event.pos) + repr(event))
 						tapcount += 1
-						pygame.time.delay(config.sysStore.MultiTapTime)
-					elif eventx.type == NOEVENT:
-						break
+						pygame.time.delay(config.sysStore.MultiTapTime) #todo make general time call?
+					#elif eventx.type == NOEVENT:
+					#	break
 					else:
+						if eventx.type in (CEvent.MouseUp, CEvent.MouseMotion):
+							debug.debugPrint('Touch', 'Other event: {}'.format(repr(eventx)))
+						else:
+							self.HBEvents.Entry('Defer' + repr(eventx))
+							self.Deferrals.append(eventx)  # defer the event until after the clicks are sorted out
+						'''	
 						if eventx.type >= pygame.USEREVENT:  # it isn't a screen related event
 							self.HBEvents.Entry('Defer' + NewRepr(eventx))
 							self.Deferrals.append(eventx)  # defer the event until after the clicks are sorted out
 						else:
 							debug.debugPrint('Touch',
 											 'Other event ' + pygame.event.event_name(eventx.type) + repr(eventx))
+						 '''
 						# Future add handling for hold here with checking for MOUSE UP etc.
 				if tapcount == 3:
 					# Switch screen chains
@@ -327,12 +342,13 @@ class DisplayScreen(object):
 					if K.touched(pos):
 						K.Proc(config.PRESS)  # same action whether single or double tap
 
-			elif event.type in (pygame.MOUSEBUTTONUP, pygame.MOUSEMOTION):
-				debug.debugPrint('Touch', 'Other mouse event ' + pygame.event.event_name(event.type) + repr(event))
+			#elif event.type in (pygame.MOUSEBUTTONUP, pygame.MOUSEMOTION): todo
+			elif event.type in (CEvent.MouseUp, CEvent.MouseMotion):
+				debug.debugPrint('Touch', 'Other mouse event {}'.format(repr(event)))# + pygame.event.event_name(event.type) + repr(event))
 
 			# ignore for now - handle more complex gestures here if ever needed
 
-			elif event.type == ACTIVITYTIMER:
+			elif event.type == CEvent.ACTIVITYTIMER: #ACTIVITYTIMER:
 				debug.debugPrint('Dispatch', 'Activity timer fired State=', self.state, '/', self.dim)
 
 				if self.dim == 'Bright':
@@ -359,13 +375,13 @@ class DisplayScreen(object):
 						debug.debugPrint('Dispatch', 'TO while in: ', self.state)
 
 
-			elif event.type == GeneralRepaint:
-				self.HBEvents.Entry('General Repaint' + NewRepr(event))
+			elif event.type == CEvent.GeneralRepaint:
+				self.HBEvents.Entry('General Repaint: {}'.format(repr(event)))
 				debug.debugPrint('Dispatch', 'General Repaint Event', event)
 				self.AS.InitDisplay()
 
-			elif event.type == HubNodeChange:
-				self.HBEvents.Entry('Hub Change' + NewRepr(event))
+			elif event.type == CEvent.HubNodeChange:
+				self.HBEvents.Entry('Hub Change: {}'.format(repr(event)))
 				debug.debugPrint('Dispatch', 'Hub Change Event', event)
 				if hasattr(event, 'node'):
 					self.AS.NodeEvent(hub=event.hub, node=event.node, value=event.value)
@@ -375,9 +391,9 @@ class DisplayScreen(object):
 					debug.debugPrint('Dispatch', 'Bad Node Change Event: ', event)
 					logsupport.Logs.Log('Bad Node Change Event ', event, severity=ConsoleWarning)
 
-			elif event.type in (ISYVar, ISYAlert):
-				self.HBEvents.Entry('Var or Alert' + NewRepr(event))
-				evtype = 'variable' if event.type == ISYVar else 'node'
+			elif event.type in (CEvent.ISYVar, CEvent.ISYAlert):
+				self.HBEvents.Entry('Var or Alert' + repr(event))
+				evtype = 'variable' if event.type == CEvent.ISYVar else 'node'
 				debug.debugPrint('Dispatch', 'ISY ', evtype, ' change', event)
 				alert = event.alert
 				if alert.state in ('Armed', 'Init'):
@@ -423,8 +439,8 @@ class DisplayScreen(object):
 				# Active and true: extaneous report
 				# Delayed or deferred and true: redundant report
 
-			elif event.type == SchedEvent:
-				self.HBEvents.Entry('Sched event {}'.format(NewRepr(event)))
+			elif event.type == CEvent.SchedEvent:
+				self.HBEvents.Entry('Sched event {}'.format(repr(event)))
 				#print('Sched event {}'.format(repr(event)))
 				eventnow = time.time()
 				diff = eventnow - event.TargetTime
@@ -435,7 +451,7 @@ class DisplayScreen(object):
 					self.HBEvents.Entry('Cycle history: {}'.format(cyclehistory))
 				event.proc(event)
 
-			elif event.type == RunProc:
+			elif event.type == CEvent.RunProc:
 				self.HBEvents.Entry('Run procedure {}'.format(event.name))
 				event.proc()
 

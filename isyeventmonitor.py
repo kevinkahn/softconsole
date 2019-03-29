@@ -88,7 +88,7 @@ class ISYEventMonitor(object):
 
 	def FakeNodeChange(self):
 		# noinspection PyArgumentList
-		PostControl(HubNodeChange, hub=self.isy.name, node=None, value=-1)
+		#PostControl(HubNodeChange, hub=self.isy.name, node=None, value=-1) todo
 		PostEvent(ConsoleEvent(CEvent.HubNodeChange, hub=self.isy.name, node=None, value=-1))
 
 	def reinit(self):
@@ -304,8 +304,8 @@ class ISYEventMonitor(object):
 										debug.debugPrint('DaemonCtl', time.time() - config.starttime, "ISY reports node change(screen): ",
 												   "Key: ", self.isy.NodesByAddr[enode].name)
 										# noinspection PyArgumentList
-										PostControl(HubNodeChange, hub=self.isy.name, node=enode,
-													value=isycodes._NormalizeState(eaction))
+										#PostControl(HubNodeChange, hub=self.isy.name, node=enode, todo
+										#			value=isycodes._NormalizeState(eaction))
 										PostEvent(ConsoleEvent(CEvent.HubNodeChange, hub=self.isy.name, node=enode, value=isycodes._NormalizeState(eaction)))
 
 					elif (prcode == 'Trigger') and (eaction == '6'):

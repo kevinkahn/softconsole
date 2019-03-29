@@ -7,19 +7,19 @@ CEvent = Enum('ConsoleEvent', 'FailSafePing ACTIVITYTIMER HubNodeChange ISYAlert
 
 
 
-FailSafePing = pygame.USEREVENT
-ACTIVITYTIMER = pygame.USEREVENT + 1
-HubNodeChange = pygame.USEREVENT + 2  # Node state change in a current screen watched node on the ISY
-ISYAlert = pygame.USEREVENT + 3  # Mpde state change in watched node for alerts
-ISYVar = pygame.USEREVENT + 4  # Var value change for a watched variable on ISY
-GeneralRepaint = pygame.USEREVENT + 5  # force a repaint of current screen
-RunProc = pygame.USEREVENT + 6
-SchedEvent = pygame.USEREVENT + 7 # Event scheduled by new timer system
+#FailSafePing = pygame.USEREVENT
+#ACTIVITYTIMER = pygame.USEREVENT + 1
+#HubNodeChange = pygame.USEREVENT + 2  # Node state change in a current screen watched node on the ISY
+#ISYAlert = pygame.USEREVENT + 3  # Mpde state change in watched node for alerts
+#ISYVar = pygame.USEREVENT + 4  # Var value change for a watched variable on ISY
+#GeneralRepaint = pygame.USEREVENT + 5  # force a repaint of current screen
+#RunProc = pygame.USEREVENT + 6
+#SchedEvent = pygame.USEREVENT + 7 # Event scheduled by new timer system
 
-names = {FailSafePing:'FailSafe', ACTIVITYTIMER:'ACTIVITYTIMER',HubNodeChange:'HUBNODECHANGE',ISYAlert:'ISYAlert',ISYVar:'ISYVar',
-		 GeneralRepaint:'GeneralRepaint', RunProc:'RunProc', SchedEvent:'ScheduledEvent'}
+#names = {FailSafePing:'FailSafe', ACTIVITYTIMER:'ACTIVITYTIMER',HubNodeChange:'HUBNODECHANGE',ISYAlert:'ISYAlert',ISYVar:'ISYVar',
+#		 GeneralRepaint:'GeneralRepaint', RunProc:'RunProc', SchedEvent:'ScheduledEvent'}
 
-NOEVENT = pygame.NOEVENT
+#NOEVENT = pygame.NOEVENT
 
 ConsoleOpsQueue = queue.Queue() # master sequencer
 
@@ -35,6 +35,14 @@ def GetEvent():
 	if evnt is None: print('Got a none from blockng get!')
 	#print('Got Event: {}'.format(evnt))
 	return evnt
+
+def GetEventNoWait():
+	try:
+		evnt = ConsoleOpsQueue.get(block=False)
+	except queue.Empty:
+		evnt = None
+	return evnt
+
 
 class ConsoleEvent(object):
 
@@ -56,7 +64,7 @@ class ConsoleEvent(object):
 
 
 
-
+'''
 def NewRepr(self):
 		rep = '<Fastevent: {}'.format(names[self.type] if self.type in names else pygame.event.event_name(self.type))
 		if hasattr(self, 'name'): rep = rep + ' name: {}'.format(self.name)
@@ -64,7 +72,7 @@ def NewRepr(self):
 		if hasattr(self,'TargetTime'): rep = rep + ' TargetTime: {}'.format(self.TargetTime)
 		if hasattr(self, 'alert'): rep = rep + ' alert: {}'.format(self.alert)
 		return rep+'>'
-
+'''
 
 #ConsoleEvent = pygame.event.Event
 '''			
@@ -84,5 +92,5 @@ def NewRepr(self):
 		return self.__repr__()
 '''
 
-def PostControl(control, **kwargs):
-	pygame.fastevent.post(pygame.event.Event(control, **kwargs))
+#def PostControl(control, **kwargs):
+	#pygame.fastevent.post(pygame.event.Event(control, **kwargs))

@@ -101,7 +101,7 @@ class StatefulHAnode(HAnode):
 									 "Key: ", self.Hub.Entities[self.entity_id].name)
 
 					# noinspection PyArgumentList
-					PostControl(HubNodeChange, hub=self.Hub.name, node=self.entity_id, value=self.internalstate)
+					#PostControl(HubNodeChange, hub=self.Hub.name, node=self.entity_id, value=self.internalstate) todo
 					PostEvent(ConsoleEvent(CEvent.HubNodeChange, hub=self.Hub.name, node=self.entity_id, value=self.internalstate))
 
 	def __str__(self):
@@ -258,7 +258,7 @@ class MediaPlayer(HAnode):
 										 "Key: ", self.Hub.Entities[self.entity_id].name)
 
 						# noinspection PyArgumentList
-						PostControl(HubNodeChange, hub=self.Hub.name, node=self.entity_id, value=self.internalstate)
+						#todo PostControl(HubNodeChange, hub=self.Hub.name, node=self.entity_id, value=self.internalstate)
 						PostEvent(ConsoleEvent(CEvent.HubNodeChange, hub=self.Hub.name, node=self.entity_id, value=self.internalstate))
 
 	def Join(self, master, roomname):
@@ -306,7 +306,7 @@ class Thermostat(HAnode): # not stateful since has much state info
 
 	def ErrorFakeChange(self, param=None):
 		# noinspection PyArgumentList
-		PostControl(HubNodeChange, hub=self.Hub.name, node=self.entity_id, value=self.internalstate)
+		#todo PostControl(HubNodeChange, hub=self.Hub.name, node=self.entity_id, value=self.internalstate)
 		PostEvent(ConsoleEvent(CEvent.HubNodeChange, hub=self.Hub.name, node=self.entity_id, value=self.internalstate))
 
 	def Update(self,**ns):
@@ -324,7 +324,7 @@ class Thermostat(HAnode): # not stateful since has much state info
 									 "Key: ", self.Hub.Entities[self.entity_id].name)
 
 					# noinspection PyArgumentList
-					PostControl(HubNodeChange, hub=self.Hub.name, node=self.entity_id, value=self.internalstate)
+					#todo PostControl(HubNodeChange, hub=self.Hub.name, node=self.entity_id, value=self.internalstate)
 					PostEvent(ConsoleEvent(CEvent.HubNodeChange, hub=self.Hub.name, node=self.entity_id, value=self.internalstate))
 
 	def PushSetpoints(self,t_low,t_high):
@@ -349,7 +349,7 @@ class Thermostat(HAnode): # not stateful since has much state info
 									 "Key: ", self.Hub.Entities[self.entity_id].name)
 
 					# noinspection PyArgumentList
-					PostControl(HubNodeChange, hub=self.Hub.name, node=self.entity_id, value=new)
+					# todo PostControl(HubNodeChange, hub=self.Hub.name, node=self.entity_id, value=new)
 					PostEvent(ConsoleEvent(CEvent.HubNodeChange, hub=self.Hub.name, node=self.entity_id, value=new))
 
 	def _connectsensors(self, HVACsensor):
