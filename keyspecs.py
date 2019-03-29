@@ -15,7 +15,6 @@ import screen
 def KeyWithVarChanged(storeitem, old, new, param, modifier):
 	debug.debugPrint('DaemonCtl','Var changed for key ',storeitem.name,' from ',old,' to ',new)
 	# noinspection PyArgumentList
-	PostControl(HubNodeChange, hub='*VARSTORE*', varinfo=param)
 	PostEvent(ConsoleEvent(CEvent.HubNodeChange,hub='*VARSTORE*', varinfo=param))
 
 def _resolvekeyname(kn,DefHub):

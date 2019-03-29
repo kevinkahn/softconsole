@@ -286,8 +286,6 @@ class ISYEventMonitor(object):
 										logsupport.Logs.Log(self.hubname + " Node alert fired: " + str(a),
 															severity=ConsoleDetail)
 										# noinspection PyArgumentList
-										PostControl(ISYAlert, hub=self.isy.name, node=enode,
-													value=isycodes._NormalizeState(eaction), alert=a)
 										PostEvent(ConsoleEvent(CEvent.ISYAlert, hub=self.isy.name, node=enode,value=isycodes._NormalizeState(eaction), alert=a))
 
 					if ecode in self.reportablecodes:
