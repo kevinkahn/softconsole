@@ -30,7 +30,7 @@ def GetEvent():
 	#print('Got Event: {}'.format(evnt))
 	if hw.hostname in ('rpi-kck','rpi-dev7'):
 		cpu = psutil.Process(config.Console_pid).cpu_times()
-		if time.time() - evnt.QTime > 1.5:
+		if time.time() - evnt.QTime > 2:
 			print('Long on queue: {} user: {} system: {} event: {}'.format(time.time()-evnt.QTime, cpu.user - evnt.usercpu, cpu.system - evnt.syscpu, evnt))
 			if not firsttime:
 				logsupport.Logs.Log('Long on queue {} (user: {} sys: {}) event: {}'.format(time.time()-evnt.QTime, cpu.user - evnt.usercpu, cpu.system - evnt.syscpu, evnt),severity=logsupport.ConsoleWarning,hb=True)
