@@ -93,7 +93,12 @@ class NodeChgtrigger(object):
 def VarChanged(storeitem, old, new, param, modifier):
 	debug.debugPrint('DaemonCtl','Var changed ',storeitem.name,' from ',old,' to ',new)
 	# noinspection PyArgumentList
-	if old != new: PostControl(ISYVar, hub='AlertTasksVarChange', alert=param)
+	if old != new:
+		PostControl(ISYVar, hub='AlertTasksVarChange', alert=param)
+		tt = ConsoleEvent(CEvent.ISYVar, hub='AlertTasksVarChange', alert=param)
+		print('post: {}'.format(repr(tt)))
+		PostEvent(tt)
+		#PostEvent(ConsoleEvent(CEvent.ISYVar, hub='AlertTasksVarChange', alert=param))
 
 class VarChangeTrigger(object):
 	def __init__(self, var, params):
@@ -103,6 +108,7 @@ class VarChangeTrigger(object):
 		self.delay = params[2]
 
 	def IsTrue(self):
+		val = -99999
 		try:
 			val = valuestore.GetVal(self.var)
 			if self.test == 'EQ':
@@ -113,6 +119,7 @@ class VarChangeTrigger(object):
 				logsupport.Logs.Log('Bad test in IsTrue',self.test,severity=ConsoleError)
 				return False # shouldn't happen
 		except Exception as E:
+			print(E)
 			logsupport.Logs.Log('Exception in IsTrue: {} Test: {} Val: {} Compare Val: {}'.format(repr(E),self.test,val,self.value), severity=ConsoleError)
 			return False
 

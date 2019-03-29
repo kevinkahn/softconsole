@@ -117,6 +117,7 @@ class MQTTBroker(valuestore.ValueStore):
 				if cmd.lower() in cmdcalls:
 					try:
 						controlevents.PostControl(controlevents.RunProc, name=cmd, proc=cmdcalls[cmd.lower()])
+						controlevents.PostEvent(controlevents.ConsoleEvent(controlevents.CEvent.RunProc,name=cmd, proc=cmdcalls[cmd.lower()]))
 					except Exception as E:
 						logsupport.Logs.Log('Exc: {}'.format(repr(E)))
 				else:

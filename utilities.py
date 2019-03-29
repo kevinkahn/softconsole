@@ -3,6 +3,7 @@ import os
 import signal
 import time
 import threadmanager  # should not depend on in project files - move somewhere else
+from controlevents import *
 # from sets import Set
 
 import pygame
@@ -103,14 +104,17 @@ def InitializeEnvironment():
 				e = pygame.event.Event(pygame.MOUSEBUTTONDOWN, {'pos': p, 'seq': evntcnt})
 				debug.debugPrint('Touch', 'Press: ' + str(p) + repr(e))
 				pygame.fastevent.post(e)
+				PostEvent(ConsoleEvent(CEvent.MouseDown,pos=p,seq=evntcnt)) #eventfix
 			elif event == TS_RELEASE:
 				e = pygame.event.Event(pygame.MOUSEBUTTONUP, {'pos': p, 'seq': evntcnt})
 				debug.debugPrint('Touch', 'Release: ' + str(p) + repr(e))
 				pygame.fastevent.post(e)
+				PostEvent(ConsoleEvent(CEvent.MouseUp,pos=p, seq=evntcnt))
 			elif event == TS_MOVE:
 				e = pygame.event.Event(pygame.MOUSEMOTION, {'pos': p, 'seq': evntcnt})
 				debug.debugPrint('Touch', 'Motion: ' + str(p) + repr(e))
 				pygame.fastevent.post(e)
+				PostEvent(ConsoleEvent(CEvent.MouseMotion,pos=p,seq=evntcnt))
 
 
 		for touchtyp in ts.touches:

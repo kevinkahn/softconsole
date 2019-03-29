@@ -5,6 +5,7 @@ import config
 import os, signal
 import pygame
 import controlevents
+from controlevents import *
 
 KeepAlive = multiprocessing.Event()
 FailsafeInterval = 30 # todo need an injection of a no-op periodically to ensure not just long idle
@@ -15,7 +16,8 @@ def NoEventInjector():
 		try:
 			now = time.time()
 			#print('Inject: {}'.format(now))
-			pygame.fastevent.post(pygame.event.Event(controlevents.NOEVENT, {'inject': now}))
+			pygame.fastevent.post(pygame.event.Event(controlevents.FailSafePing, {'inject': now}))
+			PostEvent(ConsoleEvent(CEvent.FailSafePing, inject=now))
 			time.sleep(FailsafeInterval/2)
 		except Exception as E:
 			time.sleep(FailsafeInterval/2)

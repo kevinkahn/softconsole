@@ -102,6 +102,7 @@ class StatefulHAnode(HAnode):
 
 					# noinspection PyArgumentList
 					PostControl(HubNodeChange, hub=self.Hub.name, node=self.entity_id, value=self.internalstate)
+					PostEvent(ConsoleEvent(CEvent.HubNodeChange, hub=self.Hub.name, node=self.entity_id, value=self.internalstate))
 
 	def __str__(self):
 		return str(self.name)+'::'+str(self.state)
@@ -258,6 +259,7 @@ class MediaPlayer(HAnode):
 
 						# noinspection PyArgumentList
 						PostControl(HubNodeChange, hub=self.Hub.name, node=self.entity_id, value=self.internalstate)
+						PostEvent(ConsoleEvent(CEvent.HubNodeChange, hub=self.Hub.name, node=self.entity_id, value=self.internalstate))
 
 	def Join(self, master, roomname):
 		ha.call_service(self.Hub.api, 'media_player', 'sonos_join', {'master': '{}'.format(master),
@@ -305,6 +307,7 @@ class Thermostat(HAnode): # not stateful since has much state info
 	def ErrorFakeChange(self, param=None):
 		# noinspection PyArgumentList
 		PostControl(HubNodeChange, hub=self.Hub.name, node=self.entity_id, value=self.internalstate)
+		PostEvent(ConsoleEvent(CEvent.HubNodeChange, hub=self.Hub.name, node=self.entity_id, value=self.internalstate))
 
 	def Update(self,**ns):
 		if 'attributes' in ns: self.attributes = ns['attributes']
@@ -322,6 +325,7 @@ class Thermostat(HAnode): # not stateful since has much state info
 
 					# noinspection PyArgumentList
 					PostControl(HubNodeChange, hub=self.Hub.name, node=self.entity_id, value=self.internalstate)
+					PostEvent(ConsoleEvent(CEvent.HubNodeChange, hub=self.Hub.name, node=self.entity_id, value=self.internalstate))
 
 	def PushSetpoints(self,t_low,t_high):
 		# todo with nest pushing setpoint while not in auto seems to be a no-op and so doesn't cause an event
@@ -346,6 +350,7 @@ class Thermostat(HAnode): # not stateful since has much state info
 
 					# noinspection PyArgumentList
 					PostControl(HubNodeChange, hub=self.Hub.name, node=self.entity_id, value=new)
+					PostEvent(ConsoleEvent(CEvent.HubNodeChange, hub=self.Hub.name, node=self.entity_id, value=new))
 
 	def _connectsensors(self, HVACsensor):
 		self.HVAC_state = HVACsensor.state
@@ -583,6 +588,7 @@ class HA(object):
 							# noinspection PyArgumentList
 							PostControl(ISYAlert, node=ent, hub=self.name, value=self.Entities[ent].internalstate,
 										alert=a)
+							PostEvent(ConsoleEvent(CEvent.ISYAlert, node=ent, hub=self.name, value=self.Entities[ent].internalstate, alert=a))
 				elif m['event_type'] == 'system_log_event':
 					logsupport.Logs.Log('Hub: ' + self.name + ' logged at level: ' + d['level'] + ' Msg: ' + d[
 						'message'])  # todo fake an event for Nest error?

@@ -89,6 +89,7 @@ class ISYEventMonitor(object):
 	def FakeNodeChange(self):
 		# noinspection PyArgumentList
 		PostControl(HubNodeChange, hub=self.isy.name, node=None, value=-1)
+		PostEvent(ConsoleEvent(CEvent.HubNodeChange, hub=self.isy.name, node=None, value=-1))
 
 	def reinit(self):
 		self.watchstarttime = time.time()
@@ -288,6 +289,7 @@ class ISYEventMonitor(object):
 										# noinspection PyArgumentList
 										PostControl(ISYAlert, hub=self.isy.name, node=enode,
 													value=isycodes._NormalizeState(eaction), alert=a)
+										PostEvent(ConsoleEvent(CEvent.ISYAlert, hub=self.isy.name, node=enode,value=isycodes._NormalizeState(eaction), alert=a))
 
 					if ecode in self.reportablecodes:
 						# Node change report
@@ -304,6 +306,7 @@ class ISYEventMonitor(object):
 										# noinspection PyArgumentList
 										PostControl(HubNodeChange, hub=self.isy.name, node=enode,
 													value=isycodes._NormalizeState(eaction))
+										PostEvent(ConsoleEvent(CEvent.HubNodeChange, hub=self.isy.name, node=enode, value=isycodes._NormalizeState(eaction)))
 
 					elif (prcode == 'Trigger') and (eaction == '6'):
 						vinfo = eInfo['var']

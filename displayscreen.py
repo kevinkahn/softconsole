@@ -39,6 +39,8 @@ class DisplayScreen(object):
 		self.Chain = 0  # which screen chain is active 0: Main chain 1: Secondary Chain
 		self.HBScreens = historybuffer.HistoryBuffer(20, 'Screens')
 		self.HBEvents = historybuffer.HistoryBuffer(80, 'Events')
+		self.ActivityTimer = timers.ResettableTimer(name='ActivityTimer',start=True)
+		self.activityseq = 0
 
 	def Dim(self):
 		self.dim = 'Dim'
@@ -48,9 +50,10 @@ class DisplayScreen(object):
 		self.dim = 'Bright'
 		hw.GoBright(int(config.sysStore.BrightLevel))
 
-	@staticmethod
-	def SetActivityTimer(timeinsecs, dbgmsg):
+	def SetActivityTimer(self, timeinsecs, dbgmsg):
 		pygame.time.set_timer(ACTIVITYTIMER, timeinsecs * 1000)
+		self.activityseq += 1
+		self.ActivityTimer.set(ConsoleEvent(CEvent.ACTIVITYTIMER,seq=self.activityseq,msg=dbgmsg),timeinsecs)
 		debug.debugPrint('Dispatch', 'Set activity timer: ', timeinsecs, ' ', dbgmsg)
 
 	def SwitchScreen(self, NS, newdim, newstate, reason, NavKeys=True):
@@ -139,6 +142,7 @@ class DisplayScreen(object):
 				if a.trigger.IsTrue():
 					# noinspection PyArgumentList
 					PostControl(ISYAlert, hub='DS-NodeChange', alert=a)
+					PostEvent(CEvent.ISYAlert,'DS-NodeChange', alert=a)
 			elif a.type == 'VarChange':
 				a.state = 'Init'
 				# Note: VarChange alerts don't need setup because the store has an alert proc
@@ -199,7 +203,7 @@ class DisplayScreen(object):
 					else:
 						debug.debugPrint('QDump', "Empty queue")
 						time.sleep(0.01)
-				event = pygame.event.Event(NOEVENT, dict={'inject':time.time(),'defer':True})
+				event = pygame.event.Event(NOEVENT, dict={'inject':time.time(),'defer':True}) #eventfix
 			elif ReadyList:
 				event = ReadyList.pop(0)
 				self.HBEvents.Entry('Ready pop at {}: {} \nWaiting: {}'.format(time.time(), NewRepr(event), ReadyList))
@@ -218,10 +222,22 @@ class DisplayScreen(object):
 						event = pygame.fastevent.poll()
 					self.HBEvents.Entry('Event arrived after wait of type {} {}'.format(time.time()-pollwait,event.type))
 					#event = pygame.fastevent.wait()
-				print(NewRepr(event))
-				self.HBEvents.Entry('Process at {}  {}'.format(time.time(),NewRepr(event)))
-				postwaittime = time.time()
-				'''
+			print('Fastevent: {}'.format(repr(event)))
+			needvalidevent = True
+			while needvalidevent:
+				ee = GetEvent()
+				if (ee.type == CEvent.ACTIVITYTIMER):
+					if ee.seq == self.activityseq:
+						print('valid activity')
+						needvalidevent = False
+					else:
+						print('outdated activity {} {}'.format(ee.seq,self.activityseq))
+				else:
+					needvalidevent = False
+			print('New-event: ' + repr(ee))  # eventfix
+			self.HBEvents.Entry('Process at {}  {}'.format(time.time(),NewRepr(event)))
+			postwaittime = time.time()
+			'''
 			else:
 				event = pygame.fastevent.wait()  # wait for the next event: touches, timeouts, ISY changes on note
 				postwaittime = time.time()

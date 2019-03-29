@@ -1,6 +1,6 @@
 from threading import Thread, Event
-import pygame, time
-from controlevents import SchedEvent
+import time
+from controlevents import *
 import historybuffer
 import logsupport
 import config, os, signal
@@ -124,12 +124,86 @@ class RepeatingPost(Thread):
 					self.cumulativeslip += diff
 					TimerHB.Entry('Post repeater: {} diff: {} cumm: {} args: {}'.format(self.name, diff, self.cumulativeslip, self.kwargs))
 					pygame.fastevent.post(pygame.event.Event(SchedEvent, **self.kwargs))
+					tt = ConsoleEvent(CEvent.SchedEvent,**self.kwargs)
+					#print('RR: {}'.format(repr(tt)))
+					PostEvent(tt)
 					targettime = time.time() + self.interval # don't accumulate errors
 				else:
 					self.running.wait()
 					targettime = time.time() + self.interval
 		del TimerList[self.name]
 		TimerHB.Entry('Exit repeater: {}'.format(self.name))
+
+class ResettableTimer(Thread):
+	'''
+	Timer that can be reset to a new event and time; note that due to race conditions the old event my fire even if the
+	new event seems to be set before the firing time so the validity  must be checked before actually processing if executing early is an issue
+	'''
+	def __init__(self, start=False, name='', **kwargs):
+		Thread.__init__(self, name=name)
+		TimerHB.Entry("Created ResettableTimer: {} start: {} args: {}".format(name, start, kwargs))
+		self.interval = 0
+		self.kwargs = kwargs if kwargs is not None else {}
+		self.kwargs['name'] = name
+		self.finished = Event()
+		AddToTimerList(self.name, self)
+		self.eventtopost = None
+		self.changingevent = Event()
+		self.changedone = Event()
+		if start: self.start()
+
+	def cancel(self):
+		"""Stop the timer if it hasn't finished yet."""
+		self.finished.set()
+		self.changingevent.set()
+
+		temp = 5
+		while self.is_alive():
+			TimerHB.Entry("Cancelling resettable: {}".format(self.name))
+			time.sleep(.1) # wait for thread to finish to avoid any late activations causing races
+			temp -= 1
+			if temp < 0:
+				logsupport.Logs.Log("Resettable {} won't cancel finished: {} running: {}".format(self.name,self.finished.is_set(),self.running.is_set()),severity=logsupport.ConsoleError,hb=True,tb=False)
+				return
+		TimerHB.Entry("Canceled resettable: {}".format(self.name))
+
+	def set(self,event,delta):
+		self.newevent = event
+		self.newdelta = delta
+		self.changingevent.set()
+		#print('Wait till done {} {}'.format(delta, event))
+		self.changedone.wait()
+		#print('Change Done')
+		self.changedone.clear()
+
+
+	def run(self):
+		TimerHB.Entry('Start resettable: {}'.format(self.name))
+		while True:
+			while self.interval == 0:
+				self.changingevent.wait() # there is not event time set
+				self.eventtopost = self.newevent
+				self.interval = self.newdelta
+				self.changingevent.clear() # new values copied up so assuming non-zero interval should proceed to wait in next statement
+				self.changedone.set()
+			while not self.changingevent.wait(self.interval):  #enter while loop if interval ends
+				TimerHB.Entry('Post resettable: {}'.format(self.eventtopost))
+				#print('Fired: {}'.format(self.eventtopost))
+				PostEvent(self.eventtopost)
+				#self.interval = 0
+				#self.eventtopost = None
+			# get here if changingevent got set - either new values ready or canceling timer
+			if self.finished.is_set(): break # shutting down requires cancel to set first finished then changing to insure this is set here
+			self.eventtopost = self.newevent
+			self.interval = self.newdelta
+			self.changingevent.clear()
+			self.changedone.set()
+			# otherwise back to waiting for a non-zero interval to set
+
+
+		del TimerList[self.name]
+		TimerHB.Entry('Exit repeater: {}'.format(self.name))
+
 
 
 class CountedRepeatingPost(Thread):
@@ -165,6 +239,7 @@ class CountedRepeatingPost(Thread):
 			TimerHB.Entry(
 				'Post counter: {} diff: {} args: {}'.format(self.name, time.time() - targettime, self.kwargs))
 			pygame.fastevent.post(pygame.event.Event(SchedEvent, **self.kwargs))
+			PostEvent(ConsoleEvent(CEvent.SchedEvent, **self.kwargs))
 			targettime += self.interval
 		del TimerList[self.name]
 		TimerHB.Entry('Exit counter: {}'.format(self.name))
@@ -197,6 +272,7 @@ class OnceTimer(Thread):
 			TimerHB.Entry(
 				'Post once: {} diff: {} args: {}'.format(self.name, time.time() - self.kwargs['TargetTime'], self.kwargs))
 			pygame.fastevent.post(pygame.event.Event(SchedEvent, **self.kwargs))
+			PostEvent(ConsoleEvent(CEvent.SchedEvent, **self.kwargs))
 		self.finished.set()
 		del TimerList[self.name]
 		TimerHB.Entry('Exit once: {}'.format(self.name))
