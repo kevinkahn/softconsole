@@ -36,7 +36,6 @@ def AddToTimerList(name, timer):
 	if name in TimerList:
 		TimerList[name].cancel()
 		logsupport.Logs.Log("Duplicate timer name seen: {}".format(name),severity=logsupport.ConsoleWarning,hb=True)
-		#print("Dup Timer Name {}".format(name)) # todo make log entry
 		while name in TimerList:
 			TimerHB.Entry("Waiting timer cancel to complete: {}".format(name))
 	TimerList[name] = timer
@@ -51,7 +50,6 @@ def AddToTimerList(name, timer):
 		else:
 			printlist[n] = "Error?"
 	TimerHB.Entry("Timers : {}".format(printlist))
-	#print("Timers : {}".format(printlist)) todo delete all printlist stuff
 
 def KillMe():
 	print("Failsafe hit")
@@ -123,7 +121,6 @@ class RepeatingPost(Thread):
 					diff = time.time()- targettime
 					self.cumulativeslip += diff
 					TimerHB.Entry('Post repeater: {} diff: {} cumm: {} args: {}'.format(self.name, diff, self.cumulativeslip, self.kwargs))
-					#pygame.fastevent.post(pygame.event.Event(SchedEvent, **self.kwargs)) todo
 					tt = ConsoleEvent(CEvent.SchedEvent,**self.kwargs)
 					#print('RR: {}'.format(repr(tt)))
 					PostEvent(tt)
@@ -238,7 +235,6 @@ class CountedRepeatingPost(Thread):
 			self.count -= 1
 			TimerHB.Entry(
 				'Post counter: {} diff: {} args: {}'.format(self.name, time.time() - targettime, self.kwargs))
-			#pygame.fastevent.post(pygame.event.Event(SchedEvent, **self.kwargs))
 			PostEvent(ConsoleEvent(CEvent.SchedEvent, **self.kwargs))
 			targettime += self.interval
 		del TimerList[self.name]
@@ -271,7 +267,6 @@ class OnceTimer(Thread):
 		if not self.finished.is_set():
 			TimerHB.Entry(
 				'Post once: {} diff: {} args: {}'.format(self.name, time.time() - self.kwargs['TargetTime'], self.kwargs))
-			#pygame.fastevent.post(pygame.event.Event(SchedEvent, **self.kwargs))
 			PostEvent(ConsoleEvent(CEvent.SchedEvent, **self.kwargs))
 		self.finished.set()
 		del TimerList[self.name]

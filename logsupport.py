@@ -211,13 +211,6 @@ class Logger(object):
 			entry = ''
 			for i in args:
 				entry = entry + str(i)
-			# if isinstance(i, str): todo del
-			#	if not isinstance(i, str):
-			#		entry = entry + i.encode('UTF-8', errors='backslashreplace')
-			#	else:
-			#		entry = entry + i
-			# else:
-			#	entry = entry + str(i)
 
 			if entry != self.lastremotemes:
 				self.DumpRemoteMes()

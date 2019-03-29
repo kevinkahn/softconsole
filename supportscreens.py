@@ -26,6 +26,7 @@ class VerifyScreen(screen.BaseKeyScreenDesc):
 		self.DimTO = 20
 		self.PersistTO = 10
 		self.label = screen.FlatenScreenLabel(key.label)
+		self.ScreenTitleBlk = None # don't use parent screen title
 		self.CallingScreen = callingscreen
 		screen.AddUndefaultedParams(self, None, TitleFontSize=40, SubFontSize=25)
 		self.Keys['yes'] = ManualKeyDesc(self, 'yes', gomsg, bcolor, keycoloroff, charcolor, State=state)

@@ -94,11 +94,7 @@ def VarChanged(storeitem, old, new, param, modifier):
 	debug.debugPrint('DaemonCtl','Var changed ',storeitem.name,' from ',old,' to ',new)
 	# noinspection PyArgumentList
 	if old != new:
-		#PostControl(ISYVar, hub='AlertTasksVarChange', alert=param)
-		tt = ConsoleEvent(CEvent.ISYVar, hub='AlertTasksVarChange', alert=param)
-		print('post: {}'.format(repr(tt)))
-		PostEvent(tt)
-		#PostEvent(ConsoleEvent(CEvent.ISYVar, hub='AlertTasksVarChange', alert=param))
+		PostEvent(ConsoleEvent(CEvent.ISYVar, hub='AlertTasksVarChange', alert=param))
 
 class VarChangeTrigger(object):
 	def __init__(self, var, params):

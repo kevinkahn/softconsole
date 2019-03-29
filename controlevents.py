@@ -62,35 +62,3 @@ class ConsoleEvent(object):
 	def addtoevent(self,**kwargs):
 		self.__dict__.update(**kwargs)
 
-
-
-'''
-def NewRepr(self):
-		rep = '<Fastevent: {}'.format(names[self.type] if self.type in names else pygame.event.event_name(self.type))
-		if hasattr(self, 'name'): rep = rep + ' name: {}'.format(self.name)
-		if hasattr(self, 'inject'): rep = rep + ' inject: {}'.format(self.inject)
-		if hasattr(self,'TargetTime'): rep = rep + ' TargetTime: {}'.format(self.TargetTime)
-		if hasattr(self, 'alert'): rep = rep + ' alert: {}'.format(self.alert)
-		return rep+'>'
-'''
-
-#ConsoleEvent = pygame.event.Event
-'''			
-			(pygame.event.EventType):
-
-	def __init__(self, eventyp, *args, **kwargs):
-		pygame.event.EventType.__init__(eventyp, *args, **kwargs)
-
-	def __repr__(self):
-		rep = '<ConsoleEvent: {}'.format(names[self.type])
-		if hasattr(self, 'name'): rep = rep + ' name: {}'.format(self.name)
-		if hasattr(self, 'inject'): rep = rep + ' inject: {}'.format(self.inject)
-		if hasattr(self,'TargetTime'): rep = rep + ' TargetTime: {}'.format(self.TargetTime)
-		if hasattr(self, 'alert'): rep = rep + ' alert: {}'.format(self.alert)
-		return rep+'>'
-	def __str__(self):
-		return self.__repr__()
-'''
-
-#def PostControl(control, **kwargs):
-	#pygame.fastevent.post(pygame.event.Event(control, **kwargs))

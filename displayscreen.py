@@ -50,7 +50,6 @@ class DisplayScreen(object):
 		hw.GoBright(int(config.sysStore.BrightLevel))
 
 	def SetActivityTimer(self, timeinsecs, dbgmsg):
-		#pygame.time.set_timer(ACTIVITYTIMER, timeinsecs * 1000) #todo
 		self.activityseq += 1
 		self.ActivityTimer.set(ConsoleEvent(CEvent.ACTIVITYTIMER,seq=self.activityseq,msg=dbgmsg),timeinsecs)
 		debug.debugPrint('Dispatch', 'Set activity timer: ', timeinsecs, ' ', dbgmsg)
@@ -60,7 +59,6 @@ class DisplayScreen(object):
 		self.HBScreens.Entry(
 			NS.name + ' was ' + ASname + ' dim: ' + str(newdim) + ' state: ' + str(newstate) + ' reason: ' + str(
 				reason))
-		# config.sysStore.SetVal(['CurrentScreen'],NS.name) #todo temp
 		config.sysStore.CurrentScreen = NS.name
 		oldstate = self.state
 		olddim = self.dim
@@ -140,7 +138,6 @@ class DisplayScreen(object):
 				a.trigger.node.Hub.SetAlertWatch(a.trigger.node, a)
 				if a.trigger.IsTrue():
 					# noinspection PyArgumentList
-					#todo PostControl(ISYAlert, hub='DS-NodeChange', alert=a)
 					PostEvent(CEvent.ISYAlert,'DS-NodeChange', alert=a)
 			elif a.type == 'VarChange':
 				a.state = 'Init'
@@ -166,7 +163,7 @@ class DisplayScreen(object):
 		failsafe.Failsafe.start()
 		logsupport.Logs.Log('Starting master watchdog {} for {}'.format(failsafe.Failsafe.pid, config.Console_pid))
 
-		ReadyList = []
+		event = None
 
 		while config.Running:  # Operational Control Loop
 			failsafe.KeepAlive.set()
@@ -193,7 +190,6 @@ class DisplayScreen(object):
 				event = self.Deferrals.pop(0)
 				debug.debugPrint('EventList', 'Deferred Event Pop', event)
 			elif debug.dbgStore.GetVal('QDump'):
-				#events = pygame.fastevent.get()
 				#todo QDump with new event mechanism
 				'''if events:
 					debug.debugPrint('QDump', 'Time: ', time.time())
@@ -206,56 +202,22 @@ class DisplayScreen(object):
 				event = pygame.event.Event(NOEVENT, dict={'inject':time.time(),'defer':True}) #eventfix
 				'''
 				pass
-			'''
-			elif ReadyList:
-				event = ReadyList.pop(0)
-				self.HBEvents.Entry('Ready pop at {}: {} \nWaiting: {}'.format(time.time(), NewRepr(event), ReadyList))
-			else:
-				events = pygame.fastevent.get()
-				if events:
-					event = events.pop(0)
-					for e in events:
-						ReadyList.append(e)
-						self.HBEvents.Entry('Add to ready at {} {}'.format(time.time(),NewRepr(e)))
-				else:
-					event = pygame.event.Event(NOEVENT)
-					pollwait = time.time()
-					while event.type == NOEVENT:
-						time.sleep(.1)
-						event = pygame.fastevent.poll()
-					self.HBEvents.Entry('Event arrived after wait of type {} {}'.format(time.time()-pollwait,event.type))
-					#event = pygame.fastevent.wait()
-			'''
-			#print('Fastevent: {}'.format(repr(event)))
+
+
 			needvalidevent = True
 			while needvalidevent:
 				event = GetEvent()
 				if (event.type == CEvent.ACTIVITYTIMER):
 					if event.seq == self.activityseq:
-						print('valid activity')
+						#print('valid activity') # todo
 						needvalidevent = False
 					else:
-						print('outdated activity {} {}'.format(event.seq,self.activityseq))
+						if config.versionname == 'development': print('outdated activity {} {}'.format(event.seq,self.activityseq))
 				else:
 					needvalidevent = False
-			pygame.fastevent.get() # todo temp empty queue
-			print('New-event: ' + repr(event))  # eventfix
+			if config.versionname == 'development': print('New-event: {}'.format(event))
 			self.HBEvents.Entry('Process at {}  {}'.format(time.time(),repr(event)))
 			postwaittime = time.time()
-			'''
-			else:
-				event = pygame.fastevent.wait()  # wait for the next event: touches, timeouts, ISY changes on note
-				postwaittime = time.time()
-				if hasattr(event, 'TargetTime'):
-					if (postwaittime - nowtime2 > .5) and (postwaittime - event.TargetTime > LateTolerance):
-						self.HBEvents.Entry("Main event waited {} at {} in loop started at {} for {}".format(postwaittime-nowtime2,postwaittime, nowtime,event))
-				else:
-					if (time.time() - nowtime2 > 4):
-						self.HBEvents.Entry(
-							"Main event waited (nonsched) {} at {} in loop started at {} for {}".format(time.time() - nowtime2,
-																							 time.time(), nowtime,
-																							 event))
-				'''
 
 			nowtime3 = time.time()
 			cyclehistory.pop()
@@ -287,7 +249,6 @@ class DisplayScreen(object):
 				tapcount = 1
 				pygame.time.delay(config.sysStore.MultiTapTime)
 				while True:
-					#eventx = pygame.fastevent.poll()
 					eventx = GetEventNoWait()
 					if eventx is None:
 						break
@@ -304,14 +265,6 @@ class DisplayScreen(object):
 						else:
 							self.HBEvents.Entry('Defer' + repr(eventx))
 							self.Deferrals.append(eventx)  # defer the event until after the clicks are sorted out
-						'''	
-						if eventx.type >= pygame.USEREVENT:  # it isn't a screen related event
-							self.HBEvents.Entry('Defer' + NewRepr(eventx))
-							self.Deferrals.append(eventx)  # defer the event until after the clicks are sorted out
-						else:
-							debug.debugPrint('Touch',
-											 'Other event ' + pygame.event.event_name(eventx.type) + repr(eventx))
-						 '''
 						# Future add handling for hold here with checking for MOUSE UP etc.
 				if tapcount == 3:
 					# Switch screen chains
@@ -342,9 +295,8 @@ class DisplayScreen(object):
 					if K.touched(pos):
 						K.Proc(config.PRESS)  # same action whether single or double tap
 
-			#elif event.type in (pygame.MOUSEBUTTONUP, pygame.MOUSEMOTION): todo
 			elif event.type in (CEvent.MouseUp, CEvent.MouseMotion):
-				debug.debugPrint('Touch', 'Other mouse event {}'.format(repr(event)))# + pygame.event.event_name(event.type) + repr(event))
+				debug.debugPrint('Touch', 'Other mouse event {}'.format(event))
 
 			# ignore for now - handle more complex gestures here if ever needed
 
@@ -445,8 +397,7 @@ class DisplayScreen(object):
 				eventnow = time.time()
 				diff = eventnow - event.TargetTime
 				if abs(diff) > LateTolerance:
-					#print('{}: Late timer: {}  {}'.format(time.time(),diff%1000 ,repr(event))) #todo change to late event log
-					logsupport.Logs.Log('Timer late by {} seconds. Event: {}'.format(diff, repr(event)), severity=ConsoleWarning, hb=True, localonly=True)
+					if config.versionname in ('development', 'homerelease'): logsupport.Logs.Log('Timer late by {} seconds. Event: {}'.format(diff, repr(event)), severity=ConsoleWarning, hb=True, localonly=True)
 					self.HBEvents.Entry('Event late by {} target: {} now: {}'.format(diff,event.TargetTime, eventnow))
 					self.HBEvents.Entry('Cycle history: {}'.format(cyclehistory))
 				event.proc(event)
@@ -459,7 +410,7 @@ class DisplayScreen(object):
 				logsupport.Logs.Log("Unknown main event {}".format(repr(event)), severity=ConsoleError, hb=True,
 									tb=False)
 			if time.time() - postwaittime > 2 and not timers.LongOpInProgress: # this loop took a long time
-				logsupport.Logs.Log("Slow loop at {} took {} for {}".format(time.time(),time.time()-postwaittime,event),severity=ConsoleWarning, hb=True, localonly=True)
+				if config.versionname in ('development', 'homerelease'): logsupport.Logs.Log("Slow loop at {} took {} for {}".format(time.time(),time.time()-postwaittime,event),severity=ConsoleWarning, hb=True, localonly=True)
 
 		logsupport.Logs.Log('Main Loop Exit: ', config.ecode)
 		timers.ShutTimers('maincontrolloop')

@@ -479,7 +479,7 @@ Run the main console loop
 """
 for n in alerttasks.monitoredvars:  # make sure vars used in alerts are updated to starting values
 	valuestore.GetVal(n)
-#config.sysStore.ErrorNotice = -1  # if -1 no unseen, else entry number of first unseen todo reenable
+config.sysStore.ErrorNotice = -1  # if -1 no unseen, else entry number of first unseen todo reenable
 config.DS.MainControlLoop(screens.HomeScreen)
 logsupport.Logs.Log("Main line exit: ", config.ecode)
 timers.ShutTimers('consoleexit')
