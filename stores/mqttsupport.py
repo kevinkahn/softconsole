@@ -61,7 +61,9 @@ class MQTTBroker(valuestore.ValueStore):
 		def DoRestart():
 			while self.fetcher is not None and self.fetcher.is_alive():
 				logsupport.Logs.Log('Delaying restart until fetch completes')
+				ReportStatus('wait restart')
 				time.sleep(30)
+			ReportStatus('rmt restart')
 			exitutils.Exit_Screen_Message('Remote restart requested', 'Remote Restart')
 			exitutils.Exit(exitutils.REMOTERESTART)
 
@@ -88,7 +90,7 @@ class MQTTBroker(valuestore.ValueStore):
 			historybuffer.DumpAll('Command Dump', entrytime)
 
 		def EchoStat():
-			ReportStatus('running')
+			ReportStatus('running stat')
 
 		def LogItem(sev):
 			logsupport.Logs.Log('Remotely forced test message ({})'.format(sev), severity=sev, tb=False, hb=False)

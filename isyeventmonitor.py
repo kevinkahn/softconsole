@@ -1,12 +1,10 @@
 import base64
 import websocket
 import xmltodict
-import config
 import logsupport
 from logsupport import ConsoleWarning, ConsoleError, ConsoleDetail, ConsoleDetailHigh
 import debug
 from isycodes import EVENT_CTRL, formatwsitem
-import time
 import exitutils
 from controlevents import *
 import errno
@@ -414,7 +412,7 @@ class ISYEventMonitor(object):
 									severity=ConsoleWarning)
 			loopend = time.time()
 			self.isy.HBWS.Entry('Processing time: {} Done: {}'.format(loopend-loopstart, repr(message))) #todo try to force other thread to run
-			time.sleep(.1) # force thread to give up processor to allow response to time events
+			time.sleep(.001) # force thread to give up processor to allow response to time events
 			self.isy.HBWS.Entry('Gave up control for: {}'.format(time.time()-loopend))
 
 		self.THstate = 'delaying'

@@ -1,5 +1,6 @@
 import os
 import time
+import pygame
 from collections import OrderedDict, deque
 
 import exitutils

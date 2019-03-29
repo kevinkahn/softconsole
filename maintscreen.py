@@ -196,7 +196,7 @@ def dobeta(K, presstype):
 
 def fetch_stable():
 	basedir = os.path.dirname(config.exdir)
-	ReportStatus("updating stable")
+	ReportStatus("updt stable")
 	# noinspection PyBroadException
 	try:
 		if os.path.exists(basedir + '/homesystem'):
@@ -212,12 +212,12 @@ def fetch_stable():
 		logsupport.Logs.Log("Staged version installed in consolestable")
 	except:
 		logsupport.Logs.Log('Failed release download', severity=ConsoleWarning)
-	ReportStatus("running")
+	ReportStatus("done stable")
 
 
 def fetch_beta():
 	basedir = os.path.dirname(config.exdir)
-	ReportStatus("updating beta")
+	ReportStatus("updt beta")
 	logsupport.Logs.Log("New version fetch(currentbeta)")
 	print ("New Version Fetch Requested (currentbeta)")
 	# noinspection PyBroadException
@@ -227,7 +227,7 @@ def fetch_beta():
 		logsupport.Logs.Log("Staged version installed in consolebeta")
 	except:
 		logsupport.Logs.Log('Failed beta download', severity=ConsoleWarning)
-	ReportStatus("running")
+	ReportStatus("done beta")
 
 class LogDisplayScreen(screen.BaseKeyScreenDesc):
 	def __init__(self):

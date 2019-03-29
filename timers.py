@@ -96,7 +96,7 @@ class RepeatingPost(Thread):
 		temp = 5
 		while self.is_alive():
 			TimerHB.Entry("Cancelling repeater: {}".format(self.name))
-			time.sleep(.1) # wait for thread to finish to avoid any late activations causing races
+			time.sleep(.001) # wait for thread to finish to avoid any late activations causing races
 			temp -= 1
 			if temp < 0:
 				logsupport.Logs.Log("RepeatingPost {} won't cancel finished: {} running: {}".format(self.name,self.finished.is_set(),self.running.is_set()),severity=logsupport.ConsoleError,hb=True,tb=False)
@@ -157,7 +157,7 @@ class ResettableTimer(Thread):
 		temp = 5
 		while self.is_alive():
 			TimerHB.Entry("Cancelling resettable: {}".format(self.name))
-			time.sleep(.1) # wait for thread to finish to avoid any late activations causing races
+			time.sleep(.001) # wait for thread to finish to avoid any late activations causing races
 			temp -= 1
 			if temp < 0:
 				logsupport.Logs.Log("Resettable {} won't cancel finished: {} running: {}".format(self.name,self.finished.is_set(),self.running.is_set()),severity=logsupport.ConsoleError,hb=True,tb=False)
@@ -223,7 +223,7 @@ class CountedRepeatingPost(Thread):
 		"""Stop the timer if it hasn't finished yet."""
 		self.finished.set()
 		while self.is_alive():
-			time.sleep(0)
+			time.sleep(0.001)
 		TimerHB.Entry("Canceled counter: {}".format(self.name))
 
 	def run(self):
@@ -257,7 +257,7 @@ class OnceTimer(Thread):
 	def cancel(self):
 		self.finished.set()
 		while self.is_alive():
-			time.sleep(0)
+			time.sleep(0.001)
 		TimerHB.Entry("Canceled once: {}".format(self.name))
 
 	def run(self):
