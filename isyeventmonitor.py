@@ -6,13 +6,15 @@ from logsupport import ConsoleWarning, ConsoleError, ConsoleDetail, ConsoleDetai
 import debug
 from isycodes import EVENT_CTRL, formatwsitem
 import exitutils
-from controlevents import *
+from controlevents import CEvent, PostEvent, ConsoleEvent
 import errno
 import isycodes
 from threadmanager import ThreadStartException
 import threading
 import random
 import ssl
+import time
+import config
 
 
 
@@ -439,7 +441,6 @@ class ISYEventMonitor(object):
 				break
 			except AttributeError as e:
 				logsupport.Logs.Log(self.hubname + " Problem starting WS handler - retrying: ", repr(e))
-				print(e)
 		self.lastheartbeat = time.time()
 		ws.run_forever(ping_timeout=999,sslopt={"cert_reqs": ssl.CERT_NONE})
 		self.THstate = 'failed'

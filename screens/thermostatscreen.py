@@ -48,7 +48,7 @@ class ThermostatScreenDesc(screen.BaseKeyScreenDesc):
 			logsupport.Logs.Log("Thermostat screen only works with ISY hub", severity=ConsoleError)
 			self.ISYObj = None
 
-		self.SetScreenTitle(screen.FlatenScreenLabel(self.label),nominalfontsz[1],self.CharColor) # todo enable
+		self.SetScreenTitle(screen.FlatenScreenLabel(self.label),nominalfontsz[1],self.CharColor)
 		self.TempPos = self.startvertspace
 		'''
 		Size and positions based on nominal 480 vertical screen less top/bottom borders less default title size of 50
@@ -150,7 +150,6 @@ class ThermostatScreenDesc(screen.BaseKeyScreenDesc):
 		if not updtneeded:
 			return
 		self.ReInitDisplay()
-		#config.screen.blit(self.TitleRen, self.TitlePos) # todo disable
 		r = fonts.fonts.Font(self.fsize[3], bold=True).render(u"{:4.1f}".format(self.info["ST"][0] // 2), 0,
 															  wc(self.CharColor))
 		config.screen.blit(r, ((hw.screenwidth - r.get_width()) // 2, self.TempPos))

@@ -6,7 +6,7 @@ from configobjects import Section
 import screen
 from logsupport import ConsoleWarning, ConsoleDetail, ConsoleError
 from stores import valuestore
-from controlevents import *
+from controlevents import CEvent, PostEvent, ConsoleEvent
 import debug
 import timers
 import historybuffer
@@ -115,7 +115,6 @@ class VarChangeTrigger(object):
 				logsupport.Logs.Log('Bad test in IsTrue',self.test,severity=ConsoleError)
 				return False # shouldn't happen
 		except Exception as E:
-			print(E)
 			logsupport.Logs.Log('Exception in IsTrue: {} Test: {} Val: {} Compare Val: {}'.format(repr(E),self.test,val,self.value), severity=ConsoleError)
 			return False
 
@@ -146,12 +145,9 @@ class Periodictrigger(object):
 			now = datetime.now()
 			seconds_since_midnight = (now - now.replace(hour=0, minute=0, second=0, microsecond=0)).total_seconds()
 			for schedtime in self.timeslist:
-				#print 'Check ', seconds_since_midnight, schedtime
 				if seconds_since_midnight < schedtime - 2: # 2 seconds of slop to avoid rescheduling for immediate execution
-					#print "Next ", schedtime - seconds_since_midnight
 					return schedtime - seconds_since_midnight
 			# no times left for today
-			#print 'Tomorrow ', 24*3600 - seconds_since_midnight + self.timeslist[0]
 			return 24*3600 - seconds_since_midnight + self.timeslist[0]
 
 	@staticmethod
@@ -311,8 +307,6 @@ def DumpAlerts():
 
 
 def HandleDeferredAlert(param):
-	print(param)
-	print(param.param)
 	alert = param.param
 	AlertsHB.Entry('Deferred Alert' + repr(alert))
 	debug.debugPrint('Dispatch', 'Deferred alert fired: ', repr(alert))

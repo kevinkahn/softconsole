@@ -91,7 +91,7 @@ config.hubtypes['HASS'] = hasshub.HA
 # noinspection PyUnusedLocal
 def handler(signum, frame):
 	if signum in (signal.SIGTERM, signal.SIGINT):
-		logsupport.Logs.Log(u"Console received a termination signal ", str(signum), u" - Exiting")
+		logsupport.Logs.Log(u"Console received a termination signal ", str(signum), u" - Exiting",tb=True)
 		hw.GoBright(100)
 		print('Exiting via handler')
 		timers.ShutTimers('interrupt')
@@ -479,7 +479,7 @@ Run the main console loop
 """
 for n in alerttasks.monitoredvars:  # make sure vars used in alerts are updated to starting values
 	valuestore.GetVal(n)
-config.sysStore.ErrorNotice = -1  # if -1 no unseen, else entry number of first unseen todo reenable
+config.sysStore.ErrorNotice = -1
 config.DS.MainControlLoop(screens.HomeScreen)
 logsupport.Logs.Log("Main line exit: ", config.ecode)
 timers.ShutTimers('consoleexit')

@@ -22,10 +22,8 @@ def extref(listitem, indexitem):
 		return listitem[-1]
 
 class TimeTempScreenDesc(screen.ScreenDesc):
-	# todo rethink title for these screens as it appears below the clock
 
 	def __init__(self, screensection, screenname):
-		# todo change to use screen title
 		screen.ScreenDesc.__init__(self, screensection, screenname)
 		debug.debugPrint('Screen', "New TimeTempDesc ", screenname)
 

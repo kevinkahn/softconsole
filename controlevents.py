@@ -1,8 +1,7 @@
 import time
 import queue
 from enum import Enum
-import traceback,sys
-import config, hw
+import config
 import psutil
 import logsupport
 
@@ -16,25 +15,21 @@ firsttime = True
 
 def PostEvent(e):
 	if e is None:
-		print('Push None!')
-		traceback.print_stack(file=sys.stdout)
+		logsupport.Logs.Log('Pushing None event to queue',severity=logsupport.ConsoleError,tb=True,hb=True)
 	cpu = psutil.Process(config.Console_pid).cpu_times()
 	e.addtoevent(QTime=time.time(),usercpu = cpu.user, syscpu = cpu.system)
 	ConsoleOpsQueue.put(e)
 
 def GetEvent():
 	global firsttime
-	#print('Event Wait')
-	evnt = ConsoleOpsQueue.get(block=True) # put the drop test here todo
-	if evnt is None: print('Got a none from blockng get!')
-	#print('Got Event: {}'.format(evnt))
-	if hw.hostname in ('rpi-kck','rpi-dev7'):
-		cpu = psutil.Process(config.Console_pid).cpu_times()
-		if time.time() - evnt.QTime > 2:
-			print('Long on queue: {} user: {} system: {} event: {}'.format(time.time()-evnt.QTime, cpu.user - evnt.usercpu, cpu.system - evnt.syscpu, evnt))
-			if not firsttime:
-				logsupport.Logs.Log('Long on queue {} (user: {} sys: {}) event: {}'.format(time.time()-evnt.QTime, cpu.user - evnt.usercpu, cpu.system - evnt.syscpu, evnt),severity=logsupport.ConsoleWarning,hb=True,localonly=True)
-			firsttime = False # todo hack
+	evnt = ConsoleOpsQueue.get(block=True)
+	if evnt is None: logsupport.Logs.Log('Got none from blocking get',severity=logsupport.ConsoleError,hb=True)
+	cpu = psutil.Process(config.Console_pid).cpu_times()
+	if time.time() - evnt.QTime > 2:
+		logsupport.DevPrint('Long on queue: {} user: {} system: {} event: {}'.format(time.time()-evnt.QTime, cpu.user - evnt.usercpu, cpu.system - evnt.syscpu, evnt))
+		if not firsttime:
+			logsupport.Logs.Log('Long on queue {} (user: {} sys: {}) event: {}'.format(time.time()-evnt.QTime, cpu.user - evnt.usercpu, cpu.system - evnt.syscpu, evnt),severity=logsupport.ConsoleWarning,hb=True,localonly=True,homeonly=True)
+		firsttime = False # todo hack
 	return evnt
 
 def GetEventNoWait():

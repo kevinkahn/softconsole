@@ -11,7 +11,6 @@ class NetworkHealth(object):
 
 	@staticmethod
 	def RobustPing(dest):
-		# print dest
 		ok = False
 		with open('/dev/null', 'a') as null:
 			cmd = 'ping -c 1 -W 2 ' + dest

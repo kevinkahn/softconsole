@@ -1,6 +1,7 @@
 import githubutil, os
 
 exdir = os.getcwd()
+print("Install from: {}".format(exdir))
 try:
 	with open('versioninfo') as f:
 		versionname = f.readline()[:-1].rstrip()
@@ -27,6 +28,7 @@ try:  # if network is down or other error occurs just skip for now rather than b
 	elif sha == 'no current sha':
 		print('No sha for autoversion: ' + versionname)
 	else:
+		print("sha already matches")
 		pass
 except Exception as e:
 	print("Got exception: " + repr(e))

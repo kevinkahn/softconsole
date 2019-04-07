@@ -52,7 +52,7 @@ class NestThermostatScreenDesc(screen.BaseKeyScreenDesc):
 		#	self.self.ThermNode = None
 		#	raise ValueError
 
-		self.SetScreenTitle(screen.FlatenScreenLabel(self.label),nominalfontsz[1],self.CharColor) # todo enable
+		self.SetScreenTitle(screen.FlatenScreenLabel(self.label),nominalfontsz[1],self.CharColor)
 		self.TempPos = self.startvertspace
 		'''
 		Size and positions based on nominal 480 vertical screen less top/bottom borders less default title size of 50
@@ -208,7 +208,6 @@ class NestThermostatScreenDesc(screen.BaseKeyScreenDesc):
 		self.fanstates = self.fanstates[m:] + self.fanstates[:m]
 
 		self.ReInitDisplay()
-		#config.screen.blit(self.TitleRen, self.TitlePos)  # todo disable
 
 		r = fonts.fonts.Font(self.fsize[3], bold=True).render(u"{:4.1f}".format(self.t_cur), 0,
 															  wc(self.CharColor))

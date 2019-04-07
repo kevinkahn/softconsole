@@ -56,6 +56,11 @@ LocalOnly = True
 def InitLogs(screen,dirnm):
 	return Logger(screen,dirnm)
 
+def DevPrint(arg):
+	if config.versionname in ('development'):
+		pid = os.getpid()
+		print(str(pid) + repr(arg))
+
 
 class Logger(object):
 	livelog = True
@@ -147,9 +152,10 @@ class Logger(object):
 			self.SetSeverePointer(severity)
 		if disklogging:
 			self.disklogfile.write(entrytime + ' Sev: ' + str(severity) + " " + entry + '\n')
-			if severity == ConsoleError and tb:
+			if tb:
+				DevPrint('Traceback:')
 				# traceback.print_stack(file=self.disklogfile)
-				for line in traceback.format_stack():
+				for line in traceback.format_stack()[0:-2]:
 					print(line.strip())
 				frames = traceback.extract_tb(sys.exc_info()[2])
 				for f in frames:
@@ -194,18 +200,26 @@ class Logger(object):
 			locked = self.lock.acquire(timeout=5)
 
 			if not locked:
-				self.RecordMessage(ConsoleError, 'Log lock failed (Local)'+repr(self.lockerid), defentrytime, False, False)
+				self.RecordMessage(ConsoleError, 'Log lock failed (Local)'+repr(self.lockerid)+args[0], defentrytime, False, False)
 			else:
-				self.lockerid = (defentrytime,'locallock')
+				self.lockerid = (defentrytime,'locallock'+args[0])
 
 			severity = kwargs.pop('severity', ConsoleInfo)
 			entrytime = kwargs.pop('entrytime', time.strftime('%m-%d-%y %H:%M:%S', localnow))
-			tb = kwargs.pop('tb', True)
+			tb = kwargs.pop('tb', severity==ConsoleError)
 			hb = kwargs.pop('hb', False)
-			localonly = kwargs.pop('localonly', False) or LocalOnly  # don't brcst error unti mqtt is up
+			homeonly = kwargs.pop('homeonly', False)
+			localonly = kwargs.pop('localonly', False) or LocalOnly  # don't brcst error until mqtt is up
+			if homeonly and config.versionname not in ('development','homerelease'):
+				if locked:
+					self.lock.release()
+					self.lockerid = (defentrytime, 'homeonly')
+				return
 
 			if severity < LogLevel:
-				if locked: self.lock.release()
+				if locked:
+					self.lock.release()
+					self.lockerid = (defentrytime,'loglevelunlk')
 				return
 			debugitem = kwargs.pop('debugitem', False)
 			entry = ''
@@ -245,12 +259,14 @@ class Logger(object):
 			if locked:
 				self.lock.release()
 				self.lockerid = (defentrytime,'localunlock')
+
 		except Exception as E:
 			self.RecordMessage(ConsoleError, 'Exception while local logging: {}'.format(repr(E)),
-							   defentrytime, False, False)
+							   defentrytime, False, True)
 			if locked:
 				self.lock.release()
 				self.lockerid = (defentrytime,'localunlockexc')
+
 
 	def RenderLogLine(self, itext, clr, pos):
 		# odd logic below is to make sure that if an unbroken item would by itself exceed line length it gets forced out

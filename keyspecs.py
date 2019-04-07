@@ -6,7 +6,7 @@ import logsupport
 from logsupport import ConsoleWarning, ConsoleDetail
 from toucharea import ManualKeyDesc
 from stores import valuestore
-from controlevents import *
+from controlevents import CEvent, PostEvent,ConsoleEvent
 import shlex
 from utilfuncs import *
 import screen

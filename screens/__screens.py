@@ -5,8 +5,6 @@ DimIdleList = []
 DimIdleTimes = []
 MainDict = {}  # map: name:screen
 SecondaryDict = {}
-ExtraDict = {}  # todo both extras could be local to configobjects
-ExtraChain = []
 
 horizborder = 20
 topborder = 20

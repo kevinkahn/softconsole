@@ -22,6 +22,8 @@ class MyScreens(object):
 	def __init__(self, configfile):
 
 		thisconfig = configfile
+		self.ExtraDict = {}
+		self.ExtraChain = []
 
 		debug.debugPrint('Screen', "Process Configuration File")
 
@@ -52,16 +54,8 @@ class MyScreens(object):
 				elif NewScreen.name in config.sysStore.SecondaryChain:
 					screens.SecondaryDict[NewScreen.name] = self.scrlistitem(NewScreen)
 				else:
-					screens.ExtraDict[NewScreen.name] = self.scrlistitem(NewScreen)
-					screens.ExtraChain.append(NewScreen.name)
-		'''
-		if not config.SecondaryDict:
-			# Secondary Dict empty
-			config.SecondaryDict = config.ExtraDict
-			config.SecondaryChain = config.ExtraChain
-			config.ExtraChain = []
-			config.ExtraDict = {}
-		'''
+					self.ExtraDict[NewScreen.name] = self.scrlistitem(NewScreen)
+					self.ExtraChain.append(NewScreen.name)
 
 		# Validate screen lists and log them
 
@@ -158,8 +152,8 @@ class MyScreens(object):
 		try:
 			for sn, st in zip(config.sysStore.DimIdleListNames, config.sysStore.DimIdleListTimes):
 				for l, d in zip((config.sysStore.MainChain, config.sysStore.SecondaryChain,
-								 screens.ExtraChain),
-								(screens.MainDict, screens.SecondaryDict, screens.ExtraDict)):
+								 self.ExtraChain),
+								(screens.MainDict, screens.SecondaryDict, self.ExtraDict)):
 					if sn in l:
 						logsupport.Logs.Log('Cover Screen: ' + sn + '/' + st)
 						screens.DimIdleList.append(d[sn].screen)
@@ -181,6 +175,6 @@ class MyScreens(object):
 			logsupport.Logs.Log("No Dim Home Screen Cover Set")
 
 		logsupport.Logs.Log("Defined but unused screens:")
-		for nm, scr in screens.ExtraDict.items():
+		for nm, scr in self.ExtraDict.items():
 			if (not isinstance(scr.screen, screens.screentypes["Alert"])) and (not scr.screen in screens.DimIdleList):
 				logsupport.Logs.Log("---Unused: " + nm, severity=ConsoleWarning)

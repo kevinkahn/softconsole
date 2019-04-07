@@ -46,7 +46,7 @@ class KeyScreenDesc(screen.BaseKeyScreenDesc):
 
 	def NodeEvent(self, hub='', node=0, value=0, varinfo = ()):
 		# Watched node reported change event is ("Node", addr, value, seq)
-		#print('HUB',hub,node,type(value), value)
+		De('HUB',hub,node,type(value), value)
 		if isinstance(value, float):
 			logsupport.Logs.Log("Node event with floating state: "+hub+':'+str(node)+'->'+str(value), severity = ConsoleWarning)
 			value = int(value)

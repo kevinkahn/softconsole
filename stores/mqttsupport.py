@@ -5,7 +5,7 @@ import hw
 import logsupport
 import config
 import json
-import controlevents
+from controlevents import CEvent, PostEvent, ConsoleEvent
 import exitutils
 import maintscreen
 import subprocess
@@ -118,7 +118,7 @@ class MQTTBroker(valuestore.ValueStore):
 							'issueinfo': functools.partial(LogItem, ConsoleInfo)}
 				if cmd.lower() in cmdcalls:
 					try:
-						controlevents.PostEvent(controlevents.ConsoleEvent(controlevents.CEvent.RunProc,name=cmd, proc=cmdcalls[cmd.lower()]))
+						PostEvent(ConsoleEvent(CEvent.RunProc,name=cmd, proc=cmdcalls[cmd.lower()]))
 					except Exception as E:
 						logsupport.Logs.Log('Exc: {}'.format(repr(E)))
 				else:

@@ -79,7 +79,6 @@ class ISYVars(valuestore.ValueStore):
 	def BlockRefresh(self):
 
 		for v in self.items():
-			#print v, self.GetVal(v)
 			self.GetVal(v)
 
 	def CheckValsUpToDate(self,reload=False):

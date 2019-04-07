@@ -1,6 +1,6 @@
 from threading import Thread, Event
 import time
-from controlevents import *
+from controlevents import CEvent, PostEvent, ConsoleEvent
 import historybuffer
 import logsupport
 import config, os, signal
@@ -8,28 +8,28 @@ import config, os, signal
 TimerList = {}
 TimerHB = historybuffer.HistoryBuffer(100, 'Timers')
 LongOpInProgress = False
-LongOpStart = {}
+LongOpStart = {'maintenance':0}
 
 def StartLongOp(nm):
 	global LongOpInProgress, LongOpStart
-	print('StartLO {}'.format(nm))
+	logsupport.DevPrint('StartLO {}'.format(nm))
 	if nm not in LongOpStart: LongOpStart[nm] = 0
 	if LongOpStart[nm] != 0:
 		logsupport.Logs.Log('Long op start within existing long op for {} {}'.format(nm, LongOpStart), severity=logsupport.ConsoleWarning)
 	LongOpStart[nm] = time.time()
 	LongOpInProgress = any(LongOpStart.values())
 	TimerHB.Entry('Start long op: {} {} {}'.format(nm, LongOpInProgress, LongOpStart))
-	print('Start long op: {} {} {}'.format(nm, LongOpInProgress, LongOpStart))
+	logsupport.DevPrint('Start long op: {} {} {}'.format(nm, LongOpInProgress, LongOpStart))
 
 
 def EndLongOp(nm):
 	global LongOpInProgress, LongOpStart
-	print('EndLO {}'.format(nm))
+	logsupport.DevPrint('EndLO {}'.format(nm))
 	if LongOpStart[nm] == 0: logsupport.Logs.Log('End non-existent long op: {} {}'.format(nm, LongOpStart),severity=logsupport.ConsoleWarning)
 	LongOpStart[nm] = 0
 	LongOpInProgress = any(LongOpStart.values())
 	TimerHB.Entry('End long op: {} lasted: {}'.format(nm, time.time()-LongOpStart[nm]))
-	print('End long op: {} {} {}'.format(nm, LongOpInProgress, LongOpStart))
+	logsupport.DevPrint('End long op: {} {} {}'.format(nm, LongOpInProgress, LongOpStart))
 
 def AddToTimerList(name, timer):
 	global TimerList
@@ -52,7 +52,7 @@ def AddToTimerList(name, timer):
 	TimerHB.Entry("Timers : {}".format(printlist))
 
 def KillMe():
-	print("Failsafe hit")
+	logsupport.DevPrint("Failsafe hit")
 	logsupport.Logs.log("Failsafe hit")
 	time.sleep(1)
 	os.kill(config.Console_pid,signal.SIGKILL)
@@ -68,7 +68,7 @@ def ShutTimers(loc):
 		if t.is_alive():
 			logsupport.Logs.Log('Shutting down timer: {}'.format(n))
 			t.cancel()
-	logsupport.Logs.Log('All timers shut down {}'.format(loc))
+	logsupport.Logs.Log('All timers shut down ({})'.format(loc))
 
 class RepeatingPost(Thread):
 	"""
@@ -122,7 +122,6 @@ class RepeatingPost(Thread):
 					self.cumulativeslip += diff
 					TimerHB.Entry('Post repeater: {} diff: {} cumm: {} args: {}'.format(self.name, diff, self.cumulativeslip, self.kwargs))
 					tt = ConsoleEvent(CEvent.SchedEvent,**self.kwargs)
-					#print('RR: {}'.format(repr(tt)))
 					PostEvent(tt)
 					targettime = time.time() + self.interval # don't accumulate errors
 				else:
@@ -160,7 +159,8 @@ class ResettableTimer(Thread):
 			time.sleep(.001) # wait for thread to finish to avoid any late activations causing races
 			temp -= 1
 			if temp < 0:
-				logsupport.Logs.Log("Resettable {} won't cancel finished: {} running: {}".format(self.name,self.finished.is_set(),self.running.is_set()),severity=logsupport.ConsoleError,hb=True,tb=False)
+				logsupport.Logs.Log("Resettable {} won't cancel finished: {} changing: {} changedone: {}".format(self.name,self.finished.is_set(),self.changingevent.is_set(),
+									self.changedone), severity=logsupport.ConsoleError,hb=True,tb=False)
 				return
 		TimerHB.Entry("Canceled resettable: {}".format(self.name))
 
@@ -168,9 +168,7 @@ class ResettableTimer(Thread):
 		self.newevent = event
 		self.newdelta = delta
 		self.changingevent.set()
-		#print('Wait till done {} {}'.format(delta, event))
 		self.changedone.wait()
-		#print('Change Done')
 		self.changedone.clear()
 
 
@@ -185,10 +183,7 @@ class ResettableTimer(Thread):
 				self.changedone.set()
 			while not self.changingevent.wait(self.interval):  #enter while loop if interval ends
 				TimerHB.Entry('Post resettable: {}'.format(self.eventtopost))
-				#print('Fired: {}'.format(self.eventtopost))
 				PostEvent(self.eventtopost)
-				#self.interval = 0
-				#self.eventtopost = None
 			# get here if changingevent got set - either new values ready or canceling timer
 			if self.finished.is_set(): break # shutting down requires cancel to set first finished then changing to insure this is set here
 			self.eventtopost = self.newevent

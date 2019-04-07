@@ -30,7 +30,6 @@ class WeatherScreenDesc(screen.ScreenDesc):
 		screen.AddUndefaultedParams(self, screensection, location='', LocationSize=40)
 
 		self.SetScreenTitle(screen.FlatenScreenLabel(self.label), 50, self.CharColor)
-		#self.scrlabel = screen.FlatenScreenLabel(self.label) # todo becomes a SetScreenTitle
 
 		self.condformat = u"{d[0]} {d[1]}\u00B0F", u"  Feels like: {d[2]}\u00B0", "Wind {d[3]}@{d[4]}"
 		self.condfields = list(((self.location, 'Cond', x) for x in ('Sky', 'Temp', 'Feels', 'WindDir', 'WindMPH')))
@@ -70,8 +69,7 @@ class WeatherScreenDesc(screen.ScreenDesc):
 		vert_off = self.startvertspace
 
 		if self.store.failedfetch:
-			renderedlines = [ # todo first item goes away - don't need loop below now
-				#fonts.fonts.Font(50, "").render(self.fmt.format("{d}", d=self.scrlabel), 0, wc(self.CharColor)),
+			renderedlines = [
 				fonts.fonts.Font(45, "").render('Weather Not Available', 0, wc(self.CharColor))]
 			for l in renderedlines:
 				config.screen.blit(l, ((hw.screenwidth - l.get_width()) / 2, vert_off))

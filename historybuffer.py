@@ -1,5 +1,6 @@
 import time
 import shutil, os
+import logsupport
 
 Buffers = {}
 HBdir = ''
@@ -28,7 +29,7 @@ def SetupHistoryBuffers(dirnm, maxlogs):
 
 def NoteGCs(phase,info):
 	if GCBuf is not None:
-		#print('GC {} {}'.format(phase, repr(info)))
+		logsupport.DevPrint('GC {} {}'.format(phase, repr(info)))
 		GCBuf.Entry('GC Call' + phase+repr(info))
 
 

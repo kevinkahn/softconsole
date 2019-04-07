@@ -3,7 +3,7 @@ import os
 import signal
 import time
 import threadmanager  # should not depend on in project files - move somewhere else
-from controlevents import *
+from controlevents import CEvent, PostEvent, ConsoleEvent
 # from sets import Set
 
 import pygame
