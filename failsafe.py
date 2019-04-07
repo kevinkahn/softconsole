@@ -1,21 +1,19 @@
-import multiprocessing, threading
-import time
-import logsupport
+import multiprocessing
 import config
-import os, signal
-import pygame
-import controlevents
-from controlevents import *
+import logsupport
+import os, signal, timers, time
+from controlevents import CEvent, PostEvent, ConsoleEvent
 
 KeepAlive = multiprocessing.Event()
-FailsafeInterval = 30
+FailsafeInterval = 60
 
 def NoEventInjector():
 	logsupport.Logs.Log('Starting watchdog activity injector')
 	while True:
 		try:
 			now = time.time()
-			#print('Inject: {}'.format(now))
+			logsupport.Logs.Log('Inject: {}'.format(now))
+			logsupport.DevPrint('Inject: {}'.format(now))
 			PostEvent(ConsoleEvent(CEvent.FailSafePing, inject=now))
 			time.sleep(FailsafeInterval/2)
 		except Exception as E:
@@ -24,27 +22,41 @@ def NoEventInjector():
 			#logsupport.Logs.Log("NoEvent Injector Exception {}".format(E), severity=logsupport.ConsoleWarning)
 
 def MasterWatchDog():
-	while KeepAlive.wait(FailsafeInterval):
-		time.sleep(FailsafeInterval)
-		KeepAlive.clear()
+	signal.signal(signal.SIGTERM, signal.SIG_DFL) # don't want the sig handlers from the main console
+	signal.signal(signal.SIGINT, signal.SIG_DFL)
+	logsupport.DevPrint('Master Watchdog Started {}'.format(os.getpid()))
+	runningok = True
+	while runningok:
+		while timers.LongOpStart['maintenance'] != 0:
+			logsupport.DevPrint('Failsafe suspended while in maintenance mode')
+			time.sleep(120)
+		while KeepAlive.wait(FailsafeInterval):
+			logsupport.DevPrint('Watchdog ok: {}'.format(time.time()))
+			KeepAlive.clear()
+			time.sleep(FailsafeInterval)
+
+		if timers.LongOpStart['maintenance'] == 0:  runningok = False # not in maintenance mode and not acting alive
+	logsupport.DevPrint('Watchdog loop exit: {}'.format(time.time()))
 	try:
 		os.kill(config.Console_pid, 0)
 	except:
-		print('Normal watchdog exit')
-		logsupport.Logs.Log("Failsafe watchdog exiting normally")
+		logsupport.DevPrint('Normal watchdog exit')
+		#logsupport.Logs.Log("Failsafe watchdog exiting normally")
 		return
-	logsupport.Logs.Log("Failsafe watchdog saw console go autistic - interrupting {}".format(config.Console_pid))
+	logsupport.DevPrint('Failsafe interrupt {}'.format(config.Console_pid))
+	#logsupport.Logs.Log("Failsafe watchdog saw console go autistic - interrupting {}".format(config.Console_pid))
 	os.kill(config.Console_pid, signal.SIGINT)
 	time.sleep(3) # wait for exit to complete
 	try:
 		os.kill(config.Console_pid, 0) # check if console exited - raises exception if it is gone
-		logsupport.Logs.Log("Failsafe watchdog interrupt didn't reset - killing {}".format(config.Console_pid))
+		logsupport.DevPrint("Failsafe watchdog interrupt didn't reset - killing {}".format(config.Console_pid))
+		#logsupport.Logs.Log("Failsafe watchdog interrupt didn't reset - killing {}".format(config.Console_pid))
 		os.kill(config.Console_pid, signal.SIGKILL)
-		logsupport.Logs.Log("Failsafe exiting after kill attempt")
+		logsupport.DevPrint("Failsafe exiting after kill attempt")
+		#logsupport.Logs.Log("Failsafe exiting after kill attempt")
 	except Exception as E:
-		logsupport.Logs.Log("Failsafe successfully ended console (pid: {}), failsafe (pid: {}) exiting".format(config.Console_pid, os.getpid()))
+		print('Failsafe exiting')
+		logsupport.DevPrint("Failsafe successfully ended console (pid: {}), failsafe (pid: {}) exiting".format(config.Console_pid, os.getpid()))
+		#logsupport.Logs.Log("Failsafe successfully ended console (pid: {}), failsafe (pid: {}) exiting".format(config.Console_pid, os.getpid()))
+	logsupport.DevPrint('Watchdog exiting')
 
-Failsafe = multiprocessing.Process(target=MasterWatchDog)
-Failsafe.daemon = True
-Injector = threading.Thread(target=NoEventInjector)
-Injector.daemon = True

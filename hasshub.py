@@ -10,7 +10,7 @@ import websocket
 import hw
 import threadmanager
 import logsupport
-from controlevents import *
+from controlevents import CEvent, PostEvent, ConsoleEvent
 from stores import valuestore
 from logsupport import ConsoleWarning, ConsoleError, ConsoleDetail
 import functools
@@ -169,9 +169,12 @@ class Sensor(HAnode): # not stateful since it updates directly to store value
 	def Update(self,**ns):
 		#super(Sensor,self).Update(**ns)
 		if 'attributes' in ns: self.attributes = ns['attributes']
-		try: # todo delete?
-			if 'state' in ns and ns['state'] not in ('', 'unknown'):
-				self.Hub.sensorstore.SetVal(self.entity_id, stringtonumeric(ns['state']))
+		try:
+			if 'state' in ns:
+				if ns['state'] not in ('', 'unknown', 'None'):
+					self.Hub.sensorstore.SetVal(self.entity_id, stringtonumeric(ns['state']))
+				else:
+					logsupport.Logs.Log('Sensor update missing value: {}'.format(repr(ns)))
 		except Exception as E:
 			logsupport.Logs.Log('Sensor update error: State: {}  Exc:{}'.format(repr(ns), repr(E)))
 
@@ -287,6 +290,7 @@ class Thermostat(HAnode): # not stateful since has much state info
 	def __init__(self, HAitem, d):
 		super(Thermostat, self).__init__(HAitem, **d)
 		self.Hub.Thermostats[self.entity_id] = self
+		self.timerseq = 0
 		# noinspection PyBroadException
 		try:
 			self.temperature = self.attributes['temperature']
@@ -325,7 +329,8 @@ class Thermostat(HAnode): # not stateful since has much state info
 		# todo with nest pushing setpoint while not in auto seems to be a no-op and so doesn't cause an event
 		ha.call_service(self.Hub.api, 'climate', 'set_temperature', {'entity_id': '{}'.format(self.entity_id),'target_temp_high':str(t_high),'target_temp_low':str(t_low)})
 		# should push a fake event a few seconds into the future to handle error cases todo
-		Temp = timers.OnceTimer(5, start=True, name='fakepushsetpoint', proc=self.ErrorFakeChange) #todo analyze this case
+		self.timerseq += 1
+		Temp = timers.OnceTimer(5, start=True, name='fakepushsetpoint-'.format(self.timerseq), proc=self.ErrorFakeChange) #todo analyze this case
 
 	def GetThermInfo(self):
 		if self.target_low is not None:

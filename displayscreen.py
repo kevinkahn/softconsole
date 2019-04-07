@@ -1,17 +1,16 @@
-import os
-import time
+import os, hw, sys, time
 import pygame
-from collections import OrderedDict, deque
+from collections import OrderedDict
+import threading, multiprocessing
+import logsupport
+import config
 
 import exitutils
 import alerttasks
-import config
 import debug
-import hw
-import logsupport
 import screens.__screens as screens
 import threadmanager
-from controlevents import *
+from controlevents import CEvent, PostEvent, ConsoleEvent, GetEvent, GetEventNoWait
 from logsupport import ConsoleWarning, ConsoleError, ConsoleDetail, ReportStatus
 import historybuffer
 import maintscreen
@@ -157,16 +156,24 @@ class DisplayScreen(object):
 			self.SwitchScreen(InitScreen, 'Bright', 'Home', 'Startup')
 
 		statusperiod = time.time()
-		cyclehistory = deque((-1, -1, -1, -1, -1, -1, -1, -1, -1, -1))
 		prevstatus = ''
 
-		failsafe.Injector.start()
-		failsafe.Failsafe.start()
-		logsupport.Logs.Log('Starting master watchdog {} for {}'.format(failsafe.Failsafe.pid, config.Console_pid))
+		Injector = threading.Thread(target=failsafe.NoEventInjector)
+		Injector.daemon = True
+		Injector.start()
+		Failsafe = multiprocessing.Process(target=failsafe.MasterWatchDog)
+		Failsafe.daemon = True
+		Failsafe.start()
+
+
+		#failsafe.Injector.start()
+		#failsafe.Failsafe.start()
+		logsupport.Logs.Log('Starting master watchdog {} for {}'.format(Failsafe.pid, config.Console_pid))
 
 		event = None
 
 		while config.Running:  # Operational Control Loop
+			if not Failsafe.is_alive(): logsupport.Logs.Log('Watchdog died', severity=ConsoleError,hb=True)
 			failsafe.KeepAlive.set()
 			nowtime = time.time()
 			postwaittime = nowtime
@@ -210,22 +217,18 @@ class DisplayScreen(object):
 				event = GetEvent()
 				if (event.type == CEvent.ACTIVITYTIMER):
 					if event.seq == self.activityseq:
-						#print('valid activity') # todo
 						needvalidevent = False
 					else:
-						if config.versionname == 'development': print('outdated activity {} {}'.format(event.seq,self.activityseq))
+						if config.versionname == 'development':
+							logsupport.Logs.Log('Outdated activity {} {}'.format(event.seq,self.activityseq))
+							logsupport.DevPrint('outdated activity {} {}'.format(event.seq,self.activityseq))
 				else:
 					needvalidevent = False
-			if config.versionname == 'development': print('New-event: {}'.format(event))
+			logsupport.DevPrint('New-event: {}'.format(event))
 			self.HBEvents.Entry('Process at {}  {}'.format(time.time(),repr(event)))
 			postwaittime = time.time()
 
-			nowtime3 = time.time()
-			cyclehistory.pop()
-			cyclehistory.appendleft((nowtime%1000, nowtime2%1000, nowtime3%1000, event.type)) #todo del
-
 			if event.type ==  CEvent.FailSafePing:
-				#print('Saw NOEVENT {} after injection'.format(time.time()-event.inject))
 				self.HBEvents.Entry('Saw NOEVENT {} after injection at {}'.format(time.time()-event.inject, event.inject))
 				pass # these appear to make sure loop is running
 			elif event.type == CEvent.MouseDown: #pygame.MOUSEBUTTONDOWN:
@@ -394,13 +397,11 @@ class DisplayScreen(object):
 
 			elif event.type == CEvent.SchedEvent:
 				self.HBEvents.Entry('Sched event {}'.format(repr(event)))
-				#print('Sched event {}'.format(repr(event)))
 				eventnow = time.time()
 				diff = eventnow - event.TargetTime
 				if abs(diff) > LateTolerance:
-					if config.versionname in ('development', 'homerelease'): logsupport.Logs.Log('Timer late by {} seconds. Event: {}'.format(diff, repr(event)), severity=ConsoleWarning, hb=True, localonly=True)
+					logsupport.Logs.Log('Timer late by {} seconds. Event: {}'.format(diff, repr(event)), severity=ConsoleWarning, hb=True, localonly=True, homeonly=True)
 					self.HBEvents.Entry('Event late by {} target: {} now: {}'.format(diff,event.TargetTime, eventnow))
-					self.HBEvents.Entry('Cycle history: {}'.format(cyclehistory))
 				event.proc(event)
 
 			elif event.type == CEvent.RunProc:
@@ -411,7 +412,7 @@ class DisplayScreen(object):
 				logsupport.Logs.Log("Unknown main event {}".format(repr(event)), severity=ConsoleError, hb=True,
 									tb=False)
 			if time.time() - postwaittime > 2 and not timers.LongOpInProgress: # this loop took a long time
-				if config.versionname in ('development', 'homerelease'): logsupport.Logs.Log("Slow loop at {} took {} for {}".format(time.time(),time.time()-postwaittime,event),severity=ConsoleWarning, hb=True, localonly=True)
+				logsupport.Logs.Log("Slow loop at {} took {} for {}".format(time.time(),time.time()-postwaittime,event),severity=ConsoleWarning, hb=True, localonly=True, homeonly=True)
 
 		logsupport.Logs.Log('Main Loop Exit: ', config.ecode)
 		timers.ShutTimers('maincontrolloop')
