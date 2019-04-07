@@ -13,7 +13,7 @@ CEvent = Enum('ConsoleEvent',
 
 ConsoleOpsQueue = queue.Queue()  # master sequencer
 
-firsttime = True
+latencynotification = 1000 # notify if a loop latency is greater than this
 
 
 def PostEvent(e):
@@ -25,20 +25,17 @@ def PostEvent(e):
 
 
 def GetEvent():
-	global firsttime
+	global latencynotification
 	evnt = ConsoleOpsQueue.get(block=True)
 	if evnt is None: logsupport.Logs.Log('Got none from blocking get', severity=logsupport.ConsoleError, hb=True)
 	cpu = psutil.Process(config.Console_pid).cpu_times()
-	if time.time() - evnt.QTime > 2:
+	if time.time() - evnt.QTime > latencynotification:
 		logsupport.DevPrint(
 			'Long on queue: {} user: {} system: {} event: {}'.format(time.time() - evnt.QTime, cpu.user - evnt.usercpu,
 																	 cpu.system - evnt.syscpu, evnt))
-		if not firsttime:
-			logsupport.Logs.Log('Long on queue {} (user: {} sys: {}) event: {}'.format(time.time() - evnt.QTime,
-																					   cpu.user - evnt.usercpu,
-																					   cpu.system - evnt.syscpu, evnt),
+		logsupport.Logs.Log('Long on queue {} (user: {} sys: {}) event: {}'.format(time.time() - evnt.QTime,
+								cpu.user - evnt.usercpu, cpu.system - evnt.syscpu, evnt),
 								severity=logsupport.ConsoleWarning, hb=True, localonly=True, homeonly=True)
-		firsttime = False  # todo hack
 	return evnt
 
 

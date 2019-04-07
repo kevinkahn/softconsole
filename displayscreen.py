@@ -21,8 +21,9 @@ import threadmanager
 import timers
 from controlevents import CEvent, PostEvent, ConsoleEvent, GetEvent, GetEventNoWait
 from logsupport import ConsoleWarning, ConsoleError, ConsoleDetail, ReportStatus
+import controlevents
 
-LateTolerance = 2
+LateTolerance = 4
 
 
 class DisplayScreen(object):
@@ -229,6 +230,8 @@ class DisplayScreen(object):
 					needvalidevent = False
 			logsupport.DevPrint('New-event: {}'.format(event))
 			self.HBEvents.Entry('Process at {}  {}'.format(time.time(), repr(event)))
+			if config.versionname in ('development', 'homerelease'): # after at least one event sensitize latency watch if my system
+				controlevents.latencynotification = LateTolerance
 			postwaittime = time.time()
 
 			if event.type == CEvent.FailSafePing:
@@ -406,7 +409,7 @@ class DisplayScreen(object):
 				self.HBEvents.Entry('Sched event {}'.format(repr(event)))
 				eventnow = time.time()
 				diff = eventnow - event.TargetTime
-				if abs(diff) > LateTolerance:
+				if abs(diff) > controlevents.latencynotification:
 					logsupport.Logs.Log('Timer late by {} seconds. Event: {}'.format(diff, repr(event)),
 										severity=ConsoleWarning, hb=True, localonly=True, homeonly=True)
 					self.HBEvents.Entry('Event late by {} target: {} now: {}'.format(diff, event.TargetTime, eventnow))
@@ -419,7 +422,7 @@ class DisplayScreen(object):
 			else:
 				logsupport.Logs.Log("Unknown main event {}".format(repr(event)), severity=ConsoleError, hb=True,
 									tb=False)
-			if time.time() - postwaittime > 2 and not timers.LongOpInProgress:  # this loop took a long time
+			if time.time() - postwaittime > controlevents.latencynotification and not timers.LongOpInProgress:  # this loop took a long time
 				logsupport.Logs.Log(
 					"Slow loop at {} took {} for {}".format(time.time(), time.time() - postwaittime, event),
 					severity=ConsoleWarning, hb=True, localonly=True, homeonly=True)
