@@ -1,19 +1,20 @@
-import debug
 import xmltodict
-from stores import valuestore
+
+import debug
 import logsupport
 from logsupport import ConsoleError
+from stores import valuestore
 
 
 class ISYVars(valuestore.ValueStore):
 	def __init__(self, thisisy):
-		super(ISYVars,self).__init__(thisisy.name)
+		super(ISYVars, self).__init__(thisisy.name)
 		self.isy = thisisy
 		self.attrs = {}
 		self.attrnames = {}
 
 	def GetVal(self, name, forceactual=True):
-		V =  super(ISYVars,self).GetVal(name)
+		V = super(ISYVars, self).GetVal(name)
 		if not forceactual:
 			return V
 		if V is None:
@@ -48,7 +49,7 @@ class ISYVars(valuestore.ValueStore):
 	def GetValByAttr(self, attr):
 		V = self.attrs[attr].Value
 
-		if V is None: # why would val not be in attrlist of store already?
+		if V is None:  # why would val not be in attrlist of store already?
 			text = self.isy.try_ISY_comm('vars/get/' + str(attr[0]) + '/' + str(attr[1]))
 			if text != "":
 				V = int(xmltodict.parse(text)['var']['val'])
@@ -81,15 +82,13 @@ class ISYVars(valuestore.ValueStore):
 		for v in self.items():
 			self.GetVal(v)
 
-	def CheckValsUpToDate(self,reload=False):
+	def CheckValsUpToDate(self, reload=False):
 		goodcheck = True
 		for v in self.items():
-			l = self.GetVal(v,forceactual=False)
+			l = self.GetVal(v, forceactual=False)
 			r = self.GetVal(v)
 			if l != r:
-				debug.debugPrint('StoreTrack','ISY Value Mismatch: (ISY) ',r,' (Local) ', l)
+				debug.debugPrint('StoreTrack', 'ISY Value Mismatch: (ISY) ', r, ' (Local) ', l)
 				goodcheck = False
 		if goodcheck:
 			debug.debugPrint('StoreTrack', 'ISY Value Check OK')
-
-

@@ -40,7 +40,7 @@ class AlertsScreenDesc(screen.ScreenDesc):
 
 		messageareapart = .7
 		messageareaheight = (
-										hw.screenheight - 2 * screens.topborder) * messageareapart  # no Nav keys todo switch to new screen sizing
+									hw.screenheight - 2 * screens.topborder) * messageareapart  # no Nav keys todo switch to new screen sizing
 		alertbutheight = (hw.screenheight - messageareaheight - 2 * screens.topborder) / 2
 		self.upperleft = (screens.horizborder, screens.topborder)
 
@@ -107,6 +107,7 @@ class AlertsScreenDesc(screen.ScreenDesc):
 										   proc=alerttasks.HandleDeferredAlert, param=self.Alert)
 		config.DS.SwitchScreen(screens.HomeScreen, 'Bright', 'Home', 'Manual defer an alert')
 
+	# noinspection PyUnusedLocal
 	def BlinkMsg(self, param):
 		if not self.Active:
 			# race condition posted a blink just as screen was exiting so skip screen update

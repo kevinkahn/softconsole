@@ -1,14 +1,15 @@
-import alerttasks
-import debug
 import subprocess
-import maintscreen
-import exitutils
-import logsupport
-from stores import valuestore
-from logsupport import ConsoleWarning
-import historybuffer
 import time
+
+import alerttasks
 import config
+import debug
+import exitutils
+import historybuffer
+import logsupport
+import maintscreen
+from logsupport import ConsoleWarning
+from stores import valuestore
 
 
 class NetCmd(object):
@@ -65,21 +66,18 @@ class NetCmd(object):
 			config.sysStore.ErrorNotice = -1
 		elif varval in range(100, 100 + len(debug.DbgFlags)):
 			flg = debug.DbgFlags[varval - 100]
-			valuestore.SetVal(('Debug',flg), True)
+			valuestore.SetVal(('Debug', flg), True)
 			logsupport.Logs.Log('Remote set debug ', flg)
 		elif varval in range(200, 200 + len(debug.DbgFlags)):
 			flg = debug.DbgFlags[varval - 200]
 			valuestore.SetVal(('Debug', flg), False)
 			logsupport.Logs.Log('Remote clear debug ', flg)
 		elif varval in range(300, 310):
-			valuestore.SetVal(('Debug','LogLevel'), varval - 300)
+			valuestore.SetVal(('Debug', 'LogLevel'), varval - 300)
 			logsupport.Logs.Log('Remote set LogLevel to ', varval - 300)
 
 		else:
 			logsupport.Logs.Log('Unknown remote command: ', varval)
-
-
-
 
 	def Restart(self):
 		pass

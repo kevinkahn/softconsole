@@ -2,17 +2,18 @@ import collections
 import os
 import signal
 import time
-import threadmanager  # should not depend on in project files - move somewhere else
-from controlevents import CEvent, PostEvent, ConsoleEvent
-# from sets import Set
 
 import pygame
 
 import config
+import debug
 import hw
 import logsupport
+import threadmanager  # should not depend on in project files - move somewhere else
+from controlevents import CEvent, PostEvent, ConsoleEvent
 from logsupport import ConsoleDetail
-import debug
+
+# from sets import Set
 
 globdoc = {}
 moddoc = {}
@@ -21,17 +22,22 @@ exemplarobjs = collections.OrderedDict()
 
 evntcnt = 0
 
+
 # next several lines stolen from https://stackoverflow.com/questions/39198961/pygame-init-fails-when-run-with-systemd
 # this handles some weird random SIGHUP when initializing pygame, it's really a hack to work around it
 # Not really sure what other ill effects this might have!!!
 def handler(signum, frame):
 	print('Systemd signal hack raised', signum, repr(frame))
 	pass
+
+
 try:
 	signal.signal(signal.SIGHUP, handler)
 except AttributeError:
 	# Windows compatibility
 	pass
+
+
 # end SIGHUP hack
 
 
@@ -65,7 +71,8 @@ def register_example(estr, obj):
 def LogParams():
 	global paramlog
 	for p in paramlog:
-		logsupport.Logs.Log(p,severity=ConsoleDetail)
+		logsupport.Logs.Log(p, severity=ConsoleDetail)
+
 
 def InitializeEnvironment():
 	# this section is an unbelievable nasty hack - for some reason Pygame
@@ -76,7 +83,7 @@ def InitializeEnvironment():
 		pass
 
 	def alarm_handler(signum, frame):
-		print('Hack alarm raised',signum,repr(frame))
+		print('Hack alarm raised', signum, repr(frame))
 		raise Alarm
 
 	# end hack
@@ -96,27 +103,27 @@ def InitializeEnvironment():
 	if hw.screentype in ('pi7', '35r', '28c'):
 		from touchhandler import Touchscreen, TS_PRESS, TS_RELEASE, TS_MOVE
 		ts = Touchscreen()
-		def touchhandler(event,touch):
+
+		def touchhandler(event, touch):
 			global evntcnt
 			evntcnt += 1
-			p = (touch.x,touch.y)
+			p = (touch.x, touch.y)
 			if event == TS_PRESS:
 				debug.debugPrint('Touch', 'Press pos: {} seq: {}'.format(p, evntcnt))
-				PostEvent(ConsoleEvent(CEvent.MouseDown,pos=p,seq=evntcnt)) #eventfix
+				PostEvent(ConsoleEvent(CEvent.MouseDown, pos=p, seq=evntcnt))  # eventfix
 			elif event == TS_RELEASE:
 				debug.debugPrint('Touch', 'Repease pos: {} seq: {}'.format(p, evntcnt))
-				PostEvent(ConsoleEvent(CEvent.MouseUp,pos=p, seq=evntcnt))
+				PostEvent(ConsoleEvent(CEvent.MouseUp, pos=p, seq=evntcnt))
 			elif event == TS_MOVE:
 				debug.debugPrint('Touch', 'Motion pos: {} seq: {}'.format(p, evntcnt))
-				PostEvent(ConsoleEvent(CEvent.MouseMotion,pos=p,seq=evntcnt))
-
+				PostEvent(ConsoleEvent(CEvent.MouseMotion, pos=p, seq=evntcnt))
 
 		for touchtyp in ts.touches:
 			touchtyp.on_press = touchhandler
 			touchtyp.on_release = touchhandler
 			touchtyp.on_move = touchhandler
 
-		threadmanager.SetUpHelperThread('TouchHandler',ts.run)
+		threadmanager.SetUpHelperThread('TouchHandler', ts.run)
 
 	try:
 		config.lastup = os.path.getmtime(config.homedir + "/.ConsoleStart")
@@ -227,9 +234,9 @@ def get_timedelta(line):
 		content = re.findall(r"([0-9]*?)\s*?" + timeunit, line)
 		if content:
 			timespaces[timeunit + "s"] = int(content[0])
-	timespaces["days"] += 30*timespaces.pop("months", 0) + 365*timespaces.pop("years", 0)
+	timespaces["days"] += 30 * timespaces.pop("months", 0) + 365 * timespaces.pop("years", 0)
 	td = timedelta(**timespaces)
-	return td.days*86400 + td.seconds
+	return td.days * 86400 + td.seconds
 
 
 class Enumerate(object):
@@ -239,7 +246,3 @@ class Enumerate(object):
 
 
 mqttregistered = False
-
-
-
-

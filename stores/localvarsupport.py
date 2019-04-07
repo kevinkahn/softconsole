@@ -1,6 +1,8 @@
-from stores import valuestore
 # noinspection PyProtectedMember
 from configobj import Section
+
+from stores import valuestore
+
 
 class LocalVars(valuestore.ValueStore):
 	def __init__(self, name, configsect):
@@ -18,7 +20,8 @@ class LocalVars(valuestore.ValueStore):
 				else:
 					tpcvrt = str
 				tpv = v.get('Value', None)
-				self.SetVal(i,tpv)
-				self.SetType(i,tpcvrt)
-				self.SetAttr(i,(3,lclid))
+				self.SetVal(i, tpv)
+				self.SetType(i, tpcvrt)
+				print('LocalVar call')
+				#self.SetAttr(i, (3, lclid))
 				lclid += 1

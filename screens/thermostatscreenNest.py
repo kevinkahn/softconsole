@@ -80,7 +80,7 @@ class NestThermostatScreenDesc(screen.BaseKeyScreenDesc):
 		self.SPHPosL = int(1.5 * centerspacing)
 		self.SPHPosR = int(3.5 * centerspacing)
 		self.AdjButSurf.fill(wc(self.BackgroundColor))
-		arrowsize = scaleH(self.spacer[3])  # pixel
+		# arrowsize = scaleH(self.spacer[3])  # pixel todo
 		self.LocalOnly = [0.0, 0.0]  # Heat setpoint, Cool setpoint:  0 is normal color
 		self.ModeLocal = 0.0
 		self.FanLocal = 0.0
@@ -157,14 +157,17 @@ class NestThermostatScreenDesc(screen.BaseKeyScreenDesc):
 
 	# push setpoint change after 2 seconds of idle
 
+	# noinspection PyUnusedLocal
 	def PushTemp(self, param):
 		# called on callback timeout
 		self.ThermNode.PushSetpoints(self.t_low, self.t_high)
 
+	# noinspection PyUnusedLocal
 	def PushModes(self, param):
 		# called on callback timeout
 		self.ThermNode.PushMode(self.mode)
 
+	# noinspection PyUnusedLocal
 	def PushFanState(self, param):
 		self.ThermNode.PushFanState(self.fan)
 

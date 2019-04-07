@@ -1,11 +1,11 @@
+import time
+from collections import OrderedDict
 
 import pygame
-import time
-from stores import valuestore
-from collections import OrderedDict
+
 import logsupport
 from logsupport import ConsoleWarning
-
+from stores import valuestore
 
 '''
 At the generic level defining the available fields seems reasonable; issue with the specific sources holding their mappings 
@@ -22,6 +22,7 @@ CondFields = (
 FcstFields = (('Day', str), ('High', float), ('Low', float), ('Sky', str), ('WindSpd', float), ('WindDir', str),
 			  ('Icon', pygame.Surface))
 CommonFields = (('FcstDays', int), ('FcstEpoch', int), ('FcstDate', str))
+
 
 class WeatherItem(valuestore.StoreItem):
 	def __init__(self, name, Store, vt=None):

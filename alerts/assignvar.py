@@ -27,7 +27,8 @@ class AssignVar(object):
 					logsupport.Logs.Log("Error setting var in AssignVar alert: ", str(item[1]), ' to ', repr(val),
 										severity=ConsoleWarning)
 					logsupport.Logs.Log("Exception was: ", repr(e), severity=ConsoleWarning)
-			valuestore.SetVal(item[0].strip(),val)
+			valuestore.SetVal(item[0].strip(), val)
 			logsupport.Logs.Log("Var ", item[0], ' set to value of ', item[1], ' (', val, ')', severity=ConsoleDetail)
+
 
 alerttasks.alertprocs["AssignVar"] = AssignVar

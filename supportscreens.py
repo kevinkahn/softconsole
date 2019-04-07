@@ -1,19 +1,21 @@
-import fonts
-import hw
-import screen
-import debug
-import config
-import screens.__screens as screens
-import utilities
-from utilfuncs import wc
 import functools
+
 import pygame
 from pygame import draw
-from toucharea import TouchPoint, ManualKeyDesc
+
+import config
+import debug
+import fonts
+import hw
 import logsupport
-from logsupport import ConsoleDetail
-import toucharea
+import screen
+import screens.__screens as screens
 import screenutil
+import toucharea
+import utilities
+from logsupport import ConsoleDetail
+from toucharea import TouchPoint, ManualKeyDesc
+from utilfuncs import wc
 
 
 class VerifyScreen(screen.BaseKeyScreenDesc):
@@ -26,7 +28,7 @@ class VerifyScreen(screen.BaseKeyScreenDesc):
 		self.DimTO = 20
 		self.PersistTO = 10
 		self.label = screen.FlatenScreenLabel(key.label)
-		self.ScreenTitleBlk = None # don't use parent screen title
+		self.ScreenTitleBlk = None  # don't use parent screen title
 		self.CallingScreen = callingscreen
 		screen.AddUndefaultedParams(self, None, TitleFontSize=40, SubFontSize=25)
 		self.Keys['yes'] = ManualKeyDesc(self, 'yes', gomsg, bcolor, keycoloroff, charcolor, State=state)
@@ -35,7 +37,7 @@ class VerifyScreen(screen.BaseKeyScreenDesc):
 		self.Keys['no'].Proc = functools.partial(proc, False)
 
 		topoff = self.TitleFontSize + self.SubFontSize
-		self.LayoutKeys(topoff, hw.screenheight - 2 * screens.topborder - topoff) # todo switch to new screen sizing
+		self.LayoutKeys(topoff, hw.screenheight - 2 * screens.topborder - topoff)  # todo switch to new screen sizing
 		utilities.register_example("VerifyScreen", self)
 
 	def Invoke(self):
@@ -57,7 +59,7 @@ class VerifyScreen(screen.BaseKeyScreenDesc):
 		self.ShowScreen()
 
 
-class ValueChangeScreen(screen.ScreenDesc): # todo may need to call super class
+class ValueChangeScreen(screen.ScreenDesc):  # todo may need to call super class
 	# need to set no nav keys
 	@staticmethod
 	def offsetpoint(center, point):
@@ -88,20 +90,21 @@ class ValueChangeScreen(screen.ScreenDesc): # todo may need to call super class
 		self.Value = initvalue
 		self.Keys = {}
 		vertzonepct = .8
-		vertzonesize = int(.25 * hw.screenheight) # todo switch to use useable vert hgt
-		screencenter = (hw.screenwidth / 2, hw.screenheight / 2) # todo switch to use useable vert hgt
+		vertzonesize = int(.25 * hw.screenheight)  # todo switch to use useable vert hgt
+		screencenter = (hw.screenwidth / 2, hw.screenheight / 2)  # todo switch to use useable vert hgt
 
 		self.font = fonts.fonts.Font(40)
 
-		self.arrowht = int(vertzonesize*vertzonepct)
+		self.arrowht = int(vertzonesize * vertzonepct)
 		self.arrowwd = min(.8 * (hw.screenwidth / len(changevals)), self.arrowht)
 		self.uparrowcenter = []
 		self.dnarrowcenter = []
 		self.uparrowverts = []
 		self.dnarrowverts = []
-		self.uparrow = [[0, self.arrowht/2], [self.arrowwd/2, -self.arrowht/2],
-						[-self.arrowwd/2, -self.arrowht/2]]  # verticies ref 0,0 center
-		self.dnarrow = [[0, -self.arrowht/2], [self.arrowwd/2, self.arrowht/2], [-self.arrowwd/2, self.arrowht/2]]
+		self.uparrow = [[0, self.arrowht / 2], [self.arrowwd / 2, -self.arrowht / 2],
+						[-self.arrowwd / 2, -self.arrowht / 2]]  # verticies ref 0,0 center
+		self.dnarrow = [[0, -self.arrowht / 2], [self.arrowwd / 2, self.arrowht / 2],
+						[-self.arrowwd / 2, self.arrowht / 2]]
 		self.chgval = []
 
 		for i in range(len(changevals)):
@@ -119,18 +122,19 @@ class ValueChangeScreen(screen.ScreenDesc): # todo may need to call super class
 				[functools.partial(self.offsetpoint, self.dnarrowcenter[-1])(self.dnarrow[k]) for k in range(3)])
 			fs = self.font.size(str(changevals[i]))
 			self.chgval.append(
-				((-fs[0]/2, fs[1]), self.font.render(str(changevals[i]), True, wc(CharColor))))
+				((-fs[0] / 2, fs[1]), self.font.render(str(changevals[i]), True, wc(CharColor))))
 
-		self.titlecenter = (screencenter[0] - int(1.75*vertzonesize), screencenter[1])
+		self.titlecenter = (screencenter[0] - int(1.75 * vertzonesize), screencenter[1])
 		valuebuttoncenter = screencenter
 		valuebuttonsize = (hw.screenwidth / 2, int(vertzonesize * vertzonepct))
-		labelcenter = (screencenter[0], screencenter[1] - int(1.75*vertzonesize))
+		labelcenter = (screencenter[0], screencenter[1] - int(1.75 * vertzonesize))
 		self.labelrend = self.font.render(label, True, wc(CharColor))
 		labelsz = self.font.size(label)
-		self.labelloc = (labelcenter[0] - labelsz[0]/2, labelcenter[1] - labelsz[1]/2)
+		self.labelloc = (labelcenter[0] - labelsz[0] / 2, labelcenter[1] - labelsz[1] / 2)
 
-		cancelcenter = (screencenter[0], screencenter[1] + int(1.75*vertzonesize))
-		cancelsize = (hw.screenwidth / 2, int(vertzonepct * hw.screenheight * .125)) # todo switch to use useable vert hgt
+		cancelcenter = (screencenter[0], screencenter[1] + int(1.75 * vertzonesize))
+		cancelsize = (
+		hw.screenwidth / 2, int(vertzonepct * hw.screenheight * .125))  # todo switch to use useable vert hgt
 
 		self.Keys['cancel'] = ManualKeyDesc(self, 'cancel', ['Cancel', ], BackgroundColor, CharColor, CharColor,
 											cancelcenter,
@@ -145,15 +149,16 @@ class ValueChangeScreen(screen.ScreenDesc): # todo may need to call super class
 		super(ValueChangeScreen, self).InitDisplay({})  # why do we pass in the nav keys here?
 
 		self.ReInitDisplay()
-		#self.PaintBase()
+		# self.PaintBase()
 		# write the title with name of var? maybe button should be "accept"
 		for i in range(len(self.changevals)):
 			fho = self.chgval[i][0][0]
 			fvo = self.chgval[i][0][1]
 			config.screen.blit(self.chgval[i][1],
-							   self.offsetpoint(self.uparrowcenter[i], (fho, -self.arrowht/2 + self.arrowht/10)))
+							   self.offsetpoint(self.uparrowcenter[i], (fho, -self.arrowht / 2 + self.arrowht / 10)))
 			config.screen.blit(self.chgval[i][1],
-							   self.offsetpoint(self.dnarrowcenter[i], (fho, self.arrowht/2 - fvo - self.arrowht/10)))
+							   self.offsetpoint(self.dnarrowcenter[i],
+												(fho, self.arrowht / 2 - fvo - self.arrowht / 10)))
 			draw.lines(config.screen, wc(self.Outline), True, self.uparrowverts[i], 5)
 			draw.lines(config.screen, wc(self.Outline), True, self.dnarrowverts[i], 5)
 		# need to add in the value to change by l

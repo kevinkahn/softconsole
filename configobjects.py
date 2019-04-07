@@ -1,15 +1,16 @@
 # noinspection PyProtectedMember
+import functools
+
 from configobj import Section
 
 import config
 import debug
+import exitutils
 import hw
 import logsupport
 import screens.__screens as screens
-from logsupport import ConsoleWarning, ConsoleError, ConsoleDetail
 import toucharea
-import functools
-import exitutils
+from logsupport import ConsoleWarning, ConsoleError, ConsoleDetail
 
 
 class MyScreens(object):
@@ -41,10 +42,12 @@ class MyScreens(object):
 						logsupport.Logs.Log(tempscreentype + " screen " + screenitem, severity=ConsoleDetail)
 					except ValueError:
 						NewScreen = None
-						logsupport.Logs.Log(tempscreentype + " screen not created due to error " + screenitem, severity=ConsoleWarning)
+						logsupport.Logs.Log(tempscreentype + " screen not created due to error " + screenitem,
+											severity=ConsoleWarning)
 						del thisconfig[screenitem]
 				else:
-					logsupport.Logs.Log("Screentype error " + screenitem + " type " + tempscreentype, severity=ConsoleWarning)
+					logsupport.Logs.Log("Screentype error " + screenitem + " type " + tempscreentype,
+										severity=ConsoleWarning)
 					del thisconfig[screenitem]
 					pass
 			if NewScreen is not None:
@@ -113,23 +116,23 @@ class MyScreens(object):
 				config.sysStore.SecondaryChain[(i + 1) % len(config.sysStore.SecondaryChain)]].screen
 			screens.SecondaryDict[kn].prevkey = toucharea.ManualKeyDesc(
 				screens.SecondaryDict[kn].screen,
-																	   'Nav<' + prevk.name,
+				'Nav<' + prevk.name,
 				prevk.label,
 				prevk.CmdKeyCol, prevk.CmdCharCol,
 				prevk.CmdCharCol,
 				proc=functools.partial(config.DS.NavPress,
-																							  prevk),
+									   prevk),
 				center=(
 					screens.horizborder + .5 * cbutwidth, cvertcenter),
 				size=(cbutwidth, cbutheight))
 			screens.SecondaryDict[kn].nextkey = toucharea.ManualKeyDesc(
 				screens.SecondaryDict[kn].screen,
-																	   'Nav>' + nextk.name,
+				'Nav>' + nextk.name,
 				nextk.label,
 				nextk.CmdKeyCol, nextk.CmdCharCol,
 				nextk.CmdCharCol,
 				proc=functools.partial(config.DS.NavPress,
-																							  nextk),
+									   nextk),
 				center=(screens.horizborder + 1.5 * cbutwidth,
 						cvertcenter),
 				size=(cbutwidth, cbutheight))

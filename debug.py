@@ -1,21 +1,24 @@
 from __future__ import print_function
 
+import traceback
+
 import logsupport
 import mypprint
+from alerttasks import DumpAlerts
 from logsupport import ConsoleDebug, ConsoleError, ConsoleWarning
 from stores import valuestore
-from alerttasks import DumpAlerts
-import traceback
 
 
 # noinspection PyUnusedLocal
 def debugPrintNull(flag, *args):
 	return
 
+
 # noinspection PyUnusedLocal
-def debugPrintEarly(flag,*args):
-	#print "Early debug call", flag, args
+def debugPrintEarly(flag, *args):
+	# print "Early debug call", flag, args
 	return
+
 
 def debugPrintReal(flag, *args):
 	global debugPrint
@@ -40,13 +43,17 @@ def debugPrintReal(flag, *args):
 	else:
 		print("DEBUG FLAG NAME ERROR", flag)
 
+
 debugPrint = debugPrintEarly
-DbgFlags = ['Main', 'DaemonCtl', 'DaemonStream', 'Screen', 'ISYdbg', 'ISYchg', 'HASSgeneral', 'HASSchg', 'Dispatch', 'EventList', 'Fonts', 'DebugSpecial',
-			'QDump', 'LLTouch', 'Touch', 'ISYDump', 'ISYLoad', 'StoreTrack', 'StoresDump', 'StatesDump', 'AlertsTrace', 'AlertsCheck','ForceLogClear']
+DbgFlags = ['Main', 'DaemonCtl', 'DaemonStream', 'Screen', 'ISYdbg', 'ISYchg', 'HASSgeneral', 'HASSchg', 'Dispatch',
+			'EventList', 'Fonts', 'DebugSpecial',
+			'QDump', 'LLTouch', 'Touch', 'ISYDump', 'ISYLoad', 'StoreTrack', 'StoresDump', 'StatesDump', 'AlertsTrace',
+			'AlertsCheck', 'ForceLogClear']
 DebugFlagKeys = {}
 dbgStore = valuestore.NewValueStore(valuestore.ValueStore('Debug'))
-dbgStore.SimpleInit(DbgFlags,False)
-valuestore.SetVal(('Debug','LogLevel'),3)
+dbgStore.SimpleInit(DbgFlags, False)
+valuestore.SetVal(('Debug', 'LogLevel'), 3)
+
 
 # noinspection PyUnusedLocal
 def OptimizeDebug(store, old, new, param, modifier):
@@ -59,37 +66,39 @@ def OptimizeDebug(store, old, new, param, modifier):
 	else:
 		debugPrint = debugPrintNull
 
+
 def LogDebugFlags():
 	for flg in DbgFlags:
 		fval = dbgStore.GetVal(flg)
 		if fval:
 			logsupport.Logs.Log('Debug flag ', flg, '=', fval, severity=ConsoleWarning)
-			dbgStore.SetVal('LogLevel', 0) # if a debug flag is set force Logging unless explicitly overridden
+			dbgStore.SetVal('LogLevel', 0)  # if a debug flag is set force Logging unless explicitly overridden
+
 
 def InitFlags(sect):
 	global DbgFlags, debugPrint
 	flgCount = 0
 	for flg in DbgFlags:
 		v = sect.get(flg, False)
-		if flg != 'LogLevel' and v: flgCount +=1
+		if flg != 'LogLevel' and v: flgCount += 1
 		dbgStore.SetVal(flg, v)
-		dbgStore.AddAlert(flg,OptimizeDebug)
-	dbgStore.AddAlert('StoresDump',StoresDump)
-	dbgStore.AddAlert('AlertsCheck',AlertsCheck)
-	dbgStore.AddAlert('ForceLogClear',ForceClear)
+		dbgStore.AddAlert(flg, OptimizeDebug)
+	dbgStore.AddAlert('StoresDump', StoresDump)
+	dbgStore.AddAlert('AlertsCheck', AlertsCheck)
+	dbgStore.AddAlert('ForceLogClear', ForceClear)
 	if flgCount > 0:
 		debugPrint = debugPrintReal
 	else:
 		debugPrint = debugPrintNull
 
 
-def ISYDump(fn, item, pretty = True,new=False):
+def ISYDump(fn, item, pretty=True, new=False):
 	fm = 'w' if new else 'a'
-	with open('/home/pi/Console/'+fn,mode=fm) as f:
+	with open('/home/pi/Console/' + fn, mode=fm) as f:
 		if pretty:
 			if not new:
 				f.write('\n--------------------------------------------------------\n')
-			mypprint.pprint(item,stream=f,indent=3,width=50)
+			mypprint.pprint(item, stream=f, indent=3, width=50)
 		else:
 			if not new:
 				f.write('\n')
@@ -119,17 +128,18 @@ def StoresDump(store, old, new, param, _):
 		for store in valuestore.ValueStores.values():
 			DumpStore(f, store, store.name, '')
 
-	dbgStore.SetVal('StoresDump',False)
+	dbgStore.SetVal('StoresDump', False)
 
 
 # noinspection PyUnusedLocal,PyUnusedLocal,PyUnusedLocal
-def AlertsCheck(store,old,new,param,_):
+def AlertsCheck(store, old, new, param, _):
 	if not new: return
 	DumpAlerts()
 	dbgStore.SetVal('AlertsCheck', False)
 
-def ForceClear(store,old,new,param,_):
+
+# noinspection PyUnusedLocal
+def ForceClear(store, old, new, param, _):
 	if not new: return
 	logsupport.UpdateGlobalErrorPointer(force=True)
 	dbgStore.SetVal('ForceLogClear', False)
-

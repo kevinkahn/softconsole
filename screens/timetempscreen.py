@@ -91,6 +91,7 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 		self.poster.pause()
 		super(TimeTempScreenDesc, self).ExitScreen()
 
+	# noinspection PyUnusedLocal,PyUnusedLocal
 	def repaintClock(self, param=None):
 		if not self.Active: return  # handle race condition where repaint queued just before switch
 		h = 0
@@ -206,6 +207,7 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 															   (usewidth, maxvert + 2 * fcstvert / 3))
 
 		pygame.display.update()
+
 
 # config.DS.Tasks.AddTask(self.ClockRepaintEvent, 1)
 

@@ -1,9 +1,15 @@
-import os, shutil, subprocess, requests, time, datetime
+import datetime
+import os
+import requests
+import shutil
+import subprocess
+import time
 
 """
 NOTE: This gets used in initial setup of console by the setup program
 ** Don't add any dependencies on other parts of the console (E.g., no logging
 """
+
 
 def StageVersion(vdir, tag, label):
 	print(datetime.datetime.now().strftime("%I:%M%p on %B %d, %Y"), file=open("stagelog.log", "a"))
@@ -81,7 +87,7 @@ def GetSHA(tag):
 			url = i['commit']['url']
 			break
 	if sha == 'not found':
-		return 'no current sha','no release info'
+		return 'no current sha', 'no release info'
 	r = requests.get(url)
 	d = r.json()
 	c = d['commit']['committer']['date']

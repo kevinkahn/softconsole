@@ -1,9 +1,9 @@
+import alerttasks
 import config
 import exitutils
 import logsupport
 from logsupport import ConsoleWarning, ConsoleDetail
 from stores import valuestore, weatherstore
-import alerttasks
 
 
 class GetTempsToISY(object):
@@ -23,24 +23,25 @@ class GetTempsToISY(object):
 			weathcode = (assigns[i].split(':'))
 
 			if weathcode[0] == 'C':
-				weathval = WI.GetVal(('Cond',weathcode[1]))
+				weathval = WI.GetVal(('Cond', weathcode[1]))
 			elif weathcode[0] == 'F':
-				weathval = WI.GetVal(('Fcst',weathcode[1],0))
+				weathval = WI.GetVal(('Fcst', weathcode[1], 0))
 			else:
-				weathval = '' # to supress warning on log msg below
+				weathval = ''  # to supress warning on log msg below
 				exitutils.FatalError('Weather field error in SendTemps')
 
-			if not (isinstance(weathval,int) or isinstance(weathval,float)):
-				logsupport.Logs.Log("No valid weather value to send (" + station +'):'+weathcode[0]+':'+weathcode[1] +str(weathval),severity=ConsoleWarning)
+			if not (isinstance(weathval, int) or isinstance(weathval, float)):
+				logsupport.Logs.Log(
+					"No valid weather value to send (" + station + '):' + weathcode[0] + ':' + weathcode[1] + str(
+						weathval), severity=ConsoleWarning)
 				return
 			isyv = list(assigns[i + 1].split(':'))
 			if isyv[0] == 'S': isyv[0] = 'State'
 			if isyv[0] == 'I': isyv[0] = 'Int'
-			valuestore.SetVal([config.defaultISYname]+isyv,int(weathval))
+			valuestore.SetVal([config.defaultISYname] + isyv, int(weathval))
 			logsupport.Logs.Log(
 				"Temps sent to ISY(" + station + '):' + weathcode[0] + ':' + weathcode[1] + ' -> ' + str(weathval),
 				severity=ConsoleDetail)
-
 
 
 alerttasks.alertprocs["GetTempsToISY"] = GetTempsToISY

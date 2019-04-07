@@ -1,25 +1,25 @@
 import functools
 import os
 import subprocess
+import time
 from collections import OrderedDict
 
 import pygame
 
 import config
-import fonts
-import hw
-import screens.__screens as screens
-import toucharea
 import debug
-from exitutils import MAINTEXIT, Exit_Screen_Message, MAINTRESTART, MAINTPISHUT, MAINTPIREBOOT, Exit
-from utilfuncs import interval_str, wc
-import logsupport
-from logsupport import ConsoleWarning, ReportStatus, UpdateGlobalErrorPointer
-import time
-import utilities
-import screen
+import fonts
 import githubutil as U
+import hw
+import logsupport
+import screen
+import screens.__screens as screens
 import timers
+import toucharea
+import utilities
+from exitutils import MAINTEXIT, Exit_Screen_Message, MAINTRESTART, MAINTPISHUT, MAINTPIREBOOT, Exit
+from logsupport import ConsoleWarning, ReportStatus, UpdateGlobalErrorPointer
+from utilfuncs import interval_str, wc
 
 MaintScreen = None
 fixedoverrides = {'CharColor': 'white', 'BackgroundColor': 'royalblue', 'label': ['Maintenance'], 'DimTO': 60,
@@ -41,23 +41,23 @@ def SetUpMaintScreens():
 										('return', ('Return', None))]))  # proc filled in below due to circularity
 	MaintScreen = MaintScreenDesc('Maintenance',
 								  OrderedDict([('return', ('Exit Maintenance', gohome)),
-													  ('log', ('Show Log', functools.partial(goto, LogDisp))),
-													  ('beta', ('Select Version', functools.partial(goto, Beta))),
-													  ('flags', ('Set Flags', None)),
-													  # fixed below to break a dependency loop - this is key 3
-													  ('exit', ('Exit/Restart', functools.partial(goto, Exits)))]))
+											   ('log', ('Show Log', functools.partial(goto, LogDisp))),
+											   ('beta', ('Select Version', functools.partial(goto, Beta))),
+											   ('flags', ('Set Flags', None)),
+											   # fixed below to break a dependency loop - this is key 3
+											   ('exit', ('Exit/Restart', functools.partial(goto, Exits)))]))
 	FlagsScreens = []
 	nflags = len(debug.DbgFlags) + 3
 	# will need key for each debug flag plus a return plus a loglevel up and loglevel down
 	tmpDbgFlags = ["LogLevelUp", "LogLevelDown"] + debug.DbgFlags[:]  # temp copy of Flags
-	flagspercol = hw.screenheight // 120 # todo switch to new screen sizing
+	flagspercol = hw.screenheight // 120  # todo switch to new screen sizing
 	flagsperrow = hw.screenwidth // 120
 	flagoverrides = fixedoverrides.copy()
 	flagoverrides.update(KeysPerColumn=flagspercol, KeysPerRow=flagsperrow)
 	flagscreencnt = 0
 	while nflags > 0:
-		thisscrn = min(nflags, flagspercol*flagsperrow)
-		nflags = nflags - flagspercol*flagsperrow + 1
+		thisscrn = min(nflags, flagspercol * flagsperrow)
+		nflags = nflags - flagspercol * flagsperrow + 1
 		tmp = OrderedDict()
 		for i in range(thisscrn - 1):  # leave space for next or return
 			flg = tmpDbgFlags.pop(0)
@@ -75,14 +75,13 @@ def SetUpMaintScreens():
 	for i in range(len(FlagsScreens) - 1):
 		FlagsScreens[i].Keys['next'].Proc = functools.partial(goto, FlagsScreens[i + 1], FlagsScreens[i].Keys['next'])
 
-
 	for s in FlagsScreens:
 		s.userstore.ReParent(MaintScreen)
 		debug.DebugFlagKeys.update(s.Keys)
 		for kn, k in s.Keys.items():
 			if kn in debug.DbgFlags:
 				k.State = debug.dbgStore.GetVal(k.name)
-				debug.dbgStore.AddAlert(k.name,(syncKeytoStore, k))
+				debug.dbgStore.AddAlert(k.name, (syncKeytoStore, k))
 				k.Proc = functools.partial(setdbg, k)
 	debug.DebugFlagKeys["LogLevelUp"].Proc = functools.partial(adjloglevel, debug.DebugFlagKeys["LogLevelUp"])
 	debug.DebugFlagKeys["LogLevelDown"].Proc = functools.partial(adjloglevel, debug.DebugFlagKeys["LogLevelDown"])
@@ -111,6 +110,7 @@ def CheckIfLogSeen(storeitem, old, new, param, chgsource):
 def syncKeytoStore(storeitem, old, new, key, chgsource):
 	key.State = new
 
+
 # noinspection PyUnusedLocal
 def setdbg(K, presstype):
 	st = debug.dbgStore.GetVal(K.name)
@@ -123,6 +123,7 @@ def setdbg(K, presstype):
 	K.PaintKey()
 	pygame.display.update()
 	logsupport.Logs.Log("Debug flag ", K.name, ' = ', K.State)
+
 
 # noinspection PyUnusedLocal
 def adjloglevel(K, presstype):
@@ -141,20 +142,24 @@ def adjloglevel(K, presstype):
 	logsupport.Logs.Log("Log Level changed via ", K.name, " to ", logsupport.LogLevel, severity=ConsoleWarning)
 	pygame.display.update()
 
+
 # noinspection PyUnusedLocal
 def gohome(K, presstype):  # neither peram used
 	logsupport.Logs.Log('Exiting Maintenance Screen')
 	timers.EndLongOp('maintenance')
 	config.DS.SwitchScreen(screens.HomeScreen, 'Bright', 'Home', 'Maint exit', NavKeys=True)
 
+
 # noinspection PyUnusedLocal
 def goto(newscreen, K, presstype):
 	config.DS.SwitchScreen(newscreen, 'Bright', 'Maint', 'Maint goto' + newscreen.name, NavKeys=False)
+
 
 # noinspection PyUnusedLocal
 def handleexit(K, YesKey, presstype):
 	# YesKey, presstype are ignored in this use - needed by the key press invokation for other purposes
 	domaintexit(K.name)
+
 
 # noinspection PyUnusedLocal
 def doexit(K, presstype):
@@ -171,17 +176,18 @@ def doexit(K, presstype):
 										  ('no', ('Cancel', functools.partial(goto, MaintScreen)))]))
 	config.DS.SwitchScreen(Verify, 'Bright', 'Maint', 'Verify exit', NavKeys=False)
 
+
 # noinspection PyUnusedLocal
 def dobeta(K, presstype):
-	#Future fetch other tags; switch to versionselector
+	# Future fetch other tags; switch to versionselector
 	K.State = not K.State
 	K.PaintKey()
 	pygame.display.update()
 	if K.name == 'stable':
-		subprocess.Popen('sudo rm /home/pi/usebeta', shell=True) #Deprecate remove
+		subprocess.Popen('sudo rm /home/pi/usebeta', shell=True)  # Deprecate remove
 		subprocess.Popen('sudo echo stable > /home/pi/versionselector', shell=True)
 	elif K.name == 'beta':
-		subprocess.Popen('sudo touch /home/pi/usebeta', shell=True) #Deprecate remove
+		subprocess.Popen('sudo touch /home/pi/usebeta', shell=True)  # Deprecate remove
 		subprocess.Popen('sudo echo beta > /home/pi/versionselector', shell=True)
 	elif K.name == 'fetch':
 		fetch_beta()
@@ -202,11 +208,11 @@ def fetch_stable():
 		if os.path.exists(basedir + '/homesystem'):
 			# personal system
 			logsupport.Logs.Log("New version fetch(homerelease)")
-			print ("New Version Fetch Requested (homesystem)")
+			print("New Version Fetch Requested (homesystem)")
 			U.StageVersion(basedir + '/consolestable', 'homerelease', 'Maint Dnld')
 		else:
 			logsupport.Logs.Log("New version fetch(currentrelease)")
-			print ("New Version Fetch Requested (currentrelease)")
+			print("New Version Fetch Requested (currentrelease)")
 			U.StageVersion(basedir + '/consolestable', 'currentrelease', 'Maint Dnld')
 		U.InstallStagedVersion(basedir + '/consolestable')
 		logsupport.Logs.Log("Staged version installed in consolestable")
@@ -219,7 +225,7 @@ def fetch_beta():
 	basedir = os.path.dirname(config.exdir)
 	ReportStatus("updt beta")
 	logsupport.Logs.Log("New version fetch(currentbeta)")
-	print ("New Version Fetch Requested (currentbeta)")
+	print("New Version Fetch Requested (currentbeta)")
 	# noinspection PyBroadException
 	try:
 		U.StageVersion(basedir + '/consolebeta', 'currentbeta', 'Maint Dnld')
@@ -229,16 +235,21 @@ def fetch_beta():
 		logsupport.Logs.Log('Failed beta download', severity=ConsoleWarning)
 	ReportStatus("done beta")
 
+
 class LogDisplayScreen(screen.BaseKeyScreenDesc):
 	def __init__(self):
 		screen.BaseKeyScreenDesc.__init__(self, None, 'LOG')
 		self.item = 0
 		self.pageno = -1
 		self.PageStartItem = [0]
-		self.Keys = {'nextpage': toucharea.TouchPoint('nextpage', (hw.screenwidth / 2, 3 * hw.screenheight / 4),# todo switch to use useable vert hgt
-													  (hw.screenwidth, hw.screenheight), proc=self.NextPage),# todo switch to use useable vert hgt
-					 'prevpage': toucharea.TouchPoint('prevpage', (hw.screenwidth / 2, hw.screenheight / 4),# todo switch to use useable vert hgt
-													  (hw.screenwidth, hw.screenheight / 2), proc=self.PrevPage)}# todo switch to use useable vert hgt
+		self.Keys = {'nextpage': toucharea.TouchPoint('nextpage', (hw.screenwidth / 2, 3 * hw.screenheight / 4),
+													  # todo switch to use useable vert hgt
+													  (hw.screenwidth, hw.screenheight), proc=self.NextPage),
+					 # todo switch to use useable vert hgt
+					 'prevpage': toucharea.TouchPoint('prevpage', (hw.screenwidth / 2, hw.screenheight / 4),
+													  # todo switch to use useable vert hgt
+													  (hw.screenwidth, hw.screenheight / 2),
+													  proc=self.PrevPage)}  # todo switch to use useable vert hgt
 		self.name = 'Log'
 		utilities.register_example("LogDisplayScreen", self)
 
@@ -281,7 +292,6 @@ class LogDisplayScreen(screen.BaseKeyScreenDesc):
 			self.NextPage(0)
 
 
-
 class MaintScreenDesc(screen.BaseKeyScreenDesc):
 	# noinspection PyDefaultArgument
 	def __init__(self, name, keys, overrides=fixedoverrides):
@@ -294,7 +304,7 @@ class MaintScreenDesc(screen.BaseKeyScreenDesc):
 				NK.Proc = functools.partial(kt[1], NK)
 			self.Keys[k] = NK
 		topoff = self.TitleFontSize + self.SubFontSize
-		self.LayoutKeys(topoff, hw.screenheight - 2 * screens.topborder - topoff) # todo switch to use useable vert hgt
+		self.LayoutKeys(topoff, hw.screenheight - 2 * screens.topborder - topoff)  # todo switch to use useable vert hgt
 		self.DimTO = 60
 		self.PersistTO = 1  # setting to 0 would turn off timer and stick us here
 		utilities.register_example("MaintScreenDesc", self)
@@ -342,4 +352,3 @@ def domaintexit(ExitKey):
 		ExitCode = MAINTRESTART
 		Exit_Screen_Message("Unknown Exit Requested", "Maintenance Error", "Trying a Restart")
 	Exit(ExitCode)
-

@@ -1,28 +1,30 @@
-import config
-import historybuffer
-import haremote as ha
+import errno
+import functools
 import json
 import time
-import errno
-import debug
+
 import websocket
 
+import config
+import debug
+import haremote as ha
+import historybuffer
 import hw
-import threadmanager
 import logsupport
-from controlevents import CEvent, PostEvent, ConsoleEvent
-from stores import valuestore
-from logsupport import ConsoleWarning, ConsoleError, ConsoleDetail
-import functools
+import threadmanager
 import timers
+from controlevents import CEvent, PostEvent, ConsoleEvent
+from logsupport import ConsoleWarning, ConsoleError, ConsoleDetail
+from stores import valuestore
 
 haignoreandskipdomains = ('history_graph', 'updater')
 ignoredeventtypes = ('system_log_event', 'call_service', 'service_executed', 'logbook_entry', 'timer_out_of_sync',
 					 'persistent_notifications_updated', 'zwave.network_complete', 'zwave.scene_activated',
 					 'zwave.network_ready')  # todo zwave complete do something
 
+
 def stringtonumeric(v):
-	if not isinstance(v,str):
+	if not isinstance(v, str):
 		return v
 	# noinspection PyBroadException
 	try:
@@ -38,7 +40,10 @@ def stringtonumeric(v):
 		pass
 	return v
 
+
 from ast import literal_eval
+
+
 def _NormalizeState(state, brightness=None):
 	if isinstance(state, str):
 		if state == 'on':
@@ -56,7 +61,7 @@ def _NormalizeState(state, brightness=None):
 			try:
 				val = literal_eval(state)
 			except ValueError:
-				logsupport.Logs.Log('HA Hub reports unknown state: ',state,severity=ConsoleError, tb=False)
+				logsupport.Logs.Log('HA Hub reports unknown state: ', state, severity=ConsoleError, tb=False)
 				return -1
 	else:
 		val = state
@@ -65,44 +70,49 @@ def _NormalizeState(state, brightness=None):
 			return int(val)
 	return val
 
+
 class HAnode(object):
 	def __init__(self, HAitem, **entries):
 		self.entity_id = ''
 		self.name = ''
 		self.attributes = {}
 		self.state = 0
-		self.internalstate = -1 # 0 = off, non-zero = on, 1 - 255 = intensity
+		self.internalstate = -1  # 0 = off, non-zero = on, 1 - 255 = intensity
 		self.__dict__.update(entries)
 		if 'friendly_name' in self.attributes: self.FriendlyName = self.attributes['friendly_name']
 		self.address = self.entity_id
 		self.Hub = HAitem
 
-	def Update(self,**ns):
+	def Update(self, **ns):
 		# just updates last triggered etc.
 		self.__dict__.update(ns)
+
 
 class StatefulHAnode(HAnode):
 	def __init__(self, HAitem, **entries):
 		super(StatefulHAnode, self).__init__(HAitem, **entries)
 		self.internalstate = _NormalizeState(self.state)
 
-	def Update(self,**ns):
+	def Update(self, **ns):
 		self.__dict__.update(ns)
 		oldstate = self.internalstate
 		self.internalstate = _NormalizeState(self.state)
 		if self.internalstate == -1:
-			logsupport.Logs.Log("Node "+self.name+" set unavailable", severity = ConsoleDetail)
+			logsupport.Logs.Log("Node " + self.name + " set unavailable", severity=ConsoleDetail)
 		if oldstate == -1 and self.internalstate != -1:
-			logsupport.Logs.Log("Node " + self.name + " became available (" + str(self.internalstate) + ")", severity = ConsoleDetail)
+			logsupport.Logs.Log("Node " + self.name + " became available (" + str(self.internalstate) + ")",
+								severity=ConsoleDetail)
 		if config.DS.AS is not None:
 			if self.Hub.name in config.DS.AS.HubInterestList:
 				if self.entity_id in config.DS.AS.HubInterestList[self.Hub.name]:
 					debug.debugPrint('DaemonCtl', time.time() - config.starttime, "HA reports node change(screen): ",
 									 "Key: ", self.Hub.Entities[self.entity_id].name)
-					PostEvent(ConsoleEvent(CEvent.HubNodeChange, hub=self.Hub.name, node=self.entity_id, value=self.internalstate))
+					PostEvent(ConsoleEvent(CEvent.HubNodeChange, hub=self.Hub.name, node=self.entity_id,
+										   value=self.internalstate))
 
 	def __str__(self):
-		return str(self.name)+'::'+str(self.state)
+		return str(self.name) + '::' + str(self.state)
+
 
 class Script(HAnode):
 	def __init__(self, HAitem, d):
@@ -113,6 +123,7 @@ class Script(HAnode):
 		ha.call_service(self.Hub.api, 'script', self.entity_id)
 		debug.debugPrint('HASSgeneral', "Script execute sent to: script.", self.entity_id)
 
+
 class Automation(HAnode):
 	def __init__(self, HAitem, d):
 		super(Automation, self).__init__(HAitem, **d)
@@ -122,11 +133,13 @@ class Automation(HAnode):
 		ha.call_service(self.Hub.api, 'automation', 'trigger', {'entity_id': '{}'.format(self.entity_id)})
 		debug.debugPrint('HASSgeneral', "Automation trigger sent to: ", self.entity_id)
 
+
 class Group(StatefulHAnode):
 	def __init__(self, HAitem, d):
 		super(Group, self).__init__(HAitem, **d)
 		self.members = self.attributes['entity_id']
 		self.Hub.Groups[self.entity_id] = self
+
 
 class Light(StatefulHAnode):
 	def __init__(self, HAitem, d):
@@ -135,7 +148,7 @@ class Light(StatefulHAnode):
 		if 'brightness' in self.attributes:
 			self.internalstate = _NormalizeState(self.state, int(self.attributes['brightness']))
 
-	def Update(self,**ns):
+	def Update(self, **ns):
 		super(Light, self).Update(**ns)
 		if 'brightness' in self.attributes:
 			self.internalstate = _NormalizeState(self.state, int(self.attributes['brightness']))
@@ -145,6 +158,7 @@ class Light(StatefulHAnode):
 		selcmd = ('turn_off', 'turn_on')
 		ha.call_service(self.Hub.api, 'light', selcmd[settoon], {'entity_id': '{}'.format(self.entity_id)})
 		debug.debugPrint('HASSgeneral', "Light OnOff sent: ", selcmd[settoon], ' to ', self.entity_id)
+
 
 class Switch(StatefulHAnode):
 	def __init__(self, HAitem, d):
@@ -157,17 +171,18 @@ class Switch(StatefulHAnode):
 		ha.call_service(self.Hub.api, 'switch', selcmd[settoon], {'entity_id': '{}'.format(self.entity_id)})
 		debug.debugPrint('HASSgeneral', "Switch OnOff sent: ", selcmd[settoon], ' to ', self.entity_id)
 
-class Sensor(HAnode): # not stateful since it updates directly to store value
+
+class Sensor(HAnode):  # not stateful since it updates directly to store value
 	def __init__(self, HAitem, d):
 		super(Sensor, self).__init__(HAitem, **d)
 		self.Hub.Sensors[self.entity_id] = self
 		self.Hub.sensorstore.SetVal(self.entity_id, stringtonumeric(self.state))
 
 	def _SetSensorAlert(self, p):
-		self.Hub.sensorstore.AddAlert(self.entity_id,p)
+		self.Hub.sensorstore.AddAlert(self.entity_id, p)
 
-	def Update(self,**ns):
-		#super(Sensor,self).Update(**ns)
+	def Update(self, **ns):
+		# super(Sensor,self).Update(**ns)
 		if 'attributes' in ns: self.attributes = ns['attributes']
 		try:
 			if 'state' in ns:
@@ -178,19 +193,21 @@ class Sensor(HAnode): # not stateful since it updates directly to store value
 		except Exception as E:
 			logsupport.Logs.Log('Sensor update error: State: {}  Exc:{}'.format(repr(ns), repr(E)))
 
+
 class BinarySensor(HAnode):
 	def __init__(self, HAitem, d):
-		super(BinarySensor,self).__init__(HAitem, **d)
+		super(BinarySensor, self).__init__(HAitem, **d)
 		self.Hub.BinarySensors[self.entity_id] = self
-		if self.state not in ('on','off'):
-			logsupport.Logs.Log("Odd Binary sensor initial value: ", self.entity_id, ':', self.state, severity=ConsoleWarning)
+		if self.state not in ('on', 'off'):
+			logsupport.Logs.Log("Odd Binary sensor initial value: ", self.entity_id, ':', self.state,
+								severity=ConsoleWarning)
 		self.Hub.sensorstore.SetVal(self.entity_id, self.state == 'on')
 
 	def _SetSensorAlert(self, p):
-		self.Hub.sensorstore.AddAlert(self.entity_id,p)
+		self.Hub.sensorstore.AddAlert(self.entity_id, p)
 
-	def Update(self,**ns):
-		#super(Sensor,self).Update(**ns)
+	def Update(self, **ns):
+		# super(Sensor,self).Update(**ns)
 		if 'attributes' in ns: self.attributes = ns['attributes']
 		if 'state' in ns:
 			if ns['state'] == 'on':
@@ -199,7 +216,8 @@ class BinarySensor(HAnode):
 				st = False
 			else:
 				st = False
-				logsupport.Logs.Log("Bad Binary sensor value: ", self.entity_id, ':', ns['state'], severity=ConsoleWarning)
+				logsupport.Logs.Log("Bad Binary sensor value: ", self.entity_id, ':', ns['state'],
+									severity=ConsoleWarning)
 			self.Hub.sensorstore.SetVal(self.entity_id, st)
 
 
@@ -223,7 +241,6 @@ class MediaPlayer(HAnode):
 		if self.Sonos:
 			logsupport.Logs.Log("{}: added new Sonos player {}".format(self.Hub.name, self.name))
 			config.SonosScreen = None
-
 
 	def Update(self, **ns):
 		oldst = self.state
@@ -258,7 +275,8 @@ class MediaPlayer(HAnode):
 										 "Key: ", self.Hub.Entities[self.entity_id].name)
 
 						# noinspection PyArgumentList
-						PostEvent(ConsoleEvent(CEvent.HubNodeChange, hub=self.Hub.name, node=self.entity_id, value=self.internalstate))
+						PostEvent(ConsoleEvent(CEvent.HubNodeChange, hub=self.Hub.name, node=self.entity_id,
+											   value=self.internalstate))
 
 	def Join(self, master, roomname):
 		ha.call_service(self.Hub.api, 'media_player', 'sonos_join', {'master': '{}'.format(master),
@@ -285,7 +303,8 @@ class MediaPlayer(HAnode):
 		ha.call_service(self.Hub.api, 'media_player', 'select_source', {'entity_id': '{}'.format(roomname),
 																		'source': '{}'.format(sourcename)})
 
-class Thermostat(HAnode): # not stateful since has much state info
+
+class Thermostat(HAnode):  # not stateful since has much state info
 	# todo update since state now in pushed stream
 	def __init__(self, HAitem, d):
 		super(Thermostat, self).__init__(HAitem, **d)
@@ -304,11 +323,12 @@ class Thermostat(HAnode): # not stateful since has much state info
 		except:
 			pass
 
+	# noinspection PyUnusedLocal
 	def ErrorFakeChange(self, param=None):
 		# noinspection PyArgumentList
 		PostEvent(ConsoleEvent(CEvent.HubNodeChange, hub=self.Hub.name, node=self.entity_id, value=self.internalstate))
 
-	def Update(self,**ns):
+	def Update(self, **ns):
 		if 'attributes' in ns: self.attributes = ns['attributes']
 		self.temperature = self.attributes['temperature']
 		self.curtemp = self.attributes['current_temperature']
@@ -323,14 +343,18 @@ class Thermostat(HAnode): # not stateful since has much state info
 									 "Key: ", self.Hub.Entities[self.entity_id].name)
 
 					# noinspection PyArgumentList
-					PostEvent(ConsoleEvent(CEvent.HubNodeChange, hub=self.Hub.name, node=self.entity_id, value=self.internalstate))
+					PostEvent(ConsoleEvent(CEvent.HubNodeChange, hub=self.Hub.name, node=self.entity_id,
+										   value=self.internalstate))
 
-	def PushSetpoints(self,t_low,t_high):
+	def PushSetpoints(self, t_low, t_high):
 		# todo with nest pushing setpoint while not in auto seems to be a no-op and so doesn't cause an event
-		ha.call_service(self.Hub.api, 'climate', 'set_temperature', {'entity_id': '{}'.format(self.entity_id),'target_temp_high':str(t_high),'target_temp_low':str(t_low)})
+		ha.call_service(self.Hub.api, 'climate', 'set_temperature',
+						{'entity_id': '{}'.format(self.entity_id), 'target_temp_high': str(t_high),
+						 'target_temp_low': str(t_low)})
 		# should push a fake event a few seconds into the future to handle error cases todo
 		self.timerseq += 1
-		Temp = timers.OnceTimer(5, start=True, name='fakepushsetpoint-'.format(self.timerseq), proc=self.ErrorFakeChange) #todo analyze this case
+		_ = timers.OnceTimer(5, start=True, name='fakepushsetpoint-'.format(self.timerseq),
+								proc=self.ErrorFakeChange)  # todo analyze this case
 
 	def GetThermInfo(self):
 		if self.target_low is not None:
@@ -344,7 +368,8 @@ class Thermostat(HAnode): # not stateful since has much state info
 		if config.DS.AS is not None:
 			if self.Hub.name in config.DS.AS.HubInterestList:
 				if self.entity_id in config.DS.AS.HubInterestList[self.Hub.name]:
-					debug.debugPrint('DaemonCtl', time.time() - config.starttime, "HA Tstat reports node change(screen): ",
+					debug.debugPrint('DaemonCtl', time.time() - config.starttime,
+									 "HA Tstat reports node change(screen): ",
 									 "Key: ", self.Hub.Entities[self.entity_id].name)
 
 					# noinspection PyArgumentList
@@ -358,35 +383,37 @@ class Thermostat(HAnode): # not stateful since has much state info
 	def GetModeInfo(self):
 		return self.modelist, self.fanstates
 
-	def PushFanState(self,mode):
+	def PushFanState(self, mode):
 		ha.call_service(self.Hub.api, 'climate', 'set_fan_mode',
 						{'entity_id': '{}'.format(self.entity_id), 'fan_mode': mode})
 
-	def PushMode(self,mode):
+	def PushMode(self, mode):
 		# noinspection PyBroadException
 		try:
 			ha.call_service(self.Hub.api, 'climate', 'set_operation_mode',
-						{'entity_id': '{}'.format(self.entity_id), 'operation_mode': mode})
+							{'entity_id': '{}'.format(self.entity_id), 'operation_mode': mode})
 		except:
 			pass
+
 
 class ZWave(HAnode):
 	def __init__(self, HAitem, d):
 		super(ZWave, self).__init__(HAitem, **d)
 		self.Hub.ZWaves[self.entity_id] = self
 
-class HA(object):
 
+class HA(object):
 	class HAClose(Exception):
 		pass
 
 	# noinspection PyUnusedLocal
-	def GetNode(self, name, proxy = ''):
+	def GetNode(self, name, proxy=''):
 		# noinspection PyBroadException
 		try:
 			return self.Entities[name], self.Entities[name]
 		except:
-			logsupport.Logs.Log("Attempting to access unknown object: "+ name + " in HA Hub: " + self.name, severity=ConsoleWarning)
+			logsupport.Logs.Log("Attempting to access unknown object: " + name + " in HA Hub: " + self.name,
+								severity=ConsoleWarning)
 			return None, None
 
 	def GetProgram(self, name):
@@ -398,7 +425,8 @@ class HA(object):
 		try:
 			return self.Scripts['script.' + name]
 		except KeyError:
-			logsupport.Logs.Log("Attempt to access unknown program: " + name + " in HA Hub " + self.name, severity = ConsoleWarning)
+			logsupport.Logs.Log("Attempt to access unknown program: " + name + " in HA Hub " + self.name,
+								severity=ConsoleWarning)
 			return None
 
 	def GetCurrentStatus(self, MonitorNode):
@@ -406,7 +434,8 @@ class HA(object):
 		try:
 			return MonitorNode.internalstate
 		except:
-			logsupport.Logs.Log("Error accessing current state in HA Hub: " + self.name + ' ' + repr(MonitorNode), severity=ConsoleWarning)
+			logsupport.Logs.Log("Error accessing current state in HA Hub: " + self.name + ' ' + repr(MonitorNode),
+								severity=ConsoleWarning)
 			return None
 
 	def CheckStates(self):
@@ -425,7 +454,7 @@ class HA(object):
 							actualval), severity=ConsoleWarning, hb=True)
 					self.sensorstore.SetVal(s.entity_id, actualval)
 		except:
-			logsupport.Logs.Log('Sensor value check did not complete',severity=ConsoleWarning)
+			logsupport.Logs.Log('Sensor value check did not complete', severity=ConsoleWarning)
 
 	def SetAlertWatch(self, node, alert):
 		if node.address in self.AlertNodes:
@@ -435,7 +464,7 @@ class HA(object):
 
 	def StatesDump(self):
 		for n, nd in self.Entities.items():
-			print('Node(', type(nd),'): ', n, ' -> ', nd.internalstate, nd.state, type(nd.state))
+			print('Node(', type(nd), '): ', n, ' -> ', nd.internalstate, nd.state, type(nd.state))
 
 	def HACheckThread(self):
 		if self.haconnectstate != "Running":
@@ -490,7 +519,7 @@ class HA(object):
 						if c != {}: chg[k] = c
 						if d != {}: dels[k] = d
 						if a != {}: adds[k] = a
-						#chg[k], dels[k], adds[k] = findDiff(d1[k], d2[k])
+					# chg[k], dels[k], adds[k] = findDiff(d1[k], d2[k])
 					else:
 						if old[k] != new[k]:
 							chg[k] = new[k]
@@ -584,7 +613,8 @@ class HA(object):
 						for a in self.AlertNodes[ent]:
 							logsupport.Logs.Log("Node alert fired: " + str(a), severity=ConsoleDetail)
 							# noinspection PyArgumentList
-							PostEvent(ConsoleEvent(CEvent.ISYAlert, node=ent, hub=self.name, value=self.Entities[ent].internalstate, alert=a))
+							PostEvent(ConsoleEvent(CEvent.ISYAlert, node=ent, hub=self.name,
+												   value=self.Entities[ent].internalstate, alert=a))
 				elif m['event_type'] == 'system_log_event':
 					logsupport.Logs.Log('Hub: ' + self.name + ' logged at level: ' + d['level'] + ' Msg: ' + d[
 						'message'])  # todo fake an event for Nest error?
@@ -597,7 +627,8 @@ class HA(object):
 					if d['service'] not in self.knownservices[d['domain']]:
 						self.knownservices[d['domain']].append(d['service'])
 					logsupport.Logs.Log(
-							"{} has new service: {}".format(self.name, message), severity=ConsoleDetail)  # all the zwave services todo
+						"{} has new service: {}".format(self.name, message),
+						severity=ConsoleDetail)  # all the zwave services todo
 				elif m['event_type'] not in ignoredeventtypes:
 					# debug.debugPrint('HASSchg', "Other expected event" + str(m))
 					logsupport.Logs.Log('{} Event: {}'.format(self.name, message))  # todo temp
@@ -605,7 +636,8 @@ class HA(object):
 			except Exception as E:
 				logsupport.Logs.Log("Exception handling HA message: ", repr(E), repr(message), severity=ConsoleWarning)
 			loopend = time.time()
-			self.HB.Entry('Processing time: {} Done: {}'.format(loopend - loopstart, repr(message)))  # todo try to force other thread to run
+			self.HB.Entry('Processing time: {} Done: {}'.format(loopend - loopstart,
+																repr(message)))  # todo try to force other thread to run
 			time.sleep(.1)  # force thread to give up processor to allow response to time events
 			self.HB.Entry('Gave up control for: {}'.format(time.time() - loopend))
 
@@ -632,7 +664,7 @@ class HA(object):
 				self.delaystart = 150  # likely router reboot delay
 				logsupport.Logs.Log(self.name + " WS socket timed out", severity=ConsoleWarning)
 			elif isinstance(error, OSError):
-				if error[0] == errno.ENETUNREACH:
+				if error.errno == errno.ENETUNREACH:
 					self.delaystart = 151  # likely router reboot delay
 					logsupport.Logs.Log(self.name + " WS network down", severity=ConsoleWarning)
 				else:
@@ -667,16 +699,17 @@ class HA(object):
 				severity=ConsoleWarning, tb=False, hb=True)
 			if self.haconnectstate != "Failed": self.haconnectstate = "Closed"
 
-		#raise self.HAClose
+		# raise self.HAClose
 
 		# noinspection PyUnusedLocal
 		def on_open(qws):
 			self.HB.Entry('Open')
 			logsupport.Logs.Log(self.name + ": WS stream " + str(self.HAnum) + " opened")
 			self.haconnectstate = "Running"
-			#if self.password != '':
-			#	ws.send({"type": "auth","api_password": self.password})
-			#ws.send(json.dumps({'id': self.HAnum, 'type': 'subscribe_events'})) #, 'event_type': 'state_changed'}))
+
+		# if self.password != '':
+		#	ws.send({"type": "auth","api_password": self.password})
+		# ws.send(json.dumps({'id': self.HAnum, 'type': 'subscribe_events'})) #, 'event_type': 'state_changed'}))
 
 		if self.delaystart > 0:
 			logsupport.Logs.Log(
@@ -688,10 +721,10 @@ class HA(object):
 		websocket.setdefaulttimeout(30)
 		while True:
 			try:
-				#websocket.enableTrace(True)
+				# websocket.enableTrace(True)
 				self.ws = websocket.WebSocketApp(self.wsurl, on_message=on_message,
-											on_error=on_error,
-											on_close=on_close, on_open=on_open, header=self.api._headers)
+												 on_error=on_error,
+												 on_close=on_close, on_open=on_open, header=self.api._headers)
 				self.msgcount = 0
 				break
 			except AttributeError as e:
@@ -713,12 +746,13 @@ class HA(object):
 		logsupport.Logs.Log("{}: Creating structure for Home Assistant hub at {}".format(hubname, addr))
 
 		self.hadomains = {'group': Group, 'light': Light, 'switch': Switch, 'sensor': Sensor, 'automation': Automation,
-					 'climate': Thermostat, 'media_player': MediaPlayer, 'binary_sensor': BinarySensor, 'script': Script}
+						  'climate': Thermostat, 'media_player': MediaPlayer, 'binary_sensor': BinarySensor,
+						  'script': Script}
 		haignoredomains = {'zwave': ZWave, 'sun': HAnode, 'notifications': HAnode, 'persistent_notification': HAnode}
 
 		self.addibledomains = {'media_player': MediaPlayer}
 
-		self.sensorstore = valuestore.NewValueStore(valuestore.ValueStore(hubname,itemtyp=valuestore.StoreItem))
+		self.sensorstore = valuestore.NewValueStore(valuestore.ValueStore(hubname, itemtyp=valuestore.StoreItem))
 		self.name = hubname
 		self.addr = addr
 		self.url = addr
@@ -729,13 +763,13 @@ class HA(object):
 		elif self.addr.startswith('https://'):
 			self.wsurl = 'wss://' + self.addr[8:] + ':8123/api/websocket'
 		else:
-			self.wsurl = 'ws://' +self.addr + ':8123/api/websocket'
+			self.wsurl = 'ws://' + self.addr + ':8123/api/websocket'
 		self.HAnum = 0
 		self.ws = None  # websocket client instance
 		self.msgcount = 0
 		self.watchstarttime = time.time()
 		self.Entities = {}
-		self.IgnoredEntities = {} # things we expect and do nothing with
+		self.IgnoredEntities = {}  # things we expect and do nothing with
 		self.Domains = {}
 		self.Groups = {}
 		self.Lights = {}
@@ -753,7 +787,7 @@ class HA(object):
 		self.lasterror = None
 		self.delaystart = 0
 		if password != '':
-			self.api = ha.API(self.url,password)
+			self.api = ha.API(self.url, password)
 		else:
 			self.api = ha.API(self.url)
 		for i in range(9):
@@ -774,6 +808,7 @@ class HA(object):
 					severity=ConsoleWarning)
 				time.sleep(5)
 
+		# noinspection PyUnboundLocalVariable
 		if hassok:
 			logsupport.Logs.Log('{}: Access accepted'.format(self.name))
 		else:
@@ -784,7 +819,7 @@ class HA(object):
 		for e in entities:
 			if e.domain not in self.Domains:
 				self.Domains[e.domain] = {}
-			p2 = dict(e.as_dict(),**{'domain':e.domain, 'name':e.name, 'object_id':e.object_id})
+			p2 = dict(e.as_dict(), **{'domain': e.domain, 'name': e.name, 'object_id': e.object_id})
 
 			if e.domain in self.hadomains:
 				N = self.hadomains[e.domain](self, p2)
@@ -794,9 +829,9 @@ class HA(object):
 				self.IgnoredEntities[e.entity_id] = N
 			elif e.domain in haignoreandskipdomains:
 				N = None
-				pass # totally ignore these
+				pass  # totally ignore these
 			else:
-				N = HAnode(self,**p2)
+				N = HAnode(self, **p2)
 				self.Others[e.entity_id] = N
 				logsupport.Logs.Log(self.name + ': Uncatagorized HA domain type: ', e.domain, ' for entity: ',
 									e.entity_id)
@@ -806,7 +841,7 @@ class HA(object):
 
 		for n, T in self.Thermostats.items():
 			tname = n.split('.')[1]
-			tsensor = self.Sensors['sensor.'+tname+'_thermostat_hvac_state']
+			tsensor = self.Sensors['sensor.' + tname + '_thermostat_hvac_state']
 			# noinspection PyProtectedMember
 			T._connectsensors(tsensor)
 		self.haconnectstate = "Init"
@@ -817,11 +852,11 @@ class HA(object):
 
 					print(d['domain'], file=f)
 					for s, c in d['services'].items():
-						print('    {}'.format(s), file = f)
-						print('         {}'.format(c) , file=f)
-					#todo
+						print('    {}'.format(s), file=f)
+						print('         {}'.format(c), file=f)
+					# todo
 					print('==================', file=f)
-		#listeners = ha.get_event_listeners(self.api)
+		# listeners = ha.get_event_listeners(self.api)
 		logsupport.Logs.Log(self.name + ": Processed " + str(len(self.Entities)) + " total entities")
 		logsupport.Logs.Log("    Lights: " + str(len(self.Lights)) + " Switches: " + str(len(self.Switches)) +
 							" Sensors: " + str(len(self.Sensors)) + " BinarySensors: " + str(len(self.BinarySensors)) +

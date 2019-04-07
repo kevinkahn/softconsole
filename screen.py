@@ -1,17 +1,19 @@
+import collections
+
+import pygame
+
 import config
+import debug
+import fonts
 import hw
 import logsupport
 import screens.__screens as screens
-from logsupport import ConsoleError, ConsoleWarning
-import utilities
-import toucharea
-import collections
-from utilfuncs import wc, tint
-import debug
-import pygame
-import stores.valuestore as valuestore
 import stores.paramstore as paramstore
-import fonts
+import stores.valuestore as valuestore
+import toucharea
+import utilities
+from logsupport import ConsoleError, ConsoleWarning
+from utilfuncs import wc, tint
 
 ScreenParams = {'DimTO': 99,
 				'CharColor': "white",
@@ -38,6 +40,7 @@ ScreenParams = {'DimTO': 99,
 screenStore = valuestore.NewValueStore(paramstore.ParamStore('ScreenParams'))
 
 screenparamuse = {}
+
 
 def InitScreenParams(parseconfig):
 	for p, v in ScreenParams.items():
@@ -71,6 +74,7 @@ def FlatenScreenLabel(label):
 		scrlabel = scrlabel + " " + s
 	return scrlabel
 
+
 def ButLayout(butcount):
 	#        1     2     3     4     5     6     7     8     9    10
 	plan = ((1, 1), (1, 2), (1, 3), (2, 2), (1, 5), (2, 3), (2, 4), (2, 4), (3, 3), (4, 3),
@@ -81,6 +85,7 @@ def ButLayout(butcount):
 	else:
 		logsupport.Logs.Log("Button layout error - too many or no buttons: " + butcount, ConsoleError)
 		return 5, 5
+
 
 class ScreenDesc(object):
 	"""
@@ -106,7 +111,7 @@ class ScreenDesc(object):
 		self.markradius = int(min(hw.screenwidth, hw.screenheight) * .025)
 
 		self.name = screenname
-		self.Active = False # true if actually on screen
+		self.Active = False  # true if actually on screen
 		self.NavKeys = collections.OrderedDict()
 		self.Keys = collections.OrderedDict()
 		self.WithNav = True
@@ -116,7 +121,7 @@ class ScreenDesc(object):
 		self.startvertspace = screens.topborder
 		self.starthorizspace = screens.horizborder
 		self.titleoffset = 0
-		self.HubInterestList = {} # one entry per hub, each entry is a dict mapping addr to Node
+		self.HubInterestList = {}  # one entry per hub, each entry is a dict mapping addr to Node
 		self.ScreenTitleBlk = None
 
 		IncorporateParams(self, 'Screen',
@@ -127,23 +132,24 @@ class ScreenDesc(object):
 		try:
 			self.DefaultHubObj = config.Hubs[self.DefaultHub]
 		except KeyError:
-			logsupport.Logs.Log("Bad default hub name for screen: ",screenname,severity=ConsoleError)
+			logsupport.Logs.Log("Bad default hub name for screen: ", screenname, severity=ConsoleError)
 
 		if self.ScreenTitle != '':
 			# adjust space for a title
-			self.ScreenTitleBlk = fonts.fonts.Font(self.ScreenTitleSize, bold=True).render(self.ScreenTitle, 0, wc(self.ScreenTitleColor))
+			self.ScreenTitleBlk = fonts.fonts.Font(self.ScreenTitleSize, bold=True).render(self.ScreenTitle, 0,
+																						   wc(self.ScreenTitleColor))
 			h = self.ScreenTitleBlk.get_height()
 			w = self.ScreenTitleBlk.get_width()
-			titlegap = h // 10 # todo is this the best way to space?
+			titlegap = h // 10  # todo is this the best way to space?
 			self.startvertspace = self.startvertspace + h + titlegap
 			self.useablevertspace = self.useablevertspace - h - titlegap
 			self.titleoffset = screens.horizborder + (self.useablehorizspace - w) // 2
 
 		utilities.register_example('ScreenDesc', self)
 
-	def SetScreenTitle(self,name,fontsz,color):
+	def SetScreenTitle(self, name, fontsz, color):
 		if self.ScreenTitleBlk is not None:
-			return # User explicitly set a title so don't override it
+			return  # User explicitly set a title so don't override it
 		self.ScreenTitleBlk = fonts.fonts.Font(fontsz).render(name, 0, wc(color))
 		h = self.ScreenTitleBlk.get_height()
 		w = self.ScreenTitleBlk.get_width()
@@ -152,11 +158,10 @@ class ScreenDesc(object):
 		self.useablevertspace = self.useablevertspace - h - titlegap
 		self.titleoffset = screens.horizborder + (self.useablehorizspace - w) // 2
 
-
 	def ButSize(self, bpr, bpc, height):
 		h = self.useablevertspace if height == 0 else height
 		return (
-			self.useablehorizspace/ bpr, h / bpc)
+			self.useablehorizspace / bpr, h / bpc)
 
 	def PaintKeys(self):
 		if self.Keys is not None:
@@ -166,11 +171,11 @@ class ScreenDesc(object):
 		for key in self.NavKeys.values():
 			key.PaintKey()
 
-	def AddToHubInterestList(self,hub,item,value):
+	def AddToHubInterestList(self, hub, item, value):
 		if hub.name in self.HubInterestList:
-			self.HubInterestList[hub.name][item]=value
+			self.HubInterestList[hub.name][item] = value
 		else:
-			self.HubInterestList[hub.name] = {item:value}
+			self.HubInterestList[hub.name] = {item: value}
 
 	def InitDisplay(self, nav):
 		debug.debugPrint("Screen", "Base Screen InitDisplay: ", self.name)
@@ -178,18 +183,19 @@ class ScreenDesc(object):
 		self.NavKeys = nav
 		self.PaintKeys()
 		if self.ScreenTitleBlk is not None:
-			config.screen.blit(self.ScreenTitleBlk,(self.titleoffset,screens.topborder))
+			config.screen.blit(self.ScreenTitleBlk, (self.titleoffset, screens.topborder))
 
 	def ReInitDisplay(self):
 		self.PaintBase()
 		self.PaintKeys()
 		if self.ScreenTitleBlk is not None:
-			config.screen.blit(self.ScreenTitleBlk,(self.titleoffset,screens.topborder))
+			config.screen.blit(self.ScreenTitleBlk, (self.titleoffset, screens.topborder))
 
-	def NodeEvent(self, hub='none', node=9999, value=9999, varinfo = ()):
+	def NodeEvent(self, hub='none', node=9999, value=9999, varinfo=()):
 		if node is not None:
-			if hub != '*VARSTORE*': # var changes can be reported while any screen is up
-				logsupport.Logs.Log("Unexpected event to screen: ", self.name, ' Hub: ', str(hub), ' Node: ', str(node), ' Val: ', str(value),severity = ConsoleWarning)
+			if hub != '*VARSTORE*':  # var changes can be reported while any screen is up
+				logsupport.Logs.Log("Unexpected event to screen: ", self.name, ' Hub: ', str(hub), ' Node: ', str(node),
+									' Val: ', str(value), severity=ConsoleWarning)
 			else:
 				pass
 
@@ -201,6 +207,7 @@ class ScreenDesc(object):
 		if config.sysStore.ErrorNotice != -1:
 			pygame.draw.circle(config.screen, tint(self.BackgroundColor, tint_factor=.5),
 							   (self.markradius, self.markradius), self.markradius, 0)
+
 
 class BaseKeyScreenDesc(ScreenDesc):
 	def __init__(self, screensection, screenname, parentscreen=None):
@@ -214,7 +221,7 @@ class BaseKeyScreenDesc(ScreenDesc):
 
 	def LayoutKeys(self, extraOffset=0, height=0):
 		# Compute the positions and sizes for the Keys and store in the Key objects
-		explicitlayout = self.KeysPerColumn*self.KeysPerRow
+		explicitlayout = self.KeysPerColumn * self.KeysPerRow
 
 		if explicitlayout != 0:
 			# user provided explicit button layout
@@ -241,5 +248,4 @@ class BaseKeyScreenDesc(ScreenDesc):
 			vpos.append(self.startvertspace + extraOffset + (.5 + i) * buttonsize[1])
 
 		for i, (kn, key) in enumerate(self.Keys.items()):
-			key.FinishKey((hpos[i%bpr], vpos[i//bpr]), buttonsize)
-
+			key.FinishKey((hpos[i % bpr], vpos[i // bpr]), buttonsize)

@@ -1,29 +1,33 @@
 import collections
-
-import hw
+import sys
 import threading
-import isycodes
-import historybuffer
 
+import requests
+import time
 import xmltodict
-import requests, time
+
 import debug
 import exitutils
-import utilities
+import historybuffer
+import hw
+import isycodes
+import isyeventmonitor
 import logsupport
+import threadmanager
+import utilities
 from logsupport import ConsoleWarning, ConsoleError, ConsoleDetailHigh, ConsoleDetail
-import sys
-import isyeventmonitor, threadmanager
 from stores import valuestore, isyvarssupport
+
 
 class CommsError(Exception): pass
 
 
 class ISYNode(object):
-	def __init__(self, Hub,name):
+	def __init__(self, Hub, name):
 		self.Hub = Hub
 		self.name = name
 		self.fullname = ""
+
 
 class TreeItem(ISYNode):
 	"""
@@ -32,7 +36,7 @@ class TreeItem(ISYNode):
 	"""
 
 	def __init__(self, hub, name, addr, parentaddr):
-		super(TreeItem,self).__init__(hub, name)
+		super(TreeItem, self).__init__(hub, name)
 		self.address = addr
 		self.parent = parentaddr  # replaced by actual obj reference at end of tree build
 		self.children = []
@@ -51,8 +55,9 @@ class OnOffItem(ISYNode):
 		selcmd = (('DOF', 'DFOF'), ('DON', 'DFON'))
 		debug.debugPrint('ISYdbg', "OnOff sent: ", selcmd[settoon][presstype], ' to ', self.name)
 		r = self.Hub.try_ISY_comm('nodes/' + self.address + '/cmd/' + selcmd[settoon][presstype])
-		if r == "": # error in comm - fake a response to see unavailable key
+		if r == "":  # error in comm - fake a response to see unavailable key
 			self.Hub.isyEM.FakeNodeChange()
+
 
 class Folder(TreeItem):
 	"""
@@ -88,9 +93,9 @@ class Node(Folder, OnOffItem):
 				self.devState = isycodes._NormalizeState(item['@value'])
 				if item['@value'] != ' ':
 					self.hasstatus = True
-			# no use for nodetype now
-			# device class -energy management
-			# wattage, dcPeriod
+		# no use for nodetype now
+		# device class -energy management
+		# wattage, dcPeriod
 		utilities.register_example("Node", self)
 
 	def __repr__(self):
@@ -179,7 +184,7 @@ class ISY(object):
 		self.addr = isyaddr
 		self.user = user
 		self.password = pwd
-		self._NodeRoot = Folder(self, 0, '', u'0', 0, u'0') # *root*
+		self._NodeRoot = Folder(self, 0, '', u'0', 0, u'0')  # *root*
 		self._ProgRoot = None
 		self.NodesByAddr = {}
 		self._FoldersByAddr = {'0': self._NodeRoot}
@@ -196,8 +201,7 @@ class ISY(object):
 		self.Vars = None
 		self.ErrNodes = {}
 		self.Busy = 0
-		self.V3Nodes = [] # temporary way to track and suppress errors from nodes we don't currently handle (todo V3)
-
+		self.V3Nodes = []  # temporary way to track and suppress errors from nodes we don't currently handle (todo V3)
 
 		"""
 		Build the Folder/Node/Scene tree
@@ -237,21 +241,21 @@ class ISY(object):
 
 		configdict = xmltodict.parse(r.text)['nodes']
 		if debug.dbgStore.GetVal('ISYLoad'):
-			with open('/home/pi/Console/xml.dmp','r') as f:
+			with open('/home/pi/Console/xml.dmp', 'r') as f:
 				x1 = f.readline().rstrip('\n')
 				x2 = f.readline().rstrip('\n')
 				x3 = f.readline().rstrip('\n')
 				x4 = f.readline().rstrip('\n')
 				configdict = xmltodict.parse(x1)['nodes']
 		else:
-			x2=''
-			x3=''
-			x4=''
+			x2 = ''
+			x3 = ''
+			x4 = ''
 
 		if debug.dbgStore.GetVal('ISYDump'):
-			debug.ISYDump("xml.dmp",r.text,pretty=False,new=True)
-			debug.ISYDump("struct.dmp",configdict,new=True)
-			debug.ISYDump("isystream.dmp","",pretty=False,new=True)
+			debug.ISYDump("xml.dmp", r.text, pretty=False, new=True)
+			debug.ISYDump("struct.dmp", configdict, new=True)
+			debug.ISYDump("isystream.dmp", "", pretty=False, new=True)
 
 		for folder in configdict['folder']:
 			addr = folder['address']
@@ -290,14 +294,16 @@ class ISY(object):
 			except Exception as E:
 				if prop == 'unknown':
 					# probably a v3 polyglot node or zwave
-					logsupport.Logs.Log("Probable v5 node seen: {}  Address: {}  Parent: {} ".format(nm, addr, pnd), severity=ConsoleDetail)
-					logsupport.Logs.Log("ISY item: {}".format(repr(node)), severity = ConsoleDetail)
+					logsupport.Logs.Log("Probable v5 node seen: {}  Address: {}  Parent: {} ".format(nm, addr, pnd),
+										severity=ConsoleDetail)
+					logsupport.Logs.Log("ISY item: {}".format(repr(node)), severity=ConsoleDetail)
 					self.V3Nodes.append(addr)
 				else:
-					logsupport.Logs.Log("Problem with processing node: ", nm, '  Address: ', str(addr), ' Pnode: ', str(pnd),
-									' ', str(flg), '/', str(enabld), '/', repr(prop), severity=ConsoleWarning)
+					logsupport.Logs.Log("Problem with processing node: ", nm, '  Address: ', str(addr), ' Pnode: ',
+										str(pnd),
+										' ', str(flg), '/', str(enabld), '/', repr(prop), severity=ConsoleWarning)
 					logsupport.Logs.Log("Exc: {}  ISY item: {}".format(repr(E), repr(node)), severity=ConsoleWarning)
-					# for now at least try to avoid nodes without properties which apparently Zwave devices may have
+				# for now at least try to avoid nodes without properties which apparently Zwave devices may have
 		self._LinkChildrenParents(self.NodesByAddr, self._NodesByName, self._FoldersByAddr, self.NodesByAddr)
 		for fixitem in fixlist:
 			# noinspection PyBroadException
@@ -321,8 +327,9 @@ class ISY(object):
 						naddr = m1['#text']
 						memberlist.append((int(m1['@type']), self.NodesByAddr[naddr]))
 				except:
-					logsupport.Logs.Log("Error adding member to scene: ", str(scene['name']), ' Node address: ', naddr, severity=ConsoleWarning)
-					debug.debugPrint('ISYDump','Scene: ',m1)
+					logsupport.Logs.Log("Error adding member to scene: ", str(scene['name']), ' Node address: ', naddr,
+										severity=ConsoleWarning)
+					debug.debugPrint('ISYDump', 'Scene: ', m1)
 
 				if 'parent' in scene:
 					ptyp = int(scene['parent']['@type'])
@@ -330,7 +337,8 @@ class ISY(object):
 				else:
 					ptyp = 0
 					p = '0'
-				self._ScenesByAddr[scene['address']] = Scene(self, scene['@flag'], scene['name'], str(scene['address']), ptyp,
+				self._ScenesByAddr[scene['address']] = Scene(self, scene['@flag'], scene['name'], str(scene['address']),
+															 ptyp,
 															 p, memberlist)
 			else:
 				if scene['name'] not in ('~Auto DR', 'Auto DR'):
@@ -371,8 +379,8 @@ class ISY(object):
 		if debug.dbgStore.GetVal('ISYLoad'):
 			configdict = xmltodict.parse(x2)['programs']['program']
 		if debug.dbgStore.GetVal('ISYDump'):
-			debug.ISYDump("xml.dmp",r.text,pretty=False)
-			debug.ISYDump("struct.dmp",configdict)
+			debug.ISYDump("xml.dmp", r.text, pretty=False)
+			debug.ISYDump("struct.dmp", configdict)
 
 		for item in configdict:
 			if item['@id'] == '0001':
@@ -381,7 +389,8 @@ class ISY(object):
 				self._ProgramFoldersByAddr['0001'] = self._ProgRoot
 			else:
 				if item['@folder'] == 'true':
-					self._ProgramFoldersByAddr[item['@id']] = ProgramFolder(self, item['name'], item['@id'], item['@parentId'])
+					self._ProgramFoldersByAddr[item['@id']] = ProgramFolder(self, item['name'], item['@id'],
+																			item['@parentId'])
 				else:
 					self._ProgramsByAddr[item['@id']] = Program(self, item['name'], item['@id'], item['@parentId'])
 		self._LinkChildrenParents(self._ProgramFoldersByAddr, self._ProgramFoldersByName, self._ProgramFoldersByAddr,
@@ -426,9 +435,9 @@ class ISY(object):
 				debug.ISYDump("xml.dmp", r1.text, pretty=False)
 				debug.ISYDump("struct.dmp", configdictS)
 			for v in configdictS:
-				self.Vars.SetVal(('State',v['@name']),None)
-				self.Vars.SetAttr(('State',v['@name']),(2,int(v['@id'])))
-				self.Vars.AddAlert(('State',v['@name']),self._ISYVarChanged)
+				self.Vars.SetVal(('State', v['@name']), None)
+				self.Vars.SetAttr(('State', v['@name']), (2, int(v['@id'])))
+				self.Vars.AddAlert(('State', v['@name']), self._ISYVarChanged)
 		except:
 			logsupport.Logs.Log('No state variables defined')
 		# noinspection PyBroadException
@@ -440,8 +449,8 @@ class ISY(object):
 				debug.ISYDump("xml.dmp", r2.text, pretty=False)
 				debug.ISYDump("struct.dmp", configdictI)
 			for v in configdictI:
-				self.Vars.SetVal(('Int',v['@name']),None)
-				self.Vars.SetAttr(('Int',v['@name']),(1,int(v['@id'])))
+				self.Vars.SetVal(('Int', v['@name']), None)
+				self.Vars.SetAttr(('Int', v['@name']), (1, int(v['@id'])))
 				self.Vars.AddAlert(('Int', v['@name']), self._ISYVarChanged)
 		except:
 			logsupport.Logs.Log('No integer variables defined')
@@ -453,7 +462,7 @@ class ISY(object):
 		self.alertspeclist = {}
 		for k in valuestore.ValueStores[self.name].items():
 			if k == tuple(cmdvar[1:]):
-				self.alertspeclist['RemoteCommands-'+self.name] = {
+				self.alertspeclist['RemoteCommands-' + self.name] = {
 					'Type': 'VarChange', 'Var': valuestore.ExternalizeVarName(cmdvar), 'Test': 'NE', 'Value': '0',
 					'Invoke': 'NetCmd.Command'}
 				break
@@ -466,8 +475,11 @@ class ISY(object):
 		self.HBWS = historybuffer.HistoryBuffer(40, self.name + '-WS')
 		self.HBDirect = historybuffer.HistoryBuffer(40, self.name + '-Direct')
 		self.isyEM = isyeventmonitor.ISYEventMonitor(self)
-		threadmanager.SetUpHelperThread(self.name,self.isyEM.QHandler,prerestart=self.isyEM.PreRestartQHThread,poststart=self.isyEM.PostStartQHThread,postrestart=self.isyEM.PostStartQHThread)
+		threadmanager.SetUpHelperThread(self.name, self.isyEM.QHandler, prerestart=self.isyEM.PreRestartQHThread,
+										poststart=self.isyEM.PostStartQHThread,
+										postrestart=self.isyEM.PostStartQHThread)
 		logsupport.Logs.Log("{}: Finished creating structure for hub".format(name))
+
 	# noinspection PyUnusedLocal
 	def _ISYVarChanged(self, storeitem, old, new, param, chgsource):
 		if not chgsource:  # only send to ISY if change didn't originate there
@@ -481,15 +493,15 @@ class ISY(object):
 
 	def CheckStates(self):
 		# sanity check all states in Hub against local cache
-		logsupport.Logs.Log("Running state check for ISY hub: ",self.name)
+		logsupport.Logs.Log("Running state check for ISY hub: ", self.name)
 		for nm, N in self._NodesByFullName.items():
 			if isinstance(N, Node): self._check_real_time_node_status(N)
 
 	def try_ISY_comm(self, urlcmd, timeout=5, closeonfail=True, doasync=False):
 
 		if doasync:
-			#print('Push to async' + urlcmd + ' Async:' + str(doasync) + str(timeout) + str(closeonfail))
-			#print(str(threading.active_count()) + ' threads active')
+			# print('Push to async' + urlcmd + ' Async:' + str(doasync) + str(timeout) + str(closeonfail))
+			# print(str(threading.active_count()) + ' threads active')
 			t = threading.Thread(name='ISY-' + urlcmd, target=self.try_ISY_comm, daemon=True,
 								 args=(urlcmd, timeout, closeonfail, False))
 			t.start()
@@ -499,22 +511,25 @@ class ISY(object):
 				thrd = 'main thread'
 			else:
 				thrd = 'asyn thread'
-			#print('Do cmd in ' + threading.current_thread().name + ' ' + urlcmd + ' Async:' + str(doasync) + str(timeout) + str(closeonfail))
+		# print('Do cmd in ' + threading.current_thread().name + ' ' + urlcmd + ' Async:' + str(doasync) + str(timeout) + str(closeonfail))
 		error = ['Errors']
-		busyloop = 0 #todo do Busy case and retry case async
+		busyloop = 0  # todo do Busy case and retry case async
 		while self.Busy != 0:
 			busyloop += 1
 			time.sleep(1)
 			if busyloop % 30 == 0:
-				logsupport.Logs.Log("{} comm request waiting on busy ISY for {} seconds in {}".format(self.name, busyloop, thrd))
+				logsupport.Logs.Log(
+					"{} comm request waiting on busy ISY for {} seconds in {}".format(self.name, busyloop, thrd))
 			if busyloop > 180:
 				if closeonfail:
-					logsupport.Logs.Log("{} seems stuck busy (fatal) in {}".format(self.name, thrd), severity=ConsoleError, hb=True)
+					logsupport.Logs.Log("{} seems stuck busy (fatal) in {}".format(self.name, thrd),
+										severity=ConsoleError, hb=True)
 					self._HubOnline = False
 					self.isyEM.EndWSServer()
 					return ""
 				else:
-					logsupport.Logs.Log("{} seems stuck busy (non-fatal) in {}".format(self.name, thrd), severity=ConsoleError,
+					logsupport.Logs.Log("{} seems stuck busy (non-fatal) in {}".format(self.name, thrd),
+										severity=ConsoleError,
 										hb=True)
 					return ""
 
@@ -561,14 +576,16 @@ class ISY(object):
 				if r.status_code != 200:
 					self.HBDirect.Entry('(' + str(i) + ') Not Success: ' + repr(r.status_code))
 					if error[-1] != 'FailReq': error.append('FailReq')
-					logsupport.Logs.Log('Hub (' + self.name +') Bad status:' + str(r.status_code) + ' on Cmd: ' + urlcmd,
-										severity=ConsoleError)
+					logsupport.Logs.Log(
+						'Hub (' + self.name + ') Bad status:' + str(r.status_code) + ' on Cmd: ' + urlcmd,
+						severity=ConsoleError)
 					logsupport.Logs.Log(r.text)
 					raise CommsError
 				else:
 					if i != 0:
 						logsupport.Logs.Log(self.name + " required ", str(i + 1) + " tries over " +
-											str(time.time() - reqtm) + " seconds in" + thrd + ' ' + str(error) + ' Cmd: ' + urlcmd)
+											str(time.time() - reqtm) + " seconds in" + thrd + ' ' + str(
+							error) + ' Cmd: ' + urlcmd)
 					self.HBDirect.Entry(r.text)
 					return r.text
 			except CommsError:
@@ -604,9 +621,10 @@ class ISY(object):
 			devstate = -99999
 
 		if TargNode.devState != int(devstate):
-			logsupport.Logs.Log("ISY state anomoly in hub: ", self.name, ' Node: ', TargNode.fullname, ' (', TargNode.address, ') Cached: ',
+			logsupport.Logs.Log("ISY state anomoly in hub: ", self.name, ' Node: ', TargNode.fullname, ' (',
+								TargNode.address, ') Cached: ',
 								TargNode.devState, ' Actual: ', devstate, severity=ConsoleWarning, hb=True)
-			TargNode.devState = devstate # fix the state
+			TargNode.devState = devstate  # fix the state
 
 	@staticmethod
 	def _LinkChildrenParents(nodelist, listbyname, looklist1, looklist2):
@@ -633,13 +651,14 @@ class ISY(object):
 				if proxy in self.NodesByAddr:
 					# address given
 					MObj = self.NodesByAddr[proxy]
-					debug.debugPrint('Screen', "Scene ", name, " explicit address proxying with ", MObj.name, '(', proxy, ')')
+					debug.debugPrint('Screen', "Scene ", name, " explicit address proxying with ", MObj.name, '(',
+									 proxy, ')')
 				elif self._NodeExists(proxy):
 					MObj = self._GetNodeByName(proxy)
 					debug.debugPrint('Screen', "Scene ", name, " explicit name proxying with ",
-							   MObj.name, '(', MObj.address, ')')
+									 MObj.name, '(', MObj.address, ')')
 				else:
-					logsupport.Logs.Log('Bad explicit scene proxy:' + proxy + ' for '+ name, severity=ConsoleWarning)
+					logsupport.Logs.Log('Bad explicit scene proxy:' + proxy + ' for ' + name, severity=ConsoleWarning)
 					return None, None
 			else:
 				for i in ISYObj.members:
@@ -648,7 +667,8 @@ class ISY(object):
 						MObj = device
 						break
 					else:
-						logsupport.Logs.Log('Skipping disabled/nonstatus device: ' + device.name, severity=ConsoleWarning)
+						logsupport.Logs.Log('Skipping disabled/nonstatus device: ' + device.name,
+											severity=ConsoleWarning)
 				if MObj is None:
 					logsupport.Logs.Log("No proxy for scene: " + name, severity=ConsoleError)
 				debug.debugPrint('Screen', "Scene ", name, " default proxying with ", MObj.name)
@@ -663,10 +683,11 @@ class ISY(object):
 		try:
 			return self._ProgramsByName[name]
 		except KeyError:
-			logsupport.Logs.Log("Attempt to access unknown program: " + name + " in ISY Hub " + self.name, severity = ConsoleWarning)
+			logsupport.Logs.Log("Attempt to access unknown program: " + name + " in ISY Hub " + self.name,
+								severity=ConsoleWarning)
 			return None
 
-	def GetCurrentStatus(self,MonitorNode):
+	def GetCurrentStatus(self, MonitorNode):
 		if not self._HubOnline: return -1
 		if MonitorNode is not None:
 			return MonitorNode.devState
@@ -681,7 +702,7 @@ class ISY(object):
 
 	def StatesDump(self):
 		for n, nd in self._NodesByFullName.items():
-			if hasattr(nd,'devState'):
+			if hasattr(nd, 'devState'):
 				print('Node(', type(nd), '): ', n, ' -> ', nd.devState, type(nd.devState))
 			else:
 				print('Node(', type(nd), '): ', n, ' has no devState')
@@ -707,7 +728,7 @@ class ISY(object):
 		else:
 			return name in self._NodesByName
 
-	def _GetSceneByName(self,name):
+	def _GetSceneByName(self, name):
 		if name[0] != '/':
 			if name in self._ScenesByName:
 				return self._ScenesByName[name]

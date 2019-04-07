@@ -129,12 +129,10 @@ class WeatherScreenDesc(screen.ScreenDesc):
 					h = h + renderedlines[-1].get_height() * 5
 					fcstlines = 2 + (fcstlines + 1) / 2
 					usewidth = hw.screenwidth / 2
-					lastfcst = 12
 				else:
 					h = h + renderedlines[-1].get_height() * 5
 					fcstlines = 5
 					usewidth = hw.screenwidth
-					lastfcst = 7
 				s = (self.useablevertspace - h) / (fcstlines + 1)
 
 				startvert = vert_off

@@ -1,13 +1,12 @@
 import config
-import pygame
-import debug
-import screen
-import utilities
-import pygame
-
 import config
 import debug
+import debug
+import pygame
+import pygame
 import screen
+import screen
+import utilities
 import utilities
 
 
@@ -40,7 +39,7 @@ class HouseStatusScreenDesc(screen.ScreenDesc):
 		for node in states:
 			nodename = config.ISY.NodesByAddr[node]
 			if ((nodename in self.NormalOn) and (states[node] == 0)) or (
-						(nodename in self.NormalOff) and (states[node] != 0)):
+					(nodename in self.NormalOff) and (states[node] != 0)):
 				outspecnodes.append(node)
 		for node in outspecnodes:
 			print(node, config.ISY.NodesByAddr[node].name, states[node])

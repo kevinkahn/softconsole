@@ -5,6 +5,7 @@ import hw
 
 monofont = "notomono"  # gets reset to "droidsansmono" if noto not present to support pre Stretch
 
+
 class Fonts(object):
 	def __init__(self):
 		global monofont

@@ -19,6 +19,7 @@ from utilfuncs import wc
 
 # noinspection PyUnusedLocal
 class SonosScreenDesc(screen.BaseKeyScreenDesc):
+	# noinspection PyAttributeOutsideInit
 	def SetScreenContents(self):
 		self.numplayers = 0  # if 0 then Sonos didn't get set up correctly
 		self.numgroups = 0
@@ -131,6 +132,7 @@ class SonosScreenDesc(screen.BaseKeyScreenDesc):
 		screen.IncorporateParams(self, 'SonosScreen', {'KeyColor'}, screensection)
 		self.DullKeyColor = wc(self.KeyColor, .5, self.BackgroundColor)
 		self.HA = self.DefaultHubObj
+		self.Subscreen = -1
 
 		self.SetScreenTitle('Sonos', hw.screenheight / 12,
 							self.CharColor)  # todo correct the fontsize and maybe the color choice and change to useable vert

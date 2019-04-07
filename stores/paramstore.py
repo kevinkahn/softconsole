@@ -1,5 +1,6 @@
-from stores import valuestore
 import collections
+
+from stores import valuestore
 
 
 class ParamStore(valuestore.ValueStore):

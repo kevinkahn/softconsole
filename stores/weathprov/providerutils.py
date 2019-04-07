@@ -1,6 +1,7 @@
-import logsupport
-import config
 import json
+
+import config
+import logsupport
 from logsupport import ConsoleWarning, ConsoleDetail
 
 WeathProvs = {}
@@ -42,7 +43,7 @@ def TryShorten(term):
 				phrase[i] = GenericShortener[word.lower()]
 				if word[0].isupper(): phrase[i] = phrase[i].capitalize()
 		if chg:
-			newterm = ' '.join(phrase).replace(' /','/').replace('/ ','/')
+			newterm = ' '.join(phrase).replace(' /', '/').replace('/ ', '/')
 			if len(newterm) > maxlength:
 				logsupport.Logs.Log("Long term: ", term, ' generically shortened to: ', newterm,
 									severity=ConsoleWarning)
@@ -59,12 +60,13 @@ def TryShorten(term):
 			json.dump(StillLong, f, indent=4, separators=(',', ": "))
 	return newterm
 
+
 # noinspection PyBroadException
 def SetUpTermShortener():
 	global TermShortener
 	try:
 		with open(config.homedir + '/Console/termshortenlist', 'r') as f:
-		# noinspection PyBroadException
+			# noinspection PyBroadException
 			TermShortener = json.load(f)
 	except:
 		TermShortener = {}

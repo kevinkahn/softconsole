@@ -1,23 +1,26 @@
+import shlex
+
 import config
-import supportscreens
-import utilities
 import debug
 import logsupport
-from logsupport import ConsoleWarning, ConsoleDetail
-from toucharea import ManualKeyDesc
-from stores import valuestore
-from controlevents import CEvent, PostEvent,ConsoleEvent
-import shlex
-from utilfuncs import *
 import screen
+import supportscreens
+import utilities
+from controlevents import CEvent, PostEvent, ConsoleEvent
+from logsupport import ConsoleWarning, ConsoleDetail
+from stores import valuestore
+from toucharea import ManualKeyDesc
+from utilfuncs import *
+
 
 # noinspection PyUnusedLocal
 def KeyWithVarChanged(storeitem, old, new, param, modifier):
-	debug.debugPrint('DaemonCtl','Var changed for key ',storeitem.name,' from ',old,' to ',new)
+	debug.debugPrint('DaemonCtl', 'Var changed for key ', storeitem.name, ' from ', old, ' to ', new)
 	# noinspection PyArgumentList
-	PostEvent(ConsoleEvent(CEvent.HubNodeChange,hub='*VARSTORE*', varinfo=param))
+	PostEvent(ConsoleEvent(CEvent.HubNodeChange, hub='*VARSTORE*', varinfo=param))
 
-def _resolvekeyname(kn,DefHub):
+
+def _resolvekeyname(kn, DefHub):
 	t = kn.split(':')
 	if len(t) == 1:
 		return t[0], DefHub
@@ -25,7 +28,7 @@ def _resolvekeyname(kn,DefHub):
 		try:
 			return t[1], config.Hubs[t[0]]
 		except KeyError:
-			logsupport.Logs.Log("Bad qualified node name for key: " + kn, severity = ConsoleWarning)
+			logsupport.Logs.Log("Bad qualified node name for key: " + kn, severity=ConsoleWarning)
 			return "*none*", DefHub
 	else:
 		logsupport.Logs.Log("Ill formed keyname: ", kn)
@@ -40,7 +43,6 @@ def CreateKey(thisscreen, screensection, keyname):
 		screensection['FastPress'] = 1
 		screensection['Blink'] = 7
 		screensection['ProgramName'] = screensection.get('KeyRunThenName', '')
-
 
 	keytype = screensection.get('type', 'ONOFF')
 	logsupport.Logs.Log("-Key:" + keyname, severity=ConsoleDetail)
@@ -58,6 +60,7 @@ def CreateKey(thisscreen, screensection, keyname):
 		NewKey = BlankKey(thisscreen, screensection, keyname)
 		logsupport.Logs.Log('Undefined key type ' + keytype + ' for: ' + keyname, severity=ConsoleWarning)
 	return NewKey
+
 
 # noinspection PyUnusedLocal
 def ErrorKey(presstype):
@@ -105,22 +108,21 @@ class SetVarValueKey(ManualKeyDesc):
 		# call reinitdisplay on enclosing screen
 		pass
 
-	# Future create a screen to allow changing the value if parameter is maleable
+# Future create a screen to allow changing the value if parameter is maleable
 
 
 class VarKey(ManualKeyDesc):
-
 	class DistOpt(object):
-		def __init__(self,chooser,color,label):
+		def __init__(self, chooser, color, label):
 			self.Chooser = chooser
 			self.Color = color
 			self.Label = label.split(';')
 
 	def __init__(self, thisscreen, keysection, keyname):
-		debug.debugPrint('Screen',"              New Var Key ", keyname)
+		debug.debugPrint('Screen', "              New Var Key ", keyname)
 		ManualKeyDesc.__init__(self, thisscreen, keysection, keyname)
 		screen.AddUndefaultedParams(self, keysection, Var='', Appearance=[], ValueSeq=[])
-		valuestore.AddAlert(self.Var, (KeyWithVarChanged,(keyname,self.Var)))
+		valuestore.AddAlert(self.Var, (KeyWithVarChanged, (keyname, self.Var)))
 		if self.ValueSeq:
 			self.Proc = self.VarKeyPressed
 			t = []
@@ -132,10 +134,10 @@ class VarKey(ManualKeyDesc):
 		for item in self.Appearance:
 			desc = shlex.split(item)
 			rng = desc[0].split(':')
-			chooser = (int(rng[0]),int(rng[0])) if len(rng) == 1 else (int(rng[0]),int(rng[1]))
+			chooser = (int(rng[0]), int(rng[0])) if len(rng) == 1 else (int(rng[0]), int(rng[1]))
 			clr = desc[1]
 			lab = self.label if len(desc) < 3 else desc[2]
-			self.displayoptions.append(self.DistOpt(chooser,clr,lab))
+			self.displayoptions.append(self.DistOpt(chooser, clr, lab))
 
 	def PaintKey(self, ForceDisplay=False, DisplayState=True):
 		# create the images here dynamically then let lower methods do display, blink etc.
@@ -159,7 +161,7 @@ class VarKey(ManualKeyDesc):
 			self.BuildKey(oncolor, offcolor)
 			self.SetKeyImages(lab2, lab2, 0, True)
 			if self.Blink != 0: self.ScheduleBlinkKey(self.Blink)
-		super(VarKey,self).PaintKey(ForceDisplay,DisplayState)
+		super(VarKey, self).PaintKey(ForceDisplay, DisplayState)
 
 	# noinspection PyUnusedLocal
 	def VarKeyPressed(self, presstype):
@@ -167,8 +169,7 @@ class VarKey(ManualKeyDesc):
 			i = self.ValueSeq.index(valuestore.GetVal(self.Var))
 		except ValueError:
 			i = len(self.ValueSeq) - 1
-		valuestore.SetVal(self.Var, self.ValueSeq[(i+1)%len(self.ValueSeq)])
-
+		valuestore.SetVal(self.Var, self.ValueSeq[(i + 1) % len(self.ValueSeq)])
 
 
 class SetVarKey(ManualKeyDesc):
@@ -178,11 +179,11 @@ class SetVarKey(ManualKeyDesc):
 		screen.AddUndefaultedParams(self, keysection, VarType='undef', Var='', Value=0)
 		try:
 			self.Proc = self.SetVarKeyPressed
-			if self.VarType != 'undef': # deprecate
+			if self.VarType != 'undef':  # deprecate
 
 				# todo the default hub name stuff is wrong - not updated to store stuff
 				if self.VarType == 'State':
-					self.VarName = (config.defaulthub.name,'State',self.Var) # use default hub for each of these 2
+					self.VarName = (config.defaulthub.name, 'State', self.Var)  # use default hub for each of these 2
 				elif self.VarType == 'Int':
 					self.VarName = (config.defaulthub.name, 'Int', self.Var)
 				elif self.VarType == 'Local':
@@ -198,24 +199,27 @@ class SetVarKey(ManualKeyDesc):
 		except Exception as e:
 			logsupport.Logs.Log('Var key error on screen: ' + thisscreen.name + ' Var: ' + self.Var,
 								severity=ConsoleWarning)
-			logsupport.Logs.Log('Excpt: ',str(e))
+			logsupport.Logs.Log('Excpt: ', str(e))
 			self.Proc = ErrorKey
 
 		utilities.register_example("SetVarKey", self)
 
 	# noinspection PyUnusedLocal
 	def SetVarKeyPressed(self, presstype):
-		valuestore.SetVal(self.VarName,self.Value)
+		valuestore.SetVal(self.VarName, self.Value)
 		self.ScheduleBlinkKey(self.Blink)
 
+
 class DummyProgram(object):
-	def __init__(self,kn, hn, pn):
+	def __init__(self, kn, hn, pn):
 		self.keyname = kn
 		self.hubname = hn
 		self.programname = pn
 
 	def RunProgram(self):
-		logsupport.Logs.Log("Pressed unbound program key: " + self.keyname + " for hub: " + self.hubname + " program: " + self.programname)
+		logsupport.Logs.Log(
+			"Pressed unbound program key: " + self.keyname + " for hub: " + self.hubname + " program: " + self.programname)
+
 
 class RunProgram(ManualKeyDesc):
 	def __init__(self, thisscreen, keysection, keyname):
@@ -226,8 +230,10 @@ class RunProgram(ManualKeyDesc):
 		pn, self.Hub = _resolvekeyname(self.ProgramName, thisscreen.DefaultHubObj)
 		self.Program = self.Hub.GetProgram(pn)
 		if self.Program is None:
-			self.Program = DummyProgram(keyname,self.Hub.name,self.ProgramName)
-			logsupport.Logs.Log("Missing Prog binding Key: " + keyname + " Hub: " + self.Hub.name + " Program: " + self.ProgramName, severity=ConsoleWarning)
+			self.Program = DummyProgram(keyname, self.Hub.name, self.ProgramName)
+			logsupport.Logs.Log(
+				"Missing Prog binding Key: " + keyname + " Hub: " + self.Hub.name + " Program: " + self.ProgramName,
+				severity=ConsoleWarning)
 		if self.Verify:
 			self.VerifyScreen = supportscreens.VerifyScreen(self, self.GoMsg, self.NoGoMsg, self.VerifyRunAndReturn,
 															thisscreen, self.KeyColorOff,
@@ -254,11 +260,12 @@ class RunProgram(ManualKeyDesc):
 			self.Program.RunProgram()
 			self.ScheduleBlinkKey(self.Blink)
 
+
 class OnOffKey(ManualKeyDesc):
 	def __init__(self, thisscreen, keysection, kn, keytype):
 		keyname, self.Hub = _resolvekeyname(kn, thisscreen.DefaultHubObj)
-		self.ControlObj = None # object on which to make operation calls
-		self.DisplayObj = None # object whose state is reflected in key
+		self.ControlObj = None  # object on which to make operation calls
+		self.DisplayObj = None  # object whose state is reflected in key
 
 		debug.debugPrint('Screen', "             New ", keytype, " Key Desc ", keyname)
 		ManualKeyDesc.__init__(self, thisscreen, keysection, keyname)
@@ -266,7 +273,7 @@ class OnOffKey(ManualKeyDesc):
 		self.lastpresstype = 0
 
 		if keyname == '*Action*': keyname = self.NodeName  # special case for alert screen action keys that always have same name todo - can nodename ever be explicitly set otherwise?
-		self.ControlObj, self.DisplayObj = self.Hub.GetNode(keyname,self.SceneProxy)
+		self.ControlObj, self.DisplayObj = self.Hub.GetNode(keyname, self.SceneProxy)
 
 		if self.ControlObj is None:
 			debug.debugPrint('Screen', "Screen", keyname, "unbound")
@@ -291,13 +298,14 @@ class OnOffKey(ManualKeyDesc):
 	def FinishKey(self, center, size, firstfont=0, shrink=True):
 		super(OnOffKey, self).FinishKey(center, size, firstfont, shrink)
 		if self.DisplayObj is not None:
-			self.Screen.AddToHubInterestList(self.Hub,self.DisplayObj.address,self)
+			self.Screen.AddToHubInterestList(self.Hub, self.DisplayObj.address, self)
 
 	def InitDisplay(self):
 		debug.debugPrint("Screen", "OnOffKey Key.InitDisplay ", self.Screen.name, self.name)
 		state = self.Hub.GetCurrentStatus(self.DisplayObj)
 		if state is None:
-			logsupport.Logs.Log("No state available for  key: " + self.name + ' on screen: ' + self.Screen.name, severity=ConsoleWarning)
+			logsupport.Logs.Log("No state available for  key: " + self.name + ' on screen: ' + self.Screen.name,
+								severity=ConsoleWarning)
 			state = -1
 			self.State = False
 		else:
@@ -322,7 +330,7 @@ class OnOffKey(ManualKeyDesc):
 				self.ScheduleBlinkKey(self.Blink)
 			else:
 				logsupport.Logs.Log("Screen: " + self.name + " press unbound key: " + self.name,
-								severity=ConsoleWarning)
+									severity=ConsoleWarning)
 				self.ScheduleBlinkKey(20)
 
 	# noinspection PyUnusedLocal
@@ -338,7 +346,7 @@ class OnOffKey(ManualKeyDesc):
 				self.ControlObj.SendOnOffCommand(self.State, self.lastpresstype)
 			else:
 				logsupport.Logs.Log("Screen: " + self.name + " press unbound key: " + self.name,
-								severity=ConsoleWarning)
+									severity=ConsoleWarning)
 
 			config.DS.SwitchScreen(self.Screen, 'Bright', config.DS.state, 'Verify Run ' + self.Screen.name)
 			self.ScheduleBlinkKey(self.Blink)

@@ -1,21 +1,22 @@
 import base64
-import websocket
-import xmltodict
-import logsupport
-from logsupport import ConsoleWarning, ConsoleError, ConsoleDetail, ConsoleDetailHigh
-import debug
-from isycodes import EVENT_CTRL, formatwsitem
-import exitutils
-from controlevents import CEvent, PostEvent, ConsoleEvent
 import errno
-import isycodes
-from threadmanager import ThreadStartException
-import threading
 import random
 import ssl
+import threading
 import time
-import config
 
+import websocket
+import xmltodict
+
+import config
+import debug
+import exitutils
+import isycodes
+import logsupport
+from controlevents import CEvent, PostEvent, ConsoleEvent
+from isycodes import EVENT_CTRL, formatwsitem
+from logsupport import ConsoleWarning, ConsoleError, ConsoleDetail, ConsoleDetailHigh
+from threadmanager import ThreadStartException
 
 
 class ISYEMInternalError(Exception):
@@ -25,8 +26,8 @@ class ISYEMInternalError(Exception):
 def BaseAddr(addr):
 	return None if addr is None else ' '.join(addr.split(' ')[0:-1])
 
-class ISYEventMonitor(object):
 
+class ISYEventMonitor(object):
 
 	def __init__(self, thisISY):
 		self.isy = thisISY
@@ -51,7 +52,7 @@ class ISYEventMonitor(object):
 		self.lasterror = 'Init'
 		debug.debugPrint('DaemonCtl', "Queue Handler ", self.QHnum, " started: ", self.watchstarttime)
 		self.reportablecodes = ["DON", "DFON", "DOF", "DFOF", "ST", "CLISP", "CLISPH", "CLISPC", "CLIFS",
-								"CLIMD", "CLIHUM", "CLIHCS", "BRT", "DIM"] # "RR", "OL",
+								"CLIMD", "CLIHUM", "CLIHCS", "BRT", "DIM"]  # "RR", "OL",
 
 	def EndWSServer(self):
 		self.lasterror = "DirectCommError"
@@ -146,7 +147,7 @@ class ISYEventMonitor(object):
 			elif self.lasterror == 'ISYClose':
 				logsupport.Logs.Log(self.hubname + ' Recovering closed WS stream')
 				self.delayedstart = 2
-				# todo - bug in websocket that results in attribute error for errno.WSEACONNECTIONREFUSED check ??
+			# todo - bug in websocket that results in attribute error for errno.WSEACONNECTIONREFUSED check ??
 			elif self.lasterror == 'DirectCommError':
 				logsupport.Logs.Log(self.hubname + ' WS restart because of failed direct communication failure')
 				self.delayedstart = 90  # probably ISY doing query
@@ -176,7 +177,7 @@ class ISYEventMonitor(object):
 				logsupport.Logs.Log(self.hubname + " WS library bug", severity=ConsoleWarning)
 				self.lasterror = 'ISYClose'
 			elif isinstance(error, OSError):
-				if error[0] == errno.ENETUNREACH:
+				if error.errno == errno.ENETUNREACH:
 					logsupport.Logs.Log(self.hubname + " WS network down", severity=ConsoleWarning)
 					self.lasterror = 'ISYNetDown'
 				else:
@@ -286,22 +287,26 @@ class ISYEventMonitor(object):
 										logsupport.Logs.Log(self.hubname + " Node alert fired: " + str(a),
 															severity=ConsoleDetail)
 										# noinspection PyArgumentList
-										PostEvent(ConsoleEvent(CEvent.ISYAlert, hub=self.isy.name, node=enode,value=isycodes._NormalizeState(eaction), alert=a))
+										PostEvent(ConsoleEvent(CEvent.ISYAlert, hub=self.isy.name, node=enode,
+															   value=isycodes._NormalizeState(eaction), alert=a))
 
 					if ecode in self.reportablecodes:
 						# Node change report
-						debug.debugPrint('DaemonStream', time.time() - config.starttime, "Status update in stream: ", eseq, ":",
-								   prcode, " : ", enode, " : ", eInfo, " : ", eaction)
+						debug.debugPrint('DaemonStream', time.time() - config.starttime, "Status update in stream: ",
+										 eseq, ":",
+										 prcode, " : ", enode, " : ", eInfo, " : ", eaction)
 
 						# logsupport.Logs.Log('reportable event '+str(ecode)+' for '+str(enode)+' action '+str(eaction))
 
 						if config.DS.AS is not None:
 							if self.isy.name in config.DS.AS.HubInterestList:
 								if enode in config.DS.AS.HubInterestList[self.isy.name]:
-										debug.debugPrint('DaemonCtl', time.time() - config.starttime, "ISY reports node change(screen): ",
-												   "Key: ", self.isy.NodesByAddr[enode].name)
-										# noinspection PyArgumentList
-										PostEvent(ConsoleEvent(CEvent.HubNodeChange, hub=self.isy.name, node=enode, value=isycodes._NormalizeState(eaction)))
+									debug.debugPrint('DaemonCtl', time.time() - config.starttime,
+													 "ISY reports node change(screen): ",
+													 "Key: ", self.isy.NodesByAddr[enode].name)
+									# noinspection PyArgumentList
+									PostEvent(ConsoleEvent(CEvent.HubNodeChange, hub=self.isy.name, node=enode,
+														   value=isycodes._NormalizeState(eaction)))
 
 					elif (prcode == 'Trigger') and (eaction == '6'):
 						vinfo = eInfo['var']
@@ -310,8 +315,9 @@ class ISYEventMonitor(object):
 						varval = int(vinfo['val'])
 						debug.debugPrint('DaemonCtl', 'Var change: ', self.isy.Vars.GetNameFromAttr((vartype, varid)),
 										 ' set to ', varval)
-						debug.debugPrint('DaemonCtl', 'Var change:', ('Unkn', 'Integer', 'State')[vartype], ' variable ', varid,
-								   ' set to ', varval)
+						debug.debugPrint('DaemonCtl', 'Var change:', ('Unkn', 'Integer', 'State')[vartype],
+										 ' variable ', varid,
+										 ' set to ', varval)
 						try:
 							self.isy.Vars.SetValByAttr((vartype, varid), varval, modifier=True)
 						except KeyError:
@@ -331,7 +337,8 @@ class ISYEventMonitor(object):
 						pass  # handle any other?
 					efmtact = E.pop('fmtAct', 'v4stream')
 					if E:
-						lev = ConsoleDetailHigh if str(enode) in self.isy.V3Nodes else ConsoleWarning # supress to detail if it is a V3 node
+						lev = ConsoleDetailHigh if str(
+							enode) in self.isy.V3Nodes else ConsoleWarning  # supress to detail if it is a V3 node
 						logsupport.Logs.Log(
 							self.hubname + " Extra info in event: " + str(ecode) + '/' + str(prcode) + '/' + str(
 								eaction) + '/' + str(enode) + '/' + str(eInfo) + str(E), severity=lev)
@@ -361,7 +368,8 @@ class ISYEventMonitor(object):
 							logsupport.Logs.Log(self.hubname, " reported System Status: ", str(eaction))
 
 					if ecode == "ST" or (ecode == "_3" and eaction == "CE"):
-						if self.LastMsgErr[0] != '***' and (BaseAddr(self.LastMsgErr[0]) == BaseAddr(enode)): # todo fix someday for v5
+						if self.LastMsgErr[0] != '***' and (
+								BaseAddr(self.LastMsgErr[0]) == BaseAddr(enode)):  # todo fix someday for v5
 							# ERR msg followed by clearing - ISY weirdness?
 							logsupport.Logs.Log(
 								"{} reported and immediately cleared error for node: {} ({}) (seq:{}/{})".format(
@@ -384,7 +392,7 @@ class ISYEventMonitor(object):
 						logsupport.Logs.Log(
 							"{} WS stream shows comm error for node: {}(Seq:{})".format(self.hubname, isyerrnd,
 																						self.LastMsgErr[1]),
-											severity=ConsoleWarning, hb=True)
+							severity=ConsoleWarning, hb=True)
 						if self.LastMsgErr[0] not in self.isy.ErrNodes:
 							self.isy.ErrNodes[self.LastMsgErr[0]] = eseq
 							self.DoNodeQuery(self.LastMsgErr[0], isyerrnd)
@@ -393,7 +401,7 @@ class ISYEventMonitor(object):
 					if ecode == "ERR":
 						if str(eaction) == "0":
 							pass
-							#logsupport.Logs.Log("ERR(0) seen: {}".format(repr(m)))
+						# logsupport.Logs.Log("ERR(0) seen: {}".format(repr(m)))
 						else:
 							# Note the error and wait one message to see if it immediately clears
 							self.LastMsgErr = (enode, eseq)
@@ -413,9 +421,10 @@ class ISYEventMonitor(object):
 				logsupport.Logs.Log(self.hubname + " Exception in QH on message: ", repr(m), ' Excp: ', repr(E),
 									severity=ConsoleWarning)
 			loopend = time.time()
-			self.isy.HBWS.Entry('Processing time: {} Done: {}'.format(loopend-loopstart, repr(message))) #todo try to force other thread to run
-			time.sleep(.001) # force thread to give up processor to allow response to time events
-			self.isy.HBWS.Entry('Gave up control for: {}'.format(time.time()-loopend))
+			self.isy.HBWS.Entry('Processing time: {} Done: {}'.format(loopend - loopstart, repr(
+				message)))  # todo try to force other thread to run
+			time.sleep(.001)  # force thread to give up processor to allow response to time events
+			self.isy.HBWS.Entry('Gave up control for: {}'.format(time.time() - loopend))
 
 		self.THstate = 'delaying'
 		logsupport.Logs.Log("{}: WS stream thread {} setup".format(self.hubname, self.QHnum))
@@ -423,26 +432,27 @@ class ISYEventMonitor(object):
 			logsupport.Logs.Log(self.hubname + " Delaying Hub restart for probable network reset: ",
 								str(self.delayedstart), ' seconds')
 			time.sleep(self.delayedstart)
-		#websocket.enableTrace(True)
+		# websocket.enableTrace(True)
 		websocket.setdefaulttimeout(30)
 		if self.isy.addr.startswith('http://'):
 			wsurl = 'ws://' + self.isy.addr[7:] + '/rest/subscribe'
 		elif self.isy.addr.startswith('https://'):
 			wsurl = 'wss://' + self.isy.addr[8:] + '/rest/subscribe'
 		else:
-			wsurl = 'ws://' +self.isy.addr + '/rest/subscribe'
+			wsurl = 'ws://' + self.isy.addr + '/rest/subscribe'
 		while True:
 			try:
 				# noinspection PyArgumentList
 				ws = websocket.WebSocketApp(wsurl, on_message=on_message,
-										on_error=on_error,
-										on_close=on_close, on_open=on_open,
-										subprotocols=['ISYSUB'], header={'Authorization': 'Basic ' + self.a.decode('ascii')})
+											on_error=on_error,
+											on_close=on_close, on_open=on_open,
+											subprotocols=['ISYSUB'],
+											header={'Authorization': 'Basic ' + self.a.decode('ascii')})
 				break
 			except AttributeError as e:
 				logsupport.Logs.Log(self.hubname + " Problem starting WS handler - retrying: ", repr(e))
 		self.lastheartbeat = time.time()
-		ws.run_forever(ping_timeout=999,sslopt={"cert_reqs": ssl.CERT_NONE})
+		ws.run_forever(ping_timeout=999, sslopt={"cert_reqs": ssl.CERT_NONE})
 		self.THstate = 'failed'
 		self.isy._HubOnline = False
 		logsupport.Logs.Log(self.hubname + " QH Thread " + str(self.QHnum) + " exiting", severity=ConsoleWarning,

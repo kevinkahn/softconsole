@@ -1,19 +1,21 @@
 import time
+
 from netdisco.discovery import NetworkDiscovery
 from netdisco.ssdp import SSDP
+
 netdis = NetworkDiscovery()
 netdis.scan()
 time.sleep(45)
 for dev in netdis.discover():
-	print dev, netdis.get_info(dev)
+	print
+	dev, netdis.get_info(dev)
 
 netdis.print_raw_data()
 netdis.stop()
 tt = SSDP()
 pp = tt.scan(timeout=60)
-print pp
-
-
+print
+pp
 
 """
 import miniupnpc
@@ -78,4 +80,3 @@ try:
 except Exception, e:
 	print 'Exception :', e
 """
-

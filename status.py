@@ -1,10 +1,11 @@
-import paho.mqtt.client as mqtt
-from datetime import datetime
-import os
-import time
-import json
-import sys
 import collections
+import json
+import os
+import sys
+import time
+from datetime import datetime
+
+import paho.mqtt.client as mqtt
 
 nodetable = {}
 tm = time.time()
@@ -38,7 +39,7 @@ def paint():
 		else:
 			print("{:%Y-%m-%d %H:%M:%S}".format(datetime.fromtimestamp(info.boottime)), end='')
 		age = time.time() - info.rpttime if info.rpttime != 0 else 0
-		#print("{:%Y-%m-%d %H:%M:%S}".format(datetime.fromtimestamp(info.rpttime)), end='')
+		# print("{:%Y-%m-%d %H:%M:%S}".format(datetime.fromtimestamp(info.rpttime)), end='')
 		if age > 180:  # seconds?  todo use to determine likely powerfail case
 			print(' (old:{})'.format(age))
 			print('Boottime: {}'.format(info.boottime))
@@ -64,15 +65,17 @@ def interval_str(sec_elapsed):
 	return "{} days {:>02d}hrs {:>02d}mn {:>02d}sec".format(d, h, m, s)
 
 
-def on_connect(client, ud, flags, rc):
+# noinspection PyUnusedLocal
+def on_connect(mqclient, ud, flags, rc):
 	# client.subscribe('consoles/all/#')
-	client.subscribe('consoles/all/nodes/#')
-	client.subscribe('consoles/+/status')
+	mqclient.subscribe('consoles/all/nodes/#')
+	mqclient.subscribe('consoles/+/status')
 
 
 # client.subscribe('consoles/rpi-dev7')
 
-def on_message(client, ud, msg):
+# noinspection PyUnusedLocal
+def on_message(mqclient, ud, msg):
 	# print('message')
 	# print(msg.topic+  repr(msg.payload) + str(msg.timestamp))
 	try:
@@ -92,9 +95,9 @@ def on_message(client, ud, msg):
 				nodes[nd] = noderecord(**defaults)
 			nodes[nd] = nodes[nd]._replace(**msgdcd)
 
-	#print(nodes)
-	except Exception as E:
-		print("Exception: {}".format(repr(E)))
+	# print(nodes)
+	except Exception as Ex:
+		print("Exception: {}".format(repr(Ex)))
 	if time.time() - tm > 1:
 		if len(sys.argv) > 1:
 			baseinfo()
@@ -107,10 +110,10 @@ client.on_connect = on_connect
 client.on_message = on_message
 
 client.loop_start()
-#client.connect('rpi-kck.pdxhome')
+# client.connect('rpi-kck.pdxhome')
 client.connect('rpi-pgaw1.pgawhome')
 try:
-	#time.sleep(1)
+	# time.sleep(1)
 	print('Starting')
 	try:
 		if len(sys.argv) > 1:

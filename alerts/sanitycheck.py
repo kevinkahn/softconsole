@@ -1,8 +1,10 @@
+import threading
+
 import alerttasks
 import config
-from stores import valuestore
-import threading
 import logsupport
+from stores import valuestore
+
 
 class CheckIntegrity(object):
 	def __init__(self):
@@ -21,8 +23,6 @@ class CheckIntegrity(object):
 		thishub = config.Hubs[hubname]
 		T = threading.Thread(name='IntegrityCheck', target=DoCheck, args=(hubname, thishub), daemon=True)
 		T.start()
-
-
 
 
 alerttasks.alertprocs["CheckIntegrity"] = CheckIntegrity

@@ -1,24 +1,24 @@
+import functools
+import json
+import subprocess
+import threading
+import time
+
 import paho.mqtt.client as mqtt
 import paho.mqtt.publish as publish
-
-import hw
-import logsupport
-import config
-import json
-from controlevents import CEvent, PostEvent, ConsoleEvent
-import exitutils
-import maintscreen
-import subprocess
-import historybuffer
-import functools
-import threading
-
-from logsupport import ConsoleWarning, ConsoleError, ConsoleInfo, ReportStatus
 # noinspection PyProtectedMember
 from configobj import Section
-import time
-from stores import valuestore
+
+import config
+import exitutils
+import historybuffer
+import hw
+import logsupport
+import maintscreen
 import threadmanager
+from controlevents import CEvent, PostEvent, ConsoleEvent
+from logsupport import ConsoleWarning, ConsoleError, ConsoleInfo, ReportStatus
+from stores import valuestore
 
 
 class MQitem(valuestore.StoreItem):
@@ -28,11 +28,12 @@ class MQitem(valuestore.StoreItem):
 		self.Expires = Expires
 		super(MQitem, self).__init__(name, None, store=Store, vt=Type)
 
+
 class MQTTBroker(valuestore.ValueStore):
 
 	def __init__(self, name, configsect):
 		super(MQTTBroker, self).__init__(name, itemtyp=MQitem)
-		MQTTnum = 0
+		self.MQTTnum = 0
 		self.fetcher = None
 		self.HB = historybuffer.HistoryBuffer(40, name)
 
@@ -77,7 +78,7 @@ class MQTTBroker(valuestore.ValueStore):
 			self.fetcher = threading.Thread(name='FetchBetaRemote', target=maintscreen.fetch_beta, daemon=True)
 			self.fetcher.start()
 
-		#maintscreen.fetch_beta()
+		# maintscreen.fetch_beta()
 
 		def UseStable():
 			subprocess.Popen('sudo rm /home/pi/usebeta', shell=True)  # should move all these to some common place todo
@@ -95,8 +96,9 @@ class MQTTBroker(valuestore.ValueStore):
 		def LogItem(sev):
 			logsupport.Logs.Log('Remotely forced test message ({})'.format(sev), severity=sev, tb=False, hb=False)
 
+		# noinspection PyUnusedLocal
 		def on_message(client, userdata, msg):
-			#print time.ctime() + " Received message " + str(msg.payload) + " on topic "  + msg.topic + " with QoS " + str(msg.qos)
+			# print time.ctime() + " Received message " + str(msg.payload) + " on topic "  + msg.topic + " with QoS " + str(msg.qos)
 			loopstart = time.time()
 			var = []
 			for t, item in userdata.topicindex.items():
@@ -118,7 +120,7 @@ class MQTTBroker(valuestore.ValueStore):
 							'issueinfo': functools.partial(LogItem, ConsoleInfo)}
 				if cmd.lower() in cmdcalls:
 					try:
-						PostEvent(ConsoleEvent(CEvent.RunProc,name=cmd, proc=cmdcalls[cmd.lower()]))
+						PostEvent(ConsoleEvent(CEvent.RunProc, name=cmd, proc=cmdcalls[cmd.lower()]))
 					except Exception as E:
 						logsupport.Logs.Log('Exc: {}'.format(repr(E)))
 				else:
@@ -135,14 +137,14 @@ class MQTTBroker(valuestore.ValueStore):
 				d = json.loads(msg.payload.decode('ascii'))
 				try:
 					logsupport.Logs.Log('{}: set {} = {}'.format(self.name, d['name'], d['value']))
-					store = valuestore.SetVal(d['name'], d['value'])
+					valuestore.SetVal(d['name'], d['value'])
 				except Exception as E:
 					logsupport.Logs.Log('Bad set via MQTT: {} Exc: {}'.format(repr(d), E), severity=ConsoleWarning)
 				return
 
 			# noinspection PySimplifyBooleanCheck
 			if var == []:
-				logsupport.Logs.Log('Unknown topic ',msg.topic, ' from broker ',self.name,severity=ConsoleWarning)
+				logsupport.Logs.Log('Unknown topic ', msg.topic, ' from broker ', self.name, severity=ConsoleWarning)
 			else:
 				for v in var:
 					v.SetTime = time.time()
@@ -152,26 +154,30 @@ class MQTTBroker(valuestore.ValueStore):
 					else:
 						payload = '*bad json*' + msg.payload.decode('ascii')  # for exception log below
 						try:
-							payload = json.loads(msg.payload.decode('ascii').replace('nan','null')) # work around bug in tasmota returning bad json
+							payload = json.loads(msg.payload.decode('ascii').replace('nan',
+																					 'null'))  # work around bug in tasmota returning bad json
 							for i in v.jsonflds:
 								payload = payload[i]
 							if payload is not None:
 								v.Value = v.Type(payload)
 							else:
 								v.Value = None
-						#debug.debugPrint('StoreTrack', "Store(mqtt): ", self.name, ':', v, ' Value: ', v.Value)
+						# debug.debugPrint('StoreTrack', "Store(mqtt): ", self.name, ':', v, ' Value: ', v.Value)
 						except Exception as e:
 							logsupport.Logs.Log('Error handling json MQTT item: ', v.name, str(v.jsonflds),
-												msg.payload.decode('ascii'), str(e), repr(payload), severity=ConsoleWarning)
+												msg.payload.decode('ascii'), str(e), repr(payload),
+												severity=ConsoleWarning)
 			loopend = time.time()
-			self.HB.Entry('Processing time: {} Done: {}'.format(loopend - loopstart, repr(msg)))  # todo try to force other thread to run
+			self.HB.Entry('Processing time: {} Done: {}'.format(loopend - loopstart,
+																repr(msg)))  # todo try to force other thread to run
 			time.sleep(.1)  # force thread to give up processor to allow response to time events
 			self.HB.Entry('Gave up control for: {}'.format(time.time() - loopend))
 
 		# noinspection PyUnusedLocal
 		def on_log(client, userdata, level, buf):
-			logsupport.Logs.Log("MQTT Log: ",str(level)," buf: ",str(buf),severity=ConsoleWarning)
-			#print time.ctime() + " MQTT Log " + str(level) + '  ' + str(buf)
+			logsupport.Logs.Log("MQTT Log: ", str(level), " buf: ", str(buf), severity=ConsoleWarning)
+
+		# print time.ctime() + " MQTT Log " + str(level) + '  ' + str(buf)
 
 		def _parsesection(nm, sect, prefix=''):
 			tp = sect.get('TopicType', 'string')
@@ -199,10 +205,8 @@ class MQTTBroker(valuestore.ValueStore):
 					self.topicindex[tpc] = [rtn]
 				return rtn
 
-
-
-		self.address = configsect.get('address',None)
-		self.password = configsect.get('password',None)
+		self.address = configsect.get('address', None)
+		self.password = configsect.get('password', None)
 		self.reportstatus = configsect.get('ReportStatus', False)
 		self.vars = {}
 		self.ids = {}
@@ -235,8 +239,7 @@ class MQTTBroker(valuestore.ValueStore):
 							  'osversion': hw.osversion,
 							  'hw': hw.hwinfo}),
 						 retain=True, qos=1)
-		threadmanager.SetUpHelperThread(self.name,self.MQTTLoop)
-
+		threadmanager.SetUpHelperThread(self.name, self.MQTTLoop)
 
 	def MQTTLoop(self):
 		self.MQTTclient.connect(self.address, keepalive=20)
@@ -244,15 +247,15 @@ class MQTTBroker(valuestore.ValueStore):
 		self.MQTTnum += 1
 		self.MQTTclient.loop_forever()
 		# self.MQTTclient.disconnect()
-		logsupport.Logs.Log("MQTT handler thread ended for: "+self.name,severity=ConsoleWarning)
+		logsupport.Logs.Log("MQTT handler thread ended for: " + self.name, severity=ConsoleWarning)
 		self.loopexited = True
 		self.MQTTrunning = False
 
 	def GetValByID(self, lclid):
 		self.GetVal(self.ids[lclid])
 
-	def SetVal(self,name, val, modifier = None):
-		logsupport.Logs.Log("Can't set MQTT subscribed var within console: ",name)
+	def SetVal(self, name, val, modifier=None):
+		logsupport.Logs.Log("Can't set MQTT subscribed var within console: ", name)
 
 	def GetVal(self, name, failok=False):
 		n2 = ''
@@ -287,5 +290,6 @@ class MQTTBroker(valuestore.ValueStore):
 			else:
 				publish.single(fulltopic, payload, hostname=self.address, qos=qos, retain=retain)
 
+	# noinspection PyUnusedLocal
 	def PushToMQTT(self, storeitem, old, new, param, modifier):
 		self.Publish('/'.join(storeitem.name), str(new))

@@ -1,12 +1,13 @@
+import os
+import shutil
 import time
-import shutil, os
+
 import logsupport
 
 Buffers = {}
 HBdir = ''
 GCBuf = None
 bufdumpseq = 0
-import gc
 
 
 def SetupHistoryBuffers(dirnm, maxlogs):
@@ -24,20 +25,21 @@ def SetupHistoryBuffers(dirnm, maxlogs):
 		pass
 	os.mkdir('.HistoryBuffer')
 	HBdir = dirnm + '/.HistoryBuffer/'
-	#gc.callbacks.append(NoteGCs)  todo uncomment to see GC runs for timing analysis
-	GCBuf = HistoryBuffer(50,'GC')
+	# gc.callbacks.append(NoteGCs)  todo uncomment to see GC runs for timing analysis
+	GCBuf = HistoryBuffer(50, 'GC')
 
-def NoteGCs(phase,info):
+
+def NoteGCs(phase, info):
 	if GCBuf is not None:
 		logsupport.DevPrint('GC {} {}'.format(phase, repr(info)))
-		GCBuf.Entry('GC Call' + phase+repr(info))
+		GCBuf.Entry('GC Call' + phase + repr(info))
 
 
 def DumpAll(idline, entrytime):
+	global bufdumpseq
+	fn = HBdir + str(bufdumpseq) + '-' + entrytime
 	try:
-		global bufdumpseq
 		bufdumpseq += 1
-		fn = HBdir + str(bufdumpseq) + '-' + entrytime
 		t = {}
 		curfirst = {}
 		curtime = {}
@@ -123,7 +125,6 @@ class HistoryBuffer(object):
 			j = (i + curind) % self.size
 			if cur[j].timeofentry != 0:
 				yield (j, cur[j].timeofentry, cur[j].entry)
-
 
 	def Dump(self, f):
 		for i in range(self.size):

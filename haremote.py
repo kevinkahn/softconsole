@@ -7,18 +7,17 @@ HomeAssistantError will be raised.
 For more details about the Python API, please refer to the documentation at
 https://home-assistant.io/developers/python_api/
 """
-from datetime import datetime
 import enum
 import json
 import urllib.parse
-import logsupport
-
+from datetime import datetime
 from typing import Optional, Dict, Any
 
-from aiohttp.hdrs import METH_GET, METH_POST, CONTENT_TYPE
 import requests
-
+from aiohttp.hdrs import METH_GET, METH_POST, CONTENT_TYPE
 from homeassistant import core as ha
+
+import logsupport
 
 URL_API = '/api/'
 URL_API_CONFIG = '/api/config'

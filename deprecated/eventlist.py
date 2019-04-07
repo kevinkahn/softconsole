@@ -1,12 +1,14 @@
-from heapq import *
 import time
-import pygame
+from heapq import *
+
 import debug
-import logsupport
-from logsupport import ConsoleError
 import historybuffer
+import logsupport
+import pygame
+from logsupport import ConsoleError
 
 Tasks = None
+
 
 class EventItem(object):
 	# basic event has name,dt, abstime,target (screen, proc, something - needed for hash)
@@ -53,7 +55,7 @@ class EventList(object):
 		self.BaseTime = 0
 		self.List = []
 		self.finder = {}
-		self.TASKREADY = pygame.event.Event(pygame.USEREVENT,{})
+		self.TASKREADY = pygame.event.Event(pygame.USEREVENT, {})
 		self.HB = historybuffer.HistoryBuffer(100, 'EventList')
 
 	def StartLongOp(self):
@@ -93,7 +95,7 @@ class EventList(object):
 			evnt.onlist = True
 			heappush(self.List, (evnt.abstime, evnt))
 		T = self.TimeToNext()
-		self.HB.Entry('Set next: {} delta {}'.format(time.time()+T, T))
+		self.HB.Entry('Set next: {} delta {}'.format(time.time() + T, T))
 		debug.debugPrint('EventList', self.RelNow(), ' Add: ', dt, evnt, T)
 		# debug.debugPrint('EventList', self.RelNow(), ' Add: ', dt, item,T,self.PrettyList(self.List))
 		pygame.time.set_timer(self.TASKREADY.type, T)
@@ -130,7 +132,7 @@ class EventList(object):
 		# time in milliseconds to next task
 		T = self._TopItem()
 		if T is not None:
-			interval = max(int(round((T[0] - time.time())*1000)), 1)  # always at least 1 millisec if list non-empty
+			interval = max(int(round((T[0] - time.time()) * 1000)), 1)  # always at least 1 millisec if list non-empty
 			self.HB.Entry('TimeToNext: Abs: {} Now: {} Delta: {}'.format(T[0], time.time(), interval))
 			return interval
 		else:
@@ -159,7 +161,7 @@ class EventList(object):
 				is set by the second of the 2 close events.
 				'''
 				self.HB.Entry('PopTaskEarly: ' + repr(T) + ' Early: ' + str(DiffToSched))
-				pygame.time.set_timer(self.TASKREADY.type, int(round(DiffToSched*1000 + .5)))
+				pygame.time.set_timer(self.TASKREADY.type, int(round(DiffToSched * 1000 + .5)))
 				debug.debugPrint('EventList', self.RelNow(), ' Early wake: ', DiffToSched, self.PrettyList(self.List))
 				return None
 		else:
@@ -174,6 +176,4 @@ class EventList(object):
 		for e in self.finder.values():
 			if e.gpid == gpid:
 				self.RemoveTask(e)
-				#print('Removed'+repr(e))
-
-
+		# print('Removed'+repr(e))

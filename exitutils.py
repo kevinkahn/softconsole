@@ -1,17 +1,17 @@
 import os
 import subprocess
-import time
 import sys
+import time
+
 import pygame
 
 import config
 import fonts
+import historybuffer
 import hw
 import logsupport
-from logsupport import ConsoleError
-import historybuffer
 import timers
-
+from logsupport import ConsoleError
 from utilfuncs import *
 
 # Exit Codes:
@@ -20,31 +20,33 @@ from utilfuncs import *
 # 3x: restart console (restart via systemd or via script)
 # 4x: reboot pi (issue restart of pi - systemd won't be involved)
 
-EARLYABORT     = 11
-MAINTEXIT      = 12
-ERRORDIE       = 13
+EARLYABORT = 11
+MAINTEXIT = 12
+ERRORDIE = 13
 
-MAINTPISHUT    = 21
+MAINTPISHUT = 21
 
-MAINTRESTART   = 31
-AUTORESTART    = 32
-REMOTERESTART  = 33
-ERRORRESTART   = 34
-EXTERNALSIGTERM= 35 # from systemd on a stop or restart so could be either
+MAINTRESTART = 31
+AUTORESTART = 32
+REMOTERESTART = 33
+ERRORRESTART = 34
+EXTERNALSIGTERM = 35  # from systemd on a stop or restart so could be either
 
-MAINTPIREBOOT  = 41
-REMOTEREBOOT   = 42
-ERRORPIREBOOT  = 43
+MAINTPIREBOOT = 41
+REMOTEREBOOT = 42
+ERRORPIREBOOT = 43
 
 
 def listthreads(l):
 	return ' ,'.join([i.name for i in l])
 
+
 def exitlogging():
 	# logsupport.Logs.Log("Exittime threads: {}".format(listthreads(threading.enumerate())))
 	if config.hooks.exit_code not in (
-	EARLYABORT, MAINTEXIT, MAINTPISHUT, MAINTRESTART, AUTORESTART, REMOTERESTART, EXTERNALSIGTERM, MAINTPIREBOOT,
-	REMOTEREBOOT):
+			EARLYABORT, MAINTEXIT, MAINTPISHUT, MAINTRESTART, AUTORESTART, REMOTERESTART, EXTERNALSIGTERM,
+			MAINTPIREBOOT,
+			REMOTEREBOOT):
 		logsupport.Logs.Log("Exiting with history trace (", repr(config.hooks.exit_code), ')')
 		historybuffer.DumpAll('Exit Trace', time.strftime('%m-%d-%y %H:%M:%S'))
 	else:
@@ -63,6 +65,7 @@ def exitlogging():
 		logsupport.Logs.Log('Thread hang? {}')
 	'''
 
+
 def EarlyAbort(scrnmsg):
 	config.screen.fill(wc("red"))
 	# this font is manually loaded into the fontcache to avoid log message on early abort before log is up
@@ -70,7 +73,7 @@ def EarlyAbort(scrnmsg):
 	r = fonts.fonts.Font(40, '', True, True).render(scrnmsg, 0, wc("white"))
 	config.screen.blit(r, ((hw.screenwidth - r.get_width()) / 2, hw.screenheight * .4))
 	pygame.display.update()
-	print (time.strftime('%m-%d-%y %H:%M:%S'), scrnmsg)
+	print(time.strftime('%m-%d-%y %H:%M:%S'), scrnmsg)
 	time.sleep(10)
 	timers.ShutTimers('earlyabort')
 	pygame.quit()
@@ -91,14 +94,14 @@ def Exit(ecode, immediate=False):
 	logsupport.Logs.Log("Console Exiting - Ecode: " + str(ecode))
 
 	print('Console exit with code: ' + str(ecode) + ' at ' + time.strftime('%m-%d-%y %H:%M:%S'))
-	if ecode in range(10,20):
+	if ecode in range(10, 20):
 		# exit console without restart
 		print("Shutdown")
-	elif ecode in range(20,30):
+	elif ecode in range(20, 30):
 		# shutdown the pi
 		print("Shutdown the Pi")
 		subprocess.Popen(['sudo', 'shutdown', '-P', 'now'])
-	elif ecode in range(30,40):
+	elif ecode in range(30, 40):
 		# restart the console
 		if os.path.exists('/etc/systemd/system/multi-user.target.wants/softconsole.service'):
 			# using systemd
@@ -107,7 +110,7 @@ def Exit(ecode, immediate=False):
 			logsupport.Logs.Log('Using rc.local restart model - consider switching to systemd')
 			subprocess.Popen('nohup sudo /bin/bash -e scripts/consoleexit ' + 'restart' +
 							 ' ' + config.configfile + '>>' + config.homedir + '/log.txt 2>&1 &', shell=True)
-	elif ecode in range(40,50):
+	elif ecode in range(40, 50):
 		# reboot the pi
 		subprocess.Popen(['sudo', 'shutdown', '-r', 'now'])
 	else:
@@ -118,7 +121,7 @@ def Exit(ecode, immediate=False):
 	if immediate:
 		logsupport.Logs.Log("Temp - Immediate Exit: ", str(ecode), tb=True)
 		sys.exit(ecode)
-	#os._exit(ecode)
+	# os._exit(ecode)
 	else:
 		config.ecode = ecode
 		config.Running = False  # make sure the main loop ends even if this exit call returns
@@ -132,6 +135,7 @@ def errorexit(opt):
 	elif opt == ERRORDIE:
 		Exit_Screen_Message('Error Shutdown', 'Error', 'Not Restarting', 'Check Log')
 	Exit(opt, immediate=True)
+
 
 def Exit_Screen_Message(msg, scrnmsg1, scrnmsg2='', scrnmsg3=''):
 	config.screen.fill(wc("red"))
@@ -147,6 +151,6 @@ def Exit_Screen_Message(msg, scrnmsg1, scrnmsg2='', scrnmsg3=''):
 
 
 def FatalError(msg):
-	logsupport.Logs.Log(msg, severity=ConsoleError, tb=False) # include traceback
+	logsupport.Logs.Log(msg, severity=ConsoleError, tb=False)  # include traceback
 	Exit_Screen_Message(msg, 'Internal Error', msg)
 	Exit(ERRORRESTART, immediate=True)

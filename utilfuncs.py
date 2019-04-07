@@ -18,6 +18,7 @@ def wc(clr, factor=0.0, layercolor=(255, 255, 255)):
 
 	return v[0] + (lc[0] - v[0]) * factor, v[1] + (lc[1] - v[1]) * factor, v[2] + (lc[2] - v[2]) * factor
 
+
 def interval_str(sec_elapsed):
 	d = int(sec_elapsed / (60 * 60 * 24))
 	h = int((sec_elapsed % (60 * 60 * 24)) / 3600)
@@ -51,6 +52,3 @@ def TreeDict(d, args):
 		return temp
 	else:
 		return TreeDict(d[args[0]], args[1:])
-
-
-

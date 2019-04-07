@@ -1,18 +1,20 @@
+import datetime
 import functools
-import pygame
 import io
+import json
 import os
 import sys
-import json
 import time
-import datetime
-import requests
-import config
-from stores import valuestore
 from collections import OrderedDict
+
+import config
 import logsupport
+import pygame
+import requests
 from logsupport import ConsoleWarning, ConsoleDetail, ConsoleError
+from stores import valuestore
 from utilfuncs import *
+
 
 def TreeDict(d, *args):
 	# Allow a nest of dictionaries to be accessed by a tuple of keys for easier code
@@ -29,6 +31,7 @@ def TreeDict(d, *args):
 		return temp
 	else:
 		return TreeDict(d[args[0]], *args[1:])
+
 
 def TryShorten(term):
 	if term in config.TermShortener:
@@ -47,9 +50,10 @@ EmptyIcon.set_colorkey((255, 255, 255))
 WeatherIconCache = {}
 WUcount = 0
 
+
 def get_icon(url):
 	global EmptyIcon
-	if 	url in WeatherIconCache:
+	if url in WeatherIconCache:
 		return WeatherIconCache[url]
 	else:
 		try:
@@ -68,13 +72,16 @@ def get_icon(url):
 			logsupport.Logs.Log('Bad icon url fetch - using empty icon for: ', repr(url))
 			return EmptyIcon
 
+
 class WeatherItem(valuestore.StoreItem):
-	def __init__(self,name, mapinfo, Store):
+	def __init__(self, name, mapinfo, Store):
 		self.MapInfo = mapinfo
-		super(WeatherItem,self).__init__(name,None,store=Store)
+		super(WeatherItem, self).__init__(name, None, store=Store)
+
 
 class WeatherVals(valuestore.ValueStore):
 	global WUcount
+
 	def __init__(self, location, WunderKey):
 		ConditionMap = {'Time': (int, ('current_observation', 'observation_epoch')),
 						'Location': (str, ('current_observation', 'display_location', 'city')),
@@ -107,12 +114,13 @@ class WeatherVals(valuestore.ValueStore):
 		super(WeatherVals, self).__init__(location)
 		self.refreshinterval = 60 * 30
 		self.fetchcount = 0
-		self.vars = {'Cond':OrderedDict(),'Fcst':OrderedDict()}
-		csynthmap = {'Icon':('synthetic', self.geticon, 'Cond'),
-					'Moonrise':('synthetic',self.fixMoon,'rise'),
-					'Moonset':('synthetic',self.fixMoon,'set'),
-					'Age':('synthetic',self.setAge,'')}
-		fsynthmap = {'Icon':('synthetic', self.geticon, 'Fcst')}  # if other forecast synthetics defined then code below won't work
+		self.vars = {'Cond': OrderedDict(), 'Fcst': OrderedDict()}
+		csynthmap = {'Icon': ('synthetic', self.geticon, 'Cond'),
+					 'Moonrise': ('synthetic', self.fixMoon, 'rise'),
+					 'Moonset': ('synthetic', self.fixMoon, 'set'),
+					 'Age': ('synthetic', self.setAge, '')}
+		fsynthmap = {'Icon': (
+		'synthetic', self.geticon, 'Fcst')}  # if other forecast synthetics defined then code below won't work
 		# because it doesn't factor in the day of the forecast any place. Probably need to pass as parameter to the procedure
 		# defined here in the map.  Don't need to for the icon only because it is handled as a special case below
 		self.failedfetch = False
@@ -121,13 +129,13 @@ class WeatherVals(valuestore.ValueStore):
 		self.url = 'http://api.wunderground.com/api/' + WunderKey + '/conditions/forecast10day/astronomy/q/' \
 				   + location + '.json'
 		for fld, fldinfo in ConditionMap.items():
-			self.vars['Cond'][fld] = WeatherItem(('Cond',fld),fldinfo,self)
+			self.vars['Cond'][fld] = WeatherItem(('Cond', fld), fldinfo, self)
 		for fld, fldinfo in csynthmap.items():
-			self.vars['Cond'][fld] = WeatherItem(('Cond',fld),fldinfo,self)
+			self.vars['Cond'][fld] = WeatherItem(('Cond', fld), fldinfo, self)
 		for fld, fldinfo in ForecastDay.items():
-			self.vars['Fcst'][fld] = WeatherItem(('Fcst',fld),fldinfo,self)
+			self.vars['Fcst'][fld] = WeatherItem(('Fcst', fld), fldinfo, self)
 		for fld, fldinfo in fsynthmap.items():
-			self.vars['Fcst'][fld] = WeatherItem(('Fcst',fld),fldinfo,self)
+			self.vars['Fcst'][fld] = WeatherItem(('Fcst', fld), fldinfo, self)
 		self.vars['FcstDays'] = valuestore.StoreItem('FcstDays', 0, store=self)
 		self.vars['LastGoodFcst'] = valuestore.StoreItem('LastGoodFcst', 0, store=self)
 
@@ -139,14 +147,16 @@ class WeatherVals(valuestore.ValueStore):
 			return None
 		# noinspection PyBroadException
 		try:
-			r = requests.get(self.url,timeout=15)
+			r = requests.get(self.url, timeout=15)
 			val = r.text
 			WUcount += 1
-			logsupport.Logs.Log("Actual weather fetch for " + self.location + "(" + str(self.fetchcount) + ')' + " WU count: " + str(WUcount),
-							severity=ConsoleDetail)
+			logsupport.Logs.Log(
+				"Actual weather fetch for " + self.location + "(" + str(self.fetchcount) + ')' + " WU count: " + str(
+					WUcount),
+				severity=ConsoleDetail)
 		except:
 			logsupport.Logs.Log("Error fetching weather: " + self.url + str(sys.exc_info()[0]),
-							severity=ConsoleWarning)
+								severity=ConsoleWarning)
 			self.failedfetch = True
 			return None
 
@@ -165,8 +175,9 @@ class WeatherVals(valuestore.ValueStore):
 
 		if val.find('been an error') != -1:
 			# odd error case that's been seen where html rather than json is returned
-			logsupport.Logs.Log("WeatherUnderground returned nonsense for station: ", self.location, severity=ConsoleWarning)
-			with open(os.path.dirname(config.configfile)+'/'+self.location+'-WUjunk.log', 'w') as f:
+			logsupport.Logs.Log("WeatherUnderground returned nonsense for station: ", self.location,
+								severity=ConsoleWarning)
+			with open(os.path.dirname(config.configfile) + '/' + self.location + '-WUjunk.log', 'w') as f:
 				f.write(val)
 				f.flush()
 			self.failedfetch = True
@@ -181,8 +192,8 @@ class WeatherVals(valuestore.ValueStore):
 		try:
 			parsed_json = json.loads(val)
 		except ValueError as e:  # in Python3 this could be a JSONDecodeError which is a subclass of ValueError
-			logsupport.Logs.Log("Bad weather json: ", repr(e),severity=ConsoleWarning)
-			with open(os.path.dirname(config.configfile)+'/'+self.location+'-WUjunk.log', 'w') as f:
+			logsupport.Logs.Log("Bad weather json: ", repr(e), severity=ConsoleWarning)
+			with open(os.path.dirname(config.configfile) + '/' + self.location + '-WUjunk.log', 'w') as f:
 				f.write(val)
 				f.flush()
 
@@ -200,7 +211,6 @@ class WeatherVals(valuestore.ValueStore):
 		self.fetchcount += 1
 
 		parsed_json = self._FetchWeather()
-
 
 		if parsed_json is None:
 			logsupport.Logs.Log("FetchWeather failed - not updating information for: ", self.location,
@@ -269,17 +279,14 @@ class WeatherVals(valuestore.ValueStore):
 								datetime.datetime.fromtimestamp(self.vars['LastGoodFcst'].Value).strftime('%c'),
 								severity=ConsoleWarning)
 
-
-
-
-	def geticon(self,n, day=-1):
+	def geticon(self, n, day=-1):
 		if day == -1:
 			return get_icon(self.vars[n]['Iconurl'].Value)
 		else:
 			return get_icon(self.vars[n]['Iconurl'].Value[day])
 
 	# noinspection PyUnusedLocal
-	def setAge(self,junk):
+	def setAge(self, junk):
 		# noinspection PyBroadException
 		try:
 			rdingage = time.time() - self.vars['Cond']['Time'].Value
@@ -290,28 +297,26 @@ class WeatherVals(valuestore.ValueStore):
 		except:
 			return "No readings ever retrieved"
 
-	def fixMoon(self,evnt):
-			MoonH = 'Moon'+evnt+'H'
-			MoonM = 'Moon'+evnt+'M'
-			if (self.vars['Cond'][MoonH].Value is None) or (self.vars['Cond'][MoonM].Value is None):
-				return 'n/a'
-			else:
-				return "{d[0]:02d}:{d[1]:02d}".format(
-					d=[self.vars['Cond'][x].Value for x in (MoonH, MoonM)])
+	def fixMoon(self, evnt):
+		MoonH = 'Moon' + evnt + 'H'
+		MoonM = 'Moon' + evnt + 'M'
+		if (self.vars['Cond'][MoonH].Value is None) or (self.vars['Cond'][MoonM].Value is None):
+			return 'n/a'
+		else:
+			return "{d[0]:02d}:{d[1]:02d}".format(
+				d=[self.vars['Cond'][x].Value for x in (MoonH, MoonM)])
 
-	def GetVal(self,name):
+	def GetVal(self, name):
 		if config.BadWunderKey:
 			return None
 		self.BlockRefresh()
 		if self.failedfetch:
 			return None
 		else:
-			return super(WeatherVals,self).GetVal(name)
+			return super(WeatherVals, self).GetVal(name)
 
-	def SetVal(self,name,val,modifier=None):
-		logsupport.Logs.Log("Setting weather item via SetVal unsupported: "+str(name),severity=ConsoleError)
-
-
+	def SetVal(self, name, val, modifier=None):
+		logsupport.Logs.Log("Setting weather item via SetVal unsupported: " + str(name), severity=ConsoleError)
 
 	"""
 	def dumpweatherresp(self, val, djson, tag, param):
@@ -323,4 +328,3 @@ class WeatherVals(valuestore.ValueStore):
 			self.weathvalfile.flush()
 			self.weathjsonfile.flush()
 	"""
-

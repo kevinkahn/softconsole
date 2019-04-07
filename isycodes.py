@@ -47,7 +47,6 @@ EVENT_CTRL = {
 	"ERR": "NodeCommError"
 }
 
-
 AlertNodes = {}
 
 
@@ -96,7 +95,7 @@ def formatwsitem(sid, seq, code, action, node, info, extra, hub):
 				stat = ' Status: ' + info['s']
 			else:
 				stat = ''
-			paddr = str("0x%0.4X"%int(info['id'], 16))[2:]
+			paddr = str("0x%0.4X" % int(info['id'], 16))[2:]
 			# noinspection PyProtectedMember
 			return pretty + 'ProgRun ' + hub._ProgramsByAddr[paddr].name + runinfo + stat + other
 		elif EC == "System Status":

@@ -1,4 +1,5 @@
-import githubutil, os
+import githubutil
+import os
 
 exdir = os.getcwd()
 print("Install from: {}".format(exdir))

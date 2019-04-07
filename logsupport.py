@@ -1,16 +1,19 @@
-import fonts
-import historybuffer
+import json
+import sys
+import threading
+import traceback
+
 import pygame
 import webcolors
-import sys
-import traceback
-import json
-import threading
 
+import fonts
+import historybuffer
 import hw
 import screens.__screens as screens
 
 wc = webcolors.name_to_rgb  # can't use the safe version from utilities due to import loop but this is only used with
+
+
 # known color names
 
 class TempLogger(object):
@@ -20,13 +23,14 @@ class TempLogger(object):
 	# noinspection PyUnusedLocal
 	@staticmethod
 	def Log(*args, **kwargs):
-		#entry = "".join([unicode(i) for i in args])
+		# entry = "".join([unicode(i) for i in args])
 		entry = "".join([str(i) for i in args])
-		if not isinstance(entry, str): entry =  entry.encode('UTF-8', errors='backslashreplace')
+		if not isinstance(entry, str): entry = entry.encode('UTF-8', errors='backslashreplace')
 		print(time.strftime('%m-%d-%y %H:%M:%S') + " " + entry)
 
 	def PeriodicRemoteDump(self):
 		pass  # dummy to satisfy static method check
+
 
 Logs = TempLogger()
 import config
@@ -47,17 +51,19 @@ primaryBroker = None  # for cross system reporting if mqtt is running
 LogLevel = 3
 LocalOnly = True
 
+
 # try:
 #	return isinstance(obj, basestring)
 # except NameError:
 #	return isinstance(obj, str)
 
 
-def InitLogs(screen,dirnm):
-	return Logger(screen,dirnm)
+def InitLogs(screen, dirnm):
+	return Logger(screen, dirnm)
+
 
 def DevPrint(arg):
-	if config.versionname in ('development'):
+	if config.versionname == 'development':
 		pid = os.getpid()
 		print(str(pid) + repr(arg))
 
@@ -71,7 +77,7 @@ class Logger(object):
 
 	def __init__(self, screen, dirnm):
 		self.lock = threading.Lock()
-		self.lockerid = (0,'init')
+		self.lockerid = (0, 'init')
 		self.screen = screen
 		self.remotenodes = {}
 		self.lastremotemes = ''
@@ -107,9 +113,10 @@ class Logger(object):
 		try:
 			locked = self.lock.acquire(timeout=5)
 			if not locked:
-				self.RecordMessage(ConsoleError, 'Log lock failed (Remote)'+repr(self.lockerid), '*****Remote******', False, False)
+				self.RecordMessage(ConsoleError, 'Log lock failed (Remote)' + repr(self.lockerid), '*****Remote******',
+								   False, False)
 			else:
-				self.lockerid = (etime,'remote')
+				self.lockerid = (etime, 'remote')
 
 			if entry == self.lastremotemes:
 				if node in self.remotenodes:
@@ -123,13 +130,13 @@ class Logger(object):
 				self.remotenodes = {node: (etime, 1)}
 			if locked:
 				self.lock.release()
-				self.lockerid = (etime,'remunlock')
+				self.lockerid = (etime, 'remunlock')
 		except Exception as E:
 			self.RecordMessage(ConsoleError, 'Exception while remote logging: {}'.format(repr(E)), '*****Remote******',
 							   False, False)
 			if locked:
 				self.lock.release()
-				self.lockerid = (etime,'remunlockexc')
+				self.lockerid = (etime, 'remunlockexc')
 
 	def DumpRemoteMes(self):
 		now = time.strftime('%m-%d-%y %H:%M:%S')
@@ -172,7 +179,8 @@ class Logger(object):
 			locked = self.lock.acquire(timeout=5)
 
 			if not locked:
-				self.RecordMessage(ConsoleError, 'Log lock failed (PeriodicRemote)'+repr(self.lockerid), defentrytime, False, False)
+				self.RecordMessage(ConsoleError, 'Log lock failed (PeriodicRemote)' + repr(self.lockerid), defentrytime,
+								   False, False)
 			else:
 				self.lockerid = (defentrytime, 'remotedump')
 			self.DumpRemoteMes()
@@ -186,8 +194,6 @@ class Logger(object):
 				self.lock.release()
 				self.lockerid = (defentrytime, 'remotedumpunlkexc')
 
-
-
 	def Log(self, *args, **kwargs):
 		"""
 		params: args is one or more strings (like for print) and kwargs is severity=
@@ -200,17 +206,18 @@ class Logger(object):
 			locked = self.lock.acquire(timeout=5)
 
 			if not locked:
-				self.RecordMessage(ConsoleError, 'Log lock failed (Local)'+repr(self.lockerid)+args[0], defentrytime, False, False)
+				self.RecordMessage(ConsoleError, 'Log lock failed (Local)' + repr(self.lockerid) + args[0],
+								   defentrytime, False, False)
 			else:
-				self.lockerid = (defentrytime,'locallock'+args[0])
+				self.lockerid = (defentrytime, 'locallock' + args[0])
 
 			severity = kwargs.pop('severity', ConsoleInfo)
 			entrytime = kwargs.pop('entrytime', time.strftime('%m-%d-%y %H:%M:%S', localnow))
-			tb = kwargs.pop('tb', severity==ConsoleError)
+			tb = kwargs.pop('tb', severity == ConsoleError)
 			hb = kwargs.pop('hb', False)
 			homeonly = kwargs.pop('homeonly', False)
 			localonly = kwargs.pop('localonly', False) or LocalOnly  # don't brcst error until mqtt is up
-			if homeonly and config.versionname not in ('development','homerelease'):
+			if homeonly and config.versionname not in ('development', 'homerelease'):
 				if locked:
 					self.lock.release()
 					self.lockerid = (defentrytime, 'homeonly')
@@ -219,7 +226,7 @@ class Logger(object):
 			if severity < LogLevel:
 				if locked:
 					self.lock.release()
-					self.lockerid = (defentrytime,'loglevelunlk')
+					self.lockerid = (defentrytime, 'loglevelunlk')
 				return
 			debugitem = kwargs.pop('debugitem', False)
 			entry = ''
@@ -250,7 +257,7 @@ class Logger(object):
 				if self.livelogpos == 0:
 					config.screen.fill(wc('royalblue'))
 				self.livelogpos = self.RenderLogLine(entry, self.LogColors[severity], self.livelogpos)
-				if self.livelogpos > hw.screenheight - screens.botborder: # todo switch to new screen size stuff
+				if self.livelogpos > hw.screenheight - screens.botborder:  # todo switch to new screen size stuff
 					time.sleep(1)
 					self.livelogpos = 0
 				pygame.display.update()
@@ -258,15 +265,14 @@ class Logger(object):
 			self.lastlocalmes = entry
 			if locked:
 				self.lock.release()
-				self.lockerid = (defentrytime,'localunlock')
+				self.lockerid = (defentrytime, 'localunlock')
 
 		except Exception as E:
 			self.RecordMessage(ConsoleError, 'Exception while local logging: {}'.format(repr(E)),
 							   defentrytime, False, True)
 			if locked:
 				self.lock.release()
-				self.lockerid = (defentrytime,'localunlockexc')
-
+				self.lockerid = (defentrytime, 'localunlockexc')
 
 	def RenderLogLine(self, itext, clr, pos):
 		# odd logic below is to make sure that if an unbroken item would by itself exceed line length it gets forced out
@@ -329,4 +335,5 @@ def UpdateGlobalErrorPointer(force=False):
 			primaryBroker.Publish('set', payload='{"name":"System:GlobalLogViewTime","value":' + str(0) + '}',
 								  node='all')
 		else:
-			primaryBroker.Publish('set', payload='{"name":"System:GlobalLogViewTime","value":' + str(config.sysStore.LogStartTime) + '}', node='all')
+			primaryBroker.Publish('set', payload='{"name":"System:GlobalLogViewTime","value":' + str(
+				config.sysStore.LogStartTime) + '}', node='all')

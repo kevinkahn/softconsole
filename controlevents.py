@@ -1,10 +1,13 @@
-import time
 import queue
+import time
 from enum import Enum
-import config
+
 import psutil
+
+import config
 import logsupport
 
+# noinspection PyArgumentList
 CEvent = Enum('ConsoleEvent',
 			  'FailSafePing ACTIVITYTIMER HubNodeChange ISYAlert ISYVar GeneralRepaint RunProc SchedEvent MouseDown MouseUp MouseMotion')
 

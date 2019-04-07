@@ -28,8 +28,8 @@ import pygame
 from configobj import ConfigObj, Section
 
 import config
-import screens.__screens as screens
 import debug
+import screens.__screens as screens
 import timers
 from stores import mqttsupport, valuestore, localvarsupport, sysstore
 
@@ -46,7 +46,7 @@ import hasshub
 import logsupport
 import maintscreen
 import utilities
-from logsupport import ConsoleWarning,ConsoleError
+from logsupport import ConsoleWarning, ConsoleError
 
 import alerttasks
 from stores.weathprov.providerutils import SetUpTermShortener, WeathProvs
@@ -88,10 +88,11 @@ atexit.register(exitutils.exitlogging)
 config.hubtypes['ISY'] = isy.ISY
 config.hubtypes['HASS'] = hasshub.HA
 
+
 # noinspection PyUnusedLocal
 def handler(signum, frame):
 	if signum in (signal.SIGTERM, signal.SIGINT):
-		logsupport.Logs.Log(u"Console received a termination signal ", str(signum), u" - Exiting",tb=True)
+		logsupport.Logs.Log(u"Console received a termination signal ", str(signum), u" - Exiting", tb=True)
 		hw.GoBright(100)
 		print('Exiting via handler')
 		timers.ShutTimers('interrupt')
@@ -141,10 +142,10 @@ def LogBadParams(section, name):
 if os.getegid() != 0:
 	# Not running as root
 	logsupport.Logs.Log(u"Not running as root - exit")
-	print (u"Must run as root")
+	print(u"Must run as root")
 	# noinspection PyProtectedMember
 	sys.exit(exitutils.EARLYABORT)
-#os._exit(exitutils.EARLYABORT)
+# os._exit(exitutils.EARLYABORT)
 
 utilities.InitializeEnvironment()
 
@@ -180,7 +181,6 @@ except (IOError, ValueError):
 
 logsupport.Logs.Log(
 	u'Version/Sha/Dnld/Commit: ' + config.versionname + u' ' + config.versionsha + u' ' + config.versiondnld + u' ' + config.versioncommit)
-
 
 """
 Dynamically load class definitions for all defined screen types, slert types, hubtypes, weather provider types
@@ -231,8 +231,8 @@ else:
 logsupport.Logs.Log("Configuration file: " + config.configfile)
 
 if not os.path.isfile(config.configfile):
-	print ("Abort - no configuration file found")
-	logsupport.Logs.Log('Abort - no configuration file (' + config.hostname + ')')
+	print("Abort - no configuration file found")
+	logsupport.Logs.Log('Abort - no configuration file (' + hw.hostname + ')')
 	exitutils.EarlyAbort('No Configuration File (' + hw.hostname + ')')
 
 ParsedConfigFile = ConfigObj(config.configfile)  # read the config.txt file
@@ -275,7 +275,6 @@ while includes:
 		configfilelist[f] = 0
 
 debug.InitFlags(ParsedConfigFile)
-
 
 for nm, val in config.sysvals.items():
 	config.sysStore.SetVal([nm], val[0](ParsedConfigFile.get(nm, val[1])))
@@ -345,7 +344,7 @@ if "ISYaddr" in ParsedConfigFile:
 	tmp = {"address": ParsedConfigFile.get("ISYaddr", ""),
 		   "password": ParsedConfigFile.get("ISYpassword", ""),
 		   "user": ParsedConfigFile.get("ISYuser", ""),
-					 "type":"ISY"}
+		   "type": "ISY"}
 	ParsedConfigFile['ISY'] = tmp
 
 """
@@ -375,7 +374,7 @@ for i, v in ParsedConfigFile.items():
 			if stype == hubtyp:
 				# noinspection PyBroadException
 				try:
-					config.Hubs[i] = pkg(i, v.get('address',''), v.get('user',''), v.get('password',''))
+					config.Hubs[i] = pkg(i, v.get('address', ''), v.get('user', ''), v.get('password', ''))
 				except BaseException as e:
 					logsupport.Logs.Log("Fatal console error - fix config file: ", e, severity=ConsoleError, tb=False)
 					exitutils.Exit(exitutils.ERRORDIE, immediate=True)  # shutdown and don't try restart
@@ -401,7 +400,6 @@ for i, v in ParsedConfigFile.items():
 										severity=ConsoleError, tb=False)
 				del ParsedConfigFile[i]
 
-
 if screen.screenStore.GetVal('DefaultHub') == '':  # todo handle no hub case for screen testing
 	if len(config.Hubs) == 1:
 		nm = list(config.Hubs.keys())[0]
@@ -419,8 +417,6 @@ else:
 	except KeyError:
 		logsupport.Logs.Log("Specified default Hub doesn't exist", severity=ConsoleWarning)
 		config.defaulthub = None
-
-
 
 """
 Set up alerts and local variables
@@ -471,7 +467,7 @@ LogBadParams(alertspec, "Alerts")
 """
 Dump documentation if development version
 """
-#if config.versionname == 'development':
+# if config.versionname == 'development':
 #	utilities.DumpDocumentation()
 
 """
@@ -486,6 +482,6 @@ timers.ShutTimers('consoleexit')
 pygame.quit()
 # noinspection PyProtectedMember
 sys.exit(config.ecode)
-#os._exit(config.ecode)
+# os._exit(config.ecode)
 
 # This never returns

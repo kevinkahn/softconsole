@@ -1,14 +1,16 @@
-import requests
-import os, sys
-import time
-import pygame
-from utilfuncs import interval_str, TreeDict
 import functools
+import io
+import os
+import sys
+import time
+
 import config
 import logsupport
+import pygame
+import requests
 from logsupport import ConsoleDetail, ConsoleWarning, ConsoleError
-import io
 from stores.weathprov.providerutils import TryShorten
+from utilfuncs import interval_str, TreeDict
 
 EmptyIcon = pygame.Surface((64, 64))
 EmptyIcon.fill((255, 255, 255))
@@ -57,6 +59,7 @@ def fixsky(param):
 def setAge(param, loc):
 	return functools.partial(doage, param, loc)
 
+
 def makeTime(h, m):
 	try:
 		thistime = "{0:02d}:{1:02d}".format(h, m)
@@ -67,6 +70,7 @@ def makeTime(h, m):
 
 def savjson(param, rawjson):
 	return rawjson
+
 
 def makewindir(param):
 	return str(param) + '@'
@@ -92,7 +96,7 @@ CondFieldMap = {'Time': (strtime, ('current_observation', 'observation_epoch')),
 				'Age': (setAge, ('current_observation', 'observation_epoch'), 'location'),
 				'Humidity': (str, ('current_observation', 'relative_humidity')),
 				'Icon': (geticon, ('current_observation', 'icon_url')),
-				'IconURL': (str, ('current_observation','icon_url'))  # todo delete after bug found
+				'IconURL': (str, ('current_observation', 'icon_url'))  # todo delete after bug found
 				}
 
 FcstFieldMap = {'Day': (str, ('date', 'weekday_short')),  # convert to day name

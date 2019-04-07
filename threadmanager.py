@@ -1,8 +1,9 @@
-import logsupport
-from logsupport import ConsoleWarning
 import threading
 import time
+
+import logsupport
 from exitutils import FatalError
+from logsupport import ConsoleWarning
 
 HelperThreads = {}
 Watcher = None
@@ -11,11 +12,12 @@ Watcher = None
 class ThreadStartException(Exception):
 	pass
 
+
 class ThreadItem(object):
 	def __init__(self, name, proc, prestart, poststart, prerestart, postrestart, checkok):
 		self.name = name
 		self.seq = 0
-		self.Proc = proc # base procedure of thread
+		self.Proc = proc  # base procedure of thread
 		self.PreStartThread = prestart
 		self.PostStartThread = poststart
 		self.PreRestartThread = prerestart
@@ -29,7 +31,8 @@ class ThreadItem(object):
 
 def SetUpHelperThread(name, proc, prestart=None, poststart=None, prerestart=None, postrestart=None, checkok=None):
 	global HelperThreads
-	HelperThreads[name] = ThreadItem(name,proc,prestart,poststart,prerestart,postrestart,checkok)
+	HelperThreads[name] = ThreadItem(name, proc, prestart, poststart, prerestart, postrestart, checkok)
+
 
 def DoRestart(T):
 	T.seq += 1
@@ -60,17 +63,18 @@ def CheckThreads():
 					logsupport.Logs.Log("Thread for: " + T.name + " reports not ok; stopping/restarting",
 										severity=ConsoleWarning)
 					if not DoRestart(T):
-					# Fatal Error
+						# Fatal Error
 						FatalError("Unrecoverable helper thread error(CheckOK): " + T.name)
 	except Exception as E:
 		logsupport.Logs.Log("Check threads fatal error: {}".format(repr(E)))
+
 
 def StartThreads():
 	global Watcher
 
 	for T in HelperThreads.values():
 		T.seq += 1
-		logsupport.Logs.Log("Starting helper thread (", T.seq,") for: ", T.name)
+		logsupport.Logs.Log("Starting helper thread (", T.seq, ") for: ", T.name)
 		if T.PreStartThread is not None: T.PreStartThread()
 		T.Thread = threading.Thread(name=T.name, target=T.Proc, daemon=True)
 		T.Thread.start()
@@ -78,11 +82,8 @@ def StartThreads():
 	Watcher = threading.Thread(name='Watcher', target=Watch, daemon=True)
 	Watcher.start()
 
+
 def Watch():
 	while True:
 		CheckThreads()
 		time.sleep(2)
-
-
-
-

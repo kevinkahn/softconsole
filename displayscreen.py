@@ -1,23 +1,29 @@
-import os, hw, sys, time
-import pygame
+import hw
+import multiprocessing
+import os
+import sys
+import threading
+import time
 from collections import OrderedDict
-import threading, multiprocessing
-import logsupport
-import config
 
-import exitutils
+import pygame
+
 import alerttasks
+import config
 import debug
+import exitutils
+import failsafe
+import historybuffer
+import logsupport
+import maintscreen
 import screens.__screens as screens
 import threadmanager
+import timers
 from controlevents import CEvent, PostEvent, ConsoleEvent, GetEvent, GetEventNoWait
 from logsupport import ConsoleWarning, ConsoleError, ConsoleDetail, ReportStatus
-import historybuffer
-import maintscreen
-import timers
-import failsafe
 
 LateTolerance = 2
+
 
 class DisplayScreen(object):
 	def __init__(self):
@@ -38,7 +44,7 @@ class DisplayScreen(object):
 		self.Chain = 0  # which screen chain is active 0: Main chain 1: Secondary Chain
 		self.HBScreens = historybuffer.HistoryBuffer(20, 'Screens')
 		self.HBEvents = historybuffer.HistoryBuffer(80, 'Events')
-		self.ActivityTimer = timers.ResettableTimer(name='ActivityTimer',start=True)
+		self.ActivityTimer = timers.ResettableTimer(name='ActivityTimer', start=True)
 		self.activityseq = 0
 
 	def Dim(self):
@@ -51,7 +57,7 @@ class DisplayScreen(object):
 
 	def SetActivityTimer(self, timeinsecs, dbgmsg):
 		self.activityseq += 1
-		self.ActivityTimer.set(ConsoleEvent(CEvent.ACTIVITYTIMER,seq=self.activityseq,msg=dbgmsg),timeinsecs)
+		self.ActivityTimer.set(ConsoleEvent(CEvent.ACTIVITYTIMER, seq=self.activityseq, msg=dbgmsg), timeinsecs)
 		debug.debugPrint('Dispatch', 'Set activity timer: ', timeinsecs, ' ', dbgmsg)
 
 	def SwitchScreen(self, NS, newdim, newstate, reason, NavKeys=True):
@@ -69,7 +75,7 @@ class DisplayScreen(object):
 			logsupport.Logs.Log('Null switchscreen: ' + reason, hb=True)
 		if self.AS is not None and self.AS != NS:
 			debug.debugPrint('Dispatch', "Switch from: ", self.AS.name, " to ", NS.name, "Nav=", NavKeys, ' State=',
-					   oldstate + '/' + newstate + ':' + olddim + '/' + newdim, ' ', reason)
+							 oldstate + '/' + newstate + ':' + olddim + '/' + newdim, ' ', reason)
 			self.AS.Active = False
 			self.AS.ExitScreen()
 		OS = self.AS
@@ -138,7 +144,7 @@ class DisplayScreen(object):
 				a.trigger.node.Hub.SetAlertWatch(a.trigger.node, a)
 				if a.trigger.IsTrue():
 					# noinspection PyArgumentList
-					PostEvent(CEvent.ISYAlert,'DS-NodeChange', alert=a)
+					PostEvent(CEvent.ISYAlert, 'DS-NodeChange', alert=a)
 			elif a.type == 'VarChange':
 				a.state = 'Init'
 				# Note: VarChange alerts don't need setup because the store has an alert proc
@@ -146,7 +152,8 @@ class DisplayScreen(object):
 			elif a.type == 'Init':
 				a.Invoke()
 			else:
-				logsupport.Logs.Log("Internal error - unknown alert type: ", a.type, ' for ', a.name, severity=ConsoleError, tb=False)
+				logsupport.Logs.Log("Internal error - unknown alert type: ", a.type, ' for ', a.name,
+									severity=ConsoleError, tb=False)
 
 		logsupport.Logs.livelog = False  # turn off logging to the screen
 
@@ -165,40 +172,37 @@ class DisplayScreen(object):
 		Failsafe.daemon = True
 		Failsafe.start()
 
-
-		#failsafe.Injector.start()
-		#failsafe.Failsafe.start()
+		# failsafe.Injector.start()
+		# failsafe.Failsafe.start()
 		logsupport.Logs.Log('Starting master watchdog {} for {}'.format(Failsafe.pid, config.Console_pid))
 
 		event = None
 
 		while config.Running:  # Operational Control Loop
-			if not Failsafe.is_alive(): logsupport.Logs.Log('Watchdog died', severity=ConsoleError,hb=True)
+			if not Failsafe.is_alive(): logsupport.Logs.Log('Watchdog died', severity=ConsoleError, hb=True)
 			failsafe.KeepAlive.set()
 			nowtime = time.time()
-			postwaittime = nowtime
 			if statusperiod <= nowtime or prevstatus != config.consolestatus:
 				ReportStatus(config.consolestatus)
 				prevstatus = config.consolestatus
 				statusperiod = nowtime + 60
 
 			if not threadmanager.Watcher.is_alive():
-				logsupport.Logs.Log("Threadmanager Failure", severity=ConsoleError,tb=False)
+				logsupport.Logs.Log("Threadmanager Failure", severity=ConsoleError, tb=False)
 				exitutils.Exit(exitutils.ERRORRESTART)
 
 			os.utime(config.homedir + "/.ConsoleStart", None)
 			if debug.dbgStore.GetVal('StatesDump'):
-				debug.dbgStore.SetVal('StatesDump',False)
+				debug.dbgStore.SetVal('StatesDump', False)
 				for h, hub in config.Hubs.items():
-					print('States dump for hub: ',h)
+					print('States dump for hub: ', h)
 					hub.StatesDump()
 
-			nowtime2 = time.time()
 			if self.Deferrals:  # an event was deferred mid screen touches - handle now
 				event = self.Deferrals.pop(0)
 				debug.debugPrint('EventList', 'Deferred Event Pop', event)
 			elif debug.dbgStore.GetVal('QDump'):
-				#todo QDump with new event mechanism
+				# todo QDump with new event mechanism
 				'''if events:
 					debug.debugPrint('QDump', 'Time: ', time.time())
 					for e in events:
@@ -211,27 +215,27 @@ class DisplayScreen(object):
 				'''
 				pass
 
-
 			needvalidevent = True
 			while needvalidevent:
 				event = GetEvent()
-				if (event.type == CEvent.ACTIVITYTIMER):
+				if event.type == CEvent.ACTIVITYTIMER:
 					if event.seq == self.activityseq:
 						needvalidevent = False
 					else:
 						if config.versionname == 'development':
-							logsupport.Logs.Log('Outdated activity {} {}'.format(event.seq,self.activityseq))
-							logsupport.DevPrint('outdated activity {} {}'.format(event.seq,self.activityseq))
+							logsupport.Logs.Log('Outdated activity {} {}'.format(event.seq, self.activityseq))
+							logsupport.DevPrint('outdated activity {} {}'.format(event.seq, self.activityseq))
 				else:
 					needvalidevent = False
 			logsupport.DevPrint('New-event: {}'.format(event))
-			self.HBEvents.Entry('Process at {}  {}'.format(time.time(),repr(event)))
+			self.HBEvents.Entry('Process at {}  {}'.format(time.time(), repr(event)))
 			postwaittime = time.time()
 
-			if event.type ==  CEvent.FailSafePing:
-				self.HBEvents.Entry('Saw NOEVENT {} after injection at {}'.format(time.time()-event.inject, event.inject))
-				pass # these appear to make sure loop is running
-			elif event.type == CEvent.MouseDown: #pygame.MOUSEBUTTONDOWN:
+			if event.type == CEvent.FailSafePing:
+				self.HBEvents.Entry(
+					'Saw NOEVENT {} after injection at {}'.format(time.time() - event.inject, event.inject))
+				pass  # these appear to make sure loop is running
+			elif event.type == CEvent.MouseDown:  # pygame.MOUSEBUTTONDOWN:
 				self.HBEvents.Entry('MouseDown' + str(event.pos))
 				debug.debugPrint('Touch', 'MouseDown' + str(event.pos) + repr(event))
 				# screen touch events; this includes touches to non-sensitive area of screen
@@ -256,12 +260,12 @@ class DisplayScreen(object):
 					eventx = GetEventNoWait()
 					if eventx is None:
 						break
-					elif eventx.type == CEvent.MouseDown: #pygame.MOUSEBUTTONDOWN:
+					elif eventx.type == CEvent.MouseDown:  # pygame.MOUSEBUTTONDOWN:
 						self.HBEvents.Entry('Follow MouseDown' + str(event.pos))
 						debug.debugPrint('Touch', 'Follow MouseDown' + str(event.pos) + repr(event))
 						tapcount += 1
-						pygame.time.delay(config.sysStore.MultiTapTime) #todo make general time call?
-					#elif eventx.type == NOEVENT:
+						pygame.time.delay(config.sysStore.MultiTapTime)  # todo make general time call?
+					# elif eventx.type == NOEVENT:
 					#	break
 					else:
 						if eventx.type in (CEvent.MouseUp, CEvent.MouseMotion):
@@ -269,7 +273,7 @@ class DisplayScreen(object):
 						else:
 							self.HBEvents.Entry('Defer' + repr(eventx))
 							self.Deferrals.append(eventx)  # defer the event until after the clicks are sorted out
-						# Future add handling for hold here with checking for MOUSE UP etc.
+					# Future add handling for hold here with checking for MOUSE UP etc.
 				if tapcount == 3:
 					# Switch screen chains
 					if screens.HomeScreen != screens.HomeScreen2:  # only do if there is a real secondary chain
@@ -283,7 +287,8 @@ class DisplayScreen(object):
 
 				elif tapcount > 3:
 					# Go to maintenance
-					timers.StartLongOp('maintenance') # todo a bit ugly - start long op here but end in gohome in maint screen
+					timers.StartLongOp(
+						'maintenance')  # todo a bit ugly - start long op here but end in gohome in maint screen
 					self.SwitchScreen(maintscreen.MaintScreen, 'Bright', 'Maint', 'Tap to maintenance', NavKeys=False)
 					continue
 
@@ -304,7 +309,7 @@ class DisplayScreen(object):
 
 			# ignore for now - handle more complex gestures here if ever needed
 
-			elif event.type == CEvent.ACTIVITYTIMER: #ACTIVITYTIMER:
+			elif event.type == CEvent.ACTIVITYTIMER:  # ACTIVITYTIMER:
 				debug.debugPrint('Dispatch', 'Activity timer fired State=', self.state, '/', self.dim)
 
 				if self.dim == 'Bright':
@@ -327,7 +332,7 @@ class DisplayScreen(object):
 							screens.DimIdleList = screens.DimIdleList[1:] + [screens.DimIdleList[0]]
 							screens.DimIdleTimes = screens.DimIdleTimes[1:] + [screens.DimIdleTimes[0]]
 					else:  # Maint or Alert - just ignore the activity action
-						#logsupport.Logs.Log('Activity timer fired while in state: {}'.format(self.state),severity=ConsoleWarning)
+						# logsupport.Logs.Log('Activity timer fired while in state: {}'.format(self.state),severity=ConsoleWarning)
 						debug.debugPrint('Dispatch', 'TO while in: ', self.state)
 
 
@@ -358,7 +363,8 @@ class DisplayScreen(object):
 							alert.state = 'Delayed'
 							debug.debugPrint('Dispatch', "Post with delay:", alert.name, alert.trigger.delay)
 							TimerName += 1
-							timers.OnceTimer(alert.trigger.delay, start=True, name='MainLoop'+str(TimerName),proc=alerttasks.HandleDeferredAlert,param=alert)
+							timers.OnceTimer(alert.trigger.delay, start=True, name='MainLoop' + str(TimerName),
+											 proc=alerttasks.HandleDeferredAlert, param=alert)
 						else:  # invoke now
 							alert.state = 'FiredNoDelay'
 							debug.debugPrint('Dispatch', "Invoke: ", alert.name)
@@ -380,28 +386,30 @@ class DisplayScreen(object):
 					# condition changed under a pending action (screen or proc) so just cancel and rearm
 					debug.debugPrint('Dispatch', 'Delayed event cleared before invoke', alert.name)
 					alert.state = 'Armed'
-					# todo - verify this is correct.  Issue is that the alert might have gotten here from a delay or from the
-					# alert screen deferring.  The screen uses it's own id for this alert to might be either.  Probably should
-					# distinguish based on if delay or defer but doing both should be same id(alert.actiontarget))  originally this was id-alert for some
-				    # reason I changed it to id-actiontarget don't know why but it was done while adding HASS this screwed up clearing deferred alerts
-					# so switched it back in hopes to remember why the change todo
+				# todo - verify this is correct.  Issue is that the alert might have gotten here from a delay or from the
+				# alert screen deferring.  The screen uses it's own id for this alert to might be either.  Probably should
+				# distinguish based on if delay or defer but doing both should be same id(alert.actiontarget))  originally this was id-alert for some
+				# reason I changed it to id-actiontarget don't know why but it was done while adding HASS this screwed up clearing deferred alerts
+				# so switched it back in hopes to remember why the change todo
 				else:
 					logsupport.Logs.Log("Anomolous change situation  State: ", alert.state, " Alert: ", repr(alert),
 										" Trigger IsTue: ",
 										alert.trigger.IsTrue(), severity=ConsoleWarning, hb=True)
-					debug.debugPrint('Dispatch', 'ISYVar/ISYAlert passing: ', alert.state, alert.trigger.IsTrue(), event,
-							   alert)
-				# Armed and false: irrelevant report
-				# Active and true: extaneous report
-				# Delayed or deferred and true: redundant report
+					debug.debugPrint('Dispatch', 'ISYVar/ISYAlert passing: ', alert.state, alert.trigger.IsTrue(),
+									 event,
+									 alert)
+			# Armed and false: irrelevant report
+			# Active and true: extaneous report
+			# Delayed or deferred and true: redundant report
 
 			elif event.type == CEvent.SchedEvent:
 				self.HBEvents.Entry('Sched event {}'.format(repr(event)))
 				eventnow = time.time()
 				diff = eventnow - event.TargetTime
 				if abs(diff) > LateTolerance:
-					logsupport.Logs.Log('Timer late by {} seconds. Event: {}'.format(diff, repr(event)), severity=ConsoleWarning, hb=True, localonly=True, homeonly=True)
-					self.HBEvents.Entry('Event late by {} target: {} now: {}'.format(diff,event.TargetTime, eventnow))
+					logsupport.Logs.Log('Timer late by {} seconds. Event: {}'.format(diff, repr(event)),
+										severity=ConsoleWarning, hb=True, localonly=True, homeonly=True)
+					self.HBEvents.Entry('Event late by {} target: {} now: {}'.format(diff, event.TargetTime, eventnow))
 				event.proc(event)
 
 			elif event.type == CEvent.RunProc:
@@ -411,11 +419,12 @@ class DisplayScreen(object):
 			else:
 				logsupport.Logs.Log("Unknown main event {}".format(repr(event)), severity=ConsoleError, hb=True,
 									tb=False)
-			if time.time() - postwaittime > 2 and not timers.LongOpInProgress: # this loop took a long time
-				logsupport.Logs.Log("Slow loop at {} took {} for {}".format(time.time(),time.time()-postwaittime,event),severity=ConsoleWarning, hb=True, localonly=True, homeonly=True)
+			if time.time() - postwaittime > 2 and not timers.LongOpInProgress:  # this loop took a long time
+				logsupport.Logs.Log(
+					"Slow loop at {} took {} for {}".format(time.time(), time.time() - postwaittime, event),
+					severity=ConsoleWarning, hb=True, localonly=True, homeonly=True)
 
 		logsupport.Logs.Log('Main Loop Exit: ', config.ecode)
 		timers.ShutTimers('maincontrolloop')
 		pygame.quit()
 		sys.exit(config.ecode)
-

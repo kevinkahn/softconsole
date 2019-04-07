@@ -1,17 +1,20 @@
-import requests
-from datetime import datetime
-import time
-import pygame
-from utilfuncs import interval_str, TreeDict
 import functools
+import time
+from datetime import datetime
+
+import pygame
+import requests
+
 import config
 import logsupport
 from stores.weathprov.providerutils import TryShorten, WeathProvs
+from utilfuncs import interval_str, TreeDict
 
 EmptyIcon = pygame.Surface((64, 64))
 EmptyIcon.fill((255, 255, 255))
 EmptyIcon.set_colorkey((255, 255, 255))
 WeatherIconCache = {'n/a': EmptyIcon}
+
 
 def geticon(url):
 	iconnm = url.split('/')[-2:]
@@ -40,7 +43,6 @@ def setAge(param):
 
 def fcstlength(param):
 	return len(param)
-
 
 
 CondFieldMap = {'Time': (str, ('current', 'last_updated')),
@@ -127,8 +129,9 @@ class APIXUWeatherSource(object):
 
 			return 0  # success
 		except Exception as E:
-			logsupport.Logs.Log('Exception in apixu report processing: ', repr(E),self.json, severity=logsupport.ConsoleWarning)
-			logsupport.Logs.Log('Returned text: ',r.text)
+			logsupport.Logs.Log('Exception in apixu report processing: ', repr(E), self.json,
+								severity=logsupport.ConsoleWarning)
+			logsupport.Logs.Log('Returned text: ', r.text)
 			raise
 
 

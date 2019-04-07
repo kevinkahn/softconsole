@@ -1,21 +1,26 @@
-from threading import Thread, Event
 import time
-from controlevents import CEvent, PostEvent, ConsoleEvent
+from threading import Thread, Event
+
+import config
 import historybuffer
 import logsupport
-import config, os, signal
+import os
+import signal
+from controlevents import CEvent, PostEvent, ConsoleEvent
 
 TimerList = {}
 TimerHB = historybuffer.HistoryBuffer(100, 'Timers')
 LongOpInProgress = False
-LongOpStart = {'maintenance':0}
+LongOpStart = {'maintenance': 0}
+
 
 def StartLongOp(nm):
 	global LongOpInProgress, LongOpStart
 	logsupport.DevPrint('StartLO {}'.format(nm))
 	if nm not in LongOpStart: LongOpStart[nm] = 0
 	if LongOpStart[nm] != 0:
-		logsupport.Logs.Log('Long op start within existing long op for {} {}'.format(nm, LongOpStart), severity=logsupport.ConsoleWarning)
+		logsupport.Logs.Log('Long op start within existing long op for {} {}'.format(nm, LongOpStart),
+							severity=logsupport.ConsoleWarning)
 	LongOpStart[nm] = time.time()
 	LongOpInProgress = any(LongOpStart.values())
 	TimerHB.Entry('Start long op: {} {} {}'.format(nm, LongOpInProgress, LongOpStart))
@@ -25,17 +30,19 @@ def StartLongOp(nm):
 def EndLongOp(nm):
 	global LongOpInProgress, LongOpStart
 	logsupport.DevPrint('EndLO {}'.format(nm))
-	if LongOpStart[nm] == 0: logsupport.Logs.Log('End non-existent long op: {} {}'.format(nm, LongOpStart),severity=logsupport.ConsoleWarning)
+	if LongOpStart[nm] == 0: logsupport.Logs.Log('End non-existent long op: {} {}'.format(nm, LongOpStart),
+												 severity=logsupport.ConsoleWarning)
 	LongOpStart[nm] = 0
 	LongOpInProgress = any(LongOpStart.values())
-	TimerHB.Entry('End long op: {} lasted: {}'.format(nm, time.time()-LongOpStart[nm]))
+	TimerHB.Entry('End long op: {} lasted: {}'.format(nm, time.time() - LongOpStart[nm]))
 	logsupport.DevPrint('End long op: {} {} {}'.format(nm, LongOpInProgress, LongOpStart))
+
 
 def AddToTimerList(name, timer):
 	global TimerList
 	if name in TimerList:
 		TimerList[name].cancel()
-		logsupport.Logs.Log("Duplicate timer name seen: {}".format(name),severity=logsupport.ConsoleWarning,hb=True)
+		logsupport.Logs.Log("Duplicate timer name seen: {}".format(name), severity=logsupport.ConsoleWarning, hb=True)
 		while name in TimerList:
 			TimerHB.Entry("Waiting timer cancel to complete: {}".format(name))
 	TimerList[name] = timer
@@ -51,15 +58,16 @@ def AddToTimerList(name, timer):
 			printlist[n] = "Error?"
 	TimerHB.Entry("Timers : {}".format(printlist))
 
+
 def KillMe():
 	logsupport.DevPrint("Failsafe hit")
 	logsupport.Logs.log("Failsafe hit")
 	time.sleep(1)
-	os.kill(config.Console_pid,signal.SIGKILL)
+	os.kill(config.Console_pid, signal.SIGKILL)
 
 
 def ShutTimers(loc):
-	failsafe = OnceTimer(10.0,start=False,name='Failsafe',proc=KillMe)
+	failsafe = OnceTimer(10.0, start=False, name='Failsafe', proc=KillMe)
 	del TimerList['Failsafe']
 	failsafe.daemon = True
 	failsafe.start()
@@ -70,6 +78,7 @@ def ShutTimers(loc):
 			t.cancel()
 	logsupport.Logs.Log('All timers shut down ({})'.format(loc))
 
+
 class RepeatingPost(Thread):
 	"""
 	Repeatedly post every specified number of seconds:
@@ -77,7 +86,9 @@ class RepeatingPost(Thread):
 
 	def __init__(self, interval, paused=False, start=False, name='', **kwargs):
 		Thread.__init__(self, name=name)
-		TimerHB.Entry("Created RepeatingPost: {} int: {}  start: {} paused: {} args: {}".format(name, interval, start, paused, kwargs))
+		TimerHB.Entry(
+			"Created RepeatingPost: {} int: {}  start: {} paused: {} args: {}".format(name, interval, start, paused,
+																					  kwargs))
 		self.interval = interval
 		self.kwargs = kwargs if kwargs is not None else {}
 		self.kwargs['name'] = name
@@ -86,7 +97,7 @@ class RepeatingPost(Thread):
 		if not paused: self.running.set()
 		AddToTimerList(self.name, self)
 		if start: self.start()
-		self.cumulativeslip = 0 # for analysis purposes
+		self.cumulativeslip = 0  # for analysis purposes
 
 	def cancel(self):
 		"""Stop the timer if it hasn't finished yet."""
@@ -96,10 +107,13 @@ class RepeatingPost(Thread):
 		temp = 5
 		while self.is_alive():
 			TimerHB.Entry("Cancelling repeater: {}".format(self.name))
-			time.sleep(.001) # wait for thread to finish to avoid any late activations causing races
+			time.sleep(.001)  # wait for thread to finish to avoid any late activations causing races
 			temp -= 1
 			if temp < 0:
-				logsupport.Logs.Log("RepeatingPost {} won't cancel finished: {} running: {}".format(self.name,self.finished.is_set(),self.running.is_set()),severity=logsupport.ConsoleError,hb=True,tb=False)
+				logsupport.Logs.Log(
+					"RepeatingPost {} won't cancel finished: {} running: {}".format(self.name, self.finished.is_set(),
+																					self.running.is_set()),
+					severity=logsupport.ConsoleError, hb=True, tb=False)
 				return
 		TimerHB.Entry("Canceled repeater: {}".format(self.name))
 
@@ -118,23 +132,27 @@ class RepeatingPost(Thread):
 			if not self.finished.is_set():
 				if self.running.is_set():
 					self.kwargs['TargetTime'] = targettime
-					diff = time.time()- targettime
+					diff = time.time() - targettime
 					self.cumulativeslip += diff
-					TimerHB.Entry('Post repeater: {} diff: {} cumm: {} args: {}'.format(self.name, diff, self.cumulativeslip, self.kwargs))
-					tt = ConsoleEvent(CEvent.SchedEvent,**self.kwargs)
+					TimerHB.Entry(
+						'Post repeater: {} diff: {} cumm: {} args: {}'.format(self.name, diff, self.cumulativeslip,
+																			  self.kwargs))
+					tt = ConsoleEvent(CEvent.SchedEvent, **self.kwargs)
 					PostEvent(tt)
-					targettime = time.time() + self.interval # don't accumulate errors
+					targettime = time.time() + self.interval  # don't accumulate errors
 				else:
 					self.running.wait()
 					targettime = time.time() + self.interval
 		del TimerList[self.name]
 		TimerHB.Entry('Exit repeater: {}'.format(self.name))
 
+
 class ResettableTimer(Thread):
-	'''
+	"""
 	Timer that can be reset to a new event and time; note that due to race conditions the old event my fire even if the
 	new event seems to be set before the firing time so the validity  must be checked before actually processing if executing early is an issue
-	'''
+	"""
+
 	def __init__(self, start=False, name='', **kwargs):
 		Thread.__init__(self, name=name)
 		TimerHB.Entry("Created ResettableTimer: {} start: {} args: {}".format(name, start, kwargs))
@@ -142,6 +160,8 @@ class ResettableTimer(Thread):
 		self.kwargs = kwargs if kwargs is not None else {}
 		self.kwargs['name'] = name
 		self.finished = Event()
+		self.newevent = None # these are used to communicate from set to actual timer loop
+		self.newdelta = 999
 		AddToTimerList(self.name, self)
 		self.eventtopost = None
 		self.changingevent = Event()
@@ -156,46 +176,47 @@ class ResettableTimer(Thread):
 		temp = 5
 		while self.is_alive():
 			TimerHB.Entry("Cancelling resettable: {}".format(self.name))
-			time.sleep(.001) # wait for thread to finish to avoid any late activations causing races
+			time.sleep(.001)  # wait for thread to finish to avoid any late activations causing races
 			temp -= 1
 			if temp < 0:
-				logsupport.Logs.Log("Resettable {} won't cancel finished: {} changing: {} changedone: {}".format(self.name,self.finished.is_set(),self.changingevent.is_set(),
-									self.changedone), severity=logsupport.ConsoleError,hb=True,tb=False)
+				logsupport.Logs.Log(
+					"Resettable {} won't cancel finished: {} changing: {} changedone: {}".format(self.name,
+																								 self.finished.is_set(),
+																								 self.changingevent.is_set(),
+																								 self.changedone),
+					severity=logsupport.ConsoleError, hb=True, tb=False)
 				return
 		TimerHB.Entry("Canceled resettable: {}".format(self.name))
 
-	def set(self,event,delta):
+	def set(self, event, delta):
 		self.newevent = event
 		self.newdelta = delta
 		self.changingevent.set()
 		self.changedone.wait()
 		self.changedone.clear()
 
-
 	def run(self):
 		TimerHB.Entry('Start resettable: {}'.format(self.name))
 		while True:
 			while self.interval == 0:
-				self.changingevent.wait() # there is not event time set
+				self.changingevent.wait()  # there is not event time set
 				self.eventtopost = self.newevent
 				self.interval = self.newdelta
-				self.changingevent.clear() # new values copied up so assuming non-zero interval should proceed to wait in next statement
+				self.changingevent.clear()  # new values copied up so assuming non-zero interval should proceed to wait in next statement
 				self.changedone.set()
-			while not self.changingevent.wait(self.interval):  #enter while loop if interval ends
+			while not self.changingevent.wait(self.interval):  # enter while loop if interval ends
 				TimerHB.Entry('Post resettable: {}'.format(self.eventtopost))
 				PostEvent(self.eventtopost)
 			# get here if changingevent got set - either new values ready or canceling timer
-			if self.finished.is_set(): break # shutting down requires cancel to set first finished then changing to insure this is set here
+			if self.finished.is_set(): break  # shutting down requires cancel to set first finished then changing to insure this is set here
 			self.eventtopost = self.newevent
 			self.interval = self.newdelta
 			self.changingevent.clear()
 			self.changedone.set()
-			# otherwise back to waiting for a non-zero interval to set
-
+		# otherwise back to waiting for a non-zero interval to set
 
 		del TimerList[self.name]
 		TimerHB.Entry('Exit repeater: {}'.format(self.name))
-
 
 
 class CountedRepeatingPost(Thread):
@@ -203,9 +224,10 @@ class CountedRepeatingPost(Thread):
 		Thread.__init__(self, name=name)
 		TimerHB.Entry(
 			"Created CountedRepeatingPost: {} int: {}  count: {} start: {} paused: {} args: {}".format(name, interval,
-						count, start, paused, kwargs))
+																									   count, start,
+																									   paused, kwargs))
 		self.interval = interval
-		#self.args = args if args is not None else []
+		# self.args = args if args is not None else []
 		self.kwargs = kwargs if kwargs is not None else {}
 		self.kwargs['name'] = name
 		self.kwargs['initcount'] = count
@@ -241,7 +263,7 @@ class OnceTimer(Thread):
 		Thread.__init__(self, name=name)
 		TimerHB.Entry(
 			"Created OnceTimer: {} int: {}  start: {} paused: {} args: {}".format(name, interval, start, paused,
-																					  kwargs))
+																				  kwargs))
 		self.interval = interval
 		self.kwargs = kwargs if kwargs is not None else {}
 		self.kwargs['name'] = name
@@ -261,9 +283,9 @@ class OnceTimer(Thread):
 		self.finished.wait(self.interval)
 		if not self.finished.is_set():
 			TimerHB.Entry(
-				'Post once: {} diff: {} args: {}'.format(self.name, time.time() - self.kwargs['TargetTime'], self.kwargs))
+				'Post once: {} diff: {} args: {}'.format(self.name, time.time() - self.kwargs['TargetTime'],
+														 self.kwargs))
 			PostEvent(ConsoleEvent(CEvent.SchedEvent, **self.kwargs))
 		self.finished.set()
 		del TimerList[self.name]
 		TimerHB.Entry('Exit once: {}'.format(self.name))
-

@@ -1,6 +1,6 @@
 import time
-import threading
 from threading import Thread, Event
+
 
 class RepeatingTimer(Thread):
 	"""Call a function after a specified number of seconds:
@@ -53,11 +53,13 @@ class RepeatingTimer(Thread):
 			self.function(*self.args, **self.kwargs)
 			
 '''
+
+
 def testfn():
 	print('Tick')
 
 
-t = RepeatingTimer(1,testfn, name='TestTimer')
+t = RepeatingTimer(1, testfn, name='TestTimer')
 
 print('{} Starting'.format(time.time()))
 t.start()
@@ -68,8 +70,8 @@ time.sleep(3)
 print('{} resume'.format(time.time()))
 t.resume()
 time.sleep(5)
-#print('{} pause'.format(time.time()))
-#t.pause()
+# print('{} pause'.format(time.time()))
+# t.pause()
 print('{} cancel'.format(time.time()))
 t.cancel()
 time.sleep(3)

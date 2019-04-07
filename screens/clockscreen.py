@@ -37,6 +37,7 @@ class ClockScreenDesc(screen.ScreenDesc):
 		self.poster = RepeatingPost(1.0, paused=True, name=self.name, proc=self.repaintClock)
 		self.poster.start()
 
+	# noinspection PyUnusedLocal
 	def repaintClock(self, param=None):
 		if not self.Active: return  # handle race conditions where repaint queued just before screen switch
 		h = 0

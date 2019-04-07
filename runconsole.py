@@ -7,7 +7,8 @@ For now it looks for a file usebeta to select the beta version.  If a file versi
 This might make some testing scenarios easier
 """
 
-import subprocess, os
+import os
+import subprocess
 
 if os.path.isfile('usebeta'):
 	# use the beta version
@@ -17,15 +18,14 @@ else:
 	versdir = 'consolestable'
 
 if os.path.isfile('versionselector'):
-	with open('versionselector','r') as f:
+	with open('versionselector', 'r') as f:
 		vers = f.readline().rstrip('\n')
 	versdir = 'console' + vers
 
-print('Starting using directory: '+versdir)
+print('Starting using directory: ' + versdir)
 os.chdir(versdir)
 
-consolepid = subprocess.Popen(['python3','console.py']).pid
+consolepid = subprocess.Popen(['python3', 'console.py']).pid
 
-with open('../console.pid','w') as f:
+with open('../console.pid', 'w') as f:
 	f.write(str(consolepid))
-

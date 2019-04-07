@@ -1,16 +1,16 @@
 import time
 
 import config
+import debug
+import logsupport
+import pygame
 import screen
 import utilities
-import debug
-from utilfuncs import wc
-from stores import valuestore, weatherstore
-from weatherfromatting import CreateWeathBlock, WFormatter
-import pygame
 from eventlist import ProcEventItem
-import logsupport
 from logsupport import ConsoleWarning
+from stores import valuestore, weatherstore
+from utilfuncs import wc
+from weatherfromatting import CreateWeathBlock, WFormatter
 
 
 def extref(listitem, indexitem):

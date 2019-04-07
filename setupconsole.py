@@ -1,7 +1,9 @@
+import grp
 import os
-import pwd, grp
-import githubutil as U
+import pwd
 import subprocess
+
+import githubutil as U
 
 # Set up directories
 
@@ -17,9 +19,9 @@ for pdir in ('Console', 'consolestable', 'consolebeta', 'consolerem'):
 	# noinspection PyBroadException
 	try:
 		os.mkdir(pdir)
-		print("Created: "+ str(pdir))
+		print("Created: " + str(pdir))
 	except:
-		print("Already present: "+ str(pdir))
+		print("Already present: " + str(pdir))
 	os.chown(pdir, piuid, pigrp)
 
 if os.path.exists('homesystem'):
@@ -32,10 +34,8 @@ else:
 U.InstallStagedVersion('consolestable')
 print("Installed staged stable")
 
-
 if os.path.exists('homesystem'):
 	os.mkdir('consolecur')
 	os.chown('consolecur', piuid, pigrp)
-
 
 subprocess.call("cp -r /home/pi/consolestable/'example configs'/* /home/pi/Console", shell=True)

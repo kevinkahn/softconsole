@@ -1,14 +1,14 @@
-import Queue
 import errno
 import glob
 import io
 import os
-import select
 import struct
 import threading
 from collections import namedtuple
 
+import Queue
 import pygame
+import select
 
 TOUCH_X = 0
 TOUCH_Y = 1
@@ -241,9 +241,9 @@ if __name__ == "__main__":
 
 	def handle_event(event, touch):
 		print(["Release", "Press", "Move"][event],
-		      touch.slot,
-		      touch.x,
-		      touch.y)
+			  touch.slot,
+			  touch.x,
+			  touch.y)
 		if event == 1:
 			e = pygame.event.Event(pygame.MOUSEBUTTONDOWN, {'pos': (touch.x, touch.y)})
 			pygame.fastevent.post(e)

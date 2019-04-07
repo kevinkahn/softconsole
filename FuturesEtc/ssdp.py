@@ -25,90 +25,85 @@
 #   limitations under the License.
 
 
-
 import socket
 
 import httplib
 
-#import StringIO
 
+# import StringIO
 
 
 class SSDPResponse(object):
+	class _FakeSocket(StringIO.StringIO):
 
-    class _FakeSocket(StringIO.StringIO):
+		def makefile(self, *args, **kw):
+			return self
 
-        def makefile(self, *args, **kw):
+	def __init__(self, response):
+		r = httplib.HTTPResponse(self._FakeSocket(response))
 
-            return self
+		r.begin()
 
-    def __init__(self, response):
+		self.location = r.getheader("location")
 
-        r = httplib.HTTPResponse(self._FakeSocket(response))
+		self.usn = r.getheader("usn")
 
-        r.begin()
+		self.st = r.getheader("st")
 
-        self.location = r.getheader("location")
+		self.cache = r.getheader("cache-control").split("=")[1]
 
-        self.usn = r.getheader("usn")
-
-        self.st = r.getheader("st")
-
-        self.cache = r.getheader("cache-control").split("=")[1]
-
-    def __repr__(self):
-
-        return "<SSDPResponse({location}, {st}, {usn})>".format(**self.__dict__)
-
+	def __repr__(self):
+		return "<SSDPResponse({location}, {st}, {usn})>".format(**self.__dict__)
 
 
 def FindISY():
+	group = ("239.255.255.250", 1900)
+	print
+	'DISCOVER'
 
-    group = ("239.255.255.250", 1900)
-    print 'DISCOVER'
+	message = "\r\n".join([
+		'M-SEARCH * HTTP/1.1',
+		'HOST:239.255.255.250:1900',
+		'MAN:"ssdp:discover"',
+		# 'ST:urn:udi-com:device:X_Insteon_Lighting_Device:1',
+		'ST: urn:schemas - upnp - org:device:ZonePlayer:1',
+		# 'ST:ssdp:all',
+		# 'ST:urn:udi-com',
+		'MX:3']).encode('utf-8')
+	print
+	message
 
-    message = "\r\n".join([
-        'M-SEARCH * HTTP/1.1',
-        'HOST:239.255.255.250:1900',
-        'MAN:"ssdp:discover"',
-        #'ST:urn:udi-com:device:X_Insteon_Lighting_Device:1',
-        'ST: urn:schemas - upnp - org:device:ZonePlayer:1',
-        #'ST:ssdp:all',
-        #'ST:urn:udi-com',
-        'MX:3']).encode('utf-8')
-    print message
+	socket.setdefaulttimeout(60)
 
-    socket.setdefaulttimeout(60)
+	responses = {}
 
-    responses = {}
+	for _ in range(1):
 
-    for _ in range(1):
+		sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
 
-        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
+		sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
-        sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+		sock.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, 2)
+		sock.sendto(message, group)
+		sock.sendto(message, group)
+		sock.sendto(message, group)
 
-        sock.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, 2)
-        sock.sendto(message, group)
-        sock.sendto(message, group)
-        sock.sendto(message, group)
+		while True:
 
-        while True:
+			try:
 
-            try:
+				response = SSDPResponse(sock.recv(1024))
+				print
+				response.location
+				print
+				response
+				responses[response.location] = response
 
-                response = SSDPResponse(sock.recv(1024))
-                print response.location
-                print response
-                responses[response.location] = response
+			except socket.timeout:
 
-            except socket.timeout:
+				break
 
-                break
-
-    return responses.values()
-
-
+	return responses.values()
 
 # Example:
 

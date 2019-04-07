@@ -1,4 +1,5 @@
 from __future__ import print_function
+
 from future.builtins.misc import input
 
 ISYname = ""

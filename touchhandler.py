@@ -1,15 +1,17 @@
 # adapted from pimoroni evdev support for the 7 inch capacitive screen
 # added support for the resistive 3.5 and maybe others that doesn't depend upon SDL 1.2
+import errno
 import glob
 import io
 import os
-import errno
-import struct
-from collections import namedtuple
-import select
 import queue
-import debug
+import struct
 import time
+from collections import namedtuple
+
+import select
+
+import debug
 
 TOUCH_X = 0
 TOUCH_Y = 1
@@ -125,8 +127,8 @@ class Touchscreen(object):
 
 	def __init__(self):
 		self._use_multitouch = True
-		self._flipx = 0 # 0 for ok else size of x from which to subtract touch value
-		self._flipy = 0 # 0 for ok else size of y from which to subtract touch value
+		self._flipx = 0  # 0 for ok else size of x from which to subtract touch value
+		self._flipy = 0  # 0 for ok else size of y from which to subtract touch value
 		self._capscreen = True
 		self.a = None
 		self._running = False
@@ -139,13 +141,10 @@ class Touchscreen(object):
 		self._event_queue = queue.Queue()
 		self._touch_slot = 0
 
-
 	def _run(self):
 		self._running = True
 		while self._running:
-			pollstart = time.time()
 			self.poll()
-			pollend = time.time()
 			time.sleep(0.00001)  # todo deeper analysis of whether this loop can hog cpu
 
 	def run(self):
@@ -195,7 +194,7 @@ class Touchscreen(object):
 
 		while not self._event_queue.empty():
 			event = self._event_queue.get()
-			debug.debugPrint('LLTouch','Touch: '+ str(event))
+			debug.debugPrint('LLTouch', 'Touch: ' + str(event))
 			self._event_queue.task_done()
 
 			if event.type == EV_SYN:  # Sync
@@ -211,8 +210,10 @@ class Touchscreen(object):
 						self._current_touch.x = self.position.x
 						self._current_touch.y = self.position.y
 					else:
-						self._current_touch.x = (self.a[2] + self.a[0] * self.position.x + self.a[1] * self.position.y) / self.a[6]
-						self._current_touch.y = (self.a[5] + self.a[3] * self.position.x + self.a[4] * self.position.y) / self.a[6]
+						self._current_touch.x = (self.a[2] + self.a[0] * self.position.x + self.a[
+							1] * self.position.y) / self.a[6]
+						self._current_touch.y = (self.a[5] + self.a[3] * self.position.x + self.a[
+							4] * self.position.y) / self.a[6]
 					if event.value == 1:
 						self._current_touch.events.append(TS_PRESS)
 					else:
@@ -246,7 +247,7 @@ class Touchscreen(object):
 		return []
 
 	def _touch_device(self):
-		#return '/dev/input/touchscreen'
+		# return '/dev/input/touchscreen'
 		for evdev in glob.glob("/sys/class/input/event*"):
 			try:
 				with io.open(os.path.join(evdev, 'device', 'name'), 'r') as f:
@@ -255,7 +256,7 @@ class Touchscreen(object):
 						return os.path.join('/dev', 'input', os.path.basename(evdev))
 					elif dev == self.TOUCHSCREEN_RESISTIVE:
 						self._capscreen = False
-						with open('/etc/pointercal','r') as pc:
+						with open('/etc/pointercal', 'r') as pc:
 							self.a = list(int(x) for x in next(pc).split())
 						# set to do corrections? TODO read pointercal and set a flag to correct
 						return os.path.join('/dev', 'input', os.path.basename(evdev))
