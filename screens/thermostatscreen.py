@@ -1,29 +1,29 @@
-import pygame
+import functools
 
-import fonts
-import hw
-import logsupport
-import screens.__screens as screens
-from logsupport import ConsoleWarning, ConsoleError
+import pygame
+import xmltodict
 from pygame import gfxdraw
-import isy # only to test that the hub for this is an ISY hub
 
 import config
 import debug
+import fonts
+import hw
+import isy  # only to test that the hub for this is an ISY hub
+import logsupport
 import screen
-import xmltodict
+import screens.__screens as screens
 import toucharea
 import utilities
 from hw import scaleW, scaleH
+from logsupport import ConsoleWarning, ConsoleError
 from utilfuncs import wc
-import functools
 
 
 def trifromtop(h, v, n, size, c, invert):
 	if invert:
-		return h*n, v + size//2, h*n - size//2, v - size//2, h*n + size//2, v - size//2, c
+		return h * n, v + size // 2, h * n - size // 2, v - size // 2, h * n + size // 2, v - size // 2, c
 	else:
-		return h*n, v - size//2, h*n - size//2, v + size//2, h*n + size//2, v + size//2, c
+		return h * n, v - size // 2, h * n - size // 2, v + size // 2, h * n + size // 2, v + size // 2, c
 
 
 class ThermostatScreenDesc(screen.BaseKeyScreenDesc):
@@ -48,19 +48,19 @@ class ThermostatScreenDesc(screen.BaseKeyScreenDesc):
 			logsupport.Logs.Log("Thermostat screen only works with ISY hub", severity=ConsoleError)
 			self.ISYObj = None
 
-		self.SetScreenTitle(screen.FlatenScreenLabel(self.label),nominalfontsz[1],self.CharColor)
+		self.SetScreenTitle(screen.FlatenScreenLabel(self.label), nominalfontsz[1], self.CharColor)
 		self.TempPos = self.startvertspace
 		'''
 		Size and positions based on nominal 480 vertical screen less top/bottom borders less default title size of 50
 		Compute other fonts sizes based on what is left after that given user ability to set actual title size
 		'''
 		tempsurf = fonts.fonts.Font(50).render('Temp', 0, wc(self.CharColor))
-		useable = self.useablevertspace/(self.initialvertspace - tempsurf.get_height())
+		useable = self.useablevertspace / (self.initialvertspace - tempsurf.get_height())
 
 		for fs in nominalfontsz:
-			self.fsize.append(int(fs*useable))
+			self.fsize.append(int(fs * useable))
 		for fs in nominalspacers:
-			self.spacer.append(int(fs*useable))
+			self.spacer.append(int(fs * useable))
 
 		self.StatePos = self.TempPos + fonts.fonts.Font(self.fsize[3]).get_linesize() - scaleH(self.spacer[1])
 		self.SPPos = self.StatePos + scaleH(self.spacer[2])
@@ -73,13 +73,15 @@ class ThermostatScreenDesc(screen.BaseKeyScreenDesc):
 		arrowsize = scaleH(self.spacer[3])  # pixel
 
 		for i in range(4):
-			gfxdraw.filled_trigon(self.AdjButSurf, *trifromtop(centerspacing, arrowsize//2, i + 1, arrowsize,
-															   wc(("red", "blue", "red", "blue")[i]), i%2 != 0))
+			gfxdraw.filled_trigon(self.AdjButSurf, *trifromtop(centerspacing, arrowsize // 2, i + 1, arrowsize,
+															   wc(("red", "blue", "red", "blue")[i]), i % 2 != 0))
 			self.Keys['temp' + str(i)] = toucharea.TouchPoint('temp' + str(i),
-															  (centerspacing*(i + 1), self.AdjButTops + arrowsize//2),
-															  (arrowsize*1.2, arrowsize*1.2),
+															  (centerspacing * (i + 1),
+															   self.AdjButTops + arrowsize // 2),
+															  (arrowsize * 1.2, arrowsize * 1.2),
 															  proc=functools.partial(self.BumpTemp,
-																					 ('CLISPH', 'CLISPH', 'CLISPC', 'CLISPC')[i],
+																					 ('CLISPH', 'CLISPH', 'CLISPC',
+																					  'CLISPC')[i],
 																					 (2, -2, 2, -2)[i]))
 
 		self.ModeButPos = self.AdjButTops + scaleH(self.spacer[5])  # pixel
@@ -98,54 +100,57 @@ class ThermostatScreenDesc(screen.BaseKeyScreenDesc):
 												   KOn=self.KeyOffOutlineColor,
 												   proc=functools.partial(self.BumpMode, 'CLIFS', (7, 8)))
 
-		self.ModesPos = self.ModeButPos + bsize[1]//2 + scaleH(self.spacer[0])
+		self.ModesPos = self.ModeButPos + bsize[1] // 2 + scaleH(self.spacer[0])
 		if self.ISYObj is not None:
-			self.HubInterestList[self.isy.name] = {self.ISYObj.address: self.Keys['Mode']} # placeholder for thermostat node
+			self.HubInterestList[self.isy.name] = {
+				self.ISYObj.address: self.Keys['Mode']}  # placeholder for thermostat node
 		utilities.register_example("ThermostatScreenDesc", self)
 
 	# noinspection PyUnusedLocal
 	def BumpTemp(self, setpoint, degrees, presstype):
-		debug.debugPrint('Main', "Bump temp: ", setpoint, degrees,' to ',self.info[setpoint][0] + degrees)
+		debug.debugPrint('Main', "Bump temp: ", setpoint, degrees, ' to ', self.info[setpoint][0] + degrees)
 		self.isy.try_ISY_comm('nodes/' + self.ISYObj.address + '/cmd/' + setpoint + '/' + str(
-				self.info[setpoint][0] + degrees))  # todo fix for lost connect when move to common screen
+			self.info[setpoint][0] + degrees))  # todo fix for lost connect when move to common screen
 
 	# noinspection PyUnusedLocal
 	def BumpMode(self, mode, vals, presstype):
 		cv = vals.index(self.info[mode][0])
-		cv = (cv + 1)%len(vals)
+		cv = (cv + 1) % len(vals)
 		debug.debugPrint('Main', "Bump: ", mode, ' to ', cv)
-		self.isy.try_ISY_comm('nodes/' + self.ISYObj.address + '/cmd/' + mode + '/' + str(vals[cv])) # todo fix for lost connect when move to common screen
+		self.isy.try_ISY_comm('nodes/' + self.ISYObj.address + '/cmd/' + mode + '/' + str(
+			vals[cv]))  # todo fix for lost connect when move to common screen
 
 	def ShowScreen(self):
-		rtxt = self.isy.try_ISY_comm('nodes/' + self.ISYObj.address) # todo fix for lost connect when move to common screen
+		rtxt = self.isy.try_ISY_comm(
+			'nodes/' + self.ISYObj.address)  # todo fix for lost connect when move to common screen
 		# noinspection PyBroadException
 		try:
 			tstatdict = xmltodict.parse(rtxt)
 		except:
-			logsupport.Logs.Log("Thermostat node sent garbage: ",rtxt,severity=ConsoleWarning)
+			logsupport.Logs.Log("Thermostat node sent garbage: ", rtxt, severity=ConsoleWarning)
 			return
 		props = tstatdict["nodeInfo"]["properties"]["property"]
 		self.oldinfo = dict(self.info)
 		self.info = {}
 		dbgStr = ''
 		for item in props:
-			dbgStr = dbgStr + item["@id"]+':'+item["@formatted"]+"("+item["@value"]+")  "
-#			debug.debugPrint('Main', item["@id"]+":("+item["@value"]+"):"+item["@formatted"])
+			dbgStr = dbgStr + item["@id"] + ':' + item["@formatted"] + "(" + item["@value"] + ")  "
+			#			debug.debugPrint('Main', item["@id"]+":("+item["@value"]+"):"+item["@formatted"])
 			# noinspection PyBroadException
 			try:
 				self.info[item["@id"]] = (int(item['@value']), item['@formatted'])
 			except:
 				self.info[item["@id"]] = (0, item['@formatted'])
-		debug.debugPrint('Main',dbgStr)
+		debug.debugPrint('Main', dbgStr)
 		if self.oldinfo == {}:
-			self.oldinfo = dict(self.info) # handle initial case
+			self.oldinfo = dict(self.info)  # handle initial case
 			updtneeded = True
 		else:
 			updtneeded = False
-		for i,val in self.info.items():
+		for i, val in self.info.items():
 			if self.oldinfo[i] != val:
 				updtneeded = True
-				debug.debugPrint('Main','Tstat reading change: ',i+':',self.oldinfo[i],'->',self.info[i])
+				debug.debugPrint('Main', 'Tstat reading change: ', i + ':', self.oldinfo[i], '->', self.info[i])
 
 		if not updtneeded:
 			return
@@ -182,17 +187,17 @@ class ThermostatScreenDesc(screen.BaseKeyScreenDesc):
 														wc(self.CharColor))
 		except:
 			r2 = fonts.fonts.Font(self.fsize[1]).render('---', 0, wc(self.CharColor))
-		config.screen.blit(r1, (self.Keys['Mode'].Center[0] - r1.get_width()//2, self.ModesPos))
-		config.screen.blit(r2, (self.Keys['Fan'].Center[0] - r2.get_width()//2, self.ModesPos))
+		config.screen.blit(r1, (self.Keys['Mode'].Center[0] - r1.get_width() // 2, self.ModesPos))
+		config.screen.blit(r2, (self.Keys['Fan'].Center[0] - r2.get_width() // 2, self.ModesPos))
 
 		pygame.display.update()
 
 	def InitDisplay(self, nav):
 		super(ThermostatScreenDesc, self).InitDisplay(nav)
-		self.info = {} # clear any old info to force a display
+		self.info = {}  # clear any old info to force a display
 		self.ShowScreen()
 
-	def NodeEvent(self, hub ='', node=0, value=0, varinfo = ()):
+	def NodeEvent(self, hub='', node=0, value=0, varinfo=()):
 		self.ShowScreen()
 
 

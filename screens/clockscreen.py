@@ -1,17 +1,19 @@
+import time
+
+import pygame
+
+import config
+import debug
 import fonts
 import hw
-import screens.__screens as screens
-from utilfuncs import wc
-import config
-import time
-import pygame
-import debug
-import screen
-import utilities
 import logsupport
+import screen
+import screens.__screens as screens
+import utilities
 from logsupport import ConsoleWarning
-from weatherfromatting import CreateWeathBlock
 from timers import RepeatingPost
+from utilfuncs import wc
+from weatherfromatting import CreateWeathBlock
 
 
 class ClockScreenDesc(screen.ScreenDesc):
@@ -32,11 +34,11 @@ class ClockScreenDesc(screen.ScreenDesc):
 				self.DecodedExtraFields.append(f.split(':'))
 			else:
 				logsupport.Logs.Log("Incomplete field specified on clockscreen", severity=ConsoleWarning)
-		self.poster = RepeatingPost(1.0,paused=True, name=self.name,proc=self.repaintClock)
+		self.poster = RepeatingPost(1.0, paused=True, name=self.name, proc=self.repaintClock)
 		self.poster.start()
 
 	def repaintClock(self, param=None):
-		if not self.Active: return # handle race conditions where repaint queued just before screen switch
+		if not self.Active: return  # handle race conditions where repaint queued just before screen switch
 		h = 0
 		l = []
 
@@ -49,7 +51,7 @@ class ClockScreenDesc(screen.ScreenDesc):
 			cb = CreateWeathBlock(self.ExtraFormat, self.DecodedExtraFields, self.Font,
 								  self.ExtraSize, self.CharColor, None, True, useicon=False)
 			h = h + cb.get_height()
-		s = (self.useablevertspace - h)/(len(l))
+		s = (self.useablevertspace - h) / (len(l))
 
 		self.ReInitDisplay()
 		vert_off = self.startvertspace
@@ -62,8 +64,8 @@ class ClockScreenDesc(screen.ScreenDesc):
 			horiz_off = (hw.screenwidth - cb.get_width()) // 2
 			config.screen.blit(cb, (horiz_off, vert_off))
 		pygame.display.update()
-		#config.DS.Tasks.AddTask(self.ClockRepaintEvent, 1)
 
+	# config.DS.Tasks.AddTask(self.ClockRepaintEvent, 1)
 
 	def InitDisplay(self, nav):
 		super(ClockScreenDesc, self).InitDisplay(nav)

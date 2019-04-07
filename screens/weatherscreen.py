@@ -1,19 +1,22 @@
+from collections import OrderedDict
+
 import pygame
+
 import config
 import debug
 import fonts
 import hw
-import screens.__screens as screens
-from stores import valuestore
-import screen
 import logsupport
-from weatherfromatting import CreateWeathBlock, WFormatter
-import utilities
+import screen
+import screens.__screens as screens
 import toucharea
-from collections import OrderedDict
+import utilities
+from stores import valuestore
 from utilfuncs import wc
+from weatherfromatting import CreateWeathBlock, WFormatter
 
 fsizes = ((20, False, False), (30, True, False), (45, True, True))
+
 
 class WeatherScreenDesc(screen.ScreenDesc):
 	def __init__(self, screensection, screenname):
@@ -40,7 +43,7 @@ class WeatherScreenDesc(screen.ScreenDesc):
 		self.dayfields = list(((self.location, 'Cond', x) for x in ('Sunrise', 'Sunset', 'Moonrise', 'Moonset')))
 
 		self.footformat = "Readings as of {d[0]}",
-		self.footfields = ((self.location,'Cond','Age'),)
+		self.footfields = ((self.location, 'Cond', 'Age'),)
 
 		self.fcstformat = u"{d[0]}   {d[1]}\u00B0/{d[2]}\u00B0 {d[3]}", "Wind: {d[4]}"
 		self.fcstfields = list(((self.location, 'Fcst', x) for x in ('Day', 'High', 'Low', 'Sky', 'WindSpd')))
@@ -48,7 +51,8 @@ class WeatherScreenDesc(screen.ScreenDesc):
 		try:
 			self.store = valuestore.ValueStores[self.location]
 		except KeyError:
-			logsupport.Logs.Log("Weather screen {} using non-existent location {}".format(screenname, self.location), severity = logsupport.ConsoleWarning)
+			logsupport.Logs.Log("Weather screen {} using non-existent location {}".format(screenname, self.location),
+								severity=logsupport.ConsoleWarning)
 			raise ValueError
 		self.loggedonce = False
 		utilities.register_example("WeatherScreenDesc", self)
@@ -73,7 +77,7 @@ class WeatherScreenDesc(screen.ScreenDesc):
 				fonts.fonts.Font(45, "").render('Weather Not Available', 0, wc(self.CharColor))]
 			for l in renderedlines:
 				config.screen.blit(l, ((hw.screenwidth - l.get_width()) / 2, vert_off))
-				vert_off = vert_off + 60 # todo use useable space stuff and vert start
+				vert_off = vert_off + 60  # todo use useable space stuff and vert start
 			if not self.loggedonce:
 				logsupport.Logs.Log('Weatherscreen missing weather ' + self.name, severity=logsupport.ConsoleWarning)
 				self.loggedonce = True
@@ -82,18 +86,23 @@ class WeatherScreenDesc(screen.ScreenDesc):
 			renderedlines = []
 
 			if self.LocationSize != 0:
-				locblk = fonts.fonts.Font(self.LocationSize, "").render(self.fmt.format("{d}", d=self.store.GetVal(('Cond', 'Location'))), 0,
-												wc(self.CharColor))
+				locblk = fonts.fonts.Font(self.LocationSize, "").render(
+					self.fmt.format("{d}", d=self.store.GetVal(('Cond', 'Location'))), 0,
+					wc(self.CharColor))
 				config.screen.blit(locblk, ((hw.screenwidth - locblk.get_width()) / 2, vert_off))
-				vert_off = vert_off + locblk.get_height() + 10 # todo gap of 10 pixels is arbitrary
+				vert_off = vert_off + locblk.get_height() + 10  # todo gap of 10 pixels is arbitrary
 
 			h = vert_off
 			if conditions:
-				renderedlines.append(CreateWeathBlock(self.condformat, self.condfields, "", [45, 25, 35], self.CharColor, (self.location, 'Cond', 'Icon'), False))
+				renderedlines.append(
+					CreateWeathBlock(self.condformat, self.condfields, "", [45, 25, 35], self.CharColor,
+									 (self.location, 'Cond', 'Icon'), False))
 				h = h + renderedlines[-1].get_height()
-				renderedlines.append(CreateWeathBlock(self.dayformat, self.dayfields, "", [30], self.CharColor, None, True))
+				renderedlines.append(
+					CreateWeathBlock(self.dayformat, self.dayfields, "", [30], self.CharColor, None, True))
 				h = h + renderedlines[-1].get_height()
-				renderedlines.append(CreateWeathBlock(self.footformat, self.footfields, "", [25], self.CharColor, None, True))
+				renderedlines.append(
+					CreateWeathBlock(self.footformat, self.footfields, "", [25], self.CharColor, None, True))
 				h = h + renderedlines[-1].get_height()
 				s = (self.useablevertspace - h) / (len(renderedlines) - 1) if len(renderedlines) > 1 else 0
 				for l in renderedlines:
@@ -107,7 +116,8 @@ class WeatherScreenDesc(screen.ScreenDesc):
 				if fcstdays > 0:
 					for i in range(fcstdays):
 						renderedlines.append(
-							CreateWeathBlock(self.fcstformat, self.fcstfields, "", [25], self.CharColor, # todo compute font size based on useable
+							CreateWeathBlock(self.fcstformat, self.fcstfields, "", [25], self.CharColor,
+											 # todo compute font size based on useable
 											 (self.location, 'Fcst', 'Icon'), False, day=i))
 						if renderedlines[-1].get_width() > maxfcstwidth: maxfcstwidth = renderedlines[-1].get_width()
 						fcstlines += 1
@@ -125,7 +135,7 @@ class WeatherScreenDesc(screen.ScreenDesc):
 					fcstlines = 5
 					usewidth = hw.screenwidth
 					lastfcst = 7
-				s = (self.useablevertspace - h) / (fcstlines+1)
+				s = (self.useablevertspace - h) / (fcstlines + 1)
 
 				startvert = vert_off
 				horiz_off = (usewidth - maxfcstwidth) / 2

@@ -1,4 +1,5 @@
 from hw import scaleH, scaleW
+
 HomeScreen = None
 HomeScreen2 = None
 DimIdleList = []

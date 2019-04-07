@@ -1,18 +1,19 @@
+import functools
+
+import pygame
 import requests
 
-import hw
-import screen
 import config
 import debug
+import hw
 import logsupport
+import screen
 import screens.__screens as screens
-from logsupport import ConsoleWarning
 import screenutil
-import pygame
-import toucharea
 import supportscreens
-import functools
 import timers
+import toucharea
+from logsupport import ConsoleWarning
 
 
 # noinspection PyUnusedLocal
@@ -27,11 +28,13 @@ class OctoPrintScreenDesc(screen.BaseKeyScreenDesc):
 		self.PowerKeys = {}
 		self.Subscreen = -1
 
-		self.PollTimer = timers.RepeatingPost(5.0,paused=True,start=True,name=self.name+'-Poll',proc=self.ShowScreen)
+		self.PollTimer = timers.RepeatingPost(5.0, paused=True, start=True, name=self.name + '-Poll',
+											  proc=self.ShowScreen)
 
 		screen.IncorporateParams(self, 'OctoPrint', {'KeyColor'}, screensection)
 		screen.AddUndefaultedParams(self, screensection, address='', apikey='')
-		self.title, th, self.tw = screenutil.CreateTextBlock(self.name, hw.screenheight / 12, self.CharColor, True) #todo switch to new screen sizing for title
+		self.title, th, self.tw = screenutil.CreateTextBlock(self.name, hw.screenheight / 12, self.CharColor,
+															 True)  # todo switch to new screen sizing for title
 		self.titlespace = th + hw.screenheight / 32
 		useablescreenheight = hw.screenheight - screens.topborder - screens.botborder - self.titlespace
 		ctlpos = useablescreenheight / 5
@@ -113,7 +116,6 @@ class OctoPrintScreenDesc(screen.BaseKeyScreenDesc):
 		logsupport.Logs.Log("Permanent Octoprint Screen Error", severity=ConsoleWarning)
 		raise ValueError
 
-
 	def OctoPost(self, item, senddata):
 		r = None
 		try:
@@ -171,8 +173,8 @@ class OctoPrintScreenDesc(screen.BaseKeyScreenDesc):
 		self.PollTimer.resume()
 		self.ShowScreen()
 
-	def ShowScreen(self,param=None):
-		if not self.Active:	return # handle race where poll refresh gets posted just as Maint screen comes up
+	def ShowScreen(self, param=None):
+		if not self.Active:    return  # handle race where poll refresh gets posted just as Maint screen comes up
 		if self.Subscreen == -1:
 			self.ShowControlScreen()
 		elif self.Subscreen > 0:

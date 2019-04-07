@@ -1,23 +1,26 @@
+import pygame
+
+import alerttasks
+import config
+import debug
 import fonts
 import hw
-import screens.__screens as screens
-from utilfuncs import wc
-import config
-import toucharea
-import pygame
-import debug
-import screen
-import utilities
 import keyspecs
 import logsupport
-from logsupport import ConsoleDetail
+import screen
+import screens.__screens as screens
 import timers
-import alerttasks
+import toucharea
+import utilities
+from logsupport import ConsoleDetail
+from utilfuncs import wc
 
 alertscreens = {}
 
+
 class AlertsScreenDesc(screen.ScreenDesc):
 	global alertscreens
+
 	def __init__(self, screensection, screenname):
 		global alertscreens
 		screen.ScreenDesc.__init__(self, screensection, screenname)
@@ -36,7 +39,8 @@ class AlertsScreenDesc(screen.ScreenDesc):
 		self.Msg = True
 
 		messageareapart = .7
-		messageareaheight = (hw.screenheight - 2 * screens.topborder) * messageareapart  # no Nav keys todo switch to new screen sizing
+		messageareaheight = (
+										hw.screenheight - 2 * screens.topborder) * messageareapart  # no Nav keys todo switch to new screen sizing
 		alertbutheight = (hw.screenheight - messageareaheight - 2 * screens.topborder) / 2
 		self.upperleft = (screens.horizborder, screens.topborder)
 
@@ -88,7 +92,7 @@ class AlertsScreenDesc(screen.ScreenDesc):
 			self.messageimage.blit(l[i], (horiz_off, vert_off))
 			vert_off = vert_off + s + l[i].get_height()
 
-		self.Alert = None # gets filled in by code that parses/defines an alert that invokes the screen
+		self.Alert = None  # gets filled in by code that parses/defines an alert that invokes the screen
 		alertscreens[screenname] = self
 		self.DimTO = 0
 		self.PersistTO = 0
@@ -99,7 +103,8 @@ class AlertsScreenDesc(screen.ScreenDesc):
 		debug.debugPrint('Screen', 'Alertscreen manual defer: ' + self.name)
 		self.Alert.state = 'Deferred'
 		self.TimerName += 1
-		self.DeferTimer = timers.OnceTimer(self.Defer,start=True, name=self.name+'-Defer-'+str(self.TimerName), proc=alerttasks.HandleDeferredAlert,param=self.Alert)
+		self.DeferTimer = timers.OnceTimer(self.Defer, start=True, name=self.name + '-Defer-' + str(self.TimerName),
+										   proc=alerttasks.HandleDeferredAlert, param=self.Alert)
 		config.DS.SwitchScreen(screens.HomeScreen, 'Bright', 'Home', 'Manual defer an alert')
 
 	def BlinkMsg(self, param):
@@ -122,13 +127,16 @@ class AlertsScreenDesc(screen.ScreenDesc):
 		self.Msg = True
 		if self.BlinkTime != 0:
 			self.TimerName += 1
-			self.BlinkTimer = timers.RepeatingPost(float(self.BlinkTime), name=self.name+'-Blink-'+str(self.TimerName), proc= self.BlinkMsg, start=True)
+			self.BlinkTimer = timers.RepeatingPost(float(self.BlinkTime),
+												   name=self.name + '-Blink-' + str(self.TimerName), proc=self.BlinkMsg,
+												   start=True)
 		else:
 			config.screen.blit(self.messageimage, self.upperleft)
 			pygame.display.update()
 
-	def NodeEvent(self, hub='', node=0, value=0, varinfo = ()):
-		logsupport.Logs.Log("ISY event to alert screen: ", self.name+ ' ' + str(node) + ' ' + str(value), severity=ConsoleDetail)
+	def NodeEvent(self, hub='', node=0, value=0, varinfo=()):
+		logsupport.Logs.Log("ISY event to alert screen: ", self.name + ' ' + str(node) + ' ' + str(value),
+							severity=ConsoleDetail)
 
 	def ExitScreen(self):
 		if self.BlinkTimer is not None:

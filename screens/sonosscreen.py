@@ -1,20 +1,21 @@
-import pygame
+import functools
 
-import hw
-import logsupport
-import screens.__screens as screens
-import supportscreens
-from logsupport import ConsoleError, ConsoleWarning
-from utilfuncs import wc
-import hasshub  # only to test that the hub for this is an HA hub
+import pygame
 
 import config
 import debug
+import hasshub  # only to test that the hub for this is an HA hub
+import hw
+import logsupport
 import screen
+import screens.__screens as screens
 import screenutil
-import utilities
+import supportscreens
 import toucharea
-import functools
+import utilities
+from logsupport import ConsoleError, ConsoleWarning
+from utilfuncs import wc
+
 
 # noinspection PyUnusedLocal
 class SonosScreenDesc(screen.BaseKeyScreenDesc):
@@ -63,7 +64,7 @@ class SonosScreenDesc(screen.BaseKeyScreenDesc):
 		if self.numplayers != 0:
 			self.roomheight = self.useablevertspace // self.numplayers
 		else:
-			self.roomheight = self.useablevertspace # dummy value to avoid div by 0 in error case
+			self.roomheight = self.useablevertspace  # dummy value to avoid div by 0 in error case
 		self.roomdisplayinfo = (1.5, 1, 1, 1)
 		for n, p in self.SonosNodes.items():
 			self.NodeVPos.append(vpos)
@@ -131,7 +132,8 @@ class SonosScreenDesc(screen.BaseKeyScreenDesc):
 		self.DullKeyColor = wc(self.KeyColor, .5, self.BackgroundColor)
 		self.HA = self.DefaultHubObj
 
-		self.SetScreenTitle('Sonos',hw.screenheight /12, self.CharColor) # todo correct the fontsize and maybe the color choice and change to useable vert
+		self.SetScreenTitle('Sonos', hw.screenheight / 12,
+							self.CharColor)  # todo correct the fontsize and maybe the color choice and change to useable vert
 		if not isinstance(self.DefaultHubObj, hasshub.HA):
 			logsupport.Logs.Log("Sonos Default Hub is not HA hub", severity=ConsoleError, tb=False)
 			return
@@ -144,7 +146,7 @@ class SonosScreenDesc(screen.BaseKeyScreenDesc):
 
 		# set up source selection screen
 		self.SourceSlot = []
-		vpos = self.startvertspace #todo add buffer?
+		vpos = self.startvertspace  # todo add buffer?
 		self.sourceslots = 8
 		self.sourceheight = self.useablevertspace // (self.sourceslots + 1)  # allow space at bottom right for arrow
 
@@ -159,7 +161,8 @@ class SonosScreenDesc(screen.BaseKeyScreenDesc):
 			vpos += self.sourceheight
 			self.SourceSlot.append('')
 		self.SrcPrev = (
-			hw.screenwidth - self.sourceheight - screens.horizborder, self.startvertspace - self.sourceheight // 2) # todo change to horizstart + useablehoriz - sourceheight
+			hw.screenwidth - self.sourceheight - screens.horizborder,
+			self.startvertspace - self.sourceheight // 2)  # todo change to horizstart + useablehoriz - sourceheight
 		self.SrcNext = (hw.screenwidth - self.sourceheight - screens.horizborder,
 						vpos + self.sourceheight // 2 + 10)  # for appearance
 		self.KeysSrc['Prev'] = toucharea.TouchPoint('Prev', self.SrcPrev,
@@ -183,7 +186,6 @@ class SonosScreenDesc(screen.BaseKeyScreenDesc):
 														  KOff='',
 														  proc=functools.partial(self.PickSourceOK, False))
 
-
 		utilities.register_example("SonosScreenDesc", self)
 
 	def _check_for_new(self):
@@ -195,8 +197,8 @@ class SonosScreenDesc(screen.BaseKeyScreenDesc):
 		# print('event')  todo should check that event is for a Sonos node?
 		stable = self.UpdateGroups()
 		if stable:
-			#print('stable')
-			if self.Active: self.ShowScreen() # handle any race with another screen just having come up
+			# print('stable')
+			if self.Active: self.ShowScreen()  # handle any race with another screen just having come up
 
 	def VolChange(self, slotnum, chg, presstype):
 		if slotnum >= len(self.nms): return
@@ -218,7 +220,7 @@ class SonosScreenDesc(screen.BaseKeyScreenDesc):
 		self.ShowScreen()
 
 	def PickSource(self, slotnum, presstype):
-		#print(slotnum)
+		# print(slotnum)
 		# change the source
 		self.SourceSelection = self.SourceSlot[slotnum]
 		self.ShowScreen()
@@ -336,7 +338,7 @@ class SonosScreenDesc(screen.BaseKeyScreenDesc):
 		qup = c[1] - h // 4
 		qdn = c[1] + h // 4
 		return ((left, qup), (c[0], qup), (right - h // 4, top), (right - h // 4, bot), (c[0], qdn), (left, qdn)), (
-		(left, bot), (right, top))
+			(left, bot), (right, top))
 
 	def GroupScreen(self, gpentity):
 
@@ -382,7 +384,6 @@ class SonosScreenDesc(screen.BaseKeyScreenDesc):
 														  FitLine=True,
 														  MaxWidth=hw.screenwidth - screens.horizborder)[0],
 							   (20, self.GCVPos[i]))
-
 
 	def SourceSelectScreen(self):
 		# show a list of sources starting with startsource item last item is either next or return
