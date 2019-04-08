@@ -3,6 +3,7 @@ import shutil
 import time
 
 import logsupport
+import topper
 
 Buffers = {}
 HBdir = ''
@@ -39,6 +40,7 @@ def DumpAll(idline, entrytime):
 	global bufdumpseq
 	fn = HBdir + str(bufdumpseq) + '-' + entrytime
 	try:
+		topper.mvtops(str(bufdumpseq) + '-' + entrytime)
 		bufdumpseq += 1
 		t = {}
 		curfirst = {}

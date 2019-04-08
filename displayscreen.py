@@ -5,6 +5,7 @@ import sys
 import threading
 import time
 from collections import OrderedDict
+import topper
 
 import pygame
 
@@ -170,9 +171,8 @@ class DisplayScreen(object):
 		Failsafe = multiprocessing.Process(target=failsafe.MasterWatchDog)
 		Failsafe.daemon = True
 		Failsafe.start()
+		if config.versionname in ('development', 'homerelease'): topper.inittop()
 
-		# failsafe.Injector.start()
-		# failsafe.Failsafe.start()
 		logsupport.Logs.Log('Starting master watchdog {} for {}'.format(Failsafe.pid, config.Console_pid))
 
 		event = None
