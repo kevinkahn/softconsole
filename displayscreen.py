@@ -144,7 +144,7 @@ class DisplayScreen(object):
 				a.trigger.node.Hub.SetAlertWatch(a.trigger.node, a)
 				if a.trigger.IsTrue():
 					# noinspection PyArgumentList
-					PostEvent(CEvent.ISYAlert, 'DS-NodeChange', alert=a)
+					PostEvent(ConsoleEvent(CEvent.ISYAlert, hub='DS-NodeChange', alert=a))
 			elif a.type == 'VarChange':
 				a.state = 'Init'
 				# Note: VarChange alerts don't need setup because the store has an alert proc
