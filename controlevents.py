@@ -14,6 +14,7 @@ CEvent = Enum('ConsoleEvent',
 ConsoleOpsQueue = queue.Queue()  # master sequencer
 
 latencynotification = 1000 # notify if a loop latency is greater than this
+LateTolerance = 4 # for my systems
 
 
 def PostEvent(e):
@@ -36,6 +37,10 @@ def GetEvent():
 		logsupport.Logs.Log('Long on queue {} (user: {} sys: {}) event: {}'.format(time.time() - evnt.QTime,
 								cpu.user - evnt.usercpu, cpu.system - evnt.syscpu, evnt),
 								severity=logsupport.ConsoleWarning, hb=True, localonly=True, homeonly=True)
+	if time.time() - evnt.QTime < 2: # cleared any pending long waiting startup events
+		if config.versionname in ('development', 'homerelease') and (latencynotification != LateTolerance):  # after some startup stabilisation sensitize latency watch if my system
+			latencynotification = LateTolerance
+			logsupport.DevPrint('Set latency tolerance: {}'.format(latencynotification))
 	return evnt
 
 

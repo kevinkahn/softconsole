@@ -23,8 +23,6 @@ from controlevents import CEvent, PostEvent, ConsoleEvent, GetEvent, GetEventNoW
 from logsupport import ConsoleWarning, ConsoleError, ConsoleDetail, ReportStatus
 import controlevents
 
-LateTolerance = 4
-
 
 class DisplayScreen(object):
 	def __init__(self):
@@ -230,8 +228,7 @@ class DisplayScreen(object):
 					needvalidevent = False
 			logsupport.DevPrint('New-event: {}'.format(event))
 			self.HBEvents.Entry('Process at {}  {}'.format(time.time(), repr(event)))
-			if config.versionname in ('development', 'homerelease'): # after at least one event sensitize latency watch if my system
-				controlevents.latencynotification = LateTolerance
+
 			postwaittime = time.time()
 
 			if event.type == CEvent.FailSafePing:

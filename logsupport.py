@@ -52,12 +52,6 @@ LogLevel = 3
 LocalOnly = True
 
 
-# try:
-#	return isinstance(obj, basestring)
-# except NameError:
-#	return isinstance(obj, str)
-
-
 def InitLogs(screen, dirnm):
 	return Logger(screen, dirnm)
 
@@ -65,7 +59,7 @@ def InitLogs(screen, dirnm):
 def DevPrint(arg):
 	if config.versionname == 'development':
 		pid = os.getpid()
-		print(str(pid) + repr(arg))
+		print('{}: {}'.format(str(pid), arg))
 
 
 class Logger(object):
