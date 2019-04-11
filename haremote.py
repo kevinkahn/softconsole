@@ -296,7 +296,7 @@ def call_service(api: API, domain: str, service: str,
 				  service_data, timeout=timeout)
 
 		if req.status_code != 200:
-			logsupport.Logs.Log("HA Error calling service {} - {}".format(req.status_code, req.text))
+			logsupport.Logs.Log("HA Error calling service {} - {} Request: domain: {} service: {} data: {}".format(req.status_code, req.text,domain,service,service_data))
 
 	except HomeAssistantError as e:
 		logsupport.Logs.Log("HA service call failed", repr(e), severity=logsupport.ConsoleWarning)

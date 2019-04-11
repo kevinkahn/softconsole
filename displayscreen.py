@@ -258,19 +258,19 @@ class DisplayScreen(object):
 				pygame.time.delay(config.sysStore.MultiTapTime)
 				while True:
 					eventx = GetEventNoWait()
+					logsupport.DevPrint('Mouse follow: {}'.format(eventx))
 					if eventx is None:
 						break
-					elif eventx.type == CEvent.MouseDown:  # pygame.MOUSEBUTTONDOWN:
+					elif eventx.type == CEvent.MouseDown:
 						self.HBEvents.Entry('Follow MouseDown' + str(event.pos))
 						debug.debugPrint('Touch', 'Follow MouseDown' + str(event.pos) + repr(event))
 						tapcount += 1
 						pygame.time.delay(config.sysStore.MultiTapTime)  # todo make general time call?
-					# elif eventx.type == NOEVENT:
-					#	break
 					else:
 						if eventx.type in (CEvent.MouseUp, CEvent.MouseMotion):
 							debug.debugPrint('Touch', 'Other event: {}'.format(repr(eventx)))
 						else:
+							logsupport.DevPrint('Defer: {}'.format(eventx))
 							self.HBEvents.Entry('Defer' + repr(eventx))
 							self.Deferrals.append(eventx)  # defer the event until after the clicks are sorted out
 					# Future add handling for hold here with checking for MOUSE UP etc.
