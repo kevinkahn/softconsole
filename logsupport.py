@@ -53,13 +53,16 @@ LocalOnly = True
 
 
 def InitLogs(screen, dirnm):
+	global DevPrint
+	if config.versionname == 'development': DevPrint = DevPrintDoIt
 	return Logger(screen, dirnm)
 
-
 def DevPrint(arg):
-	if config.versionname == 'development':
-		pid = os.getpid()
-		print('{}: {}'.format(str(pid), arg))
+	pass
+
+def DevPrintDoIt(arg):
+	#if config.versionname == 'development':
+	print('{}({}): {}'.format(str(os.getpid()), time.time(), arg))
 
 
 class Logger(object):
