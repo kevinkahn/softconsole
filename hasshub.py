@@ -120,7 +120,7 @@ class Script(HAnode):
 		self.Hub.Scripts[self.entity_id] = self
 
 	def RunProgram(self):
-		ha.call_service(self.Hub.api, 'script', self.entity_id)
+		ha.call_service(self.Hub.api, 'script', self.object_id)
 		debug.debugPrint('HASSgeneral', "Script execute sent to: script.", self.entity_id)
 
 
@@ -156,8 +156,11 @@ class Light(StatefulHAnode):
 	# noinspection PyUnusedLocal
 	def SendOnOffCommand(self, settoon, presstype):
 		selcmd = ('turn_off', 'turn_on')
+		logsupport.DevPrint("Light on/off: {} {} {}".format(selcmd[settoon],self.entity_id, time.time()))
 		ha.call_service(self.Hub.api, 'light', selcmd[settoon], {'entity_id': '{}'.format(self.entity_id)})
 		debug.debugPrint('HASSgeneral', "Light OnOff sent: ", selcmd[settoon], ' to ', self.entity_id)
+		PostEvent(ConsoleEvent(CEvent.HubNodeChange, hub=self.Hub.name, node=self.entity_id,
+							   value=(0,255)[settoon]))  # this is a hack to provide immediate faked feedback on zwave lights that take a while to report back
 
 
 class Switch(StatefulHAnode):
@@ -198,7 +201,7 @@ class BinarySensor(HAnode):
 	def __init__(self, HAitem, d):
 		super(BinarySensor, self).__init__(HAitem, **d)
 		self.Hub.BinarySensors[self.entity_id] = self
-		if self.state not in ('on', 'off'):
+		if self.state not in ('on', 'off', 'unavailable'): # todo will unavail be handled correctly later?
 			logsupport.Logs.Log("Odd Binary sensor initial value: ", self.entity_id, ':', self.state,
 								severity=ConsoleWarning)
 		self.Hub.sensorstore.SetVal(self.entity_id, self.state == 'on')
@@ -214,6 +217,8 @@ class BinarySensor(HAnode):
 				st = True
 			elif ns['state'] == 'off':
 				st = False
+			elif ns['state'] == 'unavailable':
+				st = False  # todo resolve what happens with unavail per above todo
 			else:
 				st = False
 				logsupport.Logs.Log("Bad Binary sensor value: ", self.entity_id, ':', ns['state'],
@@ -620,12 +625,12 @@ class HA(object):
 						'message'])  # todo fake an event for Nest error?
 				elif m['event_type'] == 'config_entry_discovered':  # todo temp
 					logsupport.Logs.Log("{} config entry discovered: {}".format(self.name, message))
-				elif m['event_type'] == 'service_registered':
+				elif m['event_type'] == 'service_registered':  # fix plus add service removed
 					d = m['data']
 					if d['domain'] not in self.knownservices:
-						self.knownservices[d['domain']] = []
+						self.knownservices[d['domain']] = {}
 					if d['service'] not in self.knownservices[d['domain']]:
-						self.knownservices[d['domain']].append(d['service'])
+						self.knownservices[d['domain']][d['service']] = d['service']
 					logsupport.Logs.Log(
 						"{} has new service: {}".format(self.name, message),
 						severity=ConsoleDetail)  # all the zwave services todo
@@ -748,7 +753,8 @@ class HA(object):
 		self.hadomains = {'group': Group, 'light': Light, 'switch': Switch, 'sensor': Sensor, 'automation': Automation,
 						  'climate': Thermostat, 'media_player': MediaPlayer, 'binary_sensor': BinarySensor,
 						  'script': Script}
-		haignoredomains = {'zwave': ZWave, 'sun': HAnode, 'notifications': HAnode, 'persistent_notification': HAnode}
+		haignoredomains = {'zwave': ZWave, 'sun': HAnode, 'notifications': HAnode, 'persistent_notification': HAnode,
+						   'person':HAnode, 'zone': HAnode}
 
 		self.addibledomains = {'media_player': MediaPlayer}
 
@@ -845,13 +851,21 @@ class HA(object):
 			# noinspection PyProtectedMember
 			T._connectsensors(tsensor)
 		self.haconnectstate = "Init"
-		self.knownservices = ha.get_services(self.api)
+		services = ha.get_services(self.api)
+		self.knownservices = {}
+		for d in services:
+			if not d['domain'] in self.knownservices:
+				self.knownservices[d['domain']] = {}
+			for s,c in d['services'].items():
+				if s in self.knownservices[d['domain']]:
+					logsupport.DevPrint('Duplicate service noted for domain {}: service: {} existing: {} new: {}'.format(d['domain'], s, self.knownservices[d['domain'][s]],c))
+				self.knownservices[d['domain']][s] = c
+
 		if config.versionname == 'development':
 			with open(config.homedir + '/Console/HAservices', 'w') as f:
-				for d in self.knownservices:
-
-					print(d['domain'], file=f)
-					for s, c in d['services'].items():
+				for d, svc in self.knownservices.items():
+					print(d, file=f)
+					for s, c in svc.items():
 						print('    {}'.format(s), file=f)
 						print('         {}'.format(c), file=f)
 					# todo

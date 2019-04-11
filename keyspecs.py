@@ -232,7 +232,7 @@ class RunProgram(ManualKeyDesc):
 		if self.Program is None:
 			self.Program = DummyProgram(keyname, self.Hub.name, self.ProgramName)
 			logsupport.Logs.Log(
-				"Missing Prog binding Key: " + keyname + " Hub: " + self.Hub.name + " Program: " + self.ProgramName,
+				"Missing Prog binding Key: {} on screen {} Hub: {} Program: {}".format(keyname, thisscreen.name, self.Hub.name, self.ProgramName),
 				severity=ConsoleWarning)
 		if self.Verify:
 			self.VerifyScreen = supportscreens.VerifyScreen(self, self.GoMsg, self.NoGoMsg, self.VerifyRunAndReturn,
