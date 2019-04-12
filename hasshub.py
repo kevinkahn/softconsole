@@ -20,7 +20,7 @@ from stores import valuestore
 haignoreandskipdomains = ('history_graph', 'updater')
 ignoredeventtypes = ('system_log_event', 'call_service', 'service_executed', 'logbook_entry', 'timer_out_of_sync',
 					 'persistent_notifications_updated', 'zwave.network_complete', 'zwave.scene_activated',
-					 'zwave.network_ready')  # todo zwave complete do something
+					 'zwave.network_ready', 'automation_triggered', 'script_started')  # todo zwave complete do something
 
 
 def stringtonumeric(v):

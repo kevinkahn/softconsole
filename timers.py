@@ -170,6 +170,8 @@ class ResettableTimer(Thread):
 
 	def cancel(self):
 		"""Stop the timer if it hasn't finished yet."""
+		self.newdelta = .01 # force out of loop in run in case waiting an event to appear
+		# todo - should it also set self.newevent?
 		self.finished.set()
 		self.changingevent.set()
 
@@ -183,7 +185,7 @@ class ResettableTimer(Thread):
 					"Resettable {} won't cancel finished: {} changing: {} changedone: {}".format(self.name,
 																								 self.finished.is_set(),
 																								 self.changingevent.is_set(),
-																								 self.changedone),
+																								 self.changedone.is_set()),
 					severity=logsupport.ConsoleError, hb=True, tb=False)
 				return
 		TimerHB.Entry("Canceled resettable: {}".format(self.name))
