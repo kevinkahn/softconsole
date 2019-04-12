@@ -72,16 +72,12 @@ class MQTTBroker(valuestore.ValueStore):
 			self.fetcher = threading.Thread(name='FetchStableRemote', target=maintscreen.fetch_stable, daemon=True)
 			self.fetcher.start()
 
-		# maintscreen.fetch_stable()  # todo should do in separate thread
-
 		def GetBeta():
 			self.fetcher = threading.Thread(name='FetchBetaRemote', target=maintscreen.fetch_beta, daemon=True)
 			self.fetcher.start()
 
-		# maintscreen.fetch_beta()
-
 		def UseStable():
-			subprocess.Popen('sudo rm /home/pi/usebeta', shell=True)  # should move all these to some common place todo
+			subprocess.Popen('sudo rm /home/pi/usebeta', shell=True)
 
 		def UseBeta():
 			subprocess.Popen('sudo touch /home/pi/usebeta', shell=True)
@@ -168,8 +164,7 @@ class MQTTBroker(valuestore.ValueStore):
 												msg.payload.decode('ascii'), str(e), repr(payload),
 												severity=ConsoleWarning)
 			loopend = time.time()
-			self.HB.Entry('Processing time: {} Done: {}'.format(loopend - loopstart,
-																repr(msg)))  # todo try to force other thread to run
+			self.HB.Entry('Processing time: {} Done: {}'.format(loopend - loopstart, repr(msg)))
 			time.sleep(.1)  # force thread to give up processor to allow response to time events
 			self.HB.Entry('Gave up control for: {}'.format(time.time() - loopend))
 
@@ -286,7 +281,7 @@ class MQTTBroker(valuestore.ValueStore):
 		else:
 			if viasvr:
 				logsupport.Logs.Log("{}: Publish attempt with server not running ({})".format(self.name, repr(payload)),
-									severity=ConsoleWarning)  # todo wrong = happens under lock
+									severity=ConsoleWarning)
 			else:
 				publish.single(fulltopic, payload, hostname=self.address, qos=qos, retain=retain)
 

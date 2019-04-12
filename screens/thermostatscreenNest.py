@@ -80,11 +80,10 @@ class NestThermostatScreenDesc(screen.BaseKeyScreenDesc):
 		self.SPHPosL = int(1.5 * centerspacing)
 		self.SPHPosR = int(3.5 * centerspacing)
 		self.AdjButSurf.fill(wc(self.BackgroundColor))
-		# arrowsize = scaleH(self.spacer[3])  # pixel todo
 		self.LocalOnly = [0.0, 0.0]  # Heat setpoint, Cool setpoint:  0 is normal color
 		self.ModeLocal = 0.0
 		self.FanLocal = 0.0
-		arrowsize = scaleH(40)  # pixel
+		arrowsize = scaleH(40)  # pixel todo should this be other than a constant?
 		self.t_low = 0
 		self.t_high = 99
 		self.t_cur = 0

@@ -20,7 +20,7 @@ from stores import valuestore
 haignoreandskipdomains = ('history_graph', 'updater')
 ignoredeventtypes = ('system_log_event', 'call_service', 'service_executed', 'logbook_entry', 'timer_out_of_sync',
 					 'persistent_notifications_updated', 'zwave.network_complete', 'zwave.scene_activated',
-					 'zwave.network_ready', 'automation_triggered', 'script_started')  # todo zwave complete do something
+					 'zwave.network_ready', 'automation_triggered', 'script_started')
 
 
 def stringtonumeric(v):
@@ -296,7 +296,6 @@ class MediaPlayer(HAnode):
 		ha.call_service(self.Hub.api, 'media_player', 'media_play', {'entity_id': '{}'.format(roomname)})
 
 	def Mute(self, roomname, domute):
-		# todo - do I pass the boolean or translate it to string true/false
 		ha.call_service(self.Hub.api, 'media_player', 'volume_mute', {'entity_id': '{}'.format(roomname),
 																	  'is_volume_muted': domute})
 		if not domute:  # implicitly start playing if unmuting in case source was stopped
@@ -352,14 +351,12 @@ class Thermostat(HAnode):  # not stateful since has much state info
 										   value=self.internalstate))
 
 	def PushSetpoints(self, t_low, t_high):
-		# todo with nest pushing setpoint while not in auto seems to be a no-op and so doesn't cause an event
 		ha.call_service(self.Hub.api, 'climate', 'set_temperature',
 						{'entity_id': '{}'.format(self.entity_id), 'target_temp_high': str(t_high),
 						 'target_temp_low': str(t_low)})
-		# should push a fake event a few seconds into the future to handle error cases todo
 		self.timerseq += 1
 		_ = timers.OnceTimer(5, start=True, name='fakepushsetpoint-'.format(self.timerseq),
-								proc=self.ErrorFakeChange)  # todo analyze this case
+								proc=self.ErrorFakeChange)
 
 	def GetThermInfo(self):
 		if self.target_low is not None:
@@ -623,7 +620,7 @@ class HA(object):
 				elif m['event_type'] == 'system_log_event':
 					logsupport.Logs.Log('Hub: ' + self.name + ' logged at level: ' + d['level'] + ' Msg: ' + d[
 						'message'])  # todo fake an event for Nest error?
-				elif m['event_type'] == 'config_entry_discovered':  # todo temp
+				elif m['event_type'] == 'config_entry_discovered':
 					logsupport.Logs.Log("{} config entry discovered: {}".format(self.name, message))
 				elif m['event_type'] == 'service_registered':  # fix plus add service removed
 					d = m['data']
@@ -636,13 +633,12 @@ class HA(object):
 						severity=ConsoleDetail)  # all the zwave services todo
 				elif m['event_type'] not in ignoredeventtypes:
 					# debug.debugPrint('HASSchg', "Other expected event" + str(m))
-					logsupport.Logs.Log('{} Event: {}'.format(self.name, message))  # todo temp
+					logsupport.Logs.Log('{} Event: {}'.format(self.name, message))
 					debug.debugPrint('HASSgeneral', "Unknown event: " + str(m))
 			except Exception as E:
 				logsupport.Logs.Log("Exception handling HA message: ", repr(E), repr(message), severity=ConsoleWarning)
 			loopend = time.time()
-			self.HB.Entry('Processing time: {} Done: {}'.format(loopend - loopstart,
-																repr(message)))  # todo try to force other thread to run
+			self.HB.Entry('Processing time: {} Done: {}'.format(loopend - loopstart, repr(message)))
 			time.sleep(.1)  # force thread to give up processor to allow response to time events
 			self.HB.Entry('Gave up control for: {}'.format(time.time() - loopend))
 
@@ -868,7 +864,6 @@ class HA(object):
 					for s, c in svc.items():
 						print('    {}'.format(s), file=f)
 						print('         {}'.format(c), file=f)
-					# todo
 					print('==================', file=f)
 		# listeners = ha.get_event_listeners(self.api)
 		logsupport.Logs.Log(self.name + ": Processed " + str(len(self.Entities)) + " total entities")

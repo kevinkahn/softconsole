@@ -245,11 +245,10 @@ class LogDisplayScreen(screen.BaseKeyScreenDesc):
 		self.Keys = {'nextpage': toucharea.TouchPoint('nextpage', (hw.screenwidth / 2, 3 * hw.screenheight / 4),
 													  # todo switch to use useable vert hgt
 													  (hw.screenwidth, hw.screenheight), proc=self.NextPage),
-					 # todo switch to use useable vert hgt
 					 'prevpage': toucharea.TouchPoint('prevpage', (hw.screenwidth / 2, hw.screenheight / 4),
 													  # todo switch to use useable vert hgt
 													  (hw.screenwidth, hw.screenheight / 2),
-													  proc=self.PrevPage)}  # todo switch to use useable vert hgt
+													  proc=self.PrevPage)}
 		self.name = 'Log'
 		utilities.register_example("LogDisplayScreen", self)
 
