@@ -58,6 +58,7 @@ def InstallStagedVersion(d):
 		# noinspection PyBroadException
 		try:
 			subprocess.call('cp -u -r --backup=numbered "example configs"/* ../Console', shell=True)
+			subprocess.call('rm *~[67890]~ *~??~', shell=True)
 		# os.remove('../Console/termshortenlist')
 		# print('Removed existing shortenlist from homesystem', file=open("stagelog.log", "a"))
 		except:
