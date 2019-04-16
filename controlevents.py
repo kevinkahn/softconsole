@@ -1,6 +1,7 @@
 import queue
 import time
 from enum import Enum
+import timers
 
 import psutil
 
@@ -34,7 +35,8 @@ def GetEvent():
 		logsupport.DevPrint(
 			'Long on queue: {} user: {} system: {} event: {}'.format(time.time() - evnt.QTime, cpu.user - evnt.usercpu,
 																	 cpu.system - evnt.syscpu, evnt))
-		logsupport.Logs.Log('Long on queue {} (user: {} sys: {}) event: {}'.format(time.time() - evnt.QTime,
+		if not timers.LongOpInProgress:
+			logsupport.Logs.Log('Long on queue {} (user: {} sys: {}) event: {}'.format(time.time() - evnt.QTime,
 								cpu.user - evnt.usercpu, cpu.system - evnt.syscpu, evnt),
 								severity=logsupport.ConsoleWarning, hb=True, localonly=True, homeonly=True)
 	if time.time() - evnt.QTime < 2: # cleared any pending long waiting startup events

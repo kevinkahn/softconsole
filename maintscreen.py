@@ -287,7 +287,7 @@ class LogDisplayScreen(screen.BaseKeyScreenDesc):
 		self.NextPage(0)
 		while (self.item < startat) and (
 				self.item != -1):  # if first error not yet up and not last page go to next page
-			time.sleep(.5)
+			time.sleep(.05)
 			self.NextPage(0)
 
 
