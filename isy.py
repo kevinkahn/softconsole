@@ -555,7 +555,7 @@ class ISY(object):
 					logsupport.Logs.Log(self.name + " Comm ConnErr: " + ' Cmd: ' + urlcmd,
 										severity=ConsoleDetailHigh,
 										tb=False)
-					logsupport.Logs.Log(sys.exc_info()[1], severity=ConsoleDetailHigh, tb=False)
+					logsupport.Logs.Log(repr(sys.exc_info()[1]), severity=ConsoleDetailHigh, tb=False)
 					time.sleep(30)  # network may be resetting
 					raise CommsError
 

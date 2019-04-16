@@ -410,6 +410,8 @@ class DisplayScreen(object):
 					logsupport.Logs.Log('Timer late by {} seconds. Event: {}'.format(diff, repr(event)),
 										severity=ConsoleWarning, hb=True, localonly=True, homeonly=True)
 					self.HBEvents.Entry('Event late by {} target: {} now: {}'.format(diff, event.TargetTime, eventnow))
+				#if abs(diff) > 60: # console system locking up - force a restart
+					# todo - move maint fetch to async or create a flag - don't want to reboot if it is just a fetch
 				event.proc(event)
 
 			elif event.type == CEvent.RunProc:

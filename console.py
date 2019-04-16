@@ -91,21 +91,24 @@ config.hubtypes['HASS'] = hasshub.HA
 
 # noinspection PyUnusedLocal
 def handler(signum, frame):
-	if signum in (signal.SIGTERM, signal.SIGINT):
-		logsupport.Logs.Log(u"Console received a termination signal ", str(signum), u" - Exiting", tb=True)
+	if signum in (signal.SIGTERM, signal.SIGINT, signal.SIGUSR1):
+		if signum == signal.SIGUSR1:
+			logsupport.Logs.Log("Console received a watchdog termination signal: {} - Exiting".format(signum), tb=True)
+		else:
+			logsupport.Logs.Log("Console received termination signal: {} - Exiting".format(signum), tb=True)
 		hw.GoBright(100)
 		print('Exiting via handler')
 		timers.ShutTimers('interrupt')
+		logsupport.DevPrint('Exit handling done')
+		logsupport.Logs.Log('Console exit for interrupt')
 		pygame.display.quit()
 		pygame.quit()
-		print('Exit handling done')
-		logsupport.Logs.Log('Console exit for interrupt')
 		# noinspection PyProtectedMember
 		# os._exit(0)
 		config.Running = False
 		os._exit(101)
 	else:
-		logsupport.Logs.Log(u"Console received signal " + str(signum) + u" Ignoring")
+		logsupport.Logs.Log("Console received signal {} - Ignoring".format(signum))
 
 
 signal.signal(signal.SIGTERM, handler)

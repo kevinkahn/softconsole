@@ -160,7 +160,8 @@ class VarKey(ManualKeyDesc):
 				lab2.append(line.replace('$', str(val)))
 			self.BuildKey(oncolor, offcolor)
 			self.SetKeyImages(lab2, lab2, 0, True)
-			if self.Blink != 0: self.ScheduleBlinkKey(self.Blink)
+			#if self.Blink != 0:  TODO DEL
+			self.ScheduleBlinkKey(self.Blink)
 		super(VarKey, self).PaintKey(ForceDisplay, DisplayState)
 
 	# noinspection PyUnusedLocal
@@ -246,8 +247,8 @@ class RunProgram(ManualKeyDesc):
 		if go:
 			self.Program.RunProgram()
 			config.DS.SwitchScreen(self.Screen, 'Bright', config.DS.state, 'Verify Run ' + self.Screen.name)
-			if self.Blink != 0:
-				self.ScheduleBlinkKey(self.Blink)
+			#if self.Blink != 0: todo del
+			self.ScheduleBlinkKey(self.Blink)
 		else:
 			config.DS.SwitchScreen(self.Screen, 'Bright', config.DS.state, 'Verify Run ' + self.Screen.name)
 

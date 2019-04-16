@@ -134,7 +134,8 @@ class ManualKeyDesc(TouchPoint):
 			config.screen.blit(self.KeyUnknownOverlay, (x, y))
 
 	def ScheduleBlinkKey(self, cycle):
-		timers.CountedRepeatingPost(.5, cycle, start=True, name=self.name + '-Blink', proc=self.BlinkKey)
+		if cycle != 0:
+			timers.CountedRepeatingPost(.5, cycle, start=True, name=self.name + '-Blink', proc=self.BlinkKey)
 
 	def BlinkKey(self, event):
 		cycle = event.count
