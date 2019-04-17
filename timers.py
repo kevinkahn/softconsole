@@ -104,10 +104,10 @@ class RepeatingPost(Thread):
 		self.finished.set()
 		self.running.set()
 
-		temp = 5
+		temp = 10
 		while self.is_alive():
 			TimerHB.Entry("Cancelling repeater: {}".format(self.name))
-			time.sleep(.001)  # wait for thread to finish to avoid any late activations causing races
+			time.sleep(.1)  # wait for thread to finish to avoid any late activations causing races
 			temp -= 1
 			if temp < 0:
 				logsupport.Logs.Log(
@@ -175,10 +175,10 @@ class ResettableTimer(Thread):
 		self.finished.set()
 		self.changingevent.set()
 
-		temp = 5
+		temp = 10
 		while self.is_alive():
 			TimerHB.Entry("Cancelling resettable: {}".format(self.name))
-			time.sleep(.001)  # wait for thread to finish to avoid any late activations causing races
+			time.sleep(.1)  # wait for thread to finish to avoid any late activations causing races
 			temp -= 1
 			if temp < 0:
 				logsupport.Logs.Log(
@@ -209,16 +209,20 @@ class ResettableTimer(Thread):
 			while not self.changingevent.wait(self.interval):  # enter while loop if interval ends
 				TimerHB.Entry('Post resettable: {}'.format(self.eventtopost))
 				PostEvent(self.eventtopost)
+			#print('loop exit changing event')
 			# get here if changingevent got set - either new values ready or canceling timer
-			if self.finished.is_set(): break  # shutting down requires cancel to set first finished then changing to insure this is set here
+			if self.finished.is_set():
+				#print('finishing')
+				break  # shutting down requires cancel to set first finished then changing to insure this is set here
 			self.eventtopost = self.newevent
+			#print('Newdelta: {}'.format(self.newdelta))
 			self.interval = self.newdelta
 			self.changingevent.clear()
 			self.changedone.set()
 		# otherwise back to waiting for a non-zero interval to set
 
 		del TimerList[self.name]
-		TimerHB.Entry('Exit repeater: {}'.format(self.name))
+		TimerHB.Entry('Exit resettable: {}'.format(self.name))
 
 
 class CountedRepeatingPost(Thread):
@@ -242,7 +246,7 @@ class CountedRepeatingPost(Thread):
 		"""Stop the timer if it hasn't finished yet."""
 		self.finished.set()
 		while self.is_alive():
-			time.sleep(0.001)
+			time.sleep(0.1)
 		TimerHB.Entry("Canceled counter: {}".format(self.name))
 
 	def run(self):
@@ -276,7 +280,7 @@ class OnceTimer(Thread):
 	def cancel(self):
 		self.finished.set()
 		while self.is_alive():
-			time.sleep(0.001)
+			time.sleep(0.1)
 		TimerHB.Entry("Canceled once: {}".format(self.name))
 
 	def run(self):
