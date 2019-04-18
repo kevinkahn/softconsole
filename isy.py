@@ -701,11 +701,12 @@ class ISY(object):
 			self.isyEM.AlertNodes[node.address] = [alert]
 
 	def StatesDump(self):
-		for n, nd in self._NodesByFullName.items():
-			if hasattr(nd, 'devState'):
-				print('Node(', type(nd), '): ', n, ' -> ', nd.devState, type(nd.devState))
-			else:
-				print('Node(', type(nd), '): ', n, ' has no devState')
+		with open('/home/pi/Console/{}Dump.txt'.format(self.name), mode='w') as f:
+			for n, nd in self._NodesByFullName.items():
+				if hasattr(nd, 'devState'):
+					f.write('Node({}): {} -> {} {}\n'.format(type(nd),n, nd.devState, type(nd.devState)))
+				else:
+					f.write('Node({}): {} has no devState \n'.format(type(nd), n))
 
 	def _SetFullNames(self, startpoint, parentname):
 		startpoint.fullname = parentname + startpoint.name

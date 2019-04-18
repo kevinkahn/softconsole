@@ -105,7 +105,7 @@ class StatefulHAnode(HAnode):
 		if config.DS.AS is not None:
 			if self.Hub.name in config.DS.AS.HubInterestList:
 				if self.entity_id in config.DS.AS.HubInterestList[self.Hub.name]:
-					debug.debugPrint('DaemonCtl', time.time() - config.starttime, "HA reports node change(screen): ",
+					debug.debugPrint('DaemonCtl', time.time() - config.sysStore.ConsoleStartTime, "HA reports node change(screen): ",
 									 "Key: ", self.Hub.Entities[self.entity_id].name)
 					PostEvent(ConsoleEvent(CEvent.HubNodeChange, hub=self.Hub.name, node=self.entity_id,
 										   value=self.internalstate))
@@ -192,7 +192,7 @@ class Sensor(HAnode):  # not stateful since it updates directly to store value
 				if ns['state'] not in ('', 'unknown', 'None'):
 					self.Hub.sensorstore.SetVal(self.entity_id, stringtonumeric(ns['state']))
 				else:
-					logsupport.Logs.Log('Sensor update missing value: {}'.format(repr(ns)))
+					logsupport.Logs.Log('Sensor data missing for {} value: {}'.format(ns['entity_id'],ns['state']))
 		except Exception as E:
 			logsupport.Logs.Log('Sensor update error: State: {}  Exc:{}'.format(repr(ns), repr(E)))
 
@@ -275,7 +275,7 @@ class MediaPlayer(HAnode):
 			if config.DS.AS is not None:
 				if self.Hub.name in config.DS.AS.HubInterestList:
 					if self.entity_id in config.DS.AS.HubInterestList[self.Hub.name]:
-						debug.debugPrint('DaemonCtl', time.time() - config.starttime,
+						debug.debugPrint('DaemonCtl', time.time() - config.sysStore.ConsoleStartTime,
 										 "HA reports node change(screen): ",
 										 "Key: ", self.Hub.Entities[self.entity_id].name)
 
@@ -343,7 +343,7 @@ class Thermostat(HAnode):  # not stateful since has much state info
 		if config.DS.AS is not None:
 			if self.Hub.name in config.DS.AS.HubInterestList:
 				if self.entity_id in config.DS.AS.HubInterestList[self.Hub.name]:
-					debug.debugPrint('DaemonCtl', time.time() - config.starttime, "HA reports node change(screen): ",
+					debug.debugPrint('DaemonCtl', time.time() - config.sysStore.ConsoleStartTime, "HA reports node change(screen): ",
 									 "Key: ", self.Hub.Entities[self.entity_id].name)
 
 					# noinspection PyArgumentList
@@ -370,7 +370,7 @@ class Thermostat(HAnode):  # not stateful since has much state info
 		if config.DS.AS is not None:
 			if self.Hub.name in config.DS.AS.HubInterestList:
 				if self.entity_id in config.DS.AS.HubInterestList[self.Hub.name]:
-					debug.debugPrint('DaemonCtl', time.time() - config.starttime,
+					debug.debugPrint('DaemonCtl', time.time() - config.sysStore.ConsoleStartTime,
 									 "HA Tstat reports node change(screen): ",
 									 "Key: ", self.Hub.Entities[self.entity_id].name)
 
@@ -465,8 +465,9 @@ class HA(object):
 			self.AlertNodes[node.address] = [alert]
 
 	def StatesDump(self):
-		for n, nd in self.Entities.items():
-			print('Node(', type(nd), '): ', n, ' -> ', nd.internalstate, nd.state, type(nd.state))
+		with open('/home/pi/Console/{}Dump.txt'.format(self.name), mode='w') as f:
+			for n, nd in self.Entities.items():
+				f.write('Node({}) {}: -> {} {} {}\n'.format(type(nd), n, nd.internalstate, nd.state, type(nd.state)))
 
 	def HACheckThread(self):
 		if self.haconnectstate != "Running":

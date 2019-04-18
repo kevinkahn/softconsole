@@ -61,6 +61,7 @@ class ManualKeyDesc(TouchPoint):
 		self.KeyOffImageBase = None  # type: pygame.Surface
 		self.KeyUnknownOverlay = None  # type: pygame.Surface
 		self.userstore = None
+		self.BlinkTimer = None
 
 		# alternate creation signatures
 		self.ButtonFontSizes = (31, 28, 25, 22, 20, 18, 16)
@@ -135,7 +136,12 @@ class ManualKeyDesc(TouchPoint):
 
 	def ScheduleBlinkKey(self, cycle):
 		if cycle != 0:
-			timers.CountedRepeatingPost(.5, cycle, start=True, name=self.name + '-Blink', proc=self.BlinkKey)
+			if self.BlinkTimer is not None: # if there is an existing Blink going end it
+				if self.BlinkTimer.is_alive():
+					self.BlinkTimer.cancel()
+					self.PaintKey() # force to real state
+					pygame.display.update()
+			self.BlinkTimer = timers.CountedRepeatingPost(.5, cycle, start=True, name=self.name + '-Blink', proc=self.BlinkKey)
 
 	def BlinkKey(self, event):
 		cycle = event.count
