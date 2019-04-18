@@ -17,7 +17,7 @@ from controlevents import CEvent, PostEvent, ConsoleEvent
 from logsupport import ConsoleWarning, ConsoleError, ConsoleDetail
 from stores import valuestore
 
-haignoreandskipdomains = ('history_graph', 'updater')
+haignoreandskipdomains = ('history_graph', 'updater', 'configurator')
 ignoredeventtypes = ('system_log_event', 'call_service', 'service_executed', 'logbook_entry', 'timer_out_of_sync',
 					 'persistent_notifications_updated', 'zwave.network_complete', 'zwave.scene_activated',
 					 'zwave.network_ready', 'automation_triggered', 'script_started')
@@ -848,7 +848,13 @@ class HA(object):
 			# noinspection PyProtectedMember
 			T._connectsensors(tsensor)
 		self.haconnectstate = "Init"
-		services = ha.get_services(self.api)
+		for i in range(3):
+			services = ha.get_services(self.api)
+			if services != {}: break
+			logsupport.Logs.Log('Retry getting services from {}'.format(self.name))
+			time.sleep(1)
+		if services == {}:
+			logsupport.Logs.Log('{} reports no services'.format(self.name), severity=ConsoleWarning)
 		self.knownservices = {}
 		for d in services:
 			if not d['domain'] in self.knownservices:
@@ -858,8 +864,8 @@ class HA(object):
 					logsupport.DevPrint('Duplicate service noted for domain {}: service: {} existing: {} new: {}'.format(d['domain'], s, self.knownservices[d['domain'][s]],c))
 				self.knownservices[d['domain']][s] = c
 
-		if config.versionname == 'development':
-			with open(config.homedir + '/Console/HAservices', 'w') as f:
+		if config.versionname in ('development', 'homerelease'):
+			with open(config.homedir + '/Console/{}services'.format(self.name), 'w') as f:
 				for d, svc in self.knownservices.items():
 					print(d, file=f)
 					for s, c in svc.items():
