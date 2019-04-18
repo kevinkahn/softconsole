@@ -63,7 +63,7 @@ def KillMe():
 	logsupport.DevPrint("Failsafe hit")
 	logsupport.Logs.log("Failsafe hit")
 	time.sleep(1)
-	os.kill(config.Console_pid, signal.SIGKILL)
+	os.kill(config.sysStore.Console_pid, signal.SIGKILL)
 
 
 def ShutTimers(loc):

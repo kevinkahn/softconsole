@@ -31,17 +31,17 @@ def NoEventInjector():
 
 def WatchdogDying(signum, frame):
 	logsupport.DevPrint('Watchdog dying signum: {} frame: {}'.format(signum, frame))
-	os.kill(config.Console_pid, signal.SIGUSR1)
+	os.kill(config.sysStore.Console_pid, signal.SIGUSR1)
 	time.sleep(3)
-	os.kill(config.Console_pid, signal.SIGKILL) # with predjudice
+	os.kill(config.sysStore.Console_pid, signal.SIGKILL) # with predjudice
 
 def failsafedeath():
 	logsupport.DevPrint('Failsafe exit hook')
 	with open("/home/pi/Console/fsmsg.txt", "a") as f:
-		f.writelines('failsafedeath {} watching {} at {}\n'.format(os.getpid(), config.Console_pid, time.time()))
-	os.kill(config.Console_pid, signal.SIGUSR1)
+		f.writelines('failsafedeath {} watching {} at {}\n'.format(os.getpid(), config.sysStore.Console_pid, time.time()))
+	os.kill(config.sysStore.Console_pid, signal.SIGUSR1)
 	time.sleep(3)
-	os.kill(config.Console_pid, signal.SIGKILL) # with predjudice
+	os.kill(config.sysStore.Console_pid, signal.SIGKILL) # with predjudice
 
 class ExitHooks(object):
 	def __init__(self):
@@ -57,14 +57,14 @@ class ExitHooks(object):
 	def exit(self, code=0):
 		print('exithook {}'.format(code))
 		with open("/home/pi/Console/fsmsg.txt", "a") as f:
-			f.writelines('failsafe exithook exit {} watching {} at {} code {}\n'.format(os.getpid(), config.Console_pid, time.time(),code))
+			f.writelines('failsafe exithook exit {} watching {} at {} code {}\n'.format(os.getpid(), config.sysStore.Console_pid, time.time(),code))
 		self.exit_code = code
 		self._orig_exit(code)
 
 	def exc_handler(self, exc_type, exc, *args):
 		print('exc hdlr {}'.format(exc))
 		with open("/home/pi/Console/fsmsg.txt", "a") as f:
-			f.writelines('failsafe exithook hdlr {} watching {} at {}\n Exception {}'.format(os.getpid(), config.Console_pid, time.time(),repr(exc)))
+			f.writelines('failsafe exithook hdlr {} watching {} at {}\n Exception {}'.format(os.getpid(), config.sysStore.Console_pid, time.time(),repr(exc)))
 		self.exception = exc
 		sys.__excepthook__(exc_type, exc, args)
 
@@ -77,7 +77,7 @@ def MasterWatchDog():
 	failsafehooks.hook()
 	atexit.register(failsafedeath)
 
-	logsupport.DevPrint('Master Watchdog Started {} for console pid: {}'.format(os.getpid(),config.Console_pid))
+	logsupport.DevPrint('Master Watchdog Started {} for console pid: {}'.format(os.getpid(),config.sysStore.Console_pid))
 	runningok = True
 	while runningok:
 		while timers.LongOpStart['maintenance'] != 0:
@@ -92,26 +92,26 @@ def MasterWatchDog():
 	logsupport.DevPrint('Watchdog loop exit: {}'.format(time.time()))
 	# noinspection PyBroadException
 	try:
-		os.kill(config.Console_pid, 0)
+		os.kill(config.sysStore.Console_pid, 0)
 	except:
 		logsupport.DevPrint('Normal watchdog exit')
 		# logsupport.Logs.Log("Failsafe watchdog exiting normally")
 		return
-	logsupport.DevPrint('Failsafe interrupt {}'.format(config.Console_pid))
-	# logsupport.Logs.Log("Failsafe watchdog saw console go autistic - interrupting {}".format(config.Console_pid))
-	os.kill(config.Console_pid, signal.SIGUSR1)
+	logsupport.DevPrint('Failsafe interrupt {}'.format(config.sysStore.Console_pid))
+	# logsupport.Logs.Log("Failsafe watchdog saw console go autistic - interrupting {}".format(config.sysStore.Console_pid))
+	os.kill(config.sysStore.Console_pid, signal.SIGUSR1)
 	time.sleep(3)  # wait for exit to complete
 	try:
-		os.kill(config.Console_pid, 0)  # check if console exited - raises exception if it is gone
-		logsupport.DevPrint("Failsafe watchdog interrupt didn't reset - killing {}".format(config.Console_pid))
-		# logsupport.Logs.Log("Failsafe watchdog interrupt didn't reset - killing {}".format(config.Console_pid))
-		os.kill(config.Console_pid, signal.SIGKILL)
+		os.kill(config.sysStore.Console_pid, 0)  # check if console exited - raises exception if it is gone
+		logsupport.DevPrint("Failsafe watchdog interrupt didn't reset - killing {}".format(config.sysStore.Console_pid))
+		# logsupport.Logs.Log("Failsafe watchdog interrupt didn't reset - killing {}".format(config.sysStore.Console_pid))
+		os.kill(config.sysStore.Console_pid, signal.SIGKILL)
 		logsupport.DevPrint("Failsafe exiting after kill attempt")
 	# logsupport.Logs.Log("Failsafe exiting after kill attempt")
 	except Exception as E:
 		print('Failsafe exiting')
 		logsupport.DevPrint(
-			"Failsafe successfully ended console (pid: {}), failsafe (pid: {}) exiting (Exc: {})".format(config.Console_pid,
+			"Failsafe successfully ended console (pid: {}), failsafe (pid: {}) exiting (Exc: {})".format(config.sysStore.Console_pid,
 																							   os.getpid(),repr(E)))
-	# logsupport.Logs.Log("Failsafe successfully ended console (pid: {}), failsafe (pid: {}) exiting".format(config.Console_pid, os.getpid()))
+	# logsupport.Logs.Log("Failsafe successfully ended console (pid: {}), failsafe (pid: {}) exiting".format(config.sysStore.Console_pid, os.getpid()))
 	logsupport.DevPrint('Watchdog exiting')

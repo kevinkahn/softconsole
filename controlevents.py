@@ -21,7 +21,7 @@ LateTolerance = 4 # for my systems
 def PostEvent(e):
 	if e is None:
 		logsupport.Logs.Log('Pushing None event to queue', severity=logsupport.ConsoleError, tb=True, hb=True)
-	cpu = psutil.Process(config.Console_pid).cpu_times()
+	cpu = psutil.Process(config.sysStore.Console_pid).cpu_times()
 	e.addtoevent(QTime=time.time(), usercpu=cpu.user, syscpu=cpu.system)
 	ConsoleOpsQueue.put(e)
 
@@ -30,7 +30,7 @@ def GetEvent():
 	global latencynotification
 	evnt = ConsoleOpsQueue.get(block=True)
 	if evnt is None: logsupport.Logs.Log('Got none from blocking get', severity=logsupport.ConsoleError, hb=True)
-	cpu = psutil.Process(config.Console_pid).cpu_times()
+	cpu = psutil.Process(config.sysStore.Console_pid).cpu_times()
 	if time.time() - evnt.QTime > latencynotification:
 		logsupport.DevPrint(
 			'Long on queue: {} user: {} system: {} event: {}'.format(time.time() - evnt.QTime, cpu.user - evnt.usercpu,

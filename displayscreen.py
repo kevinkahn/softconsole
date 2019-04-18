@@ -173,7 +173,7 @@ class DisplayScreen(object):
 		Failsafe.start()
 		if config.versionname in ('development', 'homerelease'): topper.inittop()
 
-		logsupport.Logs.Log('Starting master watchdog {} for {}'.format(Failsafe.pid, config.Console_pid))
+		logsupport.Logs.Log('Starting master watchdog {} for {}'.format(Failsafe.pid, config.sysStore.Console_pid))
 
 		event = None
 
@@ -196,6 +196,7 @@ class DisplayScreen(object):
 				for h, hub in config.Hubs.items():
 					print('States dump for hub: ', h)
 					hub.StatesDump()
+				debug.dbgStore.SetVal('StatesDump', False)
 
 			if self.Deferrals:  # an event was deferred mid screen touches - handle now
 				event = self.Deferrals.pop(0)

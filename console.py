@@ -34,6 +34,7 @@ import timers
 from stores import mqttsupport, valuestore, localvarsupport, sysstore
 
 config.sysStore = valuestore.NewValueStore(sysstore.SystemStore('System'))
+config.sysStore.SetVal('ConsoleStartTime', time.time())
 
 import configobjects
 import atexit
@@ -114,11 +115,11 @@ def handler(signum, frame):
 signal.signal(signal.SIGTERM, handler)
 signal.signal(signal.SIGINT, handler)
 
-config.Console_pid = os.getpid()
+config.sysStore.SetVal('Console_pid', os.getpid())
 config.exdir = os.path.dirname(os.path.abspath(__file__))
 os.chdir(config.exdir)  # make sure we are in the directory we are executing from
 config.homedir = os.path.dirname(config.exdir)
-logsupport.Logs.Log(u"Console ( " + str(config.Console_pid) + u") starting in " + os.getcwd())
+logsupport.Logs.Log(u"Console ( " + str(config.sysStore.Console_pid) + u") starting in " + os.getcwd())
 
 sectionget = Section.get
 
@@ -158,9 +159,8 @@ logsupport.Logs.Log(u'Environment initialized on host ' + hw.hostname)
 
 lastfn = u""
 lastmod = 0
-config.Console_pid = os.getpid()
 
-logsupport.Logs.Log(u'Exdir: ' + config.exdir + u'  Pid: ' + str(config.Console_pid))
+logsupport.Logs.Log(u'Exdir: ' + config.exdir + u'  Pid: ' + str(config.sysStore.Console_pid))
 
 for root, dirs, files in os.walk(config.exdir):
 	for fname in files:
@@ -304,21 +304,21 @@ logsupport.Logs.Log(" Tag: ", config.versionname)
 logsupport.Logs.Log(" Sha: ", config.versionsha)
 logsupport.Logs.Log(" How: ", config.versiondnld)
 logsupport.Logs.Log(" Version date: ", config.versioncommit)
-logsupport.Logs.Log("Start time: ", time.ctime(config.starttime))
+logsupport.Logs.Log("Start time: ", time.ctime(config.sysStore.ConsoleStartTime))
 with open(config.homedir + "/.ConsoleStart", "w") as f:
-	f.write(str(config.starttime) + '\n')
-logsupport.Logs.Log("Console Starting  pid: ", config.Console_pid)
+	f.write(str(config.sysStore.ConsoleStartTime) + '\n')
+logsupport.Logs.Log("Console Starting  pid: ", config.sysStore.Console_pid)
 logsupport.Logs.Log("Host name: ", hw.hostname)
 logsupport.Logs.Log("Screen type: ", hw.screentype)
 logsupport.Logs.Log("Screen Orientation: ", ("Landscape", "Portrait")[hw.portrait])
-if config.personalsystem:
+if config.sysStore.PersonalSystem:
 	logsupport.Logs.Log("Personal System")
-if config.previousup > 0:
-	logsupport.Logs.Log("Previous Console Lifetime: ", str(datetime.timedelta(seconds=config.previousup)))
-if config.lastup > 0:
-	logsupport.Logs.Log("Console Last Running at: ", time.ctime(config.lastup))
+if utilities.previousup > 0:
+	logsupport.Logs.Log("Previous Console Lifetime: ", str(datetime.timedelta(seconds=utilities.previousup)))
+if utilities.lastup > 0:
+	logsupport.Logs.Log("Console Last Running at: ", time.ctime(utilities.lastup))
 	logsupport.Logs.Log("Previous Console Downtime: ",
-						str(datetime.timedelta(seconds=(config.starttime - config.lastup))))
+						str(datetime.timedelta(seconds=(config.sysStore.ConsoleStartTime - utilities.lastup))))
 logsupport.Logs.Log("Main config file: ", config.configfile,
 					time.strftime(' %c', time.localtime(configfilelist[config.configfile])))
 logsupport.Logs.Log("Default config file library: ", cfglib)

@@ -85,7 +85,7 @@ def EarlyAbort(scrnmsg):
 
 
 def Exit(ecode, immediate=False):
-	consoleup = time.time() - config.starttime
+	consoleup = time.time() - config.sysStore.ConsoleStartTime
 	logsupport.Logs.Log("Console was up: ", interval_str(consoleup))
 	with open(config.homedir + "/.RelLog", "a") as f:
 		f.write('Exit ' + str(ecode) + '\n')

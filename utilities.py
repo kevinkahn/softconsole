@@ -21,6 +21,8 @@ paramlog = []
 exemplarobjs = collections.OrderedDict()
 
 evntcnt = 0
+lastup = 0
+previousup = 0
 
 
 # next several lines stolen from https://stackoverflow.com/questions/39198961/pygame-init-fails-when-run-with-systemd
@@ -79,6 +81,7 @@ def InitializeEnvironment():
 	# needs a keyboardinterrupt to initialise in some limited circs (second time running)
 	# lines below commented with HACK also part of workaround
 	# see https://stackoverflow.com/questions/17035699/pygame-requires-keyboard-interrupt-to-init-display
+	global lastup, previousup
 	class Alarm(Exception):
 		pass
 
@@ -95,9 +98,7 @@ def InitializeEnvironment():
 
 	hw.initOS(scrntyp)
 
-	config.starttime = time.time()
-
-	config.personalsystem = os.path.isfile(config.homedir + "/homesystem")
+	config.sysStore.SetVal('PersonalSystem',os.path.isfile(config.homedir + "/homesystem"))
 
 	# todo move touchhandler selection to hw - return the handler to start for the thread
 	if hw.screentype in ('pi7', '35r', '28c'):
@@ -126,21 +127,21 @@ def InitializeEnvironment():
 		threadmanager.SetUpHelperThread('TouchHandler', ts.run)
 
 	try:
-		config.lastup = os.path.getmtime(config.homedir + "/.ConsoleStart")
+		lastup = os.path.getmtime(config.homedir + "/.ConsoleStart")
 		with open(config.homedir + "/.ConsoleStart") as f:
 			laststart = float(f.readline())
 			lastrealstart = float(f.readline())
-		config.previousup = config.lastup - lastrealstart
+		previousup = lastup - lastrealstart
 		prevsetup = lastrealstart - laststart
 	except (IOError, ValueError):
-		config.previousup = -1
-		config.lastup = -1
+		previousup = -1
+		lastup = -1
 		prevsetup = -1
 
 	with open(config.homedir + "/.RelLog", "a") as f:
 		f.write(
-			str(config.starttime) + ' ' + str(prevsetup) + ' ' + str(config.previousup) + ' ' + str(config.lastup) + ' '
-			+ str(config.starttime - config.lastup) + '\n')
+			str(config.sysStore.ConsoleStartTime) + ' ' + str(prevsetup) + ' ' + str(previousup) + ' ' + str(lastup) + ' '
+			+ str(config.sysStore.ConsoleStartTime - lastup) + '\n')
 
 	"""
 	Scale screen constants

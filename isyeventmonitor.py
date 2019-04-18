@@ -292,7 +292,7 @@ class ISYEventMonitor(object):
 
 					if ecode in self.reportablecodes:
 						# Node change report
-						debug.debugPrint('DaemonStream', time.time() - config.starttime, "Status update in stream: ",
+						debug.debugPrint('DaemonStream', time.time() - config.sysStore.ConsoleStartTime, "Status update in stream: ",
 										 eseq, ":",
 										 prcode, " : ", enode, " : ", eInfo, " : ", eaction)
 
@@ -301,7 +301,7 @@ class ISYEventMonitor(object):
 						if config.DS.AS is not None:
 							if self.isy.name in config.DS.AS.HubInterestList:
 								if enode in config.DS.AS.HubInterestList[self.isy.name]:
-									debug.debugPrint('DaemonCtl', time.time() - config.starttime,
+									debug.debugPrint('DaemonCtl', time.time() - config.sysStore.ConsoleStartTime,
 													 "ISY reports node change(screen): ",
 													 "Key: ", self.isy.NodesByAddr[enode].name)
 									# noinspection PyArgumentList
@@ -342,7 +342,7 @@ class ISYEventMonitor(object):
 						logsupport.Logs.Log(
 							self.hubname + " Extra info in event: " + str(ecode) + '/' + str(prcode) + '/' + str(
 								eaction) + '/' + str(enode) + '/' + str(eInfo) + str(E), severity=lev)
-					debug.debugPrint('DaemonStream', time.time() - config.starttime,
+					debug.debugPrint('DaemonStream', time.time() - config.sysStore.ConsoleStartTime,
 									 formatwsitem(esid, eseq, ecode, eaction, enode, eInfo, E, self.isy))
 
 					try:

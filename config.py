@@ -8,16 +8,11 @@ defaulthub = None  # move at least the name to sysStore todo other stuff should 
 defaulthubname = ""
 hooks = None
 
-starttime = 0
 Running = True
-Console_pid = 0
+
 PRESS = 0
 FASTPRESS = 1
 ecode = 0  # exit code set for main loop
-
-personalsystem = False
-lastup = 0  # last time upstatus known
-previousup = 0  # previous lifetime
 
 # Global pointers
 exdir = ''
@@ -57,3 +52,9 @@ sysvals = {
 	'FirstUnseenErrorTime': (int, 0, None, False),
 	'GlobalLogViewTime': (int, 0, None, False)
 }
+
+# Non user sysfile entries
+#  ConsoleStartTime
+#  Console_pid
+#  PersonalSystem
+

@@ -315,7 +315,7 @@ class Logger(object):
 
 def ReportStatus(status, retain=True):
 	if primaryBroker is not None:
-		stat = json.dumps({'status': status, "uptime": time.time() - config.starttime,
+		stat = json.dumps({'status': status, "uptime": time.time() - config.sysStore.ConsoleStartTime,
 						   "error": config.sysStore.ErrorNotice, 'rpttime': time.time(),
 						   "FirstUnseenErrorTime": config.sysStore.FirstUnseenErrorTime,
 						   "GlobalLogViewTime": config.sysStore.GlobalLogViewTime})

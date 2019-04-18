@@ -315,7 +315,7 @@ class MaintScreenDesc(screen.BaseKeyScreenDesc):
 		rl = (hw.screenwidth - r.get_width()) / 2
 		config.screen.blit(r, (rl, screens.topborder))
 		r = fonts.fonts.Font(self.SubFontSize, '', True, True).render(
-			"Up: " + interval_str(time.time() - config.starttime),
+			"Up: " + interval_str(time.time() - config.sysStore.ConsoleStartTime),
 			0, wc(self.CharColor))
 		rl = (hw.screenwidth - r.get_width()) / 2
 		config.screen.blit(r, (rl, screens.topborder + self.TitleFontSize))
