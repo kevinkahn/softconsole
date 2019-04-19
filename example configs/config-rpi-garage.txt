@@ -14,6 +14,12 @@ SecondaryChain = Thermostat - Main, Local, Portland, La Quinta
     type = Sonos
     DefaultHub = HASS
 
+[Alerts]
+[[LXPanel]]
+         Type = Periodic
+         Interval = 24 hours
+         Invoke = LXPanelRestart.LXPanelRestart
+
 
 
 

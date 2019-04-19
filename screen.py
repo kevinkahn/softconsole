@@ -12,7 +12,7 @@ import stores.paramstore as paramstore
 import stores.valuestore as valuestore
 import toucharea
 import utilities
-from logsupport import ConsoleError, ConsoleWarning
+from logsupport import ConsoleError, ConsoleWarning, ConsoleDetail
 from utilfuncs import wc, tint
 
 ScreenParams = {'DimTO': 99,
@@ -195,7 +195,7 @@ class ScreenDesc(object):
 		if node is not None:
 			if hub != '*VARSTORE*':  # var changes can be reported while any screen is up
 				logsupport.Logs.Log("Unexpected event to screen: ", self.name, ' Hub: ', str(hub), ' Node: ', str(node),
-									' Val: ', str(value), severity=ConsoleWarning)
+									' Val: ', str(value), severity=ConsoleDetail)
 			else:
 				pass
 

@@ -37,6 +37,11 @@ DefaultHub = ISY
 	Invoke = AssignVar.Assign
 	Parameter = System:DimLevel = 50
 
+   [[LXPanel]]
+         Type = Periodic
+         Interval = 24 hours
+         Invoke = LXPanelRestart.LXPanelRestart
+
 
 
 
