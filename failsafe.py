@@ -25,6 +25,7 @@ def TempThreadList():
 				f.write('{} Threadlist: {} alive: {} ident: {} daemon: {} \n'.format(time.time(), thd.name, thd.is_alive(), thd.ident, thd.daemon))
 				if thd.name == 'MainThread' and not thd.is_alive():
 					f.write('Main Thread died')
+					f.flush()
 					os.kill(os.getpid(),signal.SIGINT)  # kill myself
 
 			time.sleep(30)
@@ -48,9 +49,15 @@ def NoEventInjector():
 
 def WatchdogDying(signum, frame):
 	logsupport.DevPrint('Watchdog dying signum: {} frame: {}'.format(signum, frame))
-	os.kill(config.sysStore.Console_pid, signal.SIGUSR1)
+	try:
+		os.kill(config.sysStore.Console_pid, signal.SIGUSR1)
+	except:
+		pass # probably main console already gone
 	time.sleep(3)
-	os.kill(config.sysStore.Console_pid, signal.SIGKILL) # with predjudice
+	try:
+		os.kill(config.sysStore.Console_pid, signal.SIGKILL) # with predjudice
+	except:
+		pass # probably already gone
 
 def failsafedeath():
 	logsupport.DevPrint('Failsafe exit hook')
