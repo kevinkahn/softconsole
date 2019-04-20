@@ -20,13 +20,13 @@ def TempThreadList():
 			L = multiprocessing.active_children()  # clean any zombie failsafe
 			for x in L:
 				f.write('{} Process {}: alive: {} pid: {}\n'.format(time.time(), x.name, x.is_alive(), x.pid))
-				if not x.is_alive():
-					f.write('{} Join {}: alive: {} pid: {}\n'.format(time.time(), x.name, x.is_alive(), x.pid))
-					x.join(5)
-					f.write('{} Join done {}: alive: {} pid: {}\n'.format(time.time(), x.name, x.is_alive(), x.pid))
 			threadlist = threading.enumerate()
 			for thd in threadlist:
 				f.write('{} Threadlist: {} alive: {} ident: {} daemon: {} \n'.format(time.time(), thd.name, thd.is_alive(), thd.ident, thd.daemon))
+				if thd.name == 'MainThread' and not thd.is_alive():
+					f.write('Main Thread died')
+					os.kill(os.getpid(),signal.SIGINT)  # kill myself
+
 			time.sleep(30)
 			f.write('=================End\n')
 
