@@ -149,7 +149,6 @@ if os.getegid() != 0:
 	print(u"Must run as root")
 	# noinspection PyProtectedMember
 	sys.exit(exitutils.EARLYABORT)
-# os._exit(exitutils.EARLYABORT)
 
 utilities.InitializeEnvironment()
 

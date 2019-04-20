@@ -4,6 +4,7 @@ import shutil
 import multiprocessing
 import time
 import signal
+import logsupport
 
 
 topdir = ''
@@ -15,9 +16,10 @@ def inittop():
 	topdir = historybuffer.HBdir+'Tops'
 	os.mkdir(topdir)
 	os.mkdir(topdir+'/Current')
-	TopP = multiprocessing.Process(target=dotops)
+	TopP = multiprocessing.Process(target=dotops, name='Topper')
 	TopP.daemon = True
 	TopP.start()
+	logsupport.Logs.Log('Started top check process: {}'.format(TopP.pid))
 
 def dotops():
 	global topseq

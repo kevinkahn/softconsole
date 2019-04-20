@@ -28,7 +28,12 @@ def PostEvent(e):
 
 def GetEvent():
 	global latencynotification
-	evnt = ConsoleOpsQueue.get(block=True)
+	try:
+		evnt = ConsoleOpsQueue.get(block=True,timeout=30)
+	except queue.Empty:
+		logsupport.DevPrint('Queue wait timeout')
+		logsupport.Logs.Log('Main queue timeout',severity=logsupport.ConsoleWarning)
+		evnt = ConsoleEvent(CEvent.FailSafePing,inject=time.time())
 	if evnt is None: logsupport.Logs.Log('Got none from blocking get', severity=logsupport.ConsoleError, hb=True)
 	cpu = psutil.Process(config.sysStore.Console_pid).cpu_times()
 	if time.time() - evnt.QTime > latencynotification:

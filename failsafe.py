@@ -4,6 +4,7 @@ import signal
 import time
 import timers
 import atexit
+import threading
 
 import config
 import logsupport
@@ -12,6 +13,22 @@ from controlevents import CEvent, PostEvent, ConsoleEvent
 KeepAlive = multiprocessing.Event()
 FailsafeInterval = 60
 
+def TempThreadList():
+	while True:
+		with open('/home/pi/Console/pidlog', 'a') as f:
+			f.write('=================Start\n')
+			L = multiprocessing.active_children()  # clean any zombie failsafe
+			for x in L:
+				f.write('{} Process {}: alive: {} pid: {}\n'.format(time.time(), x.name, x.is_alive(), x.pid))
+				if not x.is_alive():
+					f.write('{} Join {}: alive: {} pid: {}\n'.format(time.time(), x.name, x.is_alive(), x.pid))
+					x.join(5)
+					f.write('{} Join done {}: alive: {} pid: {}\n'.format(time.time(), x.name, x.is_alive(), x.pid))
+			threadlist = threading.enumerate()
+			for thd in threadlist:
+				f.write('{} Threadlist: {} alive: {} ident: {} daemon: {} \n'.format(time.time(), thd.name, thd.is_alive(), thd.ident, thd.daemon))
+			time.sleep(30)
+			f.write('=================End\n')
 
 def NoEventInjector():
 	logsupport.Logs.Log('Starting watchdog activity injector')

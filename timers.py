@@ -178,8 +178,9 @@ class ResettableTimer(Thread):
 		temp = 10
 		while self.is_alive():
 			TimerHB.Entry("Cancelling resettable: {}".format(self.name))
-			time.sleep(.1)  # wait for thread to finish to avoid any late activations causing races
+			time.sleep(.2)  # wait for thread to finish to avoid any late activations causing races
 			temp -= 1
+			self.changingevent.set()
 			if temp < 0:
 				logsupport.Logs.Log(
 					"Resettable {} won't cancel finished: {} changing: {} changedone: {}".format(self.name,
@@ -191,6 +192,7 @@ class ResettableTimer(Thread):
 		TimerHB.Entry("Canceled resettable: {}".format(self.name))
 
 	def set(self, event, delta):
+		if self.finished.is_set(): return
 		self.newevent = event
 		self.newdelta = delta
 		self.changingevent.set()

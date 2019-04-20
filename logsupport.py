@@ -54,14 +54,18 @@ LocalOnly = True
 
 def InitLogs(screen, dirnm):
 	global DevPrint
-	if config.versionname == 'development': DevPrint = DevPrintDoIt
+	if config.versionname == 'development':
+		DevPrint = DevPrintDoIt
+		with open('/home/pi/Console/pidlog', 'w') as f:
+			f.write('------ {} ------\n'.format(time.time()))
 	return Logger(screen, dirnm)
 
 def DevPrint(arg):
 	pass
 
 def DevPrintDoIt(arg):
-	#if config.versionname == 'development':
+	with open('/home/pi/Console/pidlog', 'a') as f:
+		f.write('{}({}): {}\n'.format(str(os.getpid()), time.time(), arg))
 	print('{}({}): {}'.format(str(os.getpid()), time.time(), arg))
 
 

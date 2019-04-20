@@ -165,10 +165,15 @@ class DisplayScreen(object):
 		statusperiod = time.time()
 		prevstatus = ''
 
-		Injector = threading.Thread(target=failsafe.NoEventInjector)
+		if config.versionname in ('development'):
+			TempThdList = threading.Thread(target=failsafe.TempThreadList, name='ThreadLister')
+			TempThdList.daemon = True
+			TempThdList.start()
+
+		Injector = threading.Thread(target=failsafe.NoEventInjector, name='Injector')
 		Injector.daemon = True
 		Injector.start()
-		Failsafe = multiprocessing.Process(target=failsafe.MasterWatchDog)
+		Failsafe = multiprocessing.Process(target=failsafe.MasterWatchDog,name='Failsafe')
 		Failsafe.daemon = True
 		Failsafe.start()
 		if config.versionname in ('development', 'homerelease'): topper.inittop()
@@ -178,7 +183,11 @@ class DisplayScreen(object):
 		event = None
 
 		while config.Running:  # Operational Control Loop
-			if not Failsafe.is_alive(): logsupport.Logs.Log('Watchdog died', severity=ConsoleError, hb=True)
+
+			if not Failsafe.is_alive():
+				logsupport.DevPrint('Watchdog died')
+				logsupport.Logs.Log('Watchdog died - restarting console', severity=ConsoleError, hb=True)
+				exitutils.Exit(exitutils.ERRORRESTART)
 			failsafe.KeepAlive.set()
 			nowtime = time.time()
 			if statusperiod <= nowtime or prevstatus != config.consolestatus:
