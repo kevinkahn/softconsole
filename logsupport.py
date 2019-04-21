@@ -51,6 +51,8 @@ primaryBroker = None  # for cross system reporting if mqtt is running
 LogLevel = 3
 LocalOnly = True
 
+heldstatus = ''
+
 
 def InitLogs(screen, dirnm):
 	global DevPrint
@@ -317,9 +319,16 @@ class Logger(object):
 		return -1
 
 
-def ReportStatus(status, retain=True):
+def ReportStatus(status, retain=True, hold=0):
+	# held: 0 normal status report, 1 set an override status to be held, 2 clear and override status
+	global heldstatus
+	if hold == 1:
+		heldstatus = status
+	elif hold == 2:
+		heldstatus = ''
+
 	if primaryBroker is not None:
-		stat = json.dumps({'status': status, "uptime": time.time() - config.sysStore.ConsoleStartTime,
+		stat = json.dumps({'status': status if heldstatus == '' else heldstatus, "uptime": time.time() - config.sysStore.ConsoleStartTime,
 						   "error": config.sysStore.ErrorNotice, 'rpttime': time.time(),
 						   "FirstUnseenErrorTime": config.sysStore.FirstUnseenErrorTime,
 						   "GlobalLogViewTime": config.sysStore.GlobalLogViewTime})

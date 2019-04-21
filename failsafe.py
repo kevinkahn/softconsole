@@ -14,6 +14,12 @@ KeepAlive = multiprocessing.Event()
 FailsafeInterval = 60
 
 def TempThreadList():
+	'''
+	This routine is just for working cleanly with PyCharm IDE.  If you leave a system running that was launched from
+	PyCharm, if the PC controlling it goes to sleep it kills the console.  Unfortunately it only partially kills it and
+	so leaves zombies and threads running.  This code makes sure everything gets killed so as to not leave connections
+	to the ISY which will eventually force it to its limit without manual intervention.
+	'''
 	while True:
 		with open('/home/pi/Console/pidlog', 'a') as f:
 			f.write('=================Start\n')
@@ -24,7 +30,7 @@ def TempThreadList():
 			for thd in threadlist:
 				f.write('{} Threadlist: {} alive: {} ident: {} daemon: {} \n'.format(time.time(), thd.name, thd.is_alive(), thd.ident, thd.daemon))
 				if thd.name == 'MainThread' and not thd.is_alive():
-					f.write('Main Thread died')
+					f.write('Main Thread died\n')
 					f.flush()
 					os.kill(os.getpid(),signal.SIGINT)  # kill myself
 
