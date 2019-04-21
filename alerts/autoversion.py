@@ -8,6 +8,7 @@ import logsupport
 import timers
 import threading
 from logsupport import ConsoleWarning, ConsoleDetail, ReportStatus
+import controlevents
 
 
 def DoFetchRestart():
@@ -20,6 +21,11 @@ def DoFetchRestart():
 	logsupport.Logs.Log("Staged version installed in ", config.exdir)
 	logsupport.Logs.Log('Restart for new version')
 	ReportStatus('auto restart', hold = 2)
+	controlevents.PostEvent(controlevents.ConsoleEvent(controlevents.CEvent.RunProc,proc=ForceRestart))
+	#exitutils.Exit(exitutils.AUTORESTART)
+
+def ForceRestart():
+	logsupport.Logs.Log('Autoversion Restart Event')
 	exitutils.Exit(exitutils.AUTORESTART)
 
 fetcher = None
