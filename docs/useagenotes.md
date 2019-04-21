@@ -185,7 +185,33 @@ Finally, the consoles will accept commands from MQTT.  A console listens on the 
 * status: issue a status message to MQTT
 * issueError, issueWarning, issueInfo,hbdump: diagnostic/debug commands
 
-# Currently supported screens
+# Screens
+
+## Common Parameters
+All screens support some common keyword parameters that control appearance of aspects of the screen.  These include (note that these will default to any values set in the globabl part of the config file):
+* DimTO: Time before screen will go dim if not touched
+* CharColor: Color of general characters on the screen
+* PersistTO: Time screen will remain visible before reverting to the home screen
+* BackgroundColor: Color of the screen background
+* CmdKeyCol: Color of the nav key at the bottom of a screen pointing to this screen
+* CmdCharCol: Corresponding character color
+* DefaultHub: Specifies a specific hub for references on this screen
+* KeyColor: Default color for any keys on the screen (default for next two parameters)
+* KeyColorOn: Default color for any keys on the screen that are in an "on" state
+* KeyColorOff: Default color for any keys on the screen that are in an "off" state
+* KeyCharColorOn: Default character color for "on" keys
+* KeyCharColorOff: Default character color for "off" keys
+* KeyOnOutlineColor: Color for outline for "on" keys
+* KeyOffOutlineColor: Color for outline for "off" keys
+* KeyOutlineOffset: Spacing offset for outline of key
+* ScreenTitle: A title to be painted at the top of the screen (may be unspecified for no label)
+* ScreenTitleColor: Color for the screen label
+* ScreenTitleSize: Size for the screen label
+* label: a label for the screen to be used in nav keys that point to this screen; also is a default if a screen title is needed for a screen and one is not explicitly specified
+
+Note that all the elements referring to keys may be explicitly specified at the key level - there are just default values to use for the screen.  If you set a non empty title for a screen that doesn't otherwise have one, the rest of the screen shrinks vertically to allow the space.
+
+## Screen Types
 * Keypad: mimics the KPL.  Can support any number of buttons from 1 to 25 and will autoplace/autosize buttons in this range.  Parmetrs KeysPerColumn and KeysPerRow may be used to override the auto placement of the keys.  Keys may be colored as desired.  Key types are:
     * ONOFF: linked to a device or scene and supports On, Off, FastOn, FastOff behaviors
     * RUNPROG: linked to a program to run.  It issues a RunThen on the designated program for ISY hubs. It issues a automation.trigger for the automation for HA hubs.
