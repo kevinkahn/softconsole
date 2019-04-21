@@ -12,14 +12,14 @@ from logsupport import ConsoleWarning, ConsoleDetail, ReportStatus
 
 def DoFetchRestart():
 	logsupport.Logs.Log('Update fetch thread started')
-	ReportStatus("auto updt firmware", held = 1)
+	ReportStatus("auto updt firmware", hold = 1)
 	githubutil.StageVersion(config.exdir, config.versionname, 'Auto Dnld')
 	logsupport.Logs.Log('Update fetch thread staged')
-	ReportStatus("auto install firmware", held = 1)
+	ReportStatus("auto install firmware", hold = 1)
 	githubutil.InstallStagedVersion(config.exdir)
 	logsupport.Logs.Log("Staged version installed in ", config.exdir)
 	logsupport.Logs.Log('Restart for new version')
-	ReportStatus('auto restart', held = 2)
+	ReportStatus('auto restart', hold = 2)
 	exitutils.Exit(exitutils.AUTORESTART)
 
 fetcher = None
