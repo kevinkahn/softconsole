@@ -50,7 +50,7 @@ class AutoVersion(object):
 						fetcher = threading.Thread(name='AutoVersionFetch', target=DoFetchRestart, daemon=True)
 						fetcher.start()
 					else:
-						logsupport.Logs.Log('Autoversion fetch while previous fetch still in progress', severity = ConsoleWarning)
+						logsupport.Logs.Log('Autoversion fetch while previous fetch still in progress')
 				elif sha == 'no current sha':
 					logsupport.Logs.Log('No sha for autoversion: ', config.versionname, severity=ConsoleWarning)
 				else:
