@@ -13,14 +13,18 @@ class NetworkHealth(object):
 	@staticmethod
 	def RobustPing(dest):
 		ok = False
-		with open('/dev/null', 'a') as null:
+		#with open('/dev/null', 'a') as f:
+		with open('/home/pi/Console/hlog', 'a') as f:
 			cmd = 'ping -c 1 -W 2 ' + dest
-			for i in range(4):
-				p = subprocess.call(cmd, shell=True, stdout=null, stderr=null)
+			for i in range(7):
+				f.write('Ping:\n')
+				f.flush()
+				p = subprocess.call(cmd, shell=True, stdout=f, stderr=f)
 				if p == 0:
 					ok = True  # one success in loop is success
 					break
 				else:
+					f.write('Ping result: {}'.format(p))
 					pass
 		return ok
 
