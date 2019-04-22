@@ -414,6 +414,7 @@ class HA(object):
 		try:
 			return self.Entities[name], self.Entities[name]
 		except:
+			# todo part of handling late nodes
 			logsupport.Logs.Log("Attempting to access unknown object: " + name + " in HA Hub: " + self.name,
 								severity=ConsoleWarning)
 			return None, None
@@ -436,6 +437,7 @@ class HA(object):
 		try:
 			return MonitorNode.internalstate
 		except:
+			#todo part of handling late discovered nodes
 			logsupport.Logs.Log("Error accessing current state in HA Hub: " + self.name + ' ' + repr(MonitorNode),
 								severity=ConsoleWarning)
 			return None

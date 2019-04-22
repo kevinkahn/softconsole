@@ -60,10 +60,14 @@ def InitLogs(screen, dirnm):
 		q = [k for k in os.listdir('/home/pi/Console') if 'hlog' in k]
 		maxf = config.sysStore.MaxLogFiles
 		if "hlog." + str(maxf) in q:
-			os.remove('hlog.' + str(maxf))
+			os.remove('/home/pi/Console/hlog.' + str(maxf))
 		for i in range(maxf - 1, 0, -1):
 			if "hlog." + str(i) in q:
-				os.rename('hlog.' + str(i), "hlog." + str(i + 1))
+				os.rename('/home/pi/Console/hlog.' + str(i), "/home/pi/Console/hlog." + str(i + 1))
+		try:
+			os.rename('/home/pi/Console/hlog','/home/pi/Console/hlog.1')
+		except:
+			pass
 		DevPrint = DevPrintDoIt
 		with open('/home/pi/Console/hlog', 'w') as f:
 			f.write('------ {} ------\n'.format(time.time()))
@@ -216,10 +220,10 @@ class Logger(object):
 			locked = self.lock.acquire(timeout=5)
 
 			if not locked:
-				self.RecordMessage(ConsoleError, 'Log lock failed (Local)' + repr(self.lockerid) + args[0],
+				self.RecordMessage(ConsoleError, 'Log lock failed (Local)' + repr(self.lockerid) + str(args[0]),
 								   defentrytime, False, False)
 			else:
-				self.lockerid = (defentrytime, 'locallock' + args[0])
+				self.lockerid = (defentrytime, 'locallock' + str(args[0]))
 
 			severity = kwargs.pop('severity', ConsoleInfo)
 			entrytime = kwargs.pop('entrytime', time.strftime('%m-%d-%y %H:%M:%S', localnow))
