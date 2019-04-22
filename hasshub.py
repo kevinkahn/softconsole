@@ -455,8 +455,8 @@ class HA(object):
 						'Sensor value anomoly(' + self.name + '): Cached: ' + str(cacheval) + ' Actual: ' + str(
 							actualval), severity=ConsoleWarning, hb=True)
 					self.sensorstore.SetVal(s.entity_id, actualval)
-		except:
-			logsupport.Logs.Log('Sensor value check did not complete', severity=ConsoleWarning)
+		except Exception as E:
+			logsupport.Logs.Log('Sensor value check did not complete: {}'.format(repr(E)), severity=ConsoleWarning)
 
 	def SetAlertWatch(self, node, alert):
 		if node.address in self.AlertNodes:

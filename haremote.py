@@ -1,4 +1,9 @@
 """
+Copied/shortened from the homeassisant git when this package was deprecated by them.  It provides a convenient call interface
+to getting various info via the req url interface.  Could be cleaned up to just use the url interface if I thought that
+were to be stable
+
+
 Support for an interface to work with a remote instance of Home Assistant.
 
 If a connection error occurs while communicating with the API a
@@ -15,7 +20,8 @@ from typing import Optional, Dict, Any
 
 import requests
 from aiohttp.hdrs import METH_GET, METH_POST, CONTENT_TYPE
-from homeassistant import core as ha
+from types import MappingProxyType
+import datetime
 
 import logsupport
 
@@ -31,6 +37,101 @@ URL_API_SERVICES_SERVICE = '/api/services/{}/{}'
 
 class HomeAssistantError(Exception):
 	pass
+
+def split_entity_id(entity_id: str):
+	"""Split a state entity_id into domain, object_id."""
+	return entity_id.split(".", 1)
+
+
+'''
+This is a standin for the actual HomeAssistant State class to allow accessing without importing all of the homeassistan
+module
+'''
+
+class HAState(object):
+	"""Object to represent a state within the state machine.
+
+    entity_id: the entity that is represented.
+    state: the state of the entity
+    attributes: extra information on entity and state
+    last_changed: last time the state was changed, not the attributes.
+    last_updated: last time this object was updated.
+    """
+
+	def __init__(self, entity_id, state, attributes=None, last_changed=None,
+                 last_updated=None):
+		"""Initialize a new state."""
+
+		self.entity_id = entity_id.lower()
+		self.state = state
+		self.attributes = MappingProxyType(attributes or {})
+		self.last_updated = last_updated
+		self.last_changed = last_changed or self.last_updated
+
+	@property
+	def domain(self):
+		"""Domain of this state."""
+		return split_entity_id(self.entity_id)[0]
+
+	@property
+	def object_id(self):
+		"""Object id of this state."""
+		return split_entity_id(self.entity_id)[1]
+
+	@property
+	def name(self):
+		"""Name of this state."""
+		return (
+			self.attributes.get('friendly_name') or
+			self.object_id.replace('_', ' '))
+
+	def as_dict(self):
+		"""Return a dict representation of the State.
+
+		Async friendly.
+
+        To be used for JSON serialization.
+        Ensures: state == State.from_dict(state.as_dict())
+        """
+		return {'entity_id': self.entity_id,
+                'state': self.state,
+                'attributes': dict(self.attributes),
+                'last_changed': self.last_changed,
+                'last_updated': self.last_updated}
+
+	@classmethod
+	def from_dict(cls, json_dict):
+		"""Initialize a state from a dict.
+
+        Async friendly.
+
+        Ensures: state == State.from_json_dict(state.to_json_dict())
+        """
+		if not (json_dict and 'entity_id' in json_dict and
+                'state' in json_dict):
+			return None
+
+		last_changed = json_dict.get('last_changed')
+
+		last_updated = json_dict.get('last_updated')
+
+		return cls(json_dict['entity_id'], json_dict['state'],
+                   json_dict.get('attributes'), last_changed, last_updated)
+
+	def __eq__(self, other):
+		"""Return the comparison of the state."""
+		return (self.__class__ == other.__class__ and
+                self.entity_id == other.entity_id and
+                self.state == other.state and
+                self.attributes == other.attributes)
+
+	def __repr__(self):
+		"""Return the representation of the states."""
+
+		return "<HAstate {}={} attributes: {} @ {}>".format(
+            self.entity_id, self.state, self.attributes,
+            self.last_changed)
+
 
 
 class APIStatus(enum.Enum):
@@ -150,44 +251,14 @@ def validate_api(api: API) -> APIStatus:
 		return APIStatus.CANNOT_CONNECT
 
 
-'''
-def get_event_listeners(api: API) -> Dict:
-    """List of events that is being listened for."""
-    try:
-        req = api(METH_GET, URL_API_EVENTS)
-
-        return req.json() if req.status_code == 200 else {}  # type: ignore
-
-    except (HomeAssistantError, ValueError):
-        # ValueError if req.json() can't parse the json
-        _LOGGER.exception("Unexpected result retrieving event listeners")
-
-        return {}
-
-
-def fire_event(api: API, event_type: str, data: Dict = None) -> None:
-    """Fire an event at remote API."""
-    try:
-        req = api(METH_POST, URL_API_EVENTS_EVENT.format(event_type), data)
-
-        if req.status_code != 200:
-            _LOGGER.error("Error firing event: %d - %s",
-                          req.status_code, req.text)
-
-    except HomeAssistantError:
-        _LOGGER.exception("Error firing event")
-
-'''
-
-
 def get_state(api: API, entity_id: str):
 	"""Query given API for state of entity_id."""
 	try:
 		req = api(METH_GET, URL_API_STATES_ENTITY.format(entity_id))
+		#logsupport.DevPrint('JSON: {}'.format((req.json())))
+		#logsupport.DevPrint('STAT: {}'.format(HAState.from_dict(req.json())))
 
-		# req.status_code == 422 if entity does not exist
-
-		return ha.State.from_dict(req.json()) \
+		return HAState.from_dict(req.json()) \
 			if req.status_code == 200 else None
 
 	except (HomeAssistantError, ValueError):
@@ -203,7 +274,7 @@ def get_states(api: API):
 		req = api(METH_GET,
 				  URL_API_STATES)
 
-		return [ha.State.from_dict(item) for
+		return [HAState.from_dict(item) for
 				item in req.json()]
 
 	except (HomeAssistantError, ValueError, AttributeError):
@@ -212,62 +283,6 @@ def get_states(api: API):
 		logsupport.Logs.Log("Error fetching states in get_states", severity=logsupport.ConsoleWarning)
 
 		return []
-
-
-'''
-def remove_state(api: API, entity_id: str) -> bool:
-    """Call API to remove state for entity_id.
-
-    Return True if entity is gone (removed/never existed).
-    """
-    try:
-        req = api(METH_DELETE, URL_API_STATES_ENTITY.format(entity_id))
-
-        if req.status_code in (200, 404):
-            return True
-
-        _LOGGER.error("Error removing state: %d - %s",
-                      req.status_code, req.text)
-        return False
-    except HomeAssistantError:
-        _LOGGER.exception("Error removing state")
-
-        return False
-
-def set_state(api: API, entity_id: str, new_state: str,
-              attributes: Dict = None, force_update: bool = False) -> bool:
-    """Tell API to update state for entity_id.
-
-    Return True if success.
-    """
-    attributes = attributes or {}
-
-    data = {'state': new_state,
-            'attributes': attributes,
-            'force_update': force_update}
-
-    try:
-        req = api(METH_POST, URL_API_STATES_ENTITY.format(entity_id), data)
-
-        if req.status_code not in (200, 201):
-            _LOGGER.error("Error changing state: %d - %s",
-                          req.status_code, req.text)
-            return False
-
-        return True
-
-    except HomeAssistantError:
-        _LOGGER.exception("Error setting state")
-
-        return False
-
-
-def is_state(api: API, entity_id: str, state: str) -> bool:
-    """Query API to see if entity_id is specified state."""
-    cur_state = get_state(api, entity_id)
-
-    return bool(cur_state and cur_state.state == state)
-'''
 
 
 def get_services(api: API) -> Dict:

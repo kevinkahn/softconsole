@@ -150,9 +150,9 @@ LogBanner "Install stuff for console"
 #update-alternatives --install /usr/bin/python python /usr/bin/python3.5 2
 
 pip install --upgrade pip
-pip3 install --upgrade pip
+#pip3 install --upgrade pip
 
-pip3 install homeassistant # do it here to avoid conflicts in versions later
+#pip3 install homeassistant # do it here to avoid conflicts in versions later
 
 if [ $UseWheezy == "Y" ]
 then
