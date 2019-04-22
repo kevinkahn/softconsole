@@ -56,7 +56,7 @@ heldstatus = ''
 
 def InitLogs(screen, dirnm):
 	global DevPrint
-	if config.versionname == 'development':
+	if config.versionname in ('development', 'homerelease'):
 		q = [k for k in os.listdir('/home/pi/Console') if 'hlog' in k]
 		maxf = config.sysStore.MaxLogFiles
 		if "hlog." + str(maxf) in q:
