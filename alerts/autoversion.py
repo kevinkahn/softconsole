@@ -21,7 +21,7 @@ def DoFetchRestart():
 	logsupport.Logs.Log("Staged version installed in ", config.exdir)
 	logsupport.Logs.Log('Restart for new version')
 	ReportStatus('auto restart', hold = 2)
-	controlevents.PostEvent(controlevents.ConsoleEvent(controlevents.CEvent.RunProc,proc=ForceRestart))
+	controlevents.PostEvent(controlevents.ConsoleEvent(controlevents.CEvent.RunProc,proc=ForceRestart, name=ForceRestart))
 	#exitutils.Exit(exitutils.AUTORESTART)
 
 def ForceRestart():
