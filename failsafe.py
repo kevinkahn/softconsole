@@ -21,7 +21,7 @@ def TempThreadList():
 	to the ISY which will eventually force it to its limit without manual intervention.
 	'''
 	while True:
-		with open('/home/pi/Console/pidlog', 'a') as f:
+		with open('/home/pi/Console/hlog', 'a') as f:
 			f.write('=================Start\n')
 			L = multiprocessing.active_children()  # clean any zombie failsafe
 			for x in L:

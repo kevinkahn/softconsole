@@ -57,8 +57,15 @@ heldstatus = ''
 def InitLogs(screen, dirnm):
 	global DevPrint
 	if config.versionname == 'development':
+		q = [k for k in os.listdir('/home/pi/Console') if 'hlog' in k]
+		maxf = config.sysStore.MaxLogFiles
+		if "hlog." + str(maxf) in q:
+			os.remove('hlog.' + str(maxf))
+		for i in range(maxf - 1, 0, -1):
+			if "hlog." + str(i) in q:
+				os.rename('hlog.' + str(i), "hlog." + str(i + 1))
 		DevPrint = DevPrintDoIt
-		with open('/home/pi/Console/pidlog', 'w') as f:
+		with open('/home/pi/Console/hlog', 'w') as f:
 			f.write('------ {} ------\n'.format(time.time()))
 	return Logger(screen, dirnm)
 
@@ -66,7 +73,7 @@ def DevPrint(arg):
 	pass
 
 def DevPrintDoIt(arg):
-	with open('/home/pi/Console/pidlog', 'a') as f:
+	with open('/home/pi/Console/hlog', 'a') as f:
 		f.write('{}({}): {}\n'.format(str(os.getpid()), time.time(), arg))
 	print('{}({}): {}'.format(str(os.getpid()), time.time(), arg))
 
