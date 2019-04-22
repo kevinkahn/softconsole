@@ -5,6 +5,7 @@ pip install webcolors
 pip install xmltodict
 pip install smbus
 pip install psutil
+pip install aiohttp
 pip install --upgrade websocket-client
 pip install --upgrade wiringpi
 pip install --upgrade paho-mqtt

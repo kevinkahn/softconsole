@@ -3,7 +3,7 @@
 
   To set up a system use one of the following methods:
 
-    * Easiest:  Build your Pi using the a recent Raspbian image from the Foundation.  The system has been tested and run on Jessie and Stretch versions.  (As of 5/1/2018 the current version is a Stretch version.)  Add the **pisetup.sh** script to the /boot partition on the SD card while you have the card in whatever system you use to write the image.  After booting the Pi with this image you may want to configure WiFi from the console if you need that.  Then run as root `bash /boot/pisetup.sh`.  
+    * Easiest:  Build your Pi using the a recent Raspbian image from the Foundation.  The system has been tested and run on Jessie and Stretch versions.  (As of 4/21/2019 the current version is a Stretch version.)  Add the **pisetup.sh** script to the /boot partition on the SD card while you have the card in whatever system you use to write the image.  After booting the Pi with this image you may want to configure WiFi from the console if you need that.  Then run as root `bash /boot/pisetup.sh`.  
         * Note: If Raspbian finds a file called "wpa_supplicant.conf" in the boot directory it will copy that to the right spot to enable WiFi.  This file looks like:
           ```
           ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev

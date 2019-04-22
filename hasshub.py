@@ -450,7 +450,7 @@ class HA(object):
 					actualval = '*unknown*'
 				else:
 					actualval = e.state
-				if cacheval != actualval:
+				if cacheval != type(cacheval)(actualval):
 					logsupport.Logs.Log(
 						'Sensor value anomoly(' + self.name + '): Cached: ' + str(cacheval) + ' Actual: ' + str(
 							actualval), severity=ConsoleWarning, hb=True)

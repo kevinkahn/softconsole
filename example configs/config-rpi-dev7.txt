@@ -34,11 +34,11 @@ DefaultHub = ISY
 	Type = Periodic
 	Interval = 3 hours
 	Invoke = AutoVersion.CheckUpToDate
-	[[Sanity]]
-	Type = Periodic
-	Interval = 30 seconds
-	Parameter = HASSpga
-	Invoke = CheckIntegrity.CheckStatusCaches
+#	[[Sanity]]
+#	Type = Periodic
+#	Interval = 30 seconds
+#	Parameter = HASSpga
+#	Invoke = CheckIntegrity.CheckStatusCaches
 #	[[AltVarTest]]
 #	Type = StateVarChange
 #	Var = tEST

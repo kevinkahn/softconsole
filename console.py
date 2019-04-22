@@ -289,7 +289,7 @@ logsupport.Logs = logsupport.InitLogs(config.screen, os.path.dirname(config.conf
 cgitb.enable(format='text')
 logsupport.Logs.Log(u"Soft ISY Console")
 
-logsupport.Logs.Log(u"  \u00A9 Kevin Kahn 2016, 2017, 2018")
+logsupport.Logs.Log(u"  \u00A9 Kevin Kahn 2016, 2017, 2018, 2019")
 logsupport.Logs.Log("Software under Apache 2.0 License")
 logsupport.Logs.Log("Version Information:")
 logsupport.Logs.Log(" Running under Python: ", sys.version)
