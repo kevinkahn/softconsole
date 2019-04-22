@@ -72,7 +72,7 @@ class ExitHooks(object):
 		sys.excepthook = self.exc_handler
 
 	def exit(self, code=0):
-		print('exithook {}'.format(code))
+		print('exithookMain {}'.format(code))
 		self.exit_code = code
 		self._orig_exit(code)
 
@@ -94,11 +94,14 @@ config.hubtypes['HASS'] = hasshub.HA
 def handler(signum, frame):
 	if signum in (signal.SIGTERM, signal.SIGINT, signal.SIGUSR1):
 		if signum == signal.SIGUSR1:
+			logsupport.DevPrint('Watchdog termination')
 			logsupport.Logs.Log("Console received a watchdog termination signal: {} - Exiting".format(signum), tb=True)
 		else:
+			logsupport.DevPrint('Signal termination {}'.format(signum))
 			logsupport.Logs.Log("Console received termination signal: {} - Exiting".format(signum), tb=True)
+			os.kill(config.sysStore.Watchdog_pid,signal.SIGUSR1)
+			if config.sysStore.Topper_pid != 0: os.kill(config.sysStore.Topper_pid, signal.SIGKILL)
 		hw.GoBright(100)
-		print('Exiting via handler')
 		timers.ShutTimers('interrupt')
 		logsupport.DevPrint('Exit handling done')
 		logsupport.Logs.Log('Console exit for interrupt')
@@ -114,8 +117,11 @@ def handler(signum, frame):
 
 signal.signal(signal.SIGTERM, handler)
 signal.signal(signal.SIGINT, handler)
+signal.signal(signal.SIGUSR1, handler)
 
 config.sysStore.SetVal('Console_pid', os.getpid())
+config.sysStore.SetVal('Watchdog_pid', 0)  # gets set for real later but for now make sure the variable exists
+config.sysStore.SetVal('Topper_pid',0)
 config.exdir = os.path.dirname(os.path.abspath(__file__))
 os.chdir(config.exdir)  # make sure we are in the directory we are executing from
 config.homedir = os.path.dirname(config.exdir)

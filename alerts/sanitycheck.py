@@ -15,6 +15,7 @@ class CheckIntegrity(object):
 	def CheckStatusCaches(alert):
 		def DoCheck(hubnm, hub):
 			logsupport.Logs.Log('Integrity check for hub: ', hubnm, ' starting')
+			logsupport.DevPrint('Integrity check for hub {}'.format(hubnm))
 			valuestore.ValueStores[hubnm].CheckValsUpToDate()
 			hub.CheckStates()
 			logsupport.Logs.Log('Integrity check thread for hub: ', hubnm, ' complete')

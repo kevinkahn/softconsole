@@ -52,6 +52,10 @@ def NoEventInjector():
 			pass  # spurious exceptions during shutdown
 	# logsupport.Logs.Log("NoEvent Injector Exception {}".format(E), severity=logsupport.ConsoleWarning)
 
+def EndWatchDog(signum, frame):
+	logsupport.DevPrint('Watchdog ending on shutdown')
+	sys.exit(0)
+
 
 def WatchdogDying(signum, frame):
 	logsupport.DevPrint('Watchdog dying signum: {} frame: {}'.format(signum, frame))
@@ -64,6 +68,7 @@ def WatchdogDying(signum, frame):
 		os.kill(config.sysStore.Console_pid, signal.SIGKILL) # with predjudice
 	except:
 		pass # probably already gone
+	sys.exit(0)
 
 def failsafedeath():
 	logsupport.DevPrint('Failsafe exit hook')
@@ -85,9 +90,9 @@ class ExitHooks(object):
 		sys.excepthook = self.exc_handler
 
 	def exit(self, code=0):
-		print('exithook {}'.format(code))
-		with open("/home/pi/Console/fsmsg.txt", "a") as f:
-			f.writelines('failsafe exithook exit {} watching {} at {} code {}\n'.format(os.getpid(), config.sysStore.Console_pid, time.time(),code))
+		print('exithookWatchdog {}'.format(code))
+		#with open("/home/pi/Console/fsmsg.txt", "a") as f:
+		#	f.writelines('failsafe exithook exit {} watching {} at {} code {}\n'.format(os.getpid(), config.sysStore.Console_pid, time.time(),code))
 		self.exit_code = code
 		self._orig_exit(code)
 
@@ -103,6 +108,7 @@ failsafehooks = ExitHooks()
 def MasterWatchDog():
 	signal.signal(signal.SIGTERM, WatchdogDying)  # don't want the sig handlers from the main console
 	signal.signal(signal.SIGINT, signal.SIG_DFL)
+	signal.signal(signal.SIGUSR1, EndWatchDog)
 
 	failsafehooks.hook()
 	atexit.register(failsafedeath)

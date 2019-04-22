@@ -176,9 +176,10 @@ class DisplayScreen(object):
 		Failsafe = multiprocessing.Process(target=failsafe.MasterWatchDog,name='Failsafe')
 		Failsafe.daemon = True
 		Failsafe.start()
+		config.sysStore.SetVal('Watchdog_pid', Failsafe.pid)
 		if config.versionname in ('development', 'homerelease'): topper.inittop()
 
-		logsupport.Logs.Log('Starting master watchdog {} for {}'.format(Failsafe.pid, config.sysStore.Console_pid))
+		logsupport.Logs.Log('Starting master watchdog {} for {}'.format(config.sysStore.Watchdog_pid, config.sysStore.Console_pid))
 
 		event = None
 

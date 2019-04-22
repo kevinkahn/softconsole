@@ -5,6 +5,7 @@ import multiprocessing
 import time
 import signal
 import logsupport
+import config
 
 
 topdir = ''
@@ -19,6 +20,7 @@ def inittop():
 	TopP = multiprocessing.Process(target=dotops, name='Topper')
 	TopP.daemon = True
 	TopP.start()
+	config.sysStore.SetVal('Topper_pid',TopP.pid)
 	logsupport.Logs.Log('Started top check process: {}'.format(TopP.pid))
 
 def dotops():

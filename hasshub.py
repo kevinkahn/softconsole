@@ -454,6 +454,7 @@ class HA(object):
 					logsupport.Logs.Log(
 						'Sensor value anomoly(' + self.name + '): Cached: ' + str(cacheval) + ' Actual: ' + str(
 							actualval), severity=ConsoleWarning, hb=True)
+					logsupport.DevPrint('Check anomoly for {}: cache: {} actual: {}'.format(self.name,cacheval,actualval))
 					self.sensorstore.SetVal(s.entity_id, actualval)
 		except Exception as E:
 			logsupport.Logs.Log('Sensor value check did not complete: {}'.format(repr(E)), severity=ConsoleWarning)

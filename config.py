@@ -56,5 +56,6 @@ sysvals = {
 # Non user sysfile entries
 #  ConsoleStartTime
 #  Console_pid
+#  Watchdog_pid
 #  PersonalSystem
 
