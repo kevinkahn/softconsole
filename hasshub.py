@@ -403,6 +403,22 @@ class ZWave(HAnode):
 		super(ZWave, self).__init__(HAitem, **d)
 		self.Hub.ZWaves[self.entity_id] = self
 
+class Indirector(object):
+	# used as a placeholder if config names a node that isn't in HA - allows for late discovery of HA nodes
+	# todo: in GetNode if name doesn't exist create one of these and return it
+	# todo: then in the stream handling if new entity is seen create the node and plug it in here
+	# todo: need an list of such indirectors so the stream knows if it should do this or not
+	def __init__(self, name):
+		self.realnode = None
+		self.impliedname = name
+
+	def SetRealNode(self, node):
+		self.realnode = node
+
+	def __getattr__(self, name):
+		return getattr(self.realnode, name)
+
+
 
 class HA(object):
 	class HAClose(Exception):
