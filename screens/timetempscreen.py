@@ -130,7 +130,7 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 			errmsg2 = fonts.fonts.Font(self.LocationSize, self.Font).render('unavailable', 0, wc(self.CharColor))
 			errmsg3 = fonts.fonts.Font(self.LocationSize, self.Font).render('or error', 0, wc(self.CharColor))
 			# self.PaintBase()
-			vert_off = screens.topborder
+			vert_off = self.startvertspace
 			self.ReInitDisplay()
 			for tmlbl in renderedtimelabel:
 				horiz_off = (hw.screenwidth - tmlbl.get_width()) / 2
