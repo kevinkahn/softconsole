@@ -58,17 +58,23 @@ def EndWatchDog(signum, frame):
 
 
 def WatchdogDying(signum, frame):
-	logsupport.DevPrint('Watchdog dying signum: {} frame: {}'.format(signum, frame))
-	try:
-		os.kill(config.sysStore.Console_pid, signal.SIGUSR1)
-	except:
-		pass # probably main console already gone
-	time.sleep(3)
-	try:
-		os.kill(config.sysStore.Console_pid, signal.SIGKILL) # with predjudice
-	except:
-		pass # probably already gone
-	os._exit(0)
+	if signum == signal.SIGTERM:
+		logsupport.DevPrint('Watchdog saw SIGTERM - must be from systemd')
+		# console should have also seen this - give it time to shut down
+		time.sleep(30) # we should see a USR1 from console
+		os._exit(0)
+	else:
+		logsupport.DevPrint('Watchdog dying signum: {} frame: {}'.format(signum, frame))
+		try:
+			os.kill(config.sysStore.Console_pid, signal.SIGUSR1)
+		except:
+			pass # probably main console already gone
+		time.sleep(3)
+		try:
+			os.kill(config.sysStore.Console_pid, signal.SIGKILL) # with predjudice
+		except:
+			pass # probably already gone
+		os._exit(0)
 
 def failsafedeath():
 	logsupport.DevPrint('Failsafe exit hook')
