@@ -31,6 +31,8 @@ AUTORESTART = 32
 REMOTERESTART = 33
 ERRORRESTART = 34
 EXTERNALSIGTERM = 35  # from systemd on a stop or restart so could be either
+WATCHDOGTERM = 36
+EXTERNALSIGINT =37
 
 MAINTPIREBOOT = 41
 REMOTEREBOOT = 42
@@ -51,19 +53,6 @@ def exitlogging():
 		historybuffer.DumpAll('Exit Trace', time.strftime('%m-%d-%y %H:%M:%S'))
 	else:
 		logsupport.Logs.Log("Exiting without history trace")
-	'''
-	wtcnt = 20
-	while threading.active_count() > 1:
-		thrds = threading.enumerate()
-		logsupport.Logs.Log("{} threads: {}: {}".format(len(thrds), listthreads(thrds)))
-		time.sleep(3)
-		wtcnt -= 1
-		if wtcnt < 0: break
-	if wtcnt < 0:
-		logsupport.Logs.Log("All threads exited")
-	else:
-		logsupport.Logs.Log('Thread hang? {}')
-	'''
 
 
 def EarlyAbort(scrnmsg):

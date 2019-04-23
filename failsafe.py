@@ -54,7 +54,7 @@ def NoEventInjector():
 
 def EndWatchDog(signum, frame):
 	logsupport.DevPrint('Watchdog ending on shutdown')
-	sys.exit(0)
+	os._exit(0)
 
 
 def WatchdogDying(signum, frame):
@@ -68,7 +68,7 @@ def WatchdogDying(signum, frame):
 		os.kill(config.sysStore.Console_pid, signal.SIGKILL) # with predjudice
 	except:
 		pass # probably already gone
-	sys.exit(0)
+	os._exit(0)
 
 def failsafedeath():
 	logsupport.DevPrint('Failsafe exit hook')

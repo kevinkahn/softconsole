@@ -96,21 +96,28 @@ def handler(signum, frame):
 		if signum == signal.SIGUSR1:
 			logsupport.DevPrint('Watchdog termination')
 			logsupport.Logs.Log("Console received a watchdog termination signal: {} - Exiting".format(signum), tb=True)
+			reason = 'watchdogtermination'
+			code = exitutils.WATCHDOGTERM
 		else:
 			logsupport.DevPrint('Signal termination {}'.format(signum))
 			logsupport.Logs.Log("Console received termination signal: {} - Exiting".format(signum), tb=True)
+			if signum == signal.SIGINT:
+				reason = 'interrupttermination'
+				code = exitutils.EXTERNALSIGINT
+			else:
+				reason = 'terminatetermination'
+				code = exitutils.EXTERNALSIGTERM
 			os.kill(config.sysStore.Watchdog_pid,signal.SIGUSR1)
 			if config.sysStore.Topper_pid != 0: os.kill(config.sysStore.Topper_pid, signal.SIGKILL)
+			reason = 'signaltermination:'.format(signum)
 		hw.GoBright(100)
-		timers.ShutTimers('interrupt')
+		timers.ShutTimers(reason)
 		logsupport.DevPrint('Exit handling done')
 		logsupport.Logs.Log('Console exit for interrupt')
 		pygame.display.quit()
 		pygame.quit()
-		# noinspection PyProtectedMember
-		# os._exit(0)
 		config.Running = False
-		os._exit(101)
+		os._exit(code)
 	else:
 		logsupport.Logs.Log("Console received signal {} - Ignoring".format(signum))
 
