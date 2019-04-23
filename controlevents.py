@@ -15,7 +15,7 @@ CEvent = Enum('ConsoleEvent',
 ConsoleOpsQueue = queue.Queue()  # master sequencer
 
 latencynotification = 1000 # notify if a loop latency is greater than this
-LateTolerance = 4 # for my systems
+LateTolerance = 8 # for my systems
 
 
 def PostEvent(e):
