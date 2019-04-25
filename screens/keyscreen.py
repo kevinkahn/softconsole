@@ -29,10 +29,6 @@ class KeyScreenDesc(screen.BaseKeyScreenDesc):
 				debug.debugPrint('Screen', "  Subscribe on hub " + h + " node: " + i + ' ' + j.name + ":" +
 								 j.ControlObj.name + ' via ' + j.DisplayObj.name)
 
-		# for i in self.NodeList:
-		#	debug.debugPrint('Screen', "  Subscribe node: ", i, self.NodeList[i].name, " : ",
-		#			   self.NodeList[i].ControlObj.name, ' via ', self.NodeList[i].DisplayObj.name)
-
 		utilities.register_example("KeyScreenDesc", self)
 
 	def __repr__(self):

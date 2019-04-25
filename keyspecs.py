@@ -265,7 +265,7 @@ class RunProgram(ManualKeyDesc):
 class OnOffKey(ManualKeyDesc):
 	def __init__(self, thisscreen, keysection, kn, keytype):
 		keyname, self.Hub = _resolvekeyname(kn, thisscreen.DefaultHubObj)
-		self.ControlObj = None  # object on which to make operation calls
+		#self.ControlObj = None  # object on which to make operation calls
 		self.DisplayObj = None  # object whose state is reflected in key
 
 		debug.debugPrint('Screen', "             New ", keytype, " Key Desc ", keyname)
@@ -276,7 +276,7 @@ class OnOffKey(ManualKeyDesc):
 		if keyname == '*Action*': keyname = self.NodeName  # special case for alert screen action keys that always have same name todo - can nodename ever be explicitly set otherwise?
 		self.ControlObj, self.DisplayObj = self.Hub.GetNode(keyname, self.SceneProxy)
 
-		if self.ControlObj is None:
+		if self.ControlObjUndefined():
 			debug.debugPrint('Screen', "Screen", keyname, "unbound")
 			logsupport.Logs.Log('Key Binding missing: ' + self.name, severity=ConsoleWarning)
 
@@ -326,7 +326,7 @@ class OnOffKey(ManualKeyDesc):
 			elif self.KeyAction == "Off":
 				self.State = False
 
-			if self.ControlObj is not None:
+			if not self.ControlObjUndefined():
 				self.ControlObj.SendOnOffCommand(self.State, presstype)
 				self.ScheduleBlinkKey(self.Blink)
 			else:
@@ -343,7 +343,7 @@ class OnOffKey(ManualKeyDesc):
 				self.State = True
 			elif self.KeyAction == "Off":
 				self.State = False
-			if self.ControlObj is not None:
+			if not self.ControlObjUndefined():
 				self.ControlObj.SendOnOffCommand(self.State, self.lastpresstype)
 			else:
 				logsupport.Logs.Log("Screen: " + self.name + " press unbound key: " + self.name,

@@ -355,7 +355,7 @@ class Thermostat(HAnode):  # not stateful since has much state info
 						{'entity_id': '{}'.format(self.entity_id), 'target_temp_high': str(t_high),
 						 'target_temp_low': str(t_low)})
 		self.timerseq += 1
-		_ = timers.OnceTimer(5, start=True, name='fakepushsetpoint-'.format(self.timerseq),
+		_ = timers.OnceTimer(5, start=True, name='fakepushsetpoint-{}'.format(self.timerseq),
 								proc=self.ErrorFakeChange)
 
 	def GetThermInfo(self):
@@ -405,18 +405,29 @@ class ZWave(HAnode):
 
 class Indirector(object):
 	# used as a placeholder if config names a node that isn't in HA - allows for late discovery of HA nodes
-	# todo: in GetNode if name doesn't exist create one of these and return it
+	# in GetNode if name doesn't exist create one of these and return it
 	# todo: then in the stream handling if new entity is seen create the node and plug it in here
 	# todo: need an list of such indirectors so the stream knows if it should do this or not
-	def __init__(self, name):
+	def __init__(self, Hub, name):
+		self.Undefined = True
 		self.realnode = None
+		self.Hub = Hub
 		self.impliedname = name
+		Hub.Indirectors[name] = self
+		logsupport.Logs.Log('Creating indirector for missing {} node {}'.format(Hub.name,name),severity=ConsoleWarning)
 
 	def SetRealNode(self, node):
 		self.realnode = node
+		self.Undefined = False
+		logsupport.Logs.Log('Real node appeared for hub {} node {}'.format(self.Hub.name,self.impliedname))
 
 	def __getattr__(self, name):
-		return getattr(self.realnode, name)
+		try:
+			return getattr(self.realnode, name)
+		except:
+			if name == 'name': return self.impliedname
+			if name == 'address': return self.impliedname
+			logsupport.Logs.Log('Attempt to access uncompleted indirector for hub {} node {}'.format(self.Hub.name,self.impliedname),severity=ConsoleWarning)
 
 
 
@@ -433,7 +444,8 @@ class HA(object):
 			# todo part of handling late nodes
 			logsupport.Logs.Log("Attempting to access unknown object: " + name + " in HA Hub: " + self.name,
 								severity=ConsoleWarning)
-			return None, None
+			I = Indirector(self, name)
+			return I, I
 
 	def GetProgram(self, name):
 		try:
@@ -600,20 +612,38 @@ class HA(object):
 					del d['old_state']
 					del d['entity_id']
 					chgs, dels, adds = findDiff(old, new)
+
+#					if ent in ('switch.bed_bath_side','switch.bed_bath_side_2'):
+#						logsupport.DevPrint('Inline: {}'.format(p2))
+#						logsupport.DevPrint('======: {}'.format(new))
 					if not ent in self.Entities and not ent in self.IgnoredEntities and not dom in haignoreandskipdomains:
 						# not an entitity type that is currently known
 						debug.debugPrint('HASSgeneral', self.name,
-										 ' WS Stream item for unhandled entity type: ' + ent + ' Added: ' + str(
+										 ' WS Stream item for unhandled entity: ' + ent + ' Added: ' + str(
 											 adds) + ' Deleted: ' + str(dels) + ' Changed: ' + str(chgs))
 						if dom in self.addibledomains:
 							p2 = dict(new, **{'domain': dom, 'name': nm, 'object_id': ent})
 							N = self.hadomains[dom](self, p2)
 							self.Entities[ent] = N
 							N.AddPlayer()
-						logsupport.Logs.Log("New entity since startup seen from ", self.name, ": ", ent,
+						if ent in self.Indirectors: # expected node finally showed up
+							p2 = dict(new, **{'domain': dom,
+											  'name': new['attributes']['friendly_name'] if 'friendly_name' in new[
+												  'attributes'] else nm.replace('_', ' '), 'object_id': ent})
+							if dom in self.hadomains:
+								N = self.hadomains[dom](self, p2)
+								self.Indirectors[ent].SetRealNode(N)
+								del self.Indirectors[ent]
+								self.Entities[ent] = N
+								logsupport.Logs.Log('Indirector from {} for {} resolved'.format(self.name, ent))
+							else:
+								del self.Indirectors[ent]
+								logsupport.Logs.Log('Indirector in {} for {} not for a supported domain {}'.format(self.name,ent,dom))
+						else:
+							logsupport.Logs.Log("New entity since startup seen from ", self.name, ": ", ent,
 											"(Old: " + repr(old) + '  New: ' + repr(new) + ')')
-						# noinspection PyTypeChecker
-						self.IgnoredEntities[ent] = None
+							# noinspection PyTypeChecker
+							self.IgnoredEntities[ent] = None
 						return
 					if ent in self.IgnoredEntities:
 						return
@@ -639,7 +669,7 @@ class HA(object):
 												   value=self.Entities[ent].internalstate, alert=a))
 				elif m['event_type'] == 'system_log_event':
 					logsupport.Logs.Log('Hub: ' + self.name + ' logged at level: ' + d['level'] + ' Msg: ' + d[
-						'message'])  # todo fake an event for Nest error?
+						'message'])
 				elif m['event_type'] == 'config_entry_discovered':
 					logsupport.Logs.Log("{} config entry discovered: {}".format(self.name, message))
 				elif m['event_type'] == 'service_registered':  # fix plus add service removed
@@ -803,6 +833,7 @@ class HA(object):
 		self.Scripts = {}
 		self.Thermostats = {}
 		self.MediaPlayers = {}
+		self.Indirectors = {} # these hold nodes that the console config thinks exist but HA doesn't have yet - happens at startup of joint HA/Console node
 		self.Others = {}
 		self.alertspeclist = {}  # if ever want auto alerts like ISY command vars they get put here
 		self.AlertNodes = {}
@@ -842,6 +873,10 @@ class HA(object):
 			if e.domain not in self.Domains:
 				self.Domains[e.domain] = {}
 			p2 = dict(e.as_dict(), **{'domain': e.domain, 'name': e.name, 'object_id': e.object_id})
+			#if p2['object_id'] in ('bed_bath_side','bed_bath_side_2'):
+			#	logsupport.DevPrint('E---: {}'.format(e.as_dict()))
+			#	logsupport.DevPrint('Orig: {}'.format(p2)) # todo temp
+			#	continue
 
 			if e.domain in self.hadomains:
 				N = self.hadomains[e.domain](self, p2)
