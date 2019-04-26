@@ -58,12 +58,12 @@ class ClockScreenDesc(screen.ScreenDesc):
 		vert_off = self.startvertspace
 		for i in range(len(l)):
 			horiz_off = (hw.screenwidth - l[i].get_width()) // 2
-			config.screen.blit(l[i], (horiz_off, vert_off))
+			hw.screen.blit(l[i], (horiz_off, vert_off))
 			vert_off = vert_off + s + l[i].get_height()
 		if self.ExtraSize[0] != 0:
 			# noinspection PyUnboundLocalVariable
 			horiz_off = (hw.screenwidth - cb.get_width()) // 2
-			config.screen.blit(cb, (horiz_off, vert_off))
+			hw.screen.blit(cb, (horiz_off, vert_off))
 		pygame.display.update()
 
 	# config.DS.Tasks.AddTask(self.ClockRepaintEvent, 1)

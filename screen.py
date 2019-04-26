@@ -184,13 +184,13 @@ class ScreenDesc(object):
 		self.NavKeys = nav
 		self.PaintKeys()
 		if self.ScreenTitleBlk is not None:
-			config.screen.blit(self.ScreenTitleBlk, (self.titleoffset, screens.topborder))
+			hw.screen.blit(self.ScreenTitleBlk, (self.titleoffset, screens.topborder))
 
 	def ReInitDisplay(self):
 		self.PaintBase()
 		self.PaintKeys()
 		if self.ScreenTitleBlk is not None:
-			config.screen.blit(self.ScreenTitleBlk, (self.titleoffset, screens.topborder))
+			hw.screen.blit(self.ScreenTitleBlk, (self.titleoffset, screens.topborder))
 
 	def NodeEvent(self, hub='none', node=9999, value=9999, varinfo=()):
 		if node is not None:
@@ -204,9 +204,9 @@ class ScreenDesc(object):
 		pass
 
 	def PaintBase(self):
-		config.screen.fill(wc(self.BackgroundColor))
+		hw.screen.fill(wc(self.BackgroundColor))
 		if config.sysStore.ErrorNotice != -1:
-			pygame.draw.circle(config.screen, tint(self.BackgroundColor, tint_factor=.5),
+			pygame.draw.circle(hw.screen, tint(self.BackgroundColor, tint_factor=.5),
 							   (self.markradius, self.markradius), self.markradius, 0)
 
 

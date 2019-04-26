@@ -269,7 +269,7 @@ class Logger(object):
 			# Paint live log to screen during boot
 			if self.livelog and not debugitem:
 				if self.livelogpos == 0:
-					config.screen.fill(wc('royalblue'))
+					hw.screen.fill(wc('royalblue'))
 				self.livelogpos = self.RenderLogLine(entry, self.LogColors[severity], self.livelogpos)
 				if self.livelogpos > hw.screenheight - screens.botborder:  # todo switch to new screen size stuff
 					time.sleep(1)
@@ -318,7 +318,7 @@ class Logger(object):
 
 	def RenderLog(self, backcolor, start=0, pageno=-1):
 		pos = 0
-		config.screen.fill(wc(backcolor))
+		hw.screen.fill(wc(backcolor))
 		if pageno != -1:
 			pos = self.RenderLogLine(self.log[start][2] + '          Page: ' + str(pageno), 'white', pos)
 		for i in range(start, len(self.log)):

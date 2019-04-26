@@ -134,12 +134,12 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 			self.ReInitDisplay()
 			for tmlbl in renderedtimelabel:
 				horiz_off = (hw.screenwidth - tmlbl.get_width()) / 2
-				config.screen.blit(tmlbl, (horiz_off, vert_off))
+				hw.screen.blit(tmlbl, (horiz_off, vert_off))
 				vert_off = vert_off + 20 + tmlbl.get_height()
-			config.screen.blit(errmsg1, ((hw.screenwidth - errmsg1.get_width()) / 2, vert_off))
-			config.screen.blit(errmsg2, ((hw.screenwidth - errmsg2.get_width()) / 2, vert_off + errmsg1.get_height()))
-			config.screen.blit(errmsg3,
-							   ((hw.screenwidth - errmsg3.get_width()) / 2, vert_off + 2 * errmsg1.get_height()))
+			hw.screen.blit(errmsg1, ((hw.screenwidth - errmsg1.get_width()) / 2, vert_off))
+			hw.screen.blit(errmsg2, ((hw.screenwidth - errmsg2.get_width()) / 2, vert_off + errmsg1.get_height()))
+			hw.screen.blit(errmsg3,
+						   ((hw.screenwidth - errmsg3.get_width()) / 2, vert_off + 2 * errmsg1.get_height()))
 		else:
 			cb = CreateWeathBlock(self.ConditionFormat, self.DecodedCondFields, self.Font,
 								  self.CondSize, self.CharColor, self.condicon,
@@ -173,10 +173,10 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 			self.ReInitDisplay()
 			for tmlbl in renderedtimelabel:
 				horiz_off = (hw.screenwidth - tmlbl.get_width()) // 2
-				config.screen.blit(tmlbl, (horiz_off, vert_off))
+				hw.screen.blit(tmlbl, (horiz_off, vert_off))
 				vert_off = vert_off + s + tmlbl.get_height() + extraspace
 
-			config.screen.blit(cb, ((hw.screenwidth - cb.get_width()) // 2, vert_off))
+			hw.screen.blit(cb, ((hw.screenwidth - cb.get_width()) // 2, vert_off))
 			vert_off = vert_off + s + cb.get_height() + extraspace
 
 			startvert = vert_off
@@ -200,9 +200,9 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 				else:
 					vert_off = vert_off + s + fcstvert
 				if v_off > maxvert: maxvert = v_off
-				config.screen.blit(fcst, (h_off, v_off))
+				hw.screen.blit(fcst, (h_off, v_off))
 
-			if self.FcstLayout == '2ColVert': pygame.draw.line(config.screen, wc('white'),
+			if self.FcstLayout == '2ColVert': pygame.draw.line(hw.screen, wc('white'),
 															   (usewidth, startvert + fcstvert // 3),
 															   (usewidth, maxvert + 2 * fcstvert / 3))
 

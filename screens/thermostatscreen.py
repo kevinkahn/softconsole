@@ -157,13 +157,13 @@ class ThermostatScreenDesc(screen.BaseKeyScreenDesc):
 		self.ReInitDisplay()
 		r = fonts.fonts.Font(self.fsize[3], bold=True).render(u"{:4.1f}".format(self.info["ST"][0] // 2), 0,
 															  wc(self.CharColor))
-		config.screen.blit(r, ((hw.screenwidth - r.get_width()) // 2, self.TempPos))
+		hw.screen.blit(r, ((hw.screenwidth - r.get_width()) // 2, self.TempPos))
 		if isinstance(self.info["CLIHCS"][0], int):
 			r = fonts.fonts.Font(self.fsize[0]).render(("Idle", "Heating", "Cooling")[self.info["CLIHCS"][0]], 0,
 													   wc(self.CharColor))
 		else:
 			r = fonts.fonts.Font(self.fsize[0]).render("n/a", 0, wc(self.CharColor))
-		config.screen.blit(r, ((hw.screenwidth - r.get_width()) // 2, self.StatePos))
+		hw.screen.blit(r, ((hw.screenwidth - r.get_width()) // 2, self.StatePos))
 		# r = config.fonts.Font(self.fsize[2]).render(
 		#	"{:2d}    {:2d}".format(self.info["CLISPH"][0]//2, self.info["CLISPC"][0]//2), 0,
 		#	wc(self.CharColor))
@@ -171,9 +171,9 @@ class ThermostatScreenDesc(screen.BaseKeyScreenDesc):
 			"{:2d}".format(self.info["CLISPH"][0] // 2), 0, wc(self.CharColor))
 		rH = fonts.fonts.Font(self.fsize[2]).render(
 			"{:2d}".format(self.info["CLISPC"][0] // 2), 0, wc(self.CharColor))
-		config.screen.blit(rL, (self.SPHPosL - rL.get_width() // 2, self.SPPos))
-		config.screen.blit(rH, (self.SPHPosR - rH.get_width() // 2, self.SPPos))
-		config.screen.blit(self.AdjButSurf, (0, self.AdjButTops))
+		hw.screen.blit(rL, (self.SPHPosL - rL.get_width() // 2, self.SPPos))
+		hw.screen.blit(rH, (self.SPHPosR - rH.get_width() // 2, self.SPPos))
+		hw.screen.blit(self.AdjButSurf, (0, self.AdjButTops))
 		# noinspection PyBroadException
 		try:
 			r1 = fonts.fonts.Font(self.fsize[1]).render(
@@ -187,8 +187,8 @@ class ThermostatScreenDesc(screen.BaseKeyScreenDesc):
 														wc(self.CharColor))
 		except:
 			r2 = fonts.fonts.Font(self.fsize[1]).render('---', 0, wc(self.CharColor))
-		config.screen.blit(r1, (self.Keys['Mode'].Center[0] - r1.get_width() // 2, self.ModesPos))
-		config.screen.blit(r2, (self.Keys['Fan'].Center[0] - r2.get_width() // 2, self.ModesPos))
+		hw.screen.blit(r1, (self.Keys['Mode'].Center[0] - r1.get_width() // 2, self.ModesPos))
+		hw.screen.blit(r2, (self.Keys['Fan'].Center[0] - r2.get_width() // 2, self.ModesPos))
 
 		pygame.display.update()
 

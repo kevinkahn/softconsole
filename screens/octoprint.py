@@ -179,7 +179,7 @@ class OctoPrintScreenDesc(screen.BaseKeyScreenDesc):
 			self.ShowControlScreen()
 		elif self.Subscreen > 0:
 			self.FileSubscreen.DisplayListSelect()
-		config.screen.blit(self.title, ((hw.screenwidth - self.tw) / 2, 0))
+		hw.screen.blit(self.title, ((hw.screenwidth - self.tw) / 2, 0))
 		pygame.display.update()
 
 	def ShowControlScreen(self):
@@ -230,8 +230,8 @@ class OctoPrintScreenDesc(screen.BaseKeyScreenDesc):
 
 		self.ReInitDisplay()
 		for i in toblit:
-			config.screen.blit(i[0], i[1])
-		config.screen.blit(statusblock, ((hw.screenwidth - statusw) // 2, self.titlespace))
+			hw.screen.blit(i[0], i[1])
+		hw.screen.blit(statusblock, ((hw.screenwidth - statusw) // 2, self.titlespace))
 
 	def ExitScreen(self):
 		self.PollTimer.pause()

@@ -138,17 +138,17 @@ class NestThermostatScreenDesc(screen.BaseKeyScreenDesc):
 		self.LocalOnly[not heat] = 0.50
 		if heat:
 			self.t_low += change
-			config.screen.blit(self.SetPointSurf, (self.SPHPosL - self.SPWdt // 2, self.SPVPos))
+			hw.screen.blit(self.SetPointSurf, (self.SPHPosL - self.SPWdt // 2, self.SPVPos))
 			rL = fonts.fonts.Font(self.fsize[2]).render("{:2d}".format(self.t_low), 0,
 														wc(self.CharColor, factor=self.LocalOnly[0]))
-			config.screen.blit(rL, (self.SPHPosL - self.SPWdt // 2, self.SPVPos))
+			hw.screen.blit(rL, (self.SPHPosL - self.SPWdt // 2, self.SPVPos))
 			pygame.display.update(pygame.Rect(self.SPHPosL - self.SPWdt // 2, self.SPVPos, self.SPWdt, self.SPHgt))
 		else:
 			self.t_high += change
-			config.screen.blit(self.SetPointSurf, (self.SPHPosR - self.SPWdt // 2, self.SPVPos))
+			hw.screen.blit(self.SetPointSurf, (self.SPHPosR - self.SPWdt // 2, self.SPVPos))
 			rH = fonts.fonts.Font(self.fsize[2]).render("{:2d}".format(self.t_high), 0,
 														wc(self.CharColor, factor=self.LocalOnly[1]))
-			config.screen.blit(rH, (self.SPHPosR - self.SPWdt // 2, self.SPVPos))
+			hw.screen.blit(rH, (self.SPHPosR - self.SPWdt // 2, self.SPVPos))
 			pygame.display.update(pygame.Rect(self.SPHPosR - self.SPWdt // 2, self.SPVPos, self.SPWdt, self.SPHgt))
 		self.TimerName += 1
 		self.TimeBumpSP = timers.OnceTimer(2.0, name='ThermostatSP' + str(self.TimerName), proc=self.PushTemp)
@@ -213,23 +213,23 @@ class NestThermostatScreenDesc(screen.BaseKeyScreenDesc):
 
 		r = fonts.fonts.Font(self.fsize[3], bold=True).render(u"{:4.1f}".format(self.t_cur), 0,
 															  wc(self.CharColor))
-		config.screen.blit(r, ((hw.screenwidth - r.get_width()) // 2, self.TempPos))
+		hw.screen.blit(r, ((hw.screenwidth - r.get_width()) // 2, self.TempPos))
 		r = fonts.fonts.Font(self.fsize[0]).render(self.t_state.capitalize(), 0, wc(self.CharColor))
-		config.screen.blit(r, ((hw.screenwidth - r.get_width()) // 2, self.StatePos))
+		hw.screen.blit(r, ((hw.screenwidth - r.get_width()) // 2, self.StatePos))
 		rL = fonts.fonts.Font(self.fsize[2]).render("{:2d}".format(self.t_low), 0,
 													wc(self.CharColor, factor=self.LocalOnly[0]))
 		rH = fonts.fonts.Font(self.fsize[2]).render("{:2d}".format(self.t_high), 0,
 													wc(self.CharColor, factor=self.LocalOnly[1]))
-		config.screen.blit(self.SetPointSurf, (self.SPHPosL - self.SPWdt // 2, self.SPVPos))
-		config.screen.blit(self.SetPointSurf, (self.SPHPosR - self.SPWdt // 2, self.SPVPos))
-		config.screen.blit(rL, (self.SPHPosL - self.SPWdt // 2, self.SPVPos))
-		config.screen.blit(rH, (self.SPHPosR - self.SPWdt // 2, self.SPVPos))
-		config.screen.blit(self.AdjButSurf, (0, self.AdjButTops))
+		hw.screen.blit(self.SetPointSurf, (self.SPHPosL - self.SPWdt // 2, self.SPVPos))
+		hw.screen.blit(self.SetPointSurf, (self.SPHPosR - self.SPWdt // 2, self.SPVPos))
+		hw.screen.blit(rL, (self.SPHPosL - self.SPWdt // 2, self.SPVPos))
+		hw.screen.blit(rH, (self.SPHPosR - self.SPWdt // 2, self.SPVPos))
+		hw.screen.blit(self.AdjButSurf, (0, self.AdjButTops))
 		r1 = fonts.fonts.Font(self.fsize[1]).render(self.mode.capitalize(), 0,
 													wc(self.CharColor, factor=self.ModeLocal))
 		r2 = fonts.fonts.Font(self.fsize[1]).render(self.fan.capitalize(), 0, wc(self.CharColor, factor=self.FanLocal))
-		config.screen.blit(r1, (self.Keys['Mode'].Center[0] - r1.get_width() // 2, self.ModesPos))
-		config.screen.blit(r2, (self.Keys['Fan'].Center[0] - r2.get_width() // 2, self.ModesPos))
+		hw.screen.blit(r1, (self.Keys['Mode'].Center[0] - r1.get_width() // 2, self.ModesPos))
+		hw.screen.blit(r2, (self.Keys['Fan'].Center[0] - r2.get_width() // 2, self.ModesPos))
 		pygame.display.update()
 
 	def InitDisplay(self, nav):

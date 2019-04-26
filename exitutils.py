@@ -56,11 +56,11 @@ def exitlogging():
 
 
 def EarlyAbort(scrnmsg):
-	config.screen.fill(wc("red"))
+	hw.screen.fill(wc("red"))
 	# this font is manually loaded into the fontcache to avoid log message on early abort before log is up
 	# see fonts.py
 	r = fonts.fonts.Font(40, '', True, True).render(scrnmsg, 0, wc("white"))
-	config.screen.blit(r, ((hw.screenwidth - r.get_width()) / 2, hw.screenheight * .4))
+	hw.screen.blit(r, ((hw.screenwidth - r.get_width()) / 2, hw.screenheight * .4))
 	pygame.display.update()
 	print(time.strftime('%m-%d-%y %H:%M:%S'), scrnmsg)
 	time.sleep(10)
@@ -127,13 +127,13 @@ def errorexit(opt):
 
 
 def Exit_Screen_Message(msg, scrnmsg1, scrnmsg2='', scrnmsg3=''):
-	config.screen.fill(wc("red"))
+	hw.screen.fill(wc("red"))
 	r = fonts.fonts.Font(40, '', True, True).render(scrnmsg1, 0, wc("white"))
-	config.screen.blit(r, ((hw.screenwidth - r.get_width()) / 2, hw.screenheight * .2))
+	hw.screen.blit(r, ((hw.screenwidth - r.get_width()) / 2, hw.screenheight * .2))
 	r = fonts.fonts.Font(40, '', True, True).render(scrnmsg2, 0, wc("white"))
-	config.screen.blit(r, ((hw.screenwidth - r.get_width()) / 2, hw.screenheight * .4))
+	hw.screen.blit(r, ((hw.screenwidth - r.get_width()) / 2, hw.screenheight * .4))
 	r = fonts.fonts.Font(40, '', True, True).render(scrnmsg3, 0, wc("white"))
-	config.screen.blit(r, ((hw.screenwidth - r.get_width()) / 2, hw.screenheight * .6))
+	hw.screen.blit(r, ((hw.screenwidth - r.get_width()) / 2, hw.screenheight * .6))
 	logsupport.Logs.Log(msg)
 	pygame.display.update()
 	time.sleep(5)

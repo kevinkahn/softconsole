@@ -48,7 +48,7 @@ class VerifyScreen(screen.BaseKeyScreenDesc):
 		# self.PaintBase()
 		r = fonts.fonts.Font(self.TitleFontSize, '', True, True).render(self.label, 0, wc(self.CharColor))
 		rl = (hw.screenwidth - r.get_width()) / 2
-		config.screen.blit(r, (rl, screens.topborder))
+		hw.screen.blit(r, (rl, screens.topborder))
 		self.PaintKeys()
 		pygame.display.update()
 
@@ -154,15 +154,15 @@ class ValueChangeScreen(screen.ScreenDesc):  # todo may need to call super class
 		for i in range(len(self.changevals)):
 			fho = self.chgval[i][0][0]
 			fvo = self.chgval[i][0][1]
-			config.screen.blit(self.chgval[i][1],
-							   self.offsetpoint(self.uparrowcenter[i], (fho, -self.arrowht / 2 + self.arrowht / 10)))
-			config.screen.blit(self.chgval[i][1],
-							   self.offsetpoint(self.dnarrowcenter[i],
+			hw.screen.blit(self.chgval[i][1],
+						   self.offsetpoint(self.uparrowcenter[i], (fho, -self.arrowht / 2 + self.arrowht / 10)))
+			hw.screen.blit(self.chgval[i][1],
+						   self.offsetpoint(self.dnarrowcenter[i],
 												(fho, self.arrowht / 2 - fvo - self.arrowht / 10)))
-			draw.lines(config.screen, wc(self.Outline), True, self.uparrowverts[i], 5)
-			draw.lines(config.screen, wc(self.Outline), True, self.dnarrowverts[i], 5)
+			draw.lines(hw.screen, wc(self.Outline), True, self.uparrowverts[i], 5)
+			draw.lines(hw.screen, wc(self.Outline), True, self.dnarrowverts[i], 5)
 		# need to add in the value to change by l
-		config.screen.blit(self.labelrend, self.labelloc)
+		hw.screen.blit(self.labelrend, self.labelloc)
 		self.Keys['accept'].SetKeyImages(("Accept", str(self.Value)))
 		self.PaintKeys()
 		pygame.display.update()
@@ -282,9 +282,9 @@ class ListChooserSubScreen(screen.ScreenDesc):
 												  MaxWidth=hw.screenwidth - screens.horizborder * 2)
 			# self.SourceSlot[slot] = self.SourceSet[i]
 			voff = self.SlotsVPos[slot] + (self.sourceheight - h) // 2
-			config.screen.blit(rs, (screens.horizborder, voff))
-		pygame.draw.polygon(config.screen, wc(self.CharColor),
+			hw.screen.blit(rs, (screens.horizborder, voff))
+		pygame.draw.polygon(hw.screen, wc(self.CharColor),
 							_TriangleCorners(self.SrcPrev, self.sourceheight, False), 3)
-		pygame.draw.polygon(config.screen, wc(self.CharColor),
+		pygame.draw.polygon(hw.screen, wc(self.CharColor),
 							_TriangleCorners(self.SrcNext, self.sourceheight, True), 3)
 		pygame.display.update()

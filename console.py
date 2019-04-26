@@ -299,7 +299,7 @@ screen.InitScreenParams(ParsedConfigFile)
 
 logsupport.Logs.Log("Parsed globals")
 logsupport.Logs.Log("Switching to real log")
-logsupport.Logs = logsupport.InitLogs(config.screen, os.path.dirname(config.sysStore.configfile))
+logsupport.Logs = logsupport.InitLogs(hw.screen, os.path.dirname(config.sysStore.configfile))
 cgitb.enable(format='text')
 logsupport.Logs.Log(u"Soft ISY Console")
 
@@ -498,6 +498,5 @@ timers.ShutTimers('consoleexit')
 pygame.quit()
 # noinspection PyProtectedMember
 sys.exit(config.ecode)
-# os._exit(config.ecode)
 
 # This never returns

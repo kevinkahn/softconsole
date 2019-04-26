@@ -228,7 +228,9 @@ class DisplayScreen(object):
 
 			needvalidevent = True
 			while needvalidevent:
+				self.HBEvents.Entry('PreGetEvent: {}'.format(time.time()))
 				event = GetEvent()
+				self.HBEvents.Entry('Got event: {}  {}'.format(time.time(),repr(event)))
 				if event.type == CEvent.ACTIVITYTIMER:
 					if event.seq == self.activityseq:
 						needvalidevent = False
@@ -238,6 +240,7 @@ class DisplayScreen(object):
 							logsupport.DevPrint('outdated activity {} {}'.format(event.seq, self.activityseq))
 				else:
 					needvalidevent = False
+			self.HBEvents.Entry('PreDevPrint: {}  {}'.format(time.time(), repr(event)))
 			logsupport.DevPrint('New-event: {}'.format(event))
 			self.HBEvents.Entry('Process at {}  {}'.format(time.time(), repr(event)))
 

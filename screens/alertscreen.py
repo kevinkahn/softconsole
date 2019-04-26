@@ -113,9 +113,9 @@ class AlertsScreenDesc(screen.ScreenDesc):
 			# race condition posted a blink just as screen was exiting so skip screen update
 			return
 		if self.Msg:
-			config.screen.blit(self.messageimage, self.upperleft)
+			hw.screen.blit(self.messageimage, self.upperleft)
 		else:
-			config.screen.blit(self.messageblank, self.upperleft)
+			hw.screen.blit(self.messageblank, self.upperleft)
 		pygame.display.update()
 		self.Msg = not self.Msg
 
@@ -132,7 +132,7 @@ class AlertsScreenDesc(screen.ScreenDesc):
 												   name=self.name + '-Blink-' + str(self.TimerName), proc=self.BlinkMsg,
 												   start=True)
 		else:
-			config.screen.blit(self.messageimage, self.upperleft)
+			hw.screen.blit(self.messageimage, self.upperleft)
 			pygame.display.update()
 
 	def NodeEvent(self, hub='', node=0, value=0, varinfo=()):

@@ -313,12 +313,12 @@ class MaintScreenDesc(screen.BaseKeyScreenDesc):
 		# self.PaintBase()
 		r = fonts.fonts.Font(self.TitleFontSize, '', True, True).render("Console Maintenance", 0, wc(self.CharColor))
 		rl = (hw.screenwidth - r.get_width()) / 2
-		config.screen.blit(r, (rl, screens.topborder))
+		hw.screen.blit(r, (rl, screens.topborder))
 		r = fonts.fonts.Font(self.SubFontSize, '', True, True).render(
 			"Up: " + interval_str(time.time() - config.sysStore.ConsoleStartTime),
 			0, wc(self.CharColor))
 		rl = (hw.screenwidth - r.get_width()) / 2
-		config.screen.blit(r, (rl, screens.topborder + self.TitleFontSize))
+		hw.screen.blit(r, (rl, screens.topborder + self.TitleFontSize))
 		self.PaintKeys()
 		pygame.display.update()
 

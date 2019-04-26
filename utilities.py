@@ -1,7 +1,6 @@
 import collections
 import os
 import signal
-import time
 
 import pygame
 
@@ -149,13 +148,13 @@ def InitializeEnvironment():
 	signal.signal(signal.SIGALRM, alarm_handler)  # HACK
 	signal.alarm(3)  # HACK
 	try:  # HACK
-		config.screen = pygame.display.set_mode((hw.screenwidth, hw.screenheight),
-												pygame.FULLSCREEN)  # real needed line
+		hw.screen = pygame.display.set_mode((hw.screenwidth, hw.screenheight),
+											pygame.FULLSCREEN)  # real needed line
 		signal.alarm(0)  # HACK
 	except Alarm:  # HACK
 		raise KeyboardInterrupt  # HACK
 
-	config.screen.fill((0, 0, 0))  # clear screen
+	hw.screen.fill((0, 0, 0))  # clear screen
 	pygame.display.update()
 	if hw.touchdevice:
 		pygame.mouse.set_visible(False)  # no cursor

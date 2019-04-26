@@ -10,7 +10,6 @@ ecode = 0  # exit code set for main loop
 
 # Global pointers
 
-screen = None  # pygame screen to blit on etc
 DS = None  #  Display Screen handles running the button presses and touch recognition
 
 # Operational global navigation roots

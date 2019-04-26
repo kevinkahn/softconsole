@@ -10,6 +10,8 @@ touchdevice = True
 IsDim = False
 PWMDim = True
 
+screen = None  # pygame screen to blit on etc
+
 baseheight = 480  # program design height
 basewidth = 320  # program design width
 dispratioW = 1
@@ -144,3 +146,5 @@ def GoDimPWM(level):
 def GoDimPi7(level):
 	with open('/sys/devices/platform/rpi_backlight/backlight/rpi_backlight/brightness', 'w') as f:
 		f.write(str(level * 255 // 100))
+
+

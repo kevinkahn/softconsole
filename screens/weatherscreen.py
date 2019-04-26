@@ -76,7 +76,7 @@ class WeatherScreenDesc(screen.ScreenDesc):
 			renderedlines = [
 				fonts.fonts.Font(45, "").render('Weather Not Available', 0, wc(self.CharColor))]
 			for l in renderedlines:
-				config.screen.blit(l, ((hw.screenwidth - l.get_width()) / 2, vert_off))
+				hw.screen.blit(l, ((hw.screenwidth - l.get_width()) / 2, vert_off))
 				vert_off = vert_off + 60  # todo use useable space stuff and vert start
 			if not self.loggedonce:
 				logsupport.Logs.Log('Weatherscreen missing weather ' + self.name, severity=logsupport.ConsoleWarning)
@@ -89,7 +89,7 @@ class WeatherScreenDesc(screen.ScreenDesc):
 				locblk = fonts.fonts.Font(self.LocationSize, "").render(
 					self.fmt.format("{d}", d=self.store.GetVal(('Cond', 'Location'))), 0,
 					wc(self.CharColor))
-				config.screen.blit(locblk, ((hw.screenwidth - locblk.get_width()) / 2, vert_off))
+				hw.screen.blit(locblk, ((hw.screenwidth - locblk.get_width()) / 2, vert_off))
 				vert_off = vert_off + locblk.get_height() + 10  # todo gap of 10 pixels is arbitrary
 
 			h = vert_off
@@ -106,7 +106,7 @@ class WeatherScreenDesc(screen.ScreenDesc):
 				h = h + renderedlines[-1].get_height()
 				s = (self.useablevertspace - h) / (len(renderedlines) - 1) if len(renderedlines) > 1 else 0
 				for l in renderedlines:
-					config.screen.blit(l, ((hw.screenwidth - l.get_width()) / 2, vert_off))
+					hw.screen.blit(l, ((hw.screenwidth - l.get_width()) / 2, vert_off))
 					vert_off = vert_off + l.get_height() + s
 
 			else:
@@ -138,7 +138,7 @@ class WeatherScreenDesc(screen.ScreenDesc):
 				startvert = vert_off
 				horiz_off = (usewidth - maxfcstwidth) / 2
 				for dy, fcst in enumerate(renderedlines):
-					config.screen.blit(fcst, (horiz_off, vert_off))
+					hw.screen.blit(fcst, (horiz_off, vert_off))
 					vert_off = vert_off + s + fcst.get_height()
 					if (dy == 4) and (hw.screenwidth > 350):
 						horiz_off = horiz_off + usewidth

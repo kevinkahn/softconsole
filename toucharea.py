@@ -3,6 +3,7 @@ import pygame
 import config
 import debug
 import fonts
+import hw
 import screen
 import stores.paramstore as paramstore
 import timers
@@ -134,12 +135,12 @@ class ManualKeyDesc(TouchPoint):
 			DisplayState = self.State
 		# ignore Key state and display as "DisplayState"
 		if DisplayState:
-			config.screen.blit(self.KeyOnImage, (x, y))
+			hw.screen.blit(self.KeyOnImage, (x, y))
 		else:
-			config.screen.blit(self.KeyOffImage, (x, y))
+			hw.screen.blit(self.KeyOffImage, (x, y))
 		if self.UnknownState:
 			# overlay an X for lost states
-			config.screen.blit(self.KeyUnknownOverlay, (x, y))
+			hw.screen.blit(self.KeyUnknownOverlay, (x, y))
 
 	def ScheduleBlinkKey(self, cycle):
 		if cycle != 0:
