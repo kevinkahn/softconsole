@@ -14,11 +14,11 @@ import controlevents
 def DoFetchRestart():
 	logsupport.Logs.Log('Update fetch thread started')
 	ReportStatus("auto updt firmware", hold = 1)
-	githubutil.StageVersion(config.exdir, config.versionname, 'Auto Dnld')
+	githubutil.StageVersion(config.sysStore.ExecDir, config.sysStore.versionname, 'Auto Dnld')
 	logsupport.Logs.Log('Update fetch thread staged')
 	ReportStatus("auto install firmware", hold = 1)
-	githubutil.InstallStagedVersion(config.exdir)
-	logsupport.Logs.Log("Staged version installed in ", config.exdir)
+	githubutil.InstallStagedVersion(config.sysStore.ExecDir)
+	logsupport.Logs.Log("Staged version installed in ", config.sysStore.ExecDir)
 	logsupport.Logs.Log('Restart for new version')
 	ReportStatus('auto restart', hold = 2)
 	controlevents.PostEvent(controlevents.ConsoleEvent(controlevents.CEvent.RunProc,proc=ForceRestart, name=ForceRestart))
@@ -40,17 +40,17 @@ class AutoVersion(object):
 	@staticmethod
 	def CheckUpToDate(alert):
 		global fetcher
-		if config.versionname not in ('none', 'development'):  # skip if we don't know what is running
+		if config.sysStore.versionname not in ('none', 'development'):  # skip if we don't know what is running
 			timers.StartLongOp('AutoVersion')
-			logsupport.Logs.Log("Autoversion found named version running: ", config.versionname, severity=ConsoleDetail)
+			logsupport.Logs.Log("Autoversion found named version running: ", config.sysStore.versionname, severity=ConsoleDetail)
 			# noinspection PyBroadException
 			try:  # if network is down or other error occurs just skip for now rather than blow up
-				sha, c = githubutil.GetSHA(config.versionname)
+				sha, c = githubutil.GetSHA(config.sysStore.versionname)
 				# logsupport.Logs.Log('sha: ',sha, ' cvshha: ',config.versionsha,severity=ConsoleDetail)
-				if sha != config.versionsha and sha != 'no current sha':
+				if sha != config.sysStore.versionsha and sha != 'no current sha':
 					logsupport.Logs.Log('Current hub version different')
 					logsupport.Logs.Log(
-						'Running (' + config.versionname + '): ' + config.versionsha + ' of ' + config.versioncommit)
+						'Running (' + config.sysStore.versionname + '): ' + config.sysStore.versionsha + ' of ' + config.sysStore.versioncommit)
 					logsupport.Logs.Log('Getting: ' + sha + ' of ' + c)
 					if fetcher is None:
 						fetcher = threading.Thread(name='AutoVersionFetch', target=DoFetchRestart, daemon=True)
@@ -58,7 +58,7 @@ class AutoVersion(object):
 					else:
 						logsupport.Logs.Log('Autoversion fetch while previous fetch still in progress')
 				elif sha == 'no current sha':
-					logsupport.Logs.Log('No sha for autoversion: ', config.versionname, severity=ConsoleWarning)
+					logsupport.Logs.Log('No sha for autoversion: ', config.sysStore.versionname, severity=ConsoleWarning)
 				else:
 					pass
 			# logsupport.Logs.Log('sha equal ',sha,severity=ConsoleDetail)
@@ -69,7 +69,7 @@ class AutoVersion(object):
 						severity=ConsoleWarning)
 			timers.EndLongOp('AutoVersion')
 		else:
-			logsupport.Logs.Log("Auto version found special version running: ", config.versionname)
+			logsupport.Logs.Log("Auto version found special version running: ", config.sysStore.versionname)
 
 
 alerttasks.alertprocs["AutoVersion"] = AutoVersion

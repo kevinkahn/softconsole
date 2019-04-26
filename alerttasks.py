@@ -6,6 +6,7 @@ import config
 import debug
 import exitutils
 import historybuffer
+import hubs.hubs
 import logsupport
 import screen
 import screens.__screens as screens
@@ -258,10 +259,10 @@ def ParseAlertParams(nm, spec):
 		n = spec.get('Node', '').split(':')
 		if len(n) == 1:
 			nd = n[0]  # unqualified node - use default hub
-			hub = config.defaulthub  # todo rethink in terms of the store stuff for the default hub then config.defaulthub coule go away
+			hub = hubs.hubs.defaulthub  # todo rethink in terms of the store stuff for the default hub then config.defaulthub coule go away
 		else:
 			nd = n[1]
-			hub = config.Hubs[n[0]]
+			hub = hubs.hubs.Hubs[n[0]]
 		Node = hub.GetNode(nd, nd)[1]  # use MonitorObj (1)
 		test, value, delay = comparams(spec)
 		if Node is None:

@@ -1,11 +1,5 @@
 import hw
 
-consolestatus = 'started'
-
-hubtypes = {}
-Hubs = {}
-defaulthub = None  # move at least the name to sysStore todo other stuff should go to a __hubs.py file?
-defaulthubname = ""
 hooks = None
 
 Running = True
@@ -15,17 +9,9 @@ FASTPRESS = 1
 ecode = 0  # exit code set for main loop
 
 # Global pointers
-exdir = ''
-homedir = ''
 
 screen = None  # pygame screen to blit on etc
-DS = None  # GlDaemobal Display Screen handles running the button presses and touch recognition
-configfile = ""  # issue with moving to console is using value on an exit/restart
-
-versionname = ""
-versionsha = ""
-versiondnld = ""
-versioncommit = ""
+DS = None  #  Display Screen handles running the button presses and touch recognition
 
 # Operational global navigation roots
 SonosScreen = None  # todo hack to handle late appearing players
@@ -58,4 +44,12 @@ sysvals = {
 #  Console_pid
 #  Watchdog_pid
 #  PersonalSystem
+#  ExecDir
+#  HomeDir
+#  versionname
+#  versionsha
+#  versiondnld
+#  versioncommit
+#  consolestatus
+#  configfile
 

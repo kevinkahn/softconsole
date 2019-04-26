@@ -76,9 +76,9 @@ def EarlyAbort(scrnmsg):
 def Exit(ecode, immediate=False):
 	consoleup = time.time() - config.sysStore.ConsoleStartTime
 	logsupport.Logs.Log("Console was up: ", interval_str(consoleup))
-	with open(config.homedir + "/.RelLog", "a") as f:
+	with open("{}/.RelLog".format(config.sysStore.HomeDir), "a") as f:
 		f.write('Exit ' + str(ecode) + '\n')
-	os.chdir(config.exdir)  # set cwd to be correct when dirs move underneath us so that scripts execute
+	os.chdir(config.sysStore.ExecDir)  # set cwd to be correct when dirs move underneath us so that scripts execute
 
 	logsupport.Logs.Log("Console Exiting - Ecode: " + str(ecode))
 
@@ -98,7 +98,7 @@ def Exit(ecode, immediate=False):
 		else:
 			logsupport.Logs.Log('Using rc.local restart model - consider switching to systemd')
 			subprocess.Popen('nohup sudo /bin/bash -e scripts/consoleexit ' + 'restart' +
-							 ' ' + config.configfile + '>>' + config.homedir + '/log.txt 2>&1 &', shell=True)
+							 ' ' + config.sysStore.configfile + '>>' + config.sysStore.HomeDir + '/log.txt 2>&1 &', shell=True)
 	elif ecode in range(40, 50):
 		# reboot the pi
 		subprocess.Popen(['sudo', 'shutdown', '-r', 'now'])

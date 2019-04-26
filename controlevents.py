@@ -45,7 +45,7 @@ def GetEvent():
 								cpu.user - evnt.usercpu, cpu.system - evnt.syscpu, evnt),
 								severity=logsupport.ConsoleWarning, hb=True, localonly=True, homeonly=True)
 	if time.time() - evnt.QTime < 2: # cleared any pending long waiting startup events
-		if config.versionname in ('development', 'homerelease') and (latencynotification != LateTolerance):  # after some startup stabilisation sensitize latency watch if my system
+		if config.sysStore.versionname in ('development', 'homerelease') and (latencynotification != LateTolerance):  # after some startup stabilisation sensitize latency watch if my system
 			latencynotification = LateTolerance
 			logsupport.DevPrint('Set latency tolerance: {}'.format(latencynotification))
 	return evnt

@@ -75,7 +75,7 @@ CommonFieldMap = {'FcstDays': (fcstlength, ('forecast', 'forecastday')),
 				  'FcstEpoch': (int, ('forecast', 'forecastday', 0, 'date_epoch')),
 				  'FcstDate': (str, ('forecast', 'forecastday', 0, 'date'))}
 
-icondir = config.exdir + '/auxinfo/apixuicons/'
+icondir = config.sysStore.ExecDir + '/auxinfo/apixuicons/'
 
 
 class APIXUWeatherSource(object):

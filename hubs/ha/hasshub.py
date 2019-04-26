@@ -7,7 +7,7 @@ import websocket
 
 import config
 import debug
-import haremote as ha
+from . import haremote as ha
 import historybuffer
 import hw
 import logsupport
@@ -201,7 +201,7 @@ class BinarySensor(HAnode):
 	def __init__(self, HAitem, d):
 		super(BinarySensor, self).__init__(HAitem, **d)
 		self.Hub.BinarySensors[self.entity_id] = self
-		if self.state not in ('on', 'off', 'unavailable'): # todo will unavail be handled correctly later?
+		if self.state not in ('on', 'off', 'unavailable'):
 			logsupport.Logs.Log("Odd Binary sensor initial value: ", self.entity_id, ':', self.state,
 								severity=ConsoleWarning)
 		self.Hub.sensorstore.SetVal(self.entity_id, self.state == 'on')
@@ -218,7 +218,7 @@ class BinarySensor(HAnode):
 			elif ns['state'] == 'off':
 				st = False
 			elif ns['state'] == 'unavailable':
-				st = False  # todo resolve what happens with unavail per above todo
+				st = False
 			else:
 				st = False
 				logsupport.Logs.Log("Bad Binary sensor value: ", self.entity_id, ':', ns['state'],
@@ -406,8 +406,8 @@ class ZWave(HAnode):
 class Indirector(object):
 	# used as a placeholder if config names a node that isn't in HA - allows for late discovery of HA nodes
 	# in GetNode if name doesn't exist create one of these and return it
-	# todo: then in the stream handling if new entity is seen create the node and plug it in here
-	# todo: need an list of such indirectors so the stream knows if it should do this or not
+	# in the stream handling if new entity is seen create the node and plug it in here
+	# Indirector has a field Undefined that gets set False once a node is linked.
 	def __init__(self, Hub, name):
 		self.Undefined = True
 		self.realnode = None
@@ -441,7 +441,6 @@ class HA(object):
 		try:
 			return self.Entities[name], self.Entities[name]
 		except:
-			# todo part of handling late nodes
 			logsupport.Logs.Log("Attempting to access unknown object: " + name + " in HA Hub: " + self.name,
 								severity=ConsoleWarning)
 			I = Indirector(self, name)
@@ -875,7 +874,7 @@ class HA(object):
 			p2 = dict(e.as_dict(), **{'domain': e.domain, 'name': e.name, 'object_id': e.object_id})
 			#if p2['object_id'] in ('bed_bath_side','bed_bath_side_2'):
 			#	logsupport.DevPrint('E---: {}'.format(e.as_dict()))
-			#	logsupport.DevPrint('Orig: {}'.format(p2)) # todo temp
+			#	logsupport.DevPrint('Orig: {}'.format(p2))
 			#	continue
 
 			if e.domain in self.hadomains:
@@ -918,8 +917,8 @@ class HA(object):
 					logsupport.DevPrint('Duplicate service noted for domain {}: service: {} existing: {} new: {}'.format(d['domain'], s, self.knownservices[d['domain'][s]],c))
 				self.knownservices[d['domain']][s] = c
 
-		if config.versionname in ('development', 'homerelease'):
-			with open(config.homedir + '/Console/{}services'.format(self.name), 'w') as f:
+		if config.sysStore.versionname in ('development', 'homerelease'):
+			with open('{}/Console/{}services'.format(config.sysStore.HomeDir, self.name), 'w') as f:
 				for d, svc in self.knownservices.items():
 					print(d, file=f)
 					for s, c in svc.items():

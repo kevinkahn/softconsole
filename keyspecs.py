@@ -2,6 +2,7 @@ import shlex
 
 import config
 import debug
+import hubs.hubs
 import logsupport
 import screen
 import supportscreens
@@ -26,7 +27,7 @@ def _resolvekeyname(kn, DefHub):
 		return t[0], DefHub
 	elif len(t) == 2:
 		try:
-			return t[1], config.Hubs[t[0]]
+			return t[1], hubs.hubs.Hubs[t[0]]
 		except KeyError:
 			logsupport.Logs.Log("Bad qualified node name for key: " + kn, severity=ConsoleWarning)
 			return "*none*", DefHub
@@ -160,7 +161,6 @@ class VarKey(ManualKeyDesc):
 				lab2.append(line.replace('$', str(val)))
 			self.BuildKey(oncolor, offcolor)
 			self.SetKeyImages(lab2, lab2, 0, True)
-			#if self.Blink != 0:  TODO DEL
 			self.ScheduleBlinkKey(self.Blink)
 		super(VarKey, self).PaintKey(ForceDisplay, DisplayState)
 
@@ -184,9 +184,9 @@ class SetVarKey(ManualKeyDesc):
 
 				# todo the default hub name stuff is wrong - not updated to store stuff
 				if self.VarType == 'State':
-					self.VarName = (config.defaulthub.name, 'State', self.Var)  # use default hub for each of these 2
+					self.VarName = (hubs.hubs.defaulthub.name, 'State', self.Var)  # use default hub for each of these 2
 				elif self.VarType == 'Int':
-					self.VarName = (config.defaulthub.name, 'Int', self.Var)
+					self.VarName = (hubs.hubs.defaulthub.name, 'Int', self.Var)
 				elif self.VarType == 'Local':
 					self.VarName = ('LocalVars', self.Var)
 				else:
@@ -247,7 +247,6 @@ class RunProgram(ManualKeyDesc):
 		if go:
 			self.Program.RunProgram()
 			config.DS.SwitchScreen(self.Screen, 'Bright', config.DS.state, 'Verify Run ' + self.Screen.name)
-			#if self.Blink != 0: todo del
 			self.ScheduleBlinkKey(self.Blink)
 		else:
 			config.DS.SwitchScreen(self.Screen, 'Bright', config.DS.state, 'Verify Run ' + self.Screen.name)

@@ -2,6 +2,7 @@ import threading
 
 import alerttasks
 import config
+import hubs.hubs
 import logsupport
 from stores import valuestore
 
@@ -21,7 +22,7 @@ class CheckIntegrity(object):
 			logsupport.Logs.Log('Integrity check thread for hub: ', hubnm, ' complete')
 
 		hubname = alert.param
-		thishub = config.Hubs[hubname]
+		thishub = hubs.hubs.Hubs[hubname]
 		T = threading.Thread(name='IntegrityCheck', target=DoCheck, args=(hubname, thishub), daemon=True)
 		T.start()
 

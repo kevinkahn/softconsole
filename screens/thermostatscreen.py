@@ -8,7 +8,7 @@ import config
 import debug
 import fonts
 import hw
-import isy  # only to test that the hub for this is an ISY hub
+import hubs.isy.isy as isy  # only to test that the hub for this is an ISY hub
 import logsupport
 import screen
 import screens.__screens as screens

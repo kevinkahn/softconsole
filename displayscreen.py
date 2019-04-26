@@ -1,3 +1,4 @@
+import hubs.hubs
 import hw
 import multiprocessing
 import os
@@ -157,7 +158,7 @@ class DisplayScreen(object):
 
 		logsupport.Logs.livelog = False  # turn off logging to the screen
 
-		with open(config.homedir + "/.ConsoleStart", "a") as f:
+		with open("{}/.ConsoleStart".format(config.sysStore.HomeDir), "a") as f:
 			f.write(str(time.time()) + '\n')
 		if config.Running:  # allow for a very early restart request from things like autoversion
 			self.SwitchScreen(InitScreen, 'Bright', 'Home', 'Startup')
@@ -165,7 +166,7 @@ class DisplayScreen(object):
 		statusperiod = time.time()
 		prevstatus = ''
 
-		if config.versionname in ('development'):
+		if config.sysStore.versionname in ('development'):
 			TempThdList = threading.Thread(target=failsafe.TempThreadList, name='ThreadLister')
 			TempThdList.daemon = True
 			TempThdList.start()
@@ -177,7 +178,7 @@ class DisplayScreen(object):
 		Failsafe.daemon = True
 		Failsafe.start()
 		config.sysStore.SetVal('Watchdog_pid', Failsafe.pid)
-		if config.versionname in ('development', 'homerelease'): topper.inittop()
+		if config.sysStore.versionname in ('development', 'homerelease'): topper.inittop()
 
 		logsupport.Logs.Log('Starting master watchdog {} for {}'.format(config.sysStore.Watchdog_pid, config.sysStore.Console_pid))
 
@@ -191,19 +192,19 @@ class DisplayScreen(object):
 				exitutils.Exit(exitutils.ERRORRESTART)
 			failsafe.KeepAlive.set()
 			nowtime = time.time()
-			if statusperiod <= nowtime or prevstatus != config.consolestatus:
-				ReportStatus(config.consolestatus)
-				prevstatus = config.consolestatus
+			if statusperiod <= nowtime or prevstatus != config.sysStore.consolestatus:
+				ReportStatus(config.sysStore.consolestatus)
+				prevstatus = config.sysStore.consolestatus
 				statusperiod = nowtime + 60
 
 			if not threadmanager.Watcher.is_alive():
 				logsupport.Logs.Log("Threadmanager Failure", severity=ConsoleError, tb=False)
 				exitutils.Exit(exitutils.ERRORRESTART)
 
-			os.utime(config.homedir + "/.ConsoleStart", None)
+			os.utime("{}/.ConsoleStart".format(config.sysStore.HomeDir), None)
 			if debug.dbgStore.GetVal('StatesDump'):
 				debug.dbgStore.SetVal('StatesDump', False)
-				for h, hub in config.Hubs.items():
+				for h, hub in hubs.hubs.Hubs.items():
 					print('States dump for hub: ', h)
 					hub.StatesDump()
 				debug.dbgStore.SetVal('StatesDump', False)
@@ -232,7 +233,7 @@ class DisplayScreen(object):
 					if event.seq == self.activityseq:
 						needvalidevent = False
 					else:
-						if config.versionname == 'development':
+						if config.sysStore.versionname == 'development':
 							logsupport.Logs.Log('Outdated activity {} {}'.format(event.seq, self.activityseq))
 							logsupport.DevPrint('outdated activity {} {}'.format(event.seq, self.activityseq))
 				else:
@@ -256,7 +257,7 @@ class DisplayScreen(object):
 
 				if self.dim == 'Dim':
 					# wake up the screen and if in a cover state go home
-					config.consolestatus = 'active'
+					config.sysStore.consolestatus = 'active'
 					if self.state == 'Cover':
 						self.SwitchScreen(screens.HomeScreen, 'Bright', 'Home', 'Wake up from cover')
 					else:
@@ -325,7 +326,7 @@ class DisplayScreen(object):
 
 				if self.dim == 'Bright':
 					self.HBEvents.Entry('ActivityTimer(Bright) state: {}'.format(self.state))
-					config.consolestatus = 'idle'
+					config.sysStore.consolestatus = 'idle'
 					self.Dim()
 					self.SetActivityTimer(self.AS.PersistTO, 'Go dim and wait persist')
 				else:

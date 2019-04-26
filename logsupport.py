@@ -56,7 +56,7 @@ heldstatus = ''
 
 def InitLogs(screen, dirnm):
 	global DevPrint
-	if config.versionname in ('development', 'homerelease'):
+	if config.sysStore.versionname in ('development', 'homerelease'):
 		q = [k for k in os.listdir('/home/pi/Console') if 'hlog' in k]
 		maxf = config.sysStore.MaxLogFiles
 		if "hlog." + str(maxf) in q:
@@ -231,7 +231,7 @@ class Logger(object):
 			hb = kwargs.pop('hb', False)
 			homeonly = kwargs.pop('homeonly', False)
 			localonly = kwargs.pop('localonly', False) or LocalOnly  # don't brcst error until mqtt is up
-			if homeonly and config.versionname not in ('development', 'homerelease'):
+			if homeonly and config.sysStore.versionname not in ('development', 'homerelease'):
 				if locked:
 					self.lock.release()
 					self.lockerid = (defentrytime, 'homeonly')
@@ -256,7 +256,7 @@ class Logger(object):
 
 			# If MQTT is running then broadcast the error
 			# suppress reports from development systems
-			if severity in [ConsoleWarning, ConsoleError] and not debugitem and config.versionname != 'development':
+			if severity in [ConsoleWarning, ConsoleError] and not debugitem and config.sysStore.versionname != 'development':
 				if primaryBroker is not None and not localonly:
 					try:
 						primaryBroker.Publish('errors', json.dumps(

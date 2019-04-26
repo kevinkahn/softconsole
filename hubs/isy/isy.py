@@ -10,8 +10,8 @@ import debug
 import exitutils
 import historybuffer
 import hw
-import isycodes
-import isyeventmonitor
+import hubs.isy.isycodes as isycodes
+import hubs.isy.isyeventmonitor as isyeventmonitor
 import logsupport
 import threadmanager
 import utilities

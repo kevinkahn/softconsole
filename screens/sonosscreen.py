@@ -4,7 +4,7 @@ import pygame
 
 import config
 import debug
-import hasshub  # only to test that the hub for this is an HA hub
+import hubs.ha.hasshub as hasshub  # only to test that the hub for this is an HA hub
 import hw
 import logsupport
 import screen

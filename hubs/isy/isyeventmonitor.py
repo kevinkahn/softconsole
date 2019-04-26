@@ -11,10 +11,10 @@ import xmltodict
 import config
 import debug
 import exitutils
-import isycodes
+import hubs.isy.isycodes as isycodes
 import logsupport
 from controlevents import CEvent, PostEvent, ConsoleEvent
-from isycodes import EVENT_CTRL, formatwsitem
+from hubs.isy.isycodes import EVENT_CTRL, formatwsitem
 from logsupport import ConsoleWarning, ConsoleError, ConsoleDetail, ConsoleDetailHigh
 from threadmanager import ThreadStartException
 
@@ -173,7 +173,7 @@ class ISYEventMonitor(object):
 			elif isinstance(error, TimeoutError):
 				logsupport.Logs.Log(self.hubname + " WS socket timed out", severity=ConsoleWarning)
 				self.lasterror = 'ISYSocketTimeOut'
-			elif isinstance(error, AttributeError):  # Py2 websocket debug todo
+			elif isinstance(error, AttributeError):
 				logsupport.Logs.Log(self.hubname + " WS library bug", severity=ConsoleWarning)
 				self.lasterror = 'ISYClose'
 			elif isinstance(error, OSError):
@@ -375,7 +375,7 @@ class ISYEventMonitor(object):
 								"{} reported and immediately cleared error for node: {} ({}) (seq:{}/{})".format(
 									self.hubname,
 									isynd, BaseAddr(self.LastMsgErr[0]), self.LastMsgErr[1], eseq),
-								severity=ConsoleWarning, hb=True)  # todo downgrade msg or delete
+								severity=ConsoleWarning, hb=True)
 							self.LastMsgErr = ('***', -99)
 						elif enode in self.isy.ErrNodes:
 							logsupport.Logs.Log("{} cleared comm error for node: {}".format(self.hubname, isynd))

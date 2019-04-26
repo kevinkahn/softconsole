@@ -54,9 +54,9 @@ def TryShorten(term):
 		else:
 			logsupport.Logs.Log("Long term: " + term, severity=ConsoleWarning)
 		TermShortener[term] = newterm  # only report once
-		with open(config.homedir + '/Console/termshortenlist.new', 'w') as f:
+		with open('{}/Console/termshortenlist.new'.format(config.sysStore.HomeDir), 'w') as f:
 			json.dump(TermShortener, f, indent=4, separators=(',', ": "))
-		with open(config.homedir + '/Console/problemterms.new', 'w') as f:
+		with open('{}/Console/problemterms.new'.format(config.sysStore.HomeDir), 'w') as f:
 			json.dump(StillLong, f, indent=4, separators=(',', ": "))
 	return newterm
 
@@ -65,7 +65,7 @@ def TryShorten(term):
 def SetUpTermShortener():
 	global TermShortener
 	try:
-		with open(config.homedir + '/Console/termshortenlist', 'r') as f:
+		with open('{}/Console/termshortenlist'.format(config.sysStore.HomeDir), 'r') as f:
 			# noinspection PyBroadException
 			TermShortener = json.load(f)
 	except:

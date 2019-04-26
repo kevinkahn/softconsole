@@ -29,6 +29,7 @@ from configobj import ConfigObj, Section
 
 import config
 import debug
+import hubs.hubs
 import screens.__screens as screens
 import timers
 from stores import mqttsupport, valuestore, localvarsupport, sysstore
@@ -42,8 +43,8 @@ import atexit
 import displayscreen
 import exitutils
 import hw
-import isy
-import hasshub
+import hubs.isy.isy as isy
+import hubs.ha.hasshub as hasshub
 import logsupport
 import maintscreen
 import utilities
@@ -86,8 +87,8 @@ config.hooks = ExitHooks()
 config.hooks.hook()
 atexit.register(exitutils.exitlogging)
 
-config.hubtypes['ISY'] = isy.ISY
-config.hubtypes['HASS'] = hasshub.HA
+hubs.hubs.hubtypes['ISY'] = isy.ISY
+hubs.hubs.hubtypes['HASS'] = hasshub.HA
 
 
 # noinspection PyUnusedLocal
@@ -128,9 +129,10 @@ signal.signal(signal.SIGUSR1, handler)
 config.sysStore.SetVal('Console_pid', os.getpid())
 config.sysStore.SetVal('Watchdog_pid', 0)  # gets set for real later but for now make sure the variable exists
 config.sysStore.SetVal('Topper_pid',0)
-config.exdir = os.path.dirname(os.path.abspath(__file__))
-os.chdir(config.exdir)  # make sure we are in the directory we are executing from
-config.homedir = os.path.dirname(config.exdir)
+config.sysStore.SetVal('ExecDir', os.path.dirname(os.path.abspath(__file__)))
+os.chdir(config.sysStore.ExecDir)  # make sure we are in the directory we are executing from
+config.sysStore.SetVal('HomeDir', os.path.dirname(config.sysStore.ExecDir))
+config.sysStore.SetVal('consolestatus','started')
 logsupport.Logs.Log(u"Console ( " + str(config.sysStore.Console_pid) + u") starting in " + os.getcwd())
 
 sectionget = Section.get
@@ -171,9 +173,9 @@ logsupport.Logs.Log(u'Environment initialized on host ' + hw.hostname)
 lastfn = u""
 lastmod = 0
 
-logsupport.Logs.Log(u'Exdir: ' + config.exdir + u'  Pid: ' + str(config.sysStore.Console_pid))
+logsupport.Logs.Log('Exdir: {}  Pid: {}'.format(config.sysStore.ExecDir, str(config.sysStore.Console_pid)))
 
-for root, dirs, files in os.walk(config.exdir):
+for root, dirs, files in os.walk(config.sysStore.ExecDir):
 	for fname in files:
 		if fname.endswith(u".py"):
 			fn = os.path.join(root, fname)
@@ -182,19 +184,19 @@ for root, dirs, files in os.walk(config.exdir):
 				lastfn = fn
 
 try:
-	with open(config.exdir + u'/' + u'versioninfo') as f:
-		config.versionname = f.readline()[:-1].rstrip()
-		config.versionsha = f.readline()[:-1].rstrip()
-		config.versiondnld = f.readline()[:-1].rstrip()
-		config.versioncommit = f.readline()[:-1].rstrip()
+	with open('{}/versioninfo'.format(config.sysStore.ExecDir)) as f:
+		config.sysStore.SetVal('versionname',f.readline()[:-1].rstrip())
+		config.sysStore.SetVal('versionsha', f.readline()[:-1].rstrip())
+		config.sysStore.SetVal('versiondnld',f.readline()[:-1].rstrip())
+		config.sysStore.SetVal('versioncommit', f.readline()[:-1].rstrip())
 except (IOError, ValueError):
-	config.versionname = u'none'
-	config.versionsha = u'none'
-	config.versiondnld = u'none'
-	config.versioncommit = u'none'
+	config.sysStore.SetVal('versionname', 'none')
+	config.sysStore.SetVal('versionsha', 'none')
+	config.sysStore.SetVal('versiondnld', 'none')
+	config.sysStore.SetVal('versioncommit', 'none')
 
 logsupport.Logs.Log(
-	u'Version/Sha/Dnld/Commit: ' + config.versionname + u' ' + config.versionsha + u' ' + config.versiondnld + u' ' + config.versioncommit)
+	'Version/Sha/Dnld/Commit: {} {} {} {}'.format(config.sysStore.versionname, config.sysStore.versionsha, config.sysStore.versiondnld, config.sysStore.versioncommit))
 
 """
 Dynamically load class definitions for all defined screen types, slert types, hubtypes, weather provider types
@@ -236,26 +238,26 @@ Initialize the Console
 SetUpTermShortener()
 
 if len(sys.argv) == 2:
-	config.configfile = sys.argv[1]
+	config.sysStore.configfile = sys.argv[1]
 elif os.path.isfile(configfilebase + "config.txt"):
-	config.configfile = configfilebase + "config.txt"
+	config.sysStore.configfile = configfilebase + "config.txt"
 else:
-	config.configfile = configfilebase + "config-" + hw.hostname + ".txt"
+	config.sysStore.configfile = configfilebase + "config-" + hw.hostname + ".txt"
 
-logsupport.Logs.Log("Configuration file: " + config.configfile)
+logsupport.Logs.Log("Configuration file: " + config.sysStore.configfile)
 
-if not os.path.isfile(config.configfile):
+if not os.path.isfile(config.sysStore.configfile):
 	print("Abort - no configuration file found")
 	logsupport.Logs.Log('Abort - no configuration file (' + hw.hostname + ')')
 	exitutils.EarlyAbort('No Configuration File (' + hw.hostname + ')')
 
-ParsedConfigFile = ConfigObj(config.configfile)  # read the config.txt file
+ParsedConfigFile = ConfigObj(config.sysStore.configfile)  # read the config.txt file
 
 logsupport.Logs.Log("Parsed base config file")
 
-configdir = os.path.dirname(config.configfile)
+configdir = os.path.dirname(config.sysStore.configfile)
 
-configfilelist[config.configfile] = os.path.getmtime(config.configfile)
+configfilelist[config.sysStore.configfile] = os.path.getmtime(config.sysStore.configfile)
 
 cfiles = []
 pfiles = []
@@ -297,7 +299,7 @@ screen.InitScreenParams(ParsedConfigFile)
 
 logsupport.Logs.Log("Parsed globals")
 logsupport.Logs.Log("Switching to real log")
-logsupport.Logs = logsupport.InitLogs(config.screen, os.path.dirname(config.configfile))
+logsupport.Logs = logsupport.InitLogs(config.screen, os.path.dirname(config.sysStore.configfile))
 cgitb.enable(format='text')
 logsupport.Logs.Log(u"Soft ISY Console")
 
@@ -308,15 +310,15 @@ logsupport.Logs.Log(" Running under Python: ", sys.version)
 if not (sys.version_info[0] == 3 and sys.version_info[1] >= 5):
 	logsupport.Logs.Log("Softconsole untested on Python versions earlier than 3.5 - please upgrade!",
 						severity=ConsoleError, tb=False)
-logsupport.Logs.Log(" Run from: ", config.exdir)
+logsupport.Logs.Log(" Run from: ", config.sysStore.ExecDir)
 logsupport.Logs.Log(" Last mod: ", lastfn)
 logsupport.Logs.Log(" Mod at: ", time.ctime(lastmod))
-logsupport.Logs.Log(" Tag: ", config.versionname)
-logsupport.Logs.Log(" Sha: ", config.versionsha)
-logsupport.Logs.Log(" How: ", config.versiondnld)
-logsupport.Logs.Log(" Version date: ", config.versioncommit)
+logsupport.Logs.Log(" Tag: ", config.sysStore.versionname)
+logsupport.Logs.Log(" Sha: ", config.sysStore.versionsha)
+logsupport.Logs.Log(" How: ", config.sysStore.versiondnld)
+logsupport.Logs.Log(" Version date: ", config.sysStore.versioncommit)
 logsupport.Logs.Log("Start time: ", time.ctime(config.sysStore.ConsoleStartTime))
-with open(config.homedir + "/.ConsoleStart", "w") as f:
+with open("{}/.ConsoleStart".format(config.sysStore.HomeDir), "w") as f:
 	f.write(str(config.sysStore.ConsoleStartTime) + '\n')
 logsupport.Logs.Log("Console Starting  pid: ", config.sysStore.Console_pid)
 logsupport.Logs.Log("Host name: ", hw.hostname)
@@ -330,8 +332,8 @@ if utilities.lastup > 0:
 	logsupport.Logs.Log("Console Last Running at: ", time.ctime(utilities.lastup))
 	logsupport.Logs.Log("Previous Console Downtime: ",
 						str(datetime.timedelta(seconds=(config.sysStore.ConsoleStartTime - utilities.lastup))))
-logsupport.Logs.Log("Main config file: ", config.configfile,
-					time.strftime(' %c', time.localtime(configfilelist[config.configfile])))
+logsupport.Logs.Log("Main config file: ", config.sysStore.configfile,
+					time.strftime(' %c', time.localtime(configfilelist[config.sysStore.configfile])))
 logsupport.Logs.Log("Default config file library: ", cfglib)
 logsupport.Logs.Log("Including config files:")
 for p, f in zip(pfiles, cfiles):
@@ -384,11 +386,11 @@ for i, v in ParsedConfigFile.items():
 			else:
 				logsupport.Logs.Log("No weather provider type: {}".format(i), severity=ConsoleWarning)
 			del ParsedConfigFile[i]
-		for hubtyp, pkg in config.hubtypes.items():
+		for hubtyp, pkg in hubs.hubs.hubtypes.items():
 			if stype == hubtyp:
 				# noinspection PyBroadException
 				try:
-					config.Hubs[i] = pkg(i, v.get('address', ''), v.get('user', ''), v.get('password', ''))
+					hubs.hubs.Hubs[i] = pkg(i, v.get('address', ''), v.get('user', ''), v.get('password', ''))
 				except BaseException as e:
 					logsupport.Logs.Log("Fatal console error - fix config file: ", e, severity=ConsoleError, tb=False)
 					exitutils.Exit(exitutils.ERRORDIE, immediate=True)  # shutdown and don't try restart
@@ -414,29 +416,29 @@ for i, v in ParsedConfigFile.items():
 										severity=ConsoleError, tb=False)
 				del ParsedConfigFile[i]
 
-if screen.screenStore.GetVal('DefaultHub') == '':  # todo handle no hub case for screen testing
-	if len(config.Hubs) == 1:
-		nm = list(config.Hubs.keys())[0]
+if screen.screenStore.GetVal('DefaultHub') == '':
+	if len(hubs.hubs.Hubs) == 1:
+		nm = list(hubs.hubs.Hubs.keys())[0]
 		screen.screenStore.SetVal('DefaultHub', nm)
-		config.defaulthub = config.Hubs[nm]  # grab the only element
+		hubs.hubs.defaulthub = hubs.hubs.Hubs[nm]  # grab the only element
 		logsupport.Logs.Log("Default (only) hub is: ", nm)
 	else:
 		logsupport.Logs.Log("No default Hub specified", severity=ConsoleWarning)
-		config.defaulthub = None
+		hubs.hubs.defaulthub = None
 else:
 	try:
 		nm = screen.screenStore.GetVal('DefaultHub')
-		config.defaulthub = config.Hubs[nm]
+		hubs.hubs.defaulthub = hubs.hubs.Hubs[nm]
 		logsupport.Logs.Log("Default hub is: ", nm)
 	except KeyError:
 		logsupport.Logs.Log("Specified default Hub doesn't exist", severity=ConsoleWarning)
-		config.defaulthub = None
+		hubs.hubs.defaulthub = None
 
 """
 Set up alerts and local variables
 """
 alertspeclist = {}
-for n, hub in config.Hubs.items():
+for n, hub in hubs.hubs.Hubs.items():
 	alertspeclist.update(hub.alertspeclist)
 
 if 'Alerts' in ParsedConfigFile:
@@ -481,7 +483,7 @@ LogBadParams(alertspec, "Alerts")
 """
 Dump documentation if development version
 """
-# if config.versionname == 'development':
+# if config.sysStore.versionname == 'development':
 #	utilities.DumpDocumentation()
 
 """

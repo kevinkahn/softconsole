@@ -91,14 +91,14 @@ def InitializeEnvironment():
 
 	# end hack
 	try:
-		with open(config.homedir + "/.Screentype") as f:
+		with open("{}/.Screentype".format(config.sysStore.HomeDir)) as f:
 			scrntyp = f.readline().rstrip('\n')
 	except IOError:
 		scrntyp = "*Unknown*"
 
 	hw.initOS(scrntyp)
 
-	config.sysStore.SetVal('PersonalSystem',os.path.isfile(config.homedir + "/homesystem"))
+	config.sysStore.SetVal('PersonalSystem',os.path.isfile(config.sysStore.HomeDir + "/homesystem"))
 
 	# todo move touchhandler selection to hw - return the handler to start for the thread
 	if hw.screentype in ('pi7', '35r', '28c'):
@@ -127,8 +127,8 @@ def InitializeEnvironment():
 		threadmanager.SetUpHelperThread('TouchHandler', ts.run)
 
 	try:
-		lastup = os.path.getmtime(config.homedir + "/.ConsoleStart")
-		with open(config.homedir + "/.ConsoleStart") as f:
+		lastup = os.path.getmtime("{}/.ConsoleStart".format(config.sysStore.HomeDir))
+		with open("{}/.ConsoleStart".format(config.sysStore.HomeDir)) as f:
 			laststart = float(f.readline())
 			lastrealstart = float(f.readline())
 		previousup = lastup - lastrealstart
@@ -138,7 +138,7 @@ def InitializeEnvironment():
 		lastup = -1
 		prevsetup = -1
 
-	with open(config.homedir + "/.RelLog", "a") as f:
+	with open("{}/.RelLog".format(config.sysStore.HomeDir), "a") as f:
 		f.write(
 			str(config.sysStore.ConsoleStartTime) + ' ' + str(prevsetup) + ' ' + str(previousup) + ' ' + str(lastup) + ' '
 			+ str(config.sysStore.ConsoleStartTime - lastup) + '\n')

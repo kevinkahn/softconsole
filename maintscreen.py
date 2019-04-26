@@ -201,7 +201,7 @@ def dobeta(K, presstype):
 
 
 def fetch_stable():
-	basedir = os.path.dirname(config.exdir)
+	basedir = os.path.dirname(config.sysStore.ExecDir)
 	ReportStatus("updt stable")
 	# noinspection PyBroadException
 	try:
@@ -222,7 +222,7 @@ def fetch_stable():
 
 
 def fetch_beta():
-	basedir = os.path.dirname(config.exdir)
+	basedir = os.path.dirname(config.sysStore.ExecDir)
 	ReportStatus("updt beta")
 	logsupport.Logs.Log("New version fetch(currentbeta)")
 	print("New Version Fetch Requested (currentbeta)")

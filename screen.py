@@ -5,6 +5,7 @@ import pygame
 import config
 import debug
 import fonts
+import hubs.hubs
 import hw
 import logsupport
 import screens.__screens as screens
@@ -130,7 +131,7 @@ class ScreenDesc(object):
 		AddUndefaultedParams(self, screensection, label=[screenname])
 
 		try:
-			self.DefaultHubObj = config.Hubs[self.DefaultHub]
+			self.DefaultHubObj = hubs.hubs.Hubs[self.DefaultHub]
 		except KeyError:
 			logsupport.Logs.Log("Bad default hub name for screen: ", screenname, severity=ConsoleError)
 
