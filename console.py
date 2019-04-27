@@ -60,6 +60,7 @@ Constants
 configfilebase = "/home/pi/Console/"  # actual config file can be overridden from arg1
 configfilelist = {}  # list of configfiles and their timestamps
 
+logsupport.SpawnAsyncLogger()
 
 class ExitHooks(object):
 	def __init__(self):
@@ -83,8 +84,8 @@ class ExitHooks(object):
 		sys.__excepthook__(exc_type, exc, args)
 
 
-config.hooks = ExitHooks()
-config.hooks.hook()
+#config.hooks = ExitHooks()
+#config.hooks.hook()
 atexit.register(exitutils.exitlogging)
 
 hubs.hubs.hubtypes['ISY'] = isy.ISY
@@ -98,26 +99,28 @@ def handler(signum, frame):
 			logsupport.DevPrint('Watchdog termination')
 			logsupport.Logs.Log("Console received a watchdog termination signal: {} - Exiting".format(signum), tb=True)
 			reason = 'watchdog termination'
-			code = exitutils.WATCHDOGTERM
+			config.ecode = exitutils.WATCHDOGTERM
 		else:
 			logsupport.DevPrint('Signal termination {}'.format(signum))
 			logsupport.Logs.Log("Console received termination signal: {} - Exiting".format(signum), tb=True)
 			if signum == signal.SIGINT:
 				reason = 'interrupt signal'
-				code = exitutils.EXTERNALSIGINT
+				config.ecode = exitutils.EXTERNALSIGINT
 			else:
 				reason = 'termination signal'
-				code = exitutils.EXTERNALSIGTERM
+				config.ecode = exitutils.EXTERNALSIGTERM
 			os.kill(config.sysStore.Watchdog_pid,signal.SIGUSR1)
 			if config.sysStore.Topper_pid != 0: os.kill(config.sysStore.Topper_pid, signal.SIGKILL)
 		hw.GoBright(100)
 		timers.ShutTimers(reason)
 		logsupport.DevPrint('Exit handling done')
 		logsupport.Logs.Log('Console exit for {}'.format(reason))
+		logsupport.LoggerQueue.put((3,'Main Handler'))
+		time.sleep(1) # let the messages get out
 		pygame.display.quit()
 		pygame.quit()
 		config.Running = False
-		os._exit(code)
+		os._exit(config.ecode)
 	else:
 		logsupport.Logs.Log("Console received signal {} - Ignoring".format(signum))
 

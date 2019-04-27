@@ -95,6 +95,7 @@ class MQTTBroker(valuestore.ValueStore):
 		# noinspection PyUnusedLocal
 		def on_message(client, userdata, msg):
 			# print time.ctime() + " Received message " + str(msg.payload) + " on topic "  + msg.topic + " with QoS " + str(msg.qos)
+			# command to force get: mosquitto_pub -t consoles/all/cmd -m getstable;  mosquitto_pub -t consoles/all/cmd -m restart
 			loopstart = time.time()
 			var = []
 			for t, item in userdata.topicindex.items():

@@ -1,5 +1,6 @@
 import time
 from threading import Thread, Event
+import threading
 
 import config
 import historybuffer
@@ -12,6 +13,7 @@ TimerList = {}
 TimerHB = historybuffer.HistoryBuffer(100, 'Timers')
 LongOpInProgress = False
 LongOpStart = {'maintenance': 0}
+timersshut = False
 
 
 def StartLongOp(nm):
@@ -60,15 +62,22 @@ def AddToTimerList(name, timer):
 
 
 def KillMe():
-	logsupport.DevPrint("Failsafe hit")
-	logsupport.Logs.log("Failsafe hit")
-	time.sleep(1)
-	os.kill(config.sysStore.Console_pid, signal.SIGKILL)
+	time.sleep(5)
+	if not timersshut:
+		logsupport.DevPrint("Timer Shutdown Failsafe hit")
+		#time.sleep(30)
+		logsupport.Logs.log("Timer Shutdown Failsafe hit")
+		time.sleep(1)
+		x=threading.enumerate()
+		for t in x: print(t.name)
+		os.kill(config.sysStore.Console_pid, signal.SIGKILL)
+	else:
+		logsupport.DevPrint('Timer shutdown failsafe unneeded')
 
 
 def ShutTimers(loc):
-	failsafe = OnceTimer(10.0, start=False, name='Failsafe', proc=KillMe)
-	del TimerList['Failsafe']
+	global timersshut
+	failsafe = Thread(name='Failsafe-Shut', target=KillMe)
 	failsafe.daemon = True
 	failsafe.start()
 	tList = dict(TimerList)
@@ -77,6 +86,7 @@ def ShutTimers(loc):
 			logsupport.Logs.Log('Shutting down timer: {}'.format(n))
 			t.cancel()
 	logsupport.Logs.Log('All timers shut down ({})'.format(loc))
+	timersshut = True
 
 
 class RepeatingPost(Thread):

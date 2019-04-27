@@ -2,6 +2,9 @@ import json
 import sys
 import threading
 import traceback
+import multiprocessing
+import signal
+from queue import Empty as QEmpty
 
 import pygame
 import webcolors
@@ -47,12 +50,20 @@ ConsoleInfo = 3
 ConsoleWarning = 4
 ConsoleError = 5
 primaryBroker = None  # for cross system reporting if mqtt is running
+LoggerQueue = multiprocessing.Queue()
+# logger queue item: (type,str) where type: 0 Logentry, 1 DevPrint, 2 file write (name, access, str), 3 shutdown
+# 4 setup logfile others tbd
+AsyncLogger = None
 
 LogLevel = 3
 LocalOnly = True
 
 heldstatus = ''
 
+def SpawnAsyncLogger():
+	global AsyncLogger
+	AsyncLogger = multiprocessing.Process(name='AsyncLogger', target= LogProcess, args=(LoggerQueue,))
+	AsyncLogger.start()
 
 def InitLogs(screen, dirnm):
 	global DevPrint
@@ -73,13 +84,99 @@ def InitLogs(screen, dirnm):
 			f.write('------ {} ------\n'.format(time.time()))
 	return Logger(screen, dirnm)
 
+def AsyncFileWrite(fn,writestr,access='a'):
+	LoggerQueue.put((2,fn,access,writestr))
+
+def LogProcess(q):
+	def ExitLog(signum, frame):
+		global exiting
+		exiting = time.time()
+		print('{}({}): Logger process exiting for signal {} exiting: {}'.format(os.getpid(),time.time(),signum, exiting))
+		with open('/home/pi/Console/hlog', 'a') as f:
+			f.write('{}({}): Logger process exiting for signal {} exiting: {}'.format(os.getpid(),time.time(),signum, exiting))
+			f.flush()
+		signal.signal(signal.SIGHUP,signal.SIG_IGN)
+
+
+	signal.signal(signal.SIGTERM, ExitLog)  # don't want the sig handlers from the main console
+	signal.signal(signal.SIGINT, ExitLog)
+	signal.signal(signal.SIGUSR1, ExitLog)
+	signal.signal(signal.SIGHUP, ExitLog)
+	print('Async Logger starting as process {}'.format(os.getpid()))
+	disklogfile = None
+	running = True
+	exiting = 0
+	while running:
+		try:
+			try:
+				item = q.get(timeout = 2)
+				if exiting !=0:
+					print('late item: {} exiting {}'.format(item,exiting))
+					with open('/home/pi/Console/hlog', 'a') as f:
+						f.write('late item: {} exiting {}'.format(item,exiting))
+						f.flush()
+			except QEmpty:
+				if exiting != 0 and time.time() - exiting > 10:
+					# exiting got set but we seem stuck - just leave
+					print('{}({}): Logger exiting because seems zombied'.format(os.getpid(),time.time()))
+					with open('/home/pi/Console/hlog', 'a') as f:
+						f.write('{}({}): Logger exiting because seems zombied'.format(os.getpid(),time.time()))
+						f.flush()
+					running = False
+					#os._exit(0)
+				else:
+					continue
+					#print('{}({}): Logger idle (exiting: {})'.format(os.getpid(),time.time(), exiting))
+					#with open('/home/pi/Console/hlog', 'a') as f:
+					#	f.write('{}({}): Logger idle (exiting: {})'.format(os.getpid(),time.time(), exiting))
+					#	f.flush()
+			if item[0] == 0:
+				# Log Entry
+				disklogfile.write(item[1]+'\n')
+				disklogfile.flush()
+				os.fsync(disklogfile.fileno())
+				pass
+			elif item[0] == 1:
+				# DevPrint
+				with open('/home/pi/Console/hlog', 'a') as f:
+					f.write(item[1]+'\n')
+					f.flush()
+				print(item[1])
+			elif item[0] == 2:
+				# general write (filename, openaccess, str)
+				with open(item[1],item[2]) as f:
+					f.write(item[3])
+					f.flush()
+			elif item[0] == 3:
+				running = False
+				print('{}({}): Async Logger ending: {}'.format(os.getpid(),time.time(),item[1]))
+			elif item[0] == 4:
+				#print('{}({}): Open log file in {}'.format(os.getpid(),time.time(),item[1]))
+				os.chdir(item[1])
+				disklogfile = open('Console.log', 'w')
+				os.chmod('Console.log', 0o555)
+			else:
+				print('Log process got garbage: {}'.format(item))
+		except Exception as E:
+			print('Log process had exception {} handling {}'.format(repr(E), item))
+			with open('/home/pi/Console/hlog', 'a') as f:
+				f.write('Log process had exception {} handling {}'.format(repr(E), item))
+				f.flush()
+	print('{}({}): Logger loop ended'.format(os.getpid(),time.time()))
+	with open('/home/pi/Console/hlog', 'a') as f:
+		f.write('{}({}): Logger loop ended\n'.format(os.getpid(),time.time()))
+		f.flush()
+
+
 def DevPrint(arg):
 	pass
 
 def DevPrintDoIt(arg):
-	with open('/home/pi/Console/hlog', 'a') as f:
-		f.write('{}({}): {}\n'.format(str(os.getpid()), time.time(), arg))
-	print('{}({}): {}'.format(str(os.getpid()), time.time(), arg))
+	pstr = '{}({}): {}'.format(str(os.getpid()), time.time(), arg)
+	LoggerQueue.put((1, pstr))
+	#with open('/home/pi/Console/hlog', 'a') as f:
+	#	f.write('{}({}): {}\n'.format(str(os.getpid()), time.time(), arg))
+	#print('{}({}): {}'.format(str(os.getpid()), time.time(), arg))
 
 
 class Logger(object):
@@ -112,9 +209,10 @@ class Logger(object):
 				os.rename('Console.log', 'Console.log.1')
 			except:
 				pass
-			self.disklogfile = open('Console.log', 'w')
-			os.chmod('Console.log', 0o555)
-			historybuffer.SetupHistoryBuffers(dirnm, maxf)
+			LoggerQueue.put((4,dirnm))
+			#self.disklogfile = open('Console.log', 'w')
+			#os.chmod('Console.log', 0o555)
+			historybuffer.SetupHistoryBuffers(dirnm, maxf)  # todo ? move print to async
 			os.chdir(cwd)
 
 	def SetSeverePointer(self, severity):
@@ -172,19 +270,20 @@ class Logger(object):
 			self.log.append((severity, entry, entrytime))
 			self.SetSeverePointer(severity)
 		if disklogging:
-			self.disklogfile.write(entrytime + ' Sev: ' + str(severity) + " " + entry + '\n')
+			LoggerQueue.put((0,'{} Sev: {} {}'.format(entrytime,severity,entry)))
+			#self.disklogfile.write(entrytime + ' Sev: ' + str(severity) + " " + entry + '\n')
 			if tb:
 				DevPrint('Traceback:')
-				# traceback.print_stack(file=self.disklogfile)
 				for line in traceback.format_stack()[0:-2]:
 					DevPrint(line.strip())
 				frames = traceback.extract_tb(sys.exc_info()[2])
 				for f in frames:
 					fname, lineno, fn, text = f
-					self.disklogfile.write(
-						'-----------------' + fname + ':' + str(lineno) + ' ' + fn + ' ' + text + '\n')
-			self.disklogfile.flush()
-			os.fsync(self.disklogfile.fileno())
+					LoggerQueue.put((0,'-----------------' + fname + ':' + str(lineno) + ' ' + fn + ' ' + text))
+					#self.disklogfile.write(
+					#	'-----------------' + fname + ':' + str(lineno) + ' ' + fn + ' ' + text + '\n')
+			#self.disklogfile.flush()
+			#os.fsync(self.disklogfile.fileno())
 
 	def PeriodicRemoteDump(self):
 		locked = False

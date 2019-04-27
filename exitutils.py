@@ -1,4 +1,4 @@
-import os
+import os, signal
 import subprocess
 import sys
 import time
@@ -13,6 +13,7 @@ import logsupport
 import timers
 from logsupport import ConsoleError
 from utilfuncs import *
+
 
 # Exit Codes:
 # 1x: shutdown console (don't restart in systemd or script)
@@ -45,14 +46,15 @@ def listthreads(l):
 
 def exitlogging():
 	# logsupport.Logs.Log("Exittime threads: {}".format(listthreads(threading.enumerate())))
-	if config.hooks.exit_code not in (
+	#if config.hooks.exit_code not in (
+	if config.ecode not in (
 			EARLYABORT, MAINTEXIT, MAINTPISHUT, MAINTRESTART, AUTORESTART, REMOTERESTART, EXTERNALSIGTERM,
-			MAINTPIREBOOT,
-			REMOTEREBOOT):
+			MAINTPIREBOOT, REMOTEREBOOT):
 		logsupport.Logs.Log("Exiting with history trace (", repr(config.hooks.exit_code), ')')
 		historybuffer.DumpAll('Exit Trace', time.strftime('%m-%d-%y %H:%M:%S'))
 	else:
 		logsupport.Logs.Log("Exiting without history trace")
+	logsupport.LoggerQueue.put((3,'Exit Logging'))
 
 
 def EarlyAbort(scrnmsg):
@@ -79,9 +81,8 @@ def Exit(ecode, immediate=False):
 	with open("{}/.RelLog".format(config.sysStore.HomeDir), "a") as f:
 		f.write('Exit ' + str(ecode) + '\n')
 	os.chdir(config.sysStore.ExecDir)  # set cwd to be correct when dirs move underneath us so that scripts execute
-
 	logsupport.Logs.Log("Console Exiting - Ecode: " + str(ecode))
-
+	os.kill(config.sysStore.Watchdog_pid,signal.SIGUSR1)
 	print('Console exit with code: ' + str(ecode) + ' at ' + time.strftime('%m-%d-%y %H:%M:%S'))
 	if ecode in range(10, 20):
 		# exit console without restart
@@ -110,7 +111,6 @@ def Exit(ecode, immediate=False):
 	if immediate:
 		logsupport.Logs.Log("Temp - Immediate Exit: ", str(ecode), tb=True)
 		sys.exit(ecode)
-	# os._exit(ecode)
 	else:
 		config.ecode = ecode
 		config.Running = False  # make sure the main loop ends even if this exit call returns

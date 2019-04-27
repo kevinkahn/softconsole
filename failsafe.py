@@ -20,26 +20,27 @@ def TempThreadList():
 	so leaves zombies and threads running.  This code makes sure everything gets killed so as to not leave connections
 	to the ISY which will eventually force it to its limit without manual intervention.
 	'''
+	time.sleep(10)
 	while True:
-		with open('/home/pi/Console/hlog', 'a') as f:
-			f.write('=================Start\n')
-			L = multiprocessing.active_children()  # clean any zombie failsafe
-			for x in L:
-				f.write('{} Process {}: alive: {} pid: {}\n'.format(time.time(), x.name, x.is_alive(), x.pid))
-			threadlist = threading.enumerate()
-			for thd in threadlist:
-				f.write('{} Threadlist: {} alive: {} ident: {} daemon: {} \n'.format(time.time(), thd.name, thd.is_alive(), thd.ident, thd.daemon))
-				if thd.name == 'MainThread' and not thd.is_alive():
-					f.write('Main Thread died\n')
-					f.flush()
-					os.kill(os.getpid(),signal.SIGINT)  # kill myself
+		logsupport.AsyncFileWrite('/home/pi/Console/hlog', '=================Start\n')
+		L = multiprocessing.active_children()  # clean any zombie failsafe
+		for x in L:
+			logsupport.AsyncFileWrite('/home/pi/Console/hlog',
+									  '{} Process {}: alive: {} pid: {} daemon: {}\n'.format(time.time(), x.name,
+											x.is_alive(), x.pid, x.daemon))
+		threadlist = threading.enumerate()
+		for thd in threadlist:
+			logsupport.AsyncFileWrite('/home/pi/Console/hlog','{} Threadlist: {} alive: {} ident: {} daemon: {} \n'.format(time.time(), thd.name, thd.is_alive(), thd.ident, thd.daemon))
+			if thd.name == 'MainThread' and not thd.is_alive():
+				logsupport.AsyncFileWrite('/home/pi/Console/hlog','Main Thread died\n')
+				os.kill(os.getpid(),signal.SIGINT)  # kill myself
 
-			time.sleep(30)
-			f.write('=================End\n')
+		logsupport.AsyncFileWrite('/home/pi/Console/hlog','=================End\n')
+		time.sleep(30)
 
 def NoEventInjector():
 	logsupport.Logs.Log('Starting watchdog activity injector')
-	while True:
+	while config.Running:
 		# noinspection PyBroadException
 		try:
 			now = time.time()
@@ -47,13 +48,14 @@ def NoEventInjector():
 			logsupport.DevPrint('Inject: {}'.format(now))
 			PostEvent(ConsoleEvent(CEvent.FailSafePing, inject=now))
 			time.sleep(FailsafeInterval / 2)
-		except Exception:
+		except Exception as E:
 			time.sleep(FailsafeInterval / 2)
-			pass  # spurious exceptions during shutdown
-	# logsupport.Logs.Log("NoEvent Injector Exception {}".format(E), severity=logsupport.ConsoleWarning)
+			logsupport.DevPrint('Inject Exception {}'.format(repr(E)))
+			# spurious exceptions during shutdown
+	logsupport.DevPrint('Injector exiting')
 
 def EndWatchDog(signum, frame):
-	logsupport.DevPrint('Watchdog ending on shutdown')
+	logsupport.DevPrint('Watchdog ending on shutdown {}'.format(signum))
 	os._exit(0)
 
 
@@ -109,14 +111,15 @@ class ExitHooks(object):
 		self.exception = exc
 		sys.__excepthook__(exc_type, exc, args)
 
-failsafehooks = ExitHooks()
+#failsafehooks = ExitHooks()
 
 def MasterWatchDog():
 	signal.signal(signal.SIGTERM, WatchdogDying)  # don't want the sig handlers from the main console
-	signal.signal(signal.SIGINT, signal.SIG_DFL)
+	signal.signal(signal.SIGINT, EndWatchDog)
 	signal.signal(signal.SIGUSR1, EndWatchDog)
+	signal.signal(signal.SIGHUP, signal.SIG_IGN)
 
-	failsafehooks.hook()
+	#failsafehooks.hook()
 	atexit.register(failsafedeath)
 
 	logsupport.DevPrint('Master Watchdog Started {} for console pid: {}'.format(os.getpid(),config.sysStore.Console_pid))

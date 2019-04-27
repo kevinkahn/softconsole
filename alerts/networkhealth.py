@@ -13,19 +13,20 @@ class NetworkHealth(object):
 	@staticmethod
 	def RobustPing(dest):
 		ok = False
-		#with open('/dev/null', 'a') as f:
-		with open('/home/pi/Console/hlog', 'a') as f:
+		with open('/dev/null', 'a') as f:
+		#with open('/home/pi/Console/hlog', 'a') as f: # todo - if want to save ping output need to figure out async for redirect
 			cmd = 'ping -c 1 -W 2 ' + dest
 			for i in range(7):
-				f.write('Ping:\n')
-				f.flush()
+				logsupport.LoggerQueue.put((2,'/home/pi/Console/hlog','a','Ping:\n'))
+				#f.write('Ping:\n')
+				#f.flush()
 				p = subprocess.call(cmd, shell=True, stdout=f, stderr=f)
 				if p == 0:
 					ok = True  # one success in loop is success
 					break
 				else:
-					f.write('Ping result: {}'.format(p))
-					pass
+					logsupport.LoggerQueue.put((2, '/home/pi/Console/hlog', 'a', 'Ping result: {}\n'.format(p)))
+					#f.write('Ping result: {}'.format(p))
 		return ok
 
 	def Do_Ping(self, alert):
