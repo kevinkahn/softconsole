@@ -24,6 +24,7 @@ def PostEvent(e):
 	cpu = psutil.Process(config.sysStore.Console_pid).cpu_times()
 	e.addtoevent(QTime=time.time(), usercpu=cpu.user, syscpu=cpu.system)
 	ConsoleOpsQueue.put(e)
+	if ConsoleOpsQueue.qsize() > 1: logsupport.DevPrint("*******Post {} queuesize: {}".format(e,ConsoleOpsQueue.qsize()))
 
 
 def GetEvent():
@@ -36,6 +37,7 @@ def GetEvent():
 		evnt = ConsoleEvent(CEvent.FailSafePing,inject=time.time())
 	if evnt is None: logsupport.Logs.Log('Got none from blocking get', severity=logsupport.ConsoleError, hb=True)
 	cpu = psutil.Process(config.sysStore.Console_pid).cpu_times()
+	if ConsoleOpsQueue.qsize() > 0: logsupport.DevPrint("*******Queue Get: {} queuesize: {}".format(evnt,ConsoleOpsQueue.qsize()))
 	if time.time() - evnt.QTime > latencynotification:
 		logsupport.DevPrint(
 			'Long on queue: {} user: {} system: {} event: {}'.format(time.time() - evnt.QTime, cpu.user - evnt.usercpu,
