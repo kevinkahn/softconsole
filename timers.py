@@ -18,7 +18,6 @@ timersshut = False
 
 def StartLongOp(nm):
 	global LongOpInProgress, LongOpStart
-	logsupport.DevPrint('StartLO {}'.format(nm))
 	if nm not in LongOpStart: LongOpStart[nm] = 0
 	if LongOpStart[nm] != 0:
 		logsupport.Logs.Log('Long op start within existing long op for {} {}'.format(nm, LongOpStart),
@@ -26,18 +25,15 @@ def StartLongOp(nm):
 	LongOpStart[nm] = time.time()
 	LongOpInProgress = any(LongOpStart.values())
 	TimerHB.Entry('Start long op: {} {} {}'.format(nm, LongOpInProgress, LongOpStart))
-	logsupport.DevPrint('Start long op: {} {} {}'.format(nm, LongOpInProgress, LongOpStart))
 
 
 def EndLongOp(nm):
 	global LongOpInProgress, LongOpStart
-	logsupport.DevPrint('EndLO {}'.format(nm))
 	if LongOpStart[nm] == 0: logsupport.Logs.Log('End non-existent long op: {} {}'.format(nm, LongOpStart),
 												 severity=logsupport.ConsoleWarning)
 	LongOpStart[nm] = 0
 	LongOpInProgress = any(LongOpStart.values())
 	TimerHB.Entry('End long op: {} lasted: {}'.format(nm, time.time() - LongOpStart[nm]))
-	logsupport.DevPrint('End long op: {} {} {}'.format(nm, LongOpInProgress, LongOpStart))
 
 
 def AddToTimerList(name, timer):
@@ -64,6 +60,7 @@ def AddToTimerList(name, timer):
 def KillMe():
 	time.sleep(5)
 	if not timersshut:
+		TimerHB.Entry("Timer Shutdown Failsafe hit")
 		logsupport.DevPrint("Timer Shutdown Failsafe hit")
 		#time.sleep(30)
 		logsupport.Logs.log("Timer Shutdown Failsafe hit")
@@ -72,7 +69,8 @@ def KillMe():
 		for t in x: print(t.name)
 		os.kill(config.sysStore.Console_pid, signal.SIGKILL)
 	else:
-		logsupport.DevPrint('Timer shutdown failsafe unneeded')
+		pass
+		#logsupport.DevPrint('Timer shutdown failsafe unneeded')
 
 
 def ShutTimers(loc):

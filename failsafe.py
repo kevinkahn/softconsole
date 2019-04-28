@@ -45,7 +45,7 @@ def NoEventInjector():
 		try:
 			now = time.time()
 			logsupport.Logs.Log('Inject: {}'.format(now), severity = logsupport.ConsoleDetail)
-			logsupport.DevPrint('Inject: {}'.format(now))
+			#logsupport.DevPrint('Inject: {}'.format(now))
 			PostEvent(ConsoleEvent(CEvent.FailSafePing, inject=now))
 			time.sleep(FailsafeInterval / 2)
 		except Exception as E:

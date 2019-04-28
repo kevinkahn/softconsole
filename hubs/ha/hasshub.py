@@ -156,7 +156,7 @@ class Light(StatefulHAnode):
 	# noinspection PyUnusedLocal
 	def SendOnOffCommand(self, settoon, presstype):
 		selcmd = ('turn_off', 'turn_on')
-		logsupport.DevPrint("Light on/off: {} {} {}".format(selcmd[settoon],self.entity_id, time.time()))
+		#logsupport.DevPrint("Light on/off: {} {} {}".format(selcmd[settoon],self.entity_id, time.time()))
 		ha.call_service(self.Hub.api, 'light', selcmd[settoon], {'entity_id': '{}'.format(self.entity_id)})
 		debug.debugPrint('HASSgeneral', "Light OnOff sent: ", selcmd[settoon], ' to ', self.entity_id)
 		PostEvent(ConsoleEvent(CEvent.HubNodeChange, hub=self.Hub.name, node=self.entity_id,
@@ -612,9 +612,6 @@ class HA(object):
 					del d['entity_id']
 					chgs, dels, adds = findDiff(old, new)
 
-#					if ent in ('switch.bed_bath_side','switch.bed_bath_side_2'):
-#						logsupport.DevPrint('Inline: {}'.format(p2))
-#						logsupport.DevPrint('======: {}'.format(new))
 					if not ent in self.Entities and not ent in self.IgnoredEntities and not dom in haignoreandskipdomains:
 						# not an entitity type that is currently known
 						debug.debugPrint('HASSgeneral', self.name,
@@ -872,10 +869,6 @@ class HA(object):
 			if e.domain not in self.Domains:
 				self.Domains[e.domain] = {}
 			p2 = dict(e.as_dict(), **{'domain': e.domain, 'name': e.name, 'object_id': e.object_id})
-			#if p2['object_id'] in ('bed_bath_side','bed_bath_side_2'):
-			#	logsupport.DevPrint('E---: {}'.format(e.as_dict()))
-			#	logsupport.DevPrint('Orig: {}'.format(p2))
-			#	continue
 
 			if e.domain in self.hadomains:
 				N = self.hadomains[e.domain](self, p2)

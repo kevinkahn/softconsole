@@ -4,6 +4,7 @@ from enum import Enum
 import timers
 
 import psutil
+import historybuffer
 
 import config
 import logsupport
@@ -17,6 +18,8 @@ ConsoleOpsQueue = queue.Queue()  # master sequencer
 latencynotification = 1000 # notify if a loop latency is greater than this
 LateTolerance = 8 # for my systems
 
+HBControl = historybuffer.HistoryBuffer(80, 'Control')
+
 
 def PostEvent(e):
 	if e is None:
@@ -24,7 +27,7 @@ def PostEvent(e):
 	cpu = psutil.Process(config.sysStore.Console_pid).cpu_times()
 	e.addtoevent(QTime=time.time(), usercpu=cpu.user, syscpu=cpu.system)
 	ConsoleOpsQueue.put(e)
-	if ConsoleOpsQueue.qsize() > 1: logsupport.DevPrint("*******Post {} queuesize: {}".format(e,ConsoleOpsQueue.qsize()))
+	HBControl.Entry('Post {} queuesize: {}'.format(e,ConsoleOpsQueue.qsize()))
 
 
 def GetEvent():
@@ -37,9 +40,9 @@ def GetEvent():
 		evnt = ConsoleEvent(CEvent.FailSafePing,inject=time.time())
 	if evnt is None: logsupport.Logs.Log('Got none from blocking get', severity=logsupport.ConsoleError, hb=True)
 	cpu = psutil.Process(config.sysStore.Console_pid).cpu_times()
-	if ConsoleOpsQueue.qsize() > 0: logsupport.DevPrint("*******Queue Get: {} queuesize: {}".format(evnt,ConsoleOpsQueue.qsize()))
+	HBControl.Entry("Get: {} queuesize: {}".format(evnt,ConsoleOpsQueue.qsize()))
 	if time.time() - evnt.QTime > latencynotification:
-		logsupport.DevPrint(
+		HBControl.Entry(
 			'Long on queue: {} user: {} system: {} event: {}'.format(time.time() - evnt.QTime, cpu.user - evnt.usercpu,
 																	 cpu.system - evnt.syscpu, evnt))
 		if not timers.LongOpInProgress:

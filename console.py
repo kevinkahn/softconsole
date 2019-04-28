@@ -53,6 +53,7 @@ from logsupport import ConsoleWarning, ConsoleError
 import alerttasks
 from stores.weathprov.providerutils import SetUpTermShortener, WeathProvs
 import screen
+import historybuffer
 
 '''
 Constants
@@ -61,6 +62,7 @@ configfilebase = "/home/pi/Console/"  # actual config file can be overridden fro
 configfilelist = {}  # list of configfiles and their timestamps
 
 logsupport.SpawnAsyncLogger()
+HBMain = historybuffer.HistoryBuffer(40,'Main')
 
 class ExitHooks(object):
 	def __init__(self):
@@ -94,6 +96,7 @@ hubs.hubs.hubtypes['HASS'] = hasshub.HA
 
 # noinspection PyUnusedLocal
 def handler(signum, frame):
+	HBMain.Entry('Signal: {}'.format(signum))
 	if signum in (signal.SIGTERM, signal.SIGINT, signal.SIGUSR1):
 		if signum == signal.SIGUSR1:
 			logsupport.DevPrint('Watchdog termination')
