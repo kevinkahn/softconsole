@@ -66,6 +66,7 @@ class MQTTBroker(valuestore.ValueStore):
 				time.sleep(30)
 			ReportStatus('rmt restart')
 			exitutils.Exit_Screen_Message('Remote restart requested', 'Remote Restart')
+			config.terminationreason = 'mqtt restart'
 			exitutils.Exit(exitutils.REMOTERESTART)
 
 		def GetStable():

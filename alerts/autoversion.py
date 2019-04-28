@@ -26,6 +26,7 @@ def DoFetchRestart():
 
 def ForceRestart():
 	logsupport.Logs.Log('Autoversion Restart Event')
+	config.terminationreason = 'autoversion'
 	exitutils.Exit(exitutils.AUTORESTART)
 
 fetcher = None

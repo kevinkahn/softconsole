@@ -350,4 +350,5 @@ def domaintexit(ExitKey):
 		ReportStatus('unknown maintenance restart')
 		ExitCode = MAINTRESTART
 		Exit_Screen_Message("Unknown Exit Requested", "Maintenance Error", "Trying a Restart")
+	config.terminationreason = 'manual request'
 	Exit(ExitCode)

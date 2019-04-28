@@ -3,6 +3,7 @@ import hw
 hooks = None
 
 Running = True
+terminationreason = 'unknown'
 
 PRESS = 0
 FASTPRESS = 1

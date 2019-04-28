@@ -22,6 +22,7 @@ import os
 import signal
 import sys
 import time
+import threading
 
 import pygame
 # noinspection PyProtectedMember
@@ -61,33 +62,10 @@ Constants
 configfilebase = "/home/pi/Console/"  # actual config file can be overridden from arg1
 configfilelist = {}  # list of configfiles and their timestamps
 
+
 logsupport.SpawnAsyncLogger()
 HBMain = historybuffer.HistoryBuffer(40,'Main')
 
-class ExitHooks(object):
-	def __init__(self):
-		self.exit_code = None
-		self.exception = None
-		self._orig_exit = None
-
-	def hook(self):
-		self._orig_exit = sys.exit
-		sys.exit = self.exit
-		sys.excepthook = self.exc_handler
-
-	def exit(self, code=0):
-		print('exithookMain {}'.format(code))
-		self.exit_code = code
-		self._orig_exit(code)
-
-	def exc_handler(self, exc_type, exc, *args):
-		print('exc hdlr {}'.format(exc))
-		self.exception = exc
-		sys.__excepthook__(exc_type, exc, args)
-
-
-#config.hooks = ExitHooks()
-#config.hooks.hook()
 atexit.register(exitutils.exitlogging)
 
 hubs.hubs.hubtypes['ISY'] = isy.ISY
@@ -98,32 +76,23 @@ hubs.hubs.hubtypes['HASS'] = hasshub.HA
 def handler(signum, frame):
 	HBMain.Entry('Signal: {}'.format(signum))
 	if signum in (signal.SIGTERM, signal.SIGINT, signal.SIGUSR1):
+		config.Running = False
 		if signum == signal.SIGUSR1:
 			logsupport.DevPrint('Watchdog termination')
 			logsupport.Logs.Log("Console received a watchdog termination signal: {} - Exiting".format(signum), tb=True)
-			reason = 'watchdog termination'
+			config.terminationreason = 'watchdog termination'
 			config.ecode = exitutils.WATCHDOGTERM
 		else:
 			logsupport.DevPrint('Signal termination {}'.format(signum))
 			logsupport.Logs.Log("Console received termination signal: {} - Exiting".format(signum), tb=True)
 			if signum == signal.SIGINT:
-				reason = 'interrupt signal'
+				config.terminationreason = 'interrupt signal'
 				config.ecode = exitutils.EXTERNALSIGINT
 			else:
-				reason = 'termination signal'
+				config.terminationreason = 'termination signal'
 				config.ecode = exitutils.EXTERNALSIGTERM
 			os.kill(config.sysStore.Watchdog_pid,signal.SIGUSR1)
 			if config.sysStore.Topper_pid != 0: os.kill(config.sysStore.Topper_pid, signal.SIGKILL)
-		hw.GoBright(100)
-		timers.ShutTimers(reason)
-		logsupport.DevPrint('Exit handling done')
-		logsupport.Logs.Log('Console exit for {}'.format(reason))
-		logsupport.LoggerQueue.put((3,'Main Handler'))
-		time.sleep(1) # let the messages get out
-		pygame.display.quit()
-		pygame.quit()
-		config.Running = False
-		os._exit(config.ecode)
 	else:
 		logsupport.Logs.Log("Console received signal {} - Ignoring".format(signum))
 
@@ -498,11 +467,24 @@ Run the main console loop
 for n in alerttasks.monitoredvars:  # make sure vars used in alerts are updated to starting values
 	valuestore.GetVal(n)
 config.sysStore.ErrorNotice = -1
-config.DS.MainControlLoop(screens.HomeScreen)
+gui = threading.Thread(name='GUI',target=config.DS.MainControlLoop,args=(screens.HomeScreen,))
+config.ecode = 99
+gui.start()
+#config.DS.MainControlLoop(screens.HomeScreen)
+gcnt = 0
+#while gui.is_alive():
+#	gcnt += 1
+#	logsupport.DevPrint('GUI up: {}'.format(gcnt))
+#	time.sleep(30)
+gui.join()
+print('postjoin')
 logsupport.Logs.Log("Main line exit: ", config.ecode)
-timers.ShutTimers('consoleexit')
+timers.ShutTimers(config.terminationreason)
+logsupport.Logs.Log('Console exiting')
+hw.GoBright(100)
 pygame.quit()
-# noinspection PyProtectedMember
-sys.exit(config.ecode)
+logsupport.DevPrint('Exit handling done')
+#logsupport.LoggerQueue.put((3,'Main Handler')) this gets done in exitutils catcher
+#time.sleep(1) # let the messages get out
 
-# This never returns
+sys.exit(config.ecode)

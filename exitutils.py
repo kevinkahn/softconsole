@@ -50,10 +50,11 @@ def exitlogging():
 	if config.ecode not in (
 			EARLYABORT, MAINTEXIT, MAINTPISHUT, MAINTRESTART, AUTORESTART, REMOTERESTART, EXTERNALSIGTERM,
 			MAINTPIREBOOT, REMOTEREBOOT):
-		logsupport.Logs.Log("Exiting with history trace (", repr(config.hooks.exit_code), ')')
+		logsupport.Logs.Log("Exiting with history trace (", repr(config.ecode), ')')
 		historybuffer.DumpAll('Exit Trace', time.strftime('%m-%d-%y %H:%M:%S'))
 	else:
 		logsupport.Logs.Log("Exiting without history trace")
+	time.sleep(1) # let messages get out
 	logsupport.LoggerQueue.put((3,'Exit Logging'))
 
 
@@ -123,6 +124,7 @@ def errorexit(opt):
 		Exit_Screen_Message('Error reboot', 'Error', 'Rebooting Pi')
 	elif opt == ERRORDIE:
 		Exit_Screen_Message('Error Shutdown', 'Error', 'Not Restarting', 'Check Log')
+	config.terminationreason = 'error'
 	Exit(opt, immediate=True)
 
 

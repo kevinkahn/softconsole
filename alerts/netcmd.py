@@ -40,10 +40,12 @@ class NetCmd(object):
 		if varval == 1:
 			logsupport.Logs.Log('Remote restart')
 			exitutils.Exit_Screen_Message('Remote restart requested', 'Remote Restart')
+			config.terminationreason = 'remote restart'
 			exitutils.Exit(exitutils.REMOTERESTART)
 		elif varval == 2:
 			logsupport.Logs.Log('Remote reboot')
 			exitutils.Exit_Screen_Message('Remote reboot requested', 'Remote Reboot')
+			config.terminationreason = 'remote reboot'
 			exitutils.Exit(exitutils.REMOTEREBOOT)
 		elif varval == 3:
 			logsupport.Logs.Log('Remote download stable')
