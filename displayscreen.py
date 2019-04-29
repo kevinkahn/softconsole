@@ -216,7 +216,9 @@ class DisplayScreen(object):
 					config.terminationreason = 'watcher died'
 					exitutils.Exit(exitutils.ERRORRESTART)
 				self.HBEvents.Entry('Pre file touch')
-				os.utime("{}/.ConsoleStart".format(config.sysStore.HomeDir), None)
+
+				logsupport.LoggerQueue.put((5,"{}/.ConsoleStart".format(config.sysStore.HomeDir)))
+				#os.utime("{}/.ConsoleStart".format(config.sysStore.HomeDir), None)
 				if debug.dbgStore.GetVal('StatesDump'):
 					debug.dbgStore.SetVal('StatesDump', False)
 					for h, hub in hubs.hubs.Hubs.items():

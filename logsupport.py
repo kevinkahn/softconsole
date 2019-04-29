@@ -52,7 +52,7 @@ ConsoleError = 5
 primaryBroker = None  # for cross system reporting if mqtt is running
 LoggerQueue = multiprocessing.Queue()
 # logger queue item: (type,str) where type: 0 Logentry, 1 DevPrint, 2 file write (name, access, str), 3 shutdown
-# 4 setup logfile others tbd
+# 4 setup logfile 5 touch file  others tbd
 AsyncLogger = None
 
 LogLevel = 3
@@ -163,6 +163,8 @@ def LogProcess(q):
 				os.chdir(item[1])
 				disklogfile = open('Console.log', 'w')
 				os.chmod('Console.log', 0o555)
+			elif item[0] == 5:
+				os.utime(item[1],None)
 			else:
 				with open('/home/pi/Console/hlog', 'a') as f:
 					f.write('Log process got garbage: {}\n'.format(item))

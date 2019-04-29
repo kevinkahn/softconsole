@@ -484,7 +484,5 @@ logsupport.Logs.Log('Console exiting')
 hw.GoBright(100)
 pygame.quit()
 logsupport.DevPrint('Exit handling done')
-#logsupport.LoggerQueue.put((3,'Main Handler')) this gets done in exitutils catcher
-#time.sleep(1) # let the messages get out
 
 sys.exit(config.ecode)
