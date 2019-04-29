@@ -204,6 +204,7 @@ class DisplayScreen(object):
 					config.terminationreason = 'watchdog died'
 					exitutils.Exit(exitutils.ERRORRESTART)
 				failsafe.KeepAlive.set()
+				self.HBEvents.Entry('Post keepalive')
 				nowtime = time.time()
 				if statusperiod <= nowtime or prevstatus != config.sysStore.consolestatus:
 					ReportStatus(config.sysStore.consolestatus)
@@ -214,7 +215,7 @@ class DisplayScreen(object):
 					logsupport.Logs.Log("Threadmanager Failure", severity=ConsoleError, tb=False)
 					config.terminationreason = 'watcher died'
 					exitutils.Exit(exitutils.ERRORRESTART)
-
+				self.HBEvents.Entry('Pre file touch')
 				os.utime("{}/.ConsoleStart".format(config.sysStore.HomeDir), None)
 				if debug.dbgStore.GetVal('StatesDump'):
 					debug.dbgStore.SetVal('StatesDump', False)
@@ -225,6 +226,7 @@ class DisplayScreen(object):
 
 				if self.Deferrals:  # an event was deferred mid screen touches - handle now
 					event = self.Deferrals.pop(0)
+					self.HBEvents.Entry('Got deferred event: {}   {}'.format(time.time(), repr(event)))
 					debug.debugPrint('EventList', 'Deferred Event Pop', event)
 				elif debug.dbgStore.GetVal('QDump'):
 					# todo QDump with new event mechanism
@@ -239,23 +241,23 @@ class DisplayScreen(object):
 					event = pygame.event.Event(NOEVENT, dict={'inject':time.time(),'defer':True}) #eventfix
 					'''
 					pass
-
-				needvalidevent = True
-				while needvalidevent:
-					self.HBEvents.Entry('PreGetEvent: {}'.format(time.time()))
-					event = GetEvent()
-					self.HBEvents.Entry('Got event: {}  {}'.format(time.time(),repr(event)))
-					if event.type == CEvent.ACTIVITYTIMER:
-						if event.seq == self.activityseq:
-							needvalidevent = False
+				else:
+					needvalidevent = True
+					while needvalidevent:
+						self.HBEvents.Entry('PreGetEvent: {}'.format(time.time()))
+						event = GetEvent()
+						self.HBEvents.Entry('Got event: {}  {}'.format(time.time(),repr(event)))
+						if event.type == CEvent.ACTIVITYTIMER:
+							if event.seq == self.activityseq:
+								needvalidevent = False
+							else:
+								if config.sysStore.versionname == 'development':
+									logsupport.Logs.Log('Outdated activity {} {}'.format(event.seq, self.activityseq))
+									self.HBEvents.Entry('outdated activity {} {}'.format(event.seq, self.activityseq))
+									logsupport.DevPrint('outdated activity {} {}'.format(event.seq, self.activityseq))
 						else:
-							if config.sysStore.versionname == 'development':
-								logsupport.Logs.Log('Outdated activity {} {}'.format(event.seq, self.activityseq))
-								self.HBEvents.Entry('outdated activity {} {}'.format(event.seq, self.activityseq))
-								logsupport.DevPrint('outdated activity {} {}'.format(event.seq, self.activityseq))
-					else:
-						needvalidevent = False
-				#self.HBEvents.Entry('Process at {}  {}'.format(time.time(), repr(event)))
+							needvalidevent = False
+				self.HBEvents.Entry('Process at {}  {}'.format(time.time(), repr(event)))
 
 				postwaittime = time.time()
 
