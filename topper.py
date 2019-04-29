@@ -23,10 +23,14 @@ def inittop():
 	config.sysStore.SetVal('Topper_pid',TopP.pid)
 	logsupport.Logs.Log('Started top check process: {}'.format(TopP.pid))
 
+def IgnoreHUP(signum, frame):
+	logsupport.DevPrint('Topper got HUP - ignoring')
+
 def dotops():
 	global topseq
 	signal.signal(signal.SIGTERM, signal.SIG_DFL)  # don't want the sig handlers from the main console
 	signal.signal(signal.SIGINT, signal.SIG_DFL)
+	signal.signal(signal.SIGHUP, IgnoreHUP)
 	while True:
 		try:
 			os.system('top -bn1 > '+topdir+'/Current/{:08d}'.format(topseq))

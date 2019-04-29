@@ -43,6 +43,8 @@ sysvals = {
 #  ConsoleStartTime
 #  Console_pid
 #  Watchdog_pid
+#  AsyncLogger_pid
+#  Topper_pid
 #  PersonalSystem
 #  ExecDir
 #  HomeDir

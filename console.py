@@ -471,7 +471,7 @@ gui = threading.Thread(name='GUI',target=config.DS.MainControlLoop,args=(screens
 config.ecode = 99
 gui.start()
 #config.DS.MainControlLoop(screens.HomeScreen)
-gcnt = 0
+#gcnt = 0
 #while gui.is_alive():
 #	gcnt += 1
 #	logsupport.DevPrint('GUI up: {}'.format(gcnt))

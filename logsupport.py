@@ -64,6 +64,7 @@ def SpawnAsyncLogger():
 	global AsyncLogger
 	AsyncLogger = multiprocessing.Process(name='AsyncLogger', target= LogProcess, args=(LoggerQueue,))
 	AsyncLogger.start()
+	config.sysStore.SetVal('AsyncLogger_pid', AsyncLogger.pid)
 
 def InitLogs(screen, dirnm):
 	global DevPrint
@@ -105,7 +106,7 @@ def LogProcess(q):
 	signal.signal(signal.SIGTERM, ExitLog)  # don't want the sig handlers from the main console
 	signal.signal(signal.SIGINT, ExitLog)
 	signal.signal(signal.SIGUSR1, ExitLog)
-	signal.signal(signal.SIGHUP, signal.SIG_IGN)
+	signal.signal(signal.SIGHUP, IgnoreHUP)
 	print('Async Logger starting as process {}'.format(os.getpid()))
 	disklogfile = None
 	running = True

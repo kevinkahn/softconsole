@@ -124,6 +124,7 @@ class DisplayScreen(object):
 
 		TimerName = 0
 
+
 		config.sysStore.ErrorNotice = -1  # don't pester for errors during startup
 
 		threadmanager.StartThreads()
@@ -183,6 +184,16 @@ class DisplayScreen(object):
 		logsupport.Logs.Log('Starting master watchdog {} for {}'.format(config.sysStore.Watchdog_pid, config.sysStore.Console_pid))
 
 		event = None
+
+		pcslist = ''
+		for pcs in ('Console', 'Watchdog', 'AsyncLogger', 'Topper'):
+			try:
+				if config.sysStore.GetVal(pcs+'_pid') != 0:
+					pcslist = pcslist + '{}: {} '.format(pcs,config.sysStore.GetVal(pcs+'_pid'))
+			except:
+				pass
+		logsupport.Logs.Log('Console Up: {}'.format(pcslist))
+
 		try:
 			while config.Running:  # Operational Control Loop
 				self.HBEvents.Entry('Start event loop iteration')
