@@ -194,9 +194,18 @@ class DisplayScreen(object):
 				pass
 		logsupport.Logs.Log('Console Up: {}'.format(pcslist))
 
+		perfdump = time.time()
+
 		try:
 			while config.Running:  # Operational Control Loop
 				self.HBEvents.Entry('Start event loop iteration')
+
+				if time.time() - perfdump > 1800:
+					perfdump = time.time()
+					if config.sysStore.versionname in ('development', 'homerelease'):
+						logsupport.Logs.Log('Console performance: maxq: {} maxwait: {}'.format(controlevents.queuedepthmax, controlevents.queuetimemax))
+						controlevents.queuetimemax = 0
+						controlevents.queuedepthmax = 0
 
 				if not Failsafe.is_alive():
 					logsupport.DevPrint('Watchdog died')

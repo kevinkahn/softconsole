@@ -17,6 +17,8 @@ ConsoleOpsQueue = queue.Queue()  # master sequencer
 
 latencynotification = 1000 # notify if a loop latency is greater than this
 LateTolerance = 4 # for my systems
+queuedepthmax = 0
+queuetimemax = 0
 
 HBControl = historybuffer.HistoryBuffer(80, 'Control')
 
@@ -31,17 +33,21 @@ def PostEvent(e):
 
 
 def GetEvent():
-	global latencynotification
+	global latencynotification, queuedepthmax, queuetimemax
 	try:
 		evnt = ConsoleOpsQueue.get(block=True,timeout=30)
 	except queue.Empty:
 		logsupport.DevPrint('Queue wait timeout')
 		logsupport.Logs.Log('Main queue timeout',severity=logsupport.ConsoleWarning)
 		evnt = ConsoleEvent(CEvent.FailSafePing,inject=time.time())
+	qs = ConsoleOpsQueue.qsize()
 	if evnt is None: logsupport.Logs.Log('Got none from blocking get', severity=logsupport.ConsoleError, hb=True)
 	cpu = psutil.Process(config.sysStore.Console_pid).cpu_times()
-	HBControl.Entry("Get: {} queuesize: {}".format(evnt,ConsoleOpsQueue.qsize()))
-	if time.time() - evnt.QTime > latencynotification:
+	HBControl.Entry("Get: {} queuesize: {}".format(evnt,qs))
+	queuedepthmax = max(queuedepthmax, qs)
+	qt = time.time() - evnt.QTime
+	queuetimemax = max(queuetimemax, qt)
+	if qt > latencynotification:
 		HBControl.Entry(
 			'Long on queue: {} user: {} system: {} event: {}'.format(time.time() - evnt.QTime, cpu.user - evnt.usercpu,
 																	 cpu.system - evnt.syscpu, evnt))
@@ -52,6 +58,8 @@ def GetEvent():
 	if time.time() - evnt.QTime < 2: # cleared any pending long waiting startup events
 		if config.sysStore.versionname in ('development', 'homerelease') and (latencynotification != LateTolerance):  # after some startup stabilisation sensitize latency watch if my system
 			latencynotification = LateTolerance
+			queuedepthmax = 0
+			queuetimemax = 0
 			logsupport.DevPrint('Set latency tolerance: {}'.format(latencynotification))
 	return evnt
 

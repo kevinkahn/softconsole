@@ -92,7 +92,6 @@ def LogProcess(q):
 	def ExitLog(signum, frame):
 		global exiting
 		exiting = time.time()
-		#print('{}({}): Logger process exiting for signal {} exiting: {}'.format(os.getpid(),time.time(),signum, exiting))
 		with open('/home/pi/Console/hlog', 'a') as f:
 			f.write('{}({}): Logger process exiting for signal {} exiting: {}\n'.format(os.getpid(),time.time(),signum, exiting))
 			f.flush()
@@ -107,7 +106,6 @@ def LogProcess(q):
 	signal.signal(signal.SIGINT, ExitLog)
 	signal.signal(signal.SIGUSR1, ExitLog)
 	signal.signal(signal.SIGHUP, IgnoreHUP)
-	#print('Async Logger starting as process {}'.format(os.getpid()))
 	disklogfile = None
 	running = True
 	exiting = 0
@@ -116,25 +114,18 @@ def LogProcess(q):
 			try:
 				item = q.get(timeout = 2)
 				if exiting !=0:
-					#print('late item: {} exiting {}'.format(item,exiting))
 					with open('/home/pi/Console/hlog', 'a') as f:
 						f.write('late item: {} exiting {}\n'.format(item,exiting))
 						f.flush()
 			except QEmpty:
 				if exiting != 0 and time.time() - exiting > 10:
 					# exiting got set but we seem stuck - just leave
-					#print('{}({}): Logger exiting because seems zombied'.format(os.getpid(),time.time()))
 					with open('/home/pi/Console/hlog', 'a') as f:
 						f.write('{}({}): Logger exiting because seems zombied\n'.format(os.getpid(),time.time()))
 						f.flush()
 					running = False
-					#os._exit(0)
 				else:
 					continue
-					#print('{}({}): Logger idle (exiting: {})'.format(os.getpid(),time.time(), exiting))
-					#with open('/home/pi/Console/hlog', 'a') as f:
-					#	f.write('{}({}): Logger idle (exiting: {})'.format(os.getpid(),time.time(), exiting))
-					#	f.flush()
 			if item[0] == 0:
 				# Log Entry
 				disklogfile.write(item[1]+'\n')
@@ -146,7 +137,6 @@ def LogProcess(q):
 				with open('/home/pi/Console/hlog', 'a') as f:
 					f.write(item[1]+'\n')
 					f.flush()
-				#print(item[1])
 			elif item[0] == 2:
 				# general write (filename, openaccess, str)
 				with open(item[1],item[2]) as f:
@@ -157,9 +147,7 @@ def LogProcess(q):
 				with open('/home/pi/Console/hlog', 'a') as f:
 					f.write('{}({}): Async Logger ending: {}\n'.format(os.getpid(),time.time(),item[1]))
 					f.flush()
-				#print('{}({}): Async Logger ending: {}'.format(os.getpid(),time.time(),item[1]))
 			elif item[0] == 4:
-				#print('{}({}): Open log file in {}'.format(os.getpid(),time.time(),item[1]))
 				os.chdir(item[1])
 				disklogfile = open('Console.log', 'w')
 				os.chmod('Console.log', 0o555)
@@ -169,9 +157,7 @@ def LogProcess(q):
 				with open('/home/pi/Console/hlog', 'a') as f:
 					f.write('Log process got garbage: {}\n'.format(item))
 					f.flush()
-				#print('Log process got garbage: {}'.format(item))
 		except Exception as E:
-			#print('Log process had exception {} handling {}'.format(repr(E), item))
 			with open('/home/pi/Console/hlog', 'a') as f:
 				f.write('Log process had exception {} handling {}'.format(repr(E), item))
 				f.flush()

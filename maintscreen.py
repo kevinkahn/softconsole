@@ -208,11 +208,11 @@ def fetch_stable():
 		if os.path.exists(basedir + '/homesystem'):
 			# personal system
 			logsupport.Logs.Log("New version fetch(homerelease)")
-			print("New Version Fetch Requested (homesystem)")
+			logsupport.DevPrint("New Version Fetch Requested (homesystem)")
 			U.StageVersion(basedir + '/consolestable', 'homerelease', 'Maint Dnld')
 		else:
 			logsupport.Logs.Log("New version fetch(currentrelease)")
-			print("New Version Fetch Requested (currentrelease)")
+			logsupport.DevPrint("New Version Fetch Requested (currentrelease)")
 			U.StageVersion(basedir + '/consolestable', 'currentrelease', 'Maint Dnld')
 		U.InstallStagedVersion(basedir + '/consolestable')
 		logsupport.Logs.Log("Staged version installed in consolestable")

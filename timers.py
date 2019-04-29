@@ -66,7 +66,7 @@ def KillMe():
 		logsupport.Logs.log("Timer Shutdown Failsafe hit")
 		time.sleep(1)
 		x=threading.enumerate()
-		for t in x: print(t.name)
+		for t in x: logsupport.DevPrint(t.name)
 		os.kill(config.sysStore.Console_pid, signal.SIGKILL)
 	else:
 		pass
