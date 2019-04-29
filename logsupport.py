@@ -97,11 +97,15 @@ def LogProcess(q):
 			f.flush()
 		signal.signal(signal.SIGHUP,signal.SIG_IGN)
 
+	def IgnoreHUP(signum, frame):
+		with open('/home/pi/Console/hlog', 'a') as f:
+			f.write('{}({}): Logger process SIGHUP ignored'.format(os.getpid(),time.time()))
+			f.flush()
 
 	signal.signal(signal.SIGTERM, ExitLog)  # don't want the sig handlers from the main console
 	signal.signal(signal.SIGINT, ExitLog)
 	signal.signal(signal.SIGUSR1, ExitLog)
-	signal.signal(signal.SIGHUP, ExitLog)
+	signal.signal(signal.SIGHUP, signal.SIG_IGN)
 	print('Async Logger starting as process {}'.format(os.getpid()))
 	disklogfile = None
 	running = True

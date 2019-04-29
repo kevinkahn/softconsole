@@ -86,38 +86,15 @@ def failsafedeath():
 	time.sleep(3)
 	os.kill(config.sysStore.Console_pid, signal.SIGKILL) # with predjudice
 
-class ExitHooks(object):
-	def __init__(self):
-		self.exit_code = None
-		self.exception = None
-		self._orig_exit = None
+def IgnoreHUP(signum, frame):
+	logsupport.DevPrint('Watchdog got HUP - ignoring')
 
-	def hook(self):
-		self._orig_exit = sys.exit
-		sys.exit = self.exit
-		sys.excepthook = self.exc_handler
-
-	def exit(self, code=0):
-		print('exithookWatchdog {}'.format(code))
-		#with open("/home/pi/Console/fsmsg.txt", "a") as f:
-		#	f.writelines('failsafe exithook exit {} watching {} at {} code {}\n'.format(os.getpid(), config.sysStore.Console_pid, time.time(),code))
-		self.exit_code = code
-		self._orig_exit(code)
-
-	def exc_handler(self, exc_type, exc, *args):
-		print('exc hdlr {}'.format(exc))
-		with open("/home/pi/Console/fsmsg.txt", "a") as f:
-			f.writelines('failsafe exithook hdlr {} watching {} at {}\n Exception {}'.format(os.getpid(), config.sysStore.Console_pid, time.time(),repr(exc)))
-		self.exception = exc
-		sys.__excepthook__(exc_type, exc, args)
-
-#failsafehooks = ExitHooks()
 
 def MasterWatchDog():
 	signal.signal(signal.SIGTERM, WatchdogDying)  # don't want the sig handlers from the main console
 	signal.signal(signal.SIGINT, EndWatchDog)
 	signal.signal(signal.SIGUSR1, EndWatchDog)
-	signal.signal(signal.SIGHUP, signal.SIG_IGN)
+	signal.signal(signal.SIGHUP, IgnoreHUP)
 
 	#failsafehooks.hook()
 	atexit.register(failsafedeath)
