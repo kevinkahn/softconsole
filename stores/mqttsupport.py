@@ -8,6 +8,7 @@ import paho.mqtt.client as mqtt
 import paho.mqtt.publish as publish
 # noinspection PyProtectedMember
 from configobj import Section
+import timers
 
 import config
 import exitutils
@@ -60,14 +61,18 @@ class MQTTBroker(valuestore.ValueStore):
 
 		# noinspection PyUnusedLocal
 		def DoRestart():
-			while self.fetcher is not None and self.fetcher.is_alive():
+			if self.fetcher is not None and self.fetcher.is_alive():
 				logsupport.Logs.Log('Delaying restart until fetch completes')
+				dly = timers.OnceTimer(10,start=True,name='RestartDelay',proc=DoDelayedRestart)
 				ReportStatus('wait restart')
-				time.sleep(30)
+				return
 			ReportStatus('rmt restart')
 			exitutils.Exit_Screen_Message('Remote restart requested', 'Remote Restart')
 			config.terminationreason = 'mqtt restart'
 			exitutils.Exit(exitutils.REMOTERESTART)
+
+		def DoDelayedRestart(evnt):
+			PostEvent(ConsoleEvent(CEvent.RunProc, name='DelayedRestart', proc=DoRestart))
 
 		def GetStable():
 			self.fetcher = threading.Thread(name='FetchStableRemote', target=maintscreen.fetch_stable, daemon=True)

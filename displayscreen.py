@@ -450,8 +450,6 @@ class DisplayScreen(object):
 						logsupport.Logs.Log('Timer late by {} seconds. Event: {}'.format(diff, repr(event)),
 											severity=ConsoleWarning, hb=True, localonly=True, homeonly=True)
 						self.HBEvents.Entry('Event late by {} target: {} now: {}'.format(diff, event.TargetTime, eventnow))
-					#if abs(diff) > 60: # console system locking up - force a restart
-						# todo - move maint fetch to async or create a flag - don't want to reboot if it is just a fetch
 					event.proc(event)
 
 				elif event.type == CEvent.RunProc:
@@ -467,12 +465,10 @@ class DisplayScreen(object):
 						severity=ConsoleWarning, hb=True, localonly=True, homeonly=True)
 				self.HBEvents.Entry('End Event Loop took: {}'.format(time.time() - postwaittime))
 		except Exception as E:
-			print('Exception: {}'.format(repr(E)))
+			logsupport.Logs.Log('Main display loop had exception: {}'.format(repr(E)))
+			config.ecode = exitutils.ERRORRESTART
+			print('Display Screen Exception: {}'.format(repr(E)))
 
 		logsupport.Logs.Log('Main GUI loop exiting')
 
-		#timers.ShutTimers('maincontrolloop')
-		#logsupport.Logs.Log('Main Loop Exit: ', config.ecode)
 
-		#pygame.quit()
-		#sys.exit(config.ecode)

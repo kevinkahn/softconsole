@@ -470,12 +470,7 @@ config.sysStore.ErrorNotice = -1
 gui = threading.Thread(name='GUI',target=config.DS.MainControlLoop,args=(screens.HomeScreen,))
 config.ecode = 99
 gui.start()
-#config.DS.MainControlLoop(screens.HomeScreen)
-#gcnt = 0
-#while gui.is_alive():
-#	gcnt += 1
-#	logsupport.DevPrint('GUI up: {}'.format(gcnt))
-#	time.sleep(30)
+
 gui.join()
 logsupport.Logs.Log("Main line exit: ", config.ecode)
 timers.ShutTimers(config.terminationreason)
