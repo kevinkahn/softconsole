@@ -185,6 +185,7 @@ class DisplayScreen(object):
 		event = None
 		try:
 			while config.Running:  # Operational Control Loop
+				self.HBEvents.Entry('Start event loop iteration')
 
 				if not Failsafe.is_alive():
 					logsupport.DevPrint('Watchdog died')
@@ -243,7 +244,7 @@ class DisplayScreen(object):
 								logsupport.DevPrint('outdated activity {} {}'.format(event.seq, self.activityseq))
 					else:
 						needvalidevent = False
-				self.HBEvents.Entry('Process at {}  {}'.format(time.time(), repr(event)))
+				#self.HBEvents.Entry('Process at {}  {}'.format(time.time(), repr(event)))
 
 				postwaittime = time.time()
 
@@ -440,6 +441,7 @@ class DisplayScreen(object):
 					logsupport.Logs.Log(
 						"Slow loop at {} took {} for {}".format(time.time(), time.time() - postwaittime, event),
 						severity=ConsoleWarning, hb=True, localonly=True, homeonly=True)
+				self.HBEvents.Entry('End Event Loop took: {}'.format(time.time() - postwaittime))
 		except Exception as E:
 			print('Exception: {}'.format(repr(E)))
 

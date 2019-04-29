@@ -28,7 +28,7 @@ previousup = 0
 # this handles some weird random SIGHUP when initializing pygame, it's really a hack to work around it
 # Not really sure what other ill effects this might have!!!
 def handler(signum, frame):
-	print('Systemd signal hack raised', signum, repr(frame))
+	logsupport.DevPrint('Systemd signal hack raised {} {}'.format(signum, repr(frame)))
 	pass
 
 
