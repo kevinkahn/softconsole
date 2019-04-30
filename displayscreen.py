@@ -213,7 +213,7 @@ class DisplayScreen(object):
 					config.terminationreason = 'watchdog died'
 					exitutils.Exit(exitutils.ERRORRESTART)
 				failsafe.KeepAlive.set()
-				self.HBEvents.Entry('Post keepalive')
+
 				nowtime = time.time()
 				if statusperiod <= nowtime or prevstatus != config.sysStore.consolestatus:
 					ReportStatus(config.sysStore.consolestatus)
@@ -224,10 +224,9 @@ class DisplayScreen(object):
 					logsupport.Logs.Log("Threadmanager Failure", severity=ConsoleError, tb=False)
 					config.terminationreason = 'watcher died'
 					exitutils.Exit(exitutils.ERRORRESTART)
-				self.HBEvents.Entry('Pre file touch')
 
 				logsupport.LoggerQueue.put((5,"{}/.ConsoleStart".format(config.sysStore.HomeDir)))
-				#os.utime("{}/.ConsoleStart".format(config.sysStore.HomeDir), None)
+
 				if debug.dbgStore.GetVal('StatesDump'):
 					debug.dbgStore.SetVal('StatesDump', False)
 					for h, hub in hubs.hubs.Hubs.items():
@@ -255,7 +254,6 @@ class DisplayScreen(object):
 				else:
 					needvalidevent = True
 					while needvalidevent:
-						self.HBEvents.Entry('PreGetEvent: {}'.format(time.time()))
 						event = GetEvent()
 						self.HBEvents.Entry('Got event: {}  {}'.format(time.time(),repr(event)))
 						if event.type == CEvent.ACTIVITYTIMER:

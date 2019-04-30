@@ -30,7 +30,7 @@ class NetCmd(object):
 
 	def __init__(self):
 		pass
-
+	#todo make the download etc async
 	@staticmethod
 	def Command(alert):
 		if not isinstance(alert.trigger, alerttasks.VarChangeTrigger):
