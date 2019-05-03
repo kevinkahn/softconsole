@@ -4,6 +4,7 @@ import alerttasks
 import logsupport
 import timers
 from stores import valuestore
+import time
 
 
 class NetworkHealth(object):
@@ -13,20 +14,29 @@ class NetworkHealth(object):
 	@staticmethod
 	def RobustPing(dest):
 		ok = False
-		with open('/dev/null', 'a') as f:
-		#with open('/home/pi/Console/hlog', 'a') as f: # todo - if want to save ping output need to figure out async for redirect
-			cmd = 'ping -c 1 -W 2 ' + dest
-			for i in range(7):
-				logsupport.LoggerQueue.put((2,'/home/pi/Console/hlog','a','Ping:\n'))
-				#f.write('Ping:\n')
-				#f.flush()
-				p = subprocess.call(cmd, shell=True, stdout=f, stderr=f)
-				if p == 0:
-					ok = True  # one success in loop is success
-					break
-				else:
-					logsupport.LoggerQueue.put((2, '/home/pi/Console/hlog', 'a', 'Ping result: {}\n'.format(p)))
-					#f.write('Ping result: {}'.format(p))
+		cmd = 'ping -c 1 -W 2 ' + dest
+		for i in range(7):
+			logsupport.LoggerQueue.put((2, '/home/pi/Console/hlog', 'a', 'Ping:\n'))
+			try:
+				pingresult = subprocess.check_output(cmd, shell=True, universal_newlines=True, stderr=subprocess.STDOUT).splitlines()
+				ok = True
+				#for l in pingresult:
+				#	logsupport.LoggerQueue.put((2,'/home/pi/Console/hlog', 'a', 'Good ping: {}\n'.format(l)))
+				#wlanq = subprocess.check_output('iwconfig wlan0', shell=True, universal_newlines=True,
+				#								stderr=subprocess.STDOUT).splitlines()
+				#for l in wlanq:
+				#	logsupport.LoggerQueue.put((2,'/home/pi/Console/hlog', 'a', 'WLAN     : {}\n'.format(l)))
+				break
+			except subprocess.CalledProcessError as Res:
+				logsupport.LoggerQueue.put(
+					(2, '/home/pi/Console/hlog', 'a', 'Bad ping: {}\n'.format(Res.returncode)))
+				pingresult = Res.output.splitlines()
+				for l in pingresult:
+					logsupport.LoggerQueue.put((2,'/home/pi/Console/hlog', 'a', 'Bad ping: {}\n'.format(l)))
+				wlanq = subprocess.check_output('iwconfig wlan0', shell=True, universal_newlines=True, stderr=subprocess.STDOUT).splitlines()
+				for l in wlanq:
+					logsupport.LoggerQueue.put((2,'/home/pi/Console/hlog', 'a', 'WLAN    : {}\n'.format(l)))
+				time.sleep(.25)
 		return ok
 
 	def Do_Ping(self, alert):

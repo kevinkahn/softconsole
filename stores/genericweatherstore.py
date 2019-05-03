@@ -70,7 +70,7 @@ class WeatherVals(valuestore.ValueStore):
 			successcode = self.ws.FetchWeather()  # code for success(0), failure/redo(1) failure delay(2) fail perm(3)
 			if successcode != 0: self.failedfetch = True
 		except Exception as e:
-			logsupport.Logs.Log('Error processing forecast for: ', self.name, ' ', repr(e), severity=ConsoleWarning)
+			logsupport.Logs.Log('Error processing forecast for: ', self.name, ' ', repr(e), severity=ConsoleWarning, hb=True)
 			self.failedfetch = True
 
 	def GetVal(self, name, failok=False):

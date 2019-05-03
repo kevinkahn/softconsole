@@ -20,6 +20,7 @@ def inittop():
 	TopP = multiprocessing.Process(target=dotops, name='Topper')
 	TopP.daemon = True
 	TopP.start()
+	#os.system('echo WLAN > /home/pi/Console/wlan')
 	config.sysStore.SetVal('Topper_pid',TopP.pid)
 	logsupport.Logs.Log('Started top check process: {}'.format(TopP.pid))
 
@@ -33,6 +34,8 @@ def dotops():
 	signal.signal(signal.SIGHUP, IgnoreHUP)
 	while True:
 		try:
+			#os.system('date >> /home/pi/Console/wlan')
+			#os.system('iwconfig wlan0 >> /home/pi/Console/wlan')
 			os.system('top -bn1 > '+topdir+'/Current/{:08d}'.format(topseq))
 			if topseq - 30 >= 0:
 				try:

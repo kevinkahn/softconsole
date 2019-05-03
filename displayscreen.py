@@ -114,6 +114,7 @@ class DisplayScreen(object):
 				self.AS.InitDisplay(nav)
 			except Exception as e:
 				logsupport.Logs.Log('Screen display error: ', self.AS.name, ' ', repr(e), severity=ConsoleError)
+				# todo should this be just logged and return to home?
 
 	# noinspection PyUnusedLocal
 	def NavPress(self, NS, press):
@@ -179,7 +180,7 @@ class DisplayScreen(object):
 		Failsafe.daemon = True
 		Failsafe.start()
 		config.sysStore.SetVal('Watchdog_pid', Failsafe.pid)
-		if config.sysStore.versionname in ('development', 'homerelease'): topper.inittop()
+		#if config.sysStore.versionname in ('development', 'homerelease'): topper.inittop()
 
 		logsupport.Logs.Log('Starting master watchdog {} for {}'.format(config.sysStore.Watchdog_pid, config.sysStore.Console_pid))
 

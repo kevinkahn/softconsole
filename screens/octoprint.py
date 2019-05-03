@@ -35,6 +35,8 @@ class OctoPrintScreenDesc(screen.BaseKeyScreenDesc):
 		screen.AddUndefaultedParams(self, screensection, address='', apikey='')
 		self.title, th, self.tw = screenutil.CreateTextBlock(self.name, hw.screenheight / 12, self.CharColor,
 															 True)  # todo switch to new screen sizing for title
+
+		self.errornotice, th, self.errwid = screenutil.CreateTextBlock('Access Error', hw.screenheight / 12, self.CharColor, True) # todo fix for new vertspace
 		self.titlespace = th + hw.screenheight / 32
 		useablescreenheight = hw.screenheight - screens.topborder - screens.botborder - self.titlespace
 		ctlpos = useablescreenheight / 5
@@ -181,10 +183,14 @@ class OctoPrintScreenDesc(screen.BaseKeyScreenDesc):
 
 	def ShowScreen(self, param=None):
 		if not self.Active:    return  # handle race where poll refresh gets posted just as Maint screen comes up
-		if self.Subscreen == -1:
-			self.ShowControlScreen()
-		elif self.Subscreen > 0:
-			self.FileSubscreen.DisplayListSelect()
+		try:
+			if self.Subscreen == -1:
+				self.ShowControlScreen()
+			elif self.Subscreen > 0:
+				self.FileSubscreen.DisplayListSelect()
+			hw.screen.blit(self.title, ((hw.screenwidth - self.tw) / 2, 0))
+		except ValueError:
+			hw.screen.blit(self.errornotice, ((hw.screenwidth - self.errwid) / 2, 30))
 		hw.screen.blit(self.title, ((hw.screenwidth - self.tw) / 2, 0))
 		pygame.display.update()
 

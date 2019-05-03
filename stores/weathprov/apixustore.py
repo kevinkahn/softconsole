@@ -101,9 +101,19 @@ class APIXUWeatherSource(object):
 
 	def FetchWeather(self):
 		temp = {}
-		config.HBNet.Entry('Weather fetch: {}'.format(self.baseurl))
-		r = requests.get(self.baseurl, params=self.args)
-		config.HBNet.Entry('Weather fetch done')
+		r = None
+		for i in range(3):
+			try:
+				config.HBNet.Entry('Weather fetch{}: {}'.format(i,self.baseurl))
+				r = requests.get(self.baseurl, params=self.args)
+				config.HBNet.Entry('Weather fetch done')
+				if r.status_code == 200: break
+				config.HBNet.Entry('Weather fetch non success: {} {}'.format(r.status_code, repr(r)))
+				time.sleep(1)
+			except Exception as E:
+				config.HBNet.Entry('Weather fetch exception: {}'.format(repr(E)))
+				time.sleep(1)
+		if r is None or r.status_code != 200: raise ValueError
 		try:
 			self.json = r.json()
 			for fn, entry in CondFieldMap.items():
@@ -122,7 +132,7 @@ class APIXUWeatherSource(object):
 						temp[fn] = val
 				except Exception as E:
 					logsupport.Logs.Log('Exception in apixu forecast processing day {}: '.format(i), repr(E),
-										severity=logsupport.ConsoleWarning)
+										severity=logsupport.ConsoleWarning, hb=True)
 					raise
 
 			for fn, entry in CommonFieldMap.items():
@@ -132,7 +142,7 @@ class APIXUWeatherSource(object):
 			return 0  # success
 		except Exception as E:
 			logsupport.Logs.Log('Exception in apixu report processing: ', repr(E), self.json,
-								severity=logsupport.ConsoleWarning)
+								severity=logsupport.ConsoleWarning, hb=True)
 			logsupport.Logs.Log('Returned text: ', r.text)
 			raise
 
