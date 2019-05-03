@@ -54,9 +54,10 @@ def TryShorten(term):
 		else:
 			logsupport.Logs.Log("Long term: " + term, severity=ConsoleWarning)
 		TermShortener[term] = newterm  # only report once
-		with open('{}/Console/termshortenlist.new'.format(config.sysStore.HomeDir), 'w') as f:
+		with open('{}/Console/termshortenlist.new'.format(config.sysStore.HomeDir), 'w') as f: # todo move to async?
 			json.dump(TermShortener, f, indent=4, separators=(',', ": "))
-		with open('{}/Console/problemterms.new'.format(config.sysStore.HomeDir), 'w') as f:
+		with open('{}/Console/problemterms.new'.format(config.sysStore.HomeDir), 'w') as f: # todo move to async?
+			json.dump(TermShortener, f, indent=4, separators=(',', ": "))
 			json.dump(StillLong, f, indent=4, separators=(',', ": "))
 	return newterm
 

@@ -101,7 +101,9 @@ class APIXUWeatherSource(object):
 
 	def FetchWeather(self):
 		temp = {}
+		config.HBNet.Entry('Weather fetch: {}'.format(self.baseurl))
 		r = requests.get(self.baseurl, params=self.args)
+		config.HBNet.Entry('Weather fetch done')
 		try:
 			self.json = r.json()
 			for fn, entry in CondFieldMap.items():

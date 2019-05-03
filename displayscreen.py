@@ -73,7 +73,7 @@ class DisplayScreen(object):
 			newstate = 'Home'
 		if NS == self.AS:
 			debug.debugPrint('Dispatch', 'Null SwitchScreen: ', reason)
-			logsupport.Logs.Log('Null switchscreen: ' + reason, hb=True)
+			logsupport.Logs.Log('Null switchscreen: ' + reason) # todo 2 alerts that both clear at same time seems to create this - analyze?
 		if self.AS is not None and self.AS != NS:
 			debug.debugPrint('Dispatch', "Switch from: ", self.AS.name, " to ", NS.name, "Nav=", NavKeys, ' State=',
 							 oldstate + '/' + newstate + ':' + olddim + '/' + newdim, ' ', reason)

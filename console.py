@@ -65,6 +65,7 @@ configfilelist = {}  # list of configfiles and their timestamps
 
 logsupport.SpawnAsyncLogger()
 HBMain = historybuffer.HistoryBuffer(40,'Main')
+config.HBNet = historybuffer.HistoryBuffer(80, 'Net')
 
 atexit.register(exitutils.exitlogging)
 

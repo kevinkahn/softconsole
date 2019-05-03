@@ -102,14 +102,18 @@ class OctoPrintScreenDesc(screen.BaseKeyScreenDesc):
 
 	def OctoGet(self, item):
 		try:
+			config.HBNet.Entry('Octoprint get: {}'.format(self.url))
 			r = requests.get(self.url + '/api/' + item, headers=self.head)
+			config.HBNet.Entry('Octoprint done')
 			return r
 		except Exception as e:
 			logsupport.Logs.Log('Bad octoprint get: ', repr(e), severity=ConsoleWarning)
 			for i in range(5):
 				# noinspection PyBroadException
 				try:
+					config.HBNet.Entry('Octoprint retry')
 					r = requests.get(self.url + '/api/' + item, headers=self.head)
+					config.HBNet.Entry('Octoprint retry done')
 					return r
 				except:
 					pass
@@ -119,7 +123,9 @@ class OctoPrintScreenDesc(screen.BaseKeyScreenDesc):
 	def OctoPost(self, item, senddata):
 		r = None
 		try:
+			config.HBNet.Entry('Octoprint post: {}'.format(item))
 			r = requests.post(self.url + '/api/' + item, json=senddata, headers=self.head)
+			config.HBNet.Entry('Octoprint post done')
 		except Exception as e:
 			logsupport.Logs.Log("Octopost error {}".format(repr(e)), severity=ConsoleWarning)
 		return r

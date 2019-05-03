@@ -46,7 +46,9 @@ class AutoVersion(object):
 			logsupport.Logs.Log("Autoversion found named version running: ", config.sysStore.versionname, severity=ConsoleDetail)
 			# noinspection PyBroadException
 			try:  # if network is down or other error occurs just skip for now rather than blow up
+				config.HBNet.Entry('Autoversion get sha')
 				sha, c = githubutil.GetSHA(config.sysStore.versionname)
+				config.HBNet.Entry('Autoversion get sha done')
 				# logsupport.Logs.Log('sha: ',sha, ' cvshha: ',config.versionsha,severity=ConsoleDetail)
 				if sha != config.sysStore.versionsha and sha != 'no current sha':
 					logsupport.Logs.Log('Current hub version different')
