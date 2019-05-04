@@ -35,12 +35,12 @@ def PostEvent(e):
 def GetEvent():
 	global latencynotification, queuedepthmax, queuetimemax
 	try:
-		evnt = ConsoleOpsQueue.get(block=True,timeout=30)
+		evnt = ConsoleOpsQueue.get(block=True,timeout=120) # timeout is set to twice the failsafe injection time so should never see it
 	except queue.Empty:
 		logsupport.DevPrint('Queue wait timeout')
-		logsupport.Logs.Log('Main queue timeout',severity=logsupport.ConsoleWarning)
 		HBControl.Entry("Main loop timeout - inserting ping event")
 		evnt = ConsoleEvent(CEvent.FailSafePing,inject=time.time(),QTime=time.time())
+		logsupport.Logs.Log('Main queue timeout', severity=logsupport.ConsoleWarning, hb=True)
 	qs = ConsoleOpsQueue.qsize()
 	if evnt is None: logsupport.Logs.Log('Got none from blocking get', severity=logsupport.ConsoleError, hb=True)
 	cpu = psutil.Process(config.sysStore.Console_pid).cpu_times()
