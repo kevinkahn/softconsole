@@ -39,7 +39,8 @@ def GetEvent():
 	except queue.Empty:
 		logsupport.DevPrint('Queue wait timeout')
 		logsupport.Logs.Log('Main queue timeout',severity=logsupport.ConsoleWarning)
-		evnt = ConsoleEvent(CEvent.FailSafePing,inject=time.time())
+		HBControl.Entry("Main loop timeout - inserting ping event")
+		evnt = ConsoleEvent(CEvent.FailSafePing,inject=time.time(),QTime=time.time())
 	qs = ConsoleOpsQueue.qsize()
 	if evnt is None: logsupport.Logs.Log('Got none from blocking get', severity=logsupport.ConsoleError, hb=True)
 	cpu = psutil.Process(config.sysStore.Console_pid).cpu_times()
