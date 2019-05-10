@@ -12,6 +12,7 @@
             </list>
           </settings>
         </remote-mappings>
+        <remote-mappings server-id="python@sftp://pi@rpi-dev7.pdxhome:8623/usr/bin/python" />
       </list>
     </list>
   </component>

@@ -133,6 +133,7 @@ class ScreenDesc(object):
 		try:
 			self.DefaultHubObj = hubs.hubs.Hubs[self.DefaultHub]
 		except KeyError:
+			self.DefaultHubObj = None  # todo test what happens later or force this to be an exiting error
 			logsupport.Logs.Log("Bad default hub name for screen: ", screenname, severity=ConsoleError)
 
 		if self.ScreenTitle != '':
