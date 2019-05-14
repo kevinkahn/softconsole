@@ -2,9 +2,11 @@ import subprocess
 
 import alerttasks
 import logsupport
-import timers
 from stores import valuestore
 import time
+import functools
+import controlevents
+import threading
 
 
 class NetworkHealth(object):
@@ -12,8 +14,8 @@ class NetworkHealth(object):
 		self.LastState = {}
 
 	@staticmethod
-	def RobustPing(dest):
-		# todo move to a thread
+	def RobustPing(dest, runproc):
+		# logsupport.Logs.Log('Start ping {} in {}'.format(dest, threading.current_thread().name))
 		ok = False
 		cmd = 'ping -c 1 -W 2 ' + dest
 		for i in range(7):
@@ -38,7 +40,10 @@ class NetworkHealth(object):
 				for l in wlanq:
 					logsupport.LoggerQueue.put((2,'/home/pi/Console/hlog', 'a', 'WLAN    : {}\n'.format(l)))
 				time.sleep(.25)
-		return ok
+		# logsupport.Logs.Log('Finished ping thread {} in {}'.format(ok, threading.current_thread().name))
+		controlevents.PostEvent(
+			controlevents.ConsoleEvent(controlevents.CEvent.RunProc, proc=functools.partial(runproc, ok),
+									   name='FinishPing'))
 
 	def Do_Ping(self, alert):
 		# expects parameter = ipaddr,variable name (local)
@@ -46,19 +51,24 @@ class NetworkHealth(object):
 		var = valuestore.InternalizeVarName(alert.param[1])
 		if alert.param[0] not in self.LastState:
 			self.LastState[alert.param[0]] = True  # assume up to start
-		timers.StartLongOp('NetworkHealth')
-		if self.RobustPing(alert.param[0]):
-			if not self.LastState[alert.param[0]]:
-				self.LastState[alert.param[0]] = True
+		FinishPing = functools.partial(self.Set_Ping_Result, alert.param[0], alert.param[1])
+		Pinger = threading.Thread(target=self.RobustPing, args=(alert.param[0], FinishPing),
+								  name='Pinger-{}'.format(alert.param[0]), daemon=True)
+		Pinger.start()
+
+	def Set_Ping_Result(self, addr, var, result):
+		# logsupport.Logs.Log('Finish ping: {} {} {} in {}'.format(addr,var,result, threading.current_thread().name))
+		if result:
+			if not self.LastState[addr]:
+				self.LastState[addr] = True
 				valuestore.SetVal(var, 1)
-				logsupport.Logs.Log("Network up to: " + alert.param[0])
+				logsupport.Logs.Log("Network up to: " + addr)
 		else:
-			if self.LastState[alert.param[0]]:
+			if self.LastState[addr]:
 				# was up now down
-				self.LastState[alert.param[0]] = False
+				self.LastState[addr] = False
 				valuestore.SetVal(var, 0)  # Set down seen
-				logsupport.Logs.Log("Network down to: " + alert.param[0])
-		timers.EndLongOp('NetworkHealth')
+				logsupport.Logs.Log("Network down to: " + addr)
 
 
 alerttasks.alertprocs["NetworkHealth"] = NetworkHealth
