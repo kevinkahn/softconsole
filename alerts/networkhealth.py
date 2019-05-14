@@ -13,6 +13,7 @@ class NetworkHealth(object):
 
 	@staticmethod
 	def RobustPing(dest):
+		# todo move to a thread
 		ok = False
 		cmd = 'ping -c 1 -W 2 ' + dest
 		for i in range(7):

@@ -54,7 +54,6 @@ class WeatherScreenDesc(screen.ScreenDesc):
 			logsupport.Logs.Log("Weather screen {} using non-existent location {}".format(screenname, self.location),
 								severity=logsupport.ConsoleWarning)
 			raise ValueError
-		self.loggedonce = False
 		utilities.register_example("WeatherScreenDesc", self)
 
 	def __repr__(self):
@@ -72,17 +71,13 @@ class WeatherScreenDesc(screen.ScreenDesc):
 
 		vert_off = self.startvertspace
 
-		if self.store.failedfetch:
+		if not self.store.ValidWeather:
 			renderedlines = [
-				fonts.fonts.Font(45, "").render('Weather Not Available', 0, wc(self.CharColor))]
+				fonts.fonts.Font(45, "").render(x, 0, wc(self.CharColor)) for x in self.store.Status]
 			for l in renderedlines:
 				hw.screen.blit(l, ((hw.screenwidth - l.get_width()) / 2, vert_off))
 				vert_off = vert_off + 60  # todo use useable space stuff and vert start
-			if not self.loggedonce:
-				logsupport.Logs.Log('Weatherscreen missing weather ' + self.name, severity=logsupport.ConsoleWarning)
-				self.loggedonce = True
 		else:
-			self.loggedonce = False
 			renderedlines = []
 
 			if self.LocationSize != 0:
@@ -151,7 +146,7 @@ class WeatherScreenDesc(screen.ScreenDesc):
 		super(WeatherScreenDesc, self).InitDisplay(nav)
 		if self.ShowScreen(
 				self.currentconditions) == -1:  # todo should remove since errors are caught now in switch screen
-			config.DS.SwitchScreen(screens.HomeScreen, 'Bright', 'Home', 'Weather screen error')
+			screens.DS.SwitchScreen(screens.HomeScreen, 'Bright', 'Home', 'Weather screen error')
 
 	def ExitScreen(self):
 		pass

@@ -105,7 +105,7 @@ class AlertsScreenDesc(screen.ScreenDesc):
 		self.TimerName += 1
 		self.DeferTimer = timers.OnceTimer(self.Defer, start=True, name=self.name + '-Defer-' + str(self.TimerName),
 										   proc=alerttasks.HandleDeferredAlert, param=self.Alert)
-		config.DS.SwitchScreen(screens.HomeScreen, 'Bright', 'Home', 'Manual defer an alert')
+		screens.DS.SwitchScreen(screens.HomeScreen, 'Bright', 'Home', 'Manual defer an alert')
 
 	# noinspection PyUnusedLocal
 	def BlinkMsg(self, param):

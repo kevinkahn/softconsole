@@ -3,13 +3,13 @@ import shutil
 import time
 import gc
 
-import logsupport
 import topper
 
 Buffers = {}
 HBdir = ''
 GCBuf = None
 bufdumpseq = 0
+HBNet = None
 
 
 def SetupHistoryBuffers(dirnm, maxlogs):

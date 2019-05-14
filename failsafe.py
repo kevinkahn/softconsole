@@ -106,7 +106,7 @@ def MasterWatchDog():
 			logsupport.DevPrint('Failsafe suspended while in maintenance mode')
 			time.sleep(120)
 		while KeepAlive.wait(FailsafeInterval):
-			logsupport.DevPrint('Watchdog ok: {}'.format(time.time()))
+			# logsupport.DevPrint('Watchdog ok: {}'.format(time.time()))
 			KeepAlive.clear()
 			time.sleep(FailsafeInterval)
 

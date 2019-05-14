@@ -81,8 +81,8 @@ def InitLogs(screen, dirnm):
 		except:
 			pass
 		DevPrint = DevPrintDoIt
-		with open('/home/pi/Console/hlog', 'w') as f:
-			f.write('------ {} ------\n'.format(time.time()))
+	# with open('/home/pi/Console/hlog', 'w') as f:
+	#	f.write('------ {} ------\n'.format(time.time()))
 	return Logger(screen, dirnm)
 
 def AsyncFileWrite(fn,writestr,access='a'):

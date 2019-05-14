@@ -95,7 +95,7 @@ class MyScreens(object):
 																   prevk.label,
 																   prevk.CmdKeyCol, prevk.CmdCharCol,
 																   prevk.CmdCharCol,
-																   proc=functools.partial(config.DS.NavPress, prevk),
+																   proc=functools.partial(screens.DS.NavPress, prevk),
 																   center=(
 																	   screens.horizborder + .5 * cbutwidth,
 																	   cvertcenter),
@@ -104,7 +104,7 @@ class MyScreens(object):
 																   nextk.label,
 																   nextk.CmdKeyCol, nextk.CmdCharCol,
 																   nextk.CmdCharCol,
-																   proc=functools.partial(config.DS.NavPress, nextk),
+																   proc=functools.partial(screens.DS.NavPress, nextk),
 																   center=(
 																	   screens.horizborder + 1.5 * cbutwidth,
 																	   cvertcenter),
@@ -120,7 +120,7 @@ class MyScreens(object):
 				prevk.label,
 				prevk.CmdKeyCol, prevk.CmdCharCol,
 				prevk.CmdCharCol,
-				proc=functools.partial(config.DS.NavPress,
+				proc=functools.partial(screens.DS.NavPress,
 									   prevk),
 				center=(
 					screens.horizborder + .5 * cbutwidth, cvertcenter),
@@ -131,7 +131,7 @@ class MyScreens(object):
 				nextk.label,
 				nextk.CmdKeyCol, nextk.CmdCharCol,
 				nextk.CmdCharCol,
-				proc=functools.partial(config.DS.NavPress,
+				proc=functools.partial(screens.DS.NavPress,
 									   nextk),
 				center=(screens.horizborder + 1.5 * cbutwidth,
 						cvertcenter),

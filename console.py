@@ -65,7 +65,7 @@ configfilelist = {}  # list of configfiles and their timestamps
 
 logsupport.SpawnAsyncLogger()
 HBMain = historybuffer.HistoryBuffer(40,'Main')
-config.HBNet = historybuffer.HistoryBuffer(80, 'Net')
+historybuffer.HBNet = historybuffer.HistoryBuffer(80, 'Net')
 
 atexit.register(exitutils.exitlogging)
 
@@ -321,7 +321,7 @@ debug.LogDebugFlags()
 
 logsupport.LogLevel = int(ParsedConfigFile.get('LogLevel', logsupport.LogLevel))
 logsupport.Logs.Log("Log level: ", logsupport.LogLevel)
-config.DS = displayscreen.DisplayScreen()  # create the actual device screen and touch manager
+screens.DS = displayscreen.DisplayScreen()  # create the actual device screen and touch manager
 
 utilities.LogParams()
 for n, param in config.sysvals.items():
@@ -468,7 +468,7 @@ Run the main console loop
 for n in alerttasks.monitoredvars:  # make sure vars used in alerts are updated to starting values
 	valuestore.GetVal(n)
 config.sysStore.ErrorNotice = -1
-gui = threading.Thread(name='GUI',target=config.DS.MainControlLoop,args=(screens.HomeScreen,))
+gui = threading.Thread(name='GUI', target=screens.DS.MainControlLoop, args=(screens.HomeScreen,))
 config.ecode = 99
 gui.start()
 

@@ -3,6 +3,7 @@ from collections import OrderedDict
 
 import pygame
 
+import threading
 import logsupport
 from logsupport import ConsoleWarning
 from stores import valuestore
@@ -39,10 +40,13 @@ class WeatherVals(valuestore.ValueStore):
 		self.ws = weathersource  # apixustore.APIXUWeatherSource(self, location)  #
 		self.fetchcount = 0
 		self.vars = {'Cond': OrderedDict(), 'Fcst': OrderedDict(), 'FcstDays': 0, 'FcstEpoch': 0, 'FcstDate': ''}
-		self.failedfetch = False
 		self.location = location
 		self.name = location
 		self.ws.ConnectStore(self)
+		self.DoingFetch = None  # thread that is handling a fetch or none
+		self.ValidWeather = False  # status result
+		self.startedfetch = 0
+		self.Status = ('Weather not available', '(Initial fetch)')
 
 		for fld, fldtype in CondFields:
 			nm = ('Cond', fld)
@@ -53,6 +57,8 @@ class WeatherVals(valuestore.ValueStore):
 			self.vars['Fcst'][fld].Value = valuestore.StoreList(self.vars['Fcst'][fld])
 		for fld, fldtype in CommonFields:
 			self.vars[fld] = WeatherItem(fld, self, vt=fldtype)
+		for n, fcst in self.vars['Fcst'].items():
+			fcst.Value = valuestore.StoreList(fcst)
 
 	def BlockRefresh(self):
 
@@ -60,27 +66,40 @@ class WeatherVals(valuestore.ValueStore):
 			# have recent data
 			return
 
-		self.fetchtime = time.time()
-		self.failedfetch = False
-		self.fetchcount += 1
+		if self.DoingFetch is None:
+			self.DoingFetch = threading.Thread(target=self.ws.FetchWeather, name='WFetch-{}'.format(self.name),
+											   daemon=True)
+			self.DoingFetch.start()
+			# self.Status = ("Fetching",)
+			self.startedfetch = time.time()
+		# no thread doing a fetch at this point - start one
 
-		try:
-			for n, fcst in self.vars['Fcst'].items():
-				fcst.Value = valuestore.StoreList(fcst)
-			successcode = self.ws.FetchWeather()  # code for success(0), failure/redo(1) failure delay(2) fail perm(3)
-			if successcode != 0: self.failedfetch = True
-		except Exception as e:
-			logsupport.Logs.Log('Error processing forecast for: ', self.name, ' ', repr(e), severity=ConsoleWarning, hb=True)
-			self.failedfetch = True
+		elif self.DoingFetch.is_alive():
+			# fetch in progress
+			if self.startedfetch + self.refreshinterval < time.time():
+				# fetch ongoing too long - don't use stale data any longer
+				self.Status = ('Weather not available', '(trying to fetch)')
+				logsupport.Logs.Log('Weather fetch taking long time for: {}'.format(self.name),
+									severity=logsupport.ConsoleWarning)
+		# else just wait for next time
+		else:
+			# fetch completed
+			self.DoingFetch = None
+			self.fetchtime = time.time()
+			if self.ValidWeather:
+				self.fetchcount += 1
+				self.Status = ("Weather available",)
+			else:
+				self.Status = ("Weather not available", "(failed fetch)")
+				logsupport.Logs.Log('Weather fetch failed for: {}'.format(self.name),
+									severity=logsupport.ConsoleWarning)
+
 
 	def GetVal(self, name, failok=False):
 		# if config.BadWunderKey:
 		#	return None
 		self.BlockRefresh()
-		if self.failedfetch:
-			return None
-		else:
-			return super(WeatherVals, self).GetVal(name)
+		return super(WeatherVals, self).GetVal(name)
 
 	#	def SetVal(self,name,val,modifier=None):
 	#		logsupport.Logs.Log("Setting weather item via SetVal unsupported: "+str(name),severity=ConsoleError)

@@ -147,12 +147,12 @@ def adjloglevel(K, presstype):
 def gohome(K, presstype):  # neither peram used
 	logsupport.Logs.Log('Exiting Maintenance Screen')
 	timers.EndLongOp('maintenance')
-	config.DS.SwitchScreen(screens.HomeScreen, 'Bright', 'Home', 'Maint exit', NavKeys=True)
+	screens.DS.SwitchScreen(screens.HomeScreen, 'Bright', 'Home', 'Maint exit', NavKeys=True)
 
 
 # noinspection PyUnusedLocal
 def goto(newscreen, K, presstype):
-	config.DS.SwitchScreen(newscreen, 'Bright', 'Maint', 'Maint goto' + newscreen.name, NavKeys=False)
+	screens.DS.SwitchScreen(newscreen, 'Bright', 'Maint', 'Maint goto' + newscreen.name, NavKeys=False)
 
 
 # noinspection PyUnusedLocal
@@ -174,7 +174,7 @@ def doexit(K, presstype):
 	Verify = MaintScreenDesc('Verify',
 							 OrderedDict([('yes', (verifymsg, functools.partial(handleexit, K))),
 										  ('no', ('Cancel', functools.partial(goto, MaintScreen)))]))
-	config.DS.SwitchScreen(Verify, 'Bright', 'Maint', 'Verify exit', NavKeys=False)
+	screens.DS.SwitchScreen(Verify, 'Bright', 'Maint', 'Verify exit', NavKeys=False)
 
 
 # noinspection PyUnusedLocal
@@ -260,7 +260,7 @@ class LogDisplayScreen(screen.BaseKeyScreenDesc):
 			if self.pageno + 1 == len(self.PageStartItem):
 				self.PageStartItem.append(self.item)
 		else:
-			config.DS.SwitchScreen(MaintScreen, 'Bright', 'Maint', 'Done (next) showing log', NavKeys=False)
+			screens.DS.SwitchScreen(MaintScreen, 'Bright', 'Maint', 'Done (next) showing log', NavKeys=False)
 
 	# noinspection PyUnusedLocal
 	def PrevPage(self, presstype):
@@ -269,7 +269,7 @@ class LogDisplayScreen(screen.BaseKeyScreenDesc):
 			self.item = logsupport.Logs.RenderLog(self.BackgroundColor, start=self.PageStartItem[self.pageno],
 												  pageno=self.pageno + 1)
 		else:
-			config.DS.SwitchScreen(MaintScreen, 'Bright', 'Maint', 'Done (prev) showing log', NavKeys=False)
+			screens.DS.SwitchScreen(MaintScreen, 'Bright', 'Maint', 'Done (prev) showing log', NavKeys=False)
 
 	def InitDisplay(self, nav):
 		debug.debugPrint('Main', "Enter to screen: ", self.name)

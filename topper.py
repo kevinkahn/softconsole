@@ -10,10 +10,11 @@ import config
 
 topdir = ''
 topseq = 0
+TopP = None
 
 
 def inittop():
-	global topdir
+	global topdir, TopP
 	topdir = historybuffer.HBdir+'Tops'
 	os.mkdir(topdir)
 	os.mkdir(topdir+'/Current')
@@ -49,9 +50,10 @@ def dotops():
 
 
 def mvtops(dirnm):
-	global topseq
-	try:
-		shutil.move(topdir+'/Current/',topdir+'/'+dirnm)
-		os.mkdir(topdir + '/Current')
-	except Exception as E:
-		print('mvtops exception: {}'.format(E))
+	global topseq, TopP
+	if TopP is not None:
+		try:
+			shutil.move(topdir + '/Current/', topdir + '/' + dirnm)
+			os.mkdir(topdir + '/Current')
+		except Exception as E:
+			print('mvtops exception: {}'.format(E))

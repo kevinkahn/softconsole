@@ -6,6 +6,7 @@ import pygame
 import requests
 
 import config
+import historybuffer
 import logsupport
 from stores.weathprov.providerutils import TryShorten, WeathProvs
 from utilfuncs import interval_str, TreeDict
@@ -103,17 +104,19 @@ class APIXUWeatherSource(object):
 		temp = {}
 		r = None
 		for i in range(3):
+			# logsupport.Logs.Log('Actual weather fetch attempt: {}'.format(self.location))
 			try:
-				config.HBNet.Entry('Weather fetch{}: {}'.format(i,self.baseurl))
+				historybuffer.HBNet.Entry('Weather fetch{}: {}'.format(i, self.baseurl))
 				r = requests.get(self.baseurl, params=self.args)
-				config.HBNet.Entry('Weather fetch done')
+				historybuffer.HBNet.Entry('Weather fetch done')
 				if r.status_code == 200: break
-				config.HBNet.Entry('Weather fetch non success: {} {}'.format(r.status_code, repr(r)))
+				historybuffer.HBNet.Entry('Weather fetch non success: {} {}'.format(r.status_code, repr(r)))
 				time.sleep(1)
 			except Exception as E:
-				config.HBNet.Entry('Weather fetch exception: {}'.format(repr(E)))
+				historybuffer.HBNet.Entry('Weather fetch exception: {}'.format(repr(E)))
 				time.sleep(1)
-		if r is None or r.status_code != 200: raise ValueError
+		if r is None or r.status_code != 200:
+			self.thisStore.ValidWeather = False
 		try:
 			self.json = r.json()
 			for fn, entry in CondFieldMap.items():
@@ -139,12 +142,13 @@ class APIXUWeatherSource(object):
 				val = self.MapItem(self.json, entry)
 				self.thisStore.SetVal(fn, val)
 
-			return 0  # success
+			self.thisStore.ValidWeather = True
+			return  # success
 		except Exception as E:
 			logsupport.Logs.Log('Exception in apixu report processing: ', repr(E), self.json,
 								severity=logsupport.ConsoleWarning, hb=True)
 			logsupport.Logs.Log('Returned text: ', r.text)
-			raise
+			self.thisStore.ValidWeather = False
 
 
 WeathProvs['APIXU'] = [APIXUWeatherSource, '']  # api key gets filled in from config file

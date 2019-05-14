@@ -125,21 +125,21 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 			spaces += 1
 		sizeindex += 1
 
-		if self.store.failedfetch:
-			errmsg1 = fonts.fonts.Font(self.LocationSize, self.Font).render('Weather', 0, wc(self.CharColor))
-			errmsg2 = fonts.fonts.Font(self.LocationSize, self.Font).render('unavailable', 0, wc(self.CharColor))
-			errmsg3 = fonts.fonts.Font(self.LocationSize, self.Font).render('or error', 0, wc(self.CharColor))
-			# self.PaintBase()
+		if not self.store.ValidWeather:  # todo  font size for error?
+			renderedlines = [
+				fonts.fonts.Font(30, self.Font).render(x, 0, wc(self.CharColor)) for x in self.store.Status]
+			# errmsg1 = fonts.fonts.Font(self.LocationSize, self.Font).render('Weather', 0, wc(self.CharColor))
+			# errmsg2 = fonts.fonts.Font(self.LocationSize, self.Font).render('unavailable', 0, wc(self.CharColor))
+			# errmsg3 = fonts.fonts.Font(self.LocationSize, self.Font).render('or error', 0, wc(self.CharColor))
 			vert_off = self.startvertspace
 			self.ReInitDisplay()
 			for tmlbl in renderedtimelabel:
 				horiz_off = (hw.screenwidth - tmlbl.get_width()) / 2
 				hw.screen.blit(tmlbl, (horiz_off, vert_off))
 				vert_off = vert_off + 20 + tmlbl.get_height()
-			hw.screen.blit(errmsg1, ((hw.screenwidth - errmsg1.get_width()) / 2, vert_off))
-			hw.screen.blit(errmsg2, ((hw.screenwidth - errmsg2.get_width()) / 2, vert_off + errmsg1.get_height()))
-			hw.screen.blit(errmsg3,
-						   ((hw.screenwidth - errmsg3.get_width()) / 2, vert_off + 2 * errmsg1.get_height()))
+			for l in renderedlines:
+				hw.screen.blit(l, ((hw.screenwidth - l.get_width()) / 2, vert_off))
+				vert_off += l.get_height()
 		else:
 			cb = CreateWeathBlock(self.ConditionFormat, self.DecodedCondFields, self.Font,
 								  self.CondSize, self.CharColor, self.condicon,

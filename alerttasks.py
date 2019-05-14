@@ -2,7 +2,6 @@ from datetime import datetime
 
 from dateutil.parser import parse
 
-import config
 import debug
 import exitutils
 import historybuffer
@@ -53,7 +52,7 @@ class Alert(object):
 	def Invoke(self, param=None):
 		if isinstance(self.actiontarget, screens.screentypes["Alert"]):
 			self.state = 'Active'
-			config.DS.SwitchScreen(self.actiontarget, 'Bright', 'Alert', 'Go to alert screen', NavKeys=False)
+			screens.DS.SwitchScreen(self.actiontarget, 'Bright', 'Alert', 'Go to alert screen', NavKeys=False)
 		else:
 			self.state = 'Active'
 			self.actiontarget(self)  # target is the proc

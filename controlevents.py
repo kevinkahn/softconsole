@@ -61,7 +61,7 @@ def GetEvent():
 			latencynotification = LateTolerance
 			queuedepthmax = 0
 			queuetimemax = 0
-			logsupport.DevPrint('Set latency tolerance: {}'.format(latencynotification))
+	# logsupport.DevPrint('Set latency tolerance: {}'.format(latencynotification))
 	return evnt
 
 

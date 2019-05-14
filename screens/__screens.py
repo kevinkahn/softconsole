@@ -6,6 +6,7 @@ DimIdleList = []
 DimIdleTimes = []
 MainDict = {}  # map: name:screen
 SecondaryDict = {}
+DS = None  # Display Screen handles running the button presses and touch recognition
 
 horizborder = 20
 topborder = 20

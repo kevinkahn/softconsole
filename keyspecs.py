@@ -5,6 +5,7 @@ import debug
 import hubs.hubs
 import logsupport
 import screen
+import screens.__screens as screens
 import supportscreens
 import utilities
 from controlevents import CEvent, PostEvent, ConsoleEvent
@@ -246,10 +247,10 @@ class RunProgram(ManualKeyDesc):
 	def VerifyRunAndReturn(self, go, presstype):
 		if go:
 			self.Program.RunProgram()
-			config.DS.SwitchScreen(self.Screen, 'Bright', config.DS.state, 'Verify Run ' + self.Screen.name)
+			screens.DS.SwitchScreen(self.Screen, 'Bright', screens.DS.state, 'Verify Run ' + self.Screen.name)
 			self.ScheduleBlinkKey(self.Blink)
 		else:
-			config.DS.SwitchScreen(self.Screen, 'Bright', config.DS.state, 'Verify Run ' + self.Screen.name)
+			screens.DS.SwitchScreen(self.Screen, 'Bright', screens.DS.state, 'Verify Run ' + self.Screen.name)
 
 	def RunKeyPressed(self, presstype):
 		if self.FastPress and presstype != config.FASTPRESS:
@@ -348,7 +349,7 @@ class OnOffKey(ManualKeyDesc):
 				logsupport.Logs.Log("Screen: " + self.name + " press unbound key: " + self.name,
 									severity=ConsoleWarning)
 
-			config.DS.SwitchScreen(self.Screen, 'Bright', config.DS.state, 'Verify Run ' + self.Screen.name)
+			screensDS.SwitchScreen(self.Screen, 'Bright', screens.DS.state, 'Verify Run ' + self.Screen.name)
 			self.ScheduleBlinkKey(self.Blink)
 		else:
-			config.DS.SwitchScreen(self.Screen, 'Bright', config.DS.state, 'Verify Run ' + self.Screen.name)
+			screens.DS.SwitchScreen(self.Screen, 'Bright', screens.DS.state, 'Verify Run ' + self.Screen.name)

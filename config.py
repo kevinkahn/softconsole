@@ -9,11 +9,6 @@ PRESS = 0
 FASTPRESS = 1
 ecode = 0  # exit code set for main loop
 
-# Global pointers
-
-HBNet = None
-DS = None  #  Display Screen handles running the button presses and touch recognition
-
 # Operational global navigation roots
 SonosScreen = None  # todo hack to handle late appearing players
 

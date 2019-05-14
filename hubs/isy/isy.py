@@ -213,9 +213,9 @@ class ISY(object):
 		while True:
 			# noinspection PyBroadException
 			try:
-				config.HBNet.Entry('ISY nodes get')
+				historybuffer.HBNet.Entry('ISY nodes get')
 				r = self.ISYrequestsession.get(self.ISYprefix + 'nodes', verify=False, timeout=5)
-				config.HBNet.Entry('ISY nodes get done')
+				historybuffer.HBNet.Entry('ISY nodes get done')
 				logsupport.Logs.Log('{}: Successful node read: {}'.format(name, r.status_code))
 				break
 			except:
@@ -361,9 +361,9 @@ class ISY(object):
 		while True:
 			# noinspection PyBroadException
 			try:
-				config.HBNet.Entry('ISY programs get')
+				historybuffer.HBNet.Entry('ISY programs get')
 				r = self.ISYrequestsession.get(self.ISYprefix + 'programs?subfolders=true', verify=False, timeout=5)
-				config.HBNet.Entry('ISY programs get done')
+				historybuffer.HBNet.Entry('ISY programs get done')
 				if r.status_code != 200:
 					logsupport.Logs.Log('Hub (' + self.name + ') bad program read' + r.text, severity=ConsoleWarning)
 					raise requests.exceptions.ConnectionError  # fake a connection error if we didn't get a good read
@@ -409,10 +409,10 @@ class ISY(object):
 		while True:
 			# noinspection PyBroadException
 			try:
-				config.HBNet.Entry('ISY vars get')
+				historybuffer.HBNet.Entry('ISY vars get')
 				r1 = self.ISYrequestsession.get(self.ISYprefix + 'vars/definitions/2', verify=False, timeout=5)
 				r2 = self.ISYrequestsession.get(self.ISYprefix + 'vars/definitions/1', verify=False, timeout=5)
-				config.HBNet.Entry('ISY vars get done')
+				historybuffer.HBNet.Entry('ISY vars get done')
 				# for some reason var reads seem to typically take longer to complete so to at 5 sec
 				if r1.status_code != 200 or r2.status_code != 200:
 					logsupport.Logs.Log("Bad ISY var read" + r1.text + r2.text, severity=ConsoleWarning)
@@ -545,9 +545,9 @@ class ISY(object):
 			try:
 				try:
 					self.HBDirect.Entry('(' + str(i) + ') Cmd: ' + self.ISYprefix + urlcmd)
-					config.HBNet.Entry('ISY comm: {}'.format(urlcmd))
+					historybuffer.HBNet.Entry('ISY comm: {}'.format(urlcmd))
 					r = self.ISYrequestsession.get(self.ISYprefix + urlcmd, verify=False, timeout=timeout)
-					config.HBNet.Entry('ISY comm done')
+					historybuffer.HBNet.Entry('ISY comm done')
 				except requests.exceptions.ConnectTimeout as e:
 					self.HBDirect.Entry('(' + str(i) + ') ConnectionTimeout: ' + repr(e))
 					if error[-1] != 'ConnTO': error.append('ConnTO')

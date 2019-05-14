@@ -41,7 +41,7 @@ class VerifyScreen(screen.BaseKeyScreenDesc):
 		utilities.register_example("VerifyScreen", self)
 
 	def Invoke(self):
-		config.DS.SwitchScreen(self, 'Bright', config.DS.state, 'Do Verify ' + self.name, NavKeys=False)
+		screens.DS.SwitchScreen(self, 'Bright', screens.DS.state, 'Do Verify ' + self.name, NavKeys=False)
 
 	def ShowScreen(self):
 		self.ReInitDisplay()
