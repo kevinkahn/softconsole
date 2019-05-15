@@ -52,6 +52,8 @@ def AddToTimerList(name, timer):
 			printlist[n] = "Counter: {}".format(t.count)
 		elif isinstance(t, OnceTimer):
 			printlist[n] = "Once"
+		elif isinstance(t, ResettableTimer):
+			printlist[n] = "Resettable"
 		else:
 			printlist[n] = "Error?"
 	TimerHB.Entry("Timers : {}".format(printlist))
