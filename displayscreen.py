@@ -205,10 +205,10 @@ class DisplayScreen(object):
 				if time.time() - ckperf > 900:
 					ckperf = time.time()
 					if config.sysStore.versionname in ('development', 'homerelease') and (
-							controlevents.queuedepthmax > 4 or controlevents.queuetimemax > .5):
+							controlevents.queuedepthmax > 4 or controlevents.queuetimemax > 1):
 						logsupport.Logs.Log('Console performance({}): maxq: {} maxwait: {}'.format(
 							time.time() - perfdump, controlevents.queuedepthmax, controlevents.queuetimemax),
-							severity=ConsoleWarning)
+							severity=ConsoleWarning, hb=True, localonly=True)
 						controlevents.queuetimemax = 0
 						controlevents.queuedepthmax = 0
 						perfdump = time.time()
@@ -331,8 +331,8 @@ class DisplayScreen(object):
 
 					elif tapcount > 3:
 						# Go to maintenance
-						timers.StartLongOp(
-							'maintenance')  # todo a bit ugly - start long op here but end in gohome in maint screen
+						# timers.StartLongOp(
+						#	'maintenance')  # todo a bit ugly - start long op here but end in gohome in maint screen
 						self.SwitchScreen(maintscreen.MaintScreen, 'Bright', 'Maint', 'Tap to maintenance', NavKeys=False)
 						continue
 
