@@ -146,7 +146,7 @@ class WeatherScreenDesc(screen.ScreenDesc):
 		super(WeatherScreenDesc, self).InitDisplay(nav)
 		if self.ShowScreen(
 				self.currentconditions) == -1:  # todo should remove since errors are caught now in switch screen
-			screens.DS.SwitchScreen(screens.HomeScreen, 'Bright', 'Home', 'Weather screen error')
+			screens.DS.SwitchScreen(screens.HomeScreen, 'Bright', 'Weather screen error', 'Home')
 
 	def ExitScreen(self):
 		pass

@@ -411,6 +411,12 @@ else:
 		hubs.hubs.defaulthub = None
 
 """
+Set up screen Tokens
+"""
+screen.BACKTOKEN = screen.ScreenDesc({}, '***BACK***')
+screen.HOMETOKEN = screen.ScreenDesc({}, '***HOME***')
+
+"""
 Set up alerts and local variables
 """
 alertspeclist = {}

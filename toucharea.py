@@ -1,6 +1,6 @@
 import pygame
 
-import config
+import logsupport
 import debug
 import fonts
 import hw
@@ -17,14 +17,15 @@ class TouchPoint(object):
 	Represents a touchable rectangle on the screen.
 	"""
 
-	def __init__(self, name, Center, Size, proc=None):
+	def __init__(self, name, Center, Size, proc=None, procdbl=None):
 		self.name = name
 		self.Size = Size
 		self.Center = Center
 		self.Screen = None
 		self.ControlObj = None
 		self.Proc = proc  # function that gets called on touch - expects to take a single parameter which is thee type of press
-
+		self.ProcDblTap = procdbl
+		self.Verify = False
 		utilities.register_example("TouchPoint", self)
 
 	def ControlObjUndefined(self):
@@ -37,6 +38,15 @@ class TouchPoint(object):
 	def touched(self, pos):
 		return (pos[0] > self.Center[0] - self.Size[0] / 2) and (pos[0] < self.Center[0] + self.Size[0] / 2) and \
 			   (pos[1] > self.Center[1] - self.Size[1] / 2) and (pos[1] < self.Center[1] + self.Size[1] / 2)
+
+	def Pressed(self, tapcount):
+		if tapcount == 1:
+			if self.Proc is not None: self.Proc()
+		elif tapcount == 2:
+			if self.ProcDblTap is not None: self.ProcDblTap()
+		else:
+			logsupport.Logs.Log('Toucharea got wrong press count {}'.format(tapcount),
+								severity=logsupport.ConsoleWarning)
 
 
 class ManualKeyDesc(TouchPoint):
@@ -93,13 +103,14 @@ class ManualKeyDesc(TouchPoint):
 	# noinspection PyUnusedLocal
 	def docodeinit(self, thisscreen, keyname, label, bcolor, charcoloron, charcoloroff, center=(0, 0), size=(0, 0),
 				   KOn=None,
-				   KOff=None, proc=None, KCon='', KCoff='', KLon=('',), KLoff=('',), State=True, Blink=0, Verify=False):
+				   KOff=None, proc=None, procdbl=None, KCon='', KCoff='', KLon=('',), KLoff=('',), State=True, Blink=0,
+				   Verify=False):
 		# NOTE: do not put defaults for KOn/KOff in signature - imports and arg parsing subtleties will cause error
 		# because of when config is imported and what walues are at that time versus at call time
 		self.userstore = paramstore.ParamStore('Screen-' + thisscreen.name + '-' + keyname, dp=thisscreen.userstore,
 											   locname=keyname)
 
-		TouchPoint.__init__(self, keyname, center, size, proc=proc)
+		TouchPoint.__init__(self, keyname, center, size, proc=proc, procdbl=procdbl)
 		self.Screen = thisscreen
 		self.State = State
 		self.Screen = thisscreen
@@ -150,17 +161,19 @@ class ManualKeyDesc(TouchPoint):
 					self.PaintKey() # force to real state
 					pygame.display.update()
 			self.BlinkTimer = timers.CountedRepeatingPost(.5, cycle, start=True, name=self.name + '-Blink', proc=self.BlinkKey)
+			self.Screen.ScreenTimers.append(self.BlinkTimer)
 
 	def BlinkKey(self, event):
-		cycle = event.count
-		if cycle > 1:
-			if cycle % 2 == 0:
-				self.PaintKey(ForceDisplay=True, DisplayState=True)  # force on
+		if self.Screen.Active:
+			cycle = event.count
+			if cycle > 1:
+				if cycle % 2 == 0:
+					self.PaintKey(ForceDisplay=True, DisplayState=True)  # force on
+				else:
+					self.PaintKey(ForceDisplay=True, DisplayState=False)  # force off
 			else:
-				self.PaintKey(ForceDisplay=True, DisplayState=False)  # force off
-		else:
-			self.PaintKey()  # make sure to leave it in real state
-		pygame.display.update()  # actually change the display - used to do in PaintKey but that causes redundancy
+				self.PaintKey()  # make sure to leave it in real state
+			pygame.display.update()  # actually change the display - used to do in PaintKey but that causes redundancy
 
 	def FindFontSize(self, lab, firstfont, shrink):
 		lines = len(lab)

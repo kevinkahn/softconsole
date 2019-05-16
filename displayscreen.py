@@ -1,15 +1,13 @@
 import hubs.hubs
 import hw
 import multiprocessing
-import os
-import sys
 import threading
 import time
 from collections import OrderedDict
 import topper
 
 import pygame
-
+import screen
 import alerttasks
 import config
 import debug
@@ -41,12 +39,12 @@ class DisplayScreen(object):
 		self.WatchVarVals = {}  # most recent reported watched variable values
 
 		self.AS = None  # Active Screen
-		self.ScreensDict = {}  # all the sceens by name for setting navigation keys
 		self.Chain = 0  # which screen chain is active 0: Main chain 1: Secondary Chain
 		self.HBScreens = historybuffer.HistoryBuffer(20, 'Screens')
 		self.HBEvents = historybuffer.HistoryBuffer(80, 'Events')
 		self.ActivityTimer = timers.ResettableTimer(name='ActivityTimer', start=True)
 		self.activityseq = 0
+		self.ScreenStack = []
 
 	def Dim(self):
 		self.dim = 'Dim'
@@ -61,7 +59,28 @@ class DisplayScreen(object):
 		self.ActivityTimer.set(ConsoleEvent(CEvent.ACTIVITYTIMER, seq=self.activityseq, msg=dbgmsg), timeinsecs)
 		debug.debugPrint('Dispatch', 'Set activity timer: ', timeinsecs, ' ', dbgmsg)
 
-	def SwitchScreen(self, NS, newdim, newstate, reason, NavKeys=True):
+	def SwitchScreen(self, NS, newdim, reason, newstate=None, NavKeys=True, push=False, clear=False):
+		if newstate is None: newstate = self.state  # no state change
+		if NS == screen.BACKTOKEN:
+			if self.ScreenStack:
+				NS = self.ScreenStack.pop()
+			else:
+				logsupport.Logs.Log('Screen BACK with empty stack', severity=ConsoleWarning, tb=True)
+		elif NS == screen.HOMETOKEN:
+			if self.ScreenStack:
+				t = self.ScreenStack.pop()
+				if not self.ScreenStack:  # Home while Back would have returned
+					NS = screens.HomeScreen
+				else:
+					NS = self.ScreenStack[0]
+					self.ScreenStack = []
+			else:
+				NS = screens.HomeScreen
+				logsupport.Logs.Log('HOME from non stacked screen {}'.format(self.AS.name), severity=ConsoleWarning)
+		else:
+			if clear: self.ScreenStack = []
+			if push: self.ScreenStack.append(self.AS)
+
 		ASname = '*None*' if self.AS is None else self.AS.name
 		self.HBScreens.Entry(
 			NS.name + ' was ' + ASname + ' dim: ' + str(newdim) + ' state: ' + str(newstate) + ' reason: ' + str(
@@ -100,8 +119,10 @@ class DisplayScreen(object):
 			pass  # leave dim as it
 
 		if NavKeys:
-			nav = OrderedDict(
-				{'prevkey': self.ScreensDict[self.AS.name].prevkey, 'nextkey': self.ScreensDict[self.AS.name].nextkey})
+			if self.ScreenStack:
+				nav = {'homekey': self.AS.homekey, 'backkey': self.AS.backkey}
+			else:
+				nav = {'prevkey': self.AS.prevkey, 'nextkey': self.AS.nextkey}
 		else:
 			nav = {}
 
@@ -117,9 +138,9 @@ class DisplayScreen(object):
 				# todo should this be just logged and return to home?
 
 	# noinspection PyUnusedLocal
-	def NavPress(self, NS, press):
+	def NavPress(self, NS):  # todo sort out new nav options
 		debug.debugPrint('Dispatch', 'Navkey: ', NS.name, self.state + '/' + self.dim)
-		self.SwitchScreen(NS, 'Bright', 'NonHome', 'Nav Press')
+		self.SwitchScreen(NS, 'Bright', 'Nav Press', 'NonHome')
 
 	def MainControlLoop(self, InitScreen):
 
@@ -163,7 +184,7 @@ class DisplayScreen(object):
 		with open("{}/.ConsoleStart".format(config.sysStore.HomeDir), "a") as f:
 			f.write(str(time.time()) + '\n')
 		if config.Running:  # allow for a very early restart request from things like autoversion
-			self.SwitchScreen(InitScreen, 'Bright', 'Home', 'Startup')
+			self.SwitchScreen(InitScreen, 'Bright', 'Startup', 'Home')
 
 		statusperiod = time.time()
 		prevstatus = ''
@@ -292,7 +313,7 @@ class DisplayScreen(object):
 						# wake up the screen and if in a cover state go home
 						config.sysStore.consolestatus = 'active'
 						if self.state == 'Cover':
-							self.SwitchScreen(screens.HomeScreen, 'Bright', 'Home', 'Wake up from cover')
+							self.SwitchScreen(screens.HomeScreen, 'Bright', 'Wake up from cover', 'Home')
 						else:
 							self.Brighten()  # if any other screen just brighten
 						continue  # wakeup touches are otherwise ignored
@@ -323,30 +344,28 @@ class DisplayScreen(object):
 						if screens.HomeScreen != screens.HomeScreen2:  # only do if there is a real secondary chain
 							if self.Chain == 0:
 								self.Chain = 1
-								self.SwitchScreen(screens.HomeScreen2, 'Bright', 'NonHome', 'Chain switch to secondary')
+								self.SwitchScreen(screens.HomeScreen2, 'Bright', 'Chain switch to secondary', 'NonHome')
 							else:
 								self.Chain = 0
-								self.SwitchScreen(screens.HomeScreen, 'Bright', 'Home', 'Chain switch to main')
+								self.SwitchScreen(screens.HomeScreen, 'Bright', 'Chain switch to main', 'Home')
 						continue
 
 					elif tapcount > 3:
 						# Go to maintenance
 						# timers.StartLongOp(
 						#	'maintenance')  # todo a bit ugly - start long op here but end in gohome in maint screen
-						self.SwitchScreen(maintscreen.MaintScreen, 'Bright', 'Maint', 'Tap to maintenance', NavKeys=False)
+						self.SwitchScreen(maintscreen.MaintScreen, 'Bright', 'Tap to maintenance', 'Maint',
+										  NavKeys=False)
 						continue
 
 					if self.AS.Keys is not None:
 						for K in self.AS.Keys.values():
 							if K.touched(pos):
-								if tapcount == 1:
-									if K.Proc is not None: K.Proc(config.PRESS)
-								else:
-									if K.Proc is not None: K.Proc(config.FASTPRESS)
+								K.Pressed(tapcount)
 
 					for K in self.AS.NavKeys.values():
 						if K.touched(pos):
-							K.Proc(config.PRESS)  # same action whether single or double tap
+							K.Proc()  # todo make a goto key
 
 				elif event.type in (CEvent.MouseUp, CEvent.MouseMotion):
 					debug.debugPrint('Touch', 'Other mouse event {}'.format(event))
@@ -364,15 +383,17 @@ class DisplayScreen(object):
 					else:
 						self.HBEvents.Entry('ActivityTimer(non-Bright) state: {}'.format(self.state))
 						if self.state == 'NonHome':
-							self.SwitchScreen(screens.HomeScreen, 'Dim', 'Home', 'Dim nonhome to dim home')
+							self.SwitchScreen(screens.HomeScreen, 'Dim', 'Dim nonhome to dim home', 'Home', clear=True)
 						elif self.state == 'Home':
-							self.SwitchScreen(screens.DimIdleList[0], 'Dim', 'Cover', 'Go to cover', NavKeys=False)
+							self.SwitchScreen(screens.DimIdleList[0], 'Dim', 'Go to cover', 'Cover', NavKeys=False,
+											  clear=True)
 							# rotate covers - save even if only 1 cover
 							screens.DimIdleList = screens.DimIdleList[1:] + [screens.DimIdleList[0]]
 							screens.DimIdleTimes = screens.DimIdleTimes[1:] + [screens.DimIdleTimes[0]]
 						elif self.state == 'Cover':
 							if len(screens.DimIdleList) > 1:
-								self.SwitchScreen(screens.DimIdleList[0], 'Dim', 'Cover', 'Go to next cover', NavKeys=False)
+								self.SwitchScreen(screens.DimIdleList[0], 'Dim', 'Go to next cover', 'Cover',
+												  NavKeys=False, clear=True)
 								screens.DimIdleList = screens.DimIdleList[1:] + [screens.DimIdleList[0]]
 								screens.DimIdleTimes = screens.DimIdleTimes[1:] + [screens.DimIdleTimes[0]]
 						else:  # Maint or Alert - just ignore the activity action
@@ -425,7 +446,7 @@ class DisplayScreen(object):
 					elif alert.state == 'Active' and not alert.trigger.IsTrue():  # alert condition has cleared and screen is up
 						debug.debugPrint('Dispatch', 'Active alert cleared', alert.name)
 						alert.state = 'Armed'  # just rearm the alert
-						self.SwitchScreen(screens.HomeScreen, 'Dim', 'Home', 'Cleared alert')
+						self.SwitchScreen(screens.HomeScreen, 'Dim', 'Cleared alert', 'Home')
 					elif ((alert.state == 'Delayed') or (alert.state == 'Deferred')) and not alert.trigger.IsTrue():
 						# condition changed under a pending action (screen or proc) so just cancel and rearm
 						debug.debugPrint('Dispatch', 'Delayed event cleared before invoke', alert.name)

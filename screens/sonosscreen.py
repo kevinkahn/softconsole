@@ -80,7 +80,8 @@ class SonosScreenDesc(screen.BaseKeyScreenDesc):
 																 (hw.screenwidth // 2,
 																  (self.NodeVPos[i] + self.NodeVPos[i + 1]) // 2),
 																 (hw.screenwidth, self.roomheight),
-																 proc=functools.partial(self.RoomSelect, i))
+																 proc=functools.partial(self.RoomSelect, i),
+																 procdbl=functools.partial(self.RoomSelectDbl, i))
 			self.KeysGC['SlotGC' + str(i)] = toucharea.TouchPoint('SlotGC' + str(i),
 																  (hw.screenwidth // 2,
 																   (self.GCVPos[i] + self.GCVPos[i + 1]) // 2),
@@ -202,7 +203,7 @@ class SonosScreenDesc(screen.BaseKeyScreenDesc):
 			# print('stable')
 			if self.Active: self.ShowScreen()  # handle any race with another screen just having come up
 
-	def VolChange(self, slotnum, chg, presstype):
+	def VolChange(self, slotnum, chg):
 		if slotnum >= len(self.nms): return
 		rm = self.nms[slotnum]
 		if chg == 0:
@@ -210,24 +211,24 @@ class SonosScreenDesc(screen.BaseKeyScreenDesc):
 		else:
 			rm.VolumeUpDown(rm.entity_id, chg)
 
-	def GpCtlOK(self, presstype):
+	def GpCtlOK(self):
 		self.Subscreen = -1
 		self.ShowScreen()
 
-	def SetSource(self, presstype):
+	def SetSource(self):
 		self.Subscreen = self.Subscreen + 200
 		self.SourceSelection = ''
 		self.SourceSet = self.SonosNodes[self.SlotToGp[self.Subscreen - 200]].source_list[:]
 		self.SourceItem = 0
 		self.ShowScreen()
 
-	def PickSource(self, slotnum, presstype):
+	def PickSource(self, slotnum):
 		# print(slotnum)
 		# change the source
 		self.SourceSelection = self.SourceSlot[slotnum]
 		self.ShowScreen()
 
-	def PickSourceOK(self, doit, presstype):
+	def PickSourceOK(self, doit):
 		if doit:
 			self.SonosNodes[self.SlotToGp[self.Subscreen - 200]].Source(self.SlotToGp[self.Subscreen - 200],
 																		self.SourceSelection)
@@ -235,7 +236,7 @@ class SonosScreenDesc(screen.BaseKeyScreenDesc):
 		self.SourceSelection = ''
 		self.ShowScreen()
 
-	def PrevNext(self, nxt, presstype):
+	def PrevNext(self, nxt):
 		if nxt:
 			if self.SourceItem + self.sourceslots < len(self.SourceSet):
 				self.SourceItem += self.sourceslots
@@ -243,19 +244,19 @@ class SonosScreenDesc(screen.BaseKeyScreenDesc):
 			self.SourceItem -= self.sourceslots
 		self.ShowScreen()
 
-	def RoomSelect(self, slotnum, presstype):
-		if presstype:
-			# Double tap
-			self.Subscreen = 100 + slotnum
-		else:
-			self.Subscreen = slotnum
+	def RoomSelect(self, slotnum):
+		self.Subscreen = slotnum
 		self.ShowScreen()
 
-	def GroupMemberOK(self, presstype):
+	def RoomSelectDbl(self, slotnum):
+		self.Subscreen = 100 + slotnum
+		self.ShowScreen()
+
+	def GroupMemberOK(self):
 		self.Subscreen = -1
 		self.ShowScreen()
 
-	def GroupMemberToggle(self, slotnum, presstype):
+	def GroupMemberToggle(self, slotnum):
 		if self.gpingrms[slotnum][1]:
 			# unjoin it
 			self.gpingrms[0][0].UnJoin(self.gpingrms[slotnum][0].entity_id)

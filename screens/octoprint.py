@@ -86,11 +86,11 @@ class OctoPrintScreenDesc(screen.BaseKeyScreenDesc):
 														size=(hw.screenwidth // 3, ctlhgt), KOn='', KOff='',
 														proc=self.PreDoPause, Verify=True)
 		self.VerifyScreenCancel = supportscreens.VerifyScreen(self.JobKeys['Cancel'], ('Cancel', 'Job'), ('Back',),
-															  self.DoCancel,
+															  self.DoCancel, None,
 															  screen, self.KeyColor, self.CharColor, self.CharColor,
 															  True, None)
 		self.VerifyScreenPause = supportscreens.VerifyScreen(self.JobKeys['Pause'], ('Pause', 'Job'), ('Back',),
-															 self.DoCancel,
+															 self.DoCancel, None,
 															 screen, self.KeyColor, self.CharColor, self.CharColor,
 															 True, None)
 		self.FileSubscreen = supportscreens.ListChooserSubScreen(self, 'FileList', 8, useablescreenheight,
@@ -134,16 +134,16 @@ class OctoPrintScreenDesc(screen.BaseKeyScreenDesc):
 		return r
 
 	# noinspection PyUnusedLocal
-	def Power(self, opt, presstype):
+	def Power(self, opt):
 		_ = self.OctoPost('system/commands/custom/' + opt, {})
 		self.PowerKeys[opt].ScheduleBlinkKey(3)
 
 	# noinspection PyUnusedLocal
-	def Connect(self, opt, presstype):
+	def Connect(self, opt):
 		_ = self.OctoPost('connection', senddata={'command': opt})
 		self.PowerKeys[opt].ScheduleBlinkKey(3)
 
-	def SelectFile(self, presstype):
+	def SelectFile(self):
 		self.Subscreen = 1
 		r = self.OctoGet('files/local')
 		self.files = []
@@ -156,25 +156,22 @@ class OctoPrintScreenDesc(screen.BaseKeyScreenDesc):
 		# there was a task remove here for the poll = todo test it live
 		self.ShowScreen()
 
-	def PreDoCancel(self, presstype):
+	def PreDoCancel(self):
 		self.VerifyScreenCancel.Invoke()
 
-	def PreDoPause(self, presstype):
+	def PreDoPause(self):
 		self.VerifyScreenPause.Invoke()
 
-	def DoCancel(self, go, presstype):
-		if go:
-			self.OctoPost('job', senddata={'command': 'cancel'})
-			screens.DS.SwitchScreen(self, 'Bright', screens.DS.state, 'Verify Run ' + self.name)
-		else:
-			screens.DS.SwitchScreen(self, 'Bright', screens.DS.state, 'Verify Run ' + self.name)
+	def NoVerify(self):
+		screens.DS.SwitchScreen(self, 'Bright', 'Verify Run ' + self.name, screens.DS.state)
 
-	def DoPause(self, go, presstype):
-		if go:
-			self.OctoPost('job', senddata={'command': 'pause', 'action': 'toggle'})
-			screens.DS.SwitchScreen(self, 'Bright', screens.DS.state, 'Verify Run ' + self.name)
-		else:
-			screens.DS.SwitchScreen(self, 'Bright', screens.DS.state, 'Verify Run ' + self.name)
+	def DoCancel(self):
+		self.OctoPost('job', senddata={'command': 'cancel'})
+		screens.DS.SwitchScreen(self, 'Bright', 'Verify Run ' + self.name, screens.DS.state)
+
+	def DoPause(self, go):
+		self.OctoPost('job', senddata={'command': 'pause', 'action': 'toggle'})
+		screens.DS.SwitchScreen(self, 'Bright', 'Verify Run ' + self.name, screens.DS.state)
 
 	def InitDisplay(self, nav):
 		super(OctoPrintScreenDesc, self).InitDisplay(nav)

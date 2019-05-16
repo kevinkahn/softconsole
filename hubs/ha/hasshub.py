@@ -155,7 +155,7 @@ class Light(StatefulHAnode):
 			self.internalstate = _NormalizeState(self.state, int(self.attributes['brightness']))
 
 	# noinspection PyUnusedLocal
-	def SendOnOffCommand(self, settoon, presstype):
+	def SendOnOffCommand(self, settoon):
 		selcmd = ('turn_off', 'turn_on')
 		#logsupport.DevPrint("Light on/off: {} {} {}".format(selcmd[settoon],self.entity_id, time.time()))
 		ha.call_service(self.Hub.api, 'light', selcmd[settoon], {'entity_id': '{}'.format(self.entity_id)})
@@ -170,7 +170,7 @@ class Switch(StatefulHAnode):
 		self.Hub.Switches[self.entity_id] = self
 
 	# noinspection PyUnusedLocal
-	def SendOnOffCommand(self, settoon, presstype):
+	def SendOnOffCommand(self, settoon):
 		selcmd = ('turn_off', 'turn_on')
 		ha.call_service(self.Hub.api, 'switch', selcmd[settoon], {'entity_id': '{}'.format(self.entity_id)})
 		debug.debugPrint('HASSgeneral', "Switch OnOff sent: ", selcmd[settoon], ' to ', self.entity_id)

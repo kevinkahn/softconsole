@@ -1,6 +1,5 @@
 import shlex
 
-import config
 import debug
 import hubs.hubs
 import logsupport
@@ -13,7 +12,7 @@ from logsupport import ConsoleWarning, ConsoleDetail
 from stores import valuestore
 from toucharea import ManualKeyDesc
 from utilfuncs import *
-
+from configobjects import GoToTargetList
 
 # noinspection PyUnusedLocal
 def KeyWithVarChanged(storeitem, old, new, param, modifier):
@@ -58,6 +57,8 @@ def CreateKey(thisscreen, screensection, keyname):
 		NewKey = SetVarValueKey(thisscreen, screensection, keyname)
 	elif keytype == 'RUNPROG':
 		NewKey = RunProgram(thisscreen, screensection, keyname)
+	elif keytype == 'GOTO':
+		NewKey = GoToKey(thisscreen, screensection, keyname)
 	else:  # unknown type
 		NewKey = BlankKey(thisscreen, screensection, keyname)
 		logsupport.Logs.Log('Undefined key type ' + keytype + ' for: ' + keyname, severity=ConsoleWarning)
@@ -65,7 +66,7 @@ def CreateKey(thisscreen, screensection, keyname):
 
 
 # noinspection PyUnusedLocal
-def ErrorKey(presstype):
+def ErrorKey():
 	# used to handle badly defined keys
 	logsupport.Logs.Log('Ill-defined Key Pressed', severity=ConsoleWarning)
 
@@ -105,7 +106,7 @@ class SetVarValueKey(ManualKeyDesc):
 		self.SetKeyImages(self.label + [str(self.Value)])
 		super(SetVarValueKey, self).PaintKey(ForceDisplay, DisplayState)
 
-	def SetVarValue(self, presstype):
+	def SetVarValue(self):
 		# Call a screen repainter proc
 		# call reinitdisplay on enclosing screen
 		pass
@@ -166,7 +167,7 @@ class VarKey(ManualKeyDesc):
 		super(VarKey, self).PaintKey(ForceDisplay, DisplayState)
 
 	# noinspection PyUnusedLocal
-	def VarKeyPressed(self, presstype):
+	def VarKeyPressed(self):
 		try:
 			i = self.ValueSeq.index(valuestore.GetVal(self.Var))
 		except ValueError:
@@ -207,7 +208,7 @@ class SetVarKey(ManualKeyDesc):
 		utilities.register_example("SetVarKey", self)
 
 	# noinspection PyUnusedLocal
-	def SetVarKeyPressed(self, presstype):
+	def SetVarKeyPressed(self):
 		valuestore.SetVal(self.VarName, self.Value)
 		self.ScheduleBlinkKey(self.Blink)
 
@@ -237,29 +238,62 @@ class RunProgram(ManualKeyDesc):
 				"Missing Prog binding Key: {} on screen {} Hub: {} Program: {}".format(keyname, thisscreen.name, self.Hub.name, self.ProgramName),
 				severity=ConsoleWarning)
 		if self.Verify:
-			self.VerifyScreen = supportscreens.VerifyScreen(self, self.GoMsg, self.NoGoMsg, self.VerifyRunAndReturn,
+			self.VerifyScreen = supportscreens.VerifyScreen(self, self.GoMsg, self.NoGoMsg, self.Verified, None,
 															thisscreen, self.KeyColorOff,
 															thisscreen.BackgroundColor, thisscreen.CharColor,
 															self.State, thisscreen.HubInterestList)
-		self.Proc = self.RunKeyPressed
+			self.Proc = self.VerifyScreen.Invoke
+			self.ProcDblTap = self.VerifyScreen.Invoke
+		else:
+			self.Proc = self.RunKeyPressed
+			self.ProcDblTap = self.RunKeyDblPressed
 
 	# noinspection PyUnusedLocal
-	def VerifyRunAndReturn(self, go, presstype):
-		if go:
-			self.Program.RunProgram()
-			screens.DS.SwitchScreen(self.Screen, 'Bright', screens.DS.state, 'Verify Run ' + self.Screen.name)
-			self.ScheduleBlinkKey(self.Blink)
-		else:
-			screens.DS.SwitchScreen(self.Screen, 'Bright', screens.DS.state, 'Verify Run ' + self.Screen.name)
+	def Verified(self):
+		screens.DS.SwitchScreen(screen.BACKTOKEN, 'Bright', 'Verify Run ' + self.Screen.name)
+		self.RunKeyPressed()
 
-	def RunKeyPressed(self, presstype):
-		if self.FastPress and presstype != config.FASTPRESS:
-			return
-		if self.Verify:
-			self.VerifyScreen.Invoke()
+	def RunKeyPressed(self):
+		if self.FastPress: return
+		self.Program.RunProgram()
+		self.ScheduleBlinkKey(self.Blink)
+
+	def RunKeyDblPressed(self):
+		if self.FastPress:
+			if self.Verify:
+				self.VerifyScreen.Invoke()
+			# screens.DS.SwitchScreen(self, 'Bright', screens.DS.state, 'Do Verify ' + self.name, NavKeys=False)
+			else:
+				self.Program.RunProgram()
+				self.ScheduleBlinkKey(self.Blink)
+
+
+class GoToKey(ManualKeyDesc):
+	def __init__(self, thisscreen, keysection, keyname):
+		global FixUps
+		debug.debugPrint('Screen', "             New GoTo Key ", keyname)
+		ManualKeyDesc.__init__(self, thisscreen, keysection, keyname)
+		screen.AddUndefaultedParams(self, keysection, ScreenName='**unspecified**')
+		self.targetscreen = None
+		GoToTargetList[self] = self.ScreenName
+
+		self.Proc = self.GoToKeyPressed
+
+	@classmethod
+	def from_Code(cls, thisscreen, keyname, label, bcolor, charcoloron, charcoloroff, center=(0, 0), size=(0, 0),
+				  KOn=None,
+				  KOff=None, proc=None, procdbl=None, KCon='', KCoff='', KLon=('',), KLoff=('',), State=True, Blink=0,
+				  Verify=False):
+		inst = ManualKeyDesc.__init__()
+
+	# inst.targetscreen = targetscreen
+
+	def GoToKeyPressed(self):
+		if self.targetscreen is None:
+			logsupport.Logs.Log('Unbound GOTO key {} pressed'.format(self.name), severity=ConsoleWarning)
+			self.ScheduleBlinkKey(20)
 		else:
-			self.Program.RunProgram()
-			self.ScheduleBlinkKey(self.Blink)
+			screens.DS.SwitchScreen(self.targetscreen, 'Bright', 'Direct go to' + self.targetscreen.name, push=True)
 
 
 class OnOffKey(ManualKeyDesc):
@@ -271,7 +305,6 @@ class OnOffKey(ManualKeyDesc):
 		debug.debugPrint('Screen', "             New ", keytype, " Key Desc ", keyname)
 		ManualKeyDesc.__init__(self, thisscreen, keysection, keyname)
 		screen.AddUndefaultedParams(self, keysection, SceneProxy='', NodeName='')
-		self.lastpresstype = 0
 
 		if keyname == '*Action*': keyname = self.NodeName  # special case for alert screen action keys that always have same name todo - can nodename ever be explicitly set otherwise?
 		self.ControlObj, self.DisplayObj = self.Hub.GetNode(keyname, self.SceneProxy)
@@ -281,10 +314,14 @@ class OnOffKey(ManualKeyDesc):
 			logsupport.Logs.Log('Key Binding missing: ' + self.name, severity=ConsoleWarning)
 
 		if self.Verify:
-			self.VerifyScreen = supportscreens.VerifyScreen(self, self.GoMsg, self.NoGoMsg, self.VerifyPressAndReturn,
+			self.VerifyScreen = supportscreens.VerifyScreen(self, self.GoMsg, self.NoGoMsg, self.Verified, None,
 															thisscreen, self.KeyColorOff,
 															thisscreen.BackgroundColor, thisscreen.CharColor,
 															self.State, thisscreen.HubInterestList)
+			self.Proc = self.VerifyScreen.Invoke  # todo make this a goto key; make verify screen always do a pop and get rid of the switch screens below
+		else:
+			self.Proc = self.KeyPressAction
+			self.ProcDblTap = self.KeyPressActionDbl
 
 		if keytype == 'ONOFF':
 			self.KeyAction = 'OnOff'
@@ -292,7 +329,6 @@ class OnOffKey(ManualKeyDesc):
 			self.KeyAction = 'On'
 		else:
 			self.KeyAction = 'Off'
-		self.Proc = self.OnOffKeyPressed
 
 		utilities.register_example("OnOffKey", self)
 
@@ -314,42 +350,39 @@ class OnOffKey(ManualKeyDesc):
 		self.UnknownState = True if state == -1 else False
 		super(OnOffKey, self).InitDisplay()
 
-	def OnOffKeyPressed(self, presstype):
-		self.lastpresstype = presstype
-		if self.Verify:
-			self.VerifyScreen.Invoke()
-		else:
-			if self.KeyAction == "OnOff":
-				self.State = not self.State
-			elif self.KeyAction == "On":
-				self.State = True
-			elif self.KeyAction == "Off":
-				self.State = False
+	def KeyPressAction(self):
+		if self.KeyAction == "OnOff":
+			self.State = not self.State
+		elif self.KeyAction == "On":
+			self.State = True
+		elif self.KeyAction == "Off":
+			self.State = False
 
-			if not self.ControlObjUndefined():
-				self.ControlObj.SendOnOffCommand(self.State, presstype)
-				self.ScheduleBlinkKey(self.Blink)
-			else:
-				logsupport.Logs.Log("Screen: " + self.name + " press unbound key: " + self.name,
-									severity=ConsoleWarning)
-				self.ScheduleBlinkKey(20)
-
-	# noinspection PyUnusedLocal
-	def VerifyPressAndReturn(self, go, presstype):
-		if go:
-			if self.KeyAction == "OnOff":
-				self.State = not self.State
-			elif self.KeyAction == "On":
-				self.State = True
-			elif self.KeyAction == "Off":
-				self.State = False
-			if not self.ControlObjUndefined():
-				self.ControlObj.SendOnOffCommand(self.State, self.lastpresstype)
-			else:
-				logsupport.Logs.Log("Screen: " + self.name + " press unbound key: " + self.name,
-									severity=ConsoleWarning)
-
-			screensDS.SwitchScreen(self.Screen, 'Bright', screens.DS.state, 'Verify Run ' + self.Screen.name)
+		if not self.ControlObjUndefined():
+			self.ControlObj.SendOnOffCommand(self.State)
 			self.ScheduleBlinkKey(self.Blink)
 		else:
-			screens.DS.SwitchScreen(self.Screen, 'Bright', screens.DS.state, 'Verify Run ' + self.Screen.name)
+			logsupport.Logs.Log("Screen: " + self.name + " press unbound key: " + self.name,
+								severity=ConsoleWarning)
+			self.ScheduleBlinkKey(20)
+
+	def KeyPressActionDbl(self):
+		if self.KeyAction == "OnOff":
+			self.State = not self.State
+		elif self.KeyAction == "On":
+			self.State = True
+		elif self.KeyAction == "Off":
+			self.State = False
+
+		if not self.ControlObjUndefined():
+			self.ControlObj.SendOnOffFastCommand(self.State)  # todo this codifies fast press even for nonISY hubs?
+			self.ScheduleBlinkKey(self.Blink)
+		else:
+			logsupport.Logs.Log("Screen: " + self.name + " press unbound key: " + self.name,
+								severity=ConsoleWarning)
+			self.ScheduleBlinkKey(20)
+
+	# noinspection PyUnusedLocal
+	def Verified(self):
+		self.KeyPressAction()
+		screens.DS.SwitchScreen(screen.BACKTOKEN, 'Bright', 'Verify Run ' + self.Screen.name)

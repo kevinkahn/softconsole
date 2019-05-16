@@ -99,13 +99,13 @@ class AlertsScreenDesc(screen.ScreenDesc):
 		utilities.register_example("AlertsScreen", self)
 
 	# noinspection PyUnusedLocal
-	def DeferAction(self, presstype):
+	def DeferAction(self):
 		debug.debugPrint('Screen', 'Alertscreen manual defer: ' + self.name)
 		self.Alert.state = 'Deferred'
 		self.TimerName += 1
 		self.DeferTimer = timers.OnceTimer(self.Defer, start=True, name=self.name + '-Defer-' + str(self.TimerName),
 										   proc=alerttasks.HandleDeferredAlert, param=self.Alert)
-		screens.DS.SwitchScreen(screens.HomeScreen, 'Bright', 'Home', 'Manual defer an alert')
+		screens.DS.SwitchScreen(screens.HomeScreen, 'Bright', 'Manual defer an alert', 'Home')
 
 	# noinspection PyUnusedLocal
 	def BlinkMsg(self, param):

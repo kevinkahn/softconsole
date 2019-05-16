@@ -112,7 +112,7 @@ def syncKeytoStore(storeitem, old, new, key, chgsource):
 
 
 # noinspection PyUnusedLocal
-def setdbg(K, presstype):
+def setdbg(K):
 	st = debug.dbgStore.GetVal(K.name)
 	K.State = not st
 	K.PaintKey()
@@ -126,7 +126,7 @@ def setdbg(K, presstype):
 
 
 # noinspection PyUnusedLocal
-def adjloglevel(K, presstype):
+def adjloglevel(K):
 	if K.name == "LogLevelUp":
 		if logsupport.LogLevel < len(logsupport.LogLevels) - 1:
 			logsupport.LogLevel += 1
@@ -144,25 +144,25 @@ def adjloglevel(K, presstype):
 
 
 # noinspection PyUnusedLocal
-def gohome(K, presstype):  # neither peram used
+def gohome(K):  # neither peram used
 	logsupport.Logs.Log('Exiting Maintenance Screen')
 	# timers.EndLongOp('maintenance')
-	screens.DS.SwitchScreen(screens.HomeScreen, 'Bright', 'Home', 'Maint exit', NavKeys=True)
+	screens.DS.SwitchScreen(screens.HomeScreen, 'Bright', 'Maint exit', 'Home', NavKeys=True)
 
 
 # noinspection PyUnusedLocal
-def goto(newscreen, K, presstype):
-	screens.DS.SwitchScreen(newscreen, 'Bright', 'Maint', 'Maint goto' + newscreen.name, NavKeys=False)
+def goto(newscreen, K):
+	screens.DS.SwitchScreen(newscreen, 'Bright', 'Maint goto' + newscreen.name, 'Maint', NavKeys=False)
 
 
 # noinspection PyUnusedLocal
-def handleexit(K, YesKey, presstype):
-	# YesKey, presstype are ignored in this use - needed by the key press invokation for other purposes
+def handleexit(K, YesKey):
+	# YesKey are ignored in this use - needed by the key press invokation for other purposes
 	domaintexit(K.name)
 
 
 # noinspection PyUnusedLocal
-def doexit(K, presstype):
+def doexit(K):
 	if K.name == 'shut':
 		verifymsg = 'Do Console Shutdown'
 	elif K.name == 'restart':
@@ -174,11 +174,11 @@ def doexit(K, presstype):
 	Verify = MaintScreenDesc('Verify',
 							 OrderedDict([('yes', (verifymsg, functools.partial(handleexit, K))),
 										  ('no', ('Cancel', functools.partial(goto, MaintScreen)))]))
-	screens.DS.SwitchScreen(Verify, 'Bright', 'Maint', 'Verify exit', NavKeys=False)
+	screens.DS.SwitchScreen(Verify, 'Bright', 'Verify exit', 'Maint', NavKeys=False)
 
 
 # noinspection PyUnusedLocal
-def dobeta(K, presstype):
+def dobeta(K):
 	# Future fetch other tags; switch to versionselector
 	K.State = not K.State
 	K.PaintKey()
@@ -253,23 +253,23 @@ class LogDisplayScreen(screen.BaseKeyScreenDesc):
 		utilities.register_example("LogDisplayScreen", self)
 
 	# noinspection PyUnusedLocal
-	def NextPage(self, presstype):
+	def NextPage(self):
 		if self.item >= 0:
 			self.pageno += 1
 			self.item = logsupport.Logs.RenderLog(self.BackgroundColor, start=self.item, pageno=self.pageno + 1)
 			if self.pageno + 1 == len(self.PageStartItem):
 				self.PageStartItem.append(self.item)
 		else:
-			screens.DS.SwitchScreen(MaintScreen, 'Bright', 'Maint', 'Done (next) showing log', NavKeys=False)
+			screens.DS.SwitchScreen(MaintScreen, 'Bright', 'Done (next) showing log', 'Maint', NavKeys=False)
 
 	# noinspection PyUnusedLocal
-	def PrevPage(self, presstype):
+	def PrevPage(self):
 		if self.pageno > 0:
 			self.pageno -= 1
 			self.item = logsupport.Logs.RenderLog(self.BackgroundColor, start=self.PageStartItem[self.pageno],
 												  pageno=self.pageno + 1)
 		else:
-			screens.DS.SwitchScreen(MaintScreen, 'Bright', 'Maint', 'Done (prev) showing log', NavKeys=False)
+			screens.DS.SwitchScreen(MaintScreen, 'Bright', 'Done (prev) showing log', 'Maint', NavKeys=False)
 
 	def InitDisplay(self, nav):
 		debug.debugPrint('Main', "Enter to screen: ", self.name)

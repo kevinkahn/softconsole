@@ -20,7 +20,8 @@ from utilfuncs import wc
 
 class VerifyScreen(screen.BaseKeyScreenDesc):
 
-	def __init__(self, key, gomsg, nogomsg, proc, callingscreen, bcolor, keycoloroff, charcolor, state, interestlist):
+	def __init__(self, key, gomsg, nogomsg, procyes, procno, callingscreen, bcolor, keycoloroff, charcolor, state,
+				 interestlist):
 		screen.BaseKeyScreenDesc.__init__(self, {}, key.name + '-Verify', parentscreen=key)
 		debug.debugPrint('Screen', "Build Verify Screen")
 
@@ -28,27 +29,31 @@ class VerifyScreen(screen.BaseKeyScreenDesc):
 		self.DimTO = 20
 		self.PersistTO = 10
 		self.label = screen.FlatenScreenLabel(key.label)
-		self.ScreenTitleBlk = None  # don't use parent screen title
+		self.ClearScreenTitle()  # don't use parent screen title
 		self.CallingScreen = callingscreen
 		screen.AddUndefaultedParams(self, None, TitleFontSize=40, SubFontSize=25)
+		self.SetScreenTitle(self.label, 40, charcolor)
 		self.Keys['yes'] = ManualKeyDesc(self, 'yes', gomsg, bcolor, keycoloroff, charcolor, State=state)
-		self.Keys['yes'].Proc = functools.partial(proc, True)
+		self.Keys['yes'].Proc = procyes  # functools.partial(proc, True)
 		self.Keys['no'] = ManualKeyDesc(self, 'no', nogomsg, bcolor, keycoloroff, charcolor, State=state)
-		self.Keys['no'].Proc = functools.partial(proc, False)
+		self.Keys['no'].Proc = procno if procno is not None else self.DefaultNo  # functools.partial(proc, False)
 
-		topoff = self.TitleFontSize + self.SubFontSize
-		self.LayoutKeys(topoff, hw.screenheight - 2 * screens.topborder - topoff)  # todo switch to new screen sizing
+		self.LayoutKeys(self.startvertspace, self.useablevertspace)
 		utilities.register_example("VerifyScreen", self)
 
+	@staticmethod
+	def DefaultNo():
+		screens.DS.SwitchScreen(screen.BACKTOKEN, 'Bright', 'Verify denied')
+
 	def Invoke(self):
-		screens.DS.SwitchScreen(self, 'Bright', screens.DS.state, 'Do Verify ' + self.name, NavKeys=False)
+		screens.DS.SwitchScreen(self, 'Bright', 'Do Verify ' + self.name, NavKeys=False, push=True)
 
 	def ShowScreen(self):
 		self.ReInitDisplay()
 		# self.PaintBase()
-		r = fonts.fonts.Font(self.TitleFontSize, '', True, True).render(self.label, 0, wc(self.CharColor))
-		rl = (hw.screenwidth - r.get_width()) / 2
-		hw.screen.blit(r, (rl, screens.topborder))
+		# r = fonts.fonts.Font(self.TitleFontSize, '', True, True).render(self.label, 0, wc(self.CharColor))
+		# rl = (hw.screenwidth - r.get_width()) / 2
+		#hw.screen.blit(r, (rl, screens.topborder))
 		self.PaintKeys()
 		pygame.display.update()
 
@@ -65,13 +70,13 @@ class ValueChangeScreen(screen.ScreenDesc):  # todo may need to call super class
 	def offsetpoint(center, point):
 		return center[0] + point[0], center[1] + point[1]
 
-	def CancelChange(self, presstype):
+	def CancelChange(self):
 		pass
 
-	def AcceptChange(self, presstype):
+	def AcceptChange(self):
 		pass
 
-	def ValChange(self, delta, presstype):
+	def ValChange(self, delta):
 		pass
 
 	# noinspection PyMissingConstructor
@@ -245,21 +250,21 @@ class ListChooserSubScreen(screen.ScreenDesc):
 															   proc=functools.partial(self.PickItemOK, False))
 
 	# noinspection PyUnusedLocal
-	def PickItem(self, slotnum, presstype):
+	def PickItem(self, slotnum):
 		# print(slotnum)
 		# change the source
 		self.selection = self.firstitem + slotnum
 		self.masterscreen.ShowScreen()
 
 	# noinspection PyUnusedLocal
-	def PickItemOK(self, doit, presstype):
+	def PickItemOK(self, doit):
 		if doit:
 			self.Result(self.selection)
 		else:
 			self.Result(-1)
 
 	# noinspection PyUnusedLocal
-	def PrevNext(self, nxt, presstype):
+	def PrevNext(self, nxt):
 		if nxt:
 			if self.firstitem + self.NumSlots < len(self.itemlist):
 				self.firstitem += self.NumSlots

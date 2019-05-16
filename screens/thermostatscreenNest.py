@@ -130,7 +130,7 @@ class NestThermostatScreenDesc(screen.BaseKeyScreenDesc):
 		utilities.register_example("NestThermostatScreenDesc", self)
 
 	# noinspection PyUnusedLocal
-	def BumpTemp(self, heat, change, presstype):
+	def BumpTemp(self, heat, change):
 		# heat: True if heat setpoint touched False for cool
 		# change: 1 for up, -1 for down
 		if self.TimeBumpSP is not None:
@@ -171,7 +171,7 @@ class NestThermostatScreenDesc(screen.BaseKeyScreenDesc):
 		self.ThermNode.PushFanState(self.fan)
 
 	# noinspection PyUnusedLocal
-	def BumpMode(self, presstype):
+	def BumpMode(self):
 		if self.TimeBumpModes is not None:
 			self.TimeBumpModes.cancel()  # cancel any pending timer
 		self.ModeLocal = 0.5  # just do a show screen for mode and fan
@@ -187,7 +187,7 @@ class NestThermostatScreenDesc(screen.BaseKeyScreenDesc):
 	# push setpoint change after 2 seconds of idle
 
 	# noinspection PyUnusedLocal
-	def BumpFan(self, presstype):
+	def BumpFan(self):
 		if self.TimeBumpFan is not None:
 			self.TimeBumpFan.cancel()  # cancel any pending timer
 		self.FanLocal = 0.5  # just do a show screen for mode and fan

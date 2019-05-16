@@ -42,6 +42,8 @@ screenStore = valuestore.NewValueStore(paramstore.ParamStore('ScreenParams'))
 
 screenparamuse = {}
 
+BACKTOKEN = None
+HOMETOKEN = None
 
 def InitScreenParams(parseconfig):
 	for p, v in ScreenParams.items():
@@ -66,6 +68,7 @@ def IncorporateParams(this, clsnm, theseparams, screensection):
 def AddUndefaultedParams(this, screensection, **kwargs):
 	if screensection is None: screensection = {}
 	for n, v in kwargs.items():
+		if n in this.__dict__: del this.__dict__[n]  # remove if it was declared statically
 		this.userstore.SetVal(n, type(v)(screensection.get(n, v)))
 
 
@@ -113,6 +116,7 @@ class ScreenDesc(object):
 
 		self.name = screenname
 		self.Active = False  # true if actually on screen
+		self.ScreenTimers = []
 		self.NavKeys = collections.OrderedDict()
 		self.Keys = collections.OrderedDict()
 		self.WithNav = True
@@ -124,6 +128,10 @@ class ScreenDesc(object):
 		self.titleoffset = 0
 		self.HubInterestList = {}  # one entry per hub, each entry is a dict mapping addr to Node
 		self.ScreenTitleBlk = None
+		self.prevkey = None
+		self.nextkey = None
+		self.homekey = None
+		self.backkey = None
 
 		IncorporateParams(self, 'Screen',
 						  {'CharColor', 'DimTO', 'PersistTO', 'BackgroundColor', 'CmdKeyCol', 'CmdCharCol',
@@ -149,13 +157,21 @@ class ScreenDesc(object):
 
 		utilities.register_example('ScreenDesc', self)
 
+	def ClearScreenTitle(self):
+		if self.ScreenTitleBlk is None: return
+		h = self.ScreenTitleBlk.get_height()
+		self.ScreenTitleBlk = None
+		titlegap = h // 10
+		self.startvertspace = self.startvertspace - h - titlegap
+		self.useablevertspace = self.useablevertspace + h + titlegap
+
 	def SetScreenTitle(self, name, fontsz, color):
 		if self.ScreenTitleBlk is not None:
 			return  # User explicitly set a title so don't override it
 		self.ScreenTitleBlk = fonts.fonts.Font(fontsz).render(name, 0, wc(color))
 		h = self.ScreenTitleBlk.get_height()
 		w = self.ScreenTitleBlk.get_width()
-		titlegap = h // 10  # todo is this the best way to space?
+		titlegap = h // 10  # todo is this the best way to space? if fix - fix clear also
 		self.startvertspace = self.startvertspace + h + titlegap
 		self.useablevertspace = self.useablevertspace - h - titlegap
 		self.titleoffset = screens.horizborder + (self.useablehorizspace - w) // 2
@@ -202,7 +218,10 @@ class ScreenDesc(object):
 				pass
 
 	def ExitScreen(self):
-		pass
+		for timer in self.ScreenTimers:
+			if timer.is_alive():
+				timer.cancel()
+		self.ScreenTimers = []
 
 	def PaintBase(self):
 		hw.screen.fill(wc(self.BackgroundColor))

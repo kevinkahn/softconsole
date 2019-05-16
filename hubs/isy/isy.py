@@ -52,10 +52,17 @@ class OnOffItem(ISYNode):
 	Provides command handling for nodes that can be sent on/off faston/fastoff commands.
 	"""
 
-	def SendOnOffCommand(self, settoon, presstype):
-		selcmd = (('DOF', 'DFOF'), ('DON', 'DFON'))
-		debug.debugPrint('ISYdbg', "OnOff sent: ", selcmd[settoon][presstype], ' to ', self.name)
-		r = self.Hub.try_ISY_comm('nodes/' + self.address + '/cmd/' + selcmd[settoon][presstype])
+	def SendOnOffCommand(self, settoon):
+		selcmd = ('DOF', 'DON')
+		debug.debugPrint('ISYdbg', "OnOff sent: ", selcmd[settoon], ' to ', self.name)
+		r = self.Hub.try_ISY_comm('nodes/' + self.address + '/cmd/' + selcmd[settoon])
+		if r == "":  # error in comm - fake a response to see unavailable key
+			self.Hub.isyEM.FakeNodeChange()
+
+	def SendOnOffFastCommand(self, settoon):
+		selcmd = ('DFOF', 'DFON')
+		debug.debugPrint('ISYdbg', "Fast OnOff sent: ", selcmd[settoon], ' to ', self.name)
+		r = self.Hub.try_ISY_comm('nodes/' + self.address + '/cmd/' + selcmd[settoon])
 		if r == "":  # error in comm - fake a response to see unavailable key
 			self.Hub.isyEM.FakeNodeChange()
 

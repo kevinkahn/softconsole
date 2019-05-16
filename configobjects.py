@@ -2,29 +2,23 @@
 import functools
 
 from configobj import Section
-
 import config
 import debug
 import exitutils
 import hw
 import logsupport
+import screen
 import screens.__screens as screens
 import toucharea
 from logsupport import ConsoleWarning, ConsoleError, ConsoleDetail
 
+GoToTargetList = {}
 
 class MyScreens(object):
-	class scrlistitem(object):
-		def __init__(self, scr):
-			self.screen = scr
-			self.prevkey = None
-			self.nextkey = None
 
 	def __init__(self, configfile):
 
 		thisconfig = configfile
-		self.ExtraDict = {}
-		self.ExtraChain = []
 
 		debug.debugPrint('Screen', "Process Configuration File")
 
@@ -53,12 +47,12 @@ class MyScreens(object):
 			if NewScreen is not None:
 				if NewScreen.name in config.sysStore.MainChain:
 					# entry filled in later with prev and next key pointers
-					screens.MainDict[NewScreen.name] = self.scrlistitem(NewScreen)
+					screens.MainDict[NewScreen.name] = NewScreen
 				elif NewScreen.name in config.sysStore.SecondaryChain:
-					screens.SecondaryDict[NewScreen.name] = self.scrlistitem(NewScreen)
+					screens.SecondaryDict[NewScreen.name] = NewScreen
 				else:
-					self.ExtraDict[NewScreen.name] = self.scrlistitem(NewScreen)
-					self.ExtraChain.append(NewScreen.name)
+					screens.ExtraDict[NewScreen.name] = NewScreen
+					screens.ExtraChain.append(NewScreen.name)
 
 		# Validate screen lists and log them
 
@@ -88,10 +82,25 @@ class MyScreens(object):
 		cbutwidth = (hw.screenwidth - 2 * screens.horizborder) / 2
 		cvertcenter = hw.screenheight - screens.botborder / 2
 		cbutheight = screens.botborder - screens.cmdvertspace * 2
+		for s in screens.screenslist.values():
+			s.homekey = toucharea.ManualKeyDesc(s, 'Back<' + 'Home', ('Home',),
+												s.CmdKeyCol, s.CmdCharCol, s.CmdCharCol,
+												proc=functools.partial(screens.DS.NavPress, screen.HOMETOKEN),
+												center=(
+													screens.horizborder + .5 * cbutwidth,
+													cvertcenter),
+												size=(cbutwidth, cbutheight))
+			s.backkey = toucharea.ManualKeyDesc(s, 'Nav>' + 'Back', ('Back',),
+												s.CmdKeyCol, s.CmdCharCol, s.CmdCharCol,
+												proc=functools.partial(screens.DS.NavPress, screen.BACKTOKEN),
+												center=(
+													screens.horizborder + 1.5 * cbutwidth,
+													cvertcenter),
+												size=(cbutwidth, cbutheight))
 		for i, kn in enumerate(config.sysStore.MainChain):
-			prevk = screens.MainDict[config.sysStore.MainChain[i - 1]].screen
-			nextk = screens.MainDict[config.sysStore.MainChain[(i + 1) % len(config.sysStore.MainChain)]].screen
-			screens.MainDict[kn].prevkey = toucharea.ManualKeyDesc(screens.MainDict[kn].screen, 'Nav<' + prevk.name,
+			prevk = screens.MainDict[config.sysStore.MainChain[i - 1]]
+			nextk = screens.MainDict[config.sysStore.MainChain[(i + 1) % len(config.sysStore.MainChain)]]
+			screens.MainDict[kn].prevkey = toucharea.ManualKeyDesc(screens.MainDict[kn], 'Nav<' + prevk.name,
 																   prevk.label,
 																   prevk.CmdKeyCol, prevk.CmdCharCol,
 																   prevk.CmdCharCol,
@@ -100,7 +109,7 @@ class MyScreens(object):
 																	   screens.horizborder + .5 * cbutwidth,
 																	   cvertcenter),
 																   size=(cbutwidth, cbutheight))
-			screens.MainDict[kn].nextkey = toucharea.ManualKeyDesc(screens.MainDict[kn].screen, 'Nav>' + nextk.name,
+			screens.MainDict[kn].nextkey = toucharea.ManualKeyDesc(screens.MainDict[kn], 'Nav>' + nextk.name,
 																   nextk.label,
 																   nextk.CmdKeyCol, nextk.CmdCharCol,
 																   nextk.CmdCharCol,
@@ -111,11 +120,11 @@ class MyScreens(object):
 																   size=(cbutwidth, cbutheight))
 
 		for i, kn in enumerate(config.sysStore.SecondaryChain):
-			prevk = screens.SecondaryDict[config.sysStore.SecondaryChain[i - 1]].screen
+			prevk = screens.SecondaryDict[config.sysStore.SecondaryChain[i - 1]]
 			nextk = screens.SecondaryDict[
-				config.sysStore.SecondaryChain[(i + 1) % len(config.sysStore.SecondaryChain)]].screen
+				config.sysStore.SecondaryChain[(i + 1) % len(config.sysStore.SecondaryChain)]]
 			screens.SecondaryDict[kn].prevkey = toucharea.ManualKeyDesc(
-				screens.SecondaryDict[kn].screen,
+				screens.SecondaryDict[kn],
 				'Nav<' + prevk.name,
 				prevk.label,
 				prevk.CmdKeyCol, prevk.CmdCharCol,
@@ -126,7 +135,7 @@ class MyScreens(object):
 					screens.horizborder + .5 * cbutwidth, cvertcenter),
 				size=(cbutwidth, cbutheight))
 			screens.SecondaryDict[kn].nextkey = toucharea.ManualKeyDesc(
-				screens.SecondaryDict[kn].screen,
+				screens.SecondaryDict[kn],
 				'Nav>' + nextk.name,
 				nextk.label,
 				nextk.CmdKeyCol, nextk.CmdCharCol,
@@ -138,14 +147,14 @@ class MyScreens(object):
 				size=(cbutwidth, cbutheight))
 
 		if config.sysStore.HomeScreenName in config.sysStore.MainChain:
-			screens.HomeScreen = screens.MainDict[config.sysStore.HomeScreenName].screen
+			screens.HomeScreen = screens.MainDict[config.sysStore.HomeScreenName]
 		else:
 			logsupport.Logs.Log("Error in Home Screen Name", severity=ConsoleWarning)
-			screens.HomeScreen = screens.MainDict[config.sysStore.MainChain[0]].screen
+			screens.HomeScreen = screens.MainDict[config.sysStore.MainChain[0]]
 		logsupport.Logs.Log("Home Screen: " + screens.HomeScreen.name)
 
 		if config.sysStore.SecondaryChain:
-			screens.HomeScreen2 = screens.SecondaryDict[config.sysStore.SecondaryChain[0]].screen
+			screens.HomeScreen2 = screens.SecondaryDict[config.sysStore.SecondaryChain[0]]
 			logsupport.Logs.Log("Secondary home screen: " + screens.HomeScreen2.name)
 		else:
 			screens.HomeScreen2 = screens.HomeScreen
@@ -154,13 +163,9 @@ class MyScreens(object):
 		# noinspection PyBroadException
 		try:
 			for sn, st in zip(config.sysStore.DimIdleListNames, config.sysStore.DimIdleListTimes):
-				for l, d in zip((config.sysStore.MainChain, config.sysStore.SecondaryChain,
-								 self.ExtraChain),
-								(screens.MainDict, screens.SecondaryDict, self.ExtraDict)):
-					if sn in l:
-						logsupport.Logs.Log('Cover Screen: ' + sn + '/' + st)
-						screens.DimIdleList.append(d[sn].screen)
-						screens.DimIdleTimes.append(int(st))
+				screens.DimIdleList.append(screens.screenslist[sn])
+				screens.DimIdleTimes.append(int(st))
+				logsupport.Logs.Log('Cover Screen: {}/{}'.format(sn, st))
 		except:
 			logsupport.Logs.Log("Error specifying idle screens - check config", severity=ConsoleWarning)
 
@@ -177,7 +182,15 @@ class MyScreens(object):
 			screens.DimIdleTimes = [1000000]
 			logsupport.Logs.Log("No Dim Home Screen Cover Set")
 
+		for k, s in GoToTargetList.items():
+			try:
+				k.targetscreen = screens.screenslist[s]
+				if s in screens.ExtraDict: del screens.ExtraDict[s]
+			except KeyError:
+				logsupport.Logs.Log("GoTo Key target {} doesn't exist".format(s))
+
 		logsupport.Logs.Log("Defined but unused screens:")
-		for nm, scr in self.ExtraDict.items():
-			if (not isinstance(scr.screen, screens.screentypes["Alert"])) and (not scr.screen in screens.DimIdleList):
+		for nm, scr in screens.ExtraDict.items():
+			if (not isinstance(scr, screens.screentypes["Alert"])) and (
+			not scr in screens.DimIdleList):  # todo also add targets of gotos
 				logsupport.Logs.Log("---Unused: " + nm, severity=ConsoleWarning)

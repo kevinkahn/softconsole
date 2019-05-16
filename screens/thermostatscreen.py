@@ -107,13 +107,13 @@ class ThermostatScreenDesc(screen.BaseKeyScreenDesc):
 		utilities.register_example("ThermostatScreenDesc", self)
 
 	# noinspection PyUnusedLocal
-	def BumpTemp(self, setpoint, degrees, presstype):
+	def BumpTemp(self, setpoint, degrees):
 		debug.debugPrint('Main', "Bump temp: ", setpoint, degrees, ' to ', self.info[setpoint][0] + degrees)
 		self.isy.try_ISY_comm('nodes/' + self.ISYObj.address + '/cmd/' + setpoint + '/' + str(
 			self.info[setpoint][0] + degrees))  # todo fix for lost connect when move to common screen
 
 	# noinspection PyUnusedLocal
-	def BumpMode(self, mode, vals, presstype):
+	def BumpMode(self, mode, vals):
 		cv = vals.index(self.info[mode][0])
 		cv = (cv + 1) % len(vals)
 		debug.debugPrint('Main', "Bump: ", mode, ' to ', cv)

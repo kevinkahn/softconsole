@@ -1,4 +1,5 @@
 from hw import scaleH, scaleW
+import collections
 
 HomeScreen = None
 HomeScreen2 = None
@@ -6,6 +7,9 @@ DimIdleList = []
 DimIdleTimes = []
 MainDict = {}  # map: name:screen
 SecondaryDict = {}
+ExtraDict = {}
+ExtraChain = []
+screenslist = collections.ChainMap(MainDict, SecondaryDict, ExtraDict)
 DS = None  # Display Screen handles running the button presses and touch recognition
 
 horizborder = 20

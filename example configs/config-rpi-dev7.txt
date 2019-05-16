@@ -17,7 +17,7 @@ DimIdleListNames = MyClock, PDXTTbig, LQTTbig, Pumpkin
 
 DimIdleListTimes =	5, 5, 5, 5
 
-MainChain = Creator Pro,LR1,Sonos,LR2, Pumpkin, Local, Upper Level, Test
+MainChain = Creator Pro,TreeTest, LR1,Sonos,LR2, Pumpkin, Local, Upper Level, Test
 SecondaryChain = Portland, Bathroom, BR, Thermostat - Main,LQTTbig, climate.master_bedroom, climate.living_room, pgawBR, pgawOther, pgawBath
 
 DefaultHub = ISY
@@ -185,6 +185,34 @@ DefaultHub = ISY
         NoGoMsg = Oops, Never Mind!
         Blink = 11
         label = Test, Program, Verify
+
+[TreeTest]
+type = Keypad
+label = Stuff,
+[[LR1]]
+type = GOTO
+ScreenName = LR1
+KeyColor = purple
+[[LR2]]
+type = GOTO
+ScreenName = LR2
+ [[Office Ceiling]]
+    type = ONOFF
+	label = Office, Ceiling2
+[[TreeTest2]]
+type = GOTO
+ScreenName = TreeTest2
+
+[TreeTest2]
+type = Keypad
+label = More Stuff,
+ [[Office Ceiling]]
+    type = ONOFF
+	label = Office, Ceiling3
+[[LR1]]
+type = GOTO
+ScreenName = LR1
+
 #    [[LR Plug Dr]]
 #        label = Reading, Light, Door
 

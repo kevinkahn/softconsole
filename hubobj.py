@@ -3,7 +3,7 @@ class hub(object):
 		# return (Control Obj, Monitor Obj)
 		pass
 
-	def SendPress(self, ControlObj, presstype):
+	def SendPress(self, ControlObj):
 		pass  # return success? there already is a SendCommand for OnOff nodes in ISY
 
 	def SetSliderVal(self):
