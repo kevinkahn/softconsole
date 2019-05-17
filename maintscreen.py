@@ -30,20 +30,23 @@ def SetUpMaintScreens():
 	global MaintScreen
 	LogDisp = LogDisplayScreen()
 	Exits = MaintScreenDesc('Exits',
-							OrderedDict([('shut', ('Shutdown Console', doexit)),
-										 ('restart', ('Restart Console', doexit)),
-										 ('shutpi', ('Shutdown Pi', doexit)), ('reboot', ('Reboot Pi', doexit)),
+							OrderedDict([('shut', ('Shutdown Console', doexit, 'adddkey')),
+										 ('restart', ('Restart Console', doexit, 'adddkey')),
+										 ('shutpi', ('Shutdown Pi', doexit)),
+										 ('reboot', ('Reboot Pi', doexit, 'adddkey')),
 										 ('return', ('Return', None))]))  # proc filled in below due to circularity
 	Beta = MaintScreenDesc('Versions',
-						   OrderedDict([('stable', ('Use Stable Release', dobeta)),
-										('beta', ('Use Beta Release', dobeta)),
-										('release', ('Download release', dobeta)), ('fetch', ('Download Beta', dobeta)),
+						   OrderedDict([('stable', ('Use Stable Release', dobeta, 'adddkey')),
+										('beta', ('Use Beta Release', dobeta, 'adddkey')),
+										('release', ('Download release', dobeta, 'adddkey')),
+										('fetch', ('Download Beta', dobeta, 'adddkey')),
 										('return', ('Return', None))]))  # proc filled in below due to circularity
 	MaintScreen = MaintScreenDesc('Maintenance',
 								  OrderedDict([('return', ('Exit Maintenance', gohome)),
-											   ('log', ('Show Log', functools.partial(goto, LogDisp))),
+											   ('log',
+												('Show Log', functools.partial(screen.PushToScreen, LogDisp, 'Maint'))),
 											   ('beta', ('Select Version', functools.partial(goto, Beta))),
-											   ('flags', ('Set Flags', None)),
+											   ('flags', ('Set Flags', None)),  # key gets appended below
 											   # fixed below to break a dependency loop - this is key 3
 											   ('exit', ('Exit/Restart', functools.partial(goto, Exits)))]))
 	FlagsScreens = []
@@ -73,7 +76,7 @@ def SetUpMaintScreens():
 		FlagsScreens[-1].KeysPerRow = flagsperrow
 
 	for i in range(len(FlagsScreens) - 1):
-		FlagsScreens[i].Keys['next'].Proc = functools.partial(goto, FlagsScreens[i + 1], FlagsScreens[i].Keys['next'])
+		FlagsScreens[i].Keys['next'].Proc = functools.partial(goto, FlagsScreens[i + 1])
 
 	for s in FlagsScreens:
 		s.userstore.ReParent(MaintScreen)
@@ -90,9 +93,9 @@ def SetUpMaintScreens():
 	debug.DebugFlagKeys["LogLevelDown"].SetKeyImages(
 		("Log Detail", logsupport.LogLevels[logsupport.LogLevel] + '(' + str(logsupport.LogLevel) + ')', "More"))
 
-	MaintScreen.Keys['flags'].Proc = functools.partial(goto, FlagsScreens[0], MaintScreen.Keys['flags'])
-	Exits.Keys['return'].Proc = functools.partial(goto, MaintScreen, Exits.Keys['return'])
-	Beta.Keys['return'].Proc = functools.partial(goto, MaintScreen, Beta.Keys['return'])
+	MaintScreen.Keys['flags'].Proc = functools.partial(goto, FlagsScreens[0])
+	Exits.Keys['return'].Proc = functools.partial(goto, MaintScreen)
+	Beta.Keys['return'].Proc = functools.partial(goto, MaintScreen)
 	Exits.userstore.ReParent(MaintScreen)
 	Beta.userstore.ReParent(MaintScreen)
 	LogDisp.userstore.ReParent(MaintScreen)
@@ -144,16 +147,15 @@ def adjloglevel(K):
 
 
 # noinspection PyUnusedLocal
-def gohome(K):  # neither peram used
+def gohome():  # neither peram used
 	logsupport.Logs.Log('Exiting Maintenance Screen')
 	# timers.EndLongOp('maintenance')
-	screens.DS.SwitchScreen(screens.HomeScreen, 'Bright', 'Maint exit', 'Home', NavKeys=True)
+	screens.DS.SwitchScreen(screens.HomeScreen, 'Bright', 'Maint exit', newstate='Home')
 
 
 # noinspection PyUnusedLocal
-def goto(newscreen, K):
-	screens.DS.SwitchScreen(newscreen, 'Bright', 'Maint goto' + newscreen.name, 'Maint', NavKeys=False)
-
+def goto(newscreen):
+	screens.DS.SwitchScreen(newscreen, 'Bright', 'Maint goto' + newscreen.name, newstate='Maint')
 
 # noinspection PyUnusedLocal
 def handleexit(K, YesKey):
@@ -174,7 +176,7 @@ def doexit(K):
 	Verify = MaintScreenDesc('Verify',
 							 OrderedDict([('yes', (verifymsg, functools.partial(handleexit, K))),
 										  ('no', ('Cancel', functools.partial(goto, MaintScreen)))]))
-	screens.DS.SwitchScreen(Verify, 'Bright', 'Verify exit', 'Maint', NavKeys=False)
+	screens.DS.SwitchScreen(Verify, 'Bright', 'Verify exit', newstate='Maint')
 
 
 # noinspection PyUnusedLocal
@@ -225,7 +227,6 @@ def fetch_beta():
 	basedir = os.path.dirname(config.sysStore.ExecDir)
 	ReportStatus("updt beta")
 	logsupport.Logs.Log("New version fetch(currentbeta)")
-	print("New Version Fetch Requested (currentbeta)")
 	# noinspection PyBroadException
 	try:
 		U.StageVersion(basedir + '/consolebeta', 'currentbeta', 'Maint Dnld')
@@ -239,6 +240,10 @@ def fetch_beta():
 class LogDisplayScreen(screen.BaseKeyScreenDesc):
 	def __init__(self):
 		screen.BaseKeyScreenDesc.__init__(self, None, 'LOG')
+		self.NavKeysShowing = False
+		self.state = 'init'  # init: new entry to logs; scroll: doing error scroll manual: user control
+		self.startat = 0  # where in log page starts
+		self.startpage = 0
 		self.item = 0
 		self.pageno = -1
 		self.PageStartItem = [0]
@@ -256,51 +261,75 @@ class LogDisplayScreen(screen.BaseKeyScreenDesc):
 	def NextPage(self):
 		if self.item >= 0:
 			self.pageno += 1
-			self.item = logsupport.Logs.RenderLog(self.BackgroundColor, start=self.item, pageno=self.pageno + 1)
-			if self.pageno + 1 == len(self.PageStartItem):
-				self.PageStartItem.append(self.item)
+			self.startpage = self.item
+			screens.DS.SwitchScreen(screen.SELFTOKEN, 'Bright', 'Scroll Next', newstate='Maint')
 		else:
-			screens.DS.SwitchScreen(MaintScreen, 'Bright', 'Done (next) showing log', 'Maint', NavKeys=False)
+			if self.state != 'scroll':
+				self.state = 'init'
+				screens.DS.SwitchScreen(screen.BACKTOKEN, 'Bright', 'Done (next) showing log', newstate='Maint')
+			else:
+				self.state = 'manual'
 
 	# noinspection PyUnusedLocal
 	def PrevPage(self):
 		if self.pageno > 0:
 			self.pageno -= 1
-			self.item = logsupport.Logs.RenderLog(self.BackgroundColor, start=self.PageStartItem[self.pageno],
-												  pageno=self.pageno + 1)
+			self.startpage = self.PageStartItem[self.pageno]
+			screens.DS.SwitchScreen(screen.SELFTOKEN, 'Bright', 'Scroll Prev', newstate='Maint')
 		else:
-			screens.DS.SwitchScreen(MaintScreen, 'Bright', 'Done (prev) showing log', 'Maint', NavKeys=False)
+			self.state = 'init'
+			screens.DS.SwitchScreen(screen.BACKTOKEN, 'Bright', 'Done (prev) showing log', newstate='Maint')
 
 	def InitDisplay(self, nav):
-		debug.debugPrint('Main', "Enter to screen: ", self.name)
-		super(LogDisplayScreen, self).InitDisplay(nav)
-		logsupport.Logs.Log('Entering Log Screen')
-		if config.sysStore.ErrorNotice != -1:
-			startat = config.sysStore.ErrorNotice
-			config.sysStore.ErrorNotice = -1
+		if self.state == 'init':
+			debug.debugPrint('Main', "Enter to screen: ", self.name)
+			super(LogDisplayScreen, self).InitDisplay(nav)
+			logsupport.Logs.Log('Entering Log Screen')
+			self.startat = 0
+			self.startpage = 0
+			self.item = 0
+			self.pageno = -1
+			self.PageStartItem = [0]
+			if config.sysStore.ErrorNotice != -1:
+				self.state = 'scroll'
+				self.startat = config.sysStore.ErrorNotice
+				config.sysStore.ErrorNotice = -1
+			else:
+				self.state = 'manual'
+				self.startat = 0
+			UpdateGlobalErrorPointer()
+			self.item = 0
+			self.PageStartItem = [0]
+			self.pageno = -1
+		if self.state == 'scroll':
+			if (self.item < self.startat) and (
+					self.item != -1):  # if first error not yet up and not last page go to next page
+				timers.OnceTimer(.25, start=True, name='LogPage{}'.format(self.item), proc=self.LogSwitch)
+			else:
+				self.state = 'manual'
 		else:
-			startat = 0
-		UpdateGlobalErrorPointer()
-		self.item = 0
-		self.PageStartItem = [0]
-		self.pageno = -1
-		self.NextPage(0)
-		while (self.item < startat) and (
-				self.item != -1):  # if first error not yet up and not last page go to next page
-			time.sleep(.05)
-			self.NextPage(0)
+			pass
+		self.item = logsupport.Logs.RenderLog(self.BackgroundColor, start=self.startpage, pageno=self.pageno + 1)
+		if self.pageno + 1 == len(self.PageStartItem):  # if first time we saw this page remember its start pos
+			self.PageStartItem.append(self.item)
 
+	def LogSwitch(self, event):
+		self.NextPage()
 
 class MaintScreenDesc(screen.BaseKeyScreenDesc):
 	# noinspection PyDefaultArgument
 	def __init__(self, name, keys, overrides=fixedoverrides):
 		screen.BaseKeyScreenDesc.__init__(self, overrides, name)
 		debug.debugPrint('Screen', "Build Maintenance Screen")
+		self.NavKeysShowing = False
 		screen.AddUndefaultedParams(self, None, TitleFontSize=40, SubFontSize=25)
 		for k, kt in keys.items():
 			NK = toucharea.ManualKeyDesc(self, k, [kt[0]], 'gold', 'black', 'red', KOn='black', KOff='red')
 			if kt[1] is not None:
-				NK.Proc = functools.partial(kt[1], NK)
+				if len(kt) == 3:  # need to add key reference to the proc for this key
+					NK.Proc = functools.partial(kt[1], NK)
+				else:
+					NK.Proc = kt[1]
 			self.Keys[k] = NK
 		topoff = self.TitleFontSize + self.SubFontSize
 		self.LayoutKeys(topoff, hw.screenheight - 2 * screens.topborder - topoff)  # todo switch to use useable vert hgt

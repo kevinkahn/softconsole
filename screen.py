@@ -44,10 +44,19 @@ screenparamuse = {}
 
 BACKTOKEN = None
 HOMETOKEN = None
+SELFTOKEN = None
 
 def InitScreenParams(parseconfig):
 	for p, v in ScreenParams.items():
 		screenStore.SetVal(p, type(v)(parseconfig.get(p, v)))
+
+
+def GoToScreen(NS, newstate='NonHome'):
+	screens.DS.SwitchScreen(NS, 'Bright', 'Go to Screen', newstate=newstate)
+
+
+def PushToScreen(NS, newstate='NonHome'):
+	screens.DS.SwitchScreen(NS, 'Bright', 'Push to Screen', newstate=newstate, push=True)
 
 
 def IncorporateParams(this, clsnm, theseparams, screensection):
@@ -117,6 +126,7 @@ class ScreenDesc(object):
 		self.name = screenname
 		self.Active = False  # true if actually on screen
 		self.ScreenTimers = []
+		self.NavKeysShowing = True
 		self.NavKeys = collections.OrderedDict()
 		self.Keys = collections.OrderedDict()
 		self.WithNav = True

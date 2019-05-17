@@ -415,6 +415,7 @@ Set up screen Tokens
 """
 screen.BACKTOKEN = screen.ScreenDesc({}, '***BACK***')
 screen.HOMETOKEN = screen.ScreenDesc({}, '***HOME***')
+screen.SELFTOKEN = screen.ScreenDesc({}, '***SELF***')
 
 """
 Set up alerts and local variables

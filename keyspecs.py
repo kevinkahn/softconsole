@@ -262,7 +262,6 @@ class RunProgram(ManualKeyDesc):
 		if self.FastPress:
 			if self.Verify:
 				self.VerifyScreen.Invoke()
-			# screens.DS.SwitchScreen(self, 'Bright', screens.DS.state, 'Do Verify ' + self.name, NavKeys=False)
 			else:
 				self.Program.RunProgram()
 				self.ScheduleBlinkKey(self.Blink)
@@ -270,7 +269,6 @@ class RunProgram(ManualKeyDesc):
 
 class GoToKey(ManualKeyDesc):
 	def __init__(self, thisscreen, keysection, keyname):
-		global FixUps
 		debug.debugPrint('Screen', "             New GoTo Key ", keyname)
 		ManualKeyDesc.__init__(self, thisscreen, keysection, keyname)
 		screen.AddUndefaultedParams(self, keysection, ScreenName='**unspecified**')
@@ -278,15 +276,6 @@ class GoToKey(ManualKeyDesc):
 		GoToTargetList[self] = self.ScreenName
 
 		self.Proc = self.GoToKeyPressed
-
-	@classmethod
-	def from_Code(cls, thisscreen, keyname, label, bcolor, charcoloron, charcoloroff, center=(0, 0), size=(0, 0),
-				  KOn=None,
-				  KOff=None, proc=None, procdbl=None, KCon='', KCoff='', KLon=('',), KLoff=('',), State=True, Blink=0,
-				  Verify=False):
-		inst = ManualKeyDesc.__init__()
-
-	# inst.targetscreen = targetscreen
 
 	def GoToKeyPressed(self):
 		if self.targetscreen is None:

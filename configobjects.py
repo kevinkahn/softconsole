@@ -85,14 +85,14 @@ class MyScreens(object):
 		for s in screens.screenslist.values():
 			s.homekey = toucharea.ManualKeyDesc(s, 'Back<' + 'Home', ('Home',),
 												s.CmdKeyCol, s.CmdCharCol, s.CmdCharCol,
-												proc=functools.partial(screens.DS.NavPress, screen.HOMETOKEN),
+												proc=functools.partial(screen.GoToScreen, screen.HOMETOKEN),
 												center=(
 													screens.horizborder + .5 * cbutwidth,
 													cvertcenter),
 												size=(cbutwidth, cbutheight))
 			s.backkey = toucharea.ManualKeyDesc(s, 'Nav>' + 'Back', ('Back',),
 												s.CmdKeyCol, s.CmdCharCol, s.CmdCharCol,
-												proc=functools.partial(screens.DS.NavPress, screen.BACKTOKEN),
+												proc=functools.partial(screen.GoToScreen, screen.BACKTOKEN),
 												center=(
 													screens.horizborder + 1.5 * cbutwidth,
 													cvertcenter),
@@ -104,7 +104,7 @@ class MyScreens(object):
 																   prevk.label,
 																   prevk.CmdKeyCol, prevk.CmdCharCol,
 																   prevk.CmdCharCol,
-																   proc=functools.partial(screens.DS.NavPress, prevk),
+																   proc=functools.partial(screen.GoToScreen, prevk),
 																   center=(
 																	   screens.horizborder + .5 * cbutwidth,
 																	   cvertcenter),
@@ -113,7 +113,7 @@ class MyScreens(object):
 																   nextk.label,
 																   nextk.CmdKeyCol, nextk.CmdCharCol,
 																   nextk.CmdCharCol,
-																   proc=functools.partial(screens.DS.NavPress, nextk),
+																   proc=functools.partial(screen.GoToScreen, nextk),
 																   center=(
 																	   screens.horizborder + 1.5 * cbutwidth,
 																	   cvertcenter),
@@ -129,8 +129,7 @@ class MyScreens(object):
 				prevk.label,
 				prevk.CmdKeyCol, prevk.CmdCharCol,
 				prevk.CmdCharCol,
-				proc=functools.partial(screens.DS.NavPress,
-									   prevk),
+				proc=functools.partial(screen.GoToScreen, prevk),
 				center=(
 					screens.horizborder + .5 * cbutwidth, cvertcenter),
 				size=(cbutwidth, cbutheight))
@@ -140,8 +139,7 @@ class MyScreens(object):
 				nextk.label,
 				nextk.CmdKeyCol, nextk.CmdCharCol,
 				nextk.CmdCharCol,
-				proc=functools.partial(screens.DS.NavPress,
-									   nextk),
+				proc=functools.partial(screen.GoToScreen, nextk),
 				center=(screens.horizborder + 1.5 * cbutwidth,
 						cvertcenter),
 				size=(cbutwidth, cbutheight))

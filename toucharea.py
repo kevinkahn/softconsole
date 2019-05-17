@@ -101,6 +101,16 @@ class ManualKeyDesc(TouchPoint):
 		utilities.register_example("ManualKeyDesc", self)
 
 	# noinspection PyUnusedLocal
+	def KeyParameters(self, label='', bcolor='black', charcoloron='white', charcoloroff='red', center=(0, 0),
+					  size=(0, 0),
+					  KOn=None, KOff=None, proc=None, procdbl=None, KCon='', KCoff='', KLon=('',), KLoff=('',),
+					  State=True, Blink=0, Verify=False):
+		# turn this into a dict that matches the section options
+		D = {'KeyColor': bcolor, 'KeyOffOutlineColor': KOff, 'KeyOnOutlineColor': KOn,
+			 'KeyCharColorOn': charcoloron, 'KeyCharColorOff': charcoloroff,
+			 'KeyColorOn': KCon, 'KeyColorOff': KCoff,
+			 'KeyLabelOn': list(KLon), 'KeyLabelOff': list(KLoff)}
+
 	def docodeinit(self, thisscreen, keyname, label, bcolor, charcoloron, charcoloroff, center=(0, 0), size=(0, 0),
 				   KOn=None,
 				   KOff=None, proc=None, procdbl=None, KCon='', KCoff='', KLon=('',), KLoff=('',), State=True, Blink=0,

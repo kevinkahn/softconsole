@@ -24,7 +24,7 @@ class VerifyScreen(screen.BaseKeyScreenDesc):
 				 interestlist):
 		screen.BaseKeyScreenDesc.__init__(self, {}, key.name + '-Verify', parentscreen=key)
 		debug.debugPrint('Screen', "Build Verify Screen")
-
+		self.NavKeysShowing = False
 		self.HubInterestList = interestlist
 		self.DimTO = 20
 		self.PersistTO = 10
@@ -46,7 +46,7 @@ class VerifyScreen(screen.BaseKeyScreenDesc):
 		screens.DS.SwitchScreen(screen.BACKTOKEN, 'Bright', 'Verify denied')
 
 	def Invoke(self):
-		screens.DS.SwitchScreen(self, 'Bright', 'Do Verify ' + self.name, NavKeys=False, push=True)
+		screens.DS.SwitchScreen(self, 'Bright', 'Do Verify ' + self.name, push=True)
 
 	def ShowScreen(self):
 		self.ReInitDisplay()

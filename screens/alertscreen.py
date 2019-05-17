@@ -1,7 +1,7 @@
 import pygame
+import traceback
 
 import alerttasks
-import config
 import debug
 import fonts
 import hw
@@ -25,6 +25,7 @@ class AlertsScreenDesc(screen.ScreenDesc):
 		global alertscreens
 		screen.ScreenDesc.__init__(self, screensection, screenname)
 		debug.debugPrint('Screen', "Build Alerts Screen")
+		self.NavKeysShowing = False
 		screen.IncorporateParams(self, screenname, {'KeyColor', 'KeyCharColorOn', 'KeyCharColorOff'}, screensection)
 		screen.AddUndefaultedParams(self, screensection, CharSize=[20], Font=fonts.monofont, MessageBack='',
 									Message=[], DeferTime="2 minutes", BlinkTime=0)
@@ -102,10 +103,8 @@ class AlertsScreenDesc(screen.ScreenDesc):
 	def DeferAction(self):
 		debug.debugPrint('Screen', 'Alertscreen manual defer: ' + self.name)
 		self.Alert.state = 'Deferred'
-		self.TimerName += 1
-		self.DeferTimer = timers.OnceTimer(self.Defer, start=True, name=self.name + '-Defer-' + str(self.TimerName),
-										   proc=alerttasks.HandleDeferredAlert, param=self.Alert)
-		screens.DS.SwitchScreen(screens.HomeScreen, 'Bright', 'Manual defer an alert', 'Home')
+		# Deferral timer will get set in Exit Screen
+		screens.DS.SwitchScreen(screens.HomeScreen, 'Bright', 'Manual defer an alert', newstate='Home')
 
 	# noinspection PyUnusedLocal
 	def BlinkMsg(self, param):
@@ -144,6 +143,7 @@ class AlertsScreenDesc(screen.ScreenDesc):
 			self.BlinkTimer.cancel()
 
 		if self.Alert.trigger.IsTrue():  # if the trigger condition is still true requeue post deferral
+			self.Alert.state = 'Deferred'
 			self.TimerName += 1
 			self.DeferTimer = timers.OnceTimer(self.Defer, start=True, name=self.name + '-Defer-' + str(self.TimerName),
 											   proc=alerttasks.HandleDeferredAlert, param=self.Alert)

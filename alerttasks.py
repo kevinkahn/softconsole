@@ -52,7 +52,7 @@ class Alert(object):
 	def Invoke(self, param=None):
 		if isinstance(self.actiontarget, screens.screentypes["Alert"]):
 			self.state = 'Active'
-			screens.DS.SwitchScreen(self.actiontarget, 'Bright', 'Go to alert screen', 'Alert', NavKeys=False)
+			screens.DS.SwitchScreen(self.actiontarget, 'Bright', 'Go to alert screen', newstate='Alert')
 		else:
 			self.state = 'Active'
 			self.actiontarget(self)  # target is the proc

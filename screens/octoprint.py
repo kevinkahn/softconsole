@@ -163,15 +163,15 @@ class OctoPrintScreenDesc(screen.BaseKeyScreenDesc):
 		self.VerifyScreenPause.Invoke()
 
 	def NoVerify(self):
-		screens.DS.SwitchScreen(self, 'Bright', 'Verify Run ' + self.name, screens.DS.state)
+		screens.DS.SwitchScreen(self, 'Bright', 'Verify Run ' + self.name)
 
 	def DoCancel(self):
 		self.OctoPost('job', senddata={'command': 'cancel'})
-		screens.DS.SwitchScreen(self, 'Bright', 'Verify Run ' + self.name, screens.DS.state)
+		screens.DS.SwitchScreen(self, 'Bright', 'Verify Run ' + self.name)
 
 	def DoPause(self, go):
 		self.OctoPost('job', senddata={'command': 'pause', 'action': 'toggle'})
-		screens.DS.SwitchScreen(self, 'Bright', 'Verify Run ' + self.name, screens.DS.state)
+		screens.DS.SwitchScreen(self, 'Bright', 'Verify Run ' + self.name)
 
 	def InitDisplay(self, nav):
 		super(OctoPrintScreenDesc, self).InitDisplay(nav)
