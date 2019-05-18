@@ -171,7 +171,7 @@ class MyScreens(object):
 		cn = config.sysStore.DimHomeScreenCoverName
 		if cn != "" and not screens.DimIdleList:
 			if cn in config.sysStore.MainChain:
-				screens.DimIdleList.append(screens.MainDict[cn].screen)
+				screens.DimIdleList.append(screens.MainDict[cn])
 				screens.DimIdleTimes.append(1000000)
 				logsupport.Logs.Log("DimHS(deprecated): " + cn, severity=ConsoleWarning)
 				logsupport.Logs.Log('Replace with DimIdleListNames = [<list of screen names>]', severity=ConsoleWarning)
