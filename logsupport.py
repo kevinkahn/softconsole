@@ -1,6 +1,5 @@
 import json
 import sys
-import threading
 import traceback
 import multiprocessing
 import signal
@@ -35,12 +34,14 @@ class TempLogger(object):
 		pass  # dummy to satisfy static method check
 
 
+
 Logs = TempLogger()
 import config
 import time
 import os
 import re
 from hw import disklogging
+from enum import Enum
 
 LogLevels = ('Debug', 'DetailHigh', 'Detail', 'Info', 'Warning', 'Error')
 ConsoleDebug = 0
@@ -51,12 +52,20 @@ ConsoleWarning = 4
 ConsoleError = 5
 primaryBroker = None  # for cross system reporting if mqtt is running
 LoggerQueue = multiprocessing.Queue()
+
+Command = Enum('Command', 'LogEntry DevPrint FileWrite CloseHlog StartLog Touch LogRemote LogString DumpRemote')
+
 # logger queue item: (type,str) where type: 0 Logentry, 1 DevPrint, 2 file write (name, access, str), 3 shutdown
 # 4 setup logfile 5 touch file  others tbd
 AsyncLogger = None
 
 LogLevel = 3
 LocalOnly = True
+
+lastremotemes = ''  # last remote queued message for consolidation purposes
+lastlocalmes = ''
+lastremotesev = ConsoleInfo
+remotenodes = {}
 
 heldstatus = ''
 
@@ -86,9 +95,15 @@ def InitLogs(screen, dirnm):
 	return Logger(screen, dirnm)
 
 def AsyncFileWrite(fn,writestr,access='a'):
-	LoggerQueue.put((2,fn,access,writestr))
+	LoggerQueue.put((Command.FileWrite, fn, access, writestr))
+
+
+historybuffer.AsyncFileWrite = AsyncFileWrite  # to avoid circular imports
 
 def LogProcess(q):
+	global lastremotemes, lastlocalmes, lastremotesev, remotenodes
+	item = (99, 'init')
+
 	def ExitLog(signum, frame):
 		global exiting
 		exiting = time.time()
@@ -102,6 +117,41 @@ def LogProcess(q):
 			f.write('{}({}): Logger process SIGHUP ignored\n'.format(os.getpid(),time.time()))
 			f.flush()
 
+	def DumpRemoteMes():
+		global lastremotemes, remotenodes, lastlocalmes
+
+		now = time.strftime('%m-%d-%y %H:%M:%S')
+		if lastremotemes == '': return
+		ndlist = []
+		for nd, info in remotenodes.items():
+			ndlist.append(nd)
+			if info[1] != 1: ndlist[-1] = ndlist[-1] + '(' + str(info[1]) + ')'
+		if lastremotemes == lastlocalmes:
+			remoteentry = "Also from: " + ', '.join(ndlist)
+		else:
+			remoteentry = '[' + ', '.join(ndlist) + ']' + lastremotemes
+
+		disklogfile.write('{} Sev: {} {}\n'.format(now, lastremotesev, remoteentry))
+		disklogfile.flush()
+		os.fsync(disklogfile.fileno())
+
+		lastremotemes = ''
+
+	def DoLogRemote(node, entry, etime, severity):
+		global lastremotemes, remotenodes, lastremotesev
+		if entry == lastremotemes:
+			if node in remotenodes:
+				remotenodes[node] = (remotenodes[node][0], remotenodes[node][1] + 1)
+			else:
+				remotenodes[node] = (etime, 1)
+		else:
+			DumpRemoteMes()
+			lastremotemes = entry
+			lastremotesev = severity
+			remotenodes = {node: (etime, 1)}
+
+
+
 	signal.signal(signal.SIGTERM, ExitLog)  # don't want the sig handlers from the main console
 	signal.signal(signal.SIGINT, ExitLog)
 	signal.signal(signal.SIGUSR1, ExitLog)
@@ -109,6 +159,7 @@ def LogProcess(q):
 	disklogfile = None
 	running = True
 	exiting = 0
+
 	while running:
 		try:
 			try:
@@ -126,33 +177,51 @@ def LogProcess(q):
 					running = False
 				else:
 					continue
-			if item[0] == 0:
-				# Log Entry
-				disklogfile.write(item[1]+'\n')
+			if item[0] == Command.LogEntry:
+				# Log Entry (0,severity, entry, entrytime)
+				severity, entry, entrytime = item[1:]
+				if entry != lastremotemes:
+					DumpRemoteMes()
+				disklogfile.write('{} Sev: {} {}\n'.format(entrytime, severity, entry))
 				disklogfile.flush()
 				os.fsync(disklogfile.fileno())
-				pass
-			elif item[0] == 1:
+				lastlocalmes = entry
+			elif item[0] == Command.DevPrint:
 				# DevPrint
 				with open('/home/pi/Console/hlog', 'a') as f:
 					f.write(item[1]+'\n')
 					f.flush()
-			elif item[0] == 2:
-				# general write (filename, openaccess, str)
-				with open(item[1],item[2]) as f:
-					f.write(item[3])
+			elif item[0] == Command.FileWrite:
+				# general write (2, filename, openaccess, str)
+				filename, openaccess, stringitem = item[1:]
+				with open(filename, openaccess) as f:
+					f.write(stringitem)
 					f.flush()
-			elif item[0] == 3:
+			elif item[0] == Command.CloseHlog:
+				# close hlog
 				running = False
 				with open('/home/pi/Console/hlog', 'a') as f:
 					f.write('{}({}): Async Logger ending: {}\n'.format(os.getpid(),time.time(),item[1]))
 					f.flush()
-			elif item[0] == 4:
+			elif item[0] == Command.StartLog:
+				# open Console log
 				os.chdir(item[1])
 				disklogfile = open('Console.log', 'w')
 				os.chmod('Console.log', 0o555)
-			elif item[0] == 5:
+			elif item[0] == Command.Touch:
+				# liveness touch
 				os.utime(item[1],None)
+			elif item[0] == Command.LogRemote:
+				# remote log (6, node, entry, etime, severity)
+				node, entry, etime, severity = item[1:]
+				DoLogRemote(node, entry, etime, severity)
+			elif item[0] == Command.LogString:
+				# Logentry string (7,entry)
+				disklogfile.write('\n'.format(item[1]))
+				disklogfile.flush()
+				os.fsync(disklogfile.fileno())
+			elif item[0] == Command.DumpRemote:  # force remote message dump
+				DumpRemoteMes()
 			else:
 				with open('/home/pi/Console/hlog', 'a') as f:
 					f.write('Log process got garbage: {}\n'.format(item))
@@ -175,7 +244,7 @@ def DevPrint(arg):
 
 def DevPrintDoIt(arg):
 	pstr = '{}({}): {}'.format(str(os.getpid()), time.time(), arg)
-	LoggerQueue.put((1, pstr))
+	LoggerQueue.put((Command.DevPrint, pstr))
 
 
 class Logger(object):
@@ -186,13 +255,7 @@ class Logger(object):
 	LogColors = ("teal", "lightgreen", "darkgreen", "white", "yellow", "red")
 
 	def __init__(self, screen, dirnm):
-		self.lock = threading.Lock()
-		self.lockerid = (0, 'init')
 		self.screen = screen
-		self.remotenodes = {}
-		self.lastremotemes = ''
-		self.lastremotesev = ConsoleInfo
-		self.lastlocalmes = ''
 		if disklogging:
 			cwd = os.getcwd()
 			os.chdir(dirnm)
@@ -208,7 +271,7 @@ class Logger(object):
 				os.rename('Console.log', 'Console.log.1')
 			except:
 				pass
-			LoggerQueue.put((4,dirnm))
+			LoggerQueue.put((Command.StartLog, dirnm))
 			#self.disklogfile = open('Console.log', 'w')
 			#os.chmod('Console.log', 0o555)
 			historybuffer.SetupHistoryBuffers(dirnm, maxf)  # todo ? move print to async
@@ -220,57 +283,14 @@ class Logger(object):
 			config.sysStore.ErrorNotice = len(self.log) - 1
 
 	def LogRemote(self, node, entry, etime, severity):
-		locked = False
-		try:
-			locked = self.lock.acquire(timeout=5)
-			if not locked:
-				self.RecordMessage(ConsoleError, 'Log lock failed (Remote)' + repr(self.lockerid), '*****Remote******',
-								   False, False)
-			else:
-				self.lockerid = (etime, 'remote')
-
-			if entry == self.lastremotemes:
-				if node in self.remotenodes:
-					self.remotenodes[node] = (self.remotenodes[node][0], self.remotenodes[node][1] + 1)
-				else:
-					self.remotenodes[node] = (etime, 1)
-			else:
-				self.DumpRemoteMes()
-				self.lastremotemes = entry
-				self.lastremotesev = severity
-				self.remotenodes = {node: (etime, 1)}
-			if locked:
-				self.lock.release()
-				self.lockerid = (etime, 'remunlock')
-		except Exception as E:
-			self.RecordMessage(ConsoleError, 'Exception while remote logging: {}'.format(repr(E)), '*****Remote******',
-							   False, False)
-			if locked:
-				self.lock.release()
-				self.lockerid = (etime, 'remunlockexc')
-
-	def DumpRemoteMes(self):
-		now = time.strftime('%m-%d-%y %H:%M:%S')
-		if self.lastremotemes == '': return
-		ndlist = []
-		for nd, info in self.remotenodes.items():
-			ndlist.append(nd)
-			if info[1] != 1: ndlist[-1] = ndlist[-1] + '(' + str(info[1]) + ')'
-		if self.lastremotemes == self.lastlocalmes:
-			remoteentry = "Also from: " + ', '.join(ndlist)
-		else:
-			remoteentry = '[' + ', '.join(ndlist) + ']' + self.lastremotemes
-		self.RecordMessage(self.lastremotesev, remoteentry, now, False, False)
-
-		self.lastremotemes = ''
+		LoggerQueue.put((Command.LogRemote, node, entry, etime, severity))
 
 	def RecordMessage(self, severity, entry, entrytime, debugitem, tb):
 		if not debugitem:
 			self.log.append((severity, entry, entrytime))
 			self.SetSeverePointer(severity)
 		if disklogging:
-			LoggerQueue.put((0,'{} Sev: {} {}'.format(entrytime,severity,entry)))
-			#self.disklogfile.write(entrytime + ' Sev: ' + str(severity) + " " + entry + '\n')
+			LoggerQueue.put((Command.LogEntry, severity, entry, entrytime))
 			if tb:
 				DevPrint('Traceback:')
 				for line in traceback.format_stack()[0:-2]:
@@ -278,51 +298,20 @@ class Logger(object):
 				frames = traceback.extract_tb(sys.exc_info()[2])
 				for f in frames:
 					fname, lineno, fn, text = f
-					LoggerQueue.put((0,'-----------------' + fname + ':' + str(lineno) + ' ' + fn + ' ' + text))
-					#self.disklogfile.write(
-					#	'-----------------' + fname + ':' + str(lineno) + ' ' + fn + ' ' + text + '\n')
-			#self.disklogfile.flush()
-			#os.fsync(self.disklogfile.fileno())
+					LoggerQueue.put(
+						(Command.LogString, '-----------------' + fname + ':' + str(lineno) + ' ' + fn + ' ' + text))
 
 	def PeriodicRemoteDump(self):
-		locked = False
-		defentrytime = time.strftime('%m-%d-%y %H:%M:%S')
-		try:
-			locked = self.lock.acquire(timeout=5)
-
-			if not locked:
-				self.RecordMessage(ConsoleError, 'Log lock failed (PeriodicRemote)' + repr(self.lockerid), defentrytime,
-								   False, False)
-			else:
-				self.lockerid = (defentrytime, 'remotedump')
-			self.DumpRemoteMes()
-			if locked:
-				self.lock.release()
-				self.lockerid = (defentrytime, 'remotedumpunlk')
-		except Exception as E:
-			self.RecordMessage(ConsoleError, 'Exception while dumping periodic remotes: {}'.format(repr(E)),
-							   defentrytime, False, False)
-			if locked:
-				self.lock.release()
-				self.lockerid = (defentrytime, 'remotedumpunlkexc')
+		LoggerQueue.put((Command.DumpRemote,))
 
 	def Log(self, *args, **kwargs):
 		"""
 		params: args is one or more strings (like for print) and kwargs is severity=
 		"""
-		locked = False
 		now = time.time()
 		localnow = time.localtime(now)
 		defentrytime = time.strftime('%m-%d-%y %H:%M:%S', localnow)
 		try:
-			locked = self.lock.acquire(timeout=5)
-
-			if not locked:
-				self.RecordMessage(ConsoleError, 'Log lock failed (Local)' + repr(self.lockerid) + str(args[0]),
-								   defentrytime, False, False)
-			else:
-				self.lockerid = (defentrytime, 'locallock' + str(args[0]))
-
 			severity = kwargs.pop('severity', ConsoleInfo)
 			entrytime = kwargs.pop('entrytime', time.strftime('%m-%d-%y %H:%M:%S', localnow))
 			tb = kwargs.pop('tb', severity == ConsoleError)
@@ -330,25 +319,20 @@ class Logger(object):
 			homeonly = kwargs.pop('homeonly', False)
 			localonly = kwargs.pop('localonly', False) or LocalOnly  # don't brcst error until mqtt is up
 			if homeonly and config.sysStore.versionname not in ('development', 'homerelease'):
-				if locked:
-					self.lock.release()
-					self.lockerid = (defentrytime, 'homeonly')
 				return
 
 			if severity < LogLevel:
-				if locked:
-					self.lock.release()
-					self.lockerid = (defentrytime, 'loglevelunlk')
 				return
+
 			debugitem = kwargs.pop('debugitem', False)
 			entry = ''
 			for i in args:
 				entry = entry + str(i)
 
-			if entry != self.lastremotemes:
-				self.DumpRemoteMes()
+			# if entry != self.lastremotemes:
+			#	self.DumpRemoteMes()  #todo move to async
 
-			if hb: historybuffer.DumpAll(entry, entrytime)
+			if hb: historybuffer.DumpAll(entry, entrytime)  # todo check that this is async
 
 			self.RecordMessage(severity, entry, entrytime, debugitem, tb)
 
@@ -374,17 +358,10 @@ class Logger(object):
 					self.livelogpos = 0
 				pygame.display.update()
 
-			self.lastlocalmes = entry
-			if locked:
-				self.lock.release()
-				self.lockerid = (defentrytime, 'localunlock')
-
 		except Exception as E:
 			self.RecordMessage(ConsoleError, 'Exception while local logging: {}'.format(repr(E)),
 							   defentrytime, False, True)
-			if locked:
-				self.lock.release()
-				self.lockerid = (defentrytime, 'localunlockexc')
+
 
 	def RenderLogLine(self, itext, clr, pos):
 		# odd logic below is to make sure that if an unbroken item would by itself exceed line length it gets forced out

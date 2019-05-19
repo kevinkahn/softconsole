@@ -3,6 +3,9 @@ import shutil
 import time
 import gc
 
+AsyncFileWrite = None  # set from log support to avoid circular imports
+
+
 import topper
 
 Buffers = {}
@@ -37,7 +40,7 @@ def NoteGCs(phase, info):
 		GCBuf.Entry('GC Call' + phase + repr(info))
 
 
-def DumpAll(idline, entrytime):
+def DumpAll(idline, entrytime):  # todo make use logger process
 	global bufdumpseq
 	fn = HBdir + str(bufdumpseq) + '-' + entrytime
 	try:
@@ -60,34 +63,33 @@ def DumpAll(idline, entrytime):
 			initial[nm] = '*'
 		if curfirst == {} or curtime == {}:
 			more = False
-		with open(fn, 'w') as f:
-			prevtime = 0
-			f.write('{} ({}): '.format(entrytime, now) + idline + '\n')
-			while more:
-				nextup = min(curtime, key=curtime.get)
-				if curtime[nextup] > prevtime:
-					prevtime = curtime[nextup]
-				else:
-					f.write('seq error:' + str(prevtime) + ' ' + str(curtime[nextup]) + '\n')
-					prevtime = 0
-				if now - curfirst[nextup][1] < 300:  # limit history dump to 5 minutes worth
-					f.write(
-						'{:1s}{:10s}:({:3d}) {:.5f}: {}\n'.format(initial[nextup], nextup, curfirst[nextup][0],
-																  now - curfirst[nextup][1],
-																  curfirst[nextup][2]))
-					# f.write(nextup + ': (' + str(curfirst[nextup][0]) + ') ' + str(curfirst[nextup][1]) + ': ' + repr(curfirst[nextup][2]) + '\n')
-					initial[nextup] = ' '
-				try:
-					curfirst[nextup] = next(t[nextup])
-					curtime[nextup] = curfirst[nextup][1]
-				except StopIteration:
-					del curfirst[nextup]
-					del curtime[nextup]
-				if curfirst == {} or curtime == {}: more = False
+
+		prevtime = 0
+		AsyncFileWrite(fn, '{} ({}): '.format(entrytime, now) + idline + '\n', 'w')
+		while more:
+			nextup = min(curtime, key=curtime.get)
+			if curtime[nextup] > prevtime:
+				prevtime = curtime[nextup]
+			else:
+				AsyncFileWrite(fn, 'seq error:' + str(prevtime) + ' ' + str(curtime[nextup]) + '\n')
+				prevtime = 0
+			if now - curfirst[nextup][1] < 300:  # limit history dump to 5 minutes worth
+				AsyncFileWrite(fn,
+							   '{:1s}{:10s}:({:3d}) {:.5f}: {}\n'.format(initial[nextup], nextup, curfirst[nextup][0],
+																		 now - curfirst[nextup][1],
+																		 curfirst[nextup][2]))
+				# f.write(nextup + ': (' + str(curfirst[nextup][0]) + ') ' + str(curfirst[nextup][1]) + ': ' + repr(curfirst[nextup][2]) + '\n')
+				initial[nextup] = ' '
+			try:
+				curfirst[nextup] = next(t[nextup])
+				curtime[nextup] = curfirst[nextup][1]
+			except StopIteration:
+				del curfirst[nextup]
+				del curtime[nextup]
+			if curfirst == {} or curtime == {}: more = False
 	except Exception as E:
-		with open(fn, 'a') as ef:
-			ef.write('Error dumping buffer for: ' + entrytime + ': ' + idline + '\n')
-			ef.write('Exception was: ' + repr(E) + '\n')
+		AsyncFileWrite(fn, 'Error dumping buffer for: ' + entrytime + ': ' + idline + '\n')
+		AsyncFileWrite(fn, 'Exception was: ' + repr(E) + '\n')
 
 
 class EntryItem(object):
@@ -129,8 +131,3 @@ class HistoryBuffer(object):
 			if cur[j].timeofentry != 0:
 				yield (j, cur[j].timeofentry, cur[j].entry)
 
-	def Dump(self, f):
-		for i in range(self.size):
-			j = (i + self.current) % self.size
-			if self.buf[j].timeofentry != 0:
-				f.write('(' + str(j) + ') ' + str(self.buf[j].timeofentry) + ': ' + repr(self.buf[j].entry) + '\n')

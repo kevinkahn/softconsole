@@ -55,7 +55,7 @@ def exitlogging():
 	else:
 		logsupport.Logs.Log("Exiting without history trace")
 	time.sleep(1) # let messages get out
-	logsupport.LoggerQueue.put((3,'Exit Logging'))
+	logsupport.LoggerQueue.put((logsupport.Command.CloseHlog, 'Exit Logging'))
 
 
 def EarlyAbort(scrnmsg):

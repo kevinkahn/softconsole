@@ -257,7 +257,8 @@ class DisplayScreen(object):
 					config.terminationreason = 'watcher died'
 					exitutils.Exit(exitutils.ERRORRESTART)
 
-				logsupport.LoggerQueue.put((5,"{}/.ConsoleStart".format(config.sysStore.HomeDir)))
+				logsupport.LoggerQueue.put(
+					(logsupport.Command.Touch, "{}/.ConsoleStart".format(config.sysStore.HomeDir)))
 
 				if debug.dbgStore.GetVal('StatesDump'):
 					debug.dbgStore.SetVal('StatesDump', False)
