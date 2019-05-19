@@ -60,7 +60,7 @@ class WeatherScreenDesc(screen.ScreenDesc):
 		return screen.ScreenDesc.__repr__(self) + "\r\n     WeatherScreenDesc:" + str(self.CharColor)
 
 	# noinspection PyUnusedLocal
-	def CondOrFcst(self, press):
+	def CondOrFcst(self):
 		self.currentconditions = not self.currentconditions
 		self.ShowScreen(self.currentconditions)
 
