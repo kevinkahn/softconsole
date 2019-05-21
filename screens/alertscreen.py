@@ -26,6 +26,7 @@ class AlertsScreenDesc(screen.ScreenDesc):
 		screen.ScreenDesc.__init__(self, screensection, screenname)
 		debug.debugPrint('Screen', "Build Alerts Screen")
 		self.NavKeysShowing = False
+		self.DefaultNavKeysShowing = False
 		screen.IncorporateParams(self, screenname, {'KeyColor', 'KeyCharColorOn', 'KeyCharColorOff'}, screensection)
 		screen.AddUndefaultedParams(self, screensection, CharSize=[20], Font=fonts.monofont, MessageBack='',
 									Message=[], DeferTime="2 minutes", BlinkTime=0)

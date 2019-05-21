@@ -126,6 +126,7 @@ class ScreenDesc(object):
 		self.name = screenname
 		self.Active = False  # true if actually on screen
 		self.ScreenTimers = []
+		self.DefaultNavKeysShowing = True
 		self.NavKeysShowing = True
 		self.NavKeys = collections.OrderedDict()
 		self.Keys = collections.OrderedDict()

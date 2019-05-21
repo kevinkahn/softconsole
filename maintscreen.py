@@ -241,6 +241,7 @@ class LogDisplayScreen(screen.BaseKeyScreenDesc):
 	def __init__(self):
 		screen.BaseKeyScreenDesc.__init__(self, None, 'LOG')
 		self.NavKeysShowing = False
+		self.DefaultNavKeysShowing = False
 		self.state = 'init'  # init: new entry to logs; scroll: doing error scroll manual: user control
 		self.startat = 0  # where in log page starts
 		self.startpage = 0
@@ -322,6 +323,7 @@ class MaintScreenDesc(screen.BaseKeyScreenDesc):
 		screen.BaseKeyScreenDesc.__init__(self, overrides, name)
 		debug.debugPrint('Screen', "Build Maintenance Screen")
 		self.NavKeysShowing = False
+		self.DefaultNavKeysShowing = False
 		screen.AddUndefaultedParams(self, None, TitleFontSize=40, SubFontSize=25)
 		for k, kt in keys.items():
 			NK = toucharea.ManualKeyDesc(self, k, [kt[0]], 'gold', 'black', 'red', KOn='black', KOff='red')

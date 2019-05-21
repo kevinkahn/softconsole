@@ -25,6 +25,7 @@ class VerifyScreen(screen.BaseKeyScreenDesc):
 		screen.BaseKeyScreenDesc.__init__(self, {}, key.name + '-Verify', parentscreen=key)
 		debug.debugPrint('Screen', "Build Verify Screen")
 		self.NavKeysShowing = False
+		self.DefaultNavKeysShowing = False
 		self.HubInterestList = interestlist
 		self.DimTO = 20
 		self.PersistTO = 10

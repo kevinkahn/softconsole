@@ -88,7 +88,7 @@ class DisplayScreen(object):
 			if clear: self.ScreenStack = []
 			if push: self.ScreenStack.append(self.AS)
 
-		NavKeys = NS.NavKeysShowing if not AsCover else False
+		NavKeys = NS.DefaultNavKeysShowing if not AsCover else False
 		ASname = '*None*' if self.AS is None else self.AS.name
 		self.HBScreens.Entry(
 			NS.name + ' was ' + ASname + ' dim: ' + str(newdim) + ' state: ' + str(newstate) + ' reason: ' + str(
