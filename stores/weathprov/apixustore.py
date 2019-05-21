@@ -101,54 +101,66 @@ class APIXUWeatherSource(object):
 			return item
 
 	def FetchWeather(self):
-		temp = {}
-		r = None
-		for i in range(3):
-			# logsupport.Logs.Log('Actual weather fetch attempt: {}'.format(self.location))
-			try:
-				historybuffer.HBNet.Entry('Weather fetch{}: {}'.format(i, self.baseurl))
-				r = requests.get(self.baseurl, params=self.args)
-				historybuffer.HBNet.Entry('Weather fetch done')
-				if r.status_code == 200: break
-				historybuffer.HBNet.Entry('Weather fetch non success: {} {}'.format(r.status_code, repr(r)))
-				time.sleep(1)
-			except Exception as E:
-				historybuffer.HBNet.Entry('Weather fetch exception: {}'.format(repr(E)))
-				time.sleep(1)
-		if r is None or r.status_code != 200:
-			self.thisStore.ValidWeather = False
-		try:
-			self.json = r.json()
-			for fn, entry in CondFieldMap.items():
-				val = self.MapItem(self.json, entry)
-				self.thisStore.SetVal(('Cond', fn), val)
-				temp[fn] = val
-			fcstdays = len(self.json['forecast']['forecastday'])
-			for i in range(fcstdays):
+		for trydecode in range(2):  # if a decode fails try another actual fetch
+			temp = {}
+			r = None
+			fetchworked = False
+			trycnt = 4
+			self.json = {}
+			while not fetchworked and trycnt > 0:
+				trycnt -= 1
+				# logsupport.Logs.Log('Actual weather fetch attempt: {}'.format(self.location))
 				try:
-					temp = {}
-					fcst = self.json['forecast']['forecastday'][i]
-					for fn, entry in FcstFieldMap.items():
-						val = self.MapItem(fcst, entry)
-						self.thisStore.GetVal(('Fcst', fn)).append(val)
-
-						temp[fn] = val
+					historybuffer.HBNet.Entry('Weather fetch{}: {}'.format(trycnt, self.baseurl))
+					r = requests.get(self.baseurl, params=self.args)
+					historybuffer.HBNet.Entry('Weather fetch done')
+					if r.status_code == 200:
+						fetchworked = True
+					else:
+						historybuffer.HBNet.Entry('Weather fetch non success: {} {}'.format(r.status_code, repr(r)))
+						time.sleep(2)
 				except Exception as E:
-					logsupport.Logs.Log('Exception in apixu forecast processing day {}: '.format(i), repr(E),
-										severity=logsupport.ConsoleWarning, hb=True)
-					raise
+					historybuffer.HBNet.Entry('Weather fetch exception: {}'.format(repr(E)))
+					time.sleep(2)
+			if not fetchworked:
+				logsupport.Logs.Log("Failed multiple tries to get weather for {}".format(self.location),
+									severity=logsupport.ConsoleWarning, hb=True)
+				self.thisStore.ValidWeather = False
+				return
+			try:
+				self.json = r.json()
+				for fn, entry in CondFieldMap.items():
+					val = self.MapItem(self.json, entry)
+					self.thisStore.SetVal(('Cond', fn), val)
+					temp[fn] = val
+				fcstdays = len(self.json['forecast']['forecastday'])
+				for i in range(fcstdays):
+					try:
+						temp = {}
+						fcst = self.json['forecast']['forecastday'][i]
+						for fn, entry in FcstFieldMap.items():
+							val = self.MapItem(fcst, entry)
+							self.thisStore.GetVal(('Fcst', fn)).append(val)
 
-			for fn, entry in CommonFieldMap.items():
-				val = self.MapItem(self.json, entry)
-				self.thisStore.SetVal(fn, val)
+							temp[fn] = val
+					except Exception as E:
+						logsupport.Logs.Log(
+							'Exception (try{}) in apixu forecast processing day {}: {}'.format(trydecode, i, repr(E)),
+							severity=logsupport.ConsoleWarning, hb=True)
+						raise
 
-			self.thisStore.ValidWeather = True
-			return  # success
-		except Exception as E:
-			logsupport.Logs.Log('Exception in apixu report processing: ', repr(E), self.json,
-								severity=logsupport.ConsoleWarning, hb=True)
-			logsupport.Logs.Log('Returned text: ', r.text)
-			self.thisStore.ValidWeather = False
+				for fn, entry in CommonFieldMap.items():
+					val = self.MapItem(self.json, entry)
+					self.thisStore.SetVal(fn, val)
+
+				self.thisStore.ValidWeather = True
+				return  # success
+			except Exception as E:
+				logsupport.Logs.Log('Exception in apixu report processing: ', repr(E), self.json,
+									severity=logsupport.ConsoleWarning, hb=True)
+				logsupport.Logs.Log('Returned text: ', r.text)
+				self.thisStore.ValidWeather = False
+		logsupport.Logs.Log('Multiple decode failures on return data from weather fetch of {}'.format(self.location))
 
 
 WeathProvs['APIXU'] = [APIXUWeatherSource, '']  # api key gets filled in from config file

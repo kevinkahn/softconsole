@@ -31,22 +31,28 @@ def DoFetchRestart():
 			fetcher = None  # allow next autoversion to proceed
 			return
 	except:
-		logsupport.Logs.Log(
-			'Github check not available' + str(sys.exc_info()[0]) + ': ' + str(sys.exc_info()[1]),
-			severity=ConsoleWarning)
+		historybuffer.HBNet.Entry('GitHub access failure: {}:{}'.format(str(sys.exc_info()[0]), str(sys.exc_info()[1])))
+		logsupport.Logs.Log('Github check not available', severity=ConsoleWarning)
 		fetcher = None  # allow next autoversion to proceed
 		return
-	logsupport.Logs.Log('Update fetch started')
-	ReportStatus("auto updt firmware", hold = 1)
-	githubutil.StageVersion(config.sysStore.ExecDir, config.sysStore.versionname, 'Auto Dnld')
-	logsupport.Logs.Log('Update fetch thread staged')
-	ReportStatus("auto install firmware", hold = 1)
-	githubutil.InstallStagedVersion(config.sysStore.ExecDir)
-	logsupport.Logs.Log("Staged version installed in ", config.sysStore.ExecDir)
-	logsupport.Logs.Log('Restart for new version')
-	ReportStatus('auto restart', hold = 2)
-	controlevents.PostEvent(
-		controlevents.ConsoleEvent(controlevents.CEvent.RunProc, proc=ForceRestart, name='ForceRestart'))
+	try:
+		logsupport.Logs.Log('Update fetch started')
+		ReportStatus("auto updt firmware", hold=1)
+		githubutil.StageVersion(config.sysStore.ExecDir, config.sysStore.versionname, 'Auto Dnld')
+		logsupport.Logs.Log('Update fetch thread staged')
+		ReportStatus("auto install firmware", hold=1)
+		githubutil.InstallStagedVersion(config.sysStore.ExecDir)
+		logsupport.Logs.Log("Staged version installed in ", config.sysStore.ExecDir)
+		logsupport.Logs.Log('Restart for new version')
+		ReportStatus('auto restart', hold=2)
+		controlevents.PostEvent(
+			controlevents.ConsoleEvent(controlevents.CEvent.RunProc, proc=ForceRestart, name='ForceRestart'))
+		fetcher = None
+	except:
+		historybuffer.HBNet.Entry(
+			'Version access failure: {}:{}'.format(str(sys.exc_info()[0]), str(sys.exc_info()[1])))
+		logsupport.Logs.Log('Version access failed', severity=ConsoleWarning)
+		fetcher = None  # allow next autoversion to proceed
 
 def ForceRestart():
 	logsupport.Logs.Log('Autoversion Restart Event')

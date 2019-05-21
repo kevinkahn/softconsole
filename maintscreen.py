@@ -204,7 +204,7 @@ def dobeta(K):
 
 def fetch_stable():
 	basedir = os.path.dirname(config.sysStore.ExecDir)
-	ReportStatus("updt stable")
+	ReportStatus("updt stable", hold=1)
 	# noinspection PyBroadException
 	try:
 		if os.path.exists(basedir + '/homesystem'):
@@ -220,12 +220,12 @@ def fetch_stable():
 		logsupport.Logs.Log("Staged version installed in consolestable")
 	except:
 		logsupport.Logs.Log('Failed release download', severity=ConsoleWarning)
-	ReportStatus("done stable")
+	ReportStatus("done stable", hold=2)
 
 
 def fetch_beta():
 	basedir = os.path.dirname(config.sysStore.ExecDir)
-	ReportStatus("updt beta")
+	ReportStatus("updt beta", hold=1)
 	logsupport.Logs.Log("New version fetch(currentbeta)")
 	# noinspection PyBroadException
 	try:
@@ -234,7 +234,7 @@ def fetch_beta():
 		logsupport.Logs.Log("Staged version installed in consolebeta")
 	except:
 		logsupport.Logs.Log('Failed beta download', severity=ConsoleWarning)
-	ReportStatus("done beta")
+	ReportStatus("done beta", hold=2)
 
 
 class LogDisplayScreen(screen.BaseKeyScreenDesc):
@@ -360,23 +360,23 @@ class MaintScreenDesc(screen.BaseKeyScreenDesc):
 
 def domaintexit(ExitKey):
 	if ExitKey == 'shut':
-		ReportStatus('shutting down')
+		ReportStatus('shutting down', hold=1)
 		ExitCode = MAINTEXIT
 		Exit_Screen_Message("Manual Shutdown Requested", "Maintenance Request", "Shutting Down")
 	elif ExitKey == 'restart':
-		ReportStatus('restarting')
+		ReportStatus('restarting', hold=1)
 		ExitCode = MAINTRESTART
 		Exit_Screen_Message("Console Restart Requested", "Maintenance Request", "Restarting")
 	elif ExitKey == 'shutpi':
-		ReportStatus('pi shutdown')
+		ReportStatus('pi shutdown', hold=1)
 		ExitCode = MAINTPISHUT
 		Exit_Screen_Message("Shutdown Pi Requested", "Maintenance Request", "Shutting Down Pi")
 	elif ExitKey == 'reboot':
-		ReportStatus('pi reboot')
+		ReportStatus('pi reboot', hold=1)
 		ExitCode = MAINTPIREBOOT
 		Exit_Screen_Message("Reboot Pi Requested", "Maintenance Request", "Rebooting Pi")
 	else:
-		ReportStatus('unknown maintenance restart')
+		ReportStatus('unknown maintenance restart', hold=1)
 		ExitCode = MAINTRESTART
 		Exit_Screen_Message("Unknown Exit Requested", "Maintenance Error", "Trying a Restart")
 	config.terminationreason = 'manual request'

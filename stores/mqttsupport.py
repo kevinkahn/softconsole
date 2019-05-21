@@ -64,9 +64,9 @@ class MQTTBroker(valuestore.ValueStore):
 			if self.fetcher is not None and self.fetcher.is_alive():
 				logsupport.Logs.Log('Delaying restart until fetch completes')
 				dly = timers.OnceTimer(10,start=True,name='RestartDelay',proc=DoDelayedRestart)
-				ReportStatus('wait restart')
+				ReportStatus('wait restart', hold=1)
 				return
-			ReportStatus('rmt restart')
+			ReportStatus('rmt restart', hold=1)
 			exitutils.Exit_Screen_Message('Remote restart requested', 'Remote Restart')
 			config.terminationreason = 'mqtt restart'
 			exitutils.Exit(exitutils.REMOTERESTART)
