@@ -154,6 +154,7 @@ class APIXUWeatherSource(object):
 					self.thisStore.SetVal(fn, val)
 
 				self.thisStore.ValidWeather = True
+				self.thisStore.ValidWeatherTime = time.time()
 				return  # success
 			except Exception as E:
 				logsupport.Logs.Log('Exception in apixu report processing: ', repr(E), self.json,

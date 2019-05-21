@@ -128,9 +128,6 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 		if not self.store.ValidWeather:  # todo  font size for error?
 			renderedlines = [
 				fonts.fonts.Font(30, self.Font).render(x, 0, wc(self.CharColor)) for x in self.store.Status]
-			# errmsg1 = fonts.fonts.Font(self.LocationSize, self.Font).render('Weather', 0, wc(self.CharColor))
-			# errmsg2 = fonts.fonts.Font(self.LocationSize, self.Font).render('unavailable', 0, wc(self.CharColor))
-			# errmsg3 = fonts.fonts.Font(self.LocationSize, self.Font).render('or error', 0, wc(self.CharColor))
 			vert_off = self.startvertspace
 			self.ReInitDisplay()
 			for tmlbl in renderedtimelabel:
