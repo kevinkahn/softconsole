@@ -103,7 +103,6 @@ class APIXUWeatherSource(object):
 
 	def FetchWeather(self):
 		for trydecode in range(2):  # if a decode fails try another actual fetch
-			temp = {}
 			r = None
 			fetchworked = False
 			trycnt = 4
@@ -133,23 +132,21 @@ class APIXUWeatherSource(object):
 				for fn, entry in CondFieldMap.items():
 					val = self.MapItem(self.json, entry)
 					self.thisStore.SetVal(('Cond', fn), val)
-					temp[fn] = val
 				fcstdays = len(self.json['forecast']['forecastday'])
 				for i in range(fcstdays):
 					try:
-						temp = {}
+						dbgtmp = {}
 						fcst = self.json['forecast']['forecastday'][i]
 						for fn, entry in FcstFieldMap.items():
 							val = self.MapItem(fcst, entry)
 							self.thisStore.GetVal(('Fcst', fn)).append(val)
-
-							temp[fn] = val
+							dbgtmp[fn] = val
+						logsupport.Logs.Log('Weatherfcst({}): {}'.format(self.location, dbgtmp))
 					except Exception as E:
 						logsupport.Logs.Log(
 							'Exception (try{}) in apixu forecast processing day {}: {}'.format(trydecode, i, repr(E)),
 							severity=logsupport.ConsoleWarning, hb=True)
 						raise
-
 				for fn, entry in CommonFieldMap.items():
 					val = self.MapItem(self.json, entry)
 					self.thisStore.SetVal(fn, val)
