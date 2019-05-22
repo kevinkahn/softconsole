@@ -62,11 +62,12 @@ class WeatherScreenDesc(screen.ScreenDesc):
 	# noinspection PyUnusedLocal
 	def CondOrFcst(self):
 		self.currentconditions = not self.currentconditions
+		self.ReInitDisplay()
 		self.ShowScreen(self.currentconditions)
 
 	def ShowScreen(self, conditions):
 		# todo given the useable vert space change should check for overflow or auto size font
-		self.ReInitDisplay()
+
 		self.store.BlockRefresh()
 
 		vert_off = self.startvertspace
@@ -144,9 +145,11 @@ class WeatherScreenDesc(screen.ScreenDesc):
 	def InitDisplay(self, nav):
 		self.currentconditions = True
 		super(WeatherScreenDesc, self).InitDisplay(nav)
-		if self.ShowScreen(
-				self.currentconditions) == -1:  # todo should remove since errors are caught now in switch screen
-			screens.DS.SwitchScreen(screens.HomeScreen, 'Bright', 'Weather screen error', newstate='Home')
+		self.ShowScreen(self.currentconditions)
+
+	def ReInitDisplay(self):
+		super(WeatherScreenDesc, self).ReInitDisplay()
+		self.ShowScreen(self.currentconditions)
 
 	def ExitScreen(self):
 		pass

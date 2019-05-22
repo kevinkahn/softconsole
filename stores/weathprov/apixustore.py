@@ -4,6 +4,7 @@ from datetime import datetime
 
 import pygame
 import requests
+import controlevents
 
 import config
 import historybuffer
@@ -155,6 +156,7 @@ class APIXUWeatherSource(object):
 
 				self.thisStore.ValidWeather = True
 				self.thisStore.ValidWeatherTime = time.time()
+				controlevents.PostEvent(controlevents.ConsoleEvent(controlevents.CEvent.GeneralRepaint))
 				return  # success
 			except Exception as E:
 				logsupport.Logs.Log('Exception in apixu report processing: ', repr(E), self.json,

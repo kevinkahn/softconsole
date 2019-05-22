@@ -412,7 +412,7 @@ class DisplayScreen(object):
 				elif event.type == CEvent.GeneralRepaint:
 					self.HBEvents.Entry('General Repaint: {}'.format(repr(event)))
 					debug.debugPrint('Dispatch', 'General Repaint Event', event)
-					self.AS.InitDisplay()
+					self.AS.ReInitDisplay()
 
 				elif event.type == CEvent.HubNodeChange:
 					self.HBEvents.Entry('Hub Change: {}'.format(repr(event)))
