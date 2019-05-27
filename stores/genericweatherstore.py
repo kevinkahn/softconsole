@@ -72,7 +72,7 @@ class WeatherVals(valuestore.ValueStore):
 											   daemon=True)
 			self.DoingFetch.start()
 			logsupport.Logs.Log('Starting weather refresh for {}'.format(self.name))
-			# self.Status = ("Fetching",)
+			self.Status = ("Fetching",)
 			self.startedfetch = time.time()
 		# no thread doing a fetch at this point - start one
 

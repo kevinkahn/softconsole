@@ -91,6 +91,11 @@ class StoreList(object):
 	def __len__(self):
 		return len(self._List)
 
+	def emptylist(self):
+		debug.debugPrint('StoreTrack',
+						 "EmptyList: ", PrettyVarName(self.parent.enclstore.name, self.parent.name))
+		self._List = []
+
 	def append(self, val):
 		debug.debugPrint('StoreTrack',
 						 "AppendList: ", PrettyVarName(self.parent.enclstore.name, self.parent.name), '[',

@@ -129,6 +129,9 @@ class APIXUWeatherSource(object):
 				return
 			try:
 				self.json = r.json()
+				self.thisStore.ValidWeather = False  # show as invalid for the short duration of the update - still possible to race but very unlikely.
+				for fn, entry in FcstFieldMap.items():
+					self.thisStore.GetVal(('Fcst', fn)).emptylist()
 				for fn, entry in CondFieldMap.items():
 					val = self.MapItem(self.json, entry)
 					self.thisStore.SetVal(('Cond', fn), val)
@@ -141,7 +144,7 @@ class APIXUWeatherSource(object):
 							val = self.MapItem(fcst, entry)
 							self.thisStore.GetVal(('Fcst', fn)).append(val)
 							dbgtmp[fn] = val
-						logsupport.Logs.Log('Weatherfcst({}): {}'.format(self.location, dbgtmp))
+					# logsupport.Logs.Log('Weatherfcst({}): {}'.format(self.location, dbgtmp))
 					except Exception as E:
 						logsupport.Logs.Log(
 							'Exception (try{}) in apixu forecast processing day {}: {}'.format(trydecode, i, repr(E)),
