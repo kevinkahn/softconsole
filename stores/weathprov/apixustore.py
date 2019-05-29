@@ -130,8 +130,10 @@ class APIXUWeatherSource(object):
 			try:
 				self.json = r.json()
 				self.thisStore.ValidWeather = False  # show as invalid for the short duration of the update - still possible to race but very unlikely.
+				tempfcstinfo = {}
 				for fn, entry in FcstFieldMap.items():
-					self.thisStore.GetVal(('Fcst', fn)).emptylist()
+					tempfcstinfo[fn] = []
+				# self.thisStore.GetVal(('Fcst', fn)).emptylist()
 				for fn, entry in CondFieldMap.items():
 					val = self.MapItem(self.json, entry)
 					self.thisStore.SetVal(('Cond', fn), val)
@@ -142,7 +144,8 @@ class APIXUWeatherSource(object):
 						fcst = self.json['forecast']['forecastday'][i]
 						for fn, entry in FcstFieldMap.items():
 							val = self.MapItem(fcst, entry)
-							self.thisStore.GetVal(('Fcst', fn)).append(val)
+							tempfcstinfo[fn].append(val)
+							#self.thisStore.GetVal(('Fcst', fn)).append(val)
 							dbgtmp[fn] = val
 					# logsupport.Logs.Log('Weatherfcst({}): {}'.format(self.location, dbgtmp))
 					except Exception as E:
@@ -150,6 +153,8 @@ class APIXUWeatherSource(object):
 							'Exception (try{}) in apixu forecast processing day {}: {}'.format(trydecode, i, repr(E)),
 							severity=logsupport.ConsoleWarning, hb=True)
 						raise
+				for fn, entry in FcstFieldMap.items():
+					self.thisStore.GetVal(('Fcst', fn)).replacelist(tempfcstinfo[fn])
 				for fn, entry in CommonFieldMap.items():
 					val = self.MapItem(self.json, entry)
 					self.thisStore.SetVal(fn, val)

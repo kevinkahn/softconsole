@@ -96,6 +96,11 @@ class StoreList(object):
 						 "EmptyList: ", PrettyVarName(self.parent.enclstore.name, self.parent.name))
 		self._List = []
 
+	def replacelist(self, newlist):
+		debug.debugPrint('StoreTrack',
+						 'ReplaceList', PrettyVarName(self.parent.enclstore.name, self.parent.name))
+		self._List = newlist
+
 	def append(self, val):
 		debug.debugPrint('StoreTrack',
 						 "AppendList: ", PrettyVarName(self.parent.enclstore.name, self.parent.name), '[',
