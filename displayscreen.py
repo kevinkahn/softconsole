@@ -228,7 +228,13 @@ class DisplayScreen(object):
 			while config.Running:  # Operational Control Loop
 				self.HBEvents.Entry('Start event loop iteration')
 
-				if time.time() - ckperf > 900:
+				StackCheck = traceback.format_stack()
+				if len(StackCheck) != 4 and config.sysStore.versionname in ('development', 'homerelease'):
+					logsupport.Logs.Log('Stack growth error', severity=ConsoleWarning, hb=True)
+					for L in StackCheck:
+						logsupport.Logs.Log(L.strip)
+
+				if time.time() - ckperf > 60:  # todo 900:
 					ckperf = time.time()
 					if config.sysStore.versionname in ('development', 'homerelease') and (
 							controlevents.queuedepthmax > 4 or controlevents.queuetimemax > 1):

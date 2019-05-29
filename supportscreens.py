@@ -3,7 +3,6 @@ import functools
 import pygame
 from pygame import draw
 
-import config
 import debug
 import fonts
 import hw
@@ -213,6 +212,25 @@ class ListChooserSubScreen(screen.ScreenDesc):
 		self.DullKeyColor = wc(self.masterscreen.KeyColor, .5, self.BackgroundColor)
 		self.CharColor = self.masterscreen.CharColor
 		self.sourceheight = screenhgt // (self.NumSlots + 1)
+
+		cbutwidth = (hw.screenwidth - 2 * screens.horizborder) / 2
+		cvertcenter = hw.screenheight - screens.botborder / 2
+		cbutheight = screens.botborder - screens.cmdvertspace * 2
+		self.homekey = toucharea.ManualKeyDesc(self, 'Back<' + 'Home', ('Home',),
+											   self.CmdKeyCol, self.CmdCharCol, self.CmdCharCol,
+											   proc=functools.partial(screen.GoToScreen, screen.HOMETOKEN),
+											   center=(
+												   screens.horizborder + .5 * cbutwidth,
+												   cvertcenter),
+											   size=(cbutwidth, cbutheight))
+		self.backkey = toucharea.ManualKeyDesc(self, 'Nav>' + 'Back', ('Back',),
+											   self.CmdKeyCol, self.CmdCharCol, self.CmdCharCol,
+											   proc=functools.partial(screen.GoToScreen, screen.BACKTOKEN),
+											   center=(
+												   screens.horizborder + 1.5 * cbutwidth,
+												   cvertcenter),
+											   size=(cbutwidth, cbutheight))
+
 		for i in range(self.NumSlots):
 			self.SlotsVPos.append(vpos)
 			self.ListKeySlots['Src' + str(i)] = toucharea.TouchPoint('Slot' + str(i),
@@ -241,6 +259,7 @@ class ListChooserSubScreen(screen.ScreenDesc):
 															 size=(2 * self.sourceheight, self.sourceheight), KOn='',
 															 KOff='',
 															 proc=functools.partial(self.PickItemOK, True))
+		'''
 		self.ListKeySlots['CnclSrc'] = toucharea.ManualKeyDesc(self, 'CnclSrc', ['Back'], self.BackgroundColor,
 															   self.CharColor, self.CharColor,
 															   center=(
@@ -249,13 +268,13 @@ class ListChooserSubScreen(screen.ScreenDesc):
 															   size=(2 * self.sourceheight, self.sourceheight), KOn='',
 															   KOff='',
 															   proc=functools.partial(self.PickItemOK, False))
+	   '''
 
 	# noinspection PyUnusedLocal
 	def PickItem(self, slotnum):
-		# print(slotnum)
-		# change the source
-		self.selection = self.firstitem + slotnum
-		self.masterscreen.ShowScreen()
+		toucheditem = self.firstitem + slotnum
+		self.selection = toucheditem if self.selection != toucheditem else -1
+		self.ReInitDisplay()
 
 	# noinspection PyUnusedLocal
 	def PickItemOK(self, doit):
@@ -263,6 +282,7 @@ class ListChooserSubScreen(screen.ScreenDesc):
 			self.Result(self.selection)
 		else:
 			self.Result(-1)
+		screens.DS.SwitchScreen(screen.BACKTOKEN, 'Bright', 'Back from Item Pick')
 
 	# noinspection PyUnusedLocal
 	def PrevNext(self, nxt):
@@ -271,26 +291,32 @@ class ListChooserSubScreen(screen.ScreenDesc):
 				self.firstitem += self.NumSlots
 		elif self.firstitem - self.NumSlots >= 0:
 			self.firstitem -= self.NumSlots
-		self.masterscreen.ShowScreen()
+		self.ReInitDisplay()
 
 	def Initialize(self, itemlist):
 		self.itemlist = itemlist
-		self.masterscreen.Keys = self.ListKeySlots
+		self.Keys = self.ListKeySlots
 		self.firstitem = 0
 		self.selection = -1
 
+	def InitDisplay(self, nav):
+		super(ListChooserSubScreen, self).InitDisplay(nav)
+		self.DisplayListSelect()
+
+	def ReInitDisplay(self):
+		super(ListChooserSubScreen, self).ReInitDisplay()
+		self.DisplayListSelect()
+
 	def DisplayListSelect(self):
-		self.masterscreen.ReInitDisplay()
 		for i in range(self.firstitem, min(len(self.itemlist), self.firstitem + self.NumSlots)):
 			slot = i - self.firstitem
 			clr = self.DullKeyColor if i == self.selection else self.CharColor
 			rs, h, w = screenutil.CreateTextBlock(self.itemlist[i], self.sourceheight, clr, False, FitLine=True,
 												  MaxWidth=hw.screenwidth - screens.horizborder * 2)
-			# self.SourceSlot[slot] = self.SourceSet[i]
 			voff = self.SlotsVPos[slot] + (self.sourceheight - h) // 2
 			hw.screen.blit(rs, (screens.horizborder, voff))
-		pygame.draw.polygon(hw.screen, wc(self.CharColor),
-							_TriangleCorners(self.SrcPrev, self.sourceheight, False), 3)
-		pygame.draw.polygon(hw.screen, wc(self.CharColor),
-							_TriangleCorners(self.SrcNext, self.sourceheight, True), 3)
+		upcolor = wc(self.CharColor) if self.firstitem != 0 else self.DullKeyColor
+		dncolor = wc(self.CharColor) if self.firstitem + self.NumSlots < len(self.itemlist) else self.DullKeyColor
+		pygame.draw.polygon(hw.screen, upcolor, _TriangleCorners(self.SrcPrev, self.sourceheight, False), 3)
+		pygame.draw.polygon(hw.screen, dncolor, _TriangleCorners(self.SrcNext, self.sourceheight, True), 3)
 		pygame.display.update()
