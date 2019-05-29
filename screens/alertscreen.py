@@ -111,6 +111,10 @@ class AlertsScreenDesc(screen.ScreenDesc):
 	def BlinkMsg(self, param):
 		if not self.Active:
 			# race condition posted a blink just as screen was exiting so skip screen update
+			if self.BlinkTimer is not None:
+				self.BlinkTimer.cancel()
+				logsupport.Logs.Log('Alert timer cancel from blink try for {} ({})'.format(self.BlinkTimer.name,
+																						   self.BlinkTimer.is_alive()))
 			return
 		if self.Msg:
 			hw.screen.blit(self.messageimage, self.upperleft)
