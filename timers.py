@@ -102,6 +102,7 @@ class RepeatingPost(Thread):
 		self.interval = interval
 		self.kwargs = kwargs if kwargs is not None else {}
 		self.kwargs['name'] = name
+		self.kwargs['timer'] = self
 		self.finished = Event()
 		self.running = Event()
 		if not paused: self.running.set()
@@ -169,6 +170,7 @@ class ResettableTimer(Thread):
 		self.interval = 0
 		self.kwargs = kwargs if kwargs is not None else {}
 		self.kwargs['name'] = name
+		self.kwargs['timer'] = self
 		self.finished = Event()
 		self.newevent = None # these are used to communicate from set to actual timer loop
 		self.newdelta = 999
@@ -249,6 +251,7 @@ class CountedRepeatingPost(Thread):
 		self.kwargs = kwargs if kwargs is not None else {}
 		self.kwargs['name'] = name
 		self.kwargs['initcount'] = count
+		self.kwargs['timer'] = self
 		self.finished = Event()
 		self.count = count
 		AddToTimerList(self.name, self)
@@ -285,6 +288,7 @@ class OnceTimer(Thread):
 		self.interval = interval
 		self.kwargs = kwargs if kwargs is not None else {}
 		self.kwargs['name'] = name
+		self.kwargs['timer'] = self
 		self.finished = Event()
 		AddToTimerList(self.name, self)
 		if start: self.start()

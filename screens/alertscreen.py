@@ -110,11 +110,17 @@ class AlertsScreenDesc(screen.ScreenDesc):
 	# noinspection PyUnusedLocal
 	def BlinkMsg(self, param):
 		if not self.Active:
+			logsupport.Logs.Log('Alert timer while not active from: {}'.format(param.name))
 			# race condition posted a blink just as screen was exiting so skip screen update
 			if self.BlinkTimer is not None:
-				self.BlinkTimer.cancel()
-				logsupport.Logs.Log('Alert timer cancel from blink try for {} ({})'.format(self.BlinkTimer.name,
+
+				logsupport.Logs.Log('Alert timer from blink try for {} ({})'.format(self.BlinkTimer.name,
 																						   self.BlinkTimer.is_alive()))
+				self.BlinkTimer.cancel()
+				if not self.BlinkTimer.is_alive(): self.BlinkTimer = None
+			if param.timer.is_alive():
+				logsupport.Logs.Log("Blink came from {}".format(param.timer.name))
+				param.timer.cancel()
 			return
 		if self.Msg:
 			hw.screen.blit(self.messageimage, self.upperleft)

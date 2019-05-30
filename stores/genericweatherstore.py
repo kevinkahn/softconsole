@@ -5,7 +5,7 @@ import pygame
 
 import threading
 import logsupport
-from logsupport import ConsoleWarning
+
 from stores import valuestore
 
 '''
@@ -71,7 +71,7 @@ class WeatherVals(valuestore.ValueStore):
 			self.DoingFetch = threading.Thread(target=self.ws.FetchWeather, name='WFetch-{}'.format(self.name),
 											   daemon=True)
 			self.DoingFetch.start()
-			logsupport.Logs.Log('Starting weather refresh for {}'.format(self.name))
+			# logsupport.Logs.Log('Starting weather refresh for {}'.format(self.name)) todo keep performance count
 			self.Status = ("Fetching",)
 			self.startedfetch = time.time()
 		# no thread doing a fetch at this point - start one
@@ -86,9 +86,9 @@ class WeatherVals(valuestore.ValueStore):
 		# else just wait for next time
 		else:
 			# fetch completed
-			logsupport.Logs.Log(
-				'Weather fetch complete for {} at {} fetchedtime {}'.format(self.name, self.ValidWeatherTime,
-																			self.vars['Cond']['Time'].Value))
+			# logsupport.Logs.Log(
+			#	'Weather fetch complete for {} at {} fetchedtime {}'.format(self.name, self.ValidWeatherTime,
+			#																self.vars['Cond']['Time'].Value))
 			self.DoingFetch = None
 			self.fetchtime = time.time()
 			if self.ValidWeather:
