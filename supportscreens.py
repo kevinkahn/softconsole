@@ -213,24 +213,6 @@ class ListChooserSubScreen(screen.ScreenDesc):
 		self.CharColor = self.masterscreen.CharColor
 		self.sourceheight = screenhgt // (self.NumSlots + 1)
 
-		cbutwidth = (hw.screenwidth - 2 * screens.horizborder) / 2
-		cvertcenter = hw.screenheight - screens.botborder / 2
-		cbutheight = screens.botborder - screens.cmdvertspace * 2
-		self.homekey = toucharea.ManualKeyDesc(self, 'Back<' + 'Home', ('Home',),
-											   self.CmdKeyCol, self.CmdCharCol, self.CmdCharCol,
-											   proc=functools.partial(screen.GoToScreen, screen.HOMETOKEN),
-											   center=(
-												   screens.horizborder + .5 * cbutwidth,
-												   cvertcenter),
-											   size=(cbutwidth, cbutheight))
-		self.backkey = toucharea.ManualKeyDesc(self, 'Nav>' + 'Back', ('Back',),
-											   self.CmdKeyCol, self.CmdCharCol, self.CmdCharCol,
-											   proc=functools.partial(screen.GoToScreen, screen.BACKTOKEN),
-											   center=(
-												   screens.horizborder + 1.5 * cbutwidth,
-												   cvertcenter),
-											   size=(cbutwidth, cbutheight))
-
 		for i in range(self.NumSlots):
 			self.SlotsVPos.append(vpos)
 			self.ListKeySlots['Src' + str(i)] = toucharea.TouchPoint('Slot' + str(i),

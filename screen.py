@@ -1,6 +1,7 @@
 import collections
 
 import pygame
+import functools
 
 import config
 import debug
@@ -141,8 +142,24 @@ class ScreenDesc(object):
 		self.ScreenTitleBlk = None
 		self.prevkey = None
 		self.nextkey = None
-		self.homekey = None
-		self.backkey = None
+
+		cbutwidth = (hw.screenwidth - 2 * screens.horizborder) / 2
+		cvertcenter = hw.screenheight - screens.botborder / 2
+		cbutheight = screens.botborder - screens.cmdvertspace * 2
+		self.homekey = toucharea.ManualKeyDesc(self, 'Back<' + 'Home', ('Home',),
+											   self.CmdKeyCol, self.CmdCharCol, self.CmdCharCol,
+											   proc=functools.partial(GoToScreen, HOMETOKEN),
+											   center=(
+												   screens.horizborder + .5 * cbutwidth,
+												   cvertcenter),
+											   size=(cbutwidth, cbutheight))
+		self.backkey = toucharea.ManualKeyDesc(self, 'Nav>' + 'Back', ('Back',),
+											   self.CmdKeyCol, self.CmdCharCol, self.CmdCharCol,
+											   proc=functools.partial(GoToScreen, BACKTOKEN),
+											   center=(
+												   screens.horizborder + 1.5 * cbutwidth,
+												   cvertcenter),
+											   size=(cbutwidth, cbutheight))
 
 		IncorporateParams(self, 'Screen',
 						  {'CharColor', 'DimTO', 'PersistTO', 'BackgroundColor', 'CmdKeyCol', 'CmdCharCol',

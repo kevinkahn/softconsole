@@ -82,21 +82,7 @@ class MyScreens(object):
 		cbutwidth = (hw.screenwidth - 2 * screens.horizborder) / 2
 		cvertcenter = hw.screenheight - screens.botborder / 2
 		cbutheight = screens.botborder - screens.cmdvertspace * 2
-		for s in screens.screenslist.values():
-			s.homekey = toucharea.ManualKeyDesc(s, 'Back<' + 'Home', ('Home',),
-												s.CmdKeyCol, s.CmdCharCol, s.CmdCharCol,
-												proc=functools.partial(screen.GoToScreen, screen.HOMETOKEN),
-												center=(
-													screens.horizborder + .5 * cbutwidth,
-													cvertcenter),
-												size=(cbutwidth, cbutheight))
-			s.backkey = toucharea.ManualKeyDesc(s, 'Nav>' + 'Back', ('Back',),
-												s.CmdKeyCol, s.CmdCharCol, s.CmdCharCol,
-												proc=functools.partial(screen.GoToScreen, screen.BACKTOKEN),
-												center=(
-													screens.horizborder + 1.5 * cbutwidth,
-													cvertcenter),
-												size=(cbutwidth, cbutheight))
+
 		for i, kn in enumerate(config.sysStore.MainChain):
 			prevk = screens.MainDict[config.sysStore.MainChain[i - 1]]
 			nextk = screens.MainDict[config.sysStore.MainChain[(i + 1) % len(config.sysStore.MainChain)]]
