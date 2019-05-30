@@ -17,8 +17,6 @@ ConsoleOpsQueue = queue.Queue()  # master sequencer
 
 latencynotification = 1000 # notify if a loop latency is greater than this
 LateTolerance = 1.0  # for my systems
-queuedepthmax = 0
-queuetimemax = 0
 
 HBControl = historybuffer.HistoryBuffer(80, 'Control')
 
@@ -33,7 +31,8 @@ def PostEvent(e):
 
 
 def GetEvent():
-	global latencynotification, queuedepthmax, queuetimemax
+	global latencynotification
+	qs = ConsoleOpsQueue.qsize()
 	try:
 		evnt = ConsoleOpsQueue.get(block=True,timeout=120) # timeout is set to twice the failsafe injection time so should never see it
 	except queue.Empty:
@@ -41,13 +40,26 @@ def GetEvent():
 		HBControl.Entry("Main loop timeout - inserting ping event")
 		evnt = ConsoleEvent(CEvent.FailSafePing,inject=time.time(),QTime=time.time())
 		logsupport.Logs.Log('Main queue timeout', severity=logsupport.ConsoleWarning, hb=True)
-	qs = ConsoleOpsQueue.qsize()
 	if evnt is None: logsupport.Logs.Log('Got none from blocking get', severity=logsupport.ConsoleError, hb=True)
 	cpu = psutil.Process(config.sysStore.Console_pid).cpu_times()
 	HBControl.Entry("Get: {} queuesize: {}".format(evnt,qs))
-	queuedepthmax = max(queuedepthmax, qs)
+
+	now = time.time()
+	if qs >= logsupport.queuedepthmax:
+		logsupport.queuedepthmax = qs
+		logsupport.queuedepthmaxtime = now
+	if qs >= logsupport.queuedepthmax24:
+		logsupport.queuedepthmax24 = qs
+		logsupport.queuedepthmax24time = now
+
 	qt = time.time() - evnt.QTime
-	queuetimemax = max(queuetimemax, qt)
+	if qt > logsupport.queuetimemax:
+		logsupport.queuetimemax = qt
+		logsupport.queuetimemaxtime = now
+	if qt > logsupport.queuetimemax24:
+		logsupport.queuetimemax24 = qt
+		logsupport.queuetimemax24time = now
+
 	if qt > latencynotification:
 		HBControl.Entry(
 			'Long on queue: {} user: {} system: {} event: {}'.format(time.time() - evnt.QTime, cpu.user - evnt.usercpu,
@@ -59,8 +71,8 @@ def GetEvent():
 	if time.time() - evnt.QTime < 2: # cleared any pending long waiting startup events
 		if config.sysStore.versionname in ('development', 'homerelease') and (latencynotification != LateTolerance):  # after some startup stabilisation sensitize latency watch if my system
 			latencynotification = LateTolerance
-			queuedepthmax = 0
-			queuetimemax = 0
+			logsupport.queuedepthmax = 0
+			logsupport.queuetimemax = 0
 	# logsupport.DevPrint('Set latency tolerance: {}'.format(latencynotification))
 	return evnt
 

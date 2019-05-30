@@ -4,6 +4,7 @@ import traceback
 import multiprocessing
 import signal
 from queue import Empty as QEmpty
+import datetime
 
 import pygame
 import webcolors
@@ -53,6 +54,21 @@ ConsoleError = 5
 primaryBroker = None  # for cross system reporting if mqtt is running
 LoggerQueue = multiprocessing.Queue()
 
+# Performance info
+queuedepthmax = 0
+queuetimemax = 0
+queuedepthmaxtime = 0
+queuetimemaxtime = 0
+queuedepthmax24 = 0
+queuetimemax24 = 0
+queuedepthmax24time = 0
+queuetimemax24time = 0
+APIXUfetches = 0
+APIXUfetches24 = 0
+dailyloops = 0
+
+
+
 Command = Enum('Command', 'LogEntry DevPrint FileWrite CloseHlog StartLog Touch LogRemote LogString DumpRemote')
 
 # logger queue item: (type,str) where type: 0 Logentry, 1 DevPrint, 2 file write (name, access, str), 3 shutdown
@@ -68,6 +84,27 @@ lastremotesev = ConsoleInfo
 remotenodes = {}
 
 heldstatus = ''
+
+
+def NewDay(lpcnt, Report=True):
+	global queuedepthmax24, queuetimemax24, queuedepthmax24time, queuetimemax24time, APIXUfetches24, dailyloops
+
+	if Report:
+		Logs.Log("Daily Performance Summary: MaxQDepth: {} at {}".format(queuedepthmax24,
+																		 datetime.datetime.fromtimestamp(
+																			 queuedepthmax24time).strftime(
+																			 "%H:%M:%S.%f")))
+		Logs.Log(
+			"                           MaxQTime:  {} at {}".format(queuetimemax24, datetime.datetime.fromtimestamp(
+				queuetimemax24time).strftime("%H:%M:%S.%f")))
+		Logs.Log("                           APIXU Fetches: {}".format(APIXUfetches24))
+		Logs.Log("                           Cycles: {}/{}".format(lpcnt - dailyloops, lpcnt))
+	dailyloops = lpcnt
+	queuedepthmax24 = 0
+	queuetimemax24 = 0
+	queuedepthmax24time = 0
+	queuetimemax24time = 0
+	APIXUfetches24 = 0
 
 def SpawnAsyncLogger():
 	global AsyncLogger

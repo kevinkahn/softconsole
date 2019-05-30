@@ -1,5 +1,4 @@
 import pygame
-import traceback
 
 import alerttasks
 import debug

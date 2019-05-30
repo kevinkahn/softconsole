@@ -114,6 +114,8 @@ class APIXUWeatherSource(object):
 					historybuffer.HBNet.Entry('Weather fetch{}: {}'.format(trycnt, self.baseurl))
 					r = requests.get(self.baseurl, params=self.args)
 					historybuffer.HBNet.Entry('Weather fetch done')
+					logsupport.APIXUfetches += 1
+					logsupport.APIXUfetches24 += 1
 					if r.status_code == 200:
 						fetchworked = True
 					else:

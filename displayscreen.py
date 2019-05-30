@@ -221,28 +221,36 @@ class DisplayScreen(object):
 				pass
 		logsupport.Logs.Log('Console Up: {}'.format(pcslist))
 
+		loopcount = 0
 		perfdump = time.time()
 		ckperf = time.time()
+		dayord = time.localtime().tm_yday
 
 		try:
 			while config.Running:  # Operational Control Loop
+				loopcount += 1
+				if loopcount == 4: logsupport.NewDay(loopcount, Report=False)
+				if dayord != time.localtime().tm_yday:
+					dayord = time.localtime().tm_yday
+					logsupport.NewDay(loopcount, Report=True)
 				self.HBEvents.Entry('Start event loop iteration')
 
 				StackCheck = traceback.format_stack()
 				if len(StackCheck) != 4 and config.sysStore.versionname in ('development', 'homerelease'):
 					logsupport.Logs.Log('Stack growth error', severity=ConsoleWarning, hb=True)
 					for L in StackCheck:
-						logsupport.Logs.Log(L.strip)
+						logsupport.Logs.Log(L.strip())
 
-				if time.time() - ckperf > 60:  # todo 900:
+				if time.time() - ckperf > 900:  # todo 900:
+					# logsupport.NewDay(loopcount)
 					ckperf = time.time()
 					if config.sysStore.versionname in ('development', 'homerelease') and (
-							controlevents.queuedepthmax > 4 or controlevents.queuetimemax > 1):
+							logsupport.queuedepthmax > 4 or logsupport.queuetimemax > 1):
 						logsupport.Logs.Log('Console performance({}): maxq: {} maxwait: {}'.format(
-							time.time() - perfdump, controlevents.queuedepthmax, controlevents.queuetimemax),
+							time.time() - perfdump, logsupport.queuedepthmax, logsupport.queuetimemax),
 							severity=ConsoleWarning, hb=True, localonly=True)
-						controlevents.queuetimemax = 0
-						controlevents.queuedepthmax = 0
+						logsupport.queuetimemax = 0
+						logsupport.queuedepthmax = 0
 						perfdump = time.time()
 
 				if not Failsafe.is_alive():
