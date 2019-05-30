@@ -110,12 +110,13 @@ class AlertsScreenDesc(screen.ScreenDesc):
 	# noinspection PyUnusedLocal
 	def BlinkMsg(self, param):
 		if not self.Active:
-			logsupport.Logs.Log('Alert timer while not active from: {}'.format(param.name))
+			logsupport.Logs.Log('Alert timer while not active from: {}'.format(param.name),
+								severity=logsupport.ConsoleWarning)
 			# race condition posted a blink just as screen was exiting so skip screen update
 			if self.BlinkTimer is not None:
 
 				logsupport.Logs.Log('Alert timer from blink try for {} ({})'.format(self.BlinkTimer.name,
-																						   self.BlinkTimer.is_alive()))
+																					self.BlinkTimer.is_alive()))
 				self.BlinkTimer.cancel()
 				if not self.BlinkTimer.is_alive(): self.BlinkTimer = None
 			if param.timer.is_alive():
