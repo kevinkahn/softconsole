@@ -311,7 +311,7 @@ class Logger(object):
 			LoggerQueue.put((Command.StartLog, dirnm))
 			#self.disklogfile = open('Console.log', 'w')
 			#os.chmod('Console.log', 0o555)
-			historybuffer.SetupHistoryBuffers(dirnm, maxf)  # todo ? move print to async
+			historybuffer.SetupHistoryBuffers(dirnm, maxf)
 			os.chdir(cwd)
 
 	def SetSeverePointer(self, severity):
@@ -366,10 +366,7 @@ class Logger(object):
 			for i in args:
 				entry = entry + str(i)
 
-			# if entry != self.lastremotemes:
-			#	self.DumpRemoteMes()  #todo move to async
-
-			if hb: historybuffer.DumpAll(entry, entrytime)  # todo check that this is async
+			if hb: historybuffer.DumpAll(entry, entrytime)
 
 			self.RecordMessage(severity, entry, entrytime, debugitem, tb)
 

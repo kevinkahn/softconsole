@@ -258,7 +258,7 @@ def ParseAlertParams(nm, spec):
 		n = spec.get('Node', '').split(':')
 		if len(n) == 1:
 			nd = n[0]  # unqualified node - use default hub
-			hub = hubs.hubs.defaulthub  # todo rethink in terms of the store stuff for the default hub then config.defaulthub coule go away
+			hub = hubs.hubs.defaulthub
 		else:
 			nd = n[1]
 			hub = hubs.hubs.Hubs[n[0]]

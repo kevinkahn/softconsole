@@ -13,7 +13,7 @@ import controlevents
 
 def DoFetchRestart():
 	global fetcher
-	try:  # if network is down or other error occurs just skip for now rather than blow up todo move sha get to thread
+	try:
 		historybuffer.HBNet.Entry('Autoversion get sha')
 		sha, c = githubutil.GetSHA(config.sysStore.versionname)
 		historybuffer.HBNet.Entry('Autoversion get sha done')

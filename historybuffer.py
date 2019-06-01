@@ -40,7 +40,7 @@ def NoteGCs(phase, info):
 		GCBuf.Entry('GC Call' + phase + repr(info))
 
 
-def DumpAll(idline, entrytime):  # todo make use logger process
+def DumpAll(idline, entrytime):
 	global bufdumpseq
 	fn = HBdir + str(bufdumpseq) + '-' + entrytime
 	try:

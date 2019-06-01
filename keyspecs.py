@@ -184,7 +184,6 @@ class SetVarKey(ManualKeyDesc):
 			self.Proc = self.SetVarKeyPressed
 			if self.VarType != 'undef':  # deprecate
 
-				# todo the default hub name stuff is wrong - not updated to store stuff
 				if self.VarType == 'State':
 					self.VarName = (hubs.hubs.defaulthub.name, 'State', self.Var)  # use default hub for each of these 2
 				elif self.VarType == 'Int':
