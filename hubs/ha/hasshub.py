@@ -687,7 +687,8 @@ class HA(object):
 			loopend = time.time()
 			self.HB.Entry('Processing time: {} Done: {}'.format(loopend - loopstart, repr(message)))
 			time.sleep(.1)  # force thread to give up processor to allow response to time events
-			self.HB.Entry('Gave up control for: {}'.format(time.time() - loopend))
+
+		# self.HB.Entry('Gave up control for: {}'.format(time.time() - loopend))
 
 		def on_error(qws, error):
 			self.HB.Entry('ERROR: ' + repr(error))

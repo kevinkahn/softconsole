@@ -284,6 +284,9 @@ def DevPrintDoIt(arg):
 	LoggerQueue.put((Command.DevPrint, pstr))
 
 
+historybuffer.DevPrint = DevPrintDoIt  # to avoid circular imports
+
+
 class Logger(object):
 	livelog = True
 	livelogpos = 0

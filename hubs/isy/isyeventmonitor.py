@@ -209,7 +209,7 @@ class ISYEventMonitor(object):
 		# noinspection PyUnusedLocal,PyUnboundLocalVariable
 		def on_message(qws, message):
 			loopstart = time.time()
-			self.isy.HBWS.Entry(repr(message))
+			self.isy.HBWS.Entry('Message: {}'.format(repr(message)))
 			try:
 				m = 'parse error'
 				m = xmltodict.parse(message)
@@ -425,7 +425,8 @@ class ISYEventMonitor(object):
 			self.isy.HBWS.Entry('Processing time: {} Done: {}'.format(loopend - loopstart, repr(
 				message)))  # todo try to force other thread to run
 			time.sleep(.001)  # force thread to give up processor to allow response to time events
-			self.isy.HBWS.Entry('Gave up control for: {}'.format(time.time() - loopend))
+
+		# self.isy.HBWS.Entry('Gave up control for: {}'.format(time.time() - loopend))
 
 		self.THstate = 'delaying'
 		logsupport.Logs.Log("{}: WS stream thread {} setup".format(self.hubname, self.QHnum))

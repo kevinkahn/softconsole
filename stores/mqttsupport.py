@@ -172,7 +172,8 @@ class MQTTBroker(valuestore.ValueStore):
 			loopend = time.time()
 			self.HB.Entry('Processing time: {} Done: {}'.format(loopend - loopstart, repr(msg)))
 			time.sleep(.1)  # force thread to give up processor to allow response to time events
-			self.HB.Entry('Gave up control for: {}'.format(time.time() - loopend))
+
+		# self.HB.Entry('Gave up control for: {}'.format(time.time() - loopend))
 
 		# noinspection PyUnusedLocal
 		def on_log(client, userdata, level, buf):

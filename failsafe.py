@@ -1,5 +1,5 @@
 import multiprocessing
-import os, sys
+import os
 import signal
 import time
 import timers
@@ -22,20 +22,20 @@ def TempThreadList():
 	'''
 	time.sleep(10)
 	while True:
-		logsupport.AsyncFileWrite('/home/pi/Console/hlog', '=================Start\n')
+		# logsupport.AsyncFileWrite('/home/pi/Console/hlog', '=================Start\n')
 		L = multiprocessing.active_children()  # clean any zombie failsafe
-		for x in L:
-			logsupport.AsyncFileWrite('/home/pi/Console/hlog',
-									  '{} Process {}: alive: {} pid: {} daemon: {}\n'.format(time.time(), x.name,
-											x.is_alive(), x.pid, x.daemon))
+		# for x in L:
+		# logsupport.AsyncFileWrite('/home/pi/Console/hlog',
+		#						  '{} Process {}: alive: {} pid: {} daemon: {}\n'.format(time.time(), x.name,
+		#								x.is_alive(), x.pid, x.daemon))
 		threadlist = threading.enumerate()
 		for thd in threadlist:
-			logsupport.AsyncFileWrite('/home/pi/Console/hlog','{} Threadlist: {} alive: {} ident: {} daemon: {} \n'.format(time.time(), thd.name, thd.is_alive(), thd.ident, thd.daemon))
+			#logsupport.AsyncFileWrite('/home/pi/Console/hlog','{} Threadlist: {} alive: {} ident: {} daemon: {} \n'.format(time.time(), thd.name, thd.is_alive(), thd.ident, thd.daemon))
 			if thd.name == 'MainThread' and not thd.is_alive():
 				logsupport.AsyncFileWrite('/home/pi/Console/hlog','Main Thread died\n')
 				os.kill(os.getpid(),signal.SIGINT)  # kill myself
 
-		logsupport.AsyncFileWrite('/home/pi/Console/hlog','=================End\n')
+		#logsupport.AsyncFileWrite('/home/pi/Console/hlog','=================End\n')
 		time.sleep(30)
 
 def NoEventInjector():

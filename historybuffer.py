@@ -4,10 +4,11 @@ import time
 import gc
 
 AsyncFileWrite = None  # set from log support to avoid circular imports
-
+DevPrint = None
 
 import topper
 
+WatchGC = False  # set True to see garbage collection info
 Buffers = {}
 HBdir = ''
 GCBuf = None
@@ -30,21 +31,22 @@ def SetupHistoryBuffers(dirnm, maxlogs):
 		pass
 	os.mkdir('.HistoryBuffer')
 	HBdir = dirnm + '/.HistoryBuffer/'
-	gc.callbacks.append(NoteGCs)  #todo uncomment to see GC runs for timing analysis
-	GCBuf = HistoryBuffer(50, 'GC')
+	if WatchGC:
+		gc.callbacks.append(NoteGCs)
+		GCBuf = HistoryBuffer(50, 'GC')
 
 
 def NoteGCs(phase, info):
 	if GCBuf is not None:
-		#logsupport.DevPrint('GC {} {}'.format(phase, repr(info)))
 		GCBuf.Entry('GC Call' + phase + repr(info))
 
 
 def DumpAll(idline, entrytime):
 	global bufdumpseq
+	# DevPrint('=============== {}'.format(entrytime))
 	fn = HBdir + str(bufdumpseq) + '-' + entrytime
 	try:
-		topper.mvtops(str(bufdumpseq) + '-' + entrytime)
+		#topper.mvtops(str(bufdumpseq) + '-' + entrytime)
 		bufdumpseq += 1
 		t = {}
 		curfirst = {}
@@ -73,7 +75,7 @@ def DumpAll(idline, entrytime):
 			else:
 				AsyncFileWrite(fn, 'seq error:' + str(prevtime) + ' ' + str(curtime[nextup]) + '\n')
 				prevtime = 0
-			if now - curfirst[nextup][1] < 300:  # limit history dump to 5 minutes worth
+			if now - curfirst[nextup][1] < 30000:  # limit history dump to 5 minutes worth todo
 				AsyncFileWrite(fn,
 							   '{:1s}{:10s}:({:3d}) {:.5f}: {}\n'.format(initial[nextup], nextup, curfirst[nextup][0],
 																		 now - curfirst[nextup][1],
@@ -126,8 +128,10 @@ class HistoryBuffer(object):
 		curind = self.current
 		self.buf = tempbuf
 		self.current = 0
+		#DevPrint('Enter HB content for: {} index {}'.format(self.name, curind))
 		for i in range(self.size):
 			j = (i + curind) % self.size
 			if cur[j].timeofentry != 0:
+				#DevPrint('Item from {}: {}/{}/{}/{}'.format(self.name, i, j, cur[j].timeofentry, cur[j].entry))
 				yield (j, cur[j].timeofentry, cur[j].entry)
-
+	#DevPrint('Content exit: {}/{}'.format(self.name, j))

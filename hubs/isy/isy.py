@@ -486,7 +486,7 @@ class ISY(object):
 		if debug.dbgStore.GetVal('ISYdbg'):
 			self.PrintTree(self._ProgRoot, "    ", 'Programs')
 
-		self.HBWS = historybuffer.HistoryBuffer(40, self.name + '-WS')
+		self.HBWS = historybuffer.HistoryBuffer(150, self.name + '-WS')
 		self.HBDirect = historybuffer.HistoryBuffer(40, self.name + '-Direct')
 		self.isyEM = isyeventmonitor.ISYEventMonitor(self)
 		threadmanager.SetUpHelperThread(self.name, self.isyEM.QHandler, prerestart=self.isyEM.PreRestartQHThread,
