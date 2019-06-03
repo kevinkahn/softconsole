@@ -65,7 +65,11 @@ class DisplayScreen(object):
 		if NS == self.AS:
 			debug.debugPrint('Dispatch', 'Null SwitchScreen: ', reason)
 			logsupport.Logs.Log(
-				'Null switchscreen: ' + reason)  # todo 2 alerts that both clear at same time seems to create this - analyze?
+				'Null switchscreen: ' + reason)
+			if config.sysStore.versionname in ('development', 'homerelease'):
+				logsupport.Logs.Log('Null switch stack:', severity=ConsoleWarning, hb=True)
+				for L in traceback.format_stack():
+					logsupport.Logs.Log(L.strip())
 		if NS == screen.BACKTOKEN:
 			if self.ScreenStack:
 				NS = self.ScreenStack.pop()
@@ -450,8 +454,9 @@ class DisplayScreen(object):
 								alert.state = 'Delayed'
 								debug.debugPrint('Dispatch', "Post with delay:", alert.name, alert.trigger.delay)
 								TimerName += 1
-								timers.OnceTimer(alert.trigger.delay, start=True, name='MainLoop' + str(TimerName),
-												 proc=alerttasks.HandleDeferredAlert, param=alert)
+								alert.timer = timers.OnceTimer(alert.trigger.delay, start=True,
+															   name='MainLoop' + str(TimerName),
+															   proc=alerttasks.HandleDeferredAlert, param=alert)
 							else:  # invoke now
 								alert.state = 'FiredNoDelay'
 								debug.debugPrint('Dispatch', "Invoke: ", alert.name)
@@ -471,6 +476,11 @@ class DisplayScreen(object):
 						self.SwitchScreen(screens.HomeScreen, 'Dim', 'Cleared alert', newstate='Home')
 					elif ((alert.state == 'Delayed') or (alert.state == 'Deferred')) and not alert.trigger.IsTrue():
 						# condition changed under a pending action (screen or proc) so just cancel and rearm
+						if alert.timer is not None:
+							alert.timer.cancel()
+							alert.timer = None
+						else:
+							logsupport.DevPrint('Clear with no timer?? {}'.format(repr(alert)))
 						debug.debugPrint('Dispatch', 'Delayed event cleared before invoke', alert.name)
 						alert.state = 'Armed'
 					# todo - verify this is correct.  Issue is that the alert might have gotten here from a delay or from the

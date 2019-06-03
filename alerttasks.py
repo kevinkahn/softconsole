@@ -38,6 +38,7 @@ class Alert(object):
 		self.actiontarget = action
 		self.actionname = actionname
 		self.param = param
+		self.timer = None  # holds timer when delayed
 
 	@property
 	def state(self):
@@ -67,8 +68,11 @@ class Alert(object):
 			targtype = 'Screen'
 		else:
 			targtype = 'Proc'
+		tname = '*no timer*'
+		if self.timer is not None: tname = self.timer.name
 		return self.name + ': ' + self.type + ' Alert (' + self.state + ') Trigger: ' + repr(
-			self.trigger) + ' Invoke: ' + targtype + ':' + self.actionname + str(self.actiontarget)
+			self.trigger) + ' Invoke: ' + targtype + ':' + self.actionname + str(
+			self.actiontarget) + 'Timer: {}'.format(tname)
 
 
 class NodeChgtrigger(object):

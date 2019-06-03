@@ -138,6 +138,13 @@ class AlertsScreenDesc(screen.ScreenDesc):
 		self.Msg = True
 		if self.BlinkTime != 0:
 			self.TimerName += 1
+			# logsupport.Logs.Log('Create Blink Timer {}-Blink-{}'.format(self.name,self.TimerName))
+			if self.BlinkTimer is not None:
+				logsupport.Logs.Log(
+					"Entering Alert Screen with Blink Timer not null: {} {}".format(self.BlinkTimer.name,
+																					self.BlinkTimer.is_alive()),
+					severity=logsupport.ConsoleWarning, tb=True)
+				self.BlinkTimer.cancel()
 			self.BlinkTimer = timers.RepeatingPost(float(self.BlinkTime),
 												   name=self.name + '-Blink-' + str(self.TimerName), proc=self.BlinkMsg,
 												   start=True)
@@ -151,7 +158,9 @@ class AlertsScreenDesc(screen.ScreenDesc):
 
 	def ExitScreen(self):
 		if self.BlinkTimer is not None:
+			#logsupport.Logs.Log('Cancelling alert blink for {}'.format(self.BlinkTimer.name))
 			self.BlinkTimer.cancel()
+			self.BlinkTimer = None
 
 		if self.Alert.trigger.IsTrue():  # if the trigger condition is still true requeue post deferral
 			self.Alert.state = 'Deferred'
