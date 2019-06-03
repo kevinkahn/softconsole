@@ -31,9 +31,6 @@ class TempLogger(object):
 		if not isinstance(entry, str): entry = entry.encode('UTF-8', errors='backslashreplace')
 		print(time.strftime('%m-%d-%y %H:%M:%S') + " " + entry)
 
-	def PeriodicRemoteDump(self):
-		pass  # dummy to satisfy static method check
-
 
 
 Logs = TempLogger()
@@ -78,10 +75,6 @@ AsyncLogger = None
 LogLevel = 3
 LocalOnly = True
 
-lastremotemes = ''  # last remote queued message for consolidation purposes
-lastlocalmes = ''
-lastremotesev = ConsoleInfo
-remotenodes = {}
 
 heldstatus = ''
 
@@ -154,39 +147,6 @@ def LogProcess(q):
 			f.write('{}({}): Logger process SIGHUP ignored\n'.format(os.getpid(),time.time()))
 			f.flush()
 
-	def DumpRemoteMes():
-		global lastremotemes, remotenodes, lastlocalmes
-
-		now = time.strftime('%m-%d-%y %H:%M:%S')
-		if lastremotemes == '': return
-		ndlist = []
-		for nd, info in remotenodes.items():
-			ndlist.append(nd)
-			if info[1] != 1: ndlist[-1] = ndlist[-1] + '(' + str(info[1]) + ')'
-		if lastremotemes == lastlocalmes:
-			remoteentry = "Also from: " + ', '.join(ndlist)
-		else:
-			remoteentry = '[' + ', '.join(ndlist) + ']' + lastremotemes
-
-		disklogfile.write('{} Sev: {} {}\n'.format(now, lastremotesev, remoteentry))
-		disklogfile.flush()
-		os.fsync(disklogfile.fileno())
-
-		lastremotemes = ''
-
-	def DoLogRemote(node, entry, etime, severity):
-		global lastremotemes, remotenodes, lastremotesev
-		if entry == lastremotemes:
-			if node in remotenodes:
-				remotenodes[node] = (remotenodes[node][0], remotenodes[node][1] + 1)
-			else:
-				remotenodes[node] = (etime, 1)
-		else:
-			DumpRemoteMes()
-			lastremotemes = entry
-			lastremotesev = severity
-			remotenodes = {node: (etime, 1)}
-
 
 
 	signal.signal(signal.SIGTERM, ExitLog)  # don't want the sig handlers from the main console
@@ -217,12 +177,10 @@ def LogProcess(q):
 			if item[0] == Command.LogEntry:
 				# Log Entry (0,severity, entry, entrytime)
 				severity, entry, entrytime = item[1:]
-				if entry != lastremotemes:
-					DumpRemoteMes()
+
 				disklogfile.write('{} Sev: {} {}\n'.format(entrytime, severity, entry))
 				disklogfile.flush()
 				os.fsync(disklogfile.fileno())
-				lastlocalmes = entry
 			elif item[0] == Command.DevPrint:
 				# DevPrint
 				with open('/home/pi/Console/hlog', 'a') as f:
@@ -251,14 +209,16 @@ def LogProcess(q):
 			elif item[0] == Command.LogRemote:
 				# remote log (6, node, entry, etime, severity)
 				node, entry, etime, severity = item[1:]
-				DoLogRemote(node, entry, etime, severity)
+				disklogfile.write('{} Sev: {} [{}] {}\n'.format(etime, severity, node, entry))
+				disklogfile.flush()
+				os.fsync(disklogfile.fileno())
 			elif item[0] == Command.LogString:
 				# Logentry string (7,entry)
 				disklogfile.write('\n'.format(item[1]))
 				disklogfile.flush()
 				os.fsync(disklogfile.fileno())
 			elif item[0] == Command.DumpRemote:  # force remote message dump
-				DumpRemoteMes()
+				pass
 			else:
 				with open('/home/pi/Console/hlog', 'a') as f:
 					f.write('Log process got garbage: {}\n'.format(item))
@@ -323,7 +283,10 @@ class Logger(object):
 			config.sysStore.ErrorNotice = len(self.log) - 1
 
 	def LogRemote(self, node, entry, etime, severity):
+		tentry = '[{}] {}'.format(node, entry)
+		self.log.append((severity, tentry, etime))
 		LoggerQueue.put((Command.LogRemote, node, entry, etime, severity))
+		self.SetSeverePointer(severity)
 
 	def RecordMessage(self, severity, entry, entrytime, debugitem, tb):
 		if not debugitem:
@@ -341,8 +304,6 @@ class Logger(object):
 					LoggerQueue.put(
 						(Command.LogString, '-----------------' + fname + ':' + str(lineno) + ' ' + fn + ' ' + text))
 
-	def PeriodicRemoteDump(self):
-		LoggerQueue.put((Command.DumpRemote,))
 
 	def Log(self, *args, **kwargs):
 		"""
@@ -457,7 +418,6 @@ def ReportStatus(status, retain=True, hold=0):
 						   "GlobalLogViewTime": config.sysStore.GlobalLogViewTime})
 		primaryBroker.Publish(node=hw.hostname, topic='status', payload=stat, retain=retain, qos=1,
 							  viasvr=True)
-		Logs.PeriodicRemoteDump()
 
 
 def UpdateGlobalErrorPointer(force=False):
