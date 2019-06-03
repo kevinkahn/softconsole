@@ -49,6 +49,7 @@ ConsoleInfo = 3
 ConsoleWarning = 4
 ConsoleError = 5
 primaryBroker = None  # for cross system reporting if mqtt is running
+errorlogfudge = 0  # force a new log start time for each use of the log to make sure other nodes see it as a change in value due to the alert only on change
 LoggerQueue = multiprocessing.Queue()
 
 # Performance info
@@ -421,6 +422,7 @@ def ReportStatus(status, retain=True, hold=0):
 
 
 def UpdateGlobalErrorPointer(force=False):
+	global errorlogfudge
 	if primaryBroker is not None:
 		if force:
 			primaryBroker.Publish('set', payload='{"name":"System:GlobalLogViewTime","value":' + str(1) + '}',
@@ -429,4 +431,5 @@ def UpdateGlobalErrorPointer(force=False):
 								  node='all')
 		else:
 			primaryBroker.Publish('set', payload='{"name":"System:GlobalLogViewTime","value":' + str(
-				config.sysStore.LogStartTime) + '}', node='all')
+				config.sysStore.LogStartTime + errorlogfudge) + '}', node='all')
+			errorlogfudge += 1
