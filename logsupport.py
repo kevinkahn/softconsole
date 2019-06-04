@@ -63,7 +63,8 @@ queuedepthmax24time = 0
 queuetimemax24time = 0
 APIXUfetches = 0
 APIXUfetches24 = 0
-dailyloops = 0
+daystartloops = 0
+maincyclecnt = 0
 
 
 
@@ -80,8 +81,8 @@ LocalOnly = True
 heldstatus = ''
 
 
-def NewDay(lpcnt, Report=True):
-	global queuedepthmax24, queuetimemax24, queuedepthmax24time, queuetimemax24time, APIXUfetches24, dailyloops
+def NewDay(Report=True):
+	global queuedepthmax24, queuetimemax24, queuedepthmax24time, queuetimemax24time, APIXUfetches24, daystartloops, maincyclecnt
 
 	if Report:
 		Logs.Log("Daily Performance Summary: MaxQDepth: {} at {}".format(queuedepthmax24,
@@ -92,8 +93,8 @@ def NewDay(lpcnt, Report=True):
 			"                           MaxQTime:  {} at {}".format(queuetimemax24, datetime.datetime.fromtimestamp(
 				queuetimemax24time).strftime("%H:%M:%S.%f")))
 		Logs.Log("                           APIXU Fetches: {}".format(APIXUfetches24))
-		Logs.Log("                           Cycles: {}/{}".format(lpcnt - dailyloops, lpcnt))
-	dailyloops = lpcnt
+		Logs.Log("                           Cycles: {}/{}".format(maincyclecnt - daystartloops, maincyclecnt))
+	daystartloops = maincyclecnt
 	queuedepthmax24 = 0
 	queuetimemax24 = 0
 	queuedepthmax24time = 0
@@ -406,7 +407,7 @@ class Logger(object):
 
 def ReportStatus(status, retain=True, hold=0):
 	# held: 0 normal status report, 1 set an override status to be held, 2 clear and override status
-	global heldstatus
+	global heldstatus, queuedepthmax, queuetimemax, queuedepthmaxtime, queuetimemaxtime, queuedepthmax24, queuetimemax24, queuedepthmax24time, queuetimemax24time, APIXUfetches, APIXUfetches24, daystartloops, maincyclecnt
 	if hold == 1:
 		heldstatus = status
 	elif hold == 2:
@@ -416,7 +417,16 @@ def ReportStatus(status, retain=True, hold=0):
 		stat = json.dumps({'status': status if heldstatus == '' else heldstatus, "uptime": time.time() - config.sysStore.ConsoleStartTime,
 						   "error": config.sysStore.ErrorNotice, 'rpttime': time.time(),
 						   "FirstUnseenErrorTime": config.sysStore.FirstUnseenErrorTime,
-						   "GlobalLogViewTime": config.sysStore.GlobalLogViewTime})
+						   "GlobalLogViewTime": config.sysStore.GlobalLogViewTime,
+						   'queuedepthmax': queuedepthmax, 'queuetimemax': queuetimemax,
+						   'queuedepthmaxtime': queuedepthmaxtime,
+						   'queuetimemaxtime': queuetimemaxtime, 'queuedepthmax24': queuedepthmax24,
+						   'queuetimemax24': queuetimemax24,
+						   'queuedepthmax24time': queuedepthmax24time, 'queuetimemax24time': queuetimemax24time,
+						   'APIXUfetches': APIXUfetches,
+						   'APIXUfetches24': APIXUfetches24, 'daystartloops': daystartloops,
+						   'maincyclecnt': maincyclecnt})
+
 		primaryBroker.Publish(node=hw.hostname, topic='status', payload=stat, retain=retain, qos=1,
 							  viasvr=True)
 

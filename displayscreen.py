@@ -225,18 +225,17 @@ class DisplayScreen(object):
 				pass
 		logsupport.Logs.Log('Console Up: {}'.format(pcslist))
 
-		loopcount = 0
 		perfdump = time.time()
 		ckperf = time.time()
 		dayord = time.localtime().tm_yday
 
 		try:
 			while config.Running:  # Operational Control Loop
-				loopcount += 1
-				if loopcount == 4: logsupport.NewDay(loopcount, Report=False)
+				logsupport.maincyclecnt += 1
+				if logsupport.maincyclecnt == 4: logsupport.NewDay(Report=False)  # ignore startup delays
 				if dayord != time.localtime().tm_yday:
 					dayord = time.localtime().tm_yday
-					logsupport.NewDay(loopcount, Report=True)
+					logsupport.NewDay(Report=True)
 				self.HBEvents.Entry('Start event loop iteration')
 
 				StackCheck = traceback.format_stack()
@@ -246,7 +245,6 @@ class DisplayScreen(object):
 						logsupport.Logs.Log(L.strip())
 
 				if time.time() - ckperf > 900:  # todo 900:
-					# logsupport.NewDay(loopcount)
 					ckperf = time.time()
 					if config.sysStore.versionname in ('development', 'homerelease') and (
 							logsupport.queuedepthmax > 4 or logsupport.queuetimemax > 1):
