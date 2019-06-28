@@ -35,19 +35,19 @@ def paint():
 		print("{:12.12s} ".format(n), end='')
 		if info.maincyclecnt == 'unknown*':
 			stat = info.status
-			qmax = '    '
+			qmax = '     '
 		else:
 			stat = '{} cyc'.format(info.maincyclecnt) if info.status == 'idle' else info.status
-			qmax = '{:4.2f}'.format(info.queuetimemax24)
+			qmax = '{:4.2f} '.format(info.queuetimemax24)
 
 		print("{:10.10s} {}".format(stat, qmax), end='')
 		if info.status in ('dead', 'unknown'):
 			print("{:20.20s}".format(' '), end='')
 		else:
 			print(' ' if info.error == -1 else '?' if info.error == -1 else '*', end='')
-			print(" {:>15.15s}  ".format(interval_str(info.uptime)), end='')
+			print(" {:>14.14s}  ".format(interval_str(info.uptime)), end='')
 		if info.boottime == 0:
-			print("{:^18.18}".format('unknown'))
+			print("{:^17.17}".format('unknown'))
 		else:
 			print("{:%Y-%m-%d %H:%M:%S}".format(datetime.fromtimestamp(info.boottime)), end='')
 		age = time.time() - info.rpttime if info.rpttime != 0 else 0
