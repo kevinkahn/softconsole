@@ -44,19 +44,26 @@ def AddToTimerList(name, timer):
 		while name in TimerList:
 			TimerHB.Entry("Waiting timer cancel to complete: {}".format(name))
 	TimerList[name] = timer
-	printlist = {}
-	for n, t in TimerList.items():
-		if isinstance(t, RepeatingPost):
-			printlist[n] = "Repeater running: {}".format(t.running.is_set())
-		elif isinstance(t, CountedRepeatingPost):
-			printlist[n] = "Counter: {}".format(t.count)
-		elif isinstance(t, OnceTimer):
-			printlist[n] = "Once"
-		elif isinstance(t, ResettableTimer):
-			printlist[n] = "Resettable"
-		else:
-			printlist[n] = "Error?"
-	TimerHB.Entry("Timers : {}".format(printlist))
+	for i in range(3):
+		try:
+			printlist = {}
+			for n, t in TimerList.items():
+				if isinstance(t, RepeatingPost):
+					printlist[n] = "Repeater running: {}".format(t.running.is_set())
+				elif isinstance(t, CountedRepeatingPost):
+					printlist[n] = "Counter: {}".format(t.count)
+				elif isinstance(t, OnceTimer):
+					printlist[n] = "Once"
+				elif isinstance(t, ResettableTimer):
+					printlist[n] = "Resettable"
+				else:
+					printlist[n] = "Error?"
+			TimerHB.Entry("Timers : {}".format(printlist))
+			break
+		except RuntimeError as E:
+			TimerHB.Entry("Creation race: {} for {}".format(i, name))
+			logsupport.Logs.Log("Timer list race for {}, {}".format(name, i), severity=logsupport.ConsoleWarning)
+
 
 
 def KillMe():
