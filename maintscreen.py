@@ -164,7 +164,7 @@ def goto(newscreen):
 	screens.DS.SwitchScreen(newscreen, 'Bright', 'Maint goto' + newscreen.name, newstate='Maint')
 
 # noinspection PyUnusedLocal
-def handleexit(K, YesKey):
+def handleexit(K):
 	# YesKey are ignored in this use - needed by the key press invokation for other purposes
 	domaintexit(K.name)
 
