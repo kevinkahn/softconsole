@@ -1,0 +1,6 @@
+ControllerName|cap(True/False)|shiftx|shifty|flipx|flipy|scalex|scaley
+FT5406 memory based driver|True|0|0|0|0|1.0|1.0
+Goodix Capactivie Touchscreen|True|-324|303|0|0|1.0|1.0
+stmpe-ts|False|0|0|0|0|1.0|1.0
+EP0110M09|True|0|0|0|0|1.0|1.0
+generic ft5x06 (11)|True|0|0|0|0|1.0|1.0

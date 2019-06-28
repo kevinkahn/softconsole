@@ -23,6 +23,8 @@ evntcnt = 0
 lastup = 0
 previousup = 0
 
+ts = None
+
 
 # next several lines stolen from https://stackoverflow.com/questions/39198961/pygame-init-fails-when-run-with-systemd
 # this handles some weird random SIGHUP when initializing pygame, it's really a hack to work around it
@@ -80,7 +82,7 @@ def InitializeEnvironment():
 	# needs a keyboardinterrupt to initialise in some limited circs (second time running)
 	# lines below commented with HACK also part of workaround
 	# see https://stackoverflow.com/questions/17035699/pygame-requires-keyboard-interrupt-to-init-display
-	global lastup, previousup
+	global lastup, previousup, ts
 	class Alarm(Exception):
 		pass
 
@@ -100,30 +102,30 @@ def InitializeEnvironment():
 	config.sysStore.SetVal('PersonalSystem',os.path.isfile(config.sysStore.HomeDir + "/homesystem"))
 
 	# todo move touchhandler selection to hw - return the handler to start for the thread
-	if hw.screentype in ('pi7', '35r', '28c'):
-		from touchhandler import Touchscreen, TS_PRESS, TS_RELEASE, TS_MOVE
-		ts = Touchscreen()
 
-		def touchhandler(event, touch):
-			global evntcnt
-			evntcnt += 1
-			p = (touch.x, touch.y)
-			if event == TS_PRESS:
-				debug.debugPrint('Touch', 'Press pos: {} seq: {}'.format(p, evntcnt))
-				PostEvent(ConsoleEvent(CEvent.MouseDown, pos=p, seq=evntcnt))  # eventfix
-			elif event == TS_RELEASE:
-				debug.debugPrint('Touch', 'Repease pos: {} seq: {}'.format(p, evntcnt))
-				PostEvent(ConsoleEvent(CEvent.MouseUp, pos=p, seq=evntcnt))
-			elif event == TS_MOVE:
-				debug.debugPrint('Touch', 'Motion pos: {} seq: {}'.format(p, evntcnt))
-				PostEvent(ConsoleEvent(CEvent.MouseMotion, pos=p, seq=evntcnt))
+	from touchhandler import Touchscreen, TS_PRESS, TS_RELEASE, TS_MOVE
+	ts = Touchscreen()
 
-		for touchtyp in ts.touches:
-			touchtyp.on_press = touchhandler
-			touchtyp.on_release = touchhandler
-			touchtyp.on_move = touchhandler
+	def touchhandler(event, touch):
+		global evntcnt
+		evntcnt += 1
+		p = (touch.x, touch.y)
+		if event == TS_PRESS:
+			debug.debugPrint('Touch', 'Press pos: {} seq: {}'.format(p, evntcnt))
+			PostEvent(ConsoleEvent(CEvent.MouseDown, pos=p, seq=evntcnt))  # eventfix
+		elif event == TS_RELEASE:
+			debug.debugPrint('Touch', 'Repease pos: {} seq: {}'.format(p, evntcnt))
+			PostEvent(ConsoleEvent(CEvent.MouseUp, pos=p, seq=evntcnt))
+		elif event == TS_MOVE:
+			debug.debugPrint('Touch', 'Motion pos: {} seq: {}'.format(p, evntcnt))
+			PostEvent(ConsoleEvent(CEvent.MouseMotion, pos=p, seq=evntcnt))
 
-		threadmanager.SetUpHelperThread('TouchHandler', ts.run)
+	for touchtyp in ts.touches:
+		touchtyp.on_press = touchhandler
+		touchtyp.on_release = touchhandler
+		touchtyp.on_move = touchhandler
+
+	threadmanager.SetUpHelperThread('TouchHandler', ts.run)
 
 	try:
 		lastup = os.path.getmtime("{}/.ConsoleStart".format(config.sysStore.HomeDir))
@@ -142,9 +144,6 @@ def InitializeEnvironment():
 			str(config.sysStore.ConsoleStartTime) + ' ' + str(prevsetup) + ' ' + str(previousup) + ' ' + str(lastup) + ' '
 			+ str(config.sysStore.ConsoleStartTime - lastup) + '\n')
 
-	"""
-	Scale screen constants
-	"""
 	signal.signal(signal.SIGALRM, alarm_handler)  # HACK
 	signal.alarm(3)  # HACK
 	try:  # HACK
@@ -156,8 +155,7 @@ def InitializeEnvironment():
 
 	hw.screen.fill((0, 0, 0))  # clear screen
 	pygame.display.update()
-	if hw.touchdevice:
-		pygame.mouse.set_visible(False)  # no cursor
+	pygame.mouse.set_visible(False)  # no cursor
 
 
 def DumpDocumentation():

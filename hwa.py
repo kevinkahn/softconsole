@@ -6,7 +6,6 @@ import config
 
 backlight = None
 disklogging = True
-touchdevice = True
 
 
 def initOS():

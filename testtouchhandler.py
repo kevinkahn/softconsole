@@ -8,12 +8,10 @@ import queue
 import struct
 import time
 from collections import namedtuple
-import logsupport
-
+import pygame
+import subprocess
 
 import select
-
-import debug
 
 TOUCH_X = 0
 TOUCH_Y = 1
@@ -121,28 +119,16 @@ class Touches(list):
 
 
 class Touchscreen(object):
-	TOUCHSCREEN_EVDEV_NAME = ('FT5406 memory based driver', 'Goodix Capactivie Touchscreen')
+	TOUCHSCREEN_EVDEV_NAME = ('FT5406 memory based driver', 'Goodix Capactivie Touchscreen', 'generic ft5x06 (11)')
 	TOUCHSCREEN_RESISTIVE = 'stmpe-ts'
 	TOUCHSCREEN28CAP = 'EP0110M09'
 	EVENT_FORMAT = str('llHHi')
 	EVENT_SIZE = struct.calcsize(EVENT_FORMAT)
 
 	def __init__(self):
-		self.touchdefs = {}
-		with open('touchdefinitions') as f:
-			defs = f.read().splitlines()
-			for l in defs:
-				touchitem = l.split('|')
-				self.touchdefs[touchitem[0]] = touchitem[1:]
-		print(self.touchdefs)
 		self._use_multitouch = True
-		self.controller = "unknown"
-		self._shiftx = 0
-		self._shifty = 0
 		self._flipx = 0  # 0 for ok else size of x from which to subtract touch value
 		self._flipy = 0  # 0 for ok else size of y from which to subtract touch value
-		self._scalex = 1.0
-		self._scaley = 1.0
 		self._capscreen = True
 		self.a = None
 		self._running = False
@@ -208,7 +194,6 @@ class Touchscreen(object):
 
 		while not self._event_queue.empty():
 			event = self._event_queue.get()
-			debug.debugPrint('LLTouch', 'Touch: ' + str(event))
 			self._event_queue.task_done()
 
 			if event.type == EV_SYN:  # Sync
@@ -241,24 +226,16 @@ class Touchscreen(object):
 					self._current_touch.id = event.value
 
 				if event.code == ABS_MT_POSITION_X:
-					tmp = event.value + self._shiftx
+					tmp = event.value
 					if self._flipx != 0:
 						tmp = self._flipx - event.value
-					if tmp < 0:
-						logsupport.Logs.Log('Negative touch position(x): {}'.format(tmp),
-											severity=logsupport.ConsoleWarning)
-						tmp = 0
-					self._current_touch.x = round(tmp * self._scalex)
+					self._current_touch.x = tmp
 
 				if event.code == ABS_MT_POSITION_Y:
-					tmp = event.value + self._shifty
+					tmp = event.value
 					if self._flipy != 0:
 						tmp = self._flipy - event.value
-					if tmp < 0:
-						logsupport.Logs.Log('Negative touch position(y): {}'.format(tmp),
-											severity=logsupport.ConsoleWarning)
-						tmp = 0
-					self._current_touch.y = round(tmp * self._scaley)
+					self._current_touch.y = tmp
 
 				if event.code == ABS_X:
 					self.position.x = event.value
@@ -270,22 +247,13 @@ class Touchscreen(object):
 
 	def _touch_device(self):
 		# return '/dev/input/touchscreen'
+		print('Starting touch hw search')
 		for evdev in glob.glob("/sys/class/input/event*"):
+			print(evdev)
 			try:
 				with io.open(os.path.join(evdev, 'device', 'name'), 'r') as f:
 					dev = f.read().strip()
-					if dev in self.touchdefs:
-						self.controller = dev
-						vals = self.touchdefs[dev]
-						self._shiftx = int(vals[1])
-						self._shifty = int(vals[2])
-						self._flipx = int(vals[3])
-						self._flipy = int(vals[4])
-						self._scalex = float(vals[5])
-						self._scaley = float(vals[6])
-						self._capscreen = bool(vals[0])
-						return os.path.join('/dev', 'input', os.path.basename(evdev))
-					'''
+					print('Touch device: {}'.format(dev))
 					if dev in self.TOUCHSCREEN_EVDEV_NAME:
 						return os.path.join('/dev', 'input', os.path.basename(evdev))
 					elif dev == self.TOUCHSCREEN_RESISTIVE:
@@ -298,7 +266,6 @@ class Touchscreen(object):
 						self._flipx = 0  # 240  todo auto fix orientation?
 						self._flipy = 0  # 320
 						return os.path.join('/dev', 'input', os.path.basename(evdev))
-					'''
 			except IOError as e:
 				if e.errno != errno.ENOENT:
 					raise
@@ -308,27 +275,39 @@ class Touchscreen(object):
 		return next(iter(self))
 
 
-'''
 if __name__ == "__main__":
-	import signal
 
+	subprocess.call(('fbset', '-fb', '/dev/fb1'))
 	pygame.init()
 	pygame.fastevent.init()
+
+	minx = 1000000
+	maxx = -1000000
+	miny = 1000000
+	maxy = -1000000
+
 	a = [5724, -6, -1330074, 26, 8427, -1034528, 65536]
 	b = [34, 952, 38, 943]
 
 	ts = Touchscreen()
 
+	print('Test touch points:')
+
 
 	def handle_event(event, tch):
-		#xx = (a[2] + a[0] * touch.x + a[1] * touch.y) / a[6]
-		#yy = (a[5] + a[3] * touch.x + a[4] * touch.y) / a[6]
-		#Xx = (touch.x - b[0]) * 320 / (b[1] - b[0])
-		#Xy = (touch.y - b[2]) * 480 / (b[3] - b[2])
+		global minx, miny, maxx, maxy
+		# xx = (a[2] + a[0] * touch.x + a[1] * touch.y) / a[6]
+		# yy = (a[5] + a[3] * touch.x + a[4] * touch.y) / a[6]
+		# Xx = (touch.x - b[0]) * 320 / (b[1] - b[0])
+		# Xy = (touch.y - b[2]) * 480 / (b[3] - b[2])
 		print(["Release", "Press", "Move"][event],
 			  tch.slot,
 			  tch.x,
 			  tch.y)
+		minx = min(minx, tch.x)
+		miny = min(miny, tch.y)
+		maxx = max(maxx, tch.x)
+		maxy = max(maxy, tch.y)
 		return
 		# noinspection PyUnreachableCode
 		if event == 1:
@@ -344,12 +323,11 @@ if __name__ == "__main__":
 		touch.on_release = handle_event
 		touch.on_move = handle_event
 
-#	ts.run()
-
 	try:
-		signal.pause()
+		ts.run()
+	# signal.pause()
 	except KeyboardInterrupt:
 		print("Stopping thread...")
+		print('MinX: {} MaxX: {}   MinY: {} MaxY: {}'.format(minx, maxx, miny, maxy))
 		ts.stop()
 		exit()
-'''

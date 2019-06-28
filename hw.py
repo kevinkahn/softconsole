@@ -6,9 +6,9 @@ import pygame
 import wiringpi
 
 disklogging = True
-touchdevice = True
+
 IsDim = False
-PWMDim = True
+DimType = 'None'
 
 screen = None  # pygame screen to blit on etc
 
@@ -39,21 +39,25 @@ def scaleH(p):
 # This version of hw uses the real hw pwm for screen dimming - much better appearance
 
 def GoDim(level):
-	global IsDim, PWMDim
+	global IsDim, DimType
 	IsDim = True
-	if PWMDim:
+	if DimType == 'PWM':
 		GoDimPWM(level)
-	else:
+	elif DimType == 'Pi7':
 		GoDimPi7(level)
+	else:
+		pass
 
 
 def GoBright(level):
-	global IsDim, PWMDim
+	global IsDim, DimType
 	IsDim = False
-	if PWMDim:
+	if DimType == 'PWM':
 		GoDimPWM(level)
-	else:
+	elif DimType == 'Pi7':
 		GoDimPi7(level)
+	else:
+		pass
 
 
 # noinspection PyUnusedLocal
@@ -69,7 +73,7 @@ def ResetScreenLevel(storeitem, old, val, dim, unusedsrc):
 
 # noinspection PyBroadException
 def initOS(scrntyp):
-	global PWMDim, bootime, osversion, hwinfo, screentype, hostname, screenwidth, screenheight, portrait, dispratioW, dispratioH
+	global bootime, osversion, hwinfo, screentype, hostname, screenwidth, screenheight, portrait, dispratioW, dispratioH, DimType
 
 	screentype = scrntyp
 
@@ -85,18 +89,44 @@ def initOS(scrntyp):
 	with open('/proc/device-tree/model') as f:
 		hwinfo = f.read()
 
+	screendefs = {}
+	with open('screendefinitions') as f:
+		defs = f.read().splitlines()
+		for l in defs:
+			screenitem = l.split('|')
+			screendefs[screenitem[0]] = screenitem[1:]
+	print(screendefs)
+
+	if screentype not in screendefs:
+		print('Screen type undefined')
+		raise (ValueError)
+
+	if screendefs[screentype][1] != 'XWin':
+		if 'DISPLAY' in os.environ: del os.environ['DISPLAY']
+	os.environ['SDL_FBDEV'] = screendefs[screentype][0]
+	os.environ['SDL_VIDEODRIVER'] = screendefs[screentype][1]
+	DimType = screendefs[screentype][2]
+
+	if DimType == 'PWM':
+		try:
+			# if this system has the newer screen control then turn off the SMTPE control so PWM works
+			with open('/sys/class/backlight/soc:backlight/brightness', 'w') as f:
+				f.write('0')
+		except:
+			pass
+
+		wiringpi.wiringPiSetupGpio()
+		wiringpi.pinMode(18, 2)
+		wiringpi.pwmSetMode(wiringpi.PWM_MODE_MS)  # default balanced mode makes screen dark at about 853/1024
+		wiringpi.pwmWrite(18, 1024)
+
+	'''
 	if screentype == 'pi7':
 		os.environ['SDL_FBDEV'] = '/dev/fb0'
-		os.environ['SDL_NOMOUSE'] = '1'
-		os.environ['SDL_MOUSEDEV'] = ''
-		os.environ['SDL_MOUSEDRV'] = ''
 		os.environ['SDL_VIDEODRIVER'] = 'fbcon'
-		PWMDim = False
+		DimType = 'Pi7'
 	elif screentype in ('35r', '28c', '28r'):
 		os.environ['SDL_FBDEV'] = '/dev/fb1'
-		os.environ['SDL_NOMOUSE'] = '1'
-		os.environ['SDL_MOUSEDEV'] = ''
-		os.environ['SDL_MOUSEDRV'] = ''
 		os.environ['SDL_VIDEODRIVER'] = 'fbcon'
 		try:
 			# if this system has the newer screen control then turn off the SMTPE control so PWM works
@@ -109,7 +139,7 @@ def initOS(scrntyp):
 		wiringpi.pinMode(18, 2)
 		wiringpi.pwmSetMode(wiringpi.PWM_MODE_MS)  # default balanced mode makes screen dark at about 853/1024
 		wiringpi.pwmWrite(18, 1024)
-		PWMDim = True
+		DimType = 'PWM'
 	else:  # todo delete if 28r works and waveshare works
 		os.environ['SDL_FBDEV'] = '/dev/fb1'
 		os.environ['SDL_MOUSEDEV'] = '/dev/input/touchscreen'
@@ -126,10 +156,15 @@ def initOS(scrntyp):
 		wiringpi.pinMode(18, 2)
 		wiringpi.pwmSetMode(wiringpi.PWM_MODE_MS)  # default balanced mode makes screen dark at about 853/1024
 		wiringpi.pwmWrite(18, 1024)
-		PWMDim = True
+		DimType = 'PWM'
+	'''
+
+	print('Screen: {}  Device: {} Driver: {} Dim: {}'.format(screentype, os.environ['SDL_FBDEV'],
+															 os.environ['SDL_VIDEODRIVER'], DimType))
 
 	pygame.display.init()
 	screenwidth, screenheight = (pygame.display.Info().current_w, pygame.display.Info().current_h)
+
 	if screenwidth > screenheight:
 		portrait = False
 
