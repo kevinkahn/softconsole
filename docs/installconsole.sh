@@ -102,7 +102,7 @@ fi
 
 if [ -n "$3" ]
 then
-  $InstallBeta=$3
+  InstallBeta=$3
 else
   Get_yn $InstallBeta "Download beta also? (Y/N)?"
   SkipVerify=N
