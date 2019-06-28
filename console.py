@@ -15,16 +15,21 @@ Copyright 2016, 2017, 2018 Kevin Kahn
    See the License for the specific language governing permissions and
    limitations under the License.
 """
+import os
+
+os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
+import pygame
+
 import cgitb
 import datetime
 import importlib
-import os
+
 import signal
 import sys
 import time
 import threading
 
-import pygame
+
 # noinspection PyProtectedMember
 from configobj import ConfigObj, Section
 
@@ -262,8 +267,9 @@ while includes:
 	# noinspection PyBroadException
 	try:
 		configfilelist[f] = os.path.getmtime(f)
-	except:
+	except Exception as E:
 		logsupport.Logs.Log("MISSING config file " + f)
+		logsupport.Logs.Log('Excp: {}'.format(repr(E)))
 		configfilelist[f] = 0
 
 debug.InitFlags(ParsedConfigFile)
@@ -299,6 +305,18 @@ with open("{}/.ConsoleStart".format(config.sysStore.HomeDir), "w") as f:
 logsupport.Logs.Log("Console Starting  pid: ", config.sysStore.Console_pid)
 logsupport.Logs.Log("Host name: ", hw.hostname)
 logsupport.Logs.Log("Screen type: ", hw.screentype)
+logsupport.Logs.Log(
+	'(Display device: {} Driver: {} Dim Method: {})'.format(os.environ['SDL_FBDEV'], os.environ['SDL_VIDEODRIVER'],
+															hw.DimType))
+logsupport.Logs.Log("Touch controller: {}".format(utilities.ts.controller))
+logsupport.Logs.Log(
+	"(Capacitive: {} Shifts: x: {} y: {} Flips: x: {} y: {} Scale: x: {} y: {})".format(utilities.ts._capscreen,
+																						utilities.ts._shiftx,
+																						utilities.ts._shifty,
+																						utilities.ts._flipx,
+																						utilities.ts._flipy,
+																						utilities.ts._scalex,
+																						utilities.ts._scaley))
 logsupport.Logs.Log("Screen Orientation: ", ("Landscape", "Portrait")[hw.portrait])
 if config.sysStore.PersonalSystem:
 	logsupport.Logs.Log("Personal System")
