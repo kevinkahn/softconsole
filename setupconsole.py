@@ -2,9 +2,13 @@ import grp
 import os
 import pwd
 import subprocess
+import sys
 
 import githubutil as U
 
+downloadbeta = 'N'
+if len(sys.argv) == 2:
+	downloadbeta = sys.argv[1]
 # Set up directories
 
 if os.getegid() != 0:
@@ -33,6 +37,12 @@ else:
 	print("Stage standard stable release")
 U.InstallStagedVersion('consolestable')
 print("Installed staged stable")
+
+if downloadbeta == 'Y':
+	U.StageVersion('consolebeta', 'currentbeta', 'Initial Install')
+	print('Stage beta also')
+	U.InstallStagedVersion('consolebeta')
+	print('Intalled staged beta')
 
 if os.path.exists('homesystem'):
 	os.mkdir('consolecur')
