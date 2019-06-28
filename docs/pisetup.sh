@@ -82,8 +82,9 @@ Get_yn Personal "Is this the developer personal system (Y/N) (bit risky to say Y
 Get_yn InstallBeta "Download current beta as well as stable? (usually waste of time)"
 Get_yn AutoConsole "Autostart console (Y/N)?"
 
-Get_yn InstallScreen Do you want to install a known screen (Alternative is to install any screen drivers yourself)?
+Get_yn InstallScreen "Do you want to install a known screen (Alternative is to install any screen drivers yourself)?"
 if [ "$InstallScreen" == "Y" ]
+then
     Screens="28r 28c 35r pi7"
     ScreenType="--"
 

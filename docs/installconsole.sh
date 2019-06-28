@@ -167,6 +167,12 @@ else
     wget https://raw.githubusercontent.com/kevinkahn/softconsole/currentrelease/setupconsole.py
     wget https://raw.githubusercontent.com/kevinkahn/softconsole/currentrelease/githubutil.py
 fi
+if [ $InstallBeta == "Y" ]
+then
+    echo Get currentbeta version of setupconsole and githubutil
+    wget https://raw.githubusercontent.com/kevinkahn/softconsole/currentbeta/setupconsole.py
+    wget https://raw.githubusercontent.com/kevinkahn/softconsole/currentbeta/githubutil.py
+fi
 
 python -u setupconsole.py $InstallBeta
 
