@@ -102,15 +102,15 @@ fi
 
 if [ -n "$3" ]
 then
-  UseWheezy=$3
+  $InstallBeta=$3
 else
-  Get_yn UseWheezy "Use Wheezy SDL for oddball screens (Y/N)?"
+  Get_yn $InstallBeta "Download beta also? (Y/N)?"
   SkipVerify=N
 fi
 
-echo "Developer system:           $Personal"
-echo "Auto start Console on boot: $AutoConsole"
-echo "Downgrade touch to Wheezy:  $UseWheezy"
+echo "-Developer system:           $Personal"
+echo "-Auto start Console on boot: $AutoConsole"
+echo "-Download beta:  $InstallBeta"
 
 Go='N'
 if [ "$SkipVerify" != "Y" ]
@@ -125,6 +125,7 @@ fi
 date >> /home/pi/prep.log
 echo "Developer system:           $Personal" >> /home/pi/prep.log
 echo "Auto start Console on boot: $AutoConsole" >> /home/pi/prep.log
+echo "Download beta:  $InstallBeta" >> /home/pi/prep.log
 exec > >(tee -a /home/pi/prep.log)
 exec 2>&1
 
@@ -144,15 +145,9 @@ echo 1 > /proc/sys/vm/drop_caches # try to avoid kswap problem
 # Install the python packages needed for the console
 
 LogBanner "Install stuff for console"
-#apt-get -y install python-dev
-#apt-get -y install python3-dev
-#LogBanner "Switch default Python to Python3"
-#update-alternatives --install /usr/bin/python python /usr/bin/python3.5 2
 
 pip install --upgrade pip
 #pip3 install --upgrade pip
-
-#pip3 install homeassistant # do it here to avoid conflicts in versions later
 
 if [ $UseWheezy == "Y" ]
 then
@@ -173,7 +168,7 @@ else
     wget https://raw.githubusercontent.com/kevinkahn/softconsole/currentrelease/githubutil.py
 fi
 
-python -u setupconsole.py
+python -u setupconsole.py $InstallBeta
 
 # in case this is a development system
 cp consolestable/scripts/python-sudo.sh .
@@ -217,7 +212,7 @@ mv prep.log earlyprep.log consoleinstallleftovers
 mv adafruit* consoleinstallleftovers
 rm tmp
 rm getsetupinfo.py
-rm doinstall.sh
+mv doinstall.sh consoleinstallleftovers
 mv installc* consoleinstallleftovers
 mv di.log    consoleinstallleftovers
 

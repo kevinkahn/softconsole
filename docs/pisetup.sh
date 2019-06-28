@@ -61,12 +61,13 @@ echo "Note - installation switches system default Python to version 3"
 echo "To undo this run 'sudo update-alternatives --config python' to select desired alternative"
 
 LogBanner "Switch default Python to Python3"
-update-alternatives --install /usr/bin/python python /usr/bin/python3.5 2
-update-alternatives --install /usr/bin/python python /usr/bin/python2.7 1
+update-alternatives --install /usr/bin/python python /usr/bin/python3 2
+update-alternatives --install /usr/bin/python python /usr/bin/python2 1
+update-alternatives --set python /usr/bin/python3
 
 LogBanner "Python Compatibility Lib"
 
-pip3 install future
+pip install future
 
 echo "deb http://mirrordirector.raspbian.org/raspbian/ stretch main contrib non-free rpi firmware" >> /etc/apt/sources.list.d/raspi.list
 
@@ -78,25 +79,32 @@ sudo passwd pi
 Get_val NodeName "What name for this system?"
 Get_yn VNCstdPort "Install VNC on standard port (Y/N/alt port number)?"
 Get_yn Personal "Is this the developer personal system (Y/N) (bit risky to say Y if it not)?"
+Get_yn InstallBeta "Download current beta as well as stable? (usually waste of time)"
 Get_yn AutoConsole "Autostart console (Y/N)?"
 
-Screens="28r 28c 35r wave35 custom pi7"
-ScreenType="--"
-
-until [ $ScreenType != "--" ]
-do
-  Get_val ScreenType "What type screen($Screens)?"
-  InList "$Screens" "$ScreenType"
-  if [ $? -ne 1 ]
-  then
-    echo Not a valid screen type
+Get_yn InstallScreen Do you want to install a known screen (Alternative is to install any screen drivers yourself)?
+if [ "$InstallScreen" == "Y" ]
+    Screens="28r 28c 35r pi7"
     ScreenType="--"
-  fi
-done
-if [ $ScreenType == 'pi7' ]
-then
-  Get_yn Flip7 "Flip 7 inch screen so power at top? (Y/N)"
+
+    until [ $ScreenType != "--" ]
+    do
+      Get_val ScreenType "What type screen($Screens)?"
+      InList "$Screens" "$ScreenType"
+      if [ $? -ne 1 ]
+      then
+        echo Not a valid screen type
+        ScreenType="--"
+      fi
+    done
+    if [ $ScreenType == 'pi7' ]
+    then
+      Get_yn Flip7 "Flip 7 inch screen so power at top? (Y/N)"
+    fi
+else
+    Get_val ScreenType "What is your screen type?"
 fi
+
 
 Get_yn Reboot "Automatically reboot to continue install after system setup?"
 
@@ -121,7 +129,6 @@ chmod +x installconsole.sh
 chown pi:pi lxterminal.conf
 
 python getsetupinfo.py
-#update-alternatives --set python /usr/bin/python2.7
 
 Get_yn Go "Proceed?"
 if [ "$Go" != "Y" ]
@@ -241,9 +248,6 @@ case $ScreenType in
   raspi-config nonint do_boot_behaviour B4 # set boot to desktop already logged in
   sed -isav s/fb0/fb1/ /usr/share/X11/xorg.conf.d/99-fbturbo.conf
   ;;
-  custom)
-    LogBanner "No Screen Configured - do it manually for custom screen before reboot"
-    ;;
   pi7)
     LogBanner "7 Inch Pi Screen"
     if [ $Flip7 == 'Y' ]
@@ -272,12 +276,10 @@ EOF
     echo "Finished waveshare install"
     ;;
   *)
-    LogBanner "Screen Selection Error!!!"
-    exit 99
+    LogBanner "User installed screen"
+    echo Screen type: $ScreenType
     ;;
 esac
-
-update-alternatives --set python /usr/bin/python3.5
 
 mv --backup=numbered /etc/rc.local.hold /etc/rc.local
 chmod +x /etc/rc.local
@@ -306,7 +308,8 @@ cp .bashrc .bashrc.sav
 mv -f .bashrc.real .bashrc
 touch /home/pi/CONSOLEINSTALLRUNNING
 sleep 15 # delay to allow X system to startup for next command (is this long enough in a Pi0)
-DISPLAY=:0.0 x-terminal-emulator -t "Console Install" --geometry=40x17 -e sudo bash /home/pi/doinstall.sh 2>> /home/pi/di.log
+#DISPLAY=:0.0 x-terminal-emulator -t "Console Install" --geometry=40x17 -e sudo bash /home/pi/doinstall.sh 2>> /home/pi/di.log
+sudo bash /home/pi/doinstall.sh 2>> /home/pi/di.log
 EOF
     cat > doinstall.sh << EOF
 echo Autorunning console install in 10 second - ctl-c to stop
@@ -316,7 +319,7 @@ for i in 10 9 8 7 6 5 4 3 2 1
       sleep 1
     done
 sudo bash -c "echo 1 > /proc/sys/vm/drop_caches"  # trying to avoid the kswap issue
-sudo bash ./installconsole.sh $Personal $AutoConsole $UseWheezy
+sudo bash ./installconsole.sh $Personal $AutoConsole $InstallBeta
 EOF
     reboot now
 fi
