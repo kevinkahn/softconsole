@@ -169,8 +169,8 @@ else
 fi
 if [ $InstallBeta == "Y" ]
 then
-    mv setupconsole.py stable-setupconsole.py
-    mv githubutil.py stable-githubutil.py
+    mv setupconsole.py consoleinstallleftovers/stable-setupconsole.py
+    mv githubutil.py consoleinstallleftovers/stable-githubutil.py
     echo Get currentbeta version of setupconsole and githubutil
     wget https://raw.githubusercontent.com/kevinkahn/softconsole/currentbeta/setupconsole.py
     wget https://raw.githubusercontent.com/kevinkahn/softconsole/currentbeta/githubutil.py
@@ -215,7 +215,7 @@ then
   systemctl enable vncserverpi
 fi
 
-mkdir consoleinstallleftovers
+
 mv prep.log earlyprep.log consoleinstallleftovers
 mv adafruit* consoleinstallleftovers
 rm tmp

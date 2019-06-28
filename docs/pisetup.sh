@@ -50,6 +50,7 @@ exec 2>&1
 cd /home/pi
 LogBanner "This is the system setup script"
 LogBanner "Connect WiFI if needed"
+mkdir consoleinstallleftovers
 read -p "Press Enter to continue"
 
 LogBanner "Upgrade/Update System"
@@ -125,6 +126,19 @@ else
   wget https://raw.githubusercontent.com/kevinkahn/softconsole/currentrelease/scripts/lxterminal.conf
 # fix issue in adafruit install script as of 3/31/2018
 fi
+if [ "$InstallBeta" == "Y" ]
+then
+  echo use beta install scripts
+  mv installconsole.sh consoleinstallleftovers/stable-installconsole.sh
+  mv getsetupinfo.py consoleinstallleftovers/stable-getsetupinfo.py
+  mv vncserverpi.service consoleinstallleftovers/stable-vncserverpi.service
+  mv lxterminal.conf consoleinstallleftovers/stable-lxterminal.conf
+  wget https://raw.githubusercontent.com/kevinkahn/softconsole/currentbeta/docs/installconsole.sh
+  wget https://raw.githubusercontent.com/kevinkahn/softconsole/currentbeta/getsetupinfo.py
+  wget https://raw.githubusercontent.com/kevinkahn/softconsole/currentbeta/scripts/vncserverpi.service
+  wget https://raw.githubusercontent.com/kevinkahn/softconsole/currentbeta/scripts/lxterminal.conf
+fi
+
 
 chmod +x installconsole.sh
 chown pi:pi lxterminal.conf
