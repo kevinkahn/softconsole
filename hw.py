@@ -18,12 +18,13 @@ dispratioW = 1
 dispratioH = 1
 screenwidth = 0
 screenheight = 0
+dimpin = 0
 
 bootime = 0
 osversion = ""
 hwinfo = ""
 
-hostname = ""
+hostname = socket.gethostname()
 screentype = ""
 portrait = True
 
@@ -35,29 +36,6 @@ def scaleW(p):
 def scaleH(p):
 	return int(round(float(p) * float(dispratioH)))
 
-
-# This version of hw uses the real hw pwm for screen dimming - much better appearance
-
-def GoDim(level):
-	global IsDim, DimType
-	IsDim = True
-	if DimType == 'PWM':
-		GoDimPWM(level)
-	elif DimType == 'Pi7':
-		GoDimPi7(level)
-	else:
-		pass
-
-
-def GoBright(level):
-	global IsDim, DimType
-	IsDim = False
-	if DimType == 'PWM':
-		GoDimPWM(level)
-	elif DimType == 'Pi7':
-		GoDimPi7(level)
-	else:
-		pass
 
 
 # noinspection PyUnusedLocal
@@ -72,14 +50,14 @@ def ResetScreenLevel(storeitem, old, val, dim, unusedsrc):
 
 
 # noinspection PyBroadException
-def initOS(scrntyp):
-	global bootime, osversion, hwinfo, screentype, hostname, screenwidth, screenheight, portrait, dispratioW, dispratioH, DimType
+def initOS(scrntyp, configdir):
+	global bootime, osversion, hwinfo, screentype, hostname, screenwidth, screenheight, portrait, dispratioW, dispratioH, DimType, dimpin
 
 	screentype = scrntyp
 
 	os.nice(-10)
 
-	hostname = socket.gethostname()
+	# hostname = socket.gethostname()
 	# get platform info
 	with open('/proc/stat', 'r') as f:
 		for line in f:
@@ -95,11 +73,19 @@ def initOS(scrntyp):
 		for l in defs:
 			screenitem = l.split('|')
 			screendefs[screenitem[0]] = screenitem[1:]
-	print(screendefs)
+	try:
+		# allow overwrite of system values
+		with open(configdir + '/screendefinitions') as f:
+			defs = f.read().splitlines()
+			for l in defs:
+				screenitem = l.split('|')
+				screendefs[screenitem[0]] = screenitem[1:]
+	except:
+		pass
 
 	if screentype not in screendefs:
 		print('Screen type undefined')
-		raise (ValueError)
+		raise ValueError
 
 	if screendefs[screentype][1] != 'XWin':
 		if 'DISPLAY' in os.environ: del os.environ['DISPLAY']
@@ -107,7 +93,11 @@ def initOS(scrntyp):
 	os.environ['SDL_VIDEODRIVER'] = screendefs[screentype][1]
 	DimType = screendefs[screentype][2]
 
-	if DimType == 'PWM':
+	if DimType in ('PWM18', 'PWM19'):
+		if DimType == 'PWM18':
+			dimpin = 18
+		elif DimType == 'PWM19':
+			dimpin = 19
 		try:
 			# if this system has the newer screen control then turn off the SMTPE control so PWM works
 			with open('/sys/class/backlight/soc:backlight/brightness', 'w') as f:
@@ -116,51 +106,12 @@ def initOS(scrntyp):
 			pass
 
 		wiringpi.wiringPiSetupGpio()
-		wiringpi.pinMode(18, 2)
+		wiringpi.pinMode(dimpin, 2)
 		wiringpi.pwmSetMode(wiringpi.PWM_MODE_MS)  # default balanced mode makes screen dark at about 853/1024
-		wiringpi.pwmWrite(18, 1024)
+		wiringpi.pwmWrite(dimpin, 1024)
 
-	'''
-	if screentype == 'pi7':
-		os.environ['SDL_FBDEV'] = '/dev/fb0'
-		os.environ['SDL_VIDEODRIVER'] = 'fbcon'
-		DimType = 'Pi7'
-	elif screentype in ('35r', '28c', '28r'):
-		os.environ['SDL_FBDEV'] = '/dev/fb1'
-		os.environ['SDL_VIDEODRIVER'] = 'fbcon'
-		try:
-			# if this system has the newer screen control then turn off the SMTPE control so PWM works
-			with open('/sys/class/backlight/soc:backlight/brightness', 'w') as f:
-				f.write('0')
-		except:
-			pass
-
-		wiringpi.wiringPiSetupGpio()
-		wiringpi.pinMode(18, 2)
-		wiringpi.pwmSetMode(wiringpi.PWM_MODE_MS)  # default balanced mode makes screen dark at about 853/1024
-		wiringpi.pwmWrite(18, 1024)
-		DimType = 'PWM'
-	else:  # todo delete if 28r works and waveshare works
-		os.environ['SDL_FBDEV'] = '/dev/fb1'
-		os.environ['SDL_MOUSEDEV'] = '/dev/input/touchscreen'
-		os.environ['SDL_MOUSEDRV'] = 'TSLIB'
-		os.environ['SDL_VIDEODRIVER'] = 'fbcon'
-		try:
-			# if this system has the newer screen control then turn off the SMTPE control so PWM works
-			with open('/sys/class/backlight/soc:backlight/brightness', 'w') as f:
-				f.write('0')
-		except:
-			pass
-
-		wiringpi.wiringPiSetupGpio()
-		wiringpi.pinMode(18, 2)
-		wiringpi.pwmSetMode(wiringpi.PWM_MODE_MS)  # default balanced mode makes screen dark at about 853/1024
-		wiringpi.pwmWrite(18, 1024)
-		DimType = 'PWM'
-	'''
-
-	print('Screen: {}  Device: {} Driver: {} Dim: {}'.format(screentype, os.environ['SDL_FBDEV'],
-															 os.environ['SDL_VIDEODRIVER'], DimType))
+	# print('Screen: {}  Device: {} Driver: {} Dim: {}'.format(screentype, os.environ['SDL_FBDEV'],
+	#														 os.environ['SDL_VIDEODRIVER'], DimType))
 
 	pygame.display.init()
 	screenwidth, screenheight = (pygame.display.Info().current_w, pygame.display.Info().current_h)
@@ -175,7 +126,8 @@ def initOS(scrntyp):
 
 
 def GoDimPWM(level):
-	wiringpi.pwmWrite(18, int((level * 1024) // 100))
+	# This version of hw uses the real hw pwm for screen dimming - much better appearance
+	wiringpi.pwmWrite(dimpin, int((level * 1024) // 100))
 
 
 def GoDimPi7(level):
@@ -183,3 +135,32 @@ def GoDimPi7(level):
 		f.write(str(level * 255 // 100))
 
 
+def GoDimOnOff(level):
+	with open('/sys/devices/platform/rpi_backlight/backlight/rpi_backlight/bl_power', 'w') as f:
+		if level == 0:
+			f.write('1')
+		else:
+			f.write('0')
+
+
+dimmethods = {'Pi7': GoDimPi7,
+			  'PWM': GoDimPWM,
+			  'OnOff': GoDimOnOff}
+
+
+def GoDim(level):
+	global IsDim, DimType
+	IsDim = True
+	if DimType in dimmethods:
+		dimmethods[DimType](level)
+	else:
+		pass
+
+
+def GoBright(level):
+	global IsDim, DimType
+	IsDim = False
+	if DimType in dimmethods:
+		dimmethods[DimType](level)
+	else:
+		pass
