@@ -121,20 +121,25 @@ class Touches(list):
 
 
 class Touchscreen(object):
-	TOUCHSCREEN_EVDEV_NAME = ('FT5406 memory based driver', 'Goodix Capactivie Touchscreen')
-	TOUCHSCREEN_RESISTIVE = 'stmpe-ts'
-	TOUCHSCREEN28CAP = 'EP0110M09'
 	EVENT_FORMAT = str('llHHi')
 	EVENT_SIZE = struct.calcsize(EVENT_FORMAT)
 
-	def __init__(self):
+	def __init__(self, configdir):
 		self.touchdefs = {}
 		with open('touchdefinitions') as f:
 			defs = f.read().splitlines()
 			for l in defs:
 				touchitem = l.split('|')
 				self.touchdefs[touchitem[0]] = touchitem[1:]
-		print(self.touchdefs)
+		try:
+			with open(configdir + '/touchdefinitions') as f:
+				defs = f.read().splitlines()
+				for l in defs:
+					touchitem = l.split('|')
+					self.touchdefs[touchitem[0]] = touchitem[1:]
+		except:
+			pass
+
 		self._use_multitouch = True
 		self.controller = "unknown"
 		self._shiftx = 0
@@ -285,20 +290,7 @@ class Touchscreen(object):
 						self._scaley = float(vals[6])
 						self._capscreen = bool(vals[0])
 						return os.path.join('/dev', 'input', os.path.basename(evdev))
-					'''
-					if dev in self.TOUCHSCREEN_EVDEV_NAME:
-						return os.path.join('/dev', 'input', os.path.basename(evdev))
-					elif dev == self.TOUCHSCREEN_RESISTIVE:
-						self._capscreen = False
-						with open('/etc/pointercal', 'r') as pc:
-							self.a = list(int(x) for x in next(pc).split())
-						# set to do corrections? TODO read pointercal and set a flag to correct
-						return os.path.join('/dev', 'input', os.path.basename(evdev))
-					elif dev == self.TOUCHSCREEN28CAP:
-						self._flipx = 0  # 240  todo auto fix orientation?
-						self._flipy = 0  # 320
-						return os.path.join('/dev', 'input', os.path.basename(evdev))
-					'''
+
 			except IOError as e:
 				if e.errno != errno.ENOENT:
 					raise
