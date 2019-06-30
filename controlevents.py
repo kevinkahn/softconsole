@@ -24,6 +24,7 @@ HBControl = historybuffer.HistoryBuffer(80, 'Control')
 def PostEvent(e):
 	if e is None:
 		logsupport.Logs.Log('Pushing None event to queue', severity=logsupport.ConsoleError, tb=True, hb=True)
+		return
 	cpu = psutil.Process(config.sysStore.Console_pid).cpu_times()
 	e.addtoevent(QTime=time.time(), usercpu=cpu.user, syscpu=cpu.system)
 	ConsoleOpsQueue.put(e)
