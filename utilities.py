@@ -97,18 +97,20 @@ def InitializeEnvironment():
 	except IOError:
 		scrntyp = "*Unknown*"
 
-	hw.initOS(scrntyp)
+	hw.initOS(scrntyp, os.path.dirname(config.sysStore.configfile))
 
 	config.sysStore.SetVal('PersonalSystem',os.path.isfile(config.sysStore.HomeDir + "/homesystem"))
 
 	# todo move touchhandler selection to hw - return the handler to start for the thread
 
 	from touchhandler import Touchscreen, TS_PRESS, TS_RELEASE, TS_MOVE
-	ts = Touchscreen()
+	ts = Touchscreen(os.path.dirname(config.sysStore.configfile))
 
 	def touchhandler(event, touch):
 		global evntcnt
 		evntcnt += 1
+		slot = touch.slot
+		if slot != 0: return  # no multitouch events for now
 		p = (touch.x, touch.y)
 		if event == TS_PRESS:
 			debug.debugPrint('Touch', 'Press pos: {} seq: {}'.format(p, evntcnt))
