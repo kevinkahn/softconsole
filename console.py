@@ -1,7 +1,7 @@
 #!/usr/bin/python -u
 # above assumes it points at python 2.7 and may not be portable
 """
-Copyright 2016, 2017, 2018 Kevin Kahn
+Copyright 2016, 2017, 2018, 2019 Kevin Kahn
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -115,7 +115,12 @@ os.chdir(config.sysStore.ExecDir)  # make sure we are in the directory we are ex
 config.sysStore.SetVal('HomeDir', os.path.dirname(config.sysStore.ExecDir))
 config.sysStore.SetVal('consolestatus','started')
 logsupport.Logs.Log(u"Console ( " + str(config.sysStore.Console_pid) + u") starting in " + os.getcwd())
-
+if len(sys.argv) == 2:
+	config.sysStore.configfile = sys.argv[1]
+elif os.path.isfile(configfilebase + "config.txt"):
+	config.sysStore.configfile = configfilebase + "config.txt"
+else:
+	config.sysStore.configfile = configfilebase + "config-" + hw.hostname + ".txt"
 sectionget = Section.get
 
 
@@ -218,12 +223,6 @@ Initialize the Console
 
 SetUpTermShortener()
 
-if len(sys.argv) == 2:
-	config.sysStore.configfile = sys.argv[1]
-elif os.path.isfile(configfilebase + "config.txt"):
-	config.sysStore.configfile = configfilebase + "config.txt"
-else:
-	config.sysStore.configfile = configfilebase + "config-" + hw.hostname + ".txt"
 
 logsupport.Logs.Log("Configuration file: " + config.sysStore.configfile)
 
