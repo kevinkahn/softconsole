@@ -229,6 +229,17 @@ cd /home/pi
 
 wget https://raw.githubusercontent.com/adafruit/Adafruit-PiTFT-Helper/master/adafruit-pitft-touch-cal
 wget https://raw.githubusercontent.com/adafruit/Raspberry-Pi-Installer-Scripts/master/adafruit-pitft.sh
+
+if [ `uname -r` == '4.19.50-v7+' ]
+then
+    LogBanner "Adjust adafruit scritp for Buster"
+    sed -isav 's/evtest tslib libts\-bin/evtest tslib/' adafruit-pitft.sh
+    sed  -isav '/evtest tslib/a  apt-get install -y libts-bin' adafruit-pitft.sh
+else
+    sed -isav s/fb0/fb1/ /usr/share/X11/xorg.conf.d/99-fbturbo.conf
+fi
+
+
 chmod +x adafruit-pitft-touch-cal adafruit-pitft.sh
 UseWheezy='N'
 
@@ -261,7 +272,7 @@ case $ScreenType in
 
   ./adafruit-pitft.sh < tmp
   raspi-config nonint do_boot_behaviour B4 # set boot to desktop already logged in
-  sed -isav s/fb0/fb1/ /usr/share/X11/xorg.conf.d/99-fbturbo.conf
+  #sed -isav s/fb0/fb1/ /usr/share/X11/xorg.conf.d/99-fbturbo.conf
   ;;
   pi7)
     LogBanner "7 Inch Pi Screen"
