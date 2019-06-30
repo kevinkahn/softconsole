@@ -292,7 +292,7 @@ class Touchscreen(object):
 						self._flipy = int(vals[4])
 						self._scalex = float(vals[5])
 						self._scaley = float(vals[6])
-						self._capscreen = bool(vals[0])
+						self._capscreen = vals[0] in ('True', '1', 'true', 'TRUE')
 						if not self._capscreen:
 							with open('/etc/pointercal', 'r') as pc:
 								self.a = list(int(x) for x in next(pc).split())
