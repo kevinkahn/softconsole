@@ -235,15 +235,17 @@ then
     LogBanner "Adjust adafruit scritp for Buster"
     sed -isav 's/evtest tslib libts\-bin/evtest tslib/' adafruit-pitft.sh
     sed  -isav '/evtest tslib/a  apt-get install -y libts-bin' adafruit-pitft.sh
+    echo "$ScreenType"B > ./Screentype
 else
     sed -isav s/fb0/fb1/ /usr/share/X11/xorg.conf.d/99-fbturbo.conf
+    echo $ScreenType > .Screentype
 fi
 
 
 chmod +x adafruit-pitft-touch-cal adafruit-pitft.sh
 UseWheezy='N'
 
-echo $ScreenType > .Screentype
+
 case $ScreenType in
   28r|28c|35r)
   case $ScreenType in

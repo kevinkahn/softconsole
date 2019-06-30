@@ -1,7 +1,11 @@
 Name | Device Path | Driver | DimType
 pi7|/dev/fb0|fbcon|Pi7
+pi7B|/dev/fb0|fbcon|Pi7
 35r|/dev/fb1|fbcon|PWM18
+35rB|/dev/fb0|fbcon|PWM18
 28c|/dev/fb1|fbcon|PWM18
 28cB|/dev/fb0|fbcon|PWM18
 28r|/dev/fb1|fbcon|PWM18
+28rB|/dev/fb0|fbcon|PWM18
 pimoroni4|/dev/fb0|fbcon|PWM19
+pimoroni4B|/dev/fb0|fbcon|PWM19
