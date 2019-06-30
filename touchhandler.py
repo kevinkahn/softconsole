@@ -107,6 +107,10 @@ class Touch(object):
 			if event == TS_MOVE and callable(self.on_move):
 				self.on_move(event, self)
 			if event == TS_PRESS and callable(self.on_press):
+				with (open('templog', 'a')) as f:
+					f.write('{} {} {}\n'.format(self.x, self.y, self.slot))
+					f.flush()
+
 				self.on_press(event, self)
 			if event == TS_RELEASE and callable(self.on_release):
 				self.on_release(event, self)
@@ -289,6 +293,9 @@ class Touchscreen(object):
 						self._scalex = float(vals[5])
 						self._scaley = float(vals[6])
 						self._capscreen = bool(vals[0])
+						if not self._capscreen:
+							with open('/etc/pointercal', 'r') as pc:
+								self.a = list(int(x) for x in next(pc).split())
 						return os.path.join('/dev', 'input', os.path.basename(evdev))
 
 			except IOError as e:

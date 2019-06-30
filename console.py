@@ -1,5 +1,4 @@
 #!/usr/bin/python -u
-# above assumes it points at python 2.7 and may not be portable
 """
 Copyright 2016, 2017, 2018, 2019 Kevin Kahn
 
