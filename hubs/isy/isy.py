@@ -644,18 +644,20 @@ class ISY(object):
 
 	@staticmethod
 	def _LinkChildrenParents(nodelist, listbyname, looklist1, looklist2):
-
-		for node in nodelist.values():
-			listbyname[node.name] = node
-			if node.parent in looklist1:
-				node.parent = looklist1[node.parent]  # replace address with actual object
-			elif node.parent in looklist2:
-				node.parent = looklist2[node.parent]
-			else:
-				node.parent = None
-				logsupport.Logs.Log("Missing parent: " + node.name, severity=ConsoleError)
-			if node.parent != node:  # avoid root
-				node.parent.children.append(node)
+		try:
+			for node in nodelist.values():
+				listbyname[node.name] = node
+				if node.parent in looklist1:
+					node.parent = looklist1[node.parent]  # replace address with actual object
+				elif node.parent in looklist2:
+					node.parent = looklist2[node.parent]
+				else:
+					node.parent = None
+					logsupport.Logs.Log("Missing parent: ({})".format(repr(node)), severity=ConsoleError)
+				if node.parent != node:  # avoid root
+					node.parent.children.append(node)
+		except Exception as E:
+			logsupport.Logs.Log('Error linking parents for {}'.format(repr(node)))
 
 	def GetNode(self, name, proxy=''):
 		# return (Control Obj, Monitor Obj)
