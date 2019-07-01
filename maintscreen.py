@@ -30,16 +30,16 @@ def SetUpMaintScreens():
 	global MaintScreen
 	LogDisp = LogDisplayScreen()
 	Exits = MaintScreenDesc('Exits',
-							OrderedDict([('shut', ('Shutdown Console', doexit, 'adddkey')),
-										 ('restart', ('Restart Console', doexit, 'adddkey')),
-										 ('shutpi', ('Shutdown Pi', doexit)),
-										 ('reboot', ('Reboot Pi', doexit, 'adddkey')),
+							OrderedDict([('shut', ('Shutdown Console', doexit, 'addkey')),
+										 ('restart', ('Restart Console', doexit, 'addkey')),
+										 ('shutpi', ('Shutdown Pi', doexit, 'addkey')),
+										 ('reboot', ('Reboot Pi', doexit, 'addkey')),
 										 ('return', ('Return', None))]))  # proc filled in below due to circularity
 	Beta = MaintScreenDesc('Versions',
-						   OrderedDict([('stable', ('Use Stable Release', dobeta, 'adddkey')),
-										('beta', ('Use Beta Release', dobeta, 'adddkey')),
-										('release', ('Download release', dobeta, 'adddkey')),
-										('fetch', ('Download Beta', dobeta, 'adddkey')),
+						   OrderedDict([('stable', ('Use Stable Release', dobeta, 'addkey')),
+										('beta', ('Use Beta Release', dobeta, 'addkey')),
+										('release', ('Download release', dobeta, 'addkey')),
+										('fetch', ('Download Beta', dobeta, 'addkey')),
 										('return', ('Return', None))]))  # proc filled in below due to circularity
 	MaintScreen = MaintScreenDesc('Maintenance',
 								  OrderedDict([('return', ('Exit Maintenance', gohome)),
