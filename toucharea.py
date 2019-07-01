@@ -80,6 +80,7 @@ class ManualKeyDesc(TouchPoint):
 		self.KeyUnknownOverlay = None  # type: pygame.Surface
 		self.userstore = None
 		self.BlinkTimer = None
+		self.autocolordull = True
 
 		# alternate creation signatures
 		self.ButtonFontSizes = (31, 28, 25, 22, 20, 18, 16)
@@ -92,6 +93,7 @@ class ManualKeyDesc(TouchPoint):
 			# initializing from program code case
 			self.docodeinit(*args, **kwargs)
 		# Future may need to change signature if handling "holds"?
+		self.autocolordull = self.KeyColorOff == '' and self.KeyColorOn == ''
 		if self.KeyColorOff == '':
 			self.KeyColorOff = self.KeyColor
 		if self.KeyColorOn == '':
@@ -264,10 +266,11 @@ class ManualKeyDesc(TouchPoint):
 		self.BuildKey(wc(self.KeyColorOn), wc(self.KeyColorOff))
 
 		# dull the OFF key
-		s = pygame.Surface(self.Size)
-		s.set_alpha(150)
-		s.fill(wc("white"))
-		self.KeyOffImageBase.blit(s, (0, 0))
+		if self.autocolordull:
+			s = pygame.Surface(self.Size)
+			s.set_alpha(150)
+			s.fill(wc("white"))
+			self.KeyOffImageBase.blit(s, (0, 0))
 
 		# Add the labels
 		self.SetKeyImages(self.KeyLabelOn, self.KeyLabelOff, firstfont, shrink)
