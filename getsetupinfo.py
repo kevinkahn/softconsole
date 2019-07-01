@@ -28,7 +28,7 @@ if ans in ('y', 'Y'):
 		print("PASSWORD: " + ISYPWD)
 		print("SWITCH:   " + "[[" + exswitch + "]]")
 		go = input("OK? (y/n)")
-	with open('/home/pi/Consoleauth', "w") as f:
+	with open('/home/pi/Console/auth', "w") as f:
 		cfg = ("[" + ISYname + "]",
 			   "type = ISY",
 			   "address = " + ISYIP,
