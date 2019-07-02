@@ -211,6 +211,7 @@ All screens support some common keyword parameters that control appearance of as
 * KeyColor: Default color for any keys on the screen (default for next two parameters)
 * KeyColorOn: Default color for any keys on the screen that are in an "on" state
 * KeyColorOff: Default color for any keys on the screen that are in an "off" state
+    * Note: If KeyColorOn and KeyColorOff are both specified explicitly those colors are used as is.  Otherwise, the Off color is dulled automatically when the key is in the off state.
 * KeyCharColorOn: Default character color for "on" keys
 * KeyCharColorOff: Default character color for "off" keys
 * KeyOnOutlineColor: Color for outline for "on" keys
