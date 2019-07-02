@@ -230,12 +230,12 @@ cd /home/pi
 wget https://raw.githubusercontent.com/adafruit/Adafruit-PiTFT-Helper/master/adafruit-pitft-touch-cal
 wget https://raw.githubusercontent.com/adafruit/Raspberry-Pi-Installer-Scripts/master/adafruit-pitft.sh
 
-if [ `uname -r` == '4.19.50-v7+' ]
+if [[ `cat /etc/issue` == *"Linux 10"* ]]
 then
     LogBanner "Adjust adafruit scritp for Buster"
     sed -isav 's/evtest tslib libts\-bin/evtest tslib/' adafruit-pitft.sh
     sed  -isav '/evtest tslib/a  apt-get install -y libts-bin' adafruit-pitft.sh
-    echo "$ScreenType"B > ./Screentype
+    echo "$ScreenType"B > .Screentype
 else
     sed -isav s/fb0/fb1/ /usr/share/X11/xorg.conf.d/99-fbturbo.conf
     echo $ScreenType > .Screentype
