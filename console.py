@@ -125,6 +125,8 @@ sectionget = Section.get
 
 def CO_get(self, key, default, delkey=True):
 	rtn = sectionget(self, key, default)
+	if isinstance(default,bool):
+		rtn = rtn in ('True','true','TRUE')
 	if key in self and delkey:
 		del self[key]
 	return rtn
