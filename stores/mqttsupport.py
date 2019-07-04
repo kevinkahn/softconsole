@@ -195,7 +195,7 @@ class MQTTBroker(valuestore.ValueStore):
 				else:
 					tpcvrt = str
 				thistopic = sect.get('Topic', nm[-1])
-				jsonflds = sect.get('json', [])
+				jsonflds = sect.get('json', '')
 				if jsonflds: jsonflds = jsonflds.split(':')
 				tpc = (prefix + '/' + thistopic).lstrip('/')
 				rtn = MQitem(nm, tpc, tpcvrt, int(sect.get('Expires', 99999999999999999)), jsonflds, self)
