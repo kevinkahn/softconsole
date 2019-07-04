@@ -144,7 +144,8 @@ def GoDimOnOff(level):
 
 
 dimmethods = {'Pi7': GoDimPi7,
-			  'PWM': GoDimPWM,
+			  'PWM18': GoDimPWM,
+			  'PWM19': GoDimPWM,
 			  'OnOff': GoDimOnOff}
 
 
