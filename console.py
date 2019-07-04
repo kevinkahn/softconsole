@@ -124,12 +124,32 @@ sectionget = Section.get
 
 
 def CO_get(self, key, default, delkey=True):
-	rtn = sectionget(self, key, default)
-	if isinstance(default,bool):
-		rtn = rtn in ('True','true','TRUE')
-	if key in self and delkey:
-		del self[key]
-	return rtn
+	try:
+		rtn = sectionget(self, key, default)
+		tmpr = rtn
+		if isinstance(default, bool):
+			rtn = rtn in ('True', 'true', 'TRUE', '1')
+		if isinstance(default,
+					  list):  # todo check this change carefuily.   Cases are [] which is list of strings, [val] which should be list of type(val)
+			if len(default) == 0:  # its a string list
+				if isinstance(rtn, str):
+					rtn = [rtn]
+			else:
+				if isinstance(rtn, str):  # want list of <type> got single str so coerce to type and listify it
+					rtn = [type(default[0])(rtn)]
+				else:
+					rtn = [type(default[0])(x) for x in rtn]
+		elif default is not None:
+			rtn = type(default)(rtn)
+
+		if key in self and delkey:
+			del self[key]
+		# print('CO: {} {} T:{} typT:{} R:{} Tdf:{} TR:{}'.format(key, default,tmpr, type(tmpr),  rtn, type(default), type(rtn)))
+		return rtn
+	except Exception as E:  # todo delete prints
+		print(
+			'ZZ: {} {} T:{} typT:{} R:{} Tdf:{} TR:{} E: {}'.format(key, default, tmpr, type(tmpr), rtn, type(default),
+																	type(rtn), repr(E)))
 
 
 Section.get = CO_get
@@ -152,8 +172,6 @@ if os.getegid() != 0:
 	sys.exit(exitutils.EARLYABORT)
 
 utilities.InitializeEnvironment()
-
-screens.initScreensInfo()
 
 logsupport.Logs.Log(u'Environment initialized on host ' + hw.hostname)
 
@@ -279,6 +297,8 @@ for nm, val in config.sysvals.items():
 	if val[2] is not None: config.sysStore.AddAlert(nm, val[2])
 screen.InitScreenParams(ParsedConfigFile)
 
+screens.initScreensInfo()
+
 logsupport.Logs.Log("Parsed globals")
 logsupport.Logs.Log("Switching to real log")
 logsupport.Logs = logsupport.InitLogs(hw.screen, os.path.dirname(config.sysStore.configfile))
@@ -363,7 +383,7 @@ Pull out non-screen sections
 for i, v in ParsedConfigFile.items():
 	if isinstance(v, Section):
 		# noinspection PyArgumentList
-		stype = v.get('type', None, delkey=False)
+		stype = v.get('type', '', delkey=False)
 		if stype == 'MQTT':
 			"""
 			Set up mqtt brokers
@@ -395,7 +415,7 @@ from stores import genericweatherstore
 for i, v in ParsedConfigFile.items():
 	if isinstance(v, Section):
 		# noinspection PyArgumentList
-		stype = v.get('type', None, delkey=False)
+		stype = v.get('type', '', delkey=False)  #todo check no type param
 		loccode = '*unset*'
 		for wptyp, info in WeathProvs.items():
 			if stype == wptyp:

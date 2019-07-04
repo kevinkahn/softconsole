@@ -150,8 +150,9 @@ class MyScreens(object):
 				screens.DimIdleList.append(screens.screenslist[sn])
 				screens.DimIdleTimes.append(int(st))
 				logsupport.Logs.Log('Cover Screen: {}/{}'.format(sn, st))
-		except:
-			logsupport.Logs.Log("Error specifying idle screens - check config", severity=ConsoleWarning)
+		except Exception as E:
+			logsupport.Logs.Log("Error specifying idle screens - check config({})".format(repr(E)),
+								severity=ConsoleWarning)
 
 		# handle deprecated DimHomeScreenCoverName
 		cn = config.sysStore.DimHomeScreenCoverName

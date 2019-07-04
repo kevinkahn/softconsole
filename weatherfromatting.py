@@ -11,7 +11,8 @@ from utilfuncs import wc
 ICONSPACE = 10
 
 
-def CreateWeathBlock(Format, Fields, WeathFont, FontSize, WeathColor, icon, centered, day=-1, useicon=True):
+def CreateWeathBlock(Format, Fields, WeathFont, FontSize, WeathColor, icon, centered, day=-1, useicon=True,
+					 maxiconsize=0):
 	rf = []
 	fh = 0
 	fw = 0
@@ -62,8 +63,9 @@ def CreateWeathBlock(Format, Fields, WeathFont, FontSize, WeathColor, icon, cent
 		fh = rf[-1].get_height() * len(Format)  # force the height to always be equal even if error
 		if rf[-1].get_width() > fw: fw = rf[-1].get_width()
 	if icon is not None:
-		totw = fw + fh + ICONSPACE
-		hoff = fh + ICONSPACE
+		iconsize = fh if maxiconsize == 0 else min(fh, maxiconsize)
+		totw = fw + iconsize + ICONSPACE
+		hoff = iconsize + ICONSPACE
 		if day == -1:
 			iconref = icon[1:]
 		else:
@@ -76,6 +78,7 @@ def CreateWeathBlock(Format, Fields, WeathFont, FontSize, WeathColor, icon, cent
 					severity=ConsoleDetailHigh)
 	else:
 		iconref = None
+		iconsize = 0
 		totw = fw
 		hoff = 0
 	fsfc = pygame.Surface((totw, fh))
@@ -84,11 +87,11 @@ def CreateWeathBlock(Format, Fields, WeathFont, FontSize, WeathColor, icon, cent
 	# noinspection PyBroadException
 	try:
 		if iconref is not None:
-			tmp = pygame.transform.smoothscale(valuestore.ValueStores[icon[0]].GetVal(iconref), (fh, fh))
+			tmp = pygame.transform.smoothscale(valuestore.ValueStores[icon[0]].GetVal(iconref), (iconsize, iconsize))
 			# R = pygame.Rect((0, 0), (tmp.get_height(), tmp.get_width()))
 			# pygame.draw.rect(fsfc, (128, 128, 128), R, 3)
 			# print('Scale: '+str(tmp.get_height())+ ' ' + str(valuestore.ValueStores[icon[0]].GetVal(iconref)) )
-			fsfc.blit(tmp, (0, 0))
+			fsfc.blit(tmp, (0, (fh - iconsize) // 2))
 	except:
 		if useicon:
 			logsupport.Logs.Log("Internal error - missing icon for: ", str(icon[0]), str(iconref),

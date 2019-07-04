@@ -2,6 +2,8 @@ import errno
 import functools
 import json
 import time
+import os
+import importlib
 
 import websocket
 
@@ -18,11 +20,10 @@ from controlevents import CEvent, PostEvent, ConsoleEvent
 from logsupport import ConsoleWarning, ConsoleError, ConsoleDetail
 from stores import valuestore
 
-haignoreandskipdomains = ('history_graph', 'updater', 'configurator')
+haignoreandskipdomains = ('history_graph', 'updater', 'configurator', 'weather')
 ignoredeventtypes = ('system_log_event', 'call_service', 'service_executed', 'logbook_entry', 'timer_out_of_sync',
 					 'persistent_notifications_updated', 'zwave.network_complete', 'zwave.scene_activated',
 					 'zwave.network_ready', 'automation_triggered', 'script_started')
-
 
 def stringtonumeric(v):
 	if not isinstance(v, str):
@@ -121,7 +122,7 @@ class Script(HAnode):
 		self.Hub.Scripts[self.entity_id] = self
 
 	def RunProgram(self):
-		ha.call_service(self.Hub.api, 'script', self.object_id)
+		ha.call_service(self.Hub.api, 'script', self.object_id)  # todo this looks wrong
 		debug.debugPrint('HASSgeneral', "Script execute sent to: script.", self.entity_id)
 
 
@@ -227,82 +228,6 @@ class BinarySensor(HAnode):
 			self.Hub.sensorstore.SetVal(self.entity_id, st)
 
 
-class MediaPlayer(HAnode):
-	def __init__(self, HAitem, d):
-		super(MediaPlayer, self).__init__(HAitem, **d)
-		self.Hub.MediaPlayers[self.entity_id] = self
-		self.Sonos = False
-		if 'sonos_group' in self.attributes:
-			self.Sonos = True
-			self.internalstate = 255
-			self.sonos_group = self.attributes['sonos_group']
-			self.source_list = self.attributes['source_list']  # todo should this be conditional like in update?
-			self.muted = self.attributes['is_volume_muted']
-			self.volume = self.attributes['volume_level']
-			self.song = self.attributes['media_title'] if 'media_title' in self.attributes else ''
-			self.artist = self.attributes['media_artist'] if 'media_artist' in self.attributes else ''
-			self.album = self.attributes['media_album_name'] if 'media_album_name' in self.attributes else ''
-
-	def AddPlayer(self):
-		if self.Sonos:
-			logsupport.Logs.Log("{}: added new Sonos player {}".format(self.Hub.name, self.name))
-			config.SonosScreen = None
-
-	def Update(self, **ns):
-		oldst = self.state
-		if 'attributes' in ns: self.attributes = ns['attributes']
-		self.state = ns['state']
-		newst = _NormalizeState(self.state)
-		if newst != self.internalstate:
-			logsupport.Logs.Log("Mediaplayer state change: ", self.Hub.Entities[self.entity_id].name, ' was ',
-								self.internalstate, ' now ', newst, '(', self.state, ')', severity=ConsoleDetail)
-			self.internalstate = newst
-
-		if self.Sonos:
-			if self.internalstate == -1:  # unavailable
-				logsupport.Logs.Log("Sonos room went unavailable: ", self.Hub.Entities[self.entity_id].name)
-				return
-			else:
-				if oldst == -1:
-					logsupport.Logs.Log("Sonos room became available: ", self.Hub.Entities[self.entity_id].name)
-				self.sonos_group = self.attributes['sonos_group']
-				if 'source_list' in self.attributes: self.source_list = self.attributes['source_list']
-				self.muted = self.attributes['is_volume_muted'] if 'is_volume_muted' in self.attributes else 'True'
-				self.volume = self.attributes['volume_level'] if 'volume_level' in self.attributes else 0
-				self.song = self.attributes['media_title'] if 'media_title' in self.attributes else ''
-				self.artist = self.attributes['media_artist'] if 'media_artist' in self.attributes else ''
-				self.album = self.attributes['media_album_name'] if 'media_album_name' in self.attributes else ''
-
-			if screens.DS.AS is not None:
-				if self.Hub.name in screens.DS.AS.HubInterestList:
-					if self.entity_id in screens.DS.AS.HubInterestList[self.Hub.name]:
-						debug.debugPrint('DaemonCtl', time.time() - config.sysStore.ConsoleStartTime,
-										 "HA reports node change(screen): ",
-										 "Key: ", self.Hub.Entities[self.entity_id].name)
-
-						# noinspection PyArgumentList
-						PostEvent(ConsoleEvent(CEvent.HubNodeChange, hub=self.Hub.name, node=self.entity_id,
-											   value=self.internalstate))
-
-	def Join(self, master, roomname):
-		ha.call_service(self.Hub.api, 'media_player', 'sonos_join', {'master': '{}'.format(master),
-																	 'entity_id': '{}'.format(roomname)})
-
-	def UnJoin(self, roomname):
-		ha.call_service(self.Hub.api, 'media_player', 'sonos_unjoin', {'entity_id': '{}'.format(roomname)})
-
-	def VolumeUpDown(self, roomname, up):
-		updown = 'volume_up' if up >= 1 else 'volume_down'
-		ha.call_service(self.Hub.api, 'media_player', updown, {'entity_id': '{}'.format(roomname)})
-		ha.call_service(self.Hub.api, 'media_player', 'media_play', {'entity_id': '{}'.format(roomname)})
-
-	def Mute(self, roomname, domute):
-		ha.call_service(self.Hub.api, 'media_player', 'volume_mute', {'entity_id': '{}'.format(roomname),
-																	  'is_volume_muted': domute})
-		if not domute:  # implicitly start playing if unmuting in case source was stopped
-			ha.call_service(self.Hub.api, 'media_player', 'media_play', {'entity_id': '{}'.format(roomname)})
-
-	# todo add a Media stop to actually stop rather than mute things media_player/media_stop
 
 	def Source(self, roomname, sourcename):
 		ha.call_service(self.Hub.api, 'media_player', 'select_source', {'entity_id': '{}'.format(roomname),
@@ -423,6 +348,7 @@ class Indirector(object):
 		logsupport.Logs.Log('Real node appeared for hub {} node {}'.format(self.Hub.name,self.impliedname))
 
 	def __getattr__(self, name):
+		# noinspection PyBroadException
 		try:
 			return getattr(self.realnode, name)
 		except:
@@ -431,6 +357,13 @@ class Indirector(object):
 			logsupport.Logs.Log('Attempt to access uncompleted indirector for hub {} node {}'.format(self.Hub.name,self.impliedname),severity=ConsoleWarning)
 
 
+hadomains = {'group': Group, 'light': Light, 'switch': Switch, 'sensor': Sensor, 'automation': Automation,
+			 'climate': Thermostat, 'binary_sensor': BinarySensor,
+			 'script': Script}
+
+
+def RegisterDomain(domainname, domainmodule):
+	hadomains[domainname] = domainmodule
 
 class HA(object):
 	class HAClose(Exception):
@@ -535,6 +468,16 @@ class HA(object):
 		except ha.HomeAssistantError:
 			logsupport.Logs.Log(self.name + " not responding to service call after restart", severity=ConsoleWarning)
 
+	def RegisterEntity(self, domain, entity, item):
+		if domain in self.DomainEntityReg:
+			if entity in self.DomainEntityReg[domain]:
+				logsupport.Logs.Log('Duplicate entity reported in {} hub {}: {}'.format(self.name, domain, entity))
+			else:
+				self.DomainEntityReg[domain][entity] = item
+		else:
+			self.DomainEntityReg[domain] = {entity: item}
+
+
 	def HAevents(self):
 
 		def findDiff(d1, d2):
@@ -620,15 +563,15 @@ class HA(object):
 											 adds) + ' Deleted: ' + str(dels) + ' Changed: ' + str(chgs))
 						if dom in self.addibledomains:
 							p2 = dict(new, **{'domain': dom, 'name': nm, 'object_id': ent})
-							N = self.hadomains[dom](self, p2)
+							N = hadomains[dom](self, p2)
 							self.Entities[ent] = N
-							N.AddPlayer()
+							N.AddPlayer()  # todo specific to media player?
 						if ent in self.Indirectors: # expected node finally showed up
 							p2 = dict(new, **{'domain': dom,
 											  'name': new['attributes']['friendly_name'] if 'friendly_name' in new[
 												  'attributes'] else nm.replace('_', ' '), 'object_id': ent})
-							if dom in self.hadomains:
-								N = self.hadomains[dom](self, p2)
+							if dom in hadomains:
+								N = hadomains[dom](self, p2)
 								self.Indirectors[ent].SetRealNode(N)
 								del self.Indirectors[ent]
 								self.Entities[ent] = N
@@ -794,13 +737,16 @@ class HA(object):
 		self.HB = historybuffer.HistoryBuffer(40, hubname)
 		logsupport.Logs.Log("{}: Creating structure for Home Assistant hub at {}".format(hubname, addr))
 
-		self.hadomains = {'group': Group, 'light': Light, 'switch': Switch, 'sensor': Sensor, 'automation': Automation,
-						  'climate': Thermostat, 'media_player': MediaPlayer, 'binary_sensor': BinarySensor,
-						  'script': Script}
+		for domainimpl in os.listdir(os.getcwd() + '/hubs/ha/domains'):
+			if '__' not in domainimpl:
+				splitname = os.path.splitext(domainimpl)
+				if splitname[1] == '.py':
+					importlib.import_module('hubs.ha.domains.' + splitname[0])
+
 		haignoredomains = {'zwave': ZWave, 'sun': HAnode, 'notifications': HAnode, 'persistent_notification': HAnode,
 						   'person':HAnode, 'zone': HAnode}
 
-		self.addibledomains = {'media_player': MediaPlayer}
+		self.addibledomains = {}  # {'media_player': MediaPlayer} todo resolve how to add things
 
 		self.sensorstore = valuestore.NewValueStore(valuestore.ValueStore(hubname, itemtyp=valuestore.StoreItem))
 		self.name = hubname
@@ -820,6 +766,7 @@ class HA(object):
 		self.watchstarttime = time.time()
 		self.Entities = {}
 		self.IgnoredEntities = {}  # things we expect and do nothing with
+		self.DomainEntityReg = {}
 		self.Domains = {}
 		self.Groups = {}
 		self.Lights = {}
@@ -830,7 +777,6 @@ class HA(object):
 		self.Automations = {}
 		self.Scripts = {}
 		self.Thermostats = {}
-		self.MediaPlayers = {}
 		self.Indirectors = {} # these hold nodes that the console config thinks exist but HA doesn't have yet - happens at startup of joint HA/Console node
 		self.Others = {}
 		self.alertspeclist = {}  # if ever want auto alerts like ISY command vars they get put here
@@ -872,8 +818,8 @@ class HA(object):
 				self.Domains[e.domain] = {}
 			p2 = dict(e.as_dict(), **{'domain': e.domain, 'name': e.name, 'object_id': e.object_id})
 
-			if e.domain in self.hadomains:
-				N = self.hadomains[e.domain](self, p2)
+			if e.domain in hadomains:
+				N = hadomains[e.domain](self, p2)
 				self.Entities[e.entity_id] = N
 			elif e.domain in haignoredomains:
 				N = HAnode(self, **p2)
@@ -896,6 +842,7 @@ class HA(object):
 			# noinspection PyProtectedMember
 			T._connectsensors(tsensor)
 		self.haconnectstate = "Init"
+		services = {}
 		for i in range(3):
 			services = ha.get_services(self.api)
 			if services != {}: break

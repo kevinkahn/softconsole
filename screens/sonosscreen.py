@@ -45,7 +45,8 @@ class SonosScreenDesc(screen.BaseKeyScreenDesc):
 		self.SourceSelection = ''
 		self.ExtraSource = {}
 		self.HubInterestList[self.HA.name] = {}
-		for n, p in self.HA.MediaPlayers.items():
+		for n, p in self.HA.DomainEntityReg[
+			'media_player'].items():  # todo can simplify if sonos becomes a separate module from media player
 			if p.Sonos:
 				self.SonosNodes[p.entity_id] = p
 				self.SlotToGp.append('')
