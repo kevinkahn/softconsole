@@ -27,7 +27,7 @@ class WeatherScreenDesc(screen.ScreenDesc):
 
 		butsize = self.ButSize(1, 1, 0)
 		self.Keys = OrderedDict({'condorfcst': toucharea.TouchPoint('condorfcst', (
-			screens.horizborder + .5 * butsize[0], screens.topborder + .5 * butsize[1]), butsize,
+			self.HorizBorder + .5 * butsize[0], self.TopBorder + .5 * butsize[1]), butsize,
 																	proc=self.CondOrFcst)})
 		self.currentconditions = True  # show conditions or forecast
 		screen.AddUndefaultedParams(self, screensection, location='', LocationSize=40)

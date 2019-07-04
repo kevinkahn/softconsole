@@ -36,7 +36,16 @@ ScreenParams = {'DimTO': 99,
 				'KeyLabelOff': ['', ],
 				'ScreenTitleColor': "white",
 				'ScreenTitleSize': 50,
-				'ScreenTitle': ''
+				'ScreenTitle': '',
+				'HorizBorder': 20,
+				'TopBorder': 20,
+				'BotBorder': 60,
+				'BotBorderWONav': 20,
+				'HorizButtonGap': 0,
+				'VertButGap': 0,
+				'NavKeyHeight': 60,
+				'HorizButGap': 0,
+				'NavKeyWidth': 60
 				}
 
 screenStore = valuestore.NewValueStore(paramstore.ParamStore('ScreenParams'))
@@ -48,6 +57,7 @@ HOMETOKEN = None
 SELFTOKEN = None
 
 def InitScreenParams(parseconfig):
+	screens.screenStore = screenStore
 	for p, v in ScreenParams.items():
 		screenStore.SetVal(p, type(v)(parseconfig.get(p, v)))
 
@@ -72,7 +82,7 @@ def IncorporateParams(this, clsnm, theseparams, screensection):
 			if theseparams[p] is not None: this.userstore.SetVal(p, theseparams[p])
 		else:
 			if p in screensection:
-				this.userstore.SetVal(p, type(ScreenParams[p])(screensection.get(p, 1)))  # default gets ignored
+				this.userstore.SetVal(p, type(ScreenParams[p])(screensection.get(p, "")))  # string only safe default
 
 
 def AddUndefaultedParams(this, screensection, **kwargs):
@@ -121,6 +131,7 @@ class ScreenDesc(object):
 		self.userstore = paramstore.ParamStore('Screen-' + screenname,
 											   dp=screenStore if parentscreen is None else parentscreen.userstore,
 											   locname=screenname)
+		# todo add routine to update allowable mods per screen - but rationalize with incorp parameters from hight level guys
 
 		self.markradius = int(min(hw.screenwidth, hw.screenheight) * .025)
 
@@ -132,34 +143,35 @@ class ScreenDesc(object):
 		self.NavKeys = collections.OrderedDict()
 		self.Keys = collections.OrderedDict()
 		self.WithNav = True
-		self.useablevertspace = hw.screenheight - screens.topborder - screens.botborder
-		self.initialvertspace = self.useablevertspace
-		self.useablehorizspace = hw.screenwidth - 2 * screens.horizborder
-		self.startvertspace = screens.topborder
-		self.starthorizspace = screens.horizborder
+		self.useablevertspace = hw.screenheight - self.TopBorder - self.BotBorder
+		self.useablevertspacesansnav = hw.screenheight - self.TopBorder - self.BotBorderWONav
+		self.useablehorizspace = hw.screenwidth - 2 * self.HorizBorder
+		self.startvertspace = self.TopBorder
+		self.starthorizspace = self.HorizBorder
 		self.titleoffset = 0
 		self.HubInterestList = {}  # one entry per hub, each entry is a dict mapping addr to Node
 		self.ScreenTitleBlk = None
 		self.prevkey = None
 		self.nextkey = None
+		self.NavKeyWidth = (hw.screenwidth - 2 * self.HorizBorder) // 2 - self.HorizButGap
 
-		cbutwidth = (hw.screenwidth - 2 * screens.horizborder) / 2
-		cvertcenter = hw.screenheight - screens.botborder / 2
-		cbutheight = screens.botborder - screens.cmdvertspace * 2
+		cvertcenter = hw.screenheight - self.BotBorder / 2
+		print("NKW {} {} {} {}".format(self.NavKeyWidth, self.HorizBorder, self.HorizButGap, cvertcenter))
+
 		self.homekey = toucharea.ManualKeyDesc(self, 'Back<' + 'Home', ('Home',),
 											   self.CmdKeyCol, self.CmdCharCol, self.CmdCharCol,
 											   proc=functools.partial(GoToScreen, HOMETOKEN),
 											   center=(
-												   screens.horizborder + .5 * cbutwidth,
+												   self.starthorizspace + .5 * (self.NavKeyWidth + self.HorizButGap),
 												   cvertcenter),
-											   size=(cbutwidth, cbutheight))
+											   size=(self.NavKeyWidth, self.NavKeyHeight))
 		self.backkey = toucharea.ManualKeyDesc(self, 'Nav>' + 'Back', ('Back',),
 											   self.CmdKeyCol, self.CmdCharCol, self.CmdCharCol,
 											   proc=functools.partial(GoToScreen, BACKTOKEN),
 											   center=(
-												   screens.horizborder + 1.5 * cbutwidth,
+												   self.starthorizspace + 1.5 * (self.NavKeyWidth + self.HorizButGap),
 												   cvertcenter),
-											   size=(cbutwidth, cbutheight))
+											   size=(self.NavKeyWidth, self.NavKeyHeight))
 
 		IncorporateParams(self, 'Screen',
 						  {'CharColor', 'DimTO', 'PersistTO', 'BackgroundColor', 'CmdKeyCol', 'CmdCharCol',
@@ -181,9 +193,32 @@ class ScreenDesc(object):
 			titlegap = h // 10  # todo is this the best way to space?
 			self.startvertspace = self.startvertspace + h + titlegap
 			self.useablevertspace = self.useablevertspace - h - titlegap
-			self.titleoffset = screens.horizborder + (self.useablehorizspace - w) // 2
+			self.titleoffset = self.starthorizspace + (self.useablehorizspace - w) // 2
 
 		utilities.register_example('ScreenDesc', self)
+
+	def CreateNavKeys(self, prevk, nextk):
+		cvertcenter = hw.screenheight - self.BotBorder / 2
+		self.prevkey = toucharea.ManualKeyDesc(self, 'Nav<' + prevk.name,
+											   prevk.label,
+											   prevk.CmdKeyCol, prevk.CmdCharCol,
+											   prevk.CmdCharCol,
+											   proc=functools.partial(GoToScreen, prevk),
+											   center=(
+												   self.starthorizspace + .5 * (
+														   self.NavKeyWidth + self.HorizButGap),
+												   cvertcenter),
+											   size=(self.NavKeyWidth, self.NavKeyHeight))
+		self.nextkey = toucharea.ManualKeyDesc(self, 'Nav>' + nextk.name,
+											   nextk.label,
+											   nextk.CmdKeyCol, nextk.CmdCharCol,
+											   nextk.CmdCharCol,
+											   proc=functools.partial(GoToScreen, nextk),
+											   center=(
+												   self.starthorizspace + 1.5 * (
+														   self.NavKeyWidth + self.HorizButGap),
+												   cvertcenter),
+											   size=(self.NavKeyWidth, self.NavKeyHeight))
 
 	def ClearScreenTitle(self):
 		if self.ScreenTitleBlk is None: return
@@ -202,7 +237,7 @@ class ScreenDesc(object):
 		titlegap = h // 10  # todo is this the best way to space? if fix - fix clear also
 		self.startvertspace = self.startvertspace + h + titlegap
 		self.useablevertspace = self.useablevertspace - h - titlegap
-		self.titleoffset = screens.horizborder + (self.useablehorizspace - w) // 2
+		self.titleoffset = self.starthorizspace + (self.useablehorizspace - w) // 2
 
 	def ButSize(self, bpr, bpc, height):
 		h = self.useablevertspace if height == 0 else height
@@ -229,13 +264,13 @@ class ScreenDesc(object):
 		self.NavKeys = nav
 		self.PaintKeys()
 		if self.ScreenTitleBlk is not None:
-			hw.screen.blit(self.ScreenTitleBlk, (self.titleoffset, screens.topborder))
+			hw.screen.blit(self.ScreenTitleBlk, (self.titleoffset, self.TopBorder))
 
 	def ReInitDisplay(self):
 		self.PaintBase()
 		self.PaintKeys()
 		if self.ScreenTitleBlk is not None:
-			hw.screen.blit(self.ScreenTitleBlk, (self.titleoffset, screens.topborder))
+			hw.screen.blit(self.ScreenTitleBlk, (self.titleoffset, self.TopBorder))
 
 	def NodeEvent(self, hub='none', node=9999, value=9999, varinfo=()):
 		if node is not None:
@@ -292,7 +327,7 @@ class BaseKeyScreenDesc(ScreenDesc):
 		hpos = []
 		vpos = []
 		for i in range(bpr):
-			hpos.append(screens.horizborder + (.5 + i) * buttonsize[0])
+			hpos.append(self.starthorizspace + (.5 + i) * buttonsize[0])
 		for i in range(bpc):
 			vpos.append(self.startvertspace + extraOffset + (.5 + i) * buttonsize[1])
 

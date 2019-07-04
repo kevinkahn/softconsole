@@ -340,7 +340,7 @@ class MaintScreenDesc(screen.BaseKeyScreenDesc):
 					NK.Proc = kt[1]
 			self.Keys[k] = NK
 		topoff = self.TitleFontSize + self.SubFontSize
-		self.LayoutKeys(topoff, hw.screenheight - 2 * screens.topborder - topoff)  # todo switch to use useable vert hgt
+		self.LayoutKeys(topoff, self.useablevertspacesansnav - topoff)
 		self.DimTO = 60
 		self.PersistTO = 1  # setting to 0 would turn off timer and stick us here
 		utilities.register_example("MaintScreenDesc", self)
@@ -350,12 +350,12 @@ class MaintScreenDesc(screen.BaseKeyScreenDesc):
 		# self.PaintBase()
 		r = fonts.fonts.Font(self.TitleFontSize, '', True, True).render("Console Maintenance", 0, wc(self.CharColor))
 		rl = (hw.screenwidth - r.get_width()) / 2
-		hw.screen.blit(r, (rl, screens.topborder))
+		hw.screen.blit(r, (rl, self.TopBorder))
 		r = fonts.fonts.Font(self.SubFontSize, '', True, True).render(
 			"Up: " + interval_str(time.time() - config.sysStore.ConsoleStartTime),
 			0, wc(self.CharColor))
 		rl = (hw.screenwidth - r.get_width()) / 2
-		hw.screen.blit(r, (rl, screens.topborder + self.TitleFontSize))
+		hw.screen.blit(r, (rl, self.TopBorder + self.TitleFontSize))
 		self.PaintKeys()
 		pygame.display.update()
 

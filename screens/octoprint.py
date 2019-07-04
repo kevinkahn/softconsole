@@ -48,7 +48,7 @@ class OctoPrintScreenDesc(screen.BaseKeyScreenDesc):
 
 		self.errornotice, th, self.errwid = screenutil.CreateTextBlock('Access Error', hw.screenheight / 12, self.CharColor, True) # todo fix for new vertspace
 		self.titlespace = th + hw.screenheight / 32
-		useablescreenheight = hw.screenheight - screens.topborder - screens.botborder - self.titlespace
+		useablescreenheight = hw.screenheight - self.TopBorder - self.BotBorder - self.titlespace
 		ctlpos = useablescreenheight / 5
 		ctlhgt = int(ctlpos * .9)
 		self.head = {"X-Api-Key": self.apikey}

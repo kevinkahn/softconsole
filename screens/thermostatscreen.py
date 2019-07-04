@@ -51,16 +51,16 @@ class ThermostatScreenDesc(screen.BaseKeyScreenDesc):
 		self.SetScreenTitle(screen.FlatenScreenLabel(self.label), nominalfontsz[1], self.CharColor)
 		self.TempPos = self.startvertspace
 		'''
-		Size and positions based on nominal 480 vertical screen less top/bottom borders less default title size of 50
+		Size and positions based on vertical screen space less top/bottom borders less default title size of 50
 		Compute other fonts sizes based on what is left after that given user ability to set actual title size
 		'''
-		tempsurf = fonts.fonts.Font(50).render('Temp', 0, wc(self.CharColor))
-		useable = self.useablevertspace / (self.initialvertspace - tempsurf.get_height())
+		tempsurf = fonts.fonts.Font(50).render('Temp', 0, wc(self.CharColor))  # todo should the 50 be scaled now?
+		sizingratio = self.useablevertspace / (self.useablevertspace - tempsurf.get_height())
 
 		for fs in nominalfontsz:
-			self.fsize.append(int(fs * useable))
+			self.fsize.append(int(fs * sizingratio))
 		for fs in nominalspacers:
-			self.spacer.append(int(fs * useable))
+			self.spacer.append(int(fs * sizingratio))
 
 		self.StatePos = self.TempPos + fonts.fonts.Font(self.fsize[3]).get_linesize() - scaleH(self.spacer[1])
 		self.SPPos = self.StatePos + scaleH(self.spacer[2])

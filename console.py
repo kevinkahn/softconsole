@@ -297,7 +297,7 @@ for nm, val in config.sysvals.items():
 	if val[2] is not None: config.sysStore.AddAlert(nm, val[2])
 screen.InitScreenParams(ParsedConfigFile)
 
-screens.initScreensInfo()
+screens.ScaleScreensInfo()
 
 logsupport.Logs.Log("Parsed globals")
 logsupport.Logs.Log("Switching to real log")

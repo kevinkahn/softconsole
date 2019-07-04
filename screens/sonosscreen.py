@@ -165,9 +165,9 @@ class SonosScreenDesc(screen.BaseKeyScreenDesc):
 			vpos += self.sourceheight
 			self.SourceSlot.append('')
 		self.SrcPrev = (
-			hw.screenwidth - self.sourceheight - screens.horizborder,
+			hw.screenwidth - self.sourceheight - self.HorizBorder,
 			self.startvertspace - self.sourceheight // 2)  # todo change to horizstart + useablehoriz - sourceheight
-		self.SrcNext = (hw.screenwidth - self.sourceheight - screens.horizborder,
+		self.SrcNext = (hw.screenwidth - self.sourceheight - self.HorizBorder,
 						vpos + self.sourceheight // 2 + 10)  # for appearance
 		self.KeysSrc['Prev'] = toucharea.TouchPoint('Prev', self.SrcPrev,
 													(self.sourceheight, self.sourceheight),
@@ -291,14 +291,14 @@ class SonosScreenDesc(screen.BaseKeyScreenDesc):
 		if self.numplayers == 0:
 			errmsg, _, _ = screenutil.CreateTextBlock([' ', 'No Players', 'Found', 'Check', 'Configuration', ' '], 30,
 													  'white', True)
-			hw.screen.blit(errmsg, (screens.horizborder + 15, 40))
+			hw.screen.blit(errmsg, (self.HorizBorder + 15, 40))
 			pygame.display.update()
 			return
 		self.Keys = self.KeysSum
 		self.ReInitDisplay()
 		slot = 0
-		pygame.draw.line(hw.screen, wc(self.CharColor), (screens.horizborder, self.NodeVPos[0]),
-						 (hw.screenwidth - screens.horizborder, self.NodeVPos[0]), 3)
+		pygame.draw.line(hw.screen, wc(self.CharColor), (self.HorizBorder, self.NodeVPos[0]),
+						 (hw.screenwidth - self.HorizBorder, self.NodeVPos[0]), 3)
 		for e, g in self.SonosGroups.items():
 			ginfo = self.SonosNodes[g[0]]
 			if ginfo.internalstate == -1:
@@ -306,8 +306,8 @@ class SonosScreenDesc(screen.BaseKeyScreenDesc):
 														  self.roomheight // (
 																  sum(self.roomdisplayinfo) / self.roomdisplayinfo[1]),
 														  self.CharColor, False, FitLine=True
-														  , MaxWidth=hw.screenwidth - 2 * screens.horizborder - 15)
-				hw.screen.blit(unav, (screens.horizborder + 15,
+														  , MaxWidth=hw.screenwidth - 2 * self.HorizBorder - 15)
+				hw.screen.blit(unav, (self.HorizBorder + 15,
 									  self.NodeVPos[slot] + self.roomheight // (
 												  sum(self.roomdisplayinfo) / self.roomdisplayinfo[0])))
 			else:
@@ -315,22 +315,22 @@ class SonosScreenDesc(screen.BaseKeyScreenDesc):
 														  self.roomheight // (
 																  sum(self.roomdisplayinfo) / self.roomdisplayinfo[1]),
 														  self.CharColor, False, FitLine=True
-														  , MaxWidth=hw.screenwidth - 2 * screens.horizborder - 15)
-				hw.screen.blit(song, (screens.horizborder + 15,
+														  , MaxWidth=hw.screenwidth - 2 * self.HorizBorder - 15)
+				hw.screen.blit(song, (self.HorizBorder + 15,
 									  self.NodeVPos[slot] + self.roomheight // (
 												  sum(self.roomdisplayinfo) / self.roomdisplayinfo[0])))
 			for n in g:
-				hw.screen.blit(self.RoomNames[n][0], (screens.horizborder + 5, self.NodeVPos[slot]))
+				hw.screen.blit(self.RoomNames[n][0], (self.HorizBorder + 5, self.NodeVPos[slot]))
 				self.SlotToGp[slot] = e
 				slot += 1
 				lineoff = self.NodeVPos[slot]
 			# noinspection PyUnboundLocalVariable
-			pygame.draw.line(hw.screen, wc(self.CharColor), (screens.horizborder, lineoff),
-							 (hw.screenwidth - screens.horizborder, lineoff), 3)
-		pygame.draw.line(hw.screen, wc(self.CharColor), (screens.horizborder, self.NodeVPos[0]),
-						 (screens.horizborder, lineoff), 3)
-		pygame.draw.line(hw.screen, wc(self.CharColor), (hw.screenwidth - screens.horizborder, self.NodeVPos[0]),
-						 (hw.screenwidth - screens.horizborder, lineoff), 3)
+			pygame.draw.line(hw.screen, wc(self.CharColor), (self.HorizBorder, lineoff),
+							 (hw.screenwidth - self.HorizBorder, lineoff), 3)
+		pygame.draw.line(hw.screen, wc(self.CharColor), (self.HorizBorder, self.NodeVPos[0]),
+						 (self.HorizBorder, lineoff), 3)
+		pygame.draw.line(hw.screen, wc(self.CharColor), (hw.screenwidth - self.HorizBorder, self.NodeVPos[0]),
+						 (hw.screenwidth - self.HorizBorder, lineoff), 3)
 
 	@staticmethod
 	def _Speaker(c, hgt):
@@ -353,7 +353,7 @@ class SonosScreenDesc(screen.BaseKeyScreenDesc):
 		for p in self.SonosGroups[gpentity]:
 			self.nms.append(self.SonosNodes[p])
 			rn = screenutil.CreateTextBlock(self.nms[-1].FriendlyName, self.ctlhgt, self.CharColor, True, FitLine=True,
-											MaxWidth=hw.screenwidth - 2 * screens.horizborder + 10)
+											MaxWidth=hw.screenwidth - 2 * self.HorizBorder + 10)
 			vol = self.nms[-1].volume * 100
 			volrndr, h, w = screenutil.CreateTextBlock(str(int(vol)), .8 * self.ctlhgt, self.CharColor, True,
 													   FitLine=True)
@@ -386,7 +386,7 @@ class SonosScreenDesc(screen.BaseKeyScreenDesc):
 			hw.screen.blit(screenutil.CreateTextBlock(rm[0].FriendlyName, 40,
 													  (self.DullKeyColor, self.CharColor)[rm[1]], False,
 													  FitLine=True,
-													  MaxWidth=hw.screenwidth - screens.horizborder)[0],
+													  MaxWidth=hw.screenwidth - self.HorizBorder)[0],
 						   (20, self.GCVPos[i]))
 
 	def SourceSelectScreen(self):
@@ -398,10 +398,10 @@ class SonosScreenDesc(screen.BaseKeyScreenDesc):
 			slot = i - self.SourceItem
 			clr = self.DullKeyColor if self.SourceSet[i] == self.SourceSelection else self.CharColor
 			rs, h, w = screenutil.CreateTextBlock(self.SourceSet[i], self.sourceheight, clr, False, FitLine=True,
-												  MaxWidth=hw.screenwidth - screens.horizborder * 2)
+												  MaxWidth=hw.screenwidth - self.HorizBorder * 2)
 			self.SourceSlot[slot] = self.SourceSet[i]
 			voff = self.SrcSlotsVPos[slot] + (self.sourceheight - h) // 2
-			hw.screen.blit(rs, (screens.horizborder, voff))
+			hw.screen.blit(rs, (self.HorizBorder, voff))
 		pygame.draw.polygon(hw.screen, wc(self.CharColor),
 							supportscreens._TriangleCorners(self.SrcPrev, self.sourceheight,
 															False), 3)

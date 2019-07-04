@@ -353,7 +353,7 @@ class Logger(object):
 				if self.livelogpos == 0:
 					hw.screen.fill(wc('royalblue'))
 				self.livelogpos = self.RenderLogLine(entry, self.LogColors[severity], self.livelogpos)
-				if self.livelogpos > hw.screenheight - screens.botborder:  # todo switch to new screen size stuff
+				if self.livelogpos > hw.screenheight - screens.screenStore.BotBorder:
 					time.sleep(1)
 					self.livelogpos = 0
 				pygame.display.update()
@@ -398,7 +398,7 @@ class Logger(object):
 			pos = self.RenderLogLine(self.log[start][2] + '          Page: ' + str(pageno), 'white', pos)
 		for i in range(start, len(self.log)):
 			pos = self.RenderLogLine(self.log[i][1], self.LogColors[self.log[i][0]], pos)
-			if pos > hw.screenheight - screens.botborder:
+			if pos > hw.screenheight - screens.screenStore.BotBorder:
 				pygame.display.update()
 				return (i + 1) if (i + 1) < len(self.log) else -1
 

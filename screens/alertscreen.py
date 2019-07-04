@@ -41,18 +41,18 @@ class AlertsScreenDesc(screen.ScreenDesc):
 
 		messageareapart = .7
 		messageareaheight = (
-									hw.screenheight - 2 * screens.topborder) * messageareapart  # no Nav keys todo switch to new screen sizing
-		alertbutheight = (hw.screenheight - messageareaheight - 2 * screens.topborder) / 2
-		self.upperleft = (screens.horizborder, screens.topborder)
+									hw.screenheight - 2 * self.TopBorder) * messageareapart  # no Nav keys todo switch to new screen sizing
+		alertbutheight = (hw.screenheight - messageareaheight - 2 * self.TopBorder) / 2
+		self.upperleft = (self.HorizBorder, self.TopBorder)
 
 		self.Defer = utilities.get_timedelta(self.DeferTime)
 
 		self.Keys = {'defer': toucharea.ManualKeyDesc(self, 'defer', ['Defer'], self.KeyColor, self.KeyCharColorOn,
 													  self.KeyCharColorOff,
 													  center=(hw.screenwidth / 2,
-															  screens.topborder + messageareaheight + 0.5 * alertbutheight),
+															  self.TopBorder + messageareaheight + 0.5 * alertbutheight),
 													  size=(
-														  hw.screenwidth - 2 * screens.horizborder, alertbutheight),
+														  hw.screenwidth - 2 * self.HorizBorder, alertbutheight),
 													  proc=self.DeferAction)}
 
 		if 'Action' in screensection:
@@ -60,8 +60,8 @@ class AlertsScreenDesc(screen.ScreenDesc):
 			self.Keys['action'] = keyspecs.CreateKey(self, action, '*Action*')
 			# this is only case so far that is a user descibed key that gets explicit positioning so just do it here
 			self.Keys['action'].Center = (
-				hw.screenwidth / 2, screens.topborder + messageareaheight + 1.5 * alertbutheight)
-			self.Keys['action'].Size = (hw.screenwidth - 2 * screens.horizborder, alertbutheight)
+				hw.screenwidth / 2, self.TopBorder + messageareaheight + 1.5 * alertbutheight)
+			self.Keys['action'].Size = (hw.screenwidth - 2 * self.HorizBorder, alertbutheight)
 			self.Keys['action'].State = True  # for appearance only
 			self.Keys['action'].FinishKey((0, 0), (0, 0))
 		else:
@@ -82,14 +82,14 @@ class AlertsScreenDesc(screen.ScreenDesc):
 			h = h + l[i].get_height()
 		s = (messageareaheight - h) / (len(l))
 
-		self.messageimage = pygame.Surface((hw.screenwidth - 2 * screens.horizborder, messageareaheight))
-		self.messageblank = pygame.Surface((hw.screenwidth - 2 * screens.horizborder, messageareaheight))
+		self.messageimage = pygame.Surface((hw.screenwidth - 2 * self.HorizBorder, messageareaheight))
+		self.messageblank = pygame.Surface((hw.screenwidth - 2 * self.HorizBorder, messageareaheight))
 		self.messageimage.fill(wc(self.MessageBack))
 		self.messageblank.fill(wc(self.BackgroundColor))
 
 		vert_off = s / 2
 		for i in range(len(l)):
-			horiz_off = (hw.screenwidth - l[i].get_width()) / 2 - screens.horizborder
+			horiz_off = (hw.screenwidth - l[i].get_width()) / 2 - self.HorizBorder
 			self.messageimage.blit(l[i], (horiz_off, vert_off))
 			vert_off = vert_off + s + l[i].get_height()
 

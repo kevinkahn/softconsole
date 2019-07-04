@@ -50,10 +50,6 @@ class VerifyScreen(screen.BaseKeyScreenDesc):
 
 	def ShowScreen(self):
 		self.ReInitDisplay()
-		# self.PaintBase()
-		# r = fonts.fonts.Font(self.TitleFontSize, '', True, True).render(self.label, 0, wc(self.CharColor))
-		# rl = (hw.screenwidth - r.get_width()) / 2
-		#hw.screen.blit(r, (rl, screens.topborder))
 		self.PaintKeys()
 		pygame.display.update()
 
@@ -223,9 +219,9 @@ class ListChooserSubScreen(screen.ScreenDesc):
 																	 proc=functools.partial(self.PickItem, i))
 			vpos += self.sourceheight
 			self.SlotItem.append('')
-		self.SrcPrev = (hw.screenwidth - self.sourceheight - screens.horizborder,
+		self.SrcPrev = (hw.screenwidth - self.sourceheight - self.HorizBorder,
 						voffset - self.sourceheight // 2)
-		self.SrcNext = (hw.screenwidth - self.sourceheight - screens.horizborder,
+		self.SrcNext = (hw.screenwidth - self.sourceheight - self.HorizBorder,
 						vpos + self.sourceheight // 2 + 10)  # for appearance
 		self.ListKeySlots['Prev'] = toucharea.TouchPoint('Prev', self.SrcPrev,
 														 (self.sourceheight, self.sourceheight),
@@ -294,9 +290,9 @@ class ListChooserSubScreen(screen.ScreenDesc):
 			slot = i - self.firstitem
 			clr = self.DullKeyColor if i == self.selection else self.CharColor
 			rs, h, w = screenutil.CreateTextBlock(self.itemlist[i], self.sourceheight, clr, False, FitLine=True,
-												  MaxWidth=hw.screenwidth - screens.horizborder * 2)
+												  MaxWidth=hw.screenwidth - self.HorizBorder * 2)
 			voff = self.SlotsVPos[slot] + (self.sourceheight - h) // 2
-			hw.screen.blit(rs, (screens.horizborder, voff))
+			hw.screen.blit(rs, (self.HorizBorder, voff))
 		upcolor = wc(self.CharColor) if self.firstitem != 0 else self.DullKeyColor
 		dncolor = wc(self.CharColor) if self.firstitem + self.NumSlots < len(self.itemlist) else self.DullKeyColor
 		pygame.draw.polygon(hw.screen, upcolor, _TriangleCorners(self.SrcPrev, self.sourceheight, False), 3)

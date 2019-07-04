@@ -79,56 +79,16 @@ class MyScreens(object):
 			exitutils.errorexit(exitutils.ERRORDIE)
 
 		# Create the navigation keys
-		cbutwidth = (hw.screenwidth - 2 * screens.horizborder) / 2
-		cvertcenter = hw.screenheight - screens.botborder / 2
-		cbutheight = screens.botborder - screens.cmdvertspace * 2
-
 		for i, kn in enumerate(config.sysStore.MainChain):
 			prevk = screens.MainDict[config.sysStore.MainChain[i - 1]]
 			nextk = screens.MainDict[config.sysStore.MainChain[(i + 1) % len(config.sysStore.MainChain)]]
-			screens.MainDict[kn].prevkey = toucharea.ManualKeyDesc(screens.MainDict[kn], 'Nav<' + prevk.name,
-																   prevk.label,
-																   prevk.CmdKeyCol, prevk.CmdCharCol,
-																   prevk.CmdCharCol,
-																   proc=functools.partial(screen.GoToScreen, prevk),
-																   center=(
-																	   screens.horizborder + .5 * cbutwidth,
-																	   cvertcenter),
-																   size=(cbutwidth, cbutheight))
-			screens.MainDict[kn].nextkey = toucharea.ManualKeyDesc(screens.MainDict[kn], 'Nav>' + nextk.name,
-																   nextk.label,
-																   nextk.CmdKeyCol, nextk.CmdCharCol,
-																   nextk.CmdCharCol,
-																   proc=functools.partial(screen.GoToScreen, nextk),
-																   center=(
-																	   screens.horizborder + 1.5 * cbutwidth,
-																	   cvertcenter),
-																   size=(cbutwidth, cbutheight))
+			screens.MainDict[kn].CreateNavKeys(prevk, nextk)
 
 		for i, kn in enumerate(config.sysStore.SecondaryChain):
 			prevk = screens.SecondaryDict[config.sysStore.SecondaryChain[i - 1]]
 			nextk = screens.SecondaryDict[
 				config.sysStore.SecondaryChain[(i + 1) % len(config.sysStore.SecondaryChain)]]
-			screens.SecondaryDict[kn].prevkey = toucharea.ManualKeyDesc(
-				screens.SecondaryDict[kn],
-				'Nav<' + prevk.name,
-				prevk.label,
-				prevk.CmdKeyCol, prevk.CmdCharCol,
-				prevk.CmdCharCol,
-				proc=functools.partial(screen.GoToScreen, prevk),
-				center=(
-					screens.horizborder + .5 * cbutwidth, cvertcenter),
-				size=(cbutwidth, cbutheight))
-			screens.SecondaryDict[kn].nextkey = toucharea.ManualKeyDesc(
-				screens.SecondaryDict[kn],
-				'Nav>' + nextk.name,
-				nextk.label,
-				nextk.CmdKeyCol, nextk.CmdCharCol,
-				nextk.CmdCharCol,
-				proc=functools.partial(screen.GoToScreen, nextk),
-				center=(screens.horizborder + 1.5 * cbutwidth,
-						cvertcenter),
-				size=(cbutwidth, cbutheight))
+			screens.SecondaryDict[kn].CreateNavKeys(prevk, nextk)
 
 		if config.sysStore.HomeScreenName in config.sysStore.MainChain:
 			screens.HomeScreen = screens.MainDict[config.sysStore.HomeScreenName]
