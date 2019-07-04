@@ -2,7 +2,6 @@ import time
 
 import pygame
 
-import config
 import debug
 import fonts
 import hw
@@ -34,8 +33,7 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 									Font=fonts.monofont, FcstLayout='Block',
 									FcstIcon=True, CondIcon=True,
 									TimeFormat=[], ConditionFields=[], ConditionFormat=[], ForecastFields=[],
-									ForecastFormat=[], ForecastDays=1, SkipDays=0)
-
+									ForecastFormat=[], ForecastDays=1, SkipDays=0, IconSizePct=100)
 		if self.CharSize != [-1]:
 			# old style
 			logsupport.Logs.Log(
@@ -140,16 +138,20 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 		else:
 			cb = CreateWeathBlock(self.ConditionFormat, self.DecodedCondFields, self.Font,
 								  self.CondSize, self.CharColor, self.condicon,
-								  self.FcstLayout == 'LineCentered')
+								  self.FcstLayout == 'LineCentered',
+								  maxiconsize=round(self.IconSizePct / 100 * self.useablehorizspace))
 			h = h + cb.get_height()
 
 			maxfcstwidth = 0
 			forecastlines = 0
 			spaces += 1
+			maxfcsticon = round(self.IconSizePct / 100 * self.useablehorizspace / (
+				2 if self.FcstLayout in ('2ColVert', '2ColHoriz') else 1))
 			for dy in range(self.ForecastDays):
 				fb = CreateWeathBlock(self.ForecastFormat, self.DecodedFcstFields, self.Font,
 									  self.FcstSize, self.CharColor, self.fcsticon,
-									  self.FcstLayout == 'LineCentered', day=dy + self.SkipDays)
+									  self.FcstLayout == 'LineCentered', day=dy + self.SkipDays,
+									  maxiconsize=maxfcsticon)
 				renderedforecast.append(fb)
 				if fb.get_width() > maxfcstwidth: maxfcstwidth = fb.get_width()
 				forecastlines += 1
