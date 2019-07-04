@@ -31,3 +31,12 @@ class ParamStore(valuestore.ValueStore):
 	def ReParent(self, newparent):
 		del self.defaultparent.children[self.localname]
 		newparent.userstore._MakeChild(self, self.localname)
+
+	# def __setattr__(self, key, value):  todo this doesn't work as is - causes a recursion when GetVal is called via getattr
+	#	if key in self.vars:
+	#		self.SetVal(key, value)
+	#	else:
+	#		object.__setattr__(self, key, value)
+
+	def __getattr__(self, key):
+		return self.GetVal(key)
