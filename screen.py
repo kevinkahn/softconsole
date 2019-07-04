@@ -153,7 +153,7 @@ class ScreenDesc(object):
 		self.ScreenTitleBlk = None
 		self.prevkey = None
 		self.nextkey = None
-		self.NavKeyWidth = (hw.screenwidth - 2 * self.HorizBorder) // 2 - self.HorizButGap
+		self.NavKeyWidth = (hw.screenwidth - 2 * self.HorizBorder) // 2
 
 		cvertcenter = hw.screenheight - self.BotBorder / 2
 		print("NKW {} {} {} {}".format(self.NavKeyWidth, self.HorizBorder, self.HorizButGap, cvertcenter))
@@ -162,16 +162,16 @@ class ScreenDesc(object):
 											   self.CmdKeyCol, self.CmdCharCol, self.CmdCharCol,
 											   proc=functools.partial(GoToScreen, HOMETOKEN),
 											   center=(
-												   self.starthorizspace + .5 * (self.NavKeyWidth + self.HorizButGap),
+												   self.starthorizspace + .5 * (self.NavKeyWidth),
 												   cvertcenter),
-											   size=(self.NavKeyWidth, self.NavKeyHeight))
+											   size=(self.NavKeyWidth, self.NavKeyHeight), gaps=True)
 		self.backkey = toucharea.ManualKeyDesc(self, 'Nav>' + 'Back', ('Back',),
 											   self.CmdKeyCol, self.CmdCharCol, self.CmdCharCol,
 											   proc=functools.partial(GoToScreen, BACKTOKEN),
 											   center=(
-												   self.starthorizspace + 1.5 * (self.NavKeyWidth + self.HorizButGap),
+												   self.starthorizspace + 1.5 * (self.NavKeyWidth),
 												   cvertcenter),
-											   size=(self.NavKeyWidth, self.NavKeyHeight))
+											   size=(self.NavKeyWidth, self.NavKeyHeight), gaps=True)
 
 		IncorporateParams(self, 'Screen',
 						  {'CharColor', 'DimTO', 'PersistTO', 'BackgroundColor', 'CmdKeyCol', 'CmdCharCol',
@@ -206,9 +206,9 @@ class ScreenDesc(object):
 											   proc=functools.partial(GoToScreen, prevk),
 											   center=(
 												   self.starthorizspace + .5 * (
-														   self.NavKeyWidth + self.HorizButGap),
+													   self.NavKeyWidth),
 												   cvertcenter),
-											   size=(self.NavKeyWidth, self.NavKeyHeight))
+											   size=(self.NavKeyWidth, self.NavKeyHeight), gaps=True)
 		self.nextkey = toucharea.ManualKeyDesc(self, 'Nav>' + nextk.name,
 											   nextk.label,
 											   nextk.CmdKeyCol, nextk.CmdCharCol,
@@ -216,9 +216,9 @@ class ScreenDesc(object):
 											   proc=functools.partial(GoToScreen, nextk),
 											   center=(
 												   self.starthorizspace + 1.5 * (
-														   self.NavKeyWidth + self.HorizButGap),
+													   self.NavKeyWidth),
 												   cvertcenter),
-											   size=(self.NavKeyWidth, self.NavKeyHeight))
+											   size=(self.NavKeyWidth, self.NavKeyHeight), gaps=True)
 
 	def ClearScreenTitle(self):
 		if self.ScreenTitleBlk is None: return

@@ -20,6 +20,7 @@ class TouchPoint(object):
 	def __init__(self, name, Center, Size, proc=None, procdbl=None):
 		self.name = name
 		self.Size = Size
+		self.GappedSize = Size
 		self.Center = Center
 		self.Screen = None
 		self.ControlObj = None
@@ -81,6 +82,7 @@ class ManualKeyDesc(TouchPoint):
 		self.userstore = None
 		self.BlinkTimer = None
 		self.autocolordull = True
+		self.usekeygaps = True
 
 		# alternate creation signatures
 		self.ButtonFontSizes = (31, 28, 25, 22, 20, 18, 16)
@@ -93,7 +95,8 @@ class ManualKeyDesc(TouchPoint):
 			# initializing from program code case
 			self.docodeinit(*args, **kwargs)
 		# Future may need to change signature if handling "holds"?
-		self.autocolordull = self.KeyColorOff == '' and self.KeyColorOn == ''
+
+		self.autocolordull = self.KeyColorOff == ''
 		if self.KeyColorOff == '':
 			self.KeyColorOff = self.KeyColor
 		if self.KeyColorOn == '':
@@ -116,11 +119,12 @@ class ManualKeyDesc(TouchPoint):
 	def docodeinit(self, thisscreen, keyname, label, bcolor, charcoloron, charcoloroff, center=(0, 0), size=(0, 0),
 				   KOn=None,
 				   KOff=None, proc=None, procdbl=None, KCon='', KCoff='', KLon=('',), KLoff=('',), State=True, Blink=0,
-				   Verify=False):
+				   Verify=False, gaps=False):
 		# NOTE: do not put defaults for KOn/KOff in signature - imports and arg parsing subtleties will cause error
 		# because of when config is imported and what walues are at that time versus at call time
 		self.userstore = paramstore.ParamStore('Screen-' + thisscreen.name + '-' + keyname, dp=thisscreen.userstore,
 											   locname=keyname)
+		self.usekeygaps = gaps
 
 		TouchPoint.__init__(self, keyname, center, size, proc=proc, procdbl=procdbl)
 		self.Screen = thisscreen
@@ -152,11 +156,12 @@ class ManualKeyDesc(TouchPoint):
 		self.State = True
 
 	def PaintKey(self, ForceDisplay=False, DisplayState=True):
-		x = self.Center[0] - self.Size[0] / 2
-		y = self.Center[1] - self.Size[1] / 2
+		x = self.Center[0] - self.GappedSize[0] / 2
+		y = self.Center[1] - self.GappedSize[1] / 2
 		if not ForceDisplay:
 			DisplayState = self.State
 		# ignore Key state and display as "DisplayState"
+		print('{} {} x {}'.format(self.name, self.KeyOnImage.get_width(), self.KeyOnImage.get_height()))
 		if DisplayState:
 			hw.screen.blit(self.KeyOnImage, (x, y))
 		else:
@@ -205,8 +210,8 @@ class ManualKeyDesc(TouchPoint):
 		lines = len(label)
 		for i in range(lines):
 			ren = fonts.fonts.Font(fontchoice, bold=True).render(label[i], 0, wc(color))
-			vert_off = ((i + 1) * self.Size[1] / (1 + lines)) - ren.get_height() / 2
-			horiz_off = (self.Size[0] - ren.get_width()) / 2
+			vert_off = ((i + 1) * self.GappedSize[1] / (1 + lines)) - ren.get_height() / 2
+			horiz_off = (self.GappedSize[0] - ren.get_width()) / 2
 			surface.blit(ren, (horiz_off, vert_off))
 
 	def SetKeyImages(self, onLabel, offLabel=None, firstfont=0, shrink=True):
@@ -224,17 +229,24 @@ class ManualKeyDesc(TouchPoint):
 		debug.debugPrint("Screen", "Base Key.InitDisplay ", self.Screen.name, self.name)
 
 	def BuildKey(self, coloron, coloroff):
-		buttonsmaller = (self.Size[0] - scaleW(6), self.Size[1] - scaleH(6))
+		if self.usekeygaps:
+			self.GappedSize = (self.Size[0] - self.Screen.HorizButGap, self.Size[1] - self.Screen.VertButGap)
+		else:
+			self.GappedSize = self.Size
+
+		print(self.Screen.name, self.name, self.usekeygaps, self.Size, self.GappedSize)
+		buttonsmaller = (self.GappedSize[0] - scaleW(6), self.GappedSize[1] - scaleH(6))
+
 
 		# create image of ON key
-		self.KeyOnImageBase = pygame.Surface(self.Size)
+		self.KeyOnImageBase = pygame.Surface(self.GappedSize)
 		pygame.draw.rect(self.KeyOnImageBase, coloron, ((0, 0), self.Size), 0)
 		bord = self.KeyOutlineOffset
 		pygame.draw.rect(self.KeyOnImageBase, wc(self.KeyOnOutlineColor), ((scaleW(bord), scaleH(bord)), buttonsmaller),
 						 bord)
 
 		# create image of OFF key
-		self.KeyOffImageBase = pygame.Surface(self.Size)
+		self.KeyOffImageBase = pygame.Surface(self.GappedSize)
 		pygame.draw.rect(self.KeyOffImageBase, coloroff, ((0, 0), self.Size), 0)
 		bord = self.KeyOutlineOffset
 		pygame.draw.rect(self.KeyOffImageBase, wc(self.KeyOffOutlineColor),

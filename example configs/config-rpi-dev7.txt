@@ -28,7 +28,9 @@ DefaultHub = ISY
 HorizBorder = 10
 TopBorder = 5
 NavKeyHeight = 60
-HorizButGap = 20
+HorizButGap = 5
+VertButGap =5
+
 
 
 [wxHouse]
