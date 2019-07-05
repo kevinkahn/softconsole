@@ -59,7 +59,7 @@ class NestThermostatScreenDesc(screen.BaseKeyScreenDesc):
 		Compute other fonts sizes based on what is left after that given user ability to set actual title size
 		'''
 		tempsurf = fonts.fonts.Font(50).render('Temp', 0, wc(self.CharColor))
-		useable = self.useablevertspace / (self.initialvertspace - tempsurf.get_height())
+		useable = self.useablevertspace / (self.useablevertspace - tempsurf.get_height())
 
 		for fs in nominalfontsz:
 			self.fsize.append(int(fs * useable))

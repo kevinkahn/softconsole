@@ -7,9 +7,10 @@ LogLevel = 3
 #ISYDump = True
 #ISYLoad = True
 
+# switch to authall with HASSpga avail
 
 cfglib = "/home/pi/consolerem/example configs/cfglib"
-include = /home/pi/Console/local/authall.cfg, weathersources.cfg, weathPump.cfg, timetempLQ.cfg,  myclock.cfg,bathroom.cfg,upperlev.cfg,BR-kck.cfg,tstat.cfg,weathPDX.cfg,timetempLQ7.cfg, pdxmqtt.cfg, octoprint.cfg, weathCC.cfg, timetempPDX7.cfg, pgaTstat.cfg, pgawBRmain.cfg, pgaOther.cfg, pgaBath.cfg
+include = /home/pi/Console/local/auth.cfg, weathersources.cfg, weathPump.cfg, timetempLQ.cfg,  myclock.cfg,bathroom.cfg,upperlev.cfg,BR-kck.cfg,tstat.cfg,weathPDX.cfg,timetempLQ7.cfg, pdxmqtt.cfg, octoprint.cfg, weathCC.cfg, timetempPDX7.cfg#, pgaTstat.cfg, pgawBRmain.cfg, pgaOther.cfg, pgaBath.cfg
 #pgaalerts.cfg,
 HomeScreenName = 'Creator Pro'
 DimLevel = 10
@@ -20,10 +21,40 @@ DimIdleListNames = MyClock, PDXTTbig, LQTTbig, Pumpkin
 
 DimIdleListTimes =	5, 5, 5, 5
 
-MainChain = Creator Pro,TreeTest, LR1,Sonos,LR2, Pumpkin, Local, Upper Level, Test
+MainChain = Creator Pro,wxHouse,TreeTest, LR1,Sonos,LR2, Pumpkin, Local, Upper Level, Test
 SecondaryChain = Portland, Bathroom, BR, Thermostat - Main,LQTTbig, climate.master_bedroom, climate.living_room, pgawBR, pgawOther, pgawBath
 
 DefaultHub = ISY
+HorizBorder = 10
+TopBorder = 5
+NavKeyHeight = 60
+HorizButGap = 5
+VertButGap =5
+
+
+
+[wxHouse]
+type= TimeTemp
+label = MUSTANG POINTE,
+location = PortlandW
+TimeFormat = "%-l:%M:%S %p",""
+
+CondIcon = False
+ConditionFields = Sky,Temp
+ConditionFormat = "{d[0]} {d[1]}"
+
+FcstIcon = True
+ForecastDays = 2
+ForecastFields = Day,Sky,High,Low
+ForecastFormat = "{d[0]} {d[1]}","{d[2]} / {d[3]}"
+
+ClockSize = 50
+LocationSize = 35
+CondSize = 30, 20
+FcstSize = 20
+CmdKeyCol = black
+BackgroundColor = black
+CharColor = white
 
 [Variables]
     InternetUp = 1

@@ -133,7 +133,7 @@ def AsyncFileWrite(fn,writestr,access='a'):
 historybuffer.AsyncFileWrite = AsyncFileWrite  # to avoid circular imports
 
 def LogProcess(q):
-	global lastremotemes, lastlocalmes, lastremotesev, remotenodes
+	global lastremotemes, lastlocalmes, lastremotesev, remotenodes, Logs
 	item = (99, 'init')
 
 	def ExitLog(signum, frame):
@@ -200,6 +200,7 @@ def LogProcess(q):
 				with open('/home/pi/Console/hlog', 'a') as f:
 					f.write('{}({}): Async Logger ending: {}\n'.format(os.getpid(),time.time(),item[1]))
 					f.flush()
+				Logs = TempLogger
 			elif item[0] == Command.StartLog:
 				# open Console log
 				os.chdir(item[1])
@@ -236,6 +237,10 @@ def LogProcess(q):
 	with open('/home/pi/Console/hlog', 'a') as f:
 		f.write('{}({}): Logger loop ended\n'.format(os.getpid(),time.time()))
 		f.flush()
+	disklogfile.write(
+		'{} Sev: {} {}\n'.format(time.strftime('%m-%d-%y %H:%M:%S', time.localtime(time.time())), 3, "End Log"))
+	disklogfile.flush()
+	os.fsync(disklogfile.fileno())
 
 
 def DevPrint(arg):
@@ -244,6 +249,10 @@ def DevPrint(arg):
 def DevPrintDoIt(arg):
 	pstr = '{}({}): {}'.format(str(os.getpid()), time.time(), arg)
 	LoggerQueue.put((Command.DevPrint, pstr))
+
+
+def EndAsyncLog():
+	LoggerQueue.put((Command.CloseHlog, 0))
 
 
 historybuffer.DevPrint = DevPrintDoIt  # to avoid circular imports
@@ -353,7 +362,7 @@ class Logger(object):
 				if self.livelogpos == 0:
 					hw.screen.fill(wc('royalblue'))
 				self.livelogpos = self.RenderLogLine(entry, self.LogColors[severity], self.livelogpos)
-				if self.livelogpos > hw.screenheight - screens.botborder:  # todo switch to new screen size stuff
+				if self.livelogpos > hw.screenheight - screens.screenStore.BotBorder:
 					time.sleep(1)
 					self.livelogpos = 0
 				pygame.display.update()
@@ -398,7 +407,7 @@ class Logger(object):
 			pos = self.RenderLogLine(self.log[start][2] + '          Page: ' + str(pageno), 'white', pos)
 		for i in range(start, len(self.log)):
 			pos = self.RenderLogLine(self.log[i][1], self.LogColors[self.log[i][0]], pos)
-			if pos > hw.screenheight - screens.botborder:
+			if pos > hw.screenheight - screens.screenStore.BotBorder:
 				pygame.display.update()
 				return (i + 1) if (i + 1) < len(self.log) else -1
 
