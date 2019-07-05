@@ -96,7 +96,7 @@ def handler(signum, frame):
 			else:
 				config.terminationreason = 'termination signal'
 				config.ecode = exitutils.EXTERNALSIGTERM
-			os.kill(config.sysStore.Watchdog_pid,signal.SIGUSR1)
+			if config.sysStore.Watchdog_pid != 0: os.kill(config.sysStore.Watchdog_pid, signal.SIGUSR1)
 			if config.sysStore.Topper_pid != 0: os.kill(config.sysStore.Topper_pid, signal.SIGKILL)
 	else:
 		logsupport.Logs.Log("Console received signal {} - Ignoring".format(signum))

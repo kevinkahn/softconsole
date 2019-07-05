@@ -45,6 +45,7 @@ def listthreads(l):
 
 
 def exitlogging():
+	print('exitlogging')
 	# logsupport.Logs.Log("Exittime threads: {}".format(listthreads(threading.enumerate())))
 	#if config.hooks.exit_code not in (
 	if config.ecode not in (
@@ -73,8 +74,6 @@ def EarlyAbort(scrnmsg):
 	sys.exit(EARLYABORT)
 
 
-# os._exit(EARLYABORT)
-
 
 def Exit(ecode, immediate=False):
 	consoleup = time.time() - config.sysStore.ConsoleStartTime
@@ -83,7 +82,7 @@ def Exit(ecode, immediate=False):
 		f.write('Exit ' + str(ecode) + '\n')
 	os.chdir(config.sysStore.ExecDir)  # set cwd to be correct when dirs move underneath us so that scripts execute
 	logsupport.Logs.Log("Console Exiting - Ecode: " + str(ecode))
-	os.kill(config.sysStore.Watchdog_pid,signal.SIGUSR1)
+	if config.sysStore.Watchdog_pid != 0: os.kill(config.sysStore.Watchdog_pid, signal.SIGUSR1)
 	print('Console exit with code: ' + str(ecode) + ' at ' + time.strftime('%m-%d-%y %H:%M:%S'))
 	if ecode in range(10, 20):
 		# exit console without restart
@@ -110,8 +109,14 @@ def Exit(ecode, immediate=False):
 		# reboot pi?
 		pass
 	if immediate:
-		logsupport.Logs.Log("Temp - Immediate Exit: ", str(ecode), tb=True)
-		sys.exit(ecode)
+		logsupport.Logs.Log("Immediate Exit: ", str(ecode), tb=False)
+		logsupport.EndAsyncLog()
+		time.sleep(.1)
+		logsupport.Logs.Log("Async log close issued")
+		config.running = False
+		pygame.display.quit()
+		pygame.quit()
+		os._exit(ecode)  # use this vs sys.exit to avoid atexit interception
 	else:
 		config.ecode = ecode
 		config.Running = False  # make sure the main loop ends even if this exit call returns

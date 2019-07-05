@@ -133,7 +133,7 @@ def AsyncFileWrite(fn,writestr,access='a'):
 historybuffer.AsyncFileWrite = AsyncFileWrite  # to avoid circular imports
 
 def LogProcess(q):
-	global lastremotemes, lastlocalmes, lastremotesev, remotenodes
+	global lastremotemes, lastlocalmes, lastremotesev, remotenodes, Logs
 	item = (99, 'init')
 
 	def ExitLog(signum, frame):
@@ -200,6 +200,7 @@ def LogProcess(q):
 				with open('/home/pi/Console/hlog', 'a') as f:
 					f.write('{}({}): Async Logger ending: {}\n'.format(os.getpid(),time.time(),item[1]))
 					f.flush()
+				Logs = TempLogger
 			elif item[0] == Command.StartLog:
 				# open Console log
 				os.chdir(item[1])
@@ -236,6 +237,10 @@ def LogProcess(q):
 	with open('/home/pi/Console/hlog', 'a') as f:
 		f.write('{}({}): Logger loop ended\n'.format(os.getpid(),time.time()))
 		f.flush()
+	disklogfile.write(
+		'{} Sev: {} {}\n'.format(time.strftime('%m-%d-%y %H:%M:%S', time.localtime(time.time())), 3, "End Log"))
+	disklogfile.flush()
+	os.fsync(disklogfile.fileno())
 
 
 def DevPrint(arg):
@@ -244,6 +249,10 @@ def DevPrint(arg):
 def DevPrintDoIt(arg):
 	pstr = '{}({}): {}'.format(str(os.getpid()), time.time(), arg)
 	LoggerQueue.put((Command.DevPrint, pstr))
+
+
+def EndAsyncLog():
+	LoggerQueue.put((Command.CloseHlog, 0))
 
 
 historybuffer.DevPrint = DevPrintDoIt  # to avoid circular imports
