@@ -161,7 +161,6 @@ class ManualKeyDesc(TouchPoint):
 		if not ForceDisplay:
 			DisplayState = self.State
 		# ignore Key state and display as "DisplayState"
-		print('{} {} x {}'.format(self.name, self.KeyOnImage.get_width(), self.KeyOnImage.get_height()))
 		if DisplayState:
 			hw.screen.blit(self.KeyOnImage, (x, y))
 		else:
@@ -234,7 +233,6 @@ class ManualKeyDesc(TouchPoint):
 		else:
 			self.GappedSize = self.Size
 
-		print(self.Screen.name, self.name, self.usekeygaps, self.Size, self.GappedSize)
 		buttonsmaller = (self.GappedSize[0] - scaleW(6), self.GappedSize[1] - scaleH(6))
 
 

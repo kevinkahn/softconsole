@@ -156,7 +156,7 @@ class ScreenDesc(object):
 		self.NavKeyWidth = (hw.screenwidth - 2 * self.HorizBorder) // 2
 
 		cvertcenter = hw.screenheight - self.BotBorder / 2
-		print("NKW {} {} {} {}".format(self.NavKeyWidth, self.HorizBorder, self.HorizButGap, cvertcenter))
+		# print("NKW {} {} {} {}".format(self.NavKeyWidth, self.HorizBorder, self.HorizButGap, cvertcenter))
 
 		self.homekey = toucharea.ManualKeyDesc(self, 'Back<' + 'Home', ('Home',),
 											   self.CmdKeyCol, self.CmdCharCol, self.CmdCharCol,
