@@ -437,8 +437,9 @@ if screen.screenStore.GetVal('DefaultHub') == '':
 		hubs.hubs.defaulthub = hubs.hubs.Hubs[nm]  # grab the only element
 		logsupport.Logs.Log("Default (only) hub is: ", nm)
 	else:
-		logsupport.Logs.Log("No default Hub specified", severity=ConsoleWarning)
-		hubs.hubs.defaulthub = None
+		nm = list(hubs.hubs.Hubs.keys())[0]
+		logsupport.Logs.Log("No default Hub specified, using {}".format(nm), severity=ConsoleWarning)
+		hubs.hubs.defaulthub = hubs.hubs.Hubs[nm]
 else:
 	try:
 		nm = screen.screenStore.GetVal('DefaultHub')
