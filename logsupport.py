@@ -295,7 +295,7 @@ class Logger(object):
 
 	def LogRemote(self, node, entry, etime, severity):
 		tentry = '[{}] {}'.format(node, entry)
-		self.log.append((severity, tentry, etime))
+		self.log.append((severity, tentry, time.strftime('%m-%d-%y %H:%M:%S', etime)))
 		LoggerQueue.put((Command.LogRemote, node, entry, etime, severity))
 		self.SetSeverePointer(severity)
 
