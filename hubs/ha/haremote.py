@@ -22,6 +22,7 @@ import requests
 from aiohttp.hdrs import METH_GET, METH_POST, CONTENT_TYPE
 from types import MappingProxyType
 import datetime
+import threading
 
 import logsupport
 
@@ -175,6 +176,11 @@ class API:
 			# self._headers[HTTP_HEADER_HA_AUTH] = api_password
 			self._headers['Authorization'] = 'Bearer ' + api_password
 
+		self.MainSession = requests.session()
+		self.MainSession.headers = self._headers
+		self.AsyncSession = requests.session()
+		self.AsyncSession.headers = self._headers
+
 	def validate_api(self, force_validate: bool = False) -> bool:
 		"""Test if we can communicate with the API."""
 		if self.status is None or force_validate:
@@ -198,15 +204,32 @@ class API:
 					url, params=data_str, timeout=timeout,
 					headers=self._headers)
 
-			return requests.request(
-				method, url, data=data_str, timeout=timeout,
-				headers=self._headers)
+			return self.MainSession.request(method, url, data=data_str, timeout=timeout)
+		# return requests.request(
+		#	method, url, data=data_str, timeout=timeout,
+		#	headers=self._headers)
 
 		except requests.exceptions.ConnectionError:
 			raise HomeAssistantError("Error connecting to server")
 
 		except requests.exceptions.Timeout:
 			error = "Timeout when talking to {}".format(self.host)
+			raise HomeAssistantError(error)
+
+	def asyncpost(self, path, data, timeout=10):
+		if data is None:
+			data_str = None
+		else:
+			data_str = json.dumps(data, cls=JSONEncoder)
+
+		url = urllib.parse.urljoin(self.base_url, path)
+		try:
+			return self.AsyncSession.post(url, data=data_str, timeout=timeout)
+		except requests.exceptions.ConnectionError:
+			raise HomeAssistantError("Error connecting to server")
+
+		except requests.exceptions.Timeout:
+			error = "Timeout when talking to {} {} {}".format(self.host, path, data)
 			raise HomeAssistantError(error)
 
 	def __repr__(self) -> str:
@@ -317,6 +340,31 @@ def call_service(api: API, domain: str, service: str,
 		logsupport.Logs.Log("HA service call failed", repr(e), severity=logsupport.ConsoleWarning)
 		raise
 
+
+def async_caller(api, domain, service, service_data, timeout):
+	n = threading.current_thread().name
+	# print('Async caller {} {} {} {} {} {}'.format(n, repr(api), domain, service, service_data, timeout))
+	try:
+		req = api.asyncpost(URL_API_SERVICES_SERVICE.format(domain, service),
+							service_data, timeout=timeout)
+
+		if req.status_code != 200:
+			logsupport.Logs.Log(
+				"HA Error calling service {} - {} Request: domain: {} service: {} data: {}".format(req.status_code,
+																								   req.text, domain,
+																								   service,
+																								   service_data))
+	# call_service(api, domain, service, service_data, timeout)
+	except Exception as E:
+		logsupport.Logs.Log(
+			'Comm error in async call of {} {} {} Exc: {}'.format(domain, service, service_data, repr(E)))
+		print('Async exc: {} {}'.format(n, repr(E)))
+
+
+def call_service_async(api: API, domain: str, service: str, service_data: Dict = None, timeout: int = 5) -> None:
+	t = threading.Thread(name='HA-' + service, target=async_caller, daemon=True,
+						 args=(api, domain, service, service_data, timeout))
+	t.start()
 
 def get_config(api: API) -> Dict:
 	"""Return configuration."""

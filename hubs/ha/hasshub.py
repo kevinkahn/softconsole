@@ -191,12 +191,18 @@ class Sensor(HAnode):  # not stateful since it updates directly to store value
 		if 'attributes' in ns: self.attributes = ns['attributes']
 		try:
 			if 'state' in ns:
-				if ns['state'] not in ('', 'unknown', 'None'):
-					self.Hub.sensorstore.SetVal(self.entity_id, stringtonumeric(ns['state']))
-				else:
+				if ns['state'] in ('', 'unknown', 'None'):
 					logsupport.Logs.Log('Sensor data missing for {} value: {}'.format(ns['entity_id'],ns['state']))
+				else:
+					try:
+						stval = stringtonumeric(ns['state'])
+					except ValueError:
+						stval = tuple(map(int, ns['state'].split(
+							'-')))  # this is never executed because str to num returns the string if can't convert todo
+					self.Hub.sensorstore.SetVal(self.entity_id, stval)
 		except Exception as E:
 			logsupport.Logs.Log('Sensor update error: State: {}  Exc:{}'.format(repr(ns), repr(E)))
+# print('Sensor update {} {} {}'.format(self.entity_id, stval, self.Hub.sensorstore.GetVal(self.entity_id)))
 
 
 class BinarySensor(HAnode):
@@ -255,7 +261,6 @@ class Thermostat(HAnode):  # not stateful since has much state info
 
 	# noinspection PyUnusedLocal
 	def ErrorFakeChange(self, param=None):
-		# noinspection PyArgumentList
 		PostEvent(ConsoleEvent(CEvent.HubNodeChange, hub=self.Hub.name, node=self.entity_id, value=self.internalstate))
 
 	def Update(self, **ns):
@@ -277,12 +282,13 @@ class Thermostat(HAnode):  # not stateful since has much state info
 										   value=self.internalstate))
 
 	def PushSetpoints(self, t_low, t_high):
-		ha.call_service(self.Hub.api, 'climate', 'set_temperature',
+		ha.call_service_async(self.Hub.api, 'climate', 'set_temperature',
 						{'entity_id': '{}'.format(self.entity_id), 'target_temp_high': str(t_high),
 						 'target_temp_low': str(t_low)})
 		self.timerseq += 1
 		_ = timers.OnceTimer(5, start=True, name='fakepushsetpoint-{}'.format(self.timerseq),
 								proc=self.ErrorFakeChange)
+
 
 	def GetThermInfo(self):
 		if self.target_low is not None:
@@ -312,22 +318,21 @@ class Thermostat(HAnode):  # not stateful since has much state info
 		return self.modelist, self.fanstates
 
 	def PushFanState(self, mode):
-		ha.call_service(self.Hub.api, 'climate', 'set_fan_mode',
+		ha.call_service_async(self.Hub.api, 'climate', 'set_fan_mode',
 						{'entity_id': '{}'.format(self.entity_id), 'fan_mode': mode})
+		self.timerseq += 1
+		_ = timers.OnceTimer(5, start=True, name='fakepushfanstate-{}'.format(self.timerseq),
+							 proc=self.ErrorFakeChange)
 
 	def PushMode(self, mode):
 		# noinspection PyBroadException
-		try:
-			ha.call_service(self.Hub.api, 'climate', 'set_operation_mode',
+		ha.call_service_async(self.Hub.api, 'climate', 'set_operation_mode',
 							{'entity_id': '{}'.format(self.entity_id), 'operation_mode': mode})
-		except:
-			pass
+		self.timerseq += 1
+		_ = timers.OnceTimer(5, start=True, name='fakepushmode -{}'.format(self.timerseq),
+							 proc=self.ErrorFakeChange)
 
 
-class ZWave(HAnode):
-	def __init__(self, HAitem, d):
-		super(ZWave, self).__init__(HAitem, **d)
-		self.Hub.ZWaves[self.entity_id] = self
 
 class Indirector(object):
 	# used as a placeholder if config names a node that isn't in HA - allows for late discovery of HA nodes
@@ -556,7 +561,8 @@ class HA(object):
 					del d['entity_id']
 					chgs, dels, adds = findDiff(old, new)
 
-					if not ent in self.Entities and not ent in self.IgnoredEntities and not dom in haignoreandskipdomains:
+					# if not ent in self.Entities and not ent in self.IgnoredEntities and not dom in haignoreandskipdomains:
+					if not ent in self.Entities and not dom in haignoreandskipdomains:
 						# not an entitity type that is currently known
 						debug.debugPrint('HASSgeneral', self.name,
 										 ' WS Stream item for unhandled entity: ' + ent + ' Added: ' + str(
@@ -580,13 +586,14 @@ class HA(object):
 								del self.Indirectors[ent]
 								logsupport.Logs.Log('Indirector in {} for {} not for a supported domain {}'.format(self.name,ent,dom))
 						else:
-							logsupport.Logs.Log("New entity since startup seen from ", self.name, ": ", ent,
-											"(Old: " + repr(old) + '  New: ' + repr(new) + ')')
+							logsupport.Logs.Log(
+								"New entity since startup seen from {}: {} (Domain: {}) (Old: {}  New: {})".format(
+									self.name, ent, dom, repr(old), repr(new)))
 							# noinspection PyTypeChecker
-							self.IgnoredEntities[ent] = None
+						#self.IgnoredEntities[ent] = None todo fix
 						return
-					if ent in self.IgnoredEntities:
-						return
+					# if ent in self.IgnoredEntities:   todo del?
+					#	return
 					debug.debugPrint('HASSchg', 'WS change: ' + ent + ' Added: ' + str(adds) + ' Deleted: ' + str(
 						dels) + ' Changed: ' + str(chgs))
 					# debug.debugPrint('HASSchg', 'New: ' + str(new))
@@ -737,14 +744,12 @@ class HA(object):
 		self.HB = historybuffer.HistoryBuffer(40, hubname)
 		logsupport.Logs.Log("{}: Creating structure for Home Assistant hub at {}".format(hubname, addr))
 
+		self.dyndomains = {}
 		for domainimpl in os.listdir(os.getcwd() + '/hubs/ha/domains'):
 			if '__' not in domainimpl:
 				splitname = os.path.splitext(domainimpl)
 				if splitname[1] == '.py':
-					importlib.import_module('hubs.ha.domains.' + splitname[0])
-
-		haignoredomains = {'zwave': ZWave, 'sun': HAnode, 'notifications': HAnode, 'persistent_notification': HAnode,
-						   'person':HAnode, 'zone': HAnode}
+					self.dyndomains[splitname[0]] = importlib.import_module('hubs.ha.domains.' + splitname[0])
 
 		self.addibledomains = {}  # {'media_player': MediaPlayer} todo resolve how to add things
 
@@ -765,7 +770,6 @@ class HA(object):
 		self.msgcount = 0
 		self.watchstarttime = time.time()
 		self.Entities = {}
-		self.IgnoredEntities = {}  # things we expect and do nothing with
 		self.DomainEntityReg = {}
 		self.Domains = {}
 		self.Groups = {}
@@ -773,7 +777,6 @@ class HA(object):
 		self.Switches = {}
 		self.Sensors = {}
 		self.BinarySensors = {}
-		self.ZWaves = {}
 		self.Automations = {}
 		self.Scripts = {}
 		self.Thermostats = {}
@@ -821,9 +824,6 @@ class HA(object):
 			if e.domain in hadomains:
 				N = hadomains[e.domain](self, p2)
 				self.Entities[e.entity_id] = N
-			elif e.domain in haignoredomains:
-				N = HAnode(self, **p2)
-				self.IgnoredEntities[e.entity_id] = N
 			elif e.domain in haignoreandskipdomains:
 				N = None
 				pass  # totally ignore these
@@ -867,6 +867,17 @@ class HA(object):
 						print('    {}'.format(s), file=f)
 						print('         {}'.format(c), file=f)
 					print('==================', file=f)
+			with open('{}/Console/{}entities'.format(config.sysStore.HomeDir, self.name), 'w') as f:
+				print('===== Ignored =====', file=f)
+				for d, de in self.DomainEntityReg.items():
+					for e, t in de.items():
+						if isinstance(t, self.dyndomains['ignore'].IgnoredDomain):
+							print('Ignored entity in {}: {} {}'.format(self.name, d, e), file=f)
+				print('===== Active  =====', file=f)
+				for d, de in self.DomainEntityReg.items():
+					for e, t in de.items():
+						if not isinstance(t, self.dyndomains['ignore'].IgnoredDomain):
+							print('Watched entity in {}: {} {}'.format(self.name, d, e), file=f)
 		# listeners = ha.get_event_listeners(self.api)
 		logsupport.Logs.Log(self.name + ": Processed " + str(len(self.Entities)) + " total entities")
 		logsupport.Logs.Log("    Lights: " + str(len(self.Lights)) + " Switches: " + str(len(self.Switches)) +
