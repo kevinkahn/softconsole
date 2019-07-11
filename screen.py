@@ -177,12 +177,12 @@ class ScreenDesc(object):
 						  {'CharColor', 'DimTO', 'PersistTO', 'BackgroundColor', 'CmdKeyCol', 'CmdCharCol',
 						   'DefaultHub', 'ScreenTitle', 'ScreenTitleColor', 'ScreenTitleSize'}, screensection)
 		AddUndefaultedParams(self, screensection, label=[screenname])
-
 		try:
 			self.DefaultHubObj = hubs.hubs.Hubs[self.DefaultHub]
 		except KeyError:
 			self.DefaultHubObj = None  # todo test what happens later or force this to be an exiting error
 			logsupport.Logs.Log("Bad default hub name for screen: ", screenname, severity=ConsoleError)
+			raise ValueError
 
 		if self.ScreenTitle != '':
 			# adjust space for a title

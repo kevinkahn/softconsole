@@ -19,6 +19,7 @@ from utilfuncs import wc
 
 # noinspection PyUnusedLocal
 class SonosScreenDesc(screen.BaseKeyScreenDesc):
+	# todo add media_player stop
 	# noinspection PyAttributeOutsideInit
 	def SetScreenContents(self):
 		self.numplayers = 0  # if 0 then Sonos didn't get set up correctly

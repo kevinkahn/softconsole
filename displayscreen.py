@@ -3,8 +3,6 @@ import hw
 import multiprocessing
 import threading
 import time
-from collections import OrderedDict
-import topper
 
 import pygame
 import screen
@@ -62,10 +60,14 @@ class DisplayScreen(object):
 
 	def SwitchScreen(self, NS, newdim, reason, *, newstate=None, AsCover=False, push=False, clear=False):
 		if newstate is None: newstate = self.state  # no state change
+		if NS == screens.HomeScreen: self.Chain = 0  # force to Main chain in case coming from secondary
+		oldname = 'None' if self.AS is None else self.AS.name
+		self.HBScreens.Entry(
+			'SwitchScreen old: {} new: {} chain: {} reason: {}'.format(oldname, NS.name, self.Chain, reason))
 		if NS == self.AS:
 			debug.debugPrint('Dispatch', 'Null SwitchScreen: ', reason)
 			logsupport.Logs.Log(
-				'Null switchscreen: ' + reason)
+				'Null switchscreen for {}: {}'.format(NS.name, reason))
 			if config.sysStore.versionname in ('development', 'homerelease'):
 				logsupport.Logs.Log('Null switch stack:', severity=ConsoleWarning, hb=True)
 				for L in traceback.format_stack():
