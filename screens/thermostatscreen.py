@@ -4,7 +4,6 @@ import pygame
 import xmltodict
 from pygame import gfxdraw
 
-import config
 import debug
 import fonts
 import hw
@@ -12,6 +11,7 @@ import hubs.isy.isy as isy  # only to test that the hub for this is an ISY hub
 import logsupport
 import screen
 import screens.__screens as screens
+import timers
 import toucharea
 import utilities
 from hw import scaleW, scaleH
@@ -55,7 +55,7 @@ class ThermostatScreenDesc(screen.BaseKeyScreenDesc):
 		Compute other fonts sizes based on what is left after that given user ability to set actual title size
 		'''
 		tempsurf = fonts.fonts.Font(50).render('Temp', 0, wc(self.CharColor))  # todo should the 50 be scaled now?
-		sizingratio = self.useablevertspace / (self.useablevertspace - tempsurf.get_height())
+		sizingratio = self.useablevertspace / (self.useablevertspace + tempsurf.get_height())
 
 		for fs in nominalfontsz:
 			self.fsize.append(int(fs * sizingratio))
@@ -121,6 +121,7 @@ class ThermostatScreenDesc(screen.BaseKeyScreenDesc):
 			vals[cv]))  # todo fix for lost connect when move to common screen
 
 	def ShowScreen(self):
+		print(self.ISYObj.GetThermInfo())
 		rtxt = self.isy.try_ISY_comm(
 			'nodes/' + self.ISYObj.address)  # todo fix for lost connect when move to common screen
 		# noinspection PyBroadException
@@ -201,4 +202,4 @@ class ThermostatScreenDesc(screen.BaseKeyScreenDesc):
 		self.ShowScreen()
 
 
-screens.screentypes["Thermostat"] = ThermostatScreenDesc
+screens.screentypes["ThermostatOld"] = ThermostatScreenDesc

@@ -26,11 +26,11 @@ def trifromtop(h, v, n, size, c, invert):
 		return h * n, v - size // 2, h * n - size // 2, v + size // 2, h * n + size // 2, v + size // 2, c
 
 
-class NestThermostatScreenDesc(screen.BaseKeyScreenDesc):
+class ThermostatScreenDesc(screen.BaseKeyScreenDesc):
 	def __init__(self, screensection, screenname):
-		debug.debugPrint('Screen', "New Nest ThermostatScreenDesc ", screenname)
+		debug.debugPrint('Screen', "New ThermostatScreenDesc ", screenname)
 		screen.BaseKeyScreenDesc.__init__(self, screensection, screenname)
-		screen.IncorporateParams(self, 'NestThermostatScreen', {'KeyColor', 'KeyOffOutlineColor', 'KeyOnOutlineColor'},
+		screen.IncorporateParams(self, 'ThermostatScreen', {'KeyColor', 'KeyOffOutlineColor', 'KeyOnOutlineColor'},
 								 screensection)
 		nominalfontsz = (30, 50, 80, 160)
 		nominalspacers = (5, 20, 25, 40, 50, 85)
@@ -54,7 +54,6 @@ class NestThermostatScreenDesc(screen.BaseKeyScreenDesc):
 
 		for fs in nominalfontsz:
 			self.fsize.append(int(fs * sizingratio))
-
 
 		for fs in nominalspacers:
 			self.spacer.append(int(fs * sizingratio))
@@ -119,7 +118,7 @@ class NestThermostatScreenDesc(screen.BaseKeyScreenDesc):
 		if self.ThermNode is not None:
 			self.HubInterestList[self.DefaultHubObj.name] = {
 				self.ThermNode.address: self.Keys['Mode']}  # placeholder for thermostat node
-		utilities.register_example("NestThermostatScreenDesc", self)
+		utilities.register_example("ThermostatScreenDesc", self)
 
 	# noinspection PyUnusedLocal
 	def BumpTemp(self, heat, change):
@@ -222,7 +221,7 @@ class NestThermostatScreenDesc(screen.BaseKeyScreenDesc):
 		pygame.display.update()
 
 	def InitDisplay(self, nav):
-		super(NestThermostatScreenDesc, self).InitDisplay(nav)
+		super(ThermostatScreenDesc, self).InitDisplay(nav)
 		self.t_cur, self.t_low, self.t_high, self.t_state, self.mode, self.fan = self.ThermNode.GetThermInfo()
 		self.LocalOnly = [0.0, 0.0]
 		self.ModeLocal = 0.0
@@ -238,4 +237,6 @@ class NestThermostatScreenDesc(screen.BaseKeyScreenDesc):
 		if self.Active: self.ShowScreen()
 
 
-screens.screentypes["NestThermostatOld"] = NestThermostatScreenDesc
+screens.screentypes["ThermostatC"] = ThermostatScreenDesc
+screens.screentypes["Thermostat"] = ThermostatScreenDesc
+screens.screentypes["NestThermostat"] = ThermostatScreenDesc
