@@ -38,8 +38,10 @@ def SetUpMaintScreens():
 	Beta = MaintScreenDesc('Versions',
 						   OrderedDict([('stable', ('Use Stable Release', dobeta, 'addkey')),
 										('beta', ('Use Beta Release', dobeta, 'addkey')),
+										('dev', ('Use Dev Release',dobeta,'addkey')),
 										('release', ('Download release', dobeta, 'addkey')),
 										('fetch', ('Download Beta', dobeta, 'addkey')),
+										('fetchdev', ('Download Dev', dobeta, 'addkey')),
 										('return', ('Return', None))]))  # proc filled in below due to circularity
 	MaintScreen = MaintScreenDesc('Maintenance',
 								  OrderedDict([('return', ('Exit Maintenance', gohome)),
@@ -197,8 +199,13 @@ def dobeta(K):
 	elif K.name == 'beta':
 		subprocess.Popen('sudo touch /home/pi/usebeta', shell=True)  # Deprecate remove
 		subprocess.Popen('sudo echo beta > /home/pi/versionselector', shell=True)
+	elif K.name == 'dev':
+		subprocess.Popen('sudo touch /home/pi/usebeta', shell=True)  # Deprecate remove
+		subprocess.Popen('sudo echo dev > /home/pi/versionselector', shell=True)
 	elif K.name == 'fetch':
 		fetch_beta()
+	elif K.name=='fetchdev':
+		fetch_dev()
 	elif K.name == 'release':
 		fetch_stable()
 
@@ -242,6 +249,18 @@ def fetch_beta():
 		logsupport.Logs.Log('Failed beta download', severity=ConsoleWarning)
 	ReportStatus("done beta", hold=2)
 
+def fetch_dev():
+	basedir = os.path.dirname(config.sysStore.ExecDir)
+	ReportStatus("updt dev", hold=1)
+	logsupport.Logs.Log("New version fetch(currentdev)")
+	# noinspection PyBroadException
+	try:
+		U.StageVersion(basedir + '/consoledev', 'currentdev', 'Maint Dnld')
+		U.InstallStagedVersion(basedir + '/consoledev')
+		logsupport.Logs.Log("Staged version installed in consoledev")
+	except:
+		logsupport.Logs.Log('Failed beta download', severity=ConsoleWarning)
+	ReportStatus("done dev", hold=2)
 
 class LogDisplayScreen(screen.BaseKeyScreenDesc):
 	def __init__(self):
