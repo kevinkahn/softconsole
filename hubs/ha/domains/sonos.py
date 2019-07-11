@@ -85,7 +85,8 @@ class MediaPlayer(HAnode):
 		if not domute:  # implicitly start playing if unmuting in case source was stopped
 			ha.call_service(self.Hub.api, 'media_player', 'media_play', {'entity_id': '{}'.format(roomname)})
 
-	# todo add a Media stop to actually stop rather than mute things media_player/media_stop
+	def Stop(self, roomname):
+		ha.call_service(self.Hub.api, 'media_player', 'stop', {'entity_id': '{}'.format(roomname)})
 
 	def Source(self, roomname, sourcename):
 		ha.call_service(self.Hub.api, 'media_player', 'select_source', {'entity_id': '{}'.format(roomname),
@@ -94,5 +95,4 @@ class MediaPlayer(HAnode):
 
 RegisterDomain('media_player', MediaPlayer)
 
-# todo add a Media stop to actually stop rather than mute things media_player/media_stop
 # todo split to media and sonos
