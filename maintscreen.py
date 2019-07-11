@@ -200,7 +200,6 @@ def dobeta(K):
 		subprocess.Popen('sudo touch /home/pi/usebeta', shell=True)  # Deprecate remove
 		subprocess.Popen('sudo echo beta > /home/pi/versionselector', shell=True)
 	elif K.name == 'dev':
-		subprocess.Popen('sudo touch /home/pi/usebeta', shell=True)  # Deprecate remove
 		subprocess.Popen('sudo echo dev > /home/pi/versionselector', shell=True)
 	elif K.name == 'fetch':
 		fetch_beta()
@@ -255,7 +254,7 @@ def fetch_dev():
 	logsupport.Logs.Log("New version fetch(currentdev)")
 	# noinspection PyBroadException
 	try:
-		U.StageVersion(basedir + '/consoledev', 'currentdev', 'Maint Dnld')
+		U.StageVersion(basedir + '/consoledev', '*live*', 'Maint Dnld')
 		U.InstallStagedVersion(basedir + '/consoledev')
 		logsupport.Logs.Log("Staged version installed in consoledev")
 	except:
