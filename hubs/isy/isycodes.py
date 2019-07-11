@@ -47,6 +47,8 @@ EVENT_CTRL = {
 	"ERR": "NodeCommError"
 }
 
+ThermType = None
+
 AlertNodes = {}
 
 

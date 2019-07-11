@@ -17,16 +17,16 @@ import threadmanager
 import utilities
 from logsupport import ConsoleWarning, ConsoleError, ConsoleDetailHigh, ConsoleDetail
 from stores import valuestore, isyvarssupport
-import config
 
 
 class CommsError(Exception): pass
 
 
 class ISYNode(object):
-	def __init__(self, Hub, name):
+	def __init__(self, Hub, name, addr):
 		self.Hub = Hub
 		self.name = name
+		self.address = addr
 		self.fullname = ""
 
 
@@ -37,8 +37,7 @@ class TreeItem(ISYNode):
 	"""
 
 	def __init__(self, hub, name, addr, parentaddr):
-		super(TreeItem, self).__init__(hub, name)
-		self.address = addr
+		super(TreeItem, self).__init__(hub, name, addr)
 		self.parent = parentaddr  # replaced by actual obj reference at end of tree build
 		self.children = []
 		utilities.register_example("TreeItem", self)
@@ -109,6 +108,48 @@ class Node(Folder, OnOffItem):
 	def __repr__(self):
 		return 'Node: ' + Folder.__repr__(self) + 'primary: ' + self.pnode.name
 
+
+class Thermostat(Node):
+
+	def __init__(self, hub, flag, name, addr, parenttyp, parentaddr, enabled, props):
+		super(Thermostat, self).__init__(hub, flag, name, addr, parenttyp, parentaddr, enabled, props)
+		self.Tmodes = ('Off', 'Heat', 'Cool', 'Auto', 'Fan', 'Prog Auto', 'Prog Heat', 'Prog Cool')
+		self.Tfan = ('On', 'Auto')  # actually indexed 7, 8
+		self.cur = 0
+		self.setlow = 0
+		self.sethigh = 0
+		self.statecode = 0  # should it have a N/A todo
+		self.modecode = 0
+		self.fancode = 0
+		self.hum = 0
+
+	def GetThermInfo(self):
+		cur = self.cur // 2
+		setlow = self.setlow // 2
+		sethigh = self.sethigh // 2
+		state = ("Idle", "Heating", "Cooling")[self.statecode]
+		mode = self.Tmodes[self.modecode]
+		fan = self.Tfan[self.fancode - 7]
+		return cur, setlow, sethigh, state, mode, fan  # todo add hum - need to check what HA nest interface can do
+
+	def GetModeInfo(self):
+		return self.Tmodes, self.Tfan
+
+	def PushSetpoints(self, t_low, t_high):
+		# ISY needs 2 times the temp val todo can this be done in one net op?
+		self.Hub.try_ISY_comm('nodes/' + self.address + '/cmd/CLISPH/' + str(t_low * 2), doasync=True)
+		self.Hub.try_ISY_comm('nodes/' + self.address + '/cmd/CLISPC/' + str(t_high * 2), doasync=True)
+
+	def PushMode(self, mode):
+		cv = self.Tmodes.index(mode)
+		self.Hub.try_ISY_comm('nodes/' + self.address + '/cmd/CLIMD/' + str(cv), doasync=True)
+
+	def PushFanState(self, fanstate):
+		cv = self.Tfan.index(fanstate) + 7
+		self.Hub.try_ISY_comm('nodes/' + self.address + '/cmd/CLIFS/' + str(cv), doasync=True)
+
+
+isycodes.ThermType = Thermostat
 
 class Scene(TreeItem, OnOffItem):
 	"""
@@ -287,6 +328,7 @@ class ISY(object):
 			enabld = 'unknown'
 			prop = 'unknown'
 			pnd = 'unknown'
+			devtyp = 'unknown.unknown'
 			if 'parent' in node:
 				ptyp = int(node['parent']['@type'])
 				parentaddr = node['parent']['#text']
@@ -298,7 +340,11 @@ class ISY(object):
 				enabld = node['enabled']
 				pnd = node['pnode']
 				prop = node['property']
-				n = Node(self, flg, nm, addr, ptyp, parentaddr, enabld, prop)
+				devtyp = node['type'].split('.')
+				if devtyp[0] == '5':
+					n = Thermostat(self, flg, nm, addr, ptyp, parentaddr, enabld, prop)
+				else:
+					n = Node(self, flg, nm, addr, ptyp, parentaddr, enabld, prop)
 				fixlist.append((n, pnd))
 				self.NodesByAddr[n.address] = n
 			except Exception as E:

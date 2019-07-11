@@ -255,9 +255,16 @@ class ISYEventMonitor(object):
 						debug.debugPrint('DaemonStream', "V5 stream - pull up action value: ", eaction)
 						eaction = eaction["#text"]  # todo the new xmltodict will return as data['action']['#text']
 
+					if enode in self.isy.NodesByAddr:  # get the node to set if any
+						N = self.isy.NodesByAddr[enode]
+					else:
+						N = None
+
 					if ecode == 'ST':  # update cached state first before posting alerts or race
-						if enode in self.isy.NodesByAddr:
-							N = self.isy.NodesByAddr[enode]
+
+						if isinstance(N, isycodes.ThermType):
+							N.cur = isycodes._NormalizeState(eaction)
+						else:
 							oldstate = N.devState
 							N.devState = isycodes._NormalizeState(eaction)
 							debug.debugPrint('ISYchg', 'ISY Node: ', N.name, ' state change from: ', oldstate,
@@ -290,6 +297,19 @@ class ISYEventMonitor(object):
 										# noinspection PyArgumentList
 										PostEvent(ConsoleEvent(CEvent.ISYAlert, hub=self.isy.name, node=enode,
 															   value=isycodes._NormalizeState(eaction), alert=a))
+					elif ecode == 'CLIHCS' and isinstance(N, isycodes.ThermType):
+						N.statecode = isycodes._NormalizeState(eaction)
+					elif ecode == 'CLIFS' and isinstance(N, isycodes.ThermType):
+						N.fancode = isycodes._NormalizeState(eaction)
+					elif ecode == 'CLIMD' and isinstance(N, isycodes.ThermType):
+						N.modecode = isycodes._NormalizeState(eaction)
+					elif ecode == 'CLIHUM' and isinstance(N, isycodes.ThermType):
+						N.hum = isycodes._NormalizeState(eaction)
+					elif ecode == 'CLISPH' and isinstance(N, isycodes.ThermType):
+						N.setlow = isycodes._NormalizeState(eaction)
+					elif ecode == 'CLISPC' and isinstance(N, isycodes.ThermType):
+						N.sethigh = isycodes._NormalizeState(eaction)
+
 
 					if ecode in self.reportablecodes:
 						# Node change report
