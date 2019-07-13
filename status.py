@@ -5,6 +5,7 @@ import sys
 import time
 from itertools import zip_longest
 from datetime import datetime
+import statusinput
 
 import paho.mqtt.client as mqtt
 
@@ -29,6 +30,7 @@ defaults = {k: v for (k, v) in zip_longest(noderecord._fields, (
 
 def paint():
 	os.system('clear')
+	print("Status (h for hardware, v for console version):")
 	print("{:^12s} {:^10s} {:^4s} E {:^14s}  {:^19s}".format('Node', 'Status', 'QMax', 'Uptime', 'Last Boot'))
 	# for n, info in nodetable.items():
 	for n, info in nodes.items():
@@ -61,13 +63,20 @@ def paint():
 
 def baseinfo():
 	os.system('clear')
-	print("Info:")
+	print("Hardware (s for status, v for console version):")
 	for n, info in nodes.items():
 		offline = ' (offline)' if info.status in ('dead', 'unknown') else ''
-		print("{:12.12s} ({})  {}".format(n, info.versionname, offline))
-		print(' HW: {} OS: {}'.format(info.hw, info.osversion))
-		print(' Console: {} Dnld: {}'.format(info.versioncommit, info.versiondnld))
+		print("{:12.12s} {} {}".format(n, info.hw, offline))
+		print('             {}'.format(info.osversion))
 
+
+def swinfo():
+	os.system('clear')
+	print("Software (s for status, h for hardware info):")
+	for n, info in nodes.items():
+		offline = ' (offline)' if info.status in ('dead', 'unknown') else ''
+		print("{:12.12s} ({}) of {} {}".format(n, info.versionname, info.versioncommit, offline))
+		print('             Downloaded: {}'.format(info.versiondnld))
 
 def interval_str(sec_elapsed):
 	d = int(sec_elapsed / (60 * 60 * 24))
@@ -88,6 +97,7 @@ def on_connect(mqclient, ud, flags, rc):
 
 # noinspection PyUnusedLocal
 def on_message(mqclient, ud, msg):
+	global screen
 	# print('message')
 	# print(msg.topic+  repr(msg.payload) + str(msg.timestamp))
 	try:
@@ -110,13 +120,32 @@ def on_message(mqclient, ud, msg):
 	# print(nodes)
 	except Exception as Ex:
 		print("Exception: {}".format(repr(Ex)))
-	if time.time() - tm > 1:
-		if len(sys.argv) > 1:
-			baseinfo()
-		else:
+	if KB.kbhit():
+		c = KB.getch()
+		if c == 's':
+			screen = 'status'
+		elif c == 'h':
+			screen = 'os'
+		elif c == 'v':
+			screen = 'system'
+
+	if True:  # time.time() - tm > 1:
+		tm = time.time()
+		if screen == 'status':
 			paint()
+		elif screen == 'os':
+			baseinfo()
+		elif screen == 'system':
+			swinfo()
 
 
+# if len(sys.argv) > 1:
+#	baseinfo()
+# else:
+#	paint()
+
+KB = statusinput.KBHit()
+screen = 'status'
 client = mqtt.Client()
 client.on_connect = on_connect
 client.on_message = on_message
