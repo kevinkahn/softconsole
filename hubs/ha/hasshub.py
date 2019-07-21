@@ -589,6 +589,7 @@ class HA(object):
 							logsupport.Logs.Log(
 								"New entity since startup seen from {}: {} (Domain: {}) (Old: {}  New: {})".format(
 									self.name, ent, dom, repr(old), repr(new)))
+							self.Entities[ent] = ent  # only report once
 							# noinspection PyTypeChecker
 						#self.IgnoredEntities[ent] = None todo fix
 						return
