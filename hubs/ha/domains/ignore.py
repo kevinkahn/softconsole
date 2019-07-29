@@ -1,7 +1,8 @@
 from hubs.ha.hasshub import HAnode, _NormalizeState, RegisterDomain
 from functools import partial
 
-IgnoreThese = ('sun', 'person', 'notifications', 'persistent_notification', 'zwave', 'zone')
+IgnoreThese = ('sun', 'person', 'notifications', 'persistent_notification', 'zwave', 'zone', 'history_graph', 'updater',
+			   'configurator', 'weather')
 IngoredEntities = {}
 
 
