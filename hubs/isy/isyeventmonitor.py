@@ -426,7 +426,8 @@ class ISYEventMonitor(object):
 						else:
 							# Note the error and wait one message to see if it immediately clears
 							self.LastMsgErr = (enode, eseq)
-							logsupport.Logs.Log("ERR(1) seen: {}".format(repr(m)), severity=ConsoleWarning)
+							logsupport.Logs.Log("ERR(1) seen: {}".format(repr(xmltodict.parse(message))),
+												severity=ConsoleWarning)
 
 					if ecode == "_3" and eaction == "NE":
 						self.LastMsgErr = (enode, eseq)
