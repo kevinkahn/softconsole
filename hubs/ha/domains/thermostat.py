@@ -1,7 +1,7 @@
 from hubs.ha import haremote as ha
 from hubs.ha.hasshub import HAnode, _NormalizeState, RegisterDomain, stringtonumeric
 from controlevents import CEvent, PostEvent, ConsoleEvent
-import screens
+import screens.__screens as screens
 import debug
 import time
 import timers

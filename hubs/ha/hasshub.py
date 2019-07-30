@@ -1,5 +1,4 @@
 import errno
-import functools
 import json
 import time
 import os
@@ -15,7 +14,6 @@ import historybuffer
 import hw
 import logsupport
 import threadmanager
-import timers
 from controlevents import CEvent, PostEvent, ConsoleEvent
 from logsupport import ConsoleWarning, ConsoleError, ConsoleDetail
 from stores import valuestore
@@ -558,7 +556,6 @@ class HA(object):
 		self.watchstarttime = time.time()
 		self.Entities = {}
 		self.Domains = {}
-		self.Groups = {}
 		self.Indirectors = {} # these hold nodes that the console config thinks exist but HA doesn't have yet - happens at startup of joint HA/Console node
 		self.Others = {}
 		self.alertspeclist = {}  # if ever want auto alerts like ISY command vars they get put here
