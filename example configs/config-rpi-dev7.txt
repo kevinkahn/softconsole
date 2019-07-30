@@ -22,7 +22,7 @@ DimIdleListNames = MyClock, PDXTTbig, LQTTbig, Pumpkin
 
 DimIdleListTimes =	5, 5, 5, 5
 
-MainChain = Creator Pro,wxHouse,TreeTest, LR1,Sonos,LR2, Pumpkin, Local, Upper Level, Test
+MainChain = Creator Pro,Prusa, wxHouse,TreeTest, LR1,Sonos,LR2, Pumpkin, Local, Upper Level, Test
 SecondaryChain = Portland, Bathroom, BR, Thermostat - Main,LQTTbig, climate.master_bedroom, climate.living_room, pgawBR, pgawOther, pgawBath
 
 DefaultHub = ISY

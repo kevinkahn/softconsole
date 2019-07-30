@@ -42,7 +42,7 @@ class OctoPrintScreenDesc(screen.BaseKeyScreenDesc):
 											  proc=self.RefreshOctoStatus)
 
 		screen.IncorporateParams(self, 'OctoPrint', {'KeyColor'}, screensection)
-		screen.AddUndefaultedParams(self, screensection, address='', apikey='')
+		screen.AddUndefaultedParams(self, screensection, address='', apikey='', extruder='tool0', port='5000')
 		self.title, th, self.tw = screenutil.CreateTextBlock(self.name, hw.screenheight / 12, self.CharColor,
 															 True)  # todo switch to new screen sizing for title
 
@@ -52,7 +52,7 @@ class OctoPrintScreenDesc(screen.BaseKeyScreenDesc):
 		ctlpos = useablescreenheight / 5
 		ctlhgt = int(ctlpos * .9)
 		self.head = {"X-Api-Key": self.apikey}
-		self.url = 'http://' + self.address + ':5000'
+		self.url = 'http://' + self.address + ':' + self.port
 		retp = self.OctoGet('connection')
 		if retp.status_code != 200:
 			logsupport.Logs.Log('Access to OctoPrint denied: ', retp.text, severity=logsupport.ConsoleWarning)
@@ -224,7 +224,7 @@ class OctoPrintScreenDesc(screen.BaseKeyScreenDesc):
 			if self.OPstate in ['Printing', 'Paused', 'Operational']:
 				self.Keys = self.JobKeys if self.OPstate != 'Operational' else self.PowerPlusKeys
 				r = self.OctoGet('printer').json()
-				temp1 = r['temperature']['tool1']
+				temp1 = r['temperature'][self.extruder]
 				# noinspection PyBroadException
 				try:
 					self.OPtemp1 = 'Extruder: {0:.0f}/{1:.0f}'.format(temp1['actual'], temp1['target'])
