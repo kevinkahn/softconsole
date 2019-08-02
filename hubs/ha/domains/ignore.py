@@ -1,5 +1,6 @@
 from hubs.ha.hasshub import HAnode, _NormalizeState, RegisterDomain
 from functools import partial
+import hubs.ha.hasshub as hasshub
 
 IgnoreThese = ('sun', 'person', 'notifications', 'persistent_notification', 'zwave', 'zone', 'history_graph', 'updater',
 			   'configurator', 'weather')
@@ -12,6 +13,16 @@ class IgnoredDomain(HAnode):
 		super(IgnoredDomain, self).__init__(HAitem, **d)
 		self.Hub.RegisterEntity(self.domname, self.entity_id, self)
 		IngoredEntities[dom][self.name] = self
+
+
+def AddIgnoredDomain(dom):
+	global IngoredEntities
+	reg = partial(IgnoredDomain, dom)
+	IngoredEntities[dom] = {}
+	RegisterDomain(dom, reg)
+
+
+hasshub.AddIgnoredDomain = AddIgnoredDomain
 
 
 for d in IgnoreThese:

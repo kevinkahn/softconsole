@@ -18,6 +18,8 @@ from controlevents import CEvent, PostEvent, ConsoleEvent
 from logsupport import ConsoleWarning, ConsoleError, ConsoleDetail
 from stores import valuestore
 
+AddIgnoredDomain = None  # gets filled in by ignore to avoid import loop
+
 ignoredeventtypes = ('system_log_event', 'call_service', 'service_executed', 'logbook_entry', 'timer_out_of_sync',
 					 'persistent_notifications_updated', 'zwave.network_complete', 'zwave.scene_activated',
 					 'zwave.network_ready', 'automation_triggered', 'script_started')
@@ -367,29 +369,32 @@ class HA(object):
 								"New entity since startup seen from {}: {} (Domain: {}) (Old: {}  New: {})".format(
 									self.name, ent, dom, repr(old), repr(new)))
 							p2 = dict(new, **{'domain': dom, 'name': nm, 'object_id': ent})
-							N = hadomains[dom](self, p2)  # todo need to check if dom has an object type
-							self.Entities[
-								ent] = N  # only report once  todo - ent is string which then gets an "Update"  should be an object of type of domain
-							# noinspection PyTypeChecker
-						#self.IgnoredEntities[ent] = None todo fix
+							if dom not in hadomains:
+								AddIgnoredDomain(dom)
+								logsupport.Logs.Log('New domain seen from {}: {}'.format(self.name, dom))
+
+							if config.sysStore.versionname in ('development', 'homerelease'):
+								with open('{}/Console/{}-entities'.format(config.sysStore.HomeDir, self.name),
+										  'a') as f:
+									print('New ignored entity in {}: {} {}'.format(self.name, dom, ent))
+
+							N = hadomains[dom](self, p2)
+							self.Entities[ent] = N  # only report once
 						return
-					# if ent in self.IgnoredEntities:   todo del?
-					#	return
-					debug.debugPrint('HASSchg', 'WS change: ' + ent + ' Added: ' + str(adds) + ' Deleted: ' + str(
-						dels) + ' Changed: ' + str(chgs))
-					# debug.debugPrint('HASSchg', 'New: ' + str(new))
-					# debug.debugPrint('HASSchg', 'Old: ' + str(old))
-					if ent in self.Entities and new is not None:
+					elif new is not None:
 						self.Entities[ent].Update(**new)
+
+					self.HB.Entry(
+						'Change to {} Added: {} Deleted: {} Changed: {}'.format(ent, str(adds), str(dels), str(chgs)))
 
 					if m['origin'] == 'LOCAL': del m['origin']
 					if m['data'] == {}: del m['data']
 					timefired = m['time_fired']
 					del m['time_fired']
-					if m != {}: debug.debugPrint('HASSchg', "Extras @ " + timefired + ' : ' + repr(m))
+					if m != {}: self.HB.Entry('Extras @ {}: {}'.format(timefired, repr(m)))
 					if ent in self.AlertNodes:
 						# alert node changed
-						debug.debugPrint('DaemonCtl', 'HASS reports change(alert):', ent)
+						self.HB.Entry('Report change to: {}'.format(ent))
 						for a in self.AlertNodes[ent]:
 							logsupport.Logs.Log("Node alert fired: " + str(a), severity=ConsoleDetail)
 							# noinspection PyArgumentList
@@ -633,14 +638,14 @@ class HA(object):
 				self.knownservices[d['domain']][s] = c
 
 		if config.sysStore.versionname in ('development', 'homerelease'):
-			with open('{}/Console/{}services'.format(config.sysStore.HomeDir, self.name), 'w') as f:
+			with open('{}/Console/{}-services'.format(config.sysStore.HomeDir, self.name), 'w') as f:
 				for d, svc in self.knownservices.items():
 					print(d, file=f)
 					for s, c in svc.items():
 						print('    {}'.format(s), file=f)
 						print('         {}'.format(c), file=f)
 					print('==================', file=f)
-			with open('{}/Console/{}entities'.format(config.sysStore.HomeDir, self.name), 'w') as f:
+			with open('{}/Console/{}-entities'.format(config.sysStore.HomeDir, self.name), 'w') as f:
 				print('===== Ignored =====', file=f)
 				for d, de in self.DomainEntityReg.items():
 					for e, t in de.items():
@@ -651,9 +656,9 @@ class HA(object):
 					for e, t in de.items():
 						if not isinstance(t, self.dyndomains['ignore'].IgnoredDomain):
 							print('Watched entity in {}: {} {}'.format(self.name, d, e), file=f)
+				print('=====   New   =====', file=f)
 		# listeners = ha.get_event_listeners(self.api)
 		logsupport.Logs.Log(self.name + ": Processed " + str(len(self.Entities)) + " total entities")
-		print(self.DomainEntityReg)
 		for d, e in self.DomainEntityReg.items():
 			if e != {}: logsupport.Logs.Log("    {}: {}".format(d, len(e)))
 
