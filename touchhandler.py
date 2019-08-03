@@ -237,6 +237,10 @@ class Touchscreen(object):
 							1] * self.position.y) / self.a[6]
 						self._current_touch.y = (self.a[5] + self.a[3] * self.position.x + self.a[
 							4] * self.position.y) / self.a[6]
+					if self._flipx != 0:
+						self._current_touch.x = self._flipx - self._current_touch.x
+					if self._flipy != 0:
+						self._current_touch.y = self._flipy - self._current_touch.y
 					if event.value == 1:
 						self._current_touch.events.append(TS_PRESS)
 					else:
