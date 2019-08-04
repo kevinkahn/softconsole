@@ -294,6 +294,10 @@ class Touchscreen(object):
 						self._scalex = float(vals[5])
 						self._scaley = float(vals[6])
 						self._capscreen = bool(vals[0])
+						if not self._capscreen:
+							# not set up for resistive at the moment
+							print('Checkscreen only works for capacitive screens at the moment')
+							raise RuntimeError('Unsupported touchscreen type')
 						return os.path.join('/dev', 'input', os.path.basename(evdev))
 
 			except IOError as e:
@@ -334,6 +338,16 @@ if __name__ == "__main__":
 
 	if screendefs[scrntp][1] != 'XWin':
 		if 'DISPLAY' in os.environ: del os.environ['DISPLAY']
+
+	screendev = screendefs[scrntp][0]
+	if scrntp[-1] == 'B':  # Buster system
+		if screendev[-1] == '0':  # check if there is an fb1 and use that if available todo Buster hack
+			try:
+				with open('/dev/fb1') as f:
+					screendev = '/dev/fb1'
+			except:
+				pass
+
 	os.environ['SDL_FBDEV'] = screendefs[scrntp][0]
 	os.environ['SDL_VIDEODRIVER'] = screendefs[scrntp][1]
 
@@ -419,7 +433,7 @@ if __name__ == "__main__":
 		print('MinX: {} MaxX: {}   MinY: {} MaxY: {}'.format(minx, maxx, miny, maxy))
 		ps = ts.returnparamstr()
 		print(ps)
-		with (open("/home/pi/Console/touchdefinitions", "w")) as f:
+		with (open("/home/pi/Console/touchdefinitions.new", "w")) as f:
 			f.write('{}/n'.format(ps))
 
 	except Exception as E:
