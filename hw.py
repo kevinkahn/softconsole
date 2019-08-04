@@ -89,7 +89,16 @@ def initOS(scrntyp, configdir):
 
 	if screendefs[screentype][1] != 'XWin':
 		if 'DISPLAY' in os.environ: del os.environ['DISPLAY']
-	os.environ['SDL_FBDEV'] = screendefs[screentype][0]
+	screendev = screendefs[screentype][0]
+	if screentype[-1] == 'B':  # Buster system
+		if screendev[-1] == '0':  # check if there is an fb1 and use that if available todo Buster hack
+			try:
+				with open('/dev/fb1') as f:
+					screendev = '/dev/fb1'
+			except:
+				pass
+
+	os.environ['SDL_FBDEV'] = screendev
 	os.environ['SDL_VIDEODRIVER'] = screendefs[screentype][1]
 	DimType = screendefs[screentype][2]
 
