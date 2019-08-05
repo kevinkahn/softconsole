@@ -15,6 +15,7 @@ import supportscreens
 import timers
 import toucharea
 from logsupport import ConsoleWarning
+from keyspecs import _resolvekeyname
 
 
 # noinspection PyUnusedLocal
@@ -42,14 +43,21 @@ class OctoPrintScreenDesc(screen.BaseKeyScreenDesc):
 											  proc=self.RefreshOctoStatus)
 
 		screen.IncorporateParams(self, 'OctoPrint', {'KeyColor'}, screensection)
-		screen.AddUndefaultedParams(self, screensection, address='', apikey='', extruder='tool0', port='5000')
+		screen.AddUndefaultedParams(self, screensection, address='', apikey='', extruder='tool0', port='5000',
+									pwrctl='')  # pwrctl = HASS:switch.prusa
 		self.title, th, self.tw = screenutil.CreateTextBlock(self.name, hw.screenheight / 12, self.CharColor,
 															 True)  # todo switch to new screen sizing for title
+
+		if self.pwrctl != '':
+			self.devname, self.pwrHub = _resolvekeyname(self.pwrctl, None)
+		else:
+			self.pwrHub = None
+			self.devname = ''
 
 		self.errornotice, th, self.errwid = screenutil.CreateTextBlock('Access Error', hw.screenheight / 12, self.CharColor, True) # todo fix for new vertspace
 		self.titlespace = th + hw.screenheight / 32
 		useablescreenheight = hw.screenheight - self.TopBorder - self.BotBorder - self.titlespace
-		ctlpos = useablescreenheight / 5
+		ctlpos = useablescreenheight / 5.5  # todo should lay out screen with real values computed
 		ctlhgt = int(ctlpos * .9)
 		self.head = {"X-Api-Key": self.apikey}
 		self.url = 'http://' + self.address + ':' + self.port
@@ -148,7 +156,10 @@ class OctoPrintScreenDesc(screen.BaseKeyScreenDesc):
 
 	# noinspection PyUnusedLocal
 	def Power(self, opt):
-		_ = self.OctoPost('system/commands/custom/' + opt, {})
+		if self.pwrHub is None:
+			_ = self.OctoPost('system/commands/custom/' + opt, {})
+		else:
+			self.pwrHub.GetNode(self.devname)[0].SendOnOffCommand(opt == 'printeron')
 		self.PowerKeys[opt].ScheduleBlinkKey(5)
 
 	# noinspection PyUnusedLocal
@@ -210,7 +221,7 @@ class OctoPrintScreenDesc(screen.BaseKeyScreenDesc):
 
 	def RefreshOctoStatus(self, param=None):
 		try:
-			# self.ValidState = False
+			self.ValidState = False
 			r = self.OctoGet('connection')
 			self.OPstate = r.json()['current']['state']
 			r = self.OctoGet('job').json()
