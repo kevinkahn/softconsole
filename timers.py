@@ -147,6 +147,7 @@ class RepeatingPost(Thread):
 		TimerHB.Entry('Start repeater: {}'.format(self.name))
 		targettime = time.time() + self.interval
 		while not self.finished.wait(self.interval):
+			TimerHB.Entry('Interval expired: {} {} {}'.format(self.name, targettime, time.time()))  # tempdel
 			if not self.finished.is_set():
 				if self.running.is_set():
 					self.kwargs['TargetTime'] = targettime
@@ -157,10 +158,10 @@ class RepeatingPost(Thread):
 																			  self.kwargs))
 					tt = ConsoleEvent(CEvent.SchedEvent, **self.kwargs)
 					PostEvent(tt)
-					targettime = time.time() + self.interval  # don't accumulate errors
 				else:
 					self.running.wait()
-					targettime = time.time() + self.interval
+				targettime = time.time() + self.interval  # don't accumulate errors
+				TimerHB.Entry('Next target: {} {} {}'.format(self.name, targettime, self.interval))  # tempdel
 		del TimerList[self.name]
 		TimerHB.Entry('Exit repeater: {}'.format(self.name))
 
