@@ -44,6 +44,9 @@ def NoteGCs(phase, info):
 def DumpAll(idline, entrytime):
 	global bufdumpseq
 	# DevPrint('=============== {}'.format(entrytime))
+	if HBdir == '':  # logs not yet set up
+		print(time.strftime('%m-%d-%y %H:%M:%S') + ' Suppressing History Buffer Dump for {}'.format(idline))
+		return
 	fn = HBdir + str(bufdumpseq) + '-' + entrytime
 	try:
 		#topper.mvtops(str(bufdumpseq) + '-' + entrytime)
