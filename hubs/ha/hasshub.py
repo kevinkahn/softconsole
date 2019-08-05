@@ -83,6 +83,12 @@ class HAnode(object):
 		if 'friendly_name' in self.attributes: self.FriendlyName = self.attributes['friendly_name']
 		self.address = self.entity_id
 		self.Hub = HAitem
+		self.domname = 'unset'
+
+	def LogNewEntity(self, newstate):
+		logsupport.Logs.Log(
+			"New entity since startup seen from {}: {} (Domain: {}) New: {}".format(
+				self.Hub.name, self.entity_id, self.domname, repr(newstate)))
 
 	def Update(self, **ns):
 		# just updates last triggered etc.
@@ -365,8 +371,9 @@ class HA(object):
 								del self.Indirectors[ent]
 								logsupport.Logs.Log('Indirector in {} for {} not for a supported domain {}'.format(self.name,ent,dom))
 						else:
-							logsupport.Logs.Log(
-								"New entity since startup seen from {}: {} (Domain: {}) (Old: {}  New: {})".format(
+							if old != None:
+								logsupport.Logs.Log(
+									"New entity seen with 'old' state from {}: {} (Domain: {}) (Old: {}  New: {})".format(
 									self.name, ent, dom, repr(old), repr(new)))
 							p2 = dict(new, **{'domain': dom, 'name': nm, 'object_id': ent})
 							if dom not in hadomains:
@@ -376,9 +383,10 @@ class HA(object):
 							if config.sysStore.versionname in ('development', 'homerelease'):
 								with open('{}/Console/{}-entities'.format(config.sysStore.HomeDir, self.name),
 										  'a') as f:
-									print('New ignored entity in {}: {} {}'.format(self.name, dom, ent))
+									print('New ignored entity in {}: {} {}'.format(self.name, dom, ent), file=f)
 
 							N = hadomains[dom](self, p2)
+							N.LogNewEntity(repr(new))
 							self.Entities[ent] = N  # only report once
 						return
 					elif new is not None:
