@@ -9,9 +9,8 @@
     <inspection_tool class="PyCompatibilityInspection" enabled="true" level="2to3Compat" enabled_by_default="true">
       <option name="ourVersions">
         <value>
-          <list size="2">
-            <item index="0" class="java.lang.String" itemvalue="3.5" />
-            <item index="1" class="java.lang.String" itemvalue="3.6" />
+          <list size="1">
+            <item index="0" class="java.lang.String" itemvalue="3.7" />
           </list>
         </value>
       </option>

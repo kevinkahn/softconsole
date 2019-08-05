@@ -3,7 +3,12 @@ import shutil
 import time
 import gc
 
-AsyncFileWrite = None  # set from log support to avoid circular imports
+
+def DummyAsyncFileWrite(fn, writestr, access='a'):
+	print('Called  HB file write before init')
+
+
+AsyncFileWrite = DummyAsyncFileWrite  # set from log support to avoid circular imports
 DevPrint = None
 
 import topper
