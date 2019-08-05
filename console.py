@@ -146,7 +146,7 @@ def CO_get(self, key, default, delkey=True):
 			del self[key]
 		# print('CO: {} {} T:{} typT:{} R:{} Tdf:{} TR:{}'.format(key, default,tmpr, type(tmpr),  rtn, type(default), type(rtn)))
 		return rtn
-	except Exception as E:  # todo delete prints
+	except Exception as E:  # tempdel
 		print(
 			'ZZ: {} {} T:{} typT:{} R:{} Tdf:{} TR:{} E: {}'.format(key, default, tmpr, type(tmpr), rtn, type(default),
 																	type(rtn), repr(E)))

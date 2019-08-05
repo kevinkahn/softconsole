@@ -17,7 +17,7 @@ class IgnoredDomain(HAnode):
 
 	def LogNewEntity(self, newstate):
 		pass
-		logsupport.Logs.Log(  # todo del
+		logsupport.Logs.Log(  # tempdel
 			"New entity in ignored domain since startup seen from {}: {} (Domain: {}) New: {}".format(
 				self.Hub.name, self.entity_id, self.domname, repr(newstate)))
 

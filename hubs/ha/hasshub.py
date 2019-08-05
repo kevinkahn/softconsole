@@ -441,11 +441,11 @@ class HA(object):
 			try:
 				if error.args[0] == "'NoneType' object has no attribute 'connected'":
 					# library bug workaround - get this error after close happens just ignore
-					logsupport.Logs.Log("WS lib workaround hit (1)")  # todo remove
+					logsupport.Logs.Log("WS lib workaround hit (1)")  # tempdel
 					return
 			except:
 				pass
-				logsupport.Logs.Log("WS lib workaround hit (2)")  # todo remove
+				logsupport.Logs.Log("WS lib workaround hit (2)")  # tempdel
 			if isinstance(error, websocket.WebSocketConnectionClosedException):
 				self.delaystart = 20  # server or network business?
 				logsupport.Logs.Log(self.name + " closed WS stream " + str(self.HAnum) + "; attempt to reopen",
@@ -471,7 +471,7 @@ class HA(object):
 			try:
 				if isinstance(error, AttributeError):
 					# error = (errno.ETIMEDOUT,"Websock bug catch")
-					logsupport.Logs.Log("WS lib workaround hit (3)")  # todo remove
+					logsupport.Logs.Log("WS lib workaround hit (3)")  # tempdel
 			except:
 				pass
 			self.haconnectstate = "Failed"
