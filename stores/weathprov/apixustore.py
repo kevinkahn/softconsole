@@ -118,6 +118,12 @@ class APIXUWeatherSource(object):
 					logsupport.APIXUfetches24 += 1
 					if r.status_code == 200:
 						fetchworked = True
+						try:
+							self.json = r.json()
+						except Exception as E:
+							logsupport.Logs.Log(
+								'Bad json from apixu call(try {}): {} Text: {}''format(trycnt, repr(E), r.text')
+							time.sleep(2)
 					else:
 						historybuffer.HBNet.Entry('Weather fetch non success: {} {}'.format(r.status_code, repr(r)))
 						time.sleep(2)
@@ -130,7 +136,7 @@ class APIXUWeatherSource(object):
 				self.thisStore.ValidWeather = False
 				return
 			try:
-				self.json = r.json()
+				# self.json = r.json()  tempdel
 				self.thisStore.ValidWeather = False  # show as invalid for the short duration of the update - still possible to race but very unlikely.
 				tempfcstinfo = {}
 				for fn, entry in FcstFieldMap.items():
