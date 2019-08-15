@@ -7,7 +7,7 @@ DimTO = 25
 DimIdleListNames = TimeTemp, LQTT
 DimIdleListTimes = 20,20
 
-MainChain = Garage, Creator Pro, TimeTemp, Sonos
+MainChain = Garage, Prusa, TimeTemp, Sonos
 SecondaryChain = Thermostat - Main, Local, Portland, La Quinta
 
 [Sonos]
