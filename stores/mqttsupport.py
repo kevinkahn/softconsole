@@ -20,6 +20,7 @@ import threadmanager
 from controlevents import CEvent, PostEvent, ConsoleEvent
 from logsupport import ConsoleWarning, ConsoleError, ConsoleInfo, ReportStatus
 from stores import valuestore
+import consolestatus
 
 
 class MQitem(valuestore.StoreItem):
@@ -50,6 +51,8 @@ class MQTTBroker(valuestore.ValueStore):
 								  ('consoles/' + hw.hostname + '/cmd', 1),
 								  ('consoles/' + hw.hostname + '/set', 1),
 								  ('consoles/all/set', 1)])
+				client.subscribe('consoles/all/nodes/#')
+				client.subscribe('consoles/+/status')
 			self.loopexited = False
 
 		#			for i, v in userdata.vars.items():
@@ -143,6 +146,17 @@ class MQTTBroker(valuestore.ValueStore):
 				except Exception as E:
 					logsupport.Logs.Log('Bad set via MQTT: {} Exc: {}'.format(repr(d), E), severity=ConsoleWarning)
 				return
+			else:
+				# see if it is node specific message
+				topic = msg.topic.split('/')
+				msgdcd = json.loads(msg.payload.decode('ascii'))
+				if topic[2] == 'nodes':
+					consolestatus.UpdateStatus(topic[-1], msgdcd)
+					return
+				elif topic[2] == 'status':
+					consolestatus.UpdateStatus(topic[1], msgdcd)
+					return
+
 
 			# noinspection PySimplifyBooleanCheck
 			if var == []:
