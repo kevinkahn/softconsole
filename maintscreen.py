@@ -20,6 +20,9 @@ import utilities
 from exitutils import MAINTEXIT, Exit_Screen_Message, MAINTRESTART, MAINTPISHUT, MAINTPIREBOOT, Exit
 from logsupport import ConsoleWarning, ReportStatus, UpdateGlobalErrorPointer
 from utilfuncs import interval_str, wc
+import screenutil
+import consolestatus
+from datetime import datetime
 
 MaintScreen = None
 fixedoverrides = {'CharColor': 'white', 'BackgroundColor': 'royalblue', 'label': ['Maintenance'], 'DimTO': 60,
@@ -29,6 +32,7 @@ fixedoverrides = {'CharColor': 'white', 'BackgroundColor': 'royalblue', 'label':
 def SetUpMaintScreens():
 	global MaintScreen
 	LogDisp = LogDisplayScreen()
+	StatusDisp = StatusDisplayScreen()
 	Exits = MaintScreenDesc('Exits',
 							OrderedDict([('shut', ('Shutdown Console', doexit, 'addkey')),
 										 ('restart', ('Restart Console', doexit, 'addkey')),
@@ -43,12 +47,21 @@ def SetUpMaintScreens():
 										('fetch', ('Download Beta', dobeta, 'addkey')),
 										('fetchdev', ('Download Dev', dobeta, 'addkey')),
 										('return', ('Return', None))]))  # proc filled in below due to circularity
+	Status = MaintScreenDesc('Status',
+							 OrderedDict([('curstat', (
+							 'Networked Console Status', functools.partial(screen.PushToScreen, StatusDisp, 'Maint'))),
+										  ('hw', ('Console Hardware/OS', showhw)),
+										  ('versions', ('Console Versions', showvers)),
+										  ('cmds', ('Issue Network Commands', donetcmds)),
+										  ('return', ('Return', None))]))  # proc filled in below due to circularity
+
 	MaintScreen = MaintScreenDesc('Maintenance',
 								  OrderedDict([('return', ('Exit Maintenance', gohome)),
 											   ('log',
 												('Show Log', functools.partial(screen.PushToScreen, LogDisp, 'Maint'))),
 											   ('beta', ('Select Version', functools.partial(goto, Beta))),
 											   ('flags', ('Set Flags', None)),  # key gets appended below
+											   ('status', ('Network Consoles', functools.partial(goto, Status))),
 											   # fixed below to break a dependency loop - this is key 3
 											   ('exit', ('Exit/Restart', functools.partial(goto, Exits)))]))
 	FlagsScreens = []
@@ -98,6 +111,7 @@ def SetUpMaintScreens():
 	MaintScreen.Keys['flags'].Proc = functools.partial(goto, FlagsScreens[0])
 	Exits.Keys['return'].Proc = functools.partial(goto, MaintScreen)
 	Beta.Keys['return'].Proc = functools.partial(goto, MaintScreen)
+	Status.Keys['return'].Proc = functools.partial(goto, MaintScreen)
 	Exits.userstore.ReParent(MaintScreen)
 	Beta.userstore.ReParent(MaintScreen)
 	LogDisp.userstore.ReParent(MaintScreen)
@@ -187,6 +201,17 @@ def doexit(K):
 	screens.DS.SwitchScreen(Verify, 'Bright', 'Verify exit', newstate='Maint')
 
 
+def showhw():
+	pass
+
+
+def showvers():
+	pass
+
+
+def donetcmds():
+	pass
+
 # noinspection PyUnusedLocal
 def dobeta(K):
 	# Future fetch other tags; switch to versionselector
@@ -261,6 +286,86 @@ def fetch_dev():
 		logsupport.Logs.Log('Failed beta download', severity=ConsoleWarning)
 	ReportStatus("done dev", hold=2)
 
+
+def status_interval_str(sec_elapsed):
+	d = int(sec_elapsed / (60 * 60 * 24))
+	h = int((sec_elapsed % (60 * 60 * 24)) / 3600)
+	m = int((sec_elapsed % (60 * 60)) / 60)
+	s = int(sec_elapsed % 60)
+	return "{} dys {:>02d}:{:>02d}:{:>02d}".format(d, h, m, s)
+
+
+class StatusDisplayScreen(screen.BaseKeyScreenDesc):
+	def __init__(self):
+		screen.BaseKeyScreenDesc.__init__(self, None, 'STATUSNET')
+		self.NavKeysShowing = False
+		self.DefaultNavKeysShowing = False
+		self.Keys = {'return': toucharea.TouchPoint('back', (hw.screenwidth // 2, hw.screenheight // 2),
+													(hw.screenwidth, hw.screenheight), proc=self.back)}
+		self.T = None
+
+	def back(self):
+		self.T.cancel()
+		screens.DS.SwitchScreen(screen.BACKTOKEN, 'Bright', 'Done (next) showing status', newstate='Maint')
+
+	def InitDisplay(self, nav):
+		super(StatusDisplayScreen, self).InitDisplay(nav)
+		self.T = timers.RepeatingPost(1, False, True, 'StatusDisplay', proc=self.ShowStatus)
+		self.ShowStatus('none')
+
+	def ShowStatus(self, ign):  # todo  portrait, no MQTT case
+		if self.T.finished.is_set():
+			return
+		hw.screen.fill(wc(self.BackgroundColor))
+		landfont = 17
+		tm, ht, wd = screenutil.CreateTextBlock('{}'.format(time.strftime('%c')), landfont, 'white', False,
+												FitLine=False)
+		hw.screen.blit(tm, (10, 20))
+		if hw.portrait:
+			pass
+		else:
+			header, ht, wd = screenutil.CreateTextBlock(
+				'     Node       Status   QMax E       Uptime            Last Boot', landfont, 'white', False,
+				FitLine=False)
+		linestart = 80
+		hw.screen.blit(header, (10, 60))
+		for nd, ndinfo in consolestatus.nodes.items():
+			if ndinfo.maincyclecnt == 'unknown*':
+				stat = ndinfo.status
+				qmax = '     '
+			else:
+				stat = '{} cyc'.format(ndinfo.maincyclecnt) if ndinfo.status in ('idle', 'active') else ndinfo.status
+				qmax = '{:4.2f} '.format(ndinfo.queuetimemax24)
+			active = '*' if ndinfo.status == 'active' else ' '
+
+			if ndinfo.status in ('dead', 'unknown'):
+				cstat = "{:17.17s}".format(' ')
+			else:
+				cstat = ' ' if ndinfo.error == -1 else '?' if ndinfo.error == -1 else '*'
+				cstat = cstat + "{:>14.14s}  ".format(status_interval_str(ndinfo.uptime))
+			if ndinfo.boottime == 0:
+				bt = "{:^17.17}".format('unknown')
+			else:
+				bt = "{:%Y-%m-%d %H:%M:%S}".format(datetime.fromtimestamp(ndinfo.boottime))
+			age = time.time() - ndinfo.rpttime if ndinfo.rpttime != 0 else 0
+			# if age > 180:  # seconds?  todo use to determine likel#y powerfail case
+			#	print(' (old:{})'.format(age))
+			#	print('Boottime: {}'.format(ndinfo.boottime))
+			# else:
+			#	print()
+
+			if hw.portrait:
+				pass
+			else:
+				ln, ht, wd = screenutil.CreateTextBlock(
+					'{:12.12s}{}{:10.10s} {}   {} {}'.format(nd, active, stat, qmax, cstat, bt), landfont, 'white',
+					False)
+				hw.screen.blit(ln, (20, linestart))
+				linestart += 25
+
+		pygame.display.update()
+
+
 class LogDisplayScreen(screen.BaseKeyScreenDesc):
 	def __init__(self):
 		screen.BaseKeyScreenDesc.__init__(self, None, 'LOG')
@@ -273,7 +378,7 @@ class LogDisplayScreen(screen.BaseKeyScreenDesc):
 		self.pageno = -1
 		self.PageStartItem = [0]
 		self.Keys = {'nextpage': toucharea.TouchPoint('nextpage', (hw.screenwidth / 2, 3 * hw.screenheight / 4),
-													  (hw.screenwidth, hw.screenheight), proc=self.NextPage),
+													  (hw.screenwidth, hw.screenheight / 2), proc=self.NextPage),
 					 'prevpage': toucharea.TouchPoint('prevpage', (hw.screenwidth / 2, hw.screenheight / 4),
 													  (hw.screenwidth, hw.screenheight / 2),
 													  proc=self.PrevPage)}
