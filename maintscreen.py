@@ -8,7 +8,6 @@ import pygame
 
 import config
 import debug
-import fonts
 import githubutil as U
 import hw
 import logsupport
@@ -19,26 +18,29 @@ import toucharea
 import utilities
 from exitutils import MAINTEXIT, Exit_Screen_Message, MAINTRESTART, MAINTPISHUT, MAINTPIREBOOT, Exit
 from logsupport import ConsoleWarning, ReportStatus, UpdateGlobalErrorPointer
-from utilfuncs import interval_str, wc
-import screenutil
+from maintscreenbase import MaintScreenDesc, fixedoverrides
 import consolestatus
-from datetime import datetime
 
 MaintScreen = None
-fixedoverrides = {'CharColor': 'white', 'BackgroundColor': 'royalblue', 'label': ['Maintenance'], 'DimTO': 60,
-				  'PersistTO': 5}
 
 
 def SetUpMaintScreens():
 	global MaintScreen
+	screenset = []
 	LogDisp = LogDisplayScreen()
-	StatusDisp = StatusDisplayScreen()
+	screenset.append(LogDisp)
+
+	Status = consolestatus.SetUpConsoleStatus()
+	screenset.append(Status)
+
 	Exits = MaintScreenDesc('Exits',
 							OrderedDict([('shut', ('Shutdown Console', doexit, 'addkey')),
 										 ('restart', ('Restart Console', doexit, 'addkey')),
 										 ('shutpi', ('Shutdown Pi', doexit, 'addkey')),
 										 ('reboot', ('Reboot Pi', doexit, 'addkey')),
-										 ('return', ('Return', None))]))  # proc filled in below due to circularity
+										 ('return', ('Return', screen.PopScreen))]))
+	screenset.append(Exits)
+
 	Beta = MaintScreenDesc('Versions',
 						   OrderedDict([('stable', ('Use Stable Release', dobeta, 'addkey')),
 										('beta', ('Use Beta Release', dobeta, 'addkey')),
@@ -46,24 +48,9 @@ def SetUpMaintScreens():
 										('release', ('Download release', dobeta, 'addkey')),
 										('fetch', ('Download Beta', dobeta, 'addkey')),
 										('fetchdev', ('Download Dev', dobeta, 'addkey')),
-										('return', ('Return', None))]))  # proc filled in below due to circularity
-	Status = MaintScreenDesc('Status',
-							 OrderedDict([('curstat', (
-							 'Networked Console Status', functools.partial(screen.PushToScreen, StatusDisp, 'Maint'))),
-										  ('hw', ('Console Hardware/OS', showhw)),
-										  ('versions', ('Console Versions', showvers)),
-										  ('cmds', ('Issue Network Commands', donetcmds)),
-										  ('return', ('Return', None))]))  # proc filled in below due to circularity
+										('return', ('Return', screen.PopScreen))]))
+	screenset.append(Beta)
 
-	MaintScreen = MaintScreenDesc('Maintenance',
-								  OrderedDict([('return', ('Exit Maintenance', gohome)),
-											   ('log',
-												('Show Log', functools.partial(screen.PushToScreen, LogDisp, 'Maint'))),
-											   ('beta', ('Select Version', functools.partial(goto, Beta))),
-											   ('flags', ('Set Flags', None)),  # key gets appended below
-											   ('status', ('Network Consoles', functools.partial(goto, Status))),
-											   # fixed below to break a dependency loop - this is key 3
-											   ('exit', ('Exit/Restart', functools.partial(goto, Exits)))]))
 	FlagsScreens = []
 	nflags = len(debug.DbgFlags) + 3
 	# will need key for each debug flag plus a return plus a loglevel up and loglevel down
@@ -84,7 +71,7 @@ def SetUpMaintScreens():
 			tmp['next'] = (
 				'Next', functools.partial(goto, MaintScreen))  # this gets fixed below to be a real next
 		else:
-			tmp['return'] = ('Return', functools.partial(goto, MaintScreen))
+			tmp['return'] = ('Return', screen.PopScreen)
 		FlagsScreens.append(MaintScreenDesc('Flags' + str(flagscreencnt), tmp, overrides=flagoverrides))
 		flagscreencnt += 1
 		FlagsScreens[-1].KeysPerColumn = flagspercol
@@ -94,7 +81,7 @@ def SetUpMaintScreens():
 		FlagsScreens[i].Keys['next'].Proc = functools.partial(goto, FlagsScreens[i + 1])
 
 	for s in FlagsScreens:
-		s.userstore.ReParent(MaintScreen)
+		screenset.append(s)
 		debug.DebugFlagKeys.update(s.Keys)
 		for kn, k in s.Keys.items():
 			if kn in debug.DbgFlags:
@@ -108,13 +95,19 @@ def SetUpMaintScreens():
 	debug.DebugFlagKeys["LogLevelDown"].SetKeyImages(
 		("Log Detail", logsupport.LogLevels[logsupport.LogLevel] + '(' + str(logsupport.LogLevel) + ')', "More"))
 
-	MaintScreen.Keys['flags'].Proc = functools.partial(goto, FlagsScreens[0])
-	Exits.Keys['return'].Proc = functools.partial(goto, MaintScreen)
-	Beta.Keys['return'].Proc = functools.partial(goto, MaintScreen)
-	Status.Keys['return'].Proc = functools.partial(goto, MaintScreen)
-	Exits.userstore.ReParent(MaintScreen)
-	Beta.userstore.ReParent(MaintScreen)
-	LogDisp.userstore.ReParent(MaintScreen)
+	TopLevel = OrderedDict([('return', ('Exit Maintenance', gohome)),
+							('log', ('Show Log', functools.partial(screen.PushToScreen, LogDisp, 'Maint'))),
+							('beta', ('Select Version', functools.partial(screen.PushToScreen, Beta, 'Maint'))),
+							('flags', ('Set Flags', functools.partial(screen.PushToScreen, FlagsScreens[0], 'Maint')))])
+
+	if Status is not None: TopLevel['status'] = (
+	'Network Consoles', functools.partial(screen.PushToScreen, Status, 'Maint'))
+	TopLevel['exit'] = ('Exit/Restart', functools.partial(screen.PushToScreen, Exits, 'Maint'))
+
+	MaintScreen = MaintScreenDesc('Maintenance', TopLevel)
+
+	for s in screenset:
+		s.userstore.ReParent(MaintScreen)
 	config.sysStore.AddAlert("GlobalLogViewTime", CheckIfLogSeen)
 
 
@@ -201,17 +194,6 @@ def doexit(K):
 	screens.DS.SwitchScreen(Verify, 'Bright', 'Verify exit', newstate='Maint')
 
 
-def showhw():
-	pass
-
-
-def showvers():
-	pass
-
-
-def donetcmds():
-	pass
-
 # noinspection PyUnusedLocal
 def dobeta(K):
 	# Future fetch other tags; switch to versionselector
@@ -287,85 +269,6 @@ def fetch_dev():
 	ReportStatus("done dev", hold=2)
 
 
-def status_interval_str(sec_elapsed):
-	d = int(sec_elapsed / (60 * 60 * 24))
-	h = int((sec_elapsed % (60 * 60 * 24)) / 3600)
-	m = int((sec_elapsed % (60 * 60)) / 60)
-	s = int(sec_elapsed % 60)
-	return "{} dys {:>02d}:{:>02d}:{:>02d}".format(d, h, m, s)
-
-
-class StatusDisplayScreen(screen.BaseKeyScreenDesc):
-	def __init__(self):
-		screen.BaseKeyScreenDesc.__init__(self, None, 'STATUSNET')
-		self.NavKeysShowing = False
-		self.DefaultNavKeysShowing = False
-		self.Keys = {'return': toucharea.TouchPoint('back', (hw.screenwidth // 2, hw.screenheight // 2),
-													(hw.screenwidth, hw.screenheight), proc=self.back)}
-		self.T = None
-
-	def back(self):
-		self.T.cancel()
-		screens.DS.SwitchScreen(screen.BACKTOKEN, 'Bright', 'Done (next) showing status', newstate='Maint')
-
-	def InitDisplay(self, nav):
-		super(StatusDisplayScreen, self).InitDisplay(nav)
-		self.T = timers.RepeatingPost(1, False, True, 'StatusDisplay', proc=self.ShowStatus)
-		self.ShowStatus('none')
-
-	def ShowStatus(self, ign):  # todo  portrait, no MQTT case
-		if self.T.finished.is_set():
-			return
-		hw.screen.fill(wc(self.BackgroundColor))
-		landfont = 17
-		tm, ht, wd = screenutil.CreateTextBlock('{}'.format(time.strftime('%c')), landfont, 'white', False,
-												FitLine=False)
-		hw.screen.blit(tm, (10, 20))
-		if hw.portrait:
-			pass
-		else:
-			header, ht, wd = screenutil.CreateTextBlock(
-				'     Node       Status   QMax E       Uptime            Last Boot', landfont, 'white', False,
-				FitLine=False)
-		linestart = 80
-		hw.screen.blit(header, (10, 60))
-		for nd, ndinfo in consolestatus.nodes.items():
-			if ndinfo.maincyclecnt == 'unknown*':
-				stat = ndinfo.status
-				qmax = '     '
-			else:
-				stat = '{} cyc'.format(ndinfo.maincyclecnt) if ndinfo.status in ('idle', 'active') else ndinfo.status
-				qmax = '{:4.2f} '.format(ndinfo.queuetimemax24)
-			active = '*' if ndinfo.status == 'active' else ' '
-
-			if ndinfo.status in ('dead', 'unknown'):
-				cstat = "{:17.17s}".format(' ')
-			else:
-				cstat = ' ' if ndinfo.error == -1 else '?' if ndinfo.error == -1 else '*'
-				cstat = cstat + "{:>14.14s}  ".format(status_interval_str(ndinfo.uptime))
-			if ndinfo.boottime == 0:
-				bt = "{:^17.17}".format('unknown')
-			else:
-				bt = "{:%Y-%m-%d %H:%M:%S}".format(datetime.fromtimestamp(ndinfo.boottime))
-			age = time.time() - ndinfo.rpttime if ndinfo.rpttime != 0 else 0
-			# if age > 180:  # seconds?  todo use to determine likel#y powerfail case
-			#	print(' (old:{})'.format(age))
-			#	print('Boottime: {}'.format(ndinfo.boottime))
-			# else:
-			#	print()
-
-			if hw.portrait:
-				pass
-			else:
-				ln, ht, wd = screenutil.CreateTextBlock(
-					'{:12.12s}{}{:10.10s} {}   {} {}'.format(nd, active, stat, qmax, cstat, bt), landfont, 'white',
-					False)
-				hw.screen.blit(ln, (20, linestart))
-				linestart += 25
-
-		pygame.display.update()
-
-
 class LogDisplayScreen(screen.BaseKeyScreenDesc):
 	def __init__(self):
 		screen.BaseKeyScreenDesc.__init__(self, None, 'LOG')
@@ -409,6 +312,7 @@ class LogDisplayScreen(screen.BaseKeyScreenDesc):
 			screens.DS.SwitchScreen(screen.BACKTOKEN, 'Bright', 'Done (prev) showing log', newstate='Maint')
 
 	def InitDisplay(self, nav):
+		self.BackgroundColor = 'maroon'
 		if self.state == 'init':
 			debug.debugPrint('Main', "Enter to screen: ", self.name)
 			super(LogDisplayScreen, self).InitDisplay(nav)
@@ -443,48 +347,6 @@ class LogDisplayScreen(screen.BaseKeyScreenDesc):
 
 	def LogSwitch(self, event):
 		self.NextPage()
-
-class MaintScreenDesc(screen.BaseKeyScreenDesc):
-	# noinspection PyDefaultArgument
-	def __init__(self, name, keys, overrides=fixedoverrides):
-		screen.BaseKeyScreenDesc.__init__(self, overrides, name)
-		debug.debugPrint('Screen', "Build Maintenance Screen")
-		self.NavKeysShowing = False
-		self.DefaultNavKeysShowing = False
-		screen.AddUndefaultedParams(self, None, TitleFontSize=40, SubFontSize=25)
-		for k, kt in keys.items():
-			NK = toucharea.ManualKeyDesc(self, k, [kt[0]], 'gold', 'black', 'red', KOn='black', KOff='red')
-			if kt[1] is not None:
-				if len(kt) == 3:  # need to add key reference to the proc for this key
-					NK.Proc = functools.partial(kt[1], NK)
-				else:
-					NK.Proc = kt[1]
-			self.Keys[k] = NK
-		topoff = self.TitleFontSize + self.SubFontSize
-		self.LayoutKeys(topoff, self.useablevertspacesansnav - topoff)
-		self.DimTO = 60
-		self.PersistTO = 1  # setting to 0 would turn off timer and stick us here
-		utilities.register_example("MaintScreenDesc", self)
-
-	def ShowScreen(self):
-		self.ReInitDisplay()
-		# self.PaintBase()
-		r = fonts.fonts.Font(self.TitleFontSize, '', True, True).render("Console Maintenance", 0, wc(self.CharColor))
-		rl = (hw.screenwidth - r.get_width()) / 2
-		hw.screen.blit(r, (rl, self.TopBorder))
-		r = fonts.fonts.Font(self.SubFontSize, '', True, True).render(
-			"Up: " + interval_str(time.time() - config.sysStore.ConsoleStartTime),
-			0, wc(self.CharColor))
-		rl = (hw.screenwidth - r.get_width()) / 2
-		hw.screen.blit(r, (rl, self.TopBorder + self.TitleFontSize))
-		self.PaintKeys()
-		pygame.display.update()
-
-	def InitDisplay(self, nav):
-		debug.debugPrint('Main', "Enter to screen: ", self.name)
-		logsupport.Logs.Log('Entering Maintenance Screen: ' + self.name)
-		super(MaintScreenDesc, self).InitDisplay(nav)
-		self.ShowScreen()
 
 
 def domaintexit(ExitKey):
