@@ -70,6 +70,10 @@ def PushToScreen(NS, newstate='NonHome'):
 	screens.DS.SwitchScreen(NS, 'Bright', 'Push to Screen', newstate=newstate, push=True)
 
 
+def PopScreen(msg='PopScreen', newstate='Maint'):
+	screens.DS.SwitchScreen(BACKTOKEN, 'Bright', msg, newstate=newstate)
+
+
 def IncorporateParams(this, clsnm, theseparams, screensection):
 	paramset = set(theseparams)
 	if type(this) not in screenparamuse:
@@ -107,7 +111,7 @@ def ButLayout(butcount):
 	if butcount in range(1, 21):
 		return plan[butcount - 1]
 	else:
-		logsupport.Logs.Log("Button layout error - too many or no buttons: " + butcount, ConsoleError)
+		logsupport.Logs.Log("Button layout error - too many or no buttons: {}".format(butcount), ConsoleError)
 		return 5, 5
 
 
