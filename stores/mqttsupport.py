@@ -53,6 +53,7 @@ class MQTTBroker(valuestore.ValueStore):
 								  ('consoles/all/set', 1)])
 				client.subscribe('consoles/all/nodes/#')
 				client.subscribe('consoles/+/status')
+				client.subscribe('consoles/+/errresp')
 			self.loopexited = False
 
 		#			for i, v in userdata.vars.items():
@@ -101,6 +102,10 @@ class MQTTBroker(valuestore.ValueStore):
 		def LogItem(sev):
 			logsupport.Logs.Log('Remotely forced test message ({})'.format(sev), severity=sev, tb=False, hb=False)
 
+		def GetErrors():
+			errs = logsupport.Logs.ReturnRecent(logsupport.ConsoleDetail, 10)
+			self.Publish('errresp', payload=json.dumps(errs))
+
 		# noinspection PyUnusedLocal
 		def on_message(client, userdata, msg):
 			# command to force get: mosquitto_pub -t consoles/all/cmd -m getstable;  mosquitto_pub -t consoles/all/cmd -m restart
@@ -120,6 +125,7 @@ class MQTTBroker(valuestore.ValueStore):
 							'usebeta': UseBeta,
 							'hbdump': DumpHB,
 							'status': EchoStat,
+							'geterrors': GetErrors,
 							'issueerror': functools.partial(LogItem, ConsoleError),
 							'issuewarning': functools.partial(LogItem, ConsoleWarning),
 							'issueinfo': functools.partial(LogItem, ConsoleInfo)}
@@ -150,13 +156,16 @@ class MQTTBroker(valuestore.ValueStore):
 				# see if it is node specific message
 				topic = msg.topic.split('/')
 				msgdcd = json.loads(msg.payload.decode('ascii'))
+
 				if topic[2] == 'nodes':
 					consolestatus.UpdateStatus(topic[-1], msgdcd)
 					return
 				elif topic[2] == 'status':
 					consolestatus.UpdateStatus(topic[1], msgdcd)
 					return
-
+				elif topic[2] == 'errresp':
+					consolestatus.GotErrors(topic[1], json.loads(msg.payload))
+					return
 
 			# noinspection PySimplifyBooleanCheck
 			if var == []:
@@ -254,6 +263,7 @@ class MQTTBroker(valuestore.ValueStore):
 							  'hw': hw.hwinfo}),
 						 retain=True, qos=1)
 		threadmanager.SetUpHelperThread(self.name, self.MQTTLoop)
+		consolestatus.monitoringstatus = True
 
 	def MQTTLoop(self):
 		self.MQTTclient.connect(self.address, keepalive=20)
