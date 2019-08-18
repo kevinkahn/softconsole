@@ -174,8 +174,10 @@ def LogProcess(q):
 						f.write('{}({}): Logger exiting because seems zombied\n'.format(os.getpid(),time.time()))
 						f.flush()
 					running = False
-				else:
-					continue
+				else:  # todo check if main is alive
+					with open('/home/pi/Console/hlog', 'a') as f:
+						f.write('Logger waiting to exit {} {}\n'.format(exiting, time.time()))
+						f.flush()
 			if item[0] == Command.LogEntry:
 				# Log Entry (0,severity, entry, entrytime)
 				severity, entry, entrytime = item[1:]
@@ -292,6 +294,17 @@ class Logger(object):
 		if severity in [ConsoleWarning, ConsoleError] and config.sysStore.ErrorNotice == -1:
 			config.sysStore.FirstUnseenErrorTime = time.time()
 			config.sysStore.ErrorNotice = len(self.log) - 1
+
+	def ReturnRecent(self, loglevel, maxentries):
+		rtnval = []
+		n = 0
+		logitem = len(self.log) - 1
+		while n < maxentries and logitem > 0:
+			if self.log[logitem][0] >= loglevel:
+				rtnval.append(self.log[logitem])
+			n += 1
+			logitem -= 1
+		return rtnval
 
 	def LogRemote(self, node, entry, etime, severity):
 		tentry = '[{}] {}'.format(node, entry)
