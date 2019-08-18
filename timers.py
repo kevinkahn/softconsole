@@ -146,8 +146,10 @@ class RepeatingPost(Thread):
 	def run(self):
 		TimerHB.Entry('Start repeater: {}'.format(self.name))
 		targettime = time.time() + self.interval
+		loopend = time.time()  # tempdel
 		while not self.finished.wait(self.interval):
-			TimerHB.Entry('Interval expired: {} {} {}'.format(self.name, targettime, time.time()))  # tempdel
+			TimerHB.Entry('Interval expired: {} {} {} {} {}'.format(self.name, targettime, time.time(), self.interval,
+																	time.time() - loopend))  # tempdel
 			if not self.finished.is_set():
 				if self.running.is_set():
 					self.kwargs['TargetTime'] = targettime
@@ -161,7 +163,9 @@ class RepeatingPost(Thread):
 				else:
 					self.running.wait()
 				targettime = time.time() + self.interval  # don't accumulate errors
-				TimerHB.Entry('Next target: {} {} {}'.format(self.name, targettime, self.interval))  # tempdel
+				loopend = time.time()  # tempdel
+				TimerHB.Entry(
+					'Next target: {} {} {} {}'.format(self.name, loopend, targettime, self.interval))  # tempdel
 		del TimerList[self.name]
 		TimerHB.Entry('Exit repeater: {}'.format(self.name))
 
