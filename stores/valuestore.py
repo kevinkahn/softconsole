@@ -182,10 +182,12 @@ class StoreItem(object):
 
 class ValueStore(object):
 	def __init__(self, name, itemtyp=StoreItem):
-		self.name = name
+		object.__setattr__(self, 'name', name)
+		object.__setattr__(self, 'vars', {})
+		# self.name = name
 		self.itemtyp = itemtyp
 		self.fetchtime = 0  # time of last block refresh if handled as such
-		self.vars = {}
+		#self.vars = {}
 		self.locked = False
 		self.children = None
 
@@ -376,3 +378,4 @@ class ValueStore(object):
 				return True if n2[0] in t else False
 		except:
 			return False
+
