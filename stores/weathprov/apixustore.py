@@ -136,7 +136,6 @@ class APIXUWeatherSource(object):
 				self.thisStore.ValidWeather = False
 				return
 			try:
-				# self.json = r.json()  tempdel
 				self.thisStore.ValidWeather = False  # show as invalid for the short duration of the update - still possible to race but very unlikely.
 				tempfcstinfo = {}
 				for fn, entry in FcstFieldMap.items():

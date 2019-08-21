@@ -28,7 +28,6 @@ import sys
 import time
 import threading
 
-
 # noinspection PyProtectedMember
 from configobj import ConfigObj, Section
 
@@ -89,7 +88,7 @@ def handler(signum, frame):
 			config.ecode = exitutils.WATCHDOGTERM
 		else:
 			logsupport.DevPrint('Signal termination {}'.format(signum))
-			logsupport.Logs.Log("Console received termination signal: {} - Exiting".format(signum), tb=True)
+			logsupport.Logs.Log("Console received termination signal: {} - Exiting".format(signum))
 			if signum == signal.SIGINT:
 				config.terminationreason = 'interrupt signal'
 				config.ecode = exitutils.EXTERNALSIGINT
@@ -144,13 +143,11 @@ def CO_get(self, key, default, delkey=True):
 
 		if key in self and delkey:
 			del self[key]
-		# print('CO: {} {} T:{} typT:{} R:{} Tdf:{} TR:{}'.format(key, default,tmpr, type(tmpr),  rtn, type(default), type(rtn)))
 		return rtn
-	except Exception as E:  # tempdel
-		print(
-			'ZZ: {} {} T:{} typT:{} R:{} Tdf:{} TR:{} E: {}'.format(key, default, tmpr, type(tmpr), rtn, type(default),
-																	type(rtn), repr(E)))
-
+	except Exception as E:
+		logsupport.Logs.Log(
+			'Internal exception in handling config param get: key {} default {} exc: {}'.format(key, default, E),
+			severity=ConsoleError)
 
 Section.get = CO_get
 
@@ -239,6 +236,9 @@ logsupport.Logs.Log("Alert classes instantiated")
 """
 Initialize the Console
 """
+# clear the systemd hack once started
+signal.signal(signal.SIGHUP, signal.SIG_DFL)
+
 
 SetUpTermShortener()
 
