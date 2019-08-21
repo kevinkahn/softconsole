@@ -11,7 +11,7 @@ from controlevents import CEvent, PostEvent, ConsoleEvent
 
 class MediaPlayer(HAnode):
 	def __init__(self, HAitem, d):
-		super(MediaPlayer, self).__init__(HAitem, **d)
+		super().__init__(HAitem, **d)
 		self.Hub.RegisterEntity('media_player', self.entity_id, self)
 
 		self.Sonos = False

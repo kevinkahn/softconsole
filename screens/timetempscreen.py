@@ -85,9 +85,9 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 		self.repaintClock()
 		self.poster.resume()
 
-	def ExitScreen(self):
+	def ExitScreen(self, viaPush):
 		self.poster.pause()
-		super(TimeTempScreenDesc, self).ExitScreen()
+		super().ExitScreen(viaPush)
 
 	# noinspection PyUnusedLocal,PyUnusedLocal
 	def repaintClock(self, param=None):

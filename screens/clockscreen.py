@@ -73,9 +73,9 @@ class ClockScreenDesc(screen.ScreenDesc):
 		self.repaintClock()
 		self.poster.resume()
 
-	def ExitScreen(self):
+	def ExitScreen(self, viaPush):
 		self.poster.pause()
-		screen.ScreenDesc.ExitScreen(self)
+		super().ExitScreen(viaPush)
 
 
 screens.screentypes["Clock"] = ClockScreenDesc

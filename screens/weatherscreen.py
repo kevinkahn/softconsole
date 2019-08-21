@@ -144,15 +144,13 @@ class WeatherScreenDesc(screen.ScreenDesc):
 
 	def InitDisplay(self, nav):
 		self.currentconditions = True
-		super(WeatherScreenDesc, self).InitDisplay(nav)
+		super().InitDisplay(nav)
 		self.ShowScreen(self.currentconditions)
 
 	def ReInitDisplay(self):
 		super(WeatherScreenDesc, self).ReInitDisplay()
 		self.ShowScreen(self.currentconditions)
 
-	def ExitScreen(self):
-		pass
 
 
 screens.screentypes["Weather"] = WeatherScreenDesc

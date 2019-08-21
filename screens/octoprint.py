@@ -284,7 +284,8 @@ class OctoPrintScreenDesc(screen.BaseKeyScreenDesc):
 			hw.screen.blit(i[0], i[1])
 		hw.screen.blit(statusblock, ((hw.screenwidth - statusw) // 2, self.titlespace))
 
-	def ExitScreen(self):
+	def ExitScreen(self, viaPush):
+		super().ExitScreen(viaPush)
 		self.PollTimer.pause()
 
 

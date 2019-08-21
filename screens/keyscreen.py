@@ -12,8 +12,8 @@ from logsupport import ConsoleWarning
 
 
 class KeyScreenDesc(screen.BaseKeyScreenDesc):
-	def __init__(self, screensection, screenname):
-		screen.BaseKeyScreenDesc.__init__(self, screensection, screenname)
+	def __init__(self, screensection, screenname, parentscreen=None):
+		screen.BaseKeyScreenDesc.__init__(self, screensection, screenname, parentscreen=parentscreen)
 		debug.debugPrint('Screen', "New KeyScreenDesc ", screenname)
 
 		# Build the Key objects
@@ -38,7 +38,7 @@ class KeyScreenDesc(screen.BaseKeyScreenDesc):
 		debug.debugPrint("Screen", "Keyscreen InitDisplay: ", self.name)
 		for K in self.Keys.values():
 			K.InitDisplay()
-		super(KeyScreenDesc, self).InitDisplay(nav)
+		super().InitDisplay(nav)
 		pygame.display.update()
 
 	def NodeEvent(self, hub='', node=0, value=0, varinfo=()):

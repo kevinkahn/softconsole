@@ -284,7 +284,7 @@ class SonosScreenDesc(screen.BaseKeyScreenDesc):
 
 	def InitDisplay(self, nav):
 		self._check_for_new()
-		super(SonosScreenDesc, self).InitDisplay(nav)
+		super().InitDisplay(nav)
 		self.Subscreen = -1
 		self.ShowScreen()
 

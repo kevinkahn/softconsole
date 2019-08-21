@@ -6,6 +6,7 @@ import config
 import debug
 import exitutils
 import historybuffer
+import issuecommands
 import logsupport
 import maintscreen
 from logsupport import ConsoleWarning
@@ -49,10 +50,10 @@ class NetCmd(object):
 			exitutils.Exit(exitutils.REMOTEREBOOT)
 		elif varval == 3:
 			logsupport.Logs.Log('Remote download stable')
-			maintscreen.fetch_stable()
+			issuecommands.fetch_stable()
 		elif varval == 4:
 			logsupport.Logs.Log('Remote download beta')
-			maintscreen.fetch_beta()
+			issuecommands.fetch_beta()
 		elif varval == 5:
 			logsupport.Logs.Log('Remote set stable')
 			subprocess.Popen('sudo rm /home/pi/usebeta', shell=True)

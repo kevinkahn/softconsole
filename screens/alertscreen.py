@@ -156,7 +156,8 @@ class AlertsScreenDesc(screen.ScreenDesc):
 		logsupport.Logs.Log("ISY event to alert screen: ", self.name + ' ' + str(node) + ' ' + str(value),
 							severity=ConsoleDetail)
 
-	def ExitScreen(self):
+	def ExitScreen(self, viaPush):
+		super().ExitScreen(viaPush)
 		if self.BlinkTimer is not None:
 			#logsupport.Logs.Log('Cancelling alert blink for {}'.format(self.BlinkTimer.name))
 			self.BlinkTimer.cancel()
