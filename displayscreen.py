@@ -77,13 +77,17 @@ class DisplayScreen(object):
 				NS = self.ScreenStack.pop()
 			else:
 				logsupport.Logs.Log('Screen BACK with empty stack', severity=ConsoleWarning, tb=True)
-		elif NS == screen.HOMETOKEN:
+				NS = screens.HomeScreen
+		elif NS == screen.HOMETOKEN:  # todo add PoppedOver for the stack items
 			if self.ScreenStack:
-				t = self.ScreenStack.pop()
-				if not self.ScreenStack:  # Home while Back would have returned
+				if len(self.ScreenStack) == 1:  # Home and Back would be the same so go to chain home
 					NS = screens.HomeScreen
+					self.ScreenStack[0].PopOver()
+					self.ScreenStack = []
 				else:
 					NS = self.ScreenStack[0]
+					for S in self.ScreenStack[1:]:
+						S.PopOver()
 					self.ScreenStack = []
 			else:
 				NS = screens.HomeScreen
@@ -91,7 +95,7 @@ class DisplayScreen(object):
 		elif NS == screen.SELFTOKEN:
 			NS = self.AS
 		else:
-			if clear: self.ScreenStack = []
+			if clear: self.ScreenStack = []  #todo PopEvers
 			if push: self.ScreenStack.append(self.AS)
 
 		NavKeys = NS.DefaultNavKeysShowing if not AsCover else False
@@ -109,7 +113,8 @@ class DisplayScreen(object):
 			debug.debugPrint('Dispatch', "Switch from: ", self.AS.name, " to ", NS.name, "Nav=", NavKeys, ' State=',
 							 oldstate + '/' + newstate + ':' + olddim + '/' + newdim, ' ', reason)
 			self.AS.Active = False
-			self.AS.ExitScreen()  # todo should we call exit even on same screen recall?
+			self.AS.ExitScreen(
+				push)  # todo should we call exit even on same screen recall? add via push and add PoppedOver
 		OS = self.AS
 		self.AS = NS
 		self.AS.Active = True

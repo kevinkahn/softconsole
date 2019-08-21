@@ -133,11 +133,11 @@ def AsyncFileWrite(fn,writestr,access='a'):
 historybuffer.AsyncFileWrite = AsyncFileWrite  # to avoid circular imports
 
 def LogProcess(q):
-	global lastremotemes, lastlocalmes, lastremotesev, remotenodes, Logs
 	item = (99, 'init')
+	exiting = 0
 
 	def ExitLog(signum, frame):
-		global exiting
+		nonlocal exiting
 		exiting = time.time()
 		with open('/home/pi/Console/hlog', 'a') as f:
 			f.write('{}({}): Logger process exiting for signal {} exiting: {}\n'.format(os.getpid(),time.time(),signum, exiting))
@@ -157,7 +157,6 @@ def LogProcess(q):
 	signal.signal(signal.SIGHUP, IgnoreHUP)
 	disklogfile = None
 	running = True
-	exiting = 0
 
 	while running:
 		try:
@@ -174,10 +173,12 @@ def LogProcess(q):
 						f.write('{}({}): Logger exiting because seems zombied\n'.format(os.getpid(),time.time()))
 						f.flush()
 					running = False
-				else:  # todo check if main is alive
+				elif exiting != 0:  # exiting has been set     todo check if main is alive?
 					with open('/home/pi/Console/hlog', 'a') as f:
 						f.write('Logger waiting to exit {} {}\n'.format(exiting, time.time()))
 						f.flush()
+						continue  # nothing to process
+
 			if item[0] == Command.LogEntry:
 				# Log Entry (0,severity, entry, entrytime)
 				severity, entry, entrytime = item[1:]

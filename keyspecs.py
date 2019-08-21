@@ -21,6 +21,8 @@ def KeyWithVarChanged(storeitem, old, new, param, modifier):
 	PostEvent(ConsoleEvent(CEvent.HubNodeChange, hub='*VARSTORE*', varinfo=param))
 
 
+internalprocs = {}
+
 def _resolvekeyname(kn, DefHub):
 	t = kn.split(':')
 	if len(t) == 1:
@@ -59,6 +61,8 @@ def CreateKey(thisscreen, screensection, keyname):
 		NewKey = RunProgram(thisscreen, screensection, keyname)
 	elif keytype == 'GOTO':
 		NewKey = GoToKey(thisscreen, screensection, keyname)
+	elif keytype == 'PROC':
+		NewKey = InternalProcKey(thisscreen, screensection, keyname)
 	else:  # unknown type
 		NewKey = BlankKey(thisscreen, screensection, keyname)
 		logsupport.Logs.Log('Undefined key type ' + keytype + ' for: ' + keyname, severity=ConsoleWarning)
@@ -123,6 +127,7 @@ class VarKey(ManualKeyDesc):
 
 	def __init__(self, thisscreen, keysection, keyname):
 		debug.debugPrint('Screen', "              New Var Key ", keyname)
+		# todo suppress Verify
 		ManualKeyDesc.__init__(self, thisscreen, keysection, keyname)
 		screen.AddUndefaultedParams(self, keysection, Var='', Appearance=[], ValueSeq=[])
 		valuestore.AddAlert(self.Var, (KeyWithVarChanged, (keyname, self.Var)))
@@ -178,6 +183,7 @@ class VarKey(ManualKeyDesc):
 class SetVarKey(ManualKeyDesc):
 	def __init__(self, thisscreen, keysection, keyname):
 		debug.debugPrint('Screen', "             New SetVar Key Desc ", keyname)
+		# todo suppress Verify
 		ManualKeyDesc.__init__(self, thisscreen, keysection, keyname)
 		screen.AddUndefaultedParams(self, keysection, VarType='undef', Var='', Value=0)
 		try:
@@ -222,7 +228,6 @@ class DummyProgram(object):
 		logsupport.Logs.Log(
 			"Pressed unbound program key: " + self.keyname + " for hub: " + self.hubname + " program: " + self.programname)
 
-
 class RunProgram(ManualKeyDesc):
 	def __init__(self, thisscreen, keysection, keyname):
 		debug.debugPrint('Screen', "             New RunProgram Key ", keyname)
@@ -237,7 +242,7 @@ class RunProgram(ManualKeyDesc):
 				"Missing Prog binding Key: {} on screen {} Hub: {} Program: {}".format(keyname, thisscreen.name, self.Hub.name, self.ProgramName),
 				severity=ConsoleWarning)
 		if self.Verify:
-			self.VerifyScreen = supportscreens.VerifyScreen(self, self.GoMsg, self.NoGoMsg, self.Verified, None,
+			self.VerifyScreen = supportscreens.VerifyScreen(self, self.GoMsg, self.NoGoMsg, self.RunKeyDblPressed,
 															thisscreen, self.KeyColorOff,
 															thisscreen.BackgroundColor, thisscreen.CharColor,
 															self.State, thisscreen.HubInterestList)
@@ -246,11 +251,6 @@ class RunProgram(ManualKeyDesc):
 		else:
 			self.Proc = self.RunKeyPressed
 			self.ProcDblTap = self.RunKeyDblPressed
-
-	# noinspection PyUnusedLocal
-	def Verified(self):
-		screens.DS.SwitchScreen(screen.BACKTOKEN, 'Bright', 'Verify Run ' + self.Screen.name)
-		self.RunKeyPressed()
 
 	def RunKeyPressed(self):
 		if self.FastPress: return
@@ -267,8 +267,11 @@ class RunProgram(ManualKeyDesc):
 
 
 class GoToKey(ManualKeyDesc):
+	# Note: cannot do verify on a goto key - would make no sense of the verify pop back to previous screen
+	# this is actually a Push Screen key in that it makes a stack entry
 	def __init__(self, thisscreen, keysection, keyname):
 		debug.debugPrint('Screen', "             New GoTo Key ", keyname)
+		# todo remove any Verify from the keysection
 		ManualKeyDesc.__init__(self, thisscreen, keysection, keyname)
 		screen.AddUndefaultedParams(self, keysection, ScreenName='**unspecified**')
 		self.targetscreen = None
@@ -302,14 +305,14 @@ class OnOffKey(ManualKeyDesc):
 			logsupport.Logs.Log('Key Binding missing: ' + self.name, severity=ConsoleWarning)
 
 		if self.Verify:
-			self.VerifyScreen = supportscreens.VerifyScreen(self, self.GoMsg, self.NoGoMsg, self.Verified, None,
+			self.VerifyScreen = supportscreens.VerifyScreen(self, self.GoMsg, self.NoGoMsg, self.KeyPressAction,
 															thisscreen, self.KeyColorOff,
 															thisscreen.BackgroundColor, thisscreen.CharColor,
 															self.State, thisscreen.HubInterestList)
 			self.Proc = self.VerifyScreen.Invoke  # todo make this a goto key; make verify screen always do a pop and get rid of the switch screens below
 		else:
 			self.Proc = self.KeyPressAction
-			self.ProcDblTap = self.KeyPressActionDbl
+			self.ProcDblTap = self.KeyPressActionDbl  # todo need testing/completion
 
 		if keytype == 'ONOFF':
 			self.KeyAction = 'OnOff'
@@ -370,7 +373,26 @@ class OnOffKey(ManualKeyDesc):
 								severity=ConsoleWarning)
 			self.ScheduleBlinkKey(20)
 
-	# noinspection PyUnusedLocal
-	def Verified(self):
-		self.KeyPressAction()
-		screens.DS.SwitchScreen(screen.BACKTOKEN, 'Bright', 'Verify Run ' + self.Screen.name)
+
+class InternalProcKey(ManualKeyDesc):
+	def __init__(self, thisscreen, keysection, keyname):
+		ManualKeyDesc.__init__(self, thisscreen, keysection, keyname)
+		screen.AddUndefaultedParams(self, keysection, ProcName='')
+		self.Proc = internalprocs[self.ProcName]
+		if self.Verify:  # todo make verified a single global proc??
+			self.VerifyScreen = supportscreens.VerifyScreen(self, self.GoMsg, self.NoGoMsg, self.Proc,
+															thisscreen, self.KeyColorOff,
+															thisscreen.BackgroundColor, thisscreen.CharColor,
+															self.State, thisscreen.HubInterestList)
+			self.Proc = self.VerifyScreen.Invoke  # todo make this a goto key; make verify screen always do a pop and get rid of the switch screens below
+		else:
+			self.ProcDblTap = None
+
+	def FinishKey(self, center, size, firstfont=0, shrink=True):
+		super(InternalProcKey, self).FinishKey(center, size, firstfont, shrink)
+
+	def InitDisplay(self):
+		debug.debugPrint("Screen", "InternalProcKey.InitDisplay ", self.Screen.name, self.name)
+		self.state = True
+		self.UnknownState = False
+		super(InternalProcKey, self).InitDisplay()

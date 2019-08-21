@@ -2,6 +2,7 @@ import functools
 
 import pygame
 from pygame import draw
+import inspect
 
 import debug
 import fonts
@@ -10,19 +11,19 @@ import logsupport
 import screen
 import screens.__screens as screens
 import screenutil
-import toucharea
 import utilities
 from logsupport import ConsoleDetail
-from toucharea import TouchPoint, ManualKeyDesc
+import toucharea
 from utilfuncs import wc
-
 
 class VerifyScreen(screen.BaseKeyScreenDesc):
 
-	def __init__(self, key, gomsg, nogomsg, procyes, procno, callingscreen, bcolor, keycoloroff, charcolor, state,
-				 interestlist):
-		screen.BaseKeyScreenDesc.__init__(self, {}, key.name + '-Verify', parentscreen=key)
+	def __init__(self, key, gomsg, nogomsg, procyes, callingscreen, bcolor, keycoloroff, charcolor, state,
+				 interestlist, SingleUse=False):
+		screen.BaseKeyScreenDesc.__init__(self, {}, key.name + '-Verify', parentscreen=key, SingleUse=SingleUse)
 		debug.debugPrint('Screen', "Build Verify Screen")
+		self.callingkey = key
+		self.yesproc = procyes
 		self.NavKeysShowing = False
 		self.DefaultNavKeysShowing = False
 		self.HubInterestList = interestlist
@@ -30,23 +31,30 @@ class VerifyScreen(screen.BaseKeyScreenDesc):
 		self.PersistTO = 10
 		self.label = screen.FlatenScreenLabel(key.label)
 		self.ClearScreenTitle()  # don't use parent screen title
-		self.CallingScreen = callingscreen
+		self.CallingScreen = callingscreen  # todo either eliminare or use for something - note could be none from maint exit
 		screen.AddUndefaultedParams(self, None, TitleFontSize=40, SubFontSize=25)
 		self.SetScreenTitle(self.label, 40, charcolor)
-		self.Keys['yes'] = ManualKeyDesc(self, 'yes', gomsg, bcolor, keycoloroff, charcolor, State=state)
-		self.Keys['yes'].Proc = procyes  # functools.partial(proc, True)
-		self.Keys['no'] = ManualKeyDesc(self, 'no', nogomsg, bcolor, keycoloroff, charcolor, State=state)
-		self.Keys['no'].Proc = procno if procno is not None else self.DefaultNo  # functools.partial(proc, False)
+		self.Keys['yes'] = toucharea.ManualKeyDesc(self, 'yes', gomsg, bcolor, keycoloroff, charcolor, State=state)
+		self.Keys['yes'].Proc = self.Verified
+		self.Keys['no'] = toucharea.ManualKeyDesc(self, 'no', nogomsg, bcolor, keycoloroff, charcolor, State=state)
+		self.Keys['no'].Proc = functools.partial(screen.PopScreen, 'Verify denied')
 
 		self.LayoutKeys(self.startvertspace, self.useablevertspace)
 		utilities.register_example("VerifyScreen", self)
 
-	@staticmethod
-	def DefaultNo():
-		screens.DS.SwitchScreen(screen.BACKTOKEN, 'Bright', 'Verify denied')
+	def Verified(self):
+		if 'Key' in inspect.signature(self.yesproc).parameters:
+			self.yesproc(Key=self.callingkey)
+		else:
+			self.yesproc()
+		screen.PopScreen('Verified')
+
 
 	def Invoke(self):
-		screens.DS.SwitchScreen(self, 'Bright', 'Do Verify ' + self.name, push=True)
+		# screens.DS.SwitchScreen(self, 'Bright', 'Do Verify ' + self.name, push=True)
+
+		screen.PushToScreen(self, msg='Do Verify' + self.name)
+
 
 	def ShowScreen(self):
 		self.ReInitDisplay()
@@ -58,7 +66,6 @@ class VerifyScreen(screen.BaseKeyScreenDesc):
 		logsupport.Logs.Log('Entering Verify Screen: ' + self.name, severity=ConsoleDetail)
 		super(VerifyScreen, self).InitDisplay({})
 		self.ShowScreen()
-
 
 class ValueChangeScreen(screen.ScreenDesc):  # todo may need to call super class
 	# need to set no nav keys
@@ -111,13 +118,13 @@ class ValueChangeScreen(screen.ScreenDesc):  # todo may need to call super class
 		for i in range(len(changevals)):
 			self.uparrowcenter.append(
 				((i + .5) * hw.screenwidth / (len(changevals)), screencenter[1] + vertzonesize))
-			self.Keys['up' + str(i)] = TouchPoint('up' + str(i), self.uparrowcenter[
+			self.Keys['up' + str(i)] = toucharea.TouchPoint('up' + str(i), self.uparrowcenter[
 				-1], self.arrowwd, functools.partial(self.ValChange, changevals[i]))
 			self.uparrowverts.append(
 				[functools.partial(self.offsetpoint, self.uparrowcenter[-1])(self.uparrow[k]) for k in range(3)])
 			self.dnarrowcenter.append(
 				((i + .5) * hw.screenwidth / (len(changevals)), screencenter[1] - vertzonesize))
-			self.Keys['dn' + str(i)] = TouchPoint('up' + str(i), self.dnarrowcenter[
+			self.Keys['dn' + str(i)] = toucharea.TouchPoint('up' + str(i), self.dnarrowcenter[
 				-1], self.arrowwd, functools.partial(self.ValChange, -changevals[i]))
 			self.dnarrowverts.append(
 				[functools.partial(self.offsetpoint, self.dnarrowcenter[-1])(self.dnarrow[k]) for k in range(3)])
@@ -137,10 +144,12 @@ class ValueChangeScreen(screen.ScreenDesc):  # todo may need to call super class
 		cancelsize = (
 		hw.screenwidth / 2, int(vertzonepct * hw.screenheight * .125))  # todo switch to use useable vert hgt
 
-		self.Keys['cancel'] = ManualKeyDesc(self, 'cancel', ['Cancel', ], BackgroundColor, CharColor, CharColor,
-											cancelcenter,
-											cancelsize, proc=self.CancelChange)
-		self.Keys['accept'] = ManualKeyDesc(self, 'accept', ["Accept", "#"], BackgroundColor, CharColor, CharColor,
+		self.Keys['cancel'] = toucharea.ManualKeyDesc(self, 'cancel', ['Cancel', ], BackgroundColor, CharColor,
+													  CharColor,
+													  cancelcenter,
+													  cancelsize, proc=self.CancelChange)
+		self.Keys['accept'] = toucharea.ManualKeyDesc(self, 'accept', ["Accept", "#"], BackgroundColor, CharColor,
+													  CharColor,
 											valuebuttoncenter,
 											valuebuttonsize, proc=self.AcceptChange)
 		# need to insert current value (actually in PaintKey probably

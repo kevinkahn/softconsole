@@ -1,4 +1,5 @@
 import pygame
+import inspect
 
 import logsupport
 import debug
@@ -10,7 +11,6 @@ import timers
 import utilities
 from hw import scaleW, scaleH
 from utilfuncs import wc
-
 
 class TouchPoint(object):
 	"""
@@ -42,9 +42,17 @@ class TouchPoint(object):
 
 	def Pressed(self, tapcount):
 		if tapcount == 1:
-			if self.Proc is not None: self.Proc()
+			if self.Proc is not None:
+				if 'Key' in inspect.signature(self.Proc).parameters:
+					self.Proc(Key=self)
+				else:
+					self.Proc()
 		elif tapcount == 2:
-			if self.ProcDblTap is not None: self.ProcDblTap()
+			if self.ProcDblTap is not None:
+				if 'Key' in inspect.signature(self.ProcDblTap).parameters:
+					self.ProcDblTap(Key=self)
+				else:
+					self.ProcDblTap()
 		else:
 			logsupport.Logs.Log('Toucharea got wrong press count {}'.format(tapcount),
 								severity=logsupport.ConsoleWarning)
@@ -130,6 +138,7 @@ class ManualKeyDesc(TouchPoint):
 		self.Screen = thisscreen
 		self.State = State
 		self.Screen = thisscreen
+		self.VerifyScreen = None  # set later by caller if needed
 		screen.IncorporateParams(self, 'TouchArea',
 								 {'KeyColor': bcolor,
 								  'KeyOffOutlineColor': KOff,
@@ -138,7 +147,13 @@ class ManualKeyDesc(TouchPoint):
 								  'KeyColorOn': KCon, 'KeyColorOff': KCoff,
 								  'KeyLabelOn': list(KLon), 'KeyLabelOff': list(KLoff)}, {})
 
-		screen.AddUndefaultedParams(self, {}, FastPress=False, Verify=False, Blink=Blink, label=label)
+		screen.AddUndefaultedParams(self, {}, FastPress=False, Verify=Verify, Blink=Blink, label=label)
+		self.Proc = proc
+
+	def InsertVerify(self, scrn):
+		self.VerifyScreen = scrn
+		self.Proc = self.VerifyScreen.Invoke
+
 
 	def dosectioninit(self, thisscreen, keysection, keyname):
 		self.userstore = paramstore.ParamStore('Screen-' + thisscreen.name + '-' + keyname, dp=thisscreen.userstore,
@@ -168,6 +183,33 @@ class ManualKeyDesc(TouchPoint):
 		if self.UnknownState:
 			# overlay an X for lost states
 			hw.screen.blit(self.KeyUnknownOverlay, (x, y))
+
+	def FlashNo(self, cycle):
+		if cycle != 0:
+			# use Blink Timer since never blink and flash at same time
+			if self.BlinkTimer is not None:  # if there is an existing Blink going end it
+				if self.BlinkTimer.is_alive():
+					self.BlinkTimer.cancel()
+					self.PaintKey()  # force to real state
+					pygame.display.update()
+			self.BlinkTimer = timers.CountedRepeatingPost(.5, cycle, start=True, name=self.name + '-Blink',
+														  proc=self._FlashNo)
+			self.Screen.ScreenTimers.append(self.BlinkTimer)
+
+	def _FlashNo(self, event):
+		if self.Screen.Active:
+			cycle = event.count
+			if cycle > 1:
+				if cycle % 2 == 0:
+					self.UnknownState = True
+					self.PaintKey()
+				else:
+					self.PaintKey()
+			else:
+				self.UnknownState = False
+				self.PaintKey()  # make sure to leave it in real state
+			pygame.display.update()  # actually change the display - used to do in PaintKey but that causes redundancy
+			self.UnknownState = False  # alsways leave it false since we may never return if screen is left
 
 	def ScheduleBlinkKey(self, cycle):
 		if cycle != 0:

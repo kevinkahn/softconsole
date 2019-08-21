@@ -1,14 +1,10 @@
 import functools
-import os
-import subprocess
-import time
 from collections import OrderedDict
 
 import pygame
 
 import config
 import debug
-import githubutil as U
 import hw
 import logsupport
 import screen
@@ -16,7 +12,7 @@ import screens.__screens as screens
 import timers
 import toucharea
 import utilities
-from exitutils import MAINTEXIT, Exit_Screen_Message, MAINTRESTART, MAINTPISHUT, MAINTPIREBOOT, Exit
+import issuecommands
 from logsupport import ConsoleWarning, ReportStatus, UpdateGlobalErrorPointer
 from maintscreenbase import MaintScreenDesc, fixedoverrides
 import consolestatus
@@ -33,22 +29,21 @@ def SetUpMaintScreens():
 	Status = consolestatus.SetUpConsoleStatus()
 	screenset.append(Status)
 
-	Exits = MaintScreenDesc('Exits',
-							OrderedDict([('shut', ('Shutdown Console', doexit, 'addkey')),
-										 ('restart', ('Restart Console', doexit, 'addkey')),
-										 ('shutpi', ('Shutdown Pi', doexit, 'addkey')),
-										 ('reboot', ('Reboot Pi', doexit, 'addkey')),
-										 ('return', ('Return', screen.PopScreen))]))
+	ExitMenu = OrderedDict()
+	for cmd, action in issuecommands.cmdcalls.items():
+		if issuecommands.Where.LocalMenuExits in action.where:
+			ExitMenu[cmd] = (action.DisplayName, action.Proc, action.Verify)
+	ExitMenu['return'] = ('Return', screen.PopScreen)
+	Exits = MaintScreenDesc('System Exit/Restart', ExitMenu)
 	screenset.append(Exits)
 
-	Beta = MaintScreenDesc('Versions',
-						   OrderedDict([('stable', ('Use Stable Release', dobeta, 'addkey')),
-										('beta', ('Use Beta Release', dobeta, 'addkey')),
-										('dev', ('Use Dev Release',dobeta,'addkey')),
-										('release', ('Download release', dobeta, 'addkey')),
-										('fetch', ('Download Beta', dobeta, 'addkey')),
-										('fetchdev', ('Download Dev', dobeta, 'addkey')),
-										('return', ('Return', screen.PopScreen))]))
+	VersMenu = OrderedDict()
+	for cmd, action in issuecommands.cmdcalls.items():
+		if issuecommands.Where.LocalMenuVersions in action.where:
+			VersMenu[cmd] = (action.DisplayName, action.Proc)
+	# VersMenu[cmd] = (action.DisplayName, dobeta, 'addkey')
+	VersMenu['return'] = ('Return', screen.PopScreen)
+	Beta = MaintScreenDesc('Version Control', VersMenu)
 	screenset.append(Beta)
 
 	FlagsScreens = []
@@ -72,7 +67,7 @@ def SetUpMaintScreens():
 				'Next', functools.partial(goto, MaintScreen))  # this gets fixed below to be a real next
 		else:
 			tmp['return'] = ('Return', screen.PopScreen)
-		FlagsScreens.append(MaintScreenDesc('Flags' + str(flagscreencnt), tmp, overrides=flagoverrides))
+		FlagsScreens.append(MaintScreenDesc('Flags Setting ({})'.format(flagscreencnt), tmp, overrides=flagoverrides))
 		flagscreencnt += 1
 		FlagsScreens[-1].KeysPerColumn = flagspercol
 		FlagsScreens[-1].KeysPerRow = flagsperrow
@@ -104,7 +99,7 @@ def SetUpMaintScreens():
 	'Network Consoles', functools.partial(screen.PushToScreen, Status, 'Maint'))
 	TopLevel['exit'] = ('Exit/Restart', functools.partial(screen.PushToScreen, Exits, 'Maint'))
 
-	MaintScreen = MaintScreenDesc('Maintenance', TopLevel)
+	MaintScreen = MaintScreenDesc('Console Maintenance', TopLevel)
 
 	for s in screenset:
 		s.userstore.ReParent(MaintScreen)
@@ -171,103 +166,6 @@ def gohome():  # neither peram used
 # noinspection PyUnusedLocal
 def goto(newscreen):
 	screens.DS.SwitchScreen(newscreen, 'Bright', 'Maint goto' + newscreen.name, newstate='Maint')
-
-# noinspection PyUnusedLocal
-def handleexit(K):
-	# YesKey are ignored in this use - needed by the key press invokation for other purposes
-	domaintexit(K.name)
-
-
-# noinspection PyUnusedLocal
-def doexit(K):
-	if K.name == 'shut':
-		verifymsg = 'Do Console Shutdown'
-	elif K.name == 'restart':
-		verifymsg = 'Do Console Restart'
-	elif K.name == 'shutpi':
-		verifymsg = 'Do Pi Shutdown'
-	else:
-		verifymsg = 'Do Pi Reboot'
-	Verify = MaintScreenDesc('Verify',
-							 OrderedDict([('yes', (verifymsg, functools.partial(handleexit, K))),
-										  ('no', ('Cancel', functools.partial(goto, MaintScreen)))]))
-	screens.DS.SwitchScreen(Verify, 'Bright', 'Verify exit', newstate='Maint')
-
-
-# noinspection PyUnusedLocal
-def dobeta(K):
-	# Future fetch other tags; switch to versionselector
-	K.State = not K.State
-	K.PaintKey()
-	pygame.display.update()
-	if K.name == 'stable':
-		subprocess.Popen('sudo rm /home/pi/usebeta', shell=True)  # Deprecate remove
-		subprocess.Popen('sudo echo stable > /home/pi/versionselector', shell=True)
-	elif K.name == 'beta':
-		subprocess.Popen('sudo touch /home/pi/usebeta', shell=True)  # Deprecate remove
-		subprocess.Popen('sudo echo beta > /home/pi/versionselector', shell=True)
-	elif K.name == 'dev':
-		subprocess.Popen('sudo echo dev > /home/pi/versionselector', shell=True)
-	elif K.name == 'fetch':
-		fetch_beta()
-	elif K.name=='fetchdev':
-		fetch_dev()
-	elif K.name == 'release':
-		fetch_stable()
-
-	time.sleep(2)
-	K.State = not K.State
-	K.PaintKey()
-	pygame.display.update()
-
-
-def fetch_stable():
-	basedir = os.path.dirname(config.sysStore.ExecDir)
-	ReportStatus("updt stable", hold=1)
-	# noinspection PyBroadException
-	try:
-		if os.path.exists(basedir + '/homesystem'):
-			# personal system
-			logsupport.Logs.Log("New version fetch(homerelease)")
-			logsupport.DevPrint("New Version Fetch Requested (homesystem)")
-			U.StageVersion(basedir + '/consolestable', 'homerelease', 'Maint Dnld')
-		else:
-			logsupport.Logs.Log("New version fetch(currentrelease)")
-			logsupport.DevPrint("New Version Fetch Requested (currentrelease)")
-			U.StageVersion(basedir + '/consolestable', 'currentrelease', 'Maint Dnld')
-		U.InstallStagedVersion(basedir + '/consolestable')
-		logsupport.Logs.Log("Staged version installed in consolestable")
-	except:
-		logsupport.Logs.Log('Failed release download', severity=ConsoleWarning)
-	ReportStatus("done stable", hold=2)
-
-
-def fetch_beta():
-	basedir = os.path.dirname(config.sysStore.ExecDir)
-	ReportStatus("updt beta", hold=1)
-	logsupport.Logs.Log("New version fetch(currentbeta)")
-	# noinspection PyBroadException
-	try:
-		U.StageVersion(basedir + '/consolebeta', 'currentbeta', 'Maint Dnld')
-		U.InstallStagedVersion(basedir + '/consolebeta')
-		logsupport.Logs.Log("Staged version installed in consolebeta")
-	except:
-		logsupport.Logs.Log('Failed beta download', severity=ConsoleWarning)
-	ReportStatus("done beta", hold=2)
-
-def fetch_dev():
-	basedir = os.path.dirname(config.sysStore.ExecDir)
-	ReportStatus("updt dev", hold=1)
-	logsupport.Logs.Log("New version fetch(currentdev)")
-	# noinspection PyBroadException
-	try:
-		U.StageVersion(basedir + '/consoledev', '*live*', 'Maint Dnld')
-		U.InstallStagedVersion(basedir + '/consoledev')
-		logsupport.Logs.Log("Staged version installed in consoledev")
-	except:
-		logsupport.Logs.Log('Failed beta download', severity=ConsoleWarning)
-	ReportStatus("done dev", hold=2)
-
 
 class LogDisplayScreen(screen.BaseKeyScreenDesc):
 	def __init__(self):
@@ -347,28 +245,3 @@ class LogDisplayScreen(screen.BaseKeyScreenDesc):
 
 	def LogSwitch(self, event):
 		self.NextPage()
-
-
-def domaintexit(ExitKey):
-	if ExitKey == 'shut':
-		ReportStatus('shutting down', hold=1)
-		ExitCode = MAINTEXIT
-		Exit_Screen_Message("Manual Shutdown Requested", "Maintenance Request", "Shutting Down")
-	elif ExitKey == 'restart':
-		ReportStatus('restarting', hold=1)
-		ExitCode = MAINTRESTART
-		Exit_Screen_Message("Console Restart Requested", "Maintenance Request", "Restarting")
-	elif ExitKey == 'shutpi':
-		ReportStatus('pi shutdown', hold=1)
-		ExitCode = MAINTPISHUT
-		Exit_Screen_Message("Shutdown Pi Requested", "Maintenance Request", "Shutting Down Pi")
-	elif ExitKey == 'reboot':
-		ReportStatus('pi reboot', hold=1)
-		ExitCode = MAINTPIREBOOT
-		Exit_Screen_Message("Reboot Pi Requested", "Maintenance Request", "Rebooting Pi")
-	else:
-		ReportStatus('unknown maintenance restart', hold=1)
-		ExitCode = MAINTRESTART
-		Exit_Screen_Message("Unknown Exit Requested", "Maintenance Error", "Trying a Restart")
-	config.terminationreason = 'manual request'
-	Exit(ExitCode)

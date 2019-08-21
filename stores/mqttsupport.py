@@ -1,26 +1,21 @@
-import functools
 import json
-import subprocess
-import threading
 import time
 
 import paho.mqtt.client as mqtt
 import paho.mqtt.publish as publish
 # noinspection PyProtectedMember
 from configobj import Section
-import timers
 
 import config
-import exitutils
 import historybuffer
 import hw
 import logsupport
-import maintscreen
 import threadmanager
-from controlevents import CEvent, PostEvent, ConsoleEvent
-from logsupport import ConsoleWarning, ConsoleError, ConsoleInfo, ReportStatus
+from logsupport import ConsoleWarning, ConsoleError
 from stores import valuestore
 import consolestatus
+import issuecommands
+
 
 
 class MQitem(valuestore.StoreItem):
@@ -64,47 +59,7 @@ class MQTTBroker(valuestore.ValueStore):
 			logsupport.Logs.Log("{}: Disconnected stream {} with result code {}".format(self.name, self.MQTTnum, rc))
 
 		# noinspection PyUnusedLocal
-		def DoRestart():
-			if self.fetcher is not None and self.fetcher.is_alive():
-				logsupport.Logs.Log('Delaying restart until fetch completes')
-				dly = timers.OnceTimer(10,start=True,name='RestartDelay',proc=DoDelayedRestart)
-				ReportStatus('wait restart', hold=1)
-				return
-			ReportStatus('rmt restart', hold=1)
-			exitutils.Exit_Screen_Message('Remote restart requested', 'Remote Restart')
-			config.terminationreason = 'mqtt restart'
-			exitutils.Exit(exitutils.REMOTERESTART)
 
-		def DoDelayedRestart(evnt):
-			PostEvent(ConsoleEvent(CEvent.RunProc, name='DelayedRestart', proc=DoRestart))
-
-		def GetStable():
-			self.fetcher = threading.Thread(name='FetchStableRemote', target=maintscreen.fetch_stable, daemon=True)
-			self.fetcher.start()
-
-		def GetBeta():
-			self.fetcher = threading.Thread(name='FetchBetaRemote', target=maintscreen.fetch_beta, daemon=True)
-			self.fetcher.start()
-
-		def UseStable():
-			subprocess.Popen('sudo rm /home/pi/usebeta', shell=True)
-
-		def UseBeta():
-			subprocess.Popen('sudo touch /home/pi/usebeta', shell=True)
-
-		def DumpHB():
-			entrytime = time.strftime('%m-%d-%y %H:%M:%S')
-			historybuffer.DumpAll('Command Dump', entrytime)
-
-		def EchoStat():
-			ReportStatus('running stat')
-
-		def LogItem(sev):
-			logsupport.Logs.Log('Remotely forced test message ({})'.format(sev), severity=sev, tb=False, hb=False)
-
-		def GetErrors():
-			errs = logsupport.Logs.ReturnRecent(logsupport.ConsoleDetail, 10)
-			self.Publish('errresp', payload=json.dumps(errs))
 
 		# noinspection PyUnusedLocal
 		def on_message(client, userdata, msg):
@@ -118,25 +73,7 @@ class MQTTBroker(valuestore.ValueStore):
 			if msg.topic in ('consoles/all/cmd', 'consoles/' + hw.hostname + '/cmd'):
 				cmd = msg.payload.decode('ascii')
 				logsupport.Logs.Log('{}: Remote command received on {}: {}'.format(self.name, msg.topic, cmd))
-				cmdcalls = {'restart': DoRestart,
-							'getstable': GetStable,
-							'getbeta': GetBeta,
-							'usestable': UseStable,
-							'usebeta': UseBeta,
-							'hbdump': DumpHB,
-							'status': EchoStat,
-							'geterrors': GetErrors,
-							'issueerror': functools.partial(LogItem, ConsoleError),
-							'issuewarning': functools.partial(LogItem, ConsoleWarning),
-							'issueinfo': functools.partial(LogItem, ConsoleInfo)}
-				if cmd.lower() in cmdcalls:
-					try:
-						PostEvent(ConsoleEvent(CEvent.RunProc, name=cmd, proc=cmdcalls[cmd.lower()]))
-					except Exception as E:
-						logsupport.Logs.Log('Exc: {}'.format(repr(E)))
-				else:
-					logsupport.Logs.Log('{}: Unknown remote command request: {}'.format(self.name, cmd),
-										severity=ConsoleWarning)
+				issuecommands.IssueCommand(self.name, cmd)
 				return
 			elif msg.topic == 'consoles/all/errors':
 				d = json.loads(msg.payload.decode('ascii'))

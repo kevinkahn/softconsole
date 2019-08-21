@@ -66,8 +66,8 @@ def GoToScreen(NS, newstate='NonHome'):
 	screens.DS.SwitchScreen(NS, 'Bright', 'Go to Screen', newstate=newstate)
 
 
-def PushToScreen(NS, newstate='NonHome'):
-	screens.DS.SwitchScreen(NS, 'Bright', 'Push to Screen', newstate=newstate, push=True)
+def PushToScreen(NS, newstate='NonHome', msg='Push to Screen'):
+	screens.DS.SwitchScreen(NS, 'Bright', msg, newstate=newstate, push=True)
 
 
 def PopScreen(msg='PopScreen', newstate='Maint'):
@@ -131,7 +131,7 @@ class ScreenDesc(object):
 	def __getattr__(self, key):
 		return self.userstore.GetVal(key)
 
-	def __init__(self, screensection, screenname, parentscreen=None):
+	def __init__(self, screensection, screenname, parentscreen=None, SingleUse=False):
 		self.userstore = paramstore.ParamStore('Screen-' + screenname,
 											   dp=screenStore if parentscreen is None else parentscreen.userstore,
 											   locname=screenname)
@@ -140,6 +140,8 @@ class ScreenDesc(object):
 		self.markradius = int(min(hw.screenwidth, hw.screenheight) * .025)
 
 		self.name = screenname
+		self.singleuse = SingleUse
+		self.used = False
 		self.Active = False  # true if actually on screen
 		self.ScreenTimers = []
 		self.DefaultNavKeysShowing = True
@@ -179,7 +181,8 @@ class ScreenDesc(object):
 
 		IncorporateParams(self, 'Screen',
 						  {'CharColor', 'DimTO', 'PersistTO', 'BackgroundColor', 'CmdKeyCol', 'CmdCharCol',
-						   'DefaultHub', 'ScreenTitle', 'ScreenTitleColor', 'ScreenTitleSize'}, screensection)
+						   'DefaultHub', 'ScreenTitle', 'ScreenTitleColor', 'ScreenTitleSize', 'KeyCharColorOn',
+						   'KeyCharColorOff', 'KeyColor'}, screensection)
 		AddUndefaultedParams(self, screensection, label=[screenname])
 		try:
 			self.DefaultHubObj = hubs.hubs.Hubs[self.DefaultHub]
@@ -197,6 +200,7 @@ class ScreenDesc(object):
 			titlegap = h // 10  # todo is this the best way to space?
 			self.startvertspace = self.startvertspace + h + titlegap
 			self.useablevertspace = self.useablevertspace - h - titlegap
+			self.useablevertspacesansnav = self.useablevertspacesansnav - h - titlegap
 			self.titleoffset = self.starthorizspace + (self.useablehorizspace - w) // 2
 
 		utilities.register_example('ScreenDesc', self)
@@ -231,16 +235,19 @@ class ScreenDesc(object):
 		titlegap = h // 10
 		self.startvertspace = self.startvertspace - h - titlegap
 		self.useablevertspace = self.useablevertspace + h + titlegap
+		self.useablevertspacesansnav = self.useablevertspacesansnav + h + titlegap
 
-	def SetScreenTitle(self, name, fontsz, color):
-		if self.ScreenTitleBlk is not None:
+	def SetScreenTitle(self, name, fontsz, color, force=False):
+		if self.ScreenTitleBlk is not None and not force:
 			return  # User explicitly set a title so don't override it
+		self.ClearScreenTitle()
 		self.ScreenTitleBlk = fonts.fonts.Font(fontsz).render(name, 0, wc(color))
 		h = self.ScreenTitleBlk.get_height()
 		w = self.ScreenTitleBlk.get_width()
 		titlegap = h // 10  # todo is this the best way to space? if fix - fix clear also
 		self.startvertspace = self.startvertspace + h + titlegap
 		self.useablevertspace = self.useablevertspace - h - titlegap
+		self.useablevertspacesansnav = self.useablevertspacesansnav - h - titlegap
 		self.titleoffset = self.starthorizspace + (self.useablehorizspace - w) // 2
 
 	def ButSize(self, bpr, bpc, height):
@@ -263,6 +270,9 @@ class ScreenDesc(object):
 			self.HubInterestList[hub.name] = {item: value}
 
 	def InitDisplay(self, nav):
+		if self.used:
+			logsupport.Logs.Log('Attempted reuse (Init) of single use screen {}'.format(self.name),
+								severity=ConsoleError)
 		debug.debugPrint("Screen", "Base Screen InitDisplay: ", self.name)
 		self.PaintBase()
 		self.NavKeys = nav
@@ -271,6 +281,9 @@ class ScreenDesc(object):
 			hw.screen.blit(self.ScreenTitleBlk, (self.titleoffset, self.TopBorder))
 
 	def ReInitDisplay(self):
+		if self.used:
+			logsupport.Logs.Log('Attempted reuse (ReInit) of single use screen {}'.format(self.name),
+								severity=ConsoleError)
 		self.PaintBase()
 		self.PaintKeys()
 		if self.ScreenTitleBlk is not None:
@@ -284,11 +297,31 @@ class ScreenDesc(object):
 			else:
 				pass
 
-	def ExitScreen(self):
+	def ExitScreen(self, viaPush):
 		for timer in self.ScreenTimers:
 			if timer.is_alive():
 				timer.cancel()
 		self.ScreenTimers = []
+		if self.singleuse:
+			if viaPush:
+				pass
+			else:
+				self.userstore.DropStore()
+				for nm, k in self.Keys.items():
+					k.userstore.DropStore()
+				for nm, k in self.NavKeys.items():
+					k.userstore.DropStore()
+				self.used = True
+
+	def PopOver(self):
+		if self.singleuse:
+			self.userstore.DropStore()
+			for nm, k in self.Keys.items():
+				k.userstore.DropStore()
+			for nm, k in self.NavKeys.items():
+				k.userstore.DropStore()
+			self.used = True
+
 
 	def PaintBase(self):
 		hw.screen.fill(wc(self.BackgroundColor))
@@ -298,11 +331,10 @@ class ScreenDesc(object):
 
 
 class BaseKeyScreenDesc(ScreenDesc):
-	def __init__(self, screensection, screenname, parentscreen=None):
-		ScreenDesc.__init__(self, screensection, screenname, parentscreen=parentscreen)
+	def __init__(self, screensection, screenname, parentscreen=None, SingleUse=False):
+		ScreenDesc.__init__(self, screensection, screenname, parentscreen=parentscreen, SingleUse=SingleUse)
 
 		AddUndefaultedParams(self, screensection, KeysPerColumn=0, KeysPerRow=0)
-
 		self.buttonsperrow = -1
 		self.buttonspercol = -1
 		utilities.register_example('BaseKeyScreenDesc', self)
