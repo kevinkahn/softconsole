@@ -13,9 +13,10 @@ import timers
 import toucharea
 import utilities
 import issuecommands
-from logsupport import ConsoleWarning, ReportStatus, UpdateGlobalErrorPointer
+from logsupport import ConsoleWarning, UpdateGlobalErrorPointer
 from maintscreenbase import MaintScreenDesc, fixedoverrides
 import consolestatus
+import supportscreens
 
 MaintScreen = None
 
@@ -23,7 +24,9 @@ MaintScreen = None
 def SetUpMaintScreens():
 	global MaintScreen
 	screenset = []
-	LogDisp = LogDisplayScreen()
+	LogDisp = supportscreens.PagedDisplay('LocalLog', PickStartingSpot, logsupport.Logs.LineRenderer,
+										  logsupport.Logs.PageTitle, config.sysStore.LogFontSize, 'white')
+	# LogDisp = LogDisplayScreen()
 	screenset.append(LogDisp)
 
 	Status = consolestatus.SetUpConsoleStatus()
@@ -167,81 +170,12 @@ def gohome():  # neither peram used
 def goto(newscreen):
 	screens.DS.SwitchScreen(newscreen, 'Bright', 'Maint goto' + newscreen.name, newstate='Maint')
 
-class LogDisplayScreen(screen.BaseKeyScreenDesc):
-	def __init__(self):
-		screen.BaseKeyScreenDesc.__init__(self, None, 'LOG')
-		self.NavKeysShowing = False
-		self.DefaultNavKeysShowing = False
-		self.state = 'init'  # init: new entry to logs; scroll: doing error scroll manual: user control
-		self.startat = 0  # where in log page starts
-		self.startpage = 0
-		self.item = 0
-		self.pageno = -1
-		self.PageStartItem = [0]
-		self.Keys = {'nextpage': toucharea.TouchPoint('nextpage', (hw.screenwidth / 2, 3 * hw.screenheight / 4),
-													  (hw.screenwidth, hw.screenheight / 2), proc=self.NextPage),
-					 'prevpage': toucharea.TouchPoint('prevpage', (hw.screenwidth / 2, hw.screenheight / 4),
-													  (hw.screenwidth, hw.screenheight / 2),
-													  proc=self.PrevPage)}
-		self.name = 'Log'
-		utilities.register_example("LogDisplayScreen", self)
 
-	# noinspection PyUnusedLocal
-	def NextPage(self):
-		if self.item >= 0:
-			self.pageno += 1
-			self.startpage = self.item
-			screens.DS.SwitchScreen(screen.SELFTOKEN, 'Bright', 'Scroll Next', newstate='Maint')
-		else:
-			if self.state != 'scroll':
-				self.state = 'init'
-				screens.DS.SwitchScreen(screen.BACKTOKEN, 'Bright', 'Done (next) showing log', newstate='Maint')
-			else:
-				self.state = 'manual'
-
-	# noinspection PyUnusedLocal
-	def PrevPage(self):
-		if self.pageno > 0:
-			self.pageno -= 1
-			self.startpage = self.PageStartItem[self.pageno]
-			screens.DS.SwitchScreen(screen.SELFTOKEN, 'Bright', 'Scroll Prev', newstate='Maint')
-		else:
-			self.state = 'init'
-			screens.DS.SwitchScreen(screen.BACKTOKEN, 'Bright', 'Done (prev) showing log', newstate='Maint')
-
-	def InitDisplay(self, nav):
-		self.BackgroundColor = 'maroon'
-		if self.state == 'init':
-			debug.debugPrint('Main', "Enter to screen: ", self.name)
-			super(LogDisplayScreen, self).InitDisplay(nav)
-			logsupport.Logs.Log('Entering Log Screen')
-			self.startat = 0
-			self.startpage = 0
-			self.item = 0
-			self.pageno = -1
-			self.PageStartItem = [0]
-			if config.sysStore.ErrorNotice != -1:
-				self.state = 'scroll'
-				self.startat = config.sysStore.ErrorNotice
-				config.sysStore.ErrorNotice = -1
-			else:
-				self.state = 'manual'
-				self.startat = 0
-			UpdateGlobalErrorPointer()
-			self.item = 0
-			self.PageStartItem = [0]
-			self.pageno = -1
-		if self.state == 'scroll':
-			if (self.item < self.startat) and (
-					self.item != -1):  # if first error not yet up and not last page go to next page
-				timers.OnceTimer(.25, start=True, name='LogPage{}'.format(self.item), proc=self.LogSwitch)
-			else:
-				self.state = 'manual'
-		else:
-			pass
-		self.item = logsupport.Logs.RenderLog(self.BackgroundColor, start=self.startpage, pageno=self.pageno + 1)
-		if self.pageno + 1 == len(self.PageStartItem):  # if first time we saw this page remember its start pos
-			self.PageStartItem.append(self.item)
-
-	def LogSwitch(self, event):
-		self.NextPage()
+def PickStartingSpot():
+	if config.sysStore.ErrorNotice != -1:
+		startat = config.sysStore.ErrorNotice
+		config.sysStore.ErrorNotice = -1
+	else:
+		startat = 0
+	UpdateGlobalErrorPointer()
+	return startat

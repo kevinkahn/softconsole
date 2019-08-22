@@ -107,6 +107,13 @@ def DoDelayedAction(evnt):
 	PostEvent(ConsoleEvent(CEvent.RunProc, name='DelayedRestart', proc=evnt.action))
 
 
+def CommandResp(Key, params, value):
+	print('CR: {} {}'.format(params, value))
+	if Key is not None:
+		Key.ScheduleBlinkKey(5)
+	else:
+		config.MQTTBroker.CommandResponse(params[0], params[1], params[2], value)
+
 def Get(nm, target, Key=None):
 	global fetcher
 	if fetcher is not None and fetcher.is_alive():
@@ -132,35 +139,36 @@ def GetDev(Key=None):
 	Get('FetchDevRemote', fetch_dev, Key=Key)
 
 
-def UseStable(Key=None):
+def UseStable(params=None, Key=None):
 	subprocess.Popen('sudo echo stable > /home/pi/versionselector', shell=True)
-	if Key is not None:
-		Key.ScheduleBlinkKey(5)
+	CommandResp(Key, params, None)
 
 
-def UseBeta(Key=None):
+def UseBeta(params=None, Key=None):
 	subprocess.Popen('sudo echo beta > /home/pi/versionselector', shell=True)
-	if Key is not None:
-		Key.ScheduleBlinkKey(5)
+	CommandResp(Key, params, None)
 
 
-def UseDev(Key=None):
+def UseDev(params=None, Key=None):
 	subprocess.Popen('sudo echo dev > /home/pi/versionselector', shell=True)
-	if Key is not None:
-		Key.ScheduleBlinkKey(5)
+	CommandResp(Key, params, None)
 
 
-def DumpHB():
+def DumpHB(params=None, Key=None):
 	entrytime = time.strftime('%m-%d-%y %H:%M:%S')
 	historybuffer.DumpAll('Command Dump', entrytime)
+	CommandResp(Key, params, None)
 
 
-def EchoStat():
+def EchoStat(params=None, Key=None):
 	ReportStatus('running stat')
+	CommandResp(Key, params, None)
 
 
-def LogItem(sev):
+def LogItem(sev, params=None, Key=None):
+	print('Log {}'.format(params))
 	logsupport.Logs.Log('Remotely forced test message ({})'.format(sev), severity=sev, tb=False, hb=False)
+	CommandResp(Key, params, None)
 
 
 def GetErrors():
@@ -170,6 +178,17 @@ def GetErrors():
 	else:
 		logsupport.Logs.Log('Attempt to handle GetErrors with no MQTT broker established', severity=ConsoleWarning)
 
+
+def GetLog():
+	log = logsupport.Logs.ReturnRecemt(-1, 0)
+	if logsupport.primaryBroker is not None:
+		logsupport.primaryBroker.Publish('errresp', payload=json.dumps(log))
+	else:
+		logsupport.Logs.Log('Attempt to handle GetErrors with no MQTT broker established', severity=ConsoleWarning)
+
+
+def DisplayRemoteLog():
+	pass
 
 Where = Enum('Where',
 			 'LocalMenuExits LocalMenuVersions RemoteMenu MQTTCmds')
@@ -183,11 +202,11 @@ CommandRecord = NamedTuple('CommandRecord',
 Better Python 3.7 syntax
 class CommandRecord(NamedTuple):
 	def __init__(self,Proc,simple,DisplayName,Verify,where):
-		self.Proc = Proc
-		self.simple = simple
-		self.DisplayName = DisplayName
-		self.Verify = Verify
-		self.where = where
+		self.Proc = Proc  - called locally or at remote site
+		self.simple = simple or None - handle remote response simply or call a special proc (name mapping in consolestatus
+		self.DisplayName = DisplayName - button label when on a screen
+		self.Verify = Verify - whether to do a verify when on a screen
+		self.where = where - which places to use this record
 '''
 cmdcalls = OrderedDict({
 	'restart': CommandRecord(DoRestart, True, "Restart Console", 'True', MaintExits),
@@ -202,6 +221,7 @@ cmdcalls = OrderedDict({
 	'getdev': CommandRecord(GetDev, True, "Download Development", 'False', MaintVers),
 	'hbdump': CommandRecord(DumpHB, True, "Dump HB", 'False', (Where.RemoteMenu, Where.MQTTCmds)),
 	'status': CommandRecord(EchoStat, True, "Echo Status", 'False', (Where.MQTTCmds,)),
+	'getlog': CommandRecord(GetLog, False, "Get Remote Log", "False", (Where.MQTTCmds, Where.RemoteMenu)),
 	'geterrors': CommandRecord(GetErrors, False, "Get Recent Errors", 'False', (Where.MQTTCmds, Where.RemoteMenu)),
 	'issueerror': CommandRecord(functools.partial(LogItem, ConsoleError), True, "Issue Error", 'False',
 								(Where.RemoteMenu, Where.MQTTCmds)),
@@ -211,10 +231,11 @@ cmdcalls = OrderedDict({
 							   (Where.RemoteMenu, Where.MQTTCmds))})
 
 
-def IssueCommand(source, cmd):
+def IssueCommand(source, cmd, seq, fromnd):
 	if cmd.lower() in cmdcalls:
 		try:
-			PostEvent(ConsoleEvent(CEvent.RunProc, name=cmd, proc=cmdcalls[cmd.lower()].Proc))
+			PostEvent(
+				ConsoleEvent(CEvent.RunProc, name=cmd, proc=cmdcalls[cmd.lower()].Proc, params=(cmd, seq, fromnd)))
 		except Exception as E:
 			logsupport.Logs.Log('Exc: {}'.format(repr(E)))
 	else:

@@ -54,7 +54,6 @@ class KeyScreenDesc(screen.BaseKeyScreenDesc):
 								severity=ConsoleWarning)
 			value = int(value)
 
-		assert isinstance(value, int)
 		if node is None:  # all keys for this hub
 			for _, K in self.HubInterestList[hub].items():
 				debug.debugPrint('Screen', 'KS Wildcard ISYEvent ', K.name, str(value), str(K.State))
@@ -69,10 +68,13 @@ class KeyScreenDesc(screen.BaseKeyScreenDesc):
 				debug.debugPrint('Screen', 'Bad key to KS - race?', self.name, str(node))
 				return  # treat as noop
 			debug.debugPrint('Screen', 'KS ISYEvent ', K.name, str(value), str(K.State))
-			K.State = not (value == 0)  # K is off (false) only if state is 0
-			K.UnknownState = True if value == -1 else False
-			K.PaintKey()
-			pygame.display.update()
+			if hasattr(K, 'HandleNodeEvent'):
+				K.HandleNodeEvent(node, value)
+			else:
+				K.State = not (value == 0)  # K is off (false) only if state is 0
+				K.UnknownState = True if value == -1 else False
+				K.PaintKey()
+				pygame.display.update()
 		else:
 			# noinspection PyBroadException
 			try:

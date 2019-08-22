@@ -178,6 +178,8 @@ def LogProcess(q):
 						f.write('Logger waiting to exit {} {}\n'.format(exiting, time.time()))
 						f.flush()
 						continue  # nothing to process
+				else:
+					continue  # back to waiting
 
 			if item[0] == Command.LogEntry:
 				# Log Entry (0,severity, entry, entrytime)
@@ -297,15 +299,18 @@ class Logger(object):
 			config.sysStore.ErrorNotice = len(self.log) - 1
 
 	def ReturnRecent(self, loglevel, maxentries):
-		rtnval = []
-		n = 0
-		logitem = len(self.log) - 1
-		while n < maxentries and logitem > 0:
-			if self.log[logitem][0] >= loglevel:
-				rtnval.append(self.log[logitem])
-			n += 1
-			logitem -= 1
-		return rtnval
+		if loglevel == -1:
+			return self.log
+		else:
+			rtnval = []
+			n = 0
+			logitem = len(self.log) - 1
+			while n < maxentries and logitem > 0:
+				if self.log[logitem][0] >= loglevel:
+					rtnval.append(self.log[logitem])
+				n += 1
+				logitem -= 1
+			return rtnval
 
 	def LogRemote(self, node, entry, etime, severity):
 		tentry = '[{}] {}'.format(node, entry)
@@ -385,8 +390,40 @@ class Logger(object):
 			self.RecordMessage(ConsoleError, 'Exception while local logging: {}'.format(repr(E)),
 							   defentrytime, False, True)
 
+	def LineRenderer(self, itemnumber, font, recommendedcolor):
+		itext = self.log[itemnumber][1]
+		rl = []
+		h = 0
+		color = self.LogColors[self.log[itemnumber][0]]
+		text = re.sub('\s\s+', ' ', itext.rstrip())
+		ltext = re.split('([ :,])', text)
+		ltext.append('')
+		ptext = []
+		while len(ltext) > 1:
+			ptext.append(ltext[0])
+			del ltext[0]
+			while 1:
+				if len(ltext) == 0:
+					break
+				t = font.size(''.join(ptext) + ltext[0])[0]
+				if t > hw.screenwidth - 10:
+					break
+				else:
+					ptext.append(ltext[0])
+					del ltext[0]
+			rl.append(font.render(''.join(ptext), False, wc(color)))
+			h += rl[-1].get_height()
+			ptext = ["    "]
+		blk = pygame.Surface((hw.screenwidth, h))
+		blk.set_colorkey(wc('black'))
+		v = 0
+		for l in rl:
+			blk.blit(l, (0, v))
+			v += l.get_height()
 
-	def RenderLogLine(self, itext, clr, pos):
+		return blk, itemnumber + 1 < len(self.log)
+
+	def RenderLogLine(self, itext, clr, pos):  # todo switch initial log display to using LineRenderer
 		# odd logic below is to make sure that if an unbroken item would by itself exceed line length it gets forced out
 		# thus avoiding an infinite loop
 
@@ -414,19 +451,8 @@ class Logger(object):
 		pygame.display.update()
 		return pos
 
-	def RenderLog(self, backcolor, start=0, pageno=-1):
-		pos = 0
-		hw.screen.fill(wc(backcolor))
-		if pageno != -1:
-			pos = self.RenderLogLine(self.log[start][2] + '          Page: ' + str(pageno), 'white', pos)
-		for i in range(start, len(self.log)):
-			pos = self.RenderLogLine(self.log[i][1], self.LogColors[self.log[i][0]], pos)
-			if pos > hw.screenheight - screens.screenStore.BotBorder:
-				pygame.display.update()
-				return (i + 1) if (i + 1) < len(self.log) else -1
-
-		return -1
-
+	def PageTitle(self, pageno, itemnumber):
+		return "Local Log from {}           Page: {}".format(self.log[itemnumber][2], pageno)
 
 def ReportStatus(status, retain=True, hold=0):
 	# held: 0 normal status report, 1 set an override status to be held, 2 clear and override status

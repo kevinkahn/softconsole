@@ -1,5 +1,6 @@
 import shlex
 
+import pygame
 import debug
 import hubs.hubs
 import logsupport
@@ -14,6 +15,7 @@ from toucharea import ManualKeyDesc
 from utilfuncs import *
 from configobjects import GoToTargetList
 import config
+import time
 
 # noinspection PyUnusedLocal
 def KeyWithVarChanged(storeitem, old, new, param, modifier):
@@ -64,6 +66,8 @@ def CreateKey(thisscreen, screensection, keyname):
 		NewKey = GoToKey(thisscreen, screensection, keyname)
 	elif keytype == 'PROC':
 		NewKey = InternalProcKey(thisscreen, screensection, keyname)
+	elif keytype == 'REMOTEPROC':
+		NewKey = RemoteProcKey(thisscreen, screensection, keyname)
 	else:  # unknown type
 		NewKey = BlankKey(thisscreen, screensection, keyname)
 		logsupport.Logs.Log('Undefined key type ' + keytype + ' for: ' + keyname, severity=ConsoleWarning)
@@ -377,27 +381,68 @@ class OnOffKey(ManualKeyDesc):
 
 class InternalProcKey(ManualKeyDesc):
 	def __init__(self, thisscreen, keysection, keyname):
-		ManualKeyDesc.__init__(self, thisscreen, keysection, keyname)
+		super().__init__(thisscreen, keysection, keyname)
 		self.thisscreen = thisscreen
-		self.Hub = config.MQTTBroker
-		screen.AddUndefaultedParams(self, keysection, ProcName='', MQTTInterest='False')
+		screen.AddUndefaultedParams(self, keysection, ProcName='')
 		self.Proc = internalprocs[self.ProcName]
 		if self.Verify:  # todo make verified a single global proc??
 			self.VerifyScreen = supportscreens.VerifyScreen(self, self.GoMsg, self.NoGoMsg, self.Proc,
 															thisscreen, self.KeyColorOff,
 															thisscreen.BackgroundColor, thisscreen.CharColor,
 															self.State, thisscreen.HubInterestList)
-			self.Proc = self.VerifyScreen.Invoke  # todo make this a goto key; make verify screen always do a pop and get rid of the switch screens below
+			self.Proc = self.VerifyScreen.Invoke
 		else:
 			self.ProcDblTap = None
 
-	def FinishKey(self, center, size, firstfont=0, shrink=True):
-		super().FinishKey(center, size, firstfont, shrink)
-		if self.MQTTInterest:
-			self.thisscreen.AddToHubInterestList(self.Hub, self.name, self)
 
 	def InitDisplay(self):
 		debug.debugPrint("Screen", "InternalProcKey.InitDisplay ", self.Screen.name, self.name)
-		self.state = True
+		self.State = True
 		self.UnknownState = False
 		super(InternalProcKey, self).InitDisplay()
+
+
+class RemoteProcKey(InternalProcKey):
+	def __init__(self, thisscreen, keysection, keyname):
+		super().__init__(thisscreen, keysection, keyname)
+		self.Hub = config.MQTTBroker
+		self.Seq = 0
+
+	def FinishKey(self, center, size, firstfont=0, shrink=True):
+		super().FinishKey(center, size, firstfont, shrink)
+		self.thisscreen.AddToHubInterestList(self.Hub, self.name, self)
+
+	def HandleNodeEvent(self, node, resp):
+		print('ProcNodeEvent {} {}'.format(node, resp))
+		if int(resp[2]) != self.Seq:
+			logsupport.Logs.Log(
+				'Remote response sequence error for {} expected {} ogt {}'.format(self.name, self.Seq, resp),
+				severity=ConsoleWarning, tb=True)
+		time.sleep(.5)  # slow the blink without stalling console too long
+		self.State = True
+		self.PaintKey()
+		pygame.display.update()
+
+
+class RemoteComplexProcKey(InternalProcKey):
+	def __init__(self, thisscreen, keysection, keyname):
+		super().__init__(thisscreen, keysection, keyname)
+		screen.AddUndefaultedParams(self, keysection, EventProcName='')
+		self.Hub = config.MQTTBroker
+		self.Seq = 0
+		self.FinishProc = internalprocs[self.EventProcName]
+
+	def FinishKey(self, center, size, firstfont=0, shrink=True):
+		super().FinishKey(center, size, firstfont, shrink)
+		self.thisscreen.AddToHubInterestList(self.Hub, self.name, self)
+
+	def HandleNodeEvent(self, node, resp):
+		if int(resp[2]) != self.Seq:
+			logsupport.Logs.Log(
+				'Remote response sequence error for {} expected {} ogt {}'.format(self.name, self.Seq, resp),
+				severity=ConsoleWarning, tb=True)
+		self.State = True
+		# todo got to page? or make more general call?  FinishProc here
+
+		self.PaintKey()
+		pygame.display.update()

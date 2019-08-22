@@ -15,6 +15,8 @@ import utilities
 from logsupport import ConsoleDetail
 import toucharea
 from utilfuncs import wc
+import timers
+import config
 
 class VerifyScreen(screen.BaseKeyScreenDesc):
 
@@ -307,3 +309,105 @@ class ListChooserSubScreen(screen.ScreenDesc):
 		pygame.draw.polygon(hw.screen, upcolor, _TriangleCorners(self.SrcPrev, self.sourceheight, False), 3)
 		pygame.draw.polygon(hw.screen, dncolor, _TriangleCorners(self.SrcNext, self.sourceheight, True), 3)
 		pygame.display.update()
+
+
+class PagedDisplay(screen.BaseKeyScreenDesc):
+	def __init__(self, nm, StartPosChooser, LineRenderer, GetPageHeader, fontsize, color):
+		super().__init__(None, nm)
+		self.StartChooser = StartPosChooser
+		self.LineRenderer = LineRenderer
+		self.GetPageHeader = GetPageHeader
+		self.NavKeysShowing = False
+		self.DefaultNavKeysShowing = False
+		self.state = 'init'  # init: new entry to logs; scroll: doing error scroll manual: user control
+		self.startat = 0  # where in log page starts
+		self.startpage = 0
+		self.item = 0
+		self.pageno = -1
+		self.PageStartItem = [0]
+		self.Keys = {'nextpage': toucharea.TouchPoint('nextpage', (hw.screenwidth / 2, 3 * hw.screenheight / 4),
+													  (hw.screenwidth, hw.screenheight / 2), proc=self.NextPage),
+					 'prevpage': toucharea.TouchPoint('prevpage', (hw.screenwidth / 2, hw.screenheight / 4),
+													  (hw.screenwidth, hw.screenheight / 2),
+													  proc=self.PrevPage)}
+		self.color = color
+		self.pagefont = fonts.fonts.Font(fontsize, face=fonts.monofont)
+		utilities.register_example("LogDisplayScreen", self)
+
+	# noinspection PyUnusedLocal
+	def NextPage(self):
+		if self.item >= 0:
+			self.pageno += 1
+			self.startpage = self.item
+			screens.DS.SwitchScreen(screen.SELFTOKEN, 'Bright', 'Scroll Next', newstate='Maint')
+		else:
+			if self.state != 'scroll':
+				self.state = 'init'
+				screens.DS.SwitchScreen(screen.BACKTOKEN, 'Bright', 'Done (next) showing log', newstate='Maint')
+			else:
+				self.state = 'manual'
+
+	# noinspection PyUnusedLocal
+	def PrevPage(self):
+		if self.pageno > 0:
+			self.pageno -= 1
+			self.startpage = self.PageStartItem[self.pageno]
+			screens.DS.SwitchScreen(screen.SELFTOKEN, 'Bright', 'Scroll Prev', newstate='Maint')
+		else:
+			self.state = 'init'
+			screens.DS.SwitchScreen(screen.BACKTOKEN, 'Bright', 'Done (prev) showing log', newstate='Maint')
+
+	def InitDisplay(self, nav):
+		self.BackgroundColor = 'maroon'
+		if self.state == 'init':
+			debug.debugPrint('Main', "Enter to screen: ", self.name)
+			super().InitDisplay(nav)
+			logsupport.Logs.Log('Entering Log Screen')
+			self.startat = 0
+			self.startpage = 0
+			self.item = 0
+			self.pageno = 0
+			self.PageStartItem = [0]
+			self.startat = self.StartChooser()
+			self.state = 'scroll' if self.startat != 0 else 'manual'
+			self.item = 0
+			self.PageStartItem = [0]
+		if self.state == 'scroll':
+			if (self.item < self.startat) and (
+					self.item != -1):  # if first error not yet up and not last page go to next page
+				timers.OnceTimer(.25, start=True, name='LogPage{}'.format(self.item), proc=self.PageSwitch)
+			else:
+				self.state = 'manual'
+		else:
+			pass
+		self.item = self.RenderPage(self.BackgroundColor, start=self.startpage, pageno=self.pageno)
+		if self.pageno + 1 == len(self.PageStartItem):  # if first time we saw this page remember its start pos
+			self.PageStartItem.append(self.item)
+
+	def PageSwitch(self, event):
+		self.NextPage()
+
+	def RenderPage(self, backcolor, start=0, pageno=-1):
+		moretorender = True
+		itemnumber = start
+		pos = 0
+		hw.screen.fill(wc(backcolor))
+		if pageno != -1:
+			l = self.pagefont.render(self.GetPageHeader(pageno + 1, itemnumber), False, wc(self.color))
+			hw.screen.blit(l, (10, pos))
+			pos = pos + self.pagefont.get_linesize()
+			pygame.display.update()
+		while moretorender:
+			l, moretorender = self.LineRenderer(itemnumber, self.pagefont,
+												self.color)  # color here is recommended color
+			hw.screen.blit(l, (10, pos))  # todo this can cause long lines to render off the screen
+			pygame.display.update()
+			pos = pos + l.get_height()
+			itemnumber += 1
+			if pos > hw.screenheight - screens.screenStore.BotBorder:
+				return itemnumber if moretorender else -1
+
+		l = self.pagefont.render('***** End *****', False, wc(self.color))
+		hw.screen.blit(l, ((hw.screenwidth - l.get_width()) / 2, pos + l.get_height()))
+		pygame.display.update()
+		return -1

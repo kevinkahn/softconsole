@@ -66,7 +66,6 @@ class MQTTBroker(valuestore.ValueStore):
 		# noinspection PyUnusedLocal
 		def on_message(client, userdata, msg):
 			# command to force get: mosquitto_pub -t consoles/all/cmd -m getstable;  mosquitto_pub -t consoles/all/cmd -m restart
-			print(repr(msg.topic))
 			loopstart = time.time()
 			var = []
 			for t, item in userdata.topicindex.items():
@@ -74,7 +73,6 @@ class MQTTBroker(valuestore.ValueStore):
 					var.extend(item)
 
 			if msg.topic in ('consoles/all/cmd', 'consoles/' + hw.hostname + '/cmd'):
-				print('Got cmd')
 				payld = msg.payload.decode('ascii').split('|')
 
 				cmd = payld[0]
@@ -82,9 +80,9 @@ class MQTTBroker(valuestore.ValueStore):
 				seq = 'unknown' if len(payld) < 3 else payld[2]
 				logsupport.Logs.Log(
 					'{}: Remote command received on {} from {}-{}: {}'.format(self.name, msg.topic, fromnd, seq, cmd))
-				issuecommands.IssueCommand(self.name, cmd)
-				if fromnd != 'unknown':
-					self.Publish('resp', '{}|ok|{}'.format(cmd, seq), fromnd)
+				issuecommands.IssueCommand(self.name, cmd, seq, fromnd)
+				# if fromnd != 'unknown':
+				#	self.Publish('resp', '{}|ok|{}'.format(cmd, seq), fromnd)
 				return
 			elif msg.topic == 'consoles/all/errors':
 				d = json.loads(msg.payload.decode('ascii'))
@@ -103,8 +101,8 @@ class MQTTBroker(valuestore.ValueStore):
 			else:
 				# see if it is node specific message
 				topic = msg.topic.split('/')
-				msgdcd = json.loads(msg.payload.decode('ascii'))
 
+				msgdcd = json.loads(msg.payload.decode('ascii'))
 				if topic[2] == 'nodes':
 					consolestatus.UpdateStatus(topic[-1], msgdcd)
 					return
@@ -112,13 +110,13 @@ class MQTTBroker(valuestore.ValueStore):
 					consolestatus.UpdateStatus(topic[1], msgdcd)
 					return
 				elif topic[2] == 'resp':
-					print('Got resp {}'.format(msg.payload.decode('ascii').split('|')))  # tempdel
 					if self.name in screens.DS.AS.HubInterestList:
-						msgresp = msg.payload.decode('ascii').split('|')
-						if msgresp[0] in screens.DS.AS.HubInterestList[self.name]:
+						if msgdcd['cmd'] in screens.DS.AS.HubInterestList[
+							self.name]:  #todo verify seq num and key before posting
 							controlevents.PostEvent(controlevents.ConsoleEvent(controlevents.CEvent.HubNodeChange,
-																			   hub=self.name, node=msgresp[0],
-																			   value=msgresp))
+																			   hub=self.name, stat=msgdcd['status'],
+																			   seq=msgdcd['seq'],
+																			   value=msgdcd['value']))
 					return
 
 			# noinspection PySimplifyBooleanCheck
@@ -257,6 +255,15 @@ class MQTTBroker(valuestore.ValueStore):
 	@staticmethod
 	def SetValByID(lclid, val):
 		logsupport.Logs.Log("Can't set MQTT subscribed var by id within console: ", str(lclid))
+
+	def CommandResponse(self, cmd, seq, fromnd, value):
+		print('Command resp {} {} {} {}'.format(cmd, seq, fromnd, value))
+		# todo del fromnd param?
+		resp = {'status': 'ok', 'seq': seq, 'cmd': cmd}
+		if value is not None:
+			resp['value'] = value
+		payld = json.dumps(resp)
+		self.Publish('resp', payld, node=fromnd)
 
 	def Publish(self, topic, payload=None, node=hw.hostname, qos=1, retain=False, viasvr=False):
 		fulltopic = 'consoles/' + node + '/' + topic

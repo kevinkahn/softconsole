@@ -515,8 +515,12 @@ class DisplayScreen(object):
 					event.proc(event)
 
 				elif event.type == CEvent.RunProc:
-					self.HBEvents.Entry('Run procedure {}'.format(event.name))
-					event.proc()
+					if hasattr(event, 'params'):
+						self.HBEvents.Entry('Run procedure {} with params {}'.format(event.name, event.params))
+						event.proc(event.params)
+					else:
+						self.HBEvents.Entry('Run procedure {}'.format(event.name))
+						event.proc()
 
 				else:
 					logsupport.Logs.Log("Unknown main event {}".format(repr(event)), severity=ConsoleError, hb=True,

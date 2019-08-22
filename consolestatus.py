@@ -212,6 +212,7 @@ class StatusDisplayScreen(screen.BaseKeyScreenDesc):
 class CommandScreen(screen.BaseKeyScreenDesc):
 	def __init__(self):
 		screen.BaseKeyScreenDesc.__init__(self, None, 'StatusCmdScreen', SingleUse=True)
+		self.RespProcs = {'getlog': self.LogDisplay, 'geterrors': self.LogDisplay}
 		screen.AddUndefaultedParams(self, None, TitleFontSize=40, SubFontSize=25)
 		self.NavKeysShowing = False
 		self.DefaultNavKeysShowing = False
@@ -252,12 +253,15 @@ class CommandScreen(screen.BaseKeyScreenDesc):
 		for cmd, action in issuecommands.cmdcalls.items():
 			if issuecommands.Where.RemoteMenu in action.where:
 				DN = action.DisplayName.split(' ')
-				Cmds[cmd] = {"type": "PROC", "ProcName": 'Command' + cmd, "label": DN, "Verify": action.Verify}
 				if action.simple:
+					Cmds[cmd] = {"type": "REMOTEPROC", "ProcName": 'Command' + cmd, "label": DN,
+								 "Verify": action.Verify}
 					keyspecs.internalprocs['Command' + cmd] = functools.partial(self.IssueSimpleCmd, cmd)
-					Cmds[cmd]['MQTTInterest'] = 'True'
 				else:
-					keyspecs.internalprocs['Command' + cmd] = functools.partial(self.IssueComplexCmd, cmd)
+					Cmds[cmd] = {"type": "REMOTECPLXPROC", "ProcName": 'Command' + cmd, "label": DN,
+								 "Verify": action.Verify, "EventProcName": 'Commandresp' + cmd}
+					keyspecs.internalprocs['Commandresp' + cmd] = functools.partial(self.RespProcs[cmd], cmd)
+					keyspecs.internalprocs['Command' + cmd] = functools.partial(self.IssueSimpleCmd, cmd)
 
 		self.CmdListScreen = screens.screentypes["Keypad"](Cmds, 'CmdListScreen', parentscreen=self)
 		self.CmdListScreen.SetScreenTitle('Commands', self.TitleFontSize, 'white')
@@ -267,6 +271,7 @@ class CommandScreen(screen.BaseKeyScreenDesc):
 		# todo bind with param for all the simple issues, sep proc for viewing errors which loops waiting buffer then goes to screen
 		print("Issue simple cmd: {} to {}".format(cmd, self.FocusNode))
 		MsgSeq += 1
+		Key.Seq = MsgSeq
 		config.MQTTBroker.Publish('cmd', '{}|{}|{}'.format(cmd, hw.hostname, MsgSeq), self.FocusNode)
 		self.CmdListScreen.AddToHubInterestList(config.MQTTBroker, cmd, Key)
 
@@ -274,11 +279,7 @@ class CommandScreen(screen.BaseKeyScreenDesc):
 		Key.PaintKey()
 		pygame.display.update()
 
-	def IssueComplexCmd(self, cmd):
-		# todo bind with param for all the simple issues, sep proc for viewing errors which loops waiting buffer then goes to screen
-		print("Issue complex cmd: {} to {}".format(cmd, self.FocusNode))
-
-	def DisplayRecentErrors(self):
+	def LogDisplay(self, cmd, Key=None):  # need to get part 2 of this embedded in handle event
 		print('Get recent errors from: {}'.format(self.FocusNode))
 
 	def ShowCmds(self, nd):
