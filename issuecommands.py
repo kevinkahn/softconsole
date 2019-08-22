@@ -214,7 +214,7 @@ cmdcalls = OrderedDict({
 def IssueCommand(source, cmd):
 	if cmd.lower() in cmdcalls:
 		try:
-			PostEvent(ConsoleEvent(CEvent.RunProc, name=cmd, proc=cmdcalls[cmd.lower()]))
+			PostEvent(ConsoleEvent(CEvent.RunProc, name=cmd, proc=cmdcalls[cmd.lower()].Proc))
 		except Exception as E:
 			logsupport.Logs.Log('Exc: {}'.format(repr(E)))
 	else:

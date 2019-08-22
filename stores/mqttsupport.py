@@ -66,6 +66,7 @@ class MQTTBroker(valuestore.ValueStore):
 		# noinspection PyUnusedLocal
 		def on_message(client, userdata, msg):
 			# command to force get: mosquitto_pub -t consoles/all/cmd -m getstable;  mosquitto_pub -t consoles/all/cmd -m restart
+			print(repr(msg.topic))
 			loopstart = time.time()
 			var = []
 			for t, item in userdata.topicindex.items():
@@ -73,10 +74,12 @@ class MQTTBroker(valuestore.ValueStore):
 					var.extend(item)
 
 			if msg.topic in ('consoles/all/cmd', 'consoles/' + hw.hostname + '/cmd'):
+				print('Got cmd')
 				payld = msg.payload.decode('ascii').split('|')
+
 				cmd = payld[0]
-				fromnd = 'unknown' if len(payld < 1) else payld[1]
-				seq = 'unknown' if len(payld < 2) else payld[2]
+				fromnd = 'unknown' if len(payld) < 2 else payld[1]
+				seq = 'unknown' if len(payld) < 3 else payld[2]
 				logsupport.Logs.Log(
 					'{}: Remote command received on {} from {}-{}: {}'.format(self.name, msg.topic, fromnd, seq, cmd))
 				issuecommands.IssueCommand(self.name, cmd)
