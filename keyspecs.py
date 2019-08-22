@@ -13,6 +13,7 @@ from stores import valuestore
 from toucharea import ManualKeyDesc
 from utilfuncs import *
 from configobjects import GoToTargetList
+import config
 
 # noinspection PyUnusedLocal
 def KeyWithVarChanged(storeitem, old, new, param, modifier):
@@ -377,7 +378,9 @@ class OnOffKey(ManualKeyDesc):
 class InternalProcKey(ManualKeyDesc):
 	def __init__(self, thisscreen, keysection, keyname):
 		ManualKeyDesc.__init__(self, thisscreen, keysection, keyname)
-		screen.AddUndefaultedParams(self, keysection, ProcName='')
+		self.thisscreen = thisscreen
+		self.Hub = config.MQTTBroker
+		screen.AddUndefaultedParams(self, keysection, ProcName='', MQTTInterest='False')
 		self.Proc = internalprocs[self.ProcName]
 		if self.Verify:  # todo make verified a single global proc??
 			self.VerifyScreen = supportscreens.VerifyScreen(self, self.GoMsg, self.NoGoMsg, self.Proc,
@@ -389,7 +392,9 @@ class InternalProcKey(ManualKeyDesc):
 			self.ProcDblTap = None
 
 	def FinishKey(self, center, size, firstfont=0, shrink=True):
-		super(InternalProcKey, self).FinishKey(center, size, firstfont, shrink)
+		super().FinishKey(center, size, firstfont, shrink)
+		if self.MQTTInterest:
+			self.thisscreen.AddToHubInterestList(self.Hub, self.name, self)
 
 	def InitDisplay(self):
 		debug.debugPrint("Screen", "InternalProcKey.InitDisplay ", self.Screen.name, self.name)

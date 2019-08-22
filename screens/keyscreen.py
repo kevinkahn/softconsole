@@ -26,8 +26,13 @@ class KeyScreenDesc(screen.BaseKeyScreenDesc):
 		debug.debugPrint('Screen', "Active Subscription List for ", self.name, " will be:")
 		for h, l in self.HubInterestList.items():
 			for i, j in l.items():
-				debug.debugPrint('Screen', "  Subscribe on hub " + h + " node: " + i + ' ' + j.name + ":" +
-								 j.ControlObj.name + ' via ' + j.DisplayObj.name)
+				m1 = "  Subscribe on hub {} node: {} {}".format(h, i, j.name)
+				m2 = ""
+				try:
+					m2 = ":{} via {}".format(j.ControlObj.name, j.DisplayObj.name)
+				except:
+					pass
+				debug.debugPrint('Screen', m1 + m2)
 
 		utilities.register_example("KeyScreenDesc", self)
 

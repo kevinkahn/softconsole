@@ -15,6 +15,8 @@ from logsupport import ConsoleWarning, ConsoleError
 from stores import valuestore
 import consolestatus
 import issuecommands
+import screens.__screens as screens
+import controlevents
 
 
 
@@ -48,7 +50,7 @@ class MQTTBroker(valuestore.ValueStore):
 								  ('consoles/all/set', 1)])
 				client.subscribe('consoles/all/nodes/#')
 				client.subscribe('consoles/+/status')
-				client.subscribe('consoles/+/errresp')
+				client.subscribe('consoles/+/resp')
 			self.loopexited = False
 
 		#			for i, v in userdata.vars.items():
@@ -71,9 +73,15 @@ class MQTTBroker(valuestore.ValueStore):
 					var.extend(item)
 
 			if msg.topic in ('consoles/all/cmd', 'consoles/' + hw.hostname + '/cmd'):
-				cmd = msg.payload.decode('ascii')
-				logsupport.Logs.Log('{}: Remote command received on {}: {}'.format(self.name, msg.topic, cmd))
+				payld = msg.payload.decode('ascii').split('|')
+				cmd = payld[0]
+				fromnd = 'unknown' if len(payld < 1) else payld[1]
+				seq = 'unknown' if len(payld < 2) else payld[2]
+				logsupport.Logs.Log(
+					'{}: Remote command received on {} from {}-{}: {}'.format(self.name, msg.topic, fromnd, seq, cmd))
 				issuecommands.IssueCommand(self.name, cmd)
+				if fromnd != 'unknown':
+					self.Publish('resp', '{}|ok|{}'.format(cmd, seq), fromnd)
 				return
 			elif msg.topic == 'consoles/all/errors':
 				d = json.loads(msg.payload.decode('ascii'))
@@ -100,8 +108,14 @@ class MQTTBroker(valuestore.ValueStore):
 				elif topic[2] == 'status':
 					consolestatus.UpdateStatus(topic[1], msgdcd)
 					return
-				elif topic[2] == 'errresp':
-					consolestatus.GotErrors(topic[1], json.loads(msg.payload))
+				elif topic[2] == 'resp':
+					print('Got resp {}'.format(msg.payload.decode('ascii').split('|')))  # tempdel
+					if self.name in screens.DS.AS.HubInterestList:
+						msgresp = msg.payload.decode('ascii').split('|')
+						if msgresp[0] in screens.DS.AS.HubInterestList[self.name]:
+							controlevents.PostEvent(controlevents.ConsoleEvent(controlevents.CEvent.HubNodeChange,
+																			   hub=self.name, node=msgresp[0],
+																			   value=msgresp))
 					return
 
 			# noinspection PySimplifyBooleanCheck
@@ -200,7 +214,8 @@ class MQTTBroker(valuestore.ValueStore):
 							  'hw': hw.hwinfo}),
 						 retain=True, qos=1)
 		threadmanager.SetUpHelperThread(self.name, self.MQTTLoop)
-		consolestatus.monitoringstatus = True
+		config.monitoringstatus = True
+		config.MQTTBroker = self
 
 	def MQTTLoop(self):
 		self.MQTTclient.connect(self.address, keepalive=20)
@@ -242,6 +257,7 @@ class MQTTBroker(valuestore.ValueStore):
 
 	def Publish(self, topic, payload=None, node=hw.hostname, qos=1, retain=False, viasvr=False):
 		fulltopic = 'consoles/' + node + '/' + topic
+		print('MQTT Publish {} to {}'.format(fulltopic, payload, ))
 		if self.MQTTrunning:
 			self.MQTTclient.publish(fulltopic, payload, qos=qos, retain=retain)
 		else:

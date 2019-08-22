@@ -12,6 +12,11 @@ ecode = 0  # exit code set for main loop
 # Operational global navigation roots
 SonosScreen = None  # todo hack to handle late appearing players
 
+# Avoids import loops
+monitoringstatus = False
+MQTTBroker = None
+
+
 # Global Defaults Settable in config.txt in Console
 sysStore = None
 

@@ -18,8 +18,12 @@ from utilfuncs import wc
 from maintscreenbase import MaintScreenDesc
 import logsupport
 import keyspecs
+import config
 
-monitoringstatus = False
+
+def Publish(topic, payload=None, node=hw.hostname, qos=1, retain=False, viasvr=False):
+	# this gets replaced by actual Publish when MQTT starts up
+	pass
 
 nodes = OrderedDict()
 noderecord = namedtuple('noderecord', ['status', 'uptime', 'error', 'rpttime', 'FirstUnseenErrorTime',
@@ -37,14 +41,15 @@ StatusDisp = None
 Status = None
 ShowHW = None
 ShowVers = None
-ErrorBuffer = []
-ErrorNode = ''
-ErrorsRcvd = False
+RespBuffer = []
+RespNode = ''
+RespRcvd = False
+MsgSeq = 0
 
 
 def SetUpConsoleStatus():
 	global StatusDisp, ShowHW, ShowVers, Status
-	if monitoringstatus:
+	if config.monitoringstatus:
 		StatusDisp = StatusDisplayScreen()
 		ShowHW = ShowVersScreen(True)
 		ShowVers = ShowVersScreen(False)
@@ -79,11 +84,11 @@ def UpdateStatus(nd, stat):
 	nodes[nd] = nodes[nd]._replace(**stat)
 
 
-def GotErrors(nd, errs):
-	global ErrorBuffer, ErrorNode, ErrorsRcvd
+def GotResp(nd, errs):
+	global ErrorBuffer, ErrorNode, RespRcvd
 	ErrorBuffer = errs
 	ErrorNode = nd
-	ErrorsRcvd = True
+	RespRcvd = True
 
 
 def status_interval_str(sec_elapsed):
@@ -247,18 +252,27 @@ class CommandScreen(screen.BaseKeyScreenDesc):
 		for cmd, action in issuecommands.cmdcalls.items():
 			if issuecommands.Where.RemoteMenu in action.where:
 				DN = action.DisplayName.split(' ')
+				Cmds[cmd] = {"type": "PROC", "ProcName": 'Command' + cmd, "label": DN, "Verify": action.Verify}
 				if action.simple:
 					keyspecs.internalprocs['Command' + cmd] = functools.partial(self.IssueSimpleCmd, cmd)
+					Cmds[cmd]['MQTTInterest'] = 'True'
 				else:
 					keyspecs.internalprocs['Command' + cmd] = functools.partial(self.IssueComplexCmd, cmd)
-				Cmds[cmd] = {"type": "PROC", "ProcName": 'Command' + cmd, "label": DN, "Verify": action.Verify}
 
 		self.CmdListScreen = screens.screentypes["Keypad"](Cmds, 'CmdListScreen', parentscreen=self)
 		self.CmdListScreen.SetScreenTitle('Commands', self.TitleFontSize, 'white')
 
-	def IssueSimpleCmd(self, cmd):
+	def IssueSimpleCmd(self, cmd, Key=None):
+		global MsgSeq
 		# todo bind with param for all the simple issues, sep proc for viewing errors which loops waiting buffer then goes to screen
 		print("Issue simple cmd: {} to {}".format(cmd, self.FocusNode))
+		MsgSeq += 1
+		config.MQTTBroker.Publish('cmd', '{}|{}|{}'.format(cmd, hw.hostname, MsgSeq), self.FocusNode)
+		self.CmdListScreen.AddToHubInterestList(config.MQTTBroker, cmd, Key)
+
+		Key.State = False
+		Key.PaintKey()
+		pygame.display.update()
 
 	def IssueComplexCmd(self, cmd):
 		# todo bind with param for all the simple issues, sep proc for viewing errors which loops waiting buffer then goes to screen
@@ -269,6 +283,8 @@ class CommandScreen(screen.BaseKeyScreenDesc):
 
 	def ShowCmds(self, nd):
 		self.FocusNode = nd
+		for key in self.CmdListScreen.Keys.values():
+			key.State = True
 		self.CmdListScreen.SetScreenTitle('Command to {}'.format(nd), self.TitleFontSize, 'white', force=True)
 		screen.PushToScreen(self.CmdListScreen, newstate='Maint')
 

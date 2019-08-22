@@ -267,5 +267,5 @@ def fetch_dev():
 		U.InstallStagedVersion(basedir + '/consoledev')
 		logsupport.Logs.Log("Staged version installed in consoledev")
 	except:
-		logsupport.Logs.Log('Failed beta download', severity=ConsoleWarning)
+		logsupport.Logs.Log('Failed dev download', severity=ConsoleWarning)
 	ReportStatus("done dev", hold=2)
