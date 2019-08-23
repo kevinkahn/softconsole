@@ -51,8 +51,8 @@ def exitlogging():
 	# logsupport.Logs.Log("Exittime threads: {}".format(listthreads(threading.enumerate())))
 	#if config.hooks.exit_code not in (
 	if config.ecode not in (
-			EARLYABORT, MAINTEXIT, MAINTPISHUT, MAINTRESTART, AUTORESTART, REMOTERESTART, EXTERNALSIGTERM,
-			MAINTPIREBOOT, REMOTEREBOOT):
+			EARLYABORT, MAINTEXIT, MAINTPISHUT, REMOTEPISHUT, MAINTRESTART, AUTORESTART, REMOTERESTART, EXTERNALSIGTERM,
+			MAINTPIREBOOT, REMOTEPIREBOOT):
 		logsupport.Logs.Log("Exiting with history trace (", repr(config.ecode), ')')
 		historybuffer.DumpAll('Exit Trace', time.strftime('%m-%d-%y %H:%M:%S'))
 	else:

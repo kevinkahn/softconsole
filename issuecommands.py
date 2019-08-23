@@ -46,6 +46,7 @@ def TempCheckSanity(Key, params):  # tempdel
 
 def FetchInProgress():
 	global fetcher
+	print('Fetching: {}'.format(fetcher is not None and fetcher.is_alive()))
 	return fetcher is not None and fetcher.is_alive()
 
 # todo further compress below to unify messagint
@@ -83,9 +84,10 @@ def RebootPi(params=None, Key=None):
 
 def _SystemTermination(statmsg, exitmsg, exitcode, Key, params):
 	ReportStatus(statmsg)
+	CommandResp(Key, 'ok', params, None)
+	time.sleep(2)  # tempdel
 	Exit_Screen_Message(exitmsg + ' Requested', ('Remote' if Key is None else 'Maintenance') + ' Request', exitmsg)
 	config.terminationreason = ('remote' if Key is None else 'manual') + statmsg
-	CommandResp(Key, 'ok', params, None)
 	Exit(exitcode[1] if Key is None else exitcode[0])
 
 
@@ -94,7 +96,7 @@ def DoDelayedAction(evnt):  # only for autover todo - what about ISY cmds - depr
 
 
 def CommandResp(Key, success, params, value):
-	print('CR: {} {}'.format(params, value))
+	print('CR: {} {} {} {}'.format(Key, success, params, value))
 	if Key is not None:
 		if success == 'ok':
 			Key.ScheduleBlinkKey(5)
@@ -105,6 +107,7 @@ def CommandResp(Key, success, params, value):
 
 
 def Get(nm, target, params, Key):
+	global fetcher
 	TempCheckSanity(Key, params)
 	if not FetchInProgress():
 		fetcher = threading.Thread(name=nm, target=target, daemon=True)
