@@ -231,6 +231,7 @@ class CommandScreen(screen.BaseKeyScreenDesc):
 
 		odd = False
 		for nd, ndinfo in nodes.items():
+			if nd == hw.hostname: continue
 			offline = ndinfo.status in ('dead', 'unknown')
 			bcolor = 'grey' if offline else 'darkblue'
 			usecenter = butcenterleft if odd else butcenterright
