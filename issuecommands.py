@@ -16,12 +16,12 @@ from collections import OrderedDict
 from typing import NamedTuple, Callable
 from enum import Enum
 from exitutils import MAINTEXIT, Exit_Screen_Message, MAINTRESTART, MAINTPISHUT, MAINTPIREBOOT, Exit, REMOTERESTART, \
-	REMOTEEXIT
+	REMOTEEXIT, REMOTEPISHUT, REMOTEPIREBOOT
 
 fetcher = None
 
 
-def FetchInProgress(reason, action, Key=None):
+def oldFetchInProgress(reason, action, Key=None):
 	global fetcher
 	print('Call fetch {}'.format(repr(Key)))
 	if fetcher is not None and fetcher.is_alive():
@@ -39,152 +39,139 @@ def FetchInProgress(reason, action, Key=None):
 		return False
 
 
+def TempCheckSanity(Key, params):  # tempdel
+	if Key is None and params is None:
+		logsupport.Logs.Log('Internal Error: Both Command sources are None', severity=ConsoleError, tb=True, hb=True)
+
+
+def FetchInProgress():
+	global fetcher
+	return fetcher is not None and fetcher.is_alive()
+
 # todo further compress below to unify messagint
-def DoRestart(Key=None, AutoVer=False):
-	if not FetchInProgress('restart', DoRestart, Key=Key):
-		if Key is None:
-			# remote restart
-			ReportStatus('rmt restart', hold=1)
-			Exit_Screen_Message('Remote restart requested', 'Remote Restart')
-			config.terminationreason = 'remote restart'
-			Exit(REMOTERESTART)
-		else:
-			# maintenance restart
-			ReportStatus('restarting', hold=1)
-			Exit_Screen_Message("Console Restart Requested", "Maintenance Request", "Restarting")
-			config.terminationreason = 'manual request'
-			Exit(MAINTRESTART)
+def RestartConsole(params=None, Key=None, AutoVer=False):  # todo sort out autovers
+	TempCheckSanity(Key, params)
+	if not FetchInProgress():
+		_SystemTermination('console restart', 'Console Restart', (MAINTRESTART, REMOTERESTART), Key, params)
+	else:
+		CommandResp(Key, 'nak', params, None)
 
 
-def ShutConsole(Key=None):
-	print('Call shut {}'.format(repr(Key)))
-	if not FetchInProgress('shutdown', ShutConsole, Key=Key):
-		if Key is None:
-			# remote request
-			ReportStatus('rmt shutdown', hold=1)
-			Exit_Screen_Message('Remote shutdown requested', 'Remote Shutdown')
-			config.terminationreason = 'remote shutdown'
-			Exit(REMOTEEXIT)
-		else:
-			# maintenance shutdown
-			ReportStatus('shutting down', hold=1)
-			Exit_Screen_Message("Manual Shutdown Requested", "Maintenance Request", "Shutting Down")
-			config.terminationreason = 'manual request'
-			Exit(MAINTEXIT)
+def ShutConsole(params=None, Key=None):
+	TempCheckSanity(Key, params)
+	if not FetchInProgress():
+		_SystemTermination('console shutdown', 'Console Shutdown', (MAINTEXIT, REMOTEEXIT), Key, params)
+	else:
+		CommandResp(Key, 'nak', params, None)
 
 
-def ShutdownPi(Key=None):
-	if not FetchInProgress('shutdown', ShutdownPi, Key=Key):
-		if Key is None:
-			# remote request
-			_SystemTermination('rmt pi shutdown', ("Shutdown Pi Requested", "Remote Request", "Shutting Down Pi"),
-							   'remote shutdown', REMOTEPISHUT)
-		else:
-			_SystemTermination('pi shutdown',
-							   ("Remote Shutdown Pi Requested", "Maintenance Request", "Shutting Down Pi"),
-							   'manual shutdown', MAINTPISHUT)
+def ShutdownPi(params=None, Key=None):
+	TempCheckSanity(Key, params)
+	if not FetchInProgress():
+		_SystemTermination('pi shutdown', "Pi Shutdown", (MAINTPISHUT, REMOTEPISHUT), Key, params)
+	else:
+		CommandResp(Key, 'nak', params, None)
 
 
-def RebootPi(Key=None):
-	if not FetchInProgress('shutdown', RebootPi, Key=Key):
-		if Key is None:
-			# remote
-			_SystemTermination('pi reboot', ("Reboot Requested", "Remote Request", "Rebooting Pi"), 'remote reboot',
-							   MAINTPIREBOOT)
-		else:
-			_SystemTermination('pi reboot', ("Reboot Requested", "Maintenance Request", "Rebooting Pi"),
-							   'manual reboot', MAINTPIREBOOT)
+def RebootPi(params=None, Key=None):
+	TempCheckSanity(Key, params)
+	if not FetchInProgress():
+		_SystemTermination('pi reboot', "Pi Reboot", (MAINTPIREBOOT, REMOTEPIREBOOT), Key, params)
+	else:
+		CommandResp(Key, 'nak', params, None)
 
 
-def _SystemTermination(statmsg, exitmsg, termreason, exitcode):
+def _SystemTermination(statmsg, exitmsg, exitcode, Key, params):
 	ReportStatus(statmsg)
-	Exit_Screen_Message(exitmsg[0], exitmsg[1], exitmsg[2])
-	config.terminationreason = termreason
-	Exit(exitcode)
+	Exit_Screen_Message(exitmsg + ' Requested', ('Remote' if Key is None else 'Maintenance') + ' Request', exitmsg)
+	config.terminationreason = ('remote' if Key is None else 'manual') + statmsg
+	CommandResp(Key, 'ok', params, None)
+	Exit(exitcode[1] if Key is None else exitcode[0])
 
 
-def DoDelayedAction(evnt):
+def DoDelayedAction(evnt):  # only for autover todo - what about ISY cmds - deprecate
 	PostEvent(ConsoleEvent(CEvent.RunProc, name='DelayedRestart', proc=evnt.action))
 
 
-def CommandResp(Key, params, value):
+def CommandResp(Key, success, params, value):
 	print('CR: {} {}'.format(params, value))
 	if Key is not None:
-		Key.ScheduleBlinkKey(5)
+		if success == 'ok':
+			Key.ScheduleBlinkKey(5)
+		else:
+			Key.FlashNo(5)
 	else:
-		config.MQTTBroker.CommandResponse(params[0], params[1], params[2], value)
+		config.MQTTBroker.CommandResponse(success, params[0], params[1], params[2], value)
 
-def Get(nm, target, Key=None):
-	global fetcher
-	if fetcher is not None and fetcher.is_alive():
-		if Key is not None:
-			Key.FlashNo(9)
-	# todo how do we confirm nono fetch for remotes etc.
-	else:
+
+def Get(nm, target, params, Key):
+	TempCheckSanity(Key, params)
+	if not FetchInProgress():
 		fetcher = threading.Thread(name=nm, target=target, daemon=True)
 		fetcher.start()
-		if Key is not None:
-			Key.ScheduleBlinkKey(5)
+		CommandResp(Key, 'ok', params, None)
+	else:
+		CommandResp(Key, 'busy', params, None)
 
 
-def GetStable(Key=None):
-	Get('FetchStableRemote', fetch_stable, Key=Key)
+def GetStable(params=None, Key=None):
+	Get('FetchStableRemote', fetch_stable, params, Key)
 
 
-def GetBeta(Key=None):
-	Get('FetchBetRemote', fetch_beta, Key=Key)
+def GetBeta(params=None, Key=None):
+	Get('FetchBetRemote', fetch_beta, params, Key)
 
 
-def GetDev(Key=None):
-	Get('FetchDevRemote', fetch_dev, Key=Key)
+def GetDev(params=None, Key=None):
+	Get('FetchDevRemote', fetch_dev, params, Key)
 
 
 def UseStable(params=None, Key=None):
+	TempCheckSanity(Key, params)
 	subprocess.Popen('sudo echo stable > /home/pi/versionselector', shell=True)
-	CommandResp(Key, params, None)
+	CommandResp(Key, 'ok', params, None)
 
 
 def UseBeta(params=None, Key=None):
+	TempCheckSanity(Key, params)
 	subprocess.Popen('sudo echo beta > /home/pi/versionselector', shell=True)
-	CommandResp(Key, params, None)
+	CommandResp(Key, 'ok', params, None)
 
 
 def UseDev(params=None, Key=None):
+	TempCheckSanity(Key, params)
 	subprocess.Popen('sudo echo dev > /home/pi/versionselector', shell=True)
-	CommandResp(Key, params, None)
+	CommandResp(Key, 'ok', params, None)
 
 
 def DumpHB(params=None, Key=None):
+	TempCheckSanity(Key, params)
 	entrytime = time.strftime('%m-%d-%y %H:%M:%S')
 	historybuffer.DumpAll('Command Dump', entrytime)
-	CommandResp(Key, params, None)
+	CommandResp(Key, 'ok', params, None)
 
 
 def EchoStat(params=None, Key=None):
+	TempCheckSanity(Key, params)
 	ReportStatus('running stat')
-	CommandResp(Key, params, None)
+	CommandResp(Key, 'ok', params, None)
 
 
 def LogItem(sev, params=None, Key=None):
+	TempCheckSanity(Key, params)
 	print('Log {}'.format(params))
 	logsupport.Logs.Log('Remotely forced test message ({})'.format(sev), severity=sev, tb=False, hb=False)
-	CommandResp(Key, params, None)
+	CommandResp(Key, 'ok', params, None)
 
 
-def GetErrors():
+def GetErrors(params=None):  # remote only
 	errs = logsupport.Logs.ReturnRecent(logsupport.ConsoleDetail, 10)
-	if logsupport.primaryBroker is not None:
-		logsupport.primaryBroker.Publish('errresp', payload=json.dumps(errs))
-	else:
-		logsupport.Logs.Log('Attempt to handle GetErrors with no MQTT broker established', severity=ConsoleWarning)
+	CommandResp(None, 'ok', params, errs)
 
 
-def GetLog():
+def GetLog(params=None):  # remote only
 	log = logsupport.Logs.ReturnRecemt(-1, 0)
-	if logsupport.primaryBroker is not None:
-		logsupport.primaryBroker.Publish('errresp', payload=json.dumps(log))
-	else:
-		logsupport.Logs.Log('Attempt to handle GetErrors with no MQTT broker established', severity=ConsoleWarning)
+	CommandResp(None, 'ok', params, None)
 
 
 def DisplayRemoteLog():
@@ -209,7 +196,7 @@ class CommandRecord(NamedTuple):
 		self.where = where - which places to use this record
 '''
 cmdcalls = OrderedDict({
-	'restart': CommandRecord(DoRestart, True, "Restart Console", 'True', MaintExits),
+	'restart': CommandRecord(RestartConsole, True, "Restart Console", 'True', MaintExits),
 	'shut': CommandRecord(ShutConsole, True, "Shutdown Console", 'True', MaintExits),
 	'reboot': CommandRecord(RebootPi, True, "Reboot Pi", 'True', MaintExits),
 	'shutpi': CommandRecord(ShutdownPi, True, "Shutdown Pi", 'True', MaintExits),

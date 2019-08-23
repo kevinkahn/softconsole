@@ -198,7 +198,7 @@ class ThermostatScreenDesc(screen.BaseKeyScreenDesc):
 		self.info = {}  # clear any old info to force a display
 		self.ShowScreen()
 
-	def NodeEvent(self, hub='', node=0, value=0, varinfo=()):
+	def NodeEvent(self, evnt):
 		self.ShowScreen()
 
 

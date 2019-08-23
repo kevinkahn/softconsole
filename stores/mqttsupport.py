@@ -113,10 +113,19 @@ class MQTTBroker(valuestore.ValueStore):
 					if self.name in screens.DS.AS.HubInterestList:
 						if msgdcd['cmd'] in screens.DS.AS.HubInterestList[
 							self.name]:  #todo verify seq num and key before posting
-							controlevents.PostEvent(controlevents.ConsoleEvent(controlevents.CEvent.HubNodeChange,
-																			   hub=self.name, stat=msgdcd['status'],
-																			   seq=msgdcd['seq'],
-																			   value=msgdcd['value']))
+							if 'value' in msgdcd:
+								usevalue = msgdcd['value']
+							else:
+								usevalue = ''
+							print('Got resp {} {}'.format(self.name, msgdcd))
+							try:
+								controlevents.PostEvent(controlevents.ConsoleEvent(controlevents.CEvent.HubNodeChange,
+																				   hub=self.name, stat=msgdcd['status'],
+																				   seq=msgdcd['seq'],
+																				   node=msgdcd['cmd'],
+																				   value=usevalue))
+							except Exception as E:
+								print('Exc: {}'.format(E))
 					return
 
 			# noinspection PySimplifyBooleanCheck
@@ -256,10 +265,9 @@ class MQTTBroker(valuestore.ValueStore):
 	def SetValByID(lclid, val):
 		logsupport.Logs.Log("Can't set MQTT subscribed var by id within console: ", str(lclid))
 
-	def CommandResponse(self, cmd, seq, fromnd, value):
-		print('Command resp {} {} {} {}'.format(cmd, seq, fromnd, value))
-		# todo del fromnd param?
-		resp = {'status': 'ok', 'seq': seq, 'cmd': cmd}
+	def CommandResponse(self, success, cmd, seq, fromnd, value):
+		print('Command resp {} {} {} {} {}'.format(success, cmd, seq, fromnd, value))
+		resp = {'status': success, 'seq': seq, 'cmd': cmd}
 		if value is not None:
 			resp['value'] = value
 		payld = json.dumps(resp)
@@ -267,7 +275,7 @@ class MQTTBroker(valuestore.ValueStore):
 
 	def Publish(self, topic, payload=None, node=hw.hostname, qos=1, retain=False, viasvr=False):
 		fulltopic = 'consoles/' + node + '/' + topic
-		print('MQTT Publish {} to {}'.format(fulltopic, payload, ))
+		# tempdel print('MQTT Publish {} to {}'.format(fulltopic, payload))
 		if self.MQTTrunning:
 			self.MQTTclient.publish(fulltopic, payload, qos=qos, retain=retain)
 		else:

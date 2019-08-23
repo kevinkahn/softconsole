@@ -9,9 +9,6 @@ import hw
 import logsupport
 import screen
 import screens.__screens as screens
-import timers
-import toucharea
-import utilities
 import issuecommands
 from logsupport import ConsoleWarning, UpdateGlobalErrorPointer
 from maintscreenbase import MaintScreenDesc, fixedoverrides

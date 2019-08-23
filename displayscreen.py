@@ -440,10 +440,12 @@ class DisplayScreen(object):
 				elif event.type == CEvent.HubNodeChange:
 					self.HBEvents.Entry('Hub Change: {}'.format(repr(event)))
 					debug.debugPrint('Dispatch', 'Hub Change Event', event)
+					print('NodeChange {}'.format(event))
 					if hasattr(event, 'node'):
-						self.AS.NodeEvent(hub=event.hub, node=event.node, value=event.value)
+						self.AS.NodeEvent(
+							event)  # tempdelhub=event.hub, node=event.node, value=event.value, ev = event)
 					elif hasattr(event, 'varinfo'):
-						self.AS.NodeEvent(hub=event.hub, varinfo=event.varinfo)
+						self.AS.NodeEvent(event)  # tempdel hub=event.hub, varinfo=event.varinfo)
 					else:
 						debug.debugPrint('Dispatch', 'Bad Node Change Event: ', event)
 						logsupport.Logs.Log('Bad Node Change Event ', event, severity=ConsoleWarning)

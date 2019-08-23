@@ -229,7 +229,7 @@ class NestThermostatScreenDesc(screen.BaseKeyScreenDesc):
 		self.FanLocal = 0.0
 		self.ShowScreen()
 
-	def NodeEvent(self, hub='', node=0, value=0, varinfo=()):
+	def NodeEvent(self, evnt):
 		# need to verify that this is the real update?
 		self.LocalOnly = [0.0, 0.0]
 		self.ModeLocal = 0.0

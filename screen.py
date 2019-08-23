@@ -289,11 +289,12 @@ class ScreenDesc(object):
 		if self.ScreenTitleBlk is not None:
 			hw.screen.blit(self.ScreenTitleBlk, (self.titleoffset, self.TopBorder))
 
-	def NodeEvent(self, hub='none', node=9999, value=9999, varinfo=()):
-		if node is not None:
-			if hub != '*VARSTORE*':  # var changes can be reported while any screen is up
-				logsupport.Logs.Log("Unexpected event to screen: ", self.name, ' Hub: ', str(hub), ' Node: ', str(node),
-									' Val: ', str(value), severity=ConsoleDetail)
+	def NodeEvent(self, evnt):  # tempdel hub='none', node=9999, value=9999, varinfo=()):
+		if evnt.node is not None:
+			if evnt.hub != '*VARSTORE*':  # var changes can be reported while any screen is up
+				logsupport.Logs.Log("Unexpected event to screen: ", self.name, ' Hub: ', str(evnt.hub), ' Node: ',
+									str(evnt.node),
+									' Val: ', str(evnt.value), severity=ConsoleDetail)
 			else:
 				pass
 

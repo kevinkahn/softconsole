@@ -46,45 +46,46 @@ class KeyScreenDesc(screen.BaseKeyScreenDesc):
 		super().InitDisplay(nav)
 		pygame.display.update()
 
-	def NodeEvent(self, hub='', node=0, value=0, varinfo=()):
+	def NodeEvent(self, evnt):  # tempdel , hub='', node=0, value=0, varinfo=()):
 		# Watched node reported change event is ("Node", addr, value, seq)
-		debug.debugPrint('Screen', hub, node, type(value), value)
-		if isinstance(value, float):
-			logsupport.Logs.Log("Node event with floating state: " + hub + ':' + str(node) + '->' + str(value),
-								severity=ConsoleWarning)
-			value = int(value)
+		debug.debugPrint('Screen', evnt)
 
-		if node is None:  # all keys for this hub
-			for _, K in self.HubInterestList[hub].items():
-				debug.debugPrint('Screen', 'KS Wildcard ISYEvent ', K.name, str(value), str(K.State))
+		if evnt.node is None:  # all keys for this hub
+			for _, K in self.HubInterestList[evnt.hub].items():
+				debug.debugPrint('Screen', 'KS Wildcard ISYEvent ', K.name, evnt)
 				K.UnknownState = True
 				K.PaintKey()
 				pygame.display.update()
-		elif node != 0:
+		elif evnt.node != 0:
 			# noinspection PyBroadException
 			try:
-				K = self.HubInterestList[hub][node]
+				K = self.HubInterestList[evnt.hub][evnt.node]
 			except:
-				debug.debugPrint('Screen', 'Bad key to KS - race?', self.name, str(node))
+				debug.debugPrint('Screen', 'Bad key to KS - race?', self.name, str(evnt.node))
 				return  # treat as noop
-			debug.debugPrint('Screen', 'KS ISYEvent ', K.name, str(value), str(K.State))
-			if hasattr(K, 'HandleNodeEvent'):
-				K.HandleNodeEvent(node, value)
+			debug.debugPrint('Screen', 'KS ISYEvent ', K.name, evnt, str(K.State))
+			if hasattr(K, 'HandleNodeEvent'):  # todo make all handle event key specifig
+				print('Key specific node event {}'.format(K.name))
+				K.HandleNodeEvent(evnt)
 			else:
-				K.State = not (value == 0)  # K is off (false) only if state is 0
-				K.UnknownState = True if value == -1 else False
+				if not isinstance(evnt.value, int):
+					logsupport.Logs.Log("Node event with non integer state: " + evnt,
+										severity=ConsoleWarning)
+					evnt.value = int(evnt.value)
+				K.State = not (evnt.value == 0)  # K is off (false) only if state is 0
+				K.UnknownState = True if evnt.value == -1 else False
 				K.PaintKey()
 				pygame.display.update()
 		else:
 			# noinspection PyBroadException
 			try:
 				# varinfo is (keyname, varname)
-				K = self.Keys[varinfo[0]]
+				K = self.Keys[evnt.varinfo[0]]
 				K.PaintKey()
 				pygame.display.update()
 			except:
 				debug.debugPrint('Screen', "Var change reported to screen that doesn't care", self.name,
-								 str(varinfo))  # todo event reporting correlation to screens could use rework
+								 str(evnt.varinfo))  # todo event reporting correlation to screens could use rework
 				return
 
 

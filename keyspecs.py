@@ -68,6 +68,8 @@ def CreateKey(thisscreen, screensection, keyname):
 		NewKey = InternalProcKey(thisscreen, screensection, keyname)
 	elif keytype == 'REMOTEPROC':
 		NewKey = RemoteProcKey(thisscreen, screensection, keyname)
+	elif keytype == 'REMOTECPLXPROC':
+		NewKey = RemoteComplexProcKey(thisscreen, screensection, keyname)
 	else:  # unknown type
 		NewKey = BlankKey(thisscreen, screensection, keyname)
 		logsupport.Logs.Log('Undefined key type ' + keytype + ' for: ' + keyname, severity=ConsoleWarning)
@@ -412,11 +414,11 @@ class RemoteProcKey(InternalProcKey):
 		super().FinishKey(center, size, firstfont, shrink)
 		self.thisscreen.AddToHubInterestList(self.Hub, self.name, self)
 
-	def HandleNodeEvent(self, node, resp):
-		print('ProcNodeEvent {} {}'.format(node, resp))
-		if int(resp[2]) != self.Seq:
+	def HandleNodeEvent(self, evnt):
+		print('ProcNodeEvent {}'.format(evnt))
+		if int(evnt.seq) != self.Seq:
 			logsupport.Logs.Log(
-				'Remote response sequence error for {} expected {} ogt {}'.format(self.name, self.Seq, resp),
+				'Remote response sequence error for {} expected {} ogt {}'.format(self.name, self.Seq, evnt),
 				severity=ConsoleWarning, tb=True)
 		time.sleep(.5)  # slow the blink without stalling console too long
 		self.State = True
@@ -436,10 +438,10 @@ class RemoteComplexProcKey(InternalProcKey):
 		super().FinishKey(center, size, firstfont, shrink)
 		self.thisscreen.AddToHubInterestList(self.Hub, self.name, self)
 
-	def HandleNodeEvent(self, node, resp):
-		if int(resp[2]) != self.Seq:
+	def HandleNodeEvent(self, evnt):
+		if int(evnt.seq) != self.Seq:
 			logsupport.Logs.Log(
-				'Remote response sequence error for {} expected {} ogt {}'.format(self.name, self.Seq, resp),
+				'Remote response sequence error for {} expected {} got {}'.format(self.name, self.Seq, evnt),
 				severity=ConsoleWarning, tb=True)
 		self.State = True
 		# todo got to page? or make more general call?  FinishProc here

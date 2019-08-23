@@ -91,6 +91,7 @@ class ConsoleEvent(object):
 	def __init__(self, eventtyp, **kwargs):
 		self.__dict__ = kwargs
 		self.type = eventtyp
+		if not hasattr(self, 'node'): self.node = None
 
 	def __repr__(self):
 		rep = '<ConsoleEvent: {}'.format(self.type.name)
