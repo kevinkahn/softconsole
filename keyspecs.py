@@ -445,6 +445,7 @@ class RemoteComplexProcKey(InternalProcKey):
 				severity=ConsoleWarning, tb=True)
 		self.State = True
 		# todo got to page? or make more general call?  FinishProc here
+		# Need to link in the response proc, if user has left screen ignore resp 
 
 		self.PaintKey()
 		pygame.display.update()

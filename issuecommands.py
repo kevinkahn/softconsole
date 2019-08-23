@@ -173,7 +173,7 @@ def GetErrors(params=None):  # remote only
 
 
 def GetLog(params=None):  # remote only
-	log = logsupport.Logs.ReturnRecemt(-1, 0)
+	log = logsupport.Logs.ReturnRecent(-1, 0)
 	CommandResp(None, 'ok', params, None)
 
 
