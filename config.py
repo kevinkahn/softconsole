@@ -35,6 +35,7 @@ sysvals = {
 	'DimIdleListTimes': (list, [], None, True),
 	'CurrentScreen': (str, '*None*', None, False),
 	'ErrorNotice': (int, -1, None, False),
+	'NetErrorIndicator': (bool, False, None, False),
 	'LogStartTime': (int, 0, None, False),
 	'FirstUnseenErrorTime': (int, 0, None, False),
 	'GlobalLogViewTime': (int, 0, None, False)

@@ -84,11 +84,8 @@ class MQTTBroker(valuestore.ValueStore):
 				# if fromnd != 'unknown':
 				#	self.Publish('resp', '{}|ok|{}'.format(cmd, seq), fromnd)
 				return
-			elif msg.topic == 'consoles/all/errors':
-				d = json.loads(msg.payload.decode('ascii'))
-				if d['node'] != hw.hostname:
-					logsupport.Logs.LogRemote(d['node'], d['entry'], severity=d['sev'],
-											  etime=d['etime'] if 'etime' in d else 0)
+			elif msg.topic == 'consoles/all/errors':  # tempdel delete once propogates, also subscription
+				logsupport.Logs.Log('Deprecated remote logging', severity=ConsoleWarning)
 				return
 			elif msg.topic in ('consoles/all/set', 'consoles/' + hw.hostname + '/set'):
 				d = json.loads(msg.payload.decode('ascii'))

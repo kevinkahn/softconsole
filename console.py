@@ -513,7 +513,6 @@ Run the main console loop
 """
 for n in alerttasks.monitoredvars:  # make sure vars used in alerts are updated to starting values
 	valuestore.GetVal(n)
-config.sysStore.ErrorNotice = -1
 gui = threading.Thread(name='GUI', target=screens.DS.MainControlLoop, args=(screens.HomeScreen,))
 config.ecode = 99
 gui.start()

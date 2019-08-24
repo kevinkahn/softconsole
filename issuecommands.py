@@ -171,19 +171,22 @@ def GetErrors(params=None):  # remote only
 	errs = logsupport.Logs.ReturnRecent(logsupport.ConsoleWarning, 10)
 	CommandResp(None, 'ok', params, errs)
 
-
 def GetLog(params=None):  # remote only
 	log = logsupport.Logs.ReturnRecent(-1, 0)
 	CommandResp(None, 'ok', params, log)
 
 
-def DisplayRemoteLog():
-	pass
+def ClearIndicator(params=None, Key=None):
+	TempCheckSanity(Key, params)
+	config.sysStore.ErrorNotice = -1  # clear indicator
+	CommandResp(Key, 'ok', params, None)
+
 
 Where = Enum('Where',
 			 'LocalMenuExits LocalMenuVersions RemoteMenu MQTTCmds')
 MaintVers = (Where.LocalMenuVersions, Where.RemoteMenu, Where.MQTTCmds)
 MaintExits = (Where.LocalMenuExits, Where.RemoteMenu, Where.MQTTCmds)
+RemoteOnly = (Where.RemoteMenu, Where.MQTTCmds)
 
 CommandRecord = NamedTuple('CommandRecord',
 						   [('Proc', Callable), ('simple', bool), ('DisplayName', str), ('Verify', str),
@@ -209,16 +212,17 @@ cmdcalls = OrderedDict({
 	'getstable': CommandRecord(GetStable, True, "Download Release", 'False', MaintVers),
 	'getbeta': CommandRecord(GetBeta, True, "Download Beta", 'False', MaintVers),
 	'getdev': CommandRecord(GetDev, True, "Download Development", 'False', MaintVers),
-	'hbdump': CommandRecord(DumpHB, True, "Dump HB", 'False', (Where.RemoteMenu, Where.MQTTCmds)),
-	'status': CommandRecord(EchoStat, True, "Echo Status", 'False', (Where.MQTTCmds,)),
-	'getlog': CommandRecord(GetLog, False, "Get Remote Log", "False", (Where.MQTTCmds, Where.RemoteMenu)),
-	'geterrors': CommandRecord(GetErrors, False, "Get Recent Errors", 'False', (Where.MQTTCmds, Where.RemoteMenu)),
+	'hbdump': CommandRecord(DumpHB, True, "Dump HB", 'False', RemoteOnly),
+	'status': CommandRecord(EchoStat, True, "Echo Status", 'False', RemoteOnly),
+	'getlog': CommandRecord(GetLog, False, "Get Remote Log", "False", RemoteOnly),
+	'geterrors': CommandRecord(GetErrors, False, "Get Recent Errors", 'False', RemoteOnly),
+	'clearerrindicator': CommandRecord(ClearIndicator, True, "Clear Error Indicator", 'False', RemoteOnly),
 	'issueerror': CommandRecord(functools.partial(LogItem, ConsoleError), True, "Issue Error", 'False',
-								(Where.RemoteMenu, Where.MQTTCmds)),
+								RemoteOnly),
 	'issuewarning': CommandRecord(functools.partial(LogItem, ConsoleWarning), True, "Issue Warning", 'False',
-								  (Where.RemoteMenu, Where.MQTTCmds)),
+								  RemoteOnly),
 	'issueinfo': CommandRecord(functools.partial(LogItem, ConsoleInfo), True, "Issue Info", 'False',
-							   (Where.RemoteMenu, Where.MQTTCmds))})
+							   RemoteOnly)})
 
 
 def IssueCommand(source, cmd, seq, fromnd):

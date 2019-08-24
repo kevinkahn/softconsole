@@ -66,9 +66,7 @@ APIXUfetches24 = 0
 daystartloops = 0
 maincyclecnt = 0
 
-
-
-Command = Enum('Command', 'LogEntry DevPrint FileWrite CloseHlog StartLog Touch LogRemote LogString DumpRemote')
+Command = Enum('Command', 'LogEntry DevPrint FileWrite CloseHlog StartLog Touch LogString DumpRemote')
 
 # logger queue item: (type,str) where type: 0 Logentry, 1 DevPrint, 2 file write (name, access, str), 3 shutdown
 # 4 setup logfile 5 touch file  others tbd
@@ -214,12 +212,6 @@ def LogProcess(q):
 			elif item[0] == Command.Touch:
 				# liveness touch
 				os.utime(item[1],None)
-			elif item[0] == Command.LogRemote:
-				# remote log (6, node, entry, etime, severity)
-				node, entry, etime, severity = item[1:]
-				disklogfile.write('{} Sev: {} [{}] {}\n'.format(etime, severity, node, entry))
-				disklogfile.flush()
-				os.fsync(disklogfile.fileno())
 			elif item[0] == Command.LogString:
 				# Logentry string (7,entry)
 				disklogfile.write('\n'.format(item[1]))
@@ -308,12 +300,6 @@ class Logger(object):
 					rtnval.append(self.log[logitem])
 				logitem -= 1
 			return rtnval
-
-	def LogRemote(self, node, entry, etime, severity):
-		tentry = '[{}] {}'.format(node, entry)
-		self.log.append((severity, tentry, time.strftime('%m-%d-%y %H:%M:%S', etime)))
-		LoggerQueue.put((Command.LogRemote, node, entry, etime, severity))
-		self.SetSeverePointer(severity)
 
 	def RecordMessage(self, severity, entry, entrytime, debugitem, tb):
 		if not debugitem:
