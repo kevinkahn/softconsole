@@ -302,12 +302,10 @@ class Logger(object):
 			return self.log
 		else:
 			rtnval = []
-			n = 0
 			logitem = len(self.log) - 1
-			while n < maxentries and logitem > 0:
+			while len(rtnval) < maxentries and logitem > 0:
 				if self.log[logitem][0] >= loglevel:
 					rtnval.append(self.log[logitem])
-				n += 1
 				logitem -= 1
 			return rtnval
 

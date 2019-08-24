@@ -11,7 +11,7 @@ import screens.__screens as screens
 import timers
 import toucharea
 import utilities
-from logsupport import ConsoleDetail
+from logsupport import ConsoleDetail, ConsoleWarning
 from utilfuncs import wc
 
 alertscreens = {}
@@ -153,8 +153,8 @@ class AlertsScreenDesc(screen.ScreenDesc):
 			pygame.display.update()
 
 	def NodeEvent(self, evnt):
-		logsupport.Logs.Log("ISY event to alert screen: ", self.name + ' ' + str(evnt.node) + ' ' + str(evnt.value),
-							severity=ConsoleDetail)
+		logsupport.Logs.Log("Node event to alert screen: ", self.name + ' ' + str(evnt.node) + ' ' + str(evnt.value),
+							severity=ConsoleWarning)
 
 	def ExitScreen(self, viaPush):
 		super().ExitScreen(viaPush)

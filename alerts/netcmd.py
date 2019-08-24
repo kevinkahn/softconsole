@@ -47,7 +47,7 @@ class NetCmd(object):
 			logsupport.Logs.Log('Remote reboot')
 			exitutils.Exit_Screen_Message('Remote reboot requested', 'Remote Reboot')
 			config.terminationreason = 'remote reboot'
-			exitutils.Exit(exitutils.REMOTEREBOOT)
+			exitutils.Exit(exitutils.REMOTEPIREBOOT)
 		elif varval == 3:
 			logsupport.Logs.Log('Remote download stable')
 			issuecommands.fetch_stable()
@@ -81,24 +81,6 @@ class NetCmd(object):
 
 		else:
 			logsupport.Logs.Log('Unknown remote command: ', varval)
-
-	def Restart(self):
-		pass
-
-	def Reboot(self):
-		pass
-
-	def DownloadStable(self):
-		pass
-
-	def DownLoadBeta(self):
-		pass
-
-	def SetStable(self):
-		pass
-
-	def SetBeta(self):
-		pass
 
 
 alerttasks.alertprocs["NetCmd"] = NetCmd

@@ -52,6 +52,7 @@ class KeyScreenDesc(screen.BaseKeyScreenDesc):
 
 		if evnt.node is None:  # all keys for this hub
 			for _, K in self.HubInterestList[evnt.hub].items():
+				logsupport.Logs.Log('Node event to keyscreen with no node {}'.format(evnt), severity=ConsoleWarning)
 				debug.debugPrint('Screen', 'KS Wildcard ISYEvent ', K.name, evnt)
 				K.UnknownState = True
 				K.PaintKey()
@@ -65,9 +66,10 @@ class KeyScreenDesc(screen.BaseKeyScreenDesc):
 				return  # treat as noop
 			debug.debugPrint('Screen', 'KS ISYEvent ', K.name, evnt, str(K.State))
 			if hasattr(K, 'HandleNodeEvent'):  # todo make all handle event key specifig
-				print('Key specific node event {}'.format(K.name))
 				K.HandleNodeEvent(evnt)
 			else:
+				logsupport.logs.Log('Generic node event??? {} {}'.format(K.name, evnt),
+									severity=ConsoleWarning)  # tempdel
 				print('Generic node event handling for {} of type {}'.format(K.name, K))
 				if not isinstance(evnt.value, int):
 					logsupport.Logs.Log("Node event with non integer state: " + evnt,

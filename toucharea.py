@@ -57,6 +57,10 @@ class TouchPoint(object):
 			logsupport.Logs.Log('Toucharea got wrong press count {}'.format(tapcount),
 								severity=logsupport.ConsoleWarning)
 
+	def HandleNodeEvent(self, evnt):
+		logsupport.Logs.Log('Node event to key without handler: Key: {} Event: {}'.format(self.name, evnt),
+							severity=logsupport.ConsoleWarning)
+
 
 class ManualKeyDesc(TouchPoint):
 	"""

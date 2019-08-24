@@ -297,6 +297,8 @@ class ScreenDesc(object):
 									' Val: ', str(evnt.value), severity=ConsoleDetail)
 			else:
 				pass
+		else:
+			logsupport.Logs.Log('Node event to screen {} with no handler (Event: {})'.format(self.name, evnt))
 
 	def ExitScreen(self, viaPush):
 		for timer in self.ScreenTimers:

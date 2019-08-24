@@ -330,6 +330,16 @@ class OnOffKey(ManualKeyDesc):
 
 		utilities.register_example("OnOffKey", self)
 
+	def HandleNodeEvent(self, evnt):
+		if not isinstance(evnt.value, int):
+			logsupport.Logs.Log("Node event with non integer state: " + evnt,
+								severity=ConsoleWarning)
+			evnt.value = int(evnt.value)
+		self.State = not (evnt.value == 0)  # K is off (false) only if state is 0
+		self.UnknownState = True if evnt.value == -1 else False
+		self.PaintKey()
+		pygame.display.update()
+
 	def FinishKey(self, center, size, firstfont=0, shrink=True):
 		super(OnOffKey, self).FinishKey(center, size, firstfont, shrink)
 		if self.DisplayObj is not None:
