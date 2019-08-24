@@ -104,21 +104,6 @@ def SetUpMaintScreens():
 
 	for s in screenset:
 		s.userstore.ReParent(MaintScreen)
-	config.sysStore.AddAlert("GlobalLogViewTime", CheckIfLogSeen)
-
-
-# noinspection PyUnusedLocal,PyUnusedLocal,PyUnusedLocal,PyUnusedLocal
-def CheckIfLogSeen(storeitem, old, new, param, chgsource):
-	logsupport.Logs.Log('GlobalErrReset: new: {}  was {}'.format(new, config.sysStore.FirstUnseenErrorTime))
-	if config.sysStore.ErrorNotice != -1:
-		if new <= config.sysStore.FirstUnseenErrorTime:
-			logsupport.Logs.Log('Cleared Error Indicator')
-			config.sysStore.ErrorNotice = -1
-			config.sysStore.FirstUnseenErrorTime = new  # first possible unseen is now
-		else:
-			logsupport.Logs.Log(
-				'Error Indicator not cleared, possible unseen at {}'.format(config.sysStore.FirstUnseenErrorTime))
-
 
 # noinspection PyUnusedLocal,PyUnusedLocal,PyUnusedLocal
 def syncKeytoStore(storeitem, old, new, key, chgsource):
