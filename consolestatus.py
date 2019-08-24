@@ -285,7 +285,7 @@ class CommandScreen(screen.BaseKeyScreenDesc):
 		MsgSeq += 1
 		Key.Seq = MsgSeq
 		config.MQTTBroker.Publish('cmd', '{}|{}|{}'.format(cmd, hw.hostname, MsgSeq), self.FocusNode)
-		self.CmdListScreen.AddToHubInterestList(config.MQTTBroker, cmd, Key)
+		self.CmdListScreens[self.entered].AddToHubInterestList(config.MQTTBroker, cmd, Key)
 
 	def ShowCmds(self, cmdset, nd):
 		self.entered = cmdset
