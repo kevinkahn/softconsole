@@ -152,7 +152,7 @@ class AlertsScreenDesc(screen.ScreenDesc):
 			hw.screen.blit(self.messageimage, self.upperleft)
 			pygame.display.update()
 
-	def NodeEvent(self, evnt):  # tempdel hub='', node=0, value=0, varinfo=()):
+	def NodeEvent(self, evnt):
 		logsupport.Logs.Log("ISY event to alert screen: ", self.name + ' ' + str(evnt.node) + ' ' + str(evnt.value),
 							severity=ConsoleDetail)
 

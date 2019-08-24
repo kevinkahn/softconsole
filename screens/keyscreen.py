@@ -46,7 +46,7 @@ class KeyScreenDesc(screen.BaseKeyScreenDesc):
 		super().InitDisplay(nav)
 		pygame.display.update()
 
-	def NodeEvent(self, evnt):  # tempdel , hub='', node=0, value=0, varinfo=()):
+	def NodeEvent(self, evnt):
 		# Watched node reported change event is ("Node", addr, value, seq)
 		debug.debugPrint('Screen', evnt)
 

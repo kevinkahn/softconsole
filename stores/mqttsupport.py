@@ -274,7 +274,6 @@ class MQTTBroker(valuestore.ValueStore):
 
 	def Publish(self, topic, payload=None, node=hw.hostname, qos=1, retain=False, viasvr=False):
 		fulltopic = 'consoles/' + node + '/' + topic
-		# tempdel print('MQTT Publish {} to {}'.format(fulltopic, payload))
 		if self.MQTTrunning:
 			self.MQTTclient.publish(fulltopic, payload, qos=qos, retain=retain)
 		else:

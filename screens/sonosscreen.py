@@ -197,7 +197,7 @@ class SonosScreenDesc(screen.BaseKeyScreenDesc):
 		if config.SonosScreen is None:
 			self.SetScreenContents()
 
-	def NodeEvent(self, evnt):  # tempdel hub='', node=0, value=0, varinfo=()):
+	def NodeEvent(self, evnt):
 		# Watched node reported change event is ("Node", addr, value, seq)
 		# print('event')  todo should check that event is for a Sonos node?
 		stable = self.UpdateGroups()

@@ -444,7 +444,7 @@ class DisplayScreen(object):
 					if hasattr(event, 'node'):
 						self.AS.NodeEvent(event)
 					elif hasattr(event, 'varinfo'):
-						self.AS.NodeEvent(event)  # tempdel hub=event.hub, varinfo=event.varinfo)
+						self.AS.NodeEvent(event)
 					else:
 						debug.debugPrint('Dispatch', 'Bad Node Change Event: ', event)
 						logsupport.Logs.Log('Bad Node Change Event ', event, severity=ConsoleWarning)
