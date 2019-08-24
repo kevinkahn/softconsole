@@ -68,6 +68,7 @@ class KeyScreenDesc(screen.BaseKeyScreenDesc):
 				print('Key specific node event {}'.format(K.name))
 				K.HandleNodeEvent(evnt)
 			else:
+				print('Generic node event handling for {} of type {}'.format(K.name, K))
 				if not isinstance(evnt.value, int):
 					logsupport.Logs.Log("Node event with non integer state: " + evnt,
 										severity=ConsoleWarning)

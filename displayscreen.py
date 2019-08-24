@@ -442,8 +442,7 @@ class DisplayScreen(object):
 					debug.debugPrint('Dispatch', 'Hub Change Event', event)
 					print('NodeChange {}'.format(event))
 					if hasattr(event, 'node'):
-						self.AS.NodeEvent(
-							event)  # tempdelhub=event.hub, node=event.node, value=event.value, ev = event)
+						self.AS.NodeEvent(event)
 					elif hasattr(event, 'varinfo'):
 						self.AS.NodeEvent(event)  # tempdel hub=event.hub, varinfo=event.varinfo)
 					else:

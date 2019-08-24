@@ -232,7 +232,7 @@ class ValueStore(object):
 		except Exception as e:
 			if not failok:
 				logsupport.Logs.Log("Error accessing ", self.name, ":", str(name), str(n2), repr(e),
-									severity=ConsoleError, tb=False)
+									severity=ConsoleError, tb=True)
 				raise AttributeError
 			else:
 				return None

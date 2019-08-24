@@ -393,12 +393,15 @@ class PagedDisplay(screen.BaseKeyScreenDesc):
 		pos = 0
 		hw.screen.fill(wc(backcolor))
 		if pageno != -1:
-			l = self.pagefont.render(self.GetPageHeader(pageno + 1, itemnumber), False, wc(self.color))
+			hdr, moretorender = self.GetPageHeader(pageno + 1, itemnumber)
+			l = self.pagefont.render(hdr, False, wc(self.color))
 			hw.screen.blit(l, (10, pos))
 			pos = pos + self.pagefont.get_linesize()
 			pygame.display.update()
 		while moretorender:
+			print('More? {} {}'.format(True, itemnumber))
 			l, moretorender = self.LineRenderer(itemnumber, self.pagefont)
+			print('More? {} {}'.format(True, itemnumber))
 			hw.screen.blit(l, (10, pos))  # todo this can cause long lines to render off the screen
 			pygame.display.update()
 			pos = pos + l.get_height()

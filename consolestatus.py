@@ -270,16 +270,10 @@ class CommandScreen(screen.BaseKeyScreenDesc):
 
 	def IssueSimpleCmd(self, cmd, Key=None):
 		global MsgSeq
-		# todo bind with param for all the simple issues, sep proc for viewing errors which loops waiting buffer then goes to screen
-		print("Issue simple cmd: {} to {}".format(cmd, self.FocusNode))
 		MsgSeq += 1
 		Key.Seq = MsgSeq
 		config.MQTTBroker.Publish('cmd', '{}|{}|{}'.format(cmd, hw.hostname, MsgSeq), self.FocusNode)
 		self.CmdListScreen.AddToHubInterestList(config.MQTTBroker, cmd, Key)
-
-		Key.State = False
-		Key.PaintKey()
-		pygame.display.update()
 
 	def ShowCmds(self, nd):
 		self.FocusNode = nd
@@ -314,7 +308,10 @@ def PickStartingSpot():
 
 
 def PageTitle(pageno, itemnumber, node='', loginfo=None):
-	return "{} Log from {}           Page: {}".format(node, loginfo[itemnumber][2], pageno)
+	if len(loginfo) > itemnumber:
+		return "{} Log from {}           Page: {}".format(node, loginfo[itemnumber][2], pageno), True
+	else:
+		return "{} No more entries        Page: {}".format(node, pageno), False
 
 
 def LogDisplay(evnt):
@@ -322,4 +319,5 @@ def LogDisplay(evnt):
 																					 uselog=evnt.value),
 									functools.partial(PageTitle, node=evnt.node, loginfo=evnt.value),
 									config.sysStore.LogFontSize, 'white')
+	p.singleuse = True
 	screen.PushToScreen(p)

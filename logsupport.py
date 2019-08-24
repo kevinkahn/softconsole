@@ -419,7 +419,10 @@ class Logger(object):
 		return pos
 
 	def PageTitle(self, pageno, itemnumber):
-		return "Local Log from {}           Page: {}".format(self.log[itemnumber][2], pageno)
+		if len(self.log) > itemnumber:
+			return "Local Log from {}           Page: {}".format(self.log[itemnumber][2], pageno), True
+		else:
+			return "{}Local Log No more entries        Page: {}".format(pageno), False
 
 def ReportStatus(status, retain=True, hold=0):
 	# held: 0 normal status report, 1 set an override status to be held, 2 clear and override status
@@ -462,6 +465,8 @@ def UpdateGlobalErrorPointer(force=False):
 
 
 def LineRenderer(itemnumber, font, uselog):
+	if not (len(uselog) > itemnumber):
+		return ' ', False
 	itext = uselog[itemnumber][1]
 	rl = []
 	h = 0

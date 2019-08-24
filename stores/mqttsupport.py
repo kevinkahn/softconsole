@@ -117,7 +117,6 @@ class MQTTBroker(valuestore.ValueStore):
 								usevalue = msgdcd['value']
 							else:
 								usevalue = ''
-							print('Got resp {} {}'.format(self.name, msgdcd))
 							try:
 								controlevents.PostEvent(controlevents.ConsoleEvent(controlevents.CEvent.HubNodeChange,
 																				   hub=self.name, stat=msgdcd['status'],

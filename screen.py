@@ -66,7 +66,7 @@ def GoToScreen(NS, newstate='NonHome'):
 	screens.DS.SwitchScreen(NS, 'Bright', 'Go to Screen', newstate=newstate)
 
 
-def PushToScreen(NS, newstate='NonHome', msg='Push to Screen'):
+def PushToScreen(NS, newstate='NonHome', msg='Push to Screen', DropStoreOnExit=False):
 	screens.DS.SwitchScreen(NS, 'Bright', msg, newstate=newstate, push=True)
 
 
@@ -309,9 +309,9 @@ class ScreenDesc(object):
 			else:
 				self.userstore.DropStore()
 				for nm, k in self.Keys.items():
-					k.userstore.DropStore()
+					if hasattr(k, 'userstore'): k.userstore.DropStore()
 				for nm, k in self.NavKeys.items():
-					k.userstore.DropStore()
+					if hasattr(k, 'userstore'): k.userstore.DropStore()
 				self.used = True
 
 	def PopOver(self):
