@@ -262,13 +262,12 @@ def EndAsyncLog():
 
 historybuffer.DevPrint = DevPrintDoIt  # to avoid circular imports
 
+LogColors = ("teal", "lightgreen", "darkgreen", "white", "yellow", "red")
 
 class Logger(object):
 	livelog = True
 	livelogpos = 0
 	log = []
-
-	LogColors = ("teal", "lightgreen", "darkgreen", "white", "yellow", "red")
 
 	def __init__(self, screen, dirnm):
 		self.screen = screen
@@ -380,7 +379,7 @@ class Logger(object):
 			if self.livelog and not debugitem:
 				if self.livelogpos == 0:
 					hw.screen.fill(wc('royalblue'))
-				self.livelogpos = self.RenderLogLine(entry, self.LogColors[severity], self.livelogpos)
+				self.livelogpos = self.RenderLogLine(entry, LogColors[severity], self.livelogpos)
 				if self.livelogpos > hw.screenheight - screens.screenStore.BotBorder:
 					time.sleep(1)
 					self.livelogpos = 0
@@ -390,38 +389,6 @@ class Logger(object):
 			self.RecordMessage(ConsoleError, 'Exception while local logging: {}'.format(repr(E)),
 							   defentrytime, False, True)
 
-	def LineRenderer(self, itemnumber, font, recommendedcolor):
-		itext = self.log[itemnumber][1]
-		rl = []
-		h = 0
-		color = self.LogColors[self.log[itemnumber][0]]
-		text = re.sub('\s\s+', ' ', itext.rstrip())
-		ltext = re.split('([ :,])', text)
-		ltext.append('')
-		ptext = []
-		while len(ltext) > 1:
-			ptext.append(ltext[0])
-			del ltext[0]
-			while 1:
-				if len(ltext) == 0:
-					break
-				t = font.size(''.join(ptext) + ltext[0])[0]
-				if t > hw.screenwidth - 10:
-					break
-				else:
-					ptext.append(ltext[0])
-					del ltext[0]
-			rl.append(font.render(''.join(ptext), False, wc(color)))
-			h += rl[-1].get_height()
-			ptext = ["    "]
-		blk = pygame.Surface((hw.screenwidth, h))
-		blk.set_colorkey(wc('black'))
-		v = 0
-		for l in rl:
-			blk.blit(l, (0, v))
-			v += l.get_height()
-
-		return blk, itemnumber + 1 < len(self.log)
 
 	def RenderLogLine(self, itext, clr, pos):  # todo switch initial log display to using LineRenderer
 		# odd logic below is to make sure that if an unbroken item would by itself exceed line length it gets forced out
@@ -492,3 +459,37 @@ def UpdateGlobalErrorPointer(force=False):
 			primaryBroker.Publish('set', payload='{"name":"System:GlobalLogViewTime","value":' + str(
 				config.sysStore.LogStartTime + errorlogfudge) + '}', node='all')
 			errorlogfudge += 1
+
+
+def LineRenderer(itemnumber, font, uselog):
+	itext = uselog[itemnumber][1]
+	rl = []
+	h = 0
+	color = LogColors[uselog[itemnumber][0]]
+	text = re.sub('\s\s+', ' ', itext.rstrip())
+	ltext = re.split('([ :,])', text)
+	ltext.append('')
+	ptext = []
+	while len(ltext) > 1:
+		ptext.append(ltext[0])
+		del ltext[0]
+		while 1:
+			if len(ltext) == 0:
+				break
+			t = font.size(''.join(ptext) + ltext[0])[0]
+			if t > hw.screenwidth - 10:
+				break
+			else:
+				ptext.append(ltext[0])
+				del ltext[0]
+		rl.append(font.render(''.join(ptext), False, wc(color)))
+		h += rl[-1].get_height()
+		ptext = ["    "]
+	blk = pygame.Surface((hw.screenwidth, h))
+	blk.set_colorkey(wc('black'))
+	v = 0
+	for l in rl:
+		blk.blit(l, (0, v))
+		v += l.get_height()
+
+	return blk, itemnumber + 1 < len(uselog)

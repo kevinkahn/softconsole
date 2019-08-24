@@ -249,7 +249,7 @@ class RunProgram(ManualKeyDesc):
 				"Missing Prog binding Key: {} on screen {} Hub: {} Program: {}".format(keyname, thisscreen.name, self.Hub.name, self.ProgramName),
 				severity=ConsoleWarning)
 		if self.Verify:
-			self.VerifyScreen = supportscreens.VerifyScreen(self, self.GoMsg, self.NoGoMsg, self.RunKeyDblPressed,
+			self.VerifyScreen = supportscreens.VerifyScreen(self, self.GoMsg, self.NoGoMsg, self.RunKeyPressed,
 															thisscreen, self.KeyColorOff,
 															thisscreen.BackgroundColor, thisscreen.CharColor,
 															self.State, thisscreen.HubInterestList)
@@ -418,13 +418,12 @@ class RemoteProcKey(InternalProcKey):
 		print('ProcNodeEvent {}'.format(evnt))
 		if int(evnt.seq) != self.Seq:
 			logsupport.Logs.Log(
-				'Remote response sequence error for {} expected {} ogt {}'.format(self.name, self.Seq, evnt),
+				'Remote response sequence error for {} expected {} got {}'.format(self.name, self.Seq, evnt),
 				severity=ConsoleWarning, tb=True)
-		time.sleep(.5)  # slow the blink without stalling console too long
-		self.State = True
-		self.PaintKey()
-		pygame.display.update()
-
+		if evnt.stat == 'ok':
+			self.ScheduleBlinkKey(5)
+		else:
+			self.FlashNo(5)
 
 class RemoteComplexProcKey(InternalProcKey):
 	def __init__(self, thisscreen, keysection, keyname):
@@ -443,9 +442,4 @@ class RemoteComplexProcKey(InternalProcKey):
 			logsupport.Logs.Log(
 				'Remote response sequence error for {} expected {} got {}'.format(self.name, self.Seq, evnt),
 				severity=ConsoleWarning, tb=True)
-		self.State = True
-		# todo got to page? or make more general call?  FinishProc here
-		# Need to link in the response proc, if user has left screen ignore resp 
-
-		self.PaintKey()
-		pygame.display.update()
+		self.FinishProc(evnt)

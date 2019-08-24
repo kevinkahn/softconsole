@@ -21,7 +21,8 @@ MaintScreen = None
 def SetUpMaintScreens():
 	global MaintScreen
 	screenset = []
-	LogDisp = supportscreens.PagedDisplay('LocalLog', PickStartingSpot, logsupport.Logs.LineRenderer,
+	LogDisp = supportscreens.PagedDisplay('LocalLog', PickStartingSpot,
+										  functools.partial(logsupport.LineRenderer, uselog=logsupport.Logs.log),
 										  logsupport.Logs.PageTitle, config.sysStore.LogFontSize, 'white')
 	# LogDisp = LogDisplayScreen()
 	screenset.append(LogDisp)

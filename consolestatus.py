@@ -5,6 +5,7 @@ from itertools import zip_longest
 import functools
 import configobj
 import issuecommands
+import supportscreens
 
 import pygame
 
@@ -212,7 +213,7 @@ class StatusDisplayScreen(screen.BaseKeyScreenDesc):
 class CommandScreen(screen.BaseKeyScreenDesc):
 	def __init__(self):
 		screen.BaseKeyScreenDesc.__init__(self, None, 'StatusCmdScreen', SingleUse=True)
-		self.RespProcs = {'getlog': self.LogDisplay, 'geterrors': self.LogDisplay}
+		self.RespProcs = {'getlog': LogDisplay, 'geterrors': LogDisplay}
 		screen.AddUndefaultedParams(self, None, TitleFontSize=40, SubFontSize=25)
 		self.NavKeysShowing = False
 		self.DefaultNavKeysShowing = False
@@ -261,7 +262,7 @@ class CommandScreen(screen.BaseKeyScreenDesc):
 				else:
 					Cmds[cmd] = {"type": "REMOTECPLXPROC", "ProcName": 'Command' + cmd, "label": DN,
 								 "Verify": action.Verify, "EventProcName": 'Commandresp' + cmd}
-					keyspecs.internalprocs['Commandresp' + cmd] = functools.partial(self.RespProcs[cmd], cmd)
+					keyspecs.internalprocs['Commandresp' + cmd] = self.RespProcs[cmd]
 					keyspecs.internalprocs['Command' + cmd] = functools.partial(self.IssueSimpleCmd, cmd)
 
 		self.CmdListScreen = screens.screentypes["Keypad"](Cmds, 'CmdListScreen', parentscreen=self)
@@ -279,9 +280,6 @@ class CommandScreen(screen.BaseKeyScreenDesc):
 		Key.State = False
 		Key.PaintKey()
 		pygame.display.update()
-
-	def LogDisplay(self, cmd, Key=None):  # need to get part 2 of this embedded in handle event
-		print('Get recent errors from: {}'.format(self.FocusNode))
 
 	def ShowCmds(self, nd):
 		self.FocusNode = nd
@@ -309,3 +307,19 @@ class CommandScreen(screen.BaseKeyScreenDesc):
 			header, ht, wd = screenutil.CreateTextBlock(
 				'  Node       ', landfont, 'white', False)
 		pygame.display.update()
+
+
+def PickStartingSpot():
+	return 0
+
+
+def PageTitle(pageno, itemnumber, node='', loginfo=None):
+	return "{} Log from {}           Page: {}".format(node, loginfo[itemnumber][2], pageno)
+
+
+def LogDisplay(evnt):
+	p = supportscreens.PagedDisplay('remotelog', PickStartingSpot, functools.partial(logsupport.LineRenderer,
+																					 uselog=evnt.value),
+									functools.partial(PageTitle, node=evnt.node, loginfo=evnt.value),
+									config.sysStore.LogFontSize, 'white')
+	screen.PushToScreen(p)

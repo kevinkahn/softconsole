@@ -168,13 +168,13 @@ def LogItem(sev, params=None, Key=None):
 
 
 def GetErrors(params=None):  # remote only
-	errs = logsupport.Logs.ReturnRecent(logsupport.ConsoleDetail, 10)
+	errs = logsupport.Logs.ReturnRecent(logsupport.ConsoleWarning, 10)
 	CommandResp(None, 'ok', params, errs)
 
 
 def GetLog(params=None):  # remote only
 	log = logsupport.Logs.ReturnRecent(-1, 0)
-	CommandResp(None, 'ok', params, None)
+	CommandResp(None, 'ok', params, log)
 
 
 def DisplayRemoteLog():
