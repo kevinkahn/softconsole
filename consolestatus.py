@@ -84,8 +84,8 @@ def UpdateStatus(nd, stat):
 	if nd not in nodes: NewNode(nd)
 	nodes[nd] = nodes[nd]._replace(**stat)
 	t = False
-	for nd in nodes:
-		if nd['error'] != -1:
+	for nd, ndinfo in nodes.items():
+		if ndinfo.error != -1:
 			t = True
 			break
 	config.sysStore.NetErrorIndicator = t or (config.sysStore.ErrorNotice != -1)
@@ -232,7 +232,7 @@ class CommandScreen(screen.BaseKeyScreenDesc):
 		self.Keys = OrderedDict([('All', toucharea.ManualKeyDesc(self, 'All', label=('All',), bcolor='red',
 																 charcoloron='white', charcoloroff='white',
 																 center=(butcenterleft, vt), size=(butwidth, butht),
-																 proc=functools.partial(self.ShowCmds,
+																 proc=functools.partial(self.ShowCmds, 'Regular'
 																						'*')))])  # todo figure out how to only have relevant commands for all
 
 		odd = False
@@ -244,7 +244,10 @@ class CommandScreen(screen.BaseKeyScreenDesc):
 			self.Keys[nd] = toucharea.ManualKeyDesc(self, nd, label=(nd,), bcolor=bcolor, charcoloron='white',
 													charcoloroff='white', center=(usecenter, vt),
 													size=(butwidth, butht),
-													proc=None if offline else functools.partial(self.ShowCmds, nd))
+													proc=None if offline else functools.partial(self.ShowCmds,
+																								'Regular', nd),
+													procdbl=None if offline else functools.partial(self.ShowCmds,
+																								   'Advanced', nd))
 			if not odd: vt += butht + 3
 			odd = not odd
 		self.Keys['back'] = toucharea.ManualKeyDesc(self, 'Back', label=('Back',), bcolor='green', charcoloron='white',
@@ -252,26 +255,30 @@ class CommandScreen(screen.BaseKeyScreenDesc):
 													center=(butcenterleft if odd else butcenterright, vt),
 													size=(butwidth, butht), proc=screen.PopScreen)
 
-		Cmds = configobj.ConfigObj(
-			{'KeyCharColorOn': 'black', 'KeyColor': 'maroon', 'BackgroundColor': 'royalblue', 'label': ['Maintenance'],
-			 'DimTO': 60,
-			 'PersistTO': 5, 'ScreenTitle': 'Placeholder'})
+		CmdProps = {'KeyCharColorOn': 'white', 'KeyColor': 'maroon', 'BackgroundColor': 'royalblue',
+					'label': ['Maintenance'],
+					'DimTO': 60, 'PersistTO': 5, 'ScreenTitle': 'Placeholder'}
+
+		CmdSet = {'Regular': configobj.ConfigObj(CmdProps), 'Advanced': configobj.ConfigObj(CmdProps)}
 
 		for cmd, action in issuecommands.cmdcalls.items():
-			if issuecommands.Where.RemoteMenu in action.where:
-				DN = action.DisplayName.split(' ')
+			DN = action.DisplayName.split(' ')
+			if issuecommands.Where.RemoteMenu in action.where or issuecommands.Where.RemoteMenuAdv in action.where:
+				whichscreen = 'Regular' if issuecommands.Where.RemoteMenu in action.where else "Advanced"
+				keyspecs.internalprocs['Command' + cmd] = functools.partial(self.IssueSimpleCmd, cmd)
 				if action.simple:
-					Cmds[cmd] = {"type": "REMOTEPROC", "ProcName": 'Command' + cmd, "label": DN,
+					CmdSet[whichscreen][cmd] = {"type": "REMOTEPROC", "ProcName": 'Command' + cmd, "label": DN,
 								 "Verify": action.Verify}
-					keyspecs.internalprocs['Command' + cmd] = functools.partial(self.IssueSimpleCmd, cmd)
 				else:
-					Cmds[cmd] = {"type": "REMOTECPLXPROC", "ProcName": 'Command' + cmd, "label": DN,
+					CmdSet[whichscreen][cmd] = {"type": "REMOTECPLXPROC", "ProcName": 'Command' + cmd, "label": DN,
 								 "Verify": action.Verify, "EventProcName": 'Commandresp' + cmd}
 					keyspecs.internalprocs['Commandresp' + cmd] = self.RespProcs[cmd]
-					keyspecs.internalprocs['Command' + cmd] = functools.partial(self.IssueSimpleCmd, cmd)
 
-		self.CmdListScreen = screens.screentypes["Keypad"](Cmds, 'CmdListScreen', parentscreen=self)
-		self.CmdListScreen.SetScreenTitle('Commands', self.TitleFontSize, 'white')
+		self.entered = ''
+		self.CmdListScreens = {}
+		for t, s in CmdSet.items():
+			self.CmdListScreens[t] = screens.screentypes["Keypad"](s, 'CmdListScreen' + t, parentscreen=self)
+			self.CmdListScreens[t].SetScreenTitle(t + ' Commands', self.TitleFontSize, 'white', force=True)
 
 	def IssueSimpleCmd(self, cmd, Key=None):
 		global MsgSeq
@@ -280,16 +287,16 @@ class CommandScreen(screen.BaseKeyScreenDesc):
 		config.MQTTBroker.Publish('cmd', '{}|{}|{}'.format(cmd, hw.hostname, MsgSeq), self.FocusNode)
 		self.CmdListScreen.AddToHubInterestList(config.MQTTBroker, cmd, Key)
 
-	def ShowCmds(self, nd):
+	def ShowCmds(self, cmdset, nd):
+		self.entered = cmdset
 		self.FocusNode = nd
-		for key in self.CmdListScreen.Keys.values():
+		for key in self.CmdListScreens[cmdset].Keys.values():
 			key.State = True
-		self.CmdListScreen.SetScreenTitle('Command to {}'.format(nd), self.TitleFontSize, 'white', force=True)
-		screen.PushToScreen(self.CmdListScreen, newstate='Maint')
+		screen.PushToScreen(self.CmdListScreens[cmdset], newstate='Maint')
 
 	def ExitScreen(self, viaPush):
 		super().ExitScreen(viaPush)
-		if not viaPush: self.CmdListScreen.userstore.DropStore()
+		if not viaPush: self.CmdListScreens[self.entered].userstore.DropStore()
 
 	def RequestErrors(self, nd):
 		global ErrorBuffer, ErrorNode, ErrorsRcvd

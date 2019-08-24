@@ -32,10 +32,11 @@ class MaintScreenDesc(screen.BaseKeyScreenDesc):
 		screen.AddUndefaultedParams(self, None, TitleFontSize=40, SubFontSize=25)
 		self.SetScreenTitle(name, self.TitleFontSize, 'white')
 		for k, kt in keys.items():
-			verify = False if len(kt) == 2 else kt[2] == 'True'
+			verify = False if len(kt) < 4 else kt[3] == 'True'
+			DblTap = None if len(kt) < 3 else kt[2]
 			DN = [kt[0]] if isinstance(kt[0], str) else kt[0]
 			self.Keys[k] = toucharea.ManualKeyDesc(self, k, DN, 'gold', 'black', 'red', KOn='black', KOff='red',
-												   Verify=verify, proc=kt[1])
+												   Verify=verify, proc=kt[1], procdbl=DblTap)
 			if verify:
 				VerifyScreen = supportscreens.VerifyScreen(self.Keys[k], ('Proceed',), ('Cancel',), kt[1],
 														   self, self.Keys[k].KeyColorOff, self.Keys[k].BackgroundColor,

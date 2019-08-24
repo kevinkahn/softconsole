@@ -423,10 +423,8 @@ class RemoteProcKey(InternalProcKey):
 	def FinishKey(self, center, size, firstfont=0, shrink=True):
 		super().FinishKey(center, size, firstfont, shrink)
 		self.thisscreen.AddToHubInterestList(self.Hub, self.name, self)
-		print("Finish {} state {}".format(self.name, self.State))
 
 	def HandleNodeEvent(self, evnt):
-		print('ProcNodeEvent {} {}'.format(evnt, self.State))
 		if int(evnt.seq) != self.Seq:
 			logsupport.Logs.Log(
 				'Remote response sequence error for {} expected {} got {}'.format(self.name, self.Seq, evnt),

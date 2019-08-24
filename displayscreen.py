@@ -440,11 +440,18 @@ class DisplayScreen(object):
 				elif event.type == CEvent.HubNodeChange:
 					self.HBEvents.Entry('Hub Change: {}'.format(repr(event)))
 					debug.debugPrint('Dispatch', 'Hub Change Event', event)
-					if hasattr(event, 'node') or hasattr(event, 'varinfo'):
+					if hasattr(event, 'node'):
+						if hasattr(event, 'varinfo'):
+							print('Event with both var and node {}'.format(event))
+							logsupport.Logs.Log('Event with both var and node {}'.format(event),
+												severity=ConsoleWarning)
 						self.AS.NodeEvent(event)
+					elif hasattr(event, 'varinfo'):
+						self.AS.VarEvent(event)
 					else:
 						debug.debugPrint('Dispatch', 'Bad Node Change Event: ', event)
-						logsupport.Logs.Log('Bad Node Change Event ', event, severity=ConsoleWarning)
+						logsupport.Logs.Log('Node Change Event missing node and varinfo: {} '.format(event),
+											severity=ConsoleWarning)
 
 				elif event.type in (CEvent.ISYVar, CEvent.ISYAlert):
 					self.HBEvents.Entry('Var or Alert' + repr(event))

@@ -66,7 +66,7 @@ def GoToScreen(NS, newstate='NonHome'):
 	screens.DS.SwitchScreen(NS, 'Bright', 'Go to Screen', newstate=newstate)
 
 
-def PushToScreen(NS, newstate='NonHome', msg='Push to Screen', DropStoreOnExit=False):
+def PushToScreen(NS, newstate='NonHome', msg='Push to Screen'):
 	screens.DS.SwitchScreen(NS, 'Bright', msg, newstate=newstate, push=True)
 
 
@@ -111,7 +111,7 @@ def ButLayout(butcount):
 	if butcount in range(1, 21):
 		return plan[butcount - 1]
 	else:
-		logsupport.Logs.Log("Button layout error - too many or no buttons: {}".format(butcount), ConsoleError)
+		logsupport.Logs.Log("Button layout error - too many or no buttons: {}".format(butcount), severity=ConsoleError)
 		return 5, 5
 
 
@@ -298,7 +298,14 @@ class ScreenDesc(object):
 			else:
 				pass
 		else:
-			logsupport.Logs.Log('Node event to screen {} with no handler (Event: {})'.format(self.name, evnt))
+			logsupport.Logs.Log(
+				'Node event to screen {} with no handler node: {} (Event: {})'.format(self.name, evnt.node, evnt),
+				severity=ConsoleError)
+
+	def VarEvent(self, evnt):
+		pass  # var changes can happen with any screen up so if screen doesn't care about vars it doesn't define a handler
+
+	# logsupport.Logs.Log('Var event to screen {} with no handler (Event: {})'.format(self.name,evnt), severity=ConsoleError)
 
 	def ExitScreen(self, viaPush):
 		for timer in self.ScreenTimers:

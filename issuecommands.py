@@ -179,14 +179,17 @@ def GetLog(params=None):  # remote only
 def ClearIndicator(params=None, Key=None):
 	TempCheckSanity(Key, params)
 	config.sysStore.ErrorNotice = -1  # clear indicator
+	logsupport.ReportStatus('cleared indicator')
 	CommandResp(Key, 'ok', params, None)
 
 
 Where = Enum('Where',
-			 'LocalMenuExits LocalMenuVersions RemoteMenu MQTTCmds')
+			 'LocalMenuExits LocalMenuVersions LocalMenuVersionsAdv RemoteMenu RemoteMenuAdv MQTTCmds')
 MaintVers = (Where.LocalMenuVersions, Where.RemoteMenu, Where.MQTTCmds)
+MaintVersAdv = (Where.LocalMenuVersionsAdv, Where.RemoteMenuAdv, Where.MQTTCmds)
 MaintExits = (Where.LocalMenuExits, Where.RemoteMenu, Where.MQTTCmds)
 RemoteOnly = (Where.RemoteMenu, Where.MQTTCmds)
+RemoteOnlyAdv = (Where.RemoteMenuAdv, Where.MQTTCmds)
 
 CommandRecord = NamedTuple('CommandRecord',
 						   [('Proc', Callable), ('simple', bool), ('DisplayName', str), ('Verify', str),
@@ -208,21 +211,21 @@ cmdcalls = OrderedDict({
 	'shutpi': CommandRecord(ShutdownPi, True, "Shutdown Pi", 'True', MaintExits),
 	'usestable': CommandRecord(UseStable, True, "Use Stable Release", 'False', MaintVers),
 	'usebeta': CommandRecord(UseBeta, True, "Use Beta Release", 'False', MaintVers),
-	'usedev': CommandRecord(UseDev, True, "Use Development Release", 'False', MaintVers),
+	'usedev': CommandRecord(UseDev, True, "Use Development Release", 'False', MaintVersAdv),
 	'getstable': CommandRecord(GetStable, True, "Download Release", 'False', MaintVers),
 	'getbeta': CommandRecord(GetBeta, True, "Download Beta", 'False', MaintVers),
-	'getdev': CommandRecord(GetDev, True, "Download Development", 'False', MaintVers),
-	'hbdump': CommandRecord(DumpHB, True, "Dump HB", 'False', RemoteOnly),
-	'status': CommandRecord(EchoStat, True, "Echo Status", 'False', RemoteOnly),
+	'getdev': CommandRecord(GetDev, True, "Download Development", 'False', MaintVersAdv),
+	'hbdump': CommandRecord(DumpHB, True, "Dump HB", 'False', RemoteOnlyAdv),
+	# 'status': CommandRecord(EchoStat, True, "Echo Status", 'False', RemoteOnly),
 	'getlog': CommandRecord(GetLog, False, "Get Remote Log", "False", RemoteOnly),
 	'geterrors': CommandRecord(GetErrors, False, "Get Recent Errors", 'False', RemoteOnly),
 	'clearerrindicator': CommandRecord(ClearIndicator, True, "Clear Error Indicator", 'False', RemoteOnly),
 	'issueerror': CommandRecord(functools.partial(LogItem, ConsoleError), True, "Issue Error", 'False',
-								RemoteOnly),
+								RemoteOnlyAdv),
 	'issuewarning': CommandRecord(functools.partial(LogItem, ConsoleWarning), True, "Issue Warning", 'False',
-								  RemoteOnly),
+								  RemoteOnlyAdv),
 	'issueinfo': CommandRecord(functools.partial(LogItem, ConsoleInfo), True, "Issue Info", 'False',
-							   RemoteOnly)})
+							   RemoteOnlyAdv)})
 
 
 def IssueCommand(source, cmd, seq, fromnd):

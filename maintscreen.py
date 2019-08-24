@@ -33,19 +33,25 @@ def SetUpMaintScreens():
 	ExitMenu = OrderedDict()
 	for cmd, action in issuecommands.cmdcalls.items():
 		if issuecommands.Where.LocalMenuExits in action.where:
-			ExitMenu[cmd] = (action.DisplayName, action.Proc, action.Verify)
+			ExitMenu[cmd] = (action.DisplayName, action.Proc, None, action.Verify)
 	ExitMenu['return'] = ('Return', screen.PopScreen)
 	Exits = MaintScreenDesc('System Exit/Restart', ExitMenu)
 	screenset.append(Exits)
 
 	VersMenu = OrderedDict()
+	VersMenuAdv = OrderedDict()
 	for cmd, action in issuecommands.cmdcalls.items():
 		if issuecommands.Where.LocalMenuVersions in action.where:
 			VersMenu[cmd] = (action.DisplayName, action.Proc)
-	# VersMenu[cmd] = (action.DisplayName, dobeta, 'addkey')
+			VersMenuAdv[cmd] = (action.DisplayName, action.Proc)
+		elif issuecommands.Where.LocalMenuVersionsAdv in action.where:
+			VersMenuAdv[cmd] = (action.DisplayName, action.Proc)
 	VersMenu['return'] = ('Return', screen.PopScreen)
-	Beta = MaintScreenDesc('Version Control', VersMenu)
-	screenset.append(Beta)
+	VersMenuAdv['return'] = ('Return', screen.PopScreen)
+	Versions = MaintScreenDesc('Version Control', VersMenu)
+	VersionsAdv = MaintScreenDesc('Advanced Version Control', VersMenuAdv)
+	screenset.append(Versions)
+	screenset.append(VersionsAdv)
 
 	FlagsScreens = []
 	nflags = len(debug.DbgFlags) + 3
@@ -93,7 +99,8 @@ def SetUpMaintScreens():
 
 	TopLevel = OrderedDict([('return', ('Exit Maintenance', gohome)),
 							('log', ('Show Log', functools.partial(screen.PushToScreen, LogDisp, 'Maint'))),
-							('beta', ('Select Version', functools.partial(screen.PushToScreen, Beta, 'Maint'))),
+							('versions', ('Select Version', functools.partial(screen.PushToScreen, Versions, 'Maint'),
+										  functools.partial(screen.PushToScreen, VersionsAdv, 'Maint'))),
 							('flags', ('Set Flags', functools.partial(screen.PushToScreen, FlagsScreens[0], 'Maint')))])
 
 	if Status is not None: TopLevel['status'] = (
@@ -158,7 +165,8 @@ def PickStartingSpot():
 	if config.sysStore.ErrorNotice != -1:
 		startat = config.sysStore.ErrorNotice
 		config.sysStore.ErrorNotice = -1
+		logsupport.ReportStatus('error ind cleared')
 	else:
 		startat = 0
-	UpdateGlobalErrorPointer()
+	UpdateGlobalErrorPointer()  # tempdel
 	return startat

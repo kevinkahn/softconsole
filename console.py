@@ -58,6 +58,7 @@ import alerttasks
 from stores.weathprov.providerutils import SetUpTermShortener, WeathProvs
 import screen
 import historybuffer
+import controlevents
 
 '''
 Constants
@@ -171,6 +172,8 @@ if os.getegid() != 0:
 utilities.InitializeEnvironment()
 
 logsupport.Logs.Log(u'Environment initialized on host ' + hw.hostname)
+if 'Zero' in hw.hwinfo:
+	controlevents.LateTolerance = 4.0
 
 lastfn = u""
 lastmod = 0
@@ -340,6 +343,7 @@ logsupport.Logs.Log(
 logsupport.Logs.Log("Screen Orientation: ", ("Landscape", "Portrait")[hw.portrait])
 if config.sysStore.PersonalSystem:
 	logsupport.Logs.Log("Personal System")
+	logsupport.Logs.Log("Latency Tolerance: {}".format(controlevents.LateTolerance))
 if utilities.previousup > 0:
 	logsupport.Logs.Log("Previous Console Lifetime: ", str(datetime.timedelta(seconds=utilities.previousup)))
 if utilities.lastup > 0:
