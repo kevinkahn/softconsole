@@ -296,9 +296,10 @@ class ManualKeyDesc(TouchPoint):
 		pygame.draw.rect(self.KeyOffImageBase, wc(self.KeyOffOutlineColor),
 						 ((scaleW(bord), scaleH(bord)), buttonsmaller), bord)
 
-		self.KeyUnknownOverlay = pygame.Surface(self.Size)
-		pygame.draw.line(self.KeyUnknownOverlay, wc(self.KeyCharColorOn), (0, 0), self.Size, bord)
-		pygame.draw.line(self.KeyUnknownOverlay, wc(self.KeyCharColorOn), (0, self.Size[1]), (self.Size[0], 0), bord)
+		self.KeyUnknownOverlay = pygame.Surface(self.GappedSize)
+		pygame.draw.line(self.KeyUnknownOverlay, wc(self.KeyCharColorOn), (0, 0), self.GappedSize, bord)
+		pygame.draw.line(self.KeyUnknownOverlay, wc(self.KeyCharColorOn), (0, self.GappedSize[1]),
+						 (self.GappedSize[0], 0), bord)
 		self.KeyUnknownOverlay.set_alpha(128)
 
 	# noinspection PyAttributeOutsideInit
