@@ -46,7 +46,6 @@ def TempCheckSanity(Key, params):  # tempdel
 
 def FetchInProgress():
 	global fetcher
-	print('Fetching: {}'.format(fetcher is not None and fetcher.is_alive()))
 	return fetcher is not None and fetcher.is_alive()
 
 # todo further compress below to unify messagint

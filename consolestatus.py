@@ -308,7 +308,11 @@ class CommandScreen(screen.BaseKeyScreenDesc):
 
 	def ExitScreen(self, viaPush):
 		super().ExitScreen(viaPush)
-		if not viaPush: self.CmdListScreens[self.entered].userstore.DropStore()
+		print('Exit screen {} {}'.format(self.name, self.entered))
+		if self.entered == '':
+			logsupport.Logs.Log('Internal error leaving net screen {}'.format(self.name))
+		else:
+			if not viaPush: self.CmdListScreens[self.entered].userstore.DropStore()
 
 	def RequestErrors(self, nd):
 		global ErrorBuffer, ErrorNode, ErrorsRcvd

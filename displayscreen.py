@@ -163,8 +163,6 @@ class DisplayScreen(object):
 		TimerName = 0
 
 
-		config.sysStore.ErrorNotice = -1  # don't pester for errors during startup
-
 		threadmanager.StartThreads()
 		config.sysStore.LogStartTime = time.time()  # MQTT will start tracking other console errors now
 		# so we can start broadcasting our errors
@@ -196,6 +194,9 @@ class DisplayScreen(object):
 									severity=ConsoleError, tb=False)
 
 		logsupport.Logs.livelog = False  # turn off logging to the screen
+		config.sysStore.ErrorNotice = -1  # don't pester for errors during startup
+		time.sleep(1)  # give support services a chance to start (particularly MQTT)
+		logsupport.ReportStatus('mainloop starting')
 
 		with open("{}/.ConsoleStart".format(config.sysStore.HomeDir), "a") as f:
 			f.write(str(time.time()) + '\n')
