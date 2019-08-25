@@ -108,7 +108,7 @@ def status_interval_str(sec_elapsed):
 class ShowVersScreen(screen.BaseKeyScreenDesc):
 	def __init__(self, showhw):
 		self.showhw = showhw
-		nm = 'HW=Status' if showhw else 'SW Versions'
+		nm = 'HW Status' if showhw else 'SW Versions'
 		screen.BaseKeyScreenDesc.__init__(self, None, nm)
 		self.NavKeysShowing = False
 		self.DefaultNavKeysShowing = False
@@ -167,17 +167,16 @@ class StatusDisplayScreen(screen.BaseKeyScreenDesc):
 		if self.T.finished.is_set():
 			return
 		hw.screen.fill(wc(self.BackgroundColor))
-		landfont = 17
-		portfont = 17
-		tm, ht, wd = screenutil.CreateTextBlock('{}'.format(time.strftime('%c')), landfont, 'white', False,
+		fontsz = 10 if hw.portrait else 17
+		tm, ht, wd = screenutil.CreateTextBlock('{}'.format(time.strftime('%c')), fontsz, 'white', False,
 												FitLine=False)
 		hw.screen.blit(tm, (10, 20))
 		if hw.portrait:
 			header, ht, wd = screenutil.CreateTextBlock(
-				['    Node       Status   QMax E', '-->    Uptime', '---->    Last Boot'], portfont, 'white', False)
+				['    Node       Status   QMax E', '-->    Uptime', '---->    Last Boot'], fontsz, 'white', False)
 		else:
 			header, ht, wd = screenutil.CreateTextBlock(
-				'     Node       Status   QMax E       Uptime            Last Boot', landfont, 'white', False)
+				'     Node       Status   QMax E       Uptime            Last Boot', fontsz, 'white', False)
 		linestart = 60 + int(ht * 1.2)
 		hw.screen.blit(header, (10, 60))
 		for nd, ndinfo in nodes.items():
@@ -190,7 +189,8 @@ class StatusDisplayScreen(screen.BaseKeyScreenDesc):
 			active = '*' if ndinfo.status == 'active' else ' '
 
 			if ndinfo.status in ('dead', 'unknown'):
-				cstat = "{:20.20s}".format(' ')
+				estat = ''
+				cstat = "{:17.17s}".format(' ')
 			else:
 				estat = ' ' if ndinfo.error == -1 else '?' if ndinfo.error == -1 else '*'
 				cstat = " {:>14.14s}  ".format(status_interval_str(ndinfo.uptime))
@@ -208,11 +208,11 @@ class StatusDisplayScreen(screen.BaseKeyScreenDesc):
 			if hw.portrait:
 				ln, ht, wd = screenutil.CreateTextBlock(
 					['{:12.12s}{}{:10.10s} {}{}'.format(nd, active, stat, qmax, estat), "     {}".format(cstat),
-					 "       {}".format(bt)], landfont, 'white',
+					 "       {}".format(bt)], fontsz, 'white',
 					False)
 			else:
 				ln, ht, wd = screenutil.CreateTextBlock(
-					'{:12.12s}{}{:10.10s} {}{}  {} {}'.format(nd, active, stat, qmax, estat, cstat, bt), landfont,
+					'{:12.12s}{}{:10.10s} {}{}  {} {}'.format(nd, active, stat, qmax, estat, cstat, bt), fontsz,
 					'white', False)
 			hw.screen.blit(ln, (20, linestart))
 			linestart += int(ht * 1.2)
