@@ -118,8 +118,8 @@ class ShowVersScreen(screen.BaseKeyScreenDesc):
 	def InitDisplay(self, nav):
 		super(ShowVersScreen, self).InitDisplay(nav)
 		hw.screen.fill(wc(self.BackgroundColor))
-		landfont = 15
-		header, ht, wd = screenutil.CreateTextBlock('  Node       ', landfont, 'white', False, FitLine=False)
+		fontsz = 10 if hw.portrait else 17
+		header, ht, wd = screenutil.CreateTextBlock('  Node       ', fontsz, 'white', False, FitLine=False)
 		linestart = 40
 		hw.screen.blit(header, (10, 20))
 		for nd, ndinfo in nodes.items():
@@ -136,12 +136,12 @@ class ShowVersScreen(screen.BaseKeyScreenDesc):
 			#									   '             Downloaded: {}'.format(ndinfo.versiondnld)],
 			#									  landfont, 'white', False)
 			if hw.portrait:
-				ln, ht, _ = screenutil.CreateTextBlock([ndln, '  ' + ln1, '  ' + ln2], landfont, 'white', False)
+				ln, ht, _ = screenutil.CreateTextBlock([ndln, '  ' + ln1, '  ' + ln2], fontsz, 'white', False)
 				pass
 			else:
-				ln, ht, _ = screenutil.CreateTextBlock([ndln + ln1, '             ' + ln2], landfont, 'white', False)
+				ln, ht, _ = screenutil.CreateTextBlock([ndln + ln1, '             ' + ln2], fontsz, 'white', False)
 			hw.screen.blit(ln, (10, linestart))
-			linestart += ht + landfont //2
+			linestart += ht + fontsz // 2
 		pygame.display.update()
 
 
@@ -173,7 +173,7 @@ class StatusDisplayScreen(screen.BaseKeyScreenDesc):
 		hw.screen.blit(tm, (10, 20))
 		if hw.portrait:
 			header, ht, wd = screenutil.CreateTextBlock(
-				['    Node       Status   QMax E', '-->    Uptime', '---->    Last Boot'], fontsz, 'white', False)
+				['    Node       Status   QMax E', '-->    Uptime/Last Boot'], fontsz, 'white', False)
 		else:
 			header, ht, wd = screenutil.CreateTextBlock(
 				'     Node       Status   QMax E       Uptime            Last Boot', fontsz, 'white', False)
@@ -190,7 +190,7 @@ class StatusDisplayScreen(screen.BaseKeyScreenDesc):
 
 			if ndinfo.status in ('dead', 'unknown'):
 				estat = ''
-				cstat = "{:17.17s}".format(' ')
+				cstat = "{:14.14s}".format(' ')
 			else:
 				estat = ' ' if ndinfo.error == -1 else '?' if ndinfo.error == -1 else '*'
 				cstat = " {:>14.14s}  ".format(status_interval_str(ndinfo.uptime))
@@ -207,12 +207,11 @@ class StatusDisplayScreen(screen.BaseKeyScreenDesc):
 
 			if hw.portrait:
 				ln, ht, wd = screenutil.CreateTextBlock(
-					['{:12.12s}{}{:10.10s} {}{}'.format(nd, active, stat, qmax, estat), "     {}".format(cstat),
-					 "       {}".format(bt)], fontsz, 'white',
-					False)
+					['{:12.12s}{}{:10.10s} {}{}'.format(nd, active, stat, qmax, estat), "  {} {}".format(cstat, bt)],
+					fontsz, 'white', False)
 			else:
 				ln, ht, wd = screenutil.CreateTextBlock(
-					'{:12.12s}{}{:10.10s} {}{}  {} {}'.format(nd, active, stat, qmax, estat, cstat, bt), fontsz,
+					'{:12.12s}{}{:10.10s} {}{}  {}/{}'.format(nd, active, stat, qmax, estat, cstat, bt), fontsz,
 					'white', False)
 			hw.screen.blit(ln, (20, linestart))
 			linestart += int(ht * 1.2)
