@@ -104,17 +104,16 @@ class MQTTBroker(valuestore.ValueStore):
 					return
 				elif topic[2] == 'resp':
 					if self.name in screens.DS.AS.HubInterestList:
-						if msgdcd['cmd'] in screens.DS.AS.HubInterestList[
-							self.name]:  #todo verify seq num and key before posting
-							if 'value' in msgdcd:
-								usevalue = msgdcd['value']
-							else:
-								usevalue = ''
+						print(msgdcd)
+						if msgdcd['cmd'] in screens.DS.AS.HubInterestList[self.name]:
+							usevalue = msgdcd['value'] if 'value' in msgdcd else ''
+							respnode = msgdcd['respfrom'] if 'respfrom' in msgdcd else '*oldsys*'
 							try:
 								controlevents.PostEvent(controlevents.ConsoleEvent(controlevents.CEvent.HubNodeChange,
 																				   hub=self.name, stat=msgdcd['status'],
 																				   seq=msgdcd['seq'],
 																				   node=msgdcd['cmd'],
+																				   respfrom=respnode,
 																				   value=usevalue))
 							except Exception as E:
 								print('Exc: {}'.format(E))
@@ -258,7 +257,7 @@ class MQTTBroker(valuestore.ValueStore):
 		logsupport.Logs.Log("Can't set MQTT subscribed var by id within console: ", str(lclid))
 
 	def CommandResponse(self, success, cmd, seq, fromnd, value):
-		resp = {'status': success, 'seq': seq, 'cmd': cmd}
+		resp = {'status': success, 'seq': seq, 'cmd': cmd, 'respfrom': hw.hostname}
 		if value is not None:
 			resp['value'] = value
 		payld = json.dumps(resp)

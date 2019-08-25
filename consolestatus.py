@@ -321,7 +321,6 @@ class CommandScreen(screen.BaseKeyScreenDesc):
 
 	def InitDisplay(self, nav):
 		super(CommandScreen, self).InitDisplay(nav)
-		# hw.screen.fill(wc(self.BackgroundColor))  todo junk?
 		landfont = 15
 		if hw.portrait:
 			pass
@@ -343,10 +342,10 @@ def PageTitle(pageno, itemnumber, node='', loginfo=None):
 
 
 def LogDisplay(evnt):
-	print('Log display')
+	print('Log display {}'.format(evnt))
 	p = supportscreens.PagedDisplay('remotelog', PickStartingSpot, functools.partial(logsupport.LineRenderer,
 																					 uselog=evnt.value),
-									functools.partial(PageTitle, node=evnt.node, loginfo=evnt.value),
-									config.sysStore.LogFontSize, 'white')
+									functools.partial(PageTitle, node=evnt.respfrom,
+													  loginfo=evnt.value), config.sysStore.LogFontSize, 'white')
 	p.singleuse = True
 	screen.PushToScreen(p)

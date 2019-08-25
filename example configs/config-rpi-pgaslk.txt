@@ -3,7 +3,7 @@ include = /home/pi/Console/local/authpga.cfg, pgawBRmain.cfg, pgaBath.cfg, pgaTs
 HomeScreenName = pgawBR
 DimLevel = 25
 DimTO = 25
-DimIdleListNames = MyClock, Portland, LaQuinta
+DimIdleListNames = MyClock, Portland, LQTT
 DimIdleListTimes =	20, 20, 20
 
 MainChain = pgawBR, LQTT, pgawBath, climate.master_bedroom, climate.living_room

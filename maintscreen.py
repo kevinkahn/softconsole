@@ -24,7 +24,6 @@ def SetUpMaintScreens():
 	LogDisp = supportscreens.PagedDisplay('LocalLog', PickStartingSpot,
 										  functools.partial(logsupport.LineRenderer, uselog=logsupport.Logs.log),
 										  logsupport.Logs.PageTitle, config.sysStore.LogFontSize, 'white')
-	# LogDisp = LogDisplayScreen()
 	screenset.append(LogDisp)
 
 	Status = consolestatus.SetUpConsoleStatus()

@@ -255,7 +255,7 @@ class DisplayScreen(object):
 				if time.time() - ckperf > 900:  # todo 900:
 					ckperf = time.time()
 					if config.sysStore.versionname in ('development', 'homerelease') and (
-							logsupport.queuedepthmax > 4 or logsupport.queuetimemax > 1):
+							logsupport.queuedepthmax > 4 or logsupport.queuetimemax > controlevents.LateTolerance):
 						logsupport.Logs.Log('Console performance({}): maxq: {} maxwait: {}'.format(
 							time.time() - perfdump, logsupport.queuedepthmax, logsupport.queuetimemax),
 							severity=ConsoleWarning, hb=True, localonly=True)
