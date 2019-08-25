@@ -14,7 +14,7 @@ tm = time.time()
 
 nodes = collections.OrderedDict()
 noderecord = collections.namedtuple('noderecord', ['status', 'uptime', 'error', 'rpttime', 'FirstUnseenErrorTime',
-												   'GlobalLogViewTime', 'registered', 'versionname', 'versionsha',
+												   'registered', 'versionname', 'versionsha',
 												   'versiondnld', 'versioncommit', 'boottime', 'osversion', 'hw',
 												   'APIXUfetches', 'queuetimemax24', 'queuetimemax24time',
 												   'queuedepthmax24', 'maincyclecnt', 'queuedepthmax24time',

@@ -22,21 +22,23 @@ import keyspecs
 import config
 
 
+
 def Publish(topic, payload=None, node=hw.hostname, qos=1, retain=False, viasvr=False):
 	# this gets replaced by actual Publish when MQTT starts up
 	pass
 
 nodes = OrderedDict()
+
 noderecord = namedtuple('noderecord', ['status', 'uptime', 'error', 'rpttime', 'FirstUnseenErrorTime',
-												   'GlobalLogViewTime', 'registered', 'versionname', 'versionsha',
-												   'versiondnld', 'versioncommit', 'boottime', 'osversion', 'hw',
-												   'APIXUfetches', 'queuetimemax24', 'queuetimemax24time',
-												   'queuedepthmax24', 'maincyclecnt', 'queuedepthmax24time',
-												   'queuetimemaxtime', 'daystartloops', 'queuedepthmax', 'queuetimemax',
-												   'APIXUfetches24', 'queuedepthmaxtime'])
+									   'registered', 'versionname', 'versionsha',
+									   'versiondnld', 'versioncommit', 'boottime', 'osversion', 'hw',
+									   'APIXUfetches', 'queuetimemax24', 'queuetimemax24time',
+									   'queuedepthmax24', 'maincyclecnt', 'queuedepthmax24time',
+									   'queuetimemaxtime', 'daystartloops', 'queuedepthmax', 'queuetimemax',
+									   'APIXUfetches24', 'queuedepthmaxtime'])
 
 defaults = {k: v for (k, v) in zip_longest(noderecord._fields, (
-	'unknown', 0, -2, 0, 0, 0, 0), fillvalue='unknown*')}
+	'unknown', 0, -2, 0, 0, 0), fillvalue='unknown*')}
 
 StatusDisp = None
 Status = None
@@ -74,7 +76,6 @@ def SetUpConsoleStatus():
 def NewNode(nd):
 	nodes[nd] = noderecord(**defaults)
 
-
 def GenGoNodeCmdScreen():
 	IssueCmds = CommandScreen()
 	IssueCmds.userstore.ReParent(Status)
@@ -82,6 +83,11 @@ def GenGoNodeCmdScreen():
 
 def UpdateStatus(nd, stat):
 	if nd not in nodes: NewNode(nd)
+	# Handle cases where nodes are reporting status fields we are not tracking
+	updts = [f for f in stat.keys()]
+	for k in updts:
+		if not hasattr(nodes[nd], k):
+			del stat[k]
 	nodes[nd] = nodes[nd]._replace(**stat)
 	t = False
 	for nd, ndinfo in nodes.items():

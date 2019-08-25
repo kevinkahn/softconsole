@@ -104,7 +104,6 @@ class MQTTBroker(valuestore.ValueStore):
 					return
 				elif topic[2] == 'resp':
 					if self.name in screens.DS.AS.HubInterestList:
-						print(msgdcd)
 						if msgdcd['cmd'] in screens.DS.AS.HubInterestList[self.name]:
 							usevalue = msgdcd['value'] if 'value' in msgdcd else ''
 							respnode = msgdcd['respfrom'] if 'respfrom' in msgdcd else '*oldsys*'

@@ -420,7 +420,7 @@ def ReportStatus(status, retain=True, hold=0):
 		stat = json.dumps({'status': status if heldstatus == '' else heldstatus, "uptime": time.time() - config.sysStore.ConsoleStartTime,
 						   "error": config.sysStore.ErrorNotice, 'rpttime': time.time(),
 						   "FirstUnseenErrorTime": config.sysStore.FirstUnseenErrorTime,
-						   "GlobalLogViewTime": config.sysStore.GlobalLogViewTime,
+						   # "GlobalLogViewTime": 0, # tempdel deprecated
 						   'queuedepthmax': queuedepthmax, 'queuetimemax': queuetimemax,
 						   'queuedepthmaxtime': queuedepthmaxtime,
 						   'queuetimemaxtime': queuetimemaxtime, 'queuedepthmax24': queuedepthmax24,
