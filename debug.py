@@ -48,7 +48,7 @@ debugPrint = debugPrintEarly
 DbgFlags = ['Main', 'DaemonCtl', 'DaemonStream', 'Screen', 'ISYdbg', 'ISYchg', 'HASSgeneral', 'HASSchg', 'Dispatch',
 			'EventList', 'Fonts', 'DebugSpecial',
 			'QDump', 'LLTouch', 'Touch', 'ISYDump', 'ISYLoad', 'StoreTrack', 'StoresDump', 'StatesDump', 'AlertsTrace',
-			'AlertsCheck', 'ForceLogClear']
+			'AlertsCheck']
 DebugFlagKeys = {}
 dbgStore = valuestore.NewValueStore(valuestore.ValueStore('Debug'))
 dbgStore.SimpleInit(DbgFlags, False)
@@ -85,7 +85,6 @@ def InitFlags(sect):
 		dbgStore.AddAlert(flg, OptimizeDebug)
 	dbgStore.AddAlert('StoresDump', StoresDump)
 	dbgStore.AddAlert('AlertsCheck', AlertsCheck)
-	dbgStore.AddAlert('ForceLogClear', ForceClear)
 	if flgCount > 0:
 		debugPrint = debugPrintReal
 	else:
@@ -138,8 +137,3 @@ def AlertsCheck(store, old, new, param, _):
 	dbgStore.SetVal('AlertsCheck', False)
 
 
-# noinspection PyUnusedLocal
-def ForceClear(store, old, new, param, _):
-	if not new: return
-	logsupport.UpdateGlobalErrorPointer(force=True)
-	dbgStore.SetVal('ForceLogClear', False)

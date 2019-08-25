@@ -43,8 +43,7 @@ class MQTTBroker(valuestore.ValueStore):
 			for i, _ in userdata.topicindex.items():
 				client.subscribe(i)
 			if logsupport.primaryBroker == self:
-				client.subscribe([('consoles/all/errors', 1),
-								  ('consoles/all/cmd', 1),
+				client.subscribe([('consoles/all/cmd', 1),
 								  ('consoles/' + hw.hostname + '/cmd', 1),
 								  ('consoles/' + hw.hostname + '/set', 1),
 								  ('consoles/all/set', 1)])
@@ -83,9 +82,6 @@ class MQTTBroker(valuestore.ValueStore):
 				issuecommands.IssueCommand(self.name, cmd, seq, fromnd)
 				# if fromnd != 'unknown':
 				#	self.Publish('resp', '{}|ok|{}'.format(cmd, seq), fromnd)
-				return
-			elif msg.topic == 'consoles/all/errors':  # tempdel delete once propogates, also subscription
-				logsupport.Logs.Log('Deprecated remote logging', severity=ConsoleWarning)
 				return
 			elif msg.topic in ('consoles/all/set', 'consoles/' + hw.hostname + '/set'):
 				d = json.loads(msg.payload.decode('ascii'))
@@ -262,7 +258,6 @@ class MQTTBroker(valuestore.ValueStore):
 		logsupport.Logs.Log("Can't set MQTT subscribed var by id within console: ", str(lclid))
 
 	def CommandResponse(self, success, cmd, seq, fromnd, value):
-		print('Command resp {} {} {} {} {}'.format(success, cmd, seq, fromnd, value))
 		resp = {'status': success, 'seq': seq, 'cmd': cmd}
 		if value is not None:
 			resp['value'] = value

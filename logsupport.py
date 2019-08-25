@@ -434,19 +434,6 @@ def ReportStatus(status, retain=True, hold=0):
 							  viasvr=True)
 
 
-def UpdateGlobalErrorPointer(force=False):
-	global errorlogfudge
-	if primaryBroker is not None:
-		if force:
-			primaryBroker.Publish('set', payload='{"name":"System:GlobalLogViewTime","value":' + str(1) + '}',
-								  node='all')
-			primaryBroker.Publish('set', payload='{"name":"System:GlobalLogViewTime","value":' + str(0) + '}',
-								  node='all')
-		else:
-			primaryBroker.Publish('set', payload='{"name":"System:GlobalLogViewTime","value":' + str(
-				config.sysStore.LogStartTime + errorlogfudge) + '}', node='all')
-			errorlogfudge += 1
-
 
 def LineRenderer(itemnumber, font, uselog):
 	if not (len(uselog) > itemnumber):

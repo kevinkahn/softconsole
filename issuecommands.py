@@ -96,7 +96,6 @@ def DoDelayedAction(evnt):  # only for autover todo - what about ISY cmds - depr
 
 
 def CommandResp(Key, success, params, value):
-	print('CR: {} {} {} {}'.format(Key, success, params, value))
 	if Key is not None:
 		if success == 'ok':
 			Key.ScheduleBlinkKey(5)
@@ -193,7 +192,7 @@ RemoteOnlyAdv = (Where.RemoteMenuAdv, Where.MQTTCmds)
 
 CommandRecord = NamedTuple('CommandRecord',
 						   [('Proc', Callable), ('simple', bool), ('DisplayName', str), ('Verify', str),
-							('where', tuple)])
+							('where', tuple), ('notgroup', bool)])
 '''
 Better Python 3.7 syntax
 class CommandRecord(NamedTuple):
@@ -203,29 +202,30 @@ class CommandRecord(NamedTuple):
 		self.DisplayName = DisplayName - button label when on a screen
 		self.Verify = Verify - whether to do a verify when on a screen
 		self.where = where - which places to use this record
+		self.notgroup - True if only works for targeted node
 '''
 cmdcalls = OrderedDict({
-	'restart': CommandRecord(RestartConsole, True, "Restart Console", 'True', MaintExits),
-	'shut': CommandRecord(ShutConsole, True, "Shutdown Console", 'True', MaintExits),
-	'reboot': CommandRecord(RebootPi, True, "Reboot Pi", 'True', MaintExits),
-	'shutpi': CommandRecord(ShutdownPi, True, "Shutdown Pi", 'True', MaintExits),
-	'usestable': CommandRecord(UseStable, True, "Use Stable Release", 'False', MaintVers),
-	'usebeta': CommandRecord(UseBeta, True, "Use Beta Release", 'False', MaintVers),
-	'usedev': CommandRecord(UseDev, True, "Use Development Release", 'False', MaintVersAdv),
-	'getstable': CommandRecord(GetStable, True, "Download Release", 'False', MaintVers),
-	'getbeta': CommandRecord(GetBeta, True, "Download Beta", 'False', MaintVers),
-	'getdev': CommandRecord(GetDev, True, "Download Development", 'False', MaintVersAdv),
-	'hbdump': CommandRecord(DumpHB, True, "Dump HB", 'False', RemoteOnlyAdv),
+	'restart': CommandRecord(RestartConsole, True, "Restart Console", 'True', MaintExits, False),
+	'shut': CommandRecord(ShutConsole, True, "Shutdown Console", 'True', MaintExits, False),
+	'reboot': CommandRecord(RebootPi, True, "Reboot Pi", 'True', MaintExits, False),
+	'shutpi': CommandRecord(ShutdownPi, True, "Shutdown Pi", 'True', MaintExits, False),
+	'usestable': CommandRecord(UseStable, True, "Use Stable Release", 'False', MaintVers, False),
+	'usebeta': CommandRecord(UseBeta, True, "Use Beta Release", 'False', MaintVers, False),
+	'usedev': CommandRecord(UseDev, True, "Use Development Release", 'False', MaintVersAdv, False),
+	'getstable': CommandRecord(GetStable, True, "Download Release", 'False', MaintVers, False),
+	'getbeta': CommandRecord(GetBeta, True, "Download Beta", 'False', MaintVers, False),
+	'getdev': CommandRecord(GetDev, True, "Download Development", 'False', MaintVersAdv, False),
+	'hbdump': CommandRecord(DumpHB, True, "Dump HB", 'False', RemoteOnlyAdv, False),
 	# 'status': CommandRecord(EchoStat, True, "Echo Status", 'False', RemoteOnly),
-	'getlog': CommandRecord(GetLog, False, "Get Remote Log", "False", RemoteOnly),
-	'geterrors': CommandRecord(GetErrors, False, "Get Recent Errors", 'False', RemoteOnly),
-	'clearerrindicator': CommandRecord(ClearIndicator, True, "Clear Error Indicator", 'False', RemoteOnly),
+	'getlog': CommandRecord(GetLog, False, "Get Remote Log", "False", RemoteOnly, True),
+	'geterrors': CommandRecord(GetErrors, False, "Get Recent Errors", 'False', RemoteOnly, True),
+	'clearerrindicator': CommandRecord(ClearIndicator, True, "Clear Error Indicator", 'False', RemoteOnly, False),
 	'issueerror': CommandRecord(functools.partial(LogItem, ConsoleError), True, "Issue Error", 'False',
-								RemoteOnlyAdv),
+								RemoteOnlyAdv, False),
 	'issuewarning': CommandRecord(functools.partial(LogItem, ConsoleWarning), True, "Issue Warning", 'False',
-								  RemoteOnlyAdv),
+								  RemoteOnlyAdv, False),
 	'issueinfo': CommandRecord(functools.partial(LogItem, ConsoleInfo), True, "Issue Info", 'False',
-							   RemoteOnlyAdv)})
+							   RemoteOnlyAdv, False)})
 
 
 def IssueCommand(source, cmd, seq, fromnd):

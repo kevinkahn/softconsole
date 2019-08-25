@@ -152,9 +152,6 @@ class AlertsScreenDesc(screen.ScreenDesc):
 			hw.screen.blit(self.messageimage, self.upperleft)
 			pygame.display.update()
 
-	def NodeEvent(self, evnt):
-		logsupport.Logs.Log("Node event to alert screen: ", self.name + ' ' + str(evnt.node) + ' ' + str(evnt.value),
-							severity=ConsoleWarning)
 
 	def ExitScreen(self, viaPush):
 		super().ExitScreen(viaPush)

@@ -10,7 +10,7 @@ import logsupport
 import screen
 import screens.__screens as screens
 import issuecommands
-from logsupport import ConsoleWarning, UpdateGlobalErrorPointer
+from logsupport import ConsoleWarning
 from maintscreenbase import MaintScreenDesc, fixedoverrides
 import consolestatus
 import supportscreens
@@ -168,5 +168,4 @@ def PickStartingSpot():
 		logsupport.ReportStatus('error ind cleared')
 	else:
 		startat = 0
-	UpdateGlobalErrorPointer()  # tempdel
 	return startat

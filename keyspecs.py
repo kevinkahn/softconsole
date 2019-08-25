@@ -410,15 +410,17 @@ class InternalProcKey(ManualKeyDesc):
 	def InitDisplay(self):
 		debug.debugPrint("Screen", "InternalProcKey.InitDisplay ", self.Screen.name, self.name)
 		self.State = True
-		self.UnknownState = False
 		super(InternalProcKey, self).InitDisplay()
 
+	def Pressed(self, tapcount):
+		if not self.UnknownState: super().Pressed(tapcount)
 
 class RemoteProcKey(InternalProcKey):
 	def __init__(self, thisscreen, keysection, keyname):
 		super().__init__(thisscreen, keysection, keyname)
 		self.Hub = config.MQTTBroker
 		self.Seq = 0
+		self.ExpectedNumResponses = 1
 
 	def FinishKey(self, center, size, firstfont=0, shrink=True):
 		super().FinishKey(center, size, firstfont, shrink)
@@ -429,10 +431,16 @@ class RemoteProcKey(InternalProcKey):
 			logsupport.Logs.Log(
 				'Remote response sequence error for {} expected {} got {}'.format(self.name, self.Seq, evnt),
 				severity=ConsoleWarning, tb=True)
-		if evnt.stat == 'ok':
-			self.ScheduleBlinkKey(5)
+			return
+		self.ExpectedNumResponses -= 1
+		if self.ExpectedNumResponses == 0:
+			if evnt.stat == 'ok':
+				self.ScheduleBlinkKey(5)
+			else:
+				self.FlashNo(5)
 		else:
-			self.FlashNo(5)
+			pass
+	# print('Gathering responses {}'.format(self.ExpectedNumResponses))
 
 class RemoteComplexProcKey(InternalProcKey):
 	def __init__(self, thisscreen, keysection, keyname):

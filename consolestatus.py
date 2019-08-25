@@ -224,6 +224,7 @@ class CommandScreen(screen.BaseKeyScreenDesc):
 		self.DefaultNavKeysShowing = False
 		self.SetScreenTitle('Remote Consoles', self.TitleFontSize, 'white')
 		self.FocusNode = ''
+		self.NumNodes = 0
 		butht = 60
 		butwidth = int(self.useablehorizspace / 2 * 0.9)
 		butcenterleft = self.starthorizspace + int(self.useablehorizspace / 4)
@@ -232,13 +233,17 @@ class CommandScreen(screen.BaseKeyScreenDesc):
 		self.Keys = OrderedDict([('All', toucharea.ManualKeyDesc(self, 'All', label=('All',), bcolor='red',
 																 charcoloron='white', charcoloroff='white',
 																 center=(butcenterleft, vt), size=(butwidth, butht),
-																 proc=functools.partial(self.ShowCmds, 'Regular'
-																						'*')))])  # todo figure out how to only have relevant commands for all
+																 proc=functools.partial(self.ShowCmds, 'Regular', '*'),
+																 procdbl=functools.partial(self.ShowCmds, 'Advanced',
+																						   '*')
+																 ))])
+		# todo figure out how to only have relevant commands for all
 
 		odd = False
 		for nd, ndinfo in nodes.items():
-			if nd == hw.hostname: continue
 			offline = ndinfo.status in ('dead', 'unknown')
+			if not offline: self.NumNodes += 1
+			if nd == hw.hostname: continue
 			bcolor = 'grey' if offline else 'darkblue'
 			usecenter = butcenterleft if odd else butcenterright
 			self.Keys[nd] = toucharea.ManualKeyDesc(self, nd, label=(nd,), bcolor=bcolor, charcoloron='white',
@@ -284,7 +289,13 @@ class CommandScreen(screen.BaseKeyScreenDesc):
 		global MsgSeq
 		MsgSeq += 1
 		Key.Seq = MsgSeq
-		config.MQTTBroker.Publish('cmd', '{}|{}|{}'.format(cmd, hw.hostname, MsgSeq), self.FocusNode)
+		if self.FocusNode == '*':
+			# print('Issue Group command {} to {} nodes'.format(cmd, self.NumNodes))
+			Key.ExpectedNumResponses = self.NumNodes
+			config.MQTTBroker.Publish('cmd', '{}|{}|{}'.format(cmd, hw.hostname, MsgSeq), 'all')
+		else:
+			Key.ExpectedNumResponses = 1
+			config.MQTTBroker.Publish('cmd', '{}|{}|{}'.format(cmd, hw.hostname, MsgSeq), self.FocusNode)
 		self.CmdListScreens[self.entered].AddToHubInterestList(config.MQTTBroker, cmd, Key)
 
 	def ShowCmds(self, cmdset, nd):
@@ -292,6 +303,7 @@ class CommandScreen(screen.BaseKeyScreenDesc):
 		self.FocusNode = nd
 		for key in self.CmdListScreens[cmdset].Keys.values():
 			key.State = True
+			key.UnknownState = False if nd != '*' else issuecommands.cmdcalls[key.name].notgroup
 		screen.PushToScreen(self.CmdListScreens[cmdset], newstate='Maint')
 
 	def ExitScreen(self, viaPush):
@@ -327,6 +339,7 @@ def PageTitle(pageno, itemnumber, node='', loginfo=None):
 
 
 def LogDisplay(evnt):
+	print('Log display')
 	p = supportscreens.PagedDisplay('remotelog', PickStartingSpot, functools.partial(logsupport.LineRenderer,
 																					 uselog=evnt.value),
 									functools.partial(PageTitle, node=evnt.node, loginfo=evnt.value),

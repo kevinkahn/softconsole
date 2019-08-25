@@ -68,7 +68,7 @@ class KeyScreenDesc(screen.BaseKeyScreenDesc):
 			if hasattr(K, 'HandleNodeEvent'):  # todo make all handle event key specifig
 				K.HandleNodeEvent(evnt)
 			else:
-				logsupport.logs.Log('Generic node event??? {} {}'.format(K.name, evnt),
+				logsupport.Logs.Log('Generic node event??? {} {}'.format(K.name, evnt),
 									severity=ConsoleWarning)  # tempdel
 				print('Generic node event handling for {} of type {}'.format(K.name, K))
 				if not isinstance(evnt.value, int):

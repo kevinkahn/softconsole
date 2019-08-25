@@ -300,7 +300,7 @@ class ScreenDesc(object):
 		else:
 			logsupport.Logs.Log(
 				'Node event to screen {} with no handler node: {} (Event: {})'.format(self.name, evnt.node, evnt),
-				severity=ConsoleError)
+				severity=ConsoleWarning, hb=True, tb=True)
 
 	def VarEvent(self, evnt):
 		pass  # var changes can happen with any screen up so if screen doesn't care about vars it doesn't define a handler
