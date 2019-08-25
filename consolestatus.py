@@ -172,7 +172,7 @@ class StatusDisplayScreen(screen.BaseKeyScreenDesc):
 		hw.screen.blit(tm, (10, 20))
 		if hw.portrait:
 			header, ht, wd = screenutil.CreateTextBlock(
-				['     Node       Status   QMax E', '-->    Uptime            Last Boot'], portfont, 'white', False)
+				['    Node       Status   QMax E', '-->    Uptime', '---->    Last Boot'], portfont, 'white', False)
 		else:
 			header, ht, wd = screenutil.CreateTextBlock(
 				'     Node       Status   QMax E       Uptime            Last Boot', landfont, 'white', False)
@@ -190,8 +190,8 @@ class StatusDisplayScreen(screen.BaseKeyScreenDesc):
 			if ndinfo.status in ('dead', 'unknown'):
 				cstat = "{:20.20s}".format(' ')
 			else:
-				cstat = ' ' if ndinfo.error == -1 else '?' if ndinfo.error == -1 else '*'
-				cstat = cstat + "   {:>14.14s}  ".format(status_interval_str(ndinfo.uptime))
+				estat = ' ' if ndinfo.error == -1 else '?' if ndinfo.error == -1 else '*'
+				cstat = " {:>14.14s}  ".format(status_interval_str(ndinfo.uptime))
 			if ndinfo.boottime == 0:
 				bt = "{:^17.17}".format('unknown')
 			else:
@@ -204,10 +204,14 @@ class StatusDisplayScreen(screen.BaseKeyScreenDesc):
 			#	print()
 
 			if hw.portrait:
-				pass
+				ln, ht, wd = screenutil.CreateTextBlock(
+					['{:12.12s}{}{:10.10s} {}{}'.format(nd, active, stat, qmax, estat), "     {}".format(cstat),
+					 "       {}".format(bt)], landfont, 'white',
+					False)
 			else:
 				ln, ht, wd = screenutil.CreateTextBlock(
-					'{:12.12s}{}{:10.10s} {}{} {}'.format(nd, active, stat, qmax, cstat, bt), landfont, 'white',
+					'{:12.12s}{}{:10.10s} {}{}  {} {}'.format(nd, active, stat, qmax, estat, cstat, bt), landfont,
+					'white',
 					False)
 				hw.screen.blit(ln, (20, linestart))
 				linestart += int(ht * 1.2)
@@ -308,7 +312,6 @@ class CommandScreen(screen.BaseKeyScreenDesc):
 
 	def ExitScreen(self, viaPush):
 		super().ExitScreen(viaPush)
-		print('Exit screen {} {}'.format(self.name, self.entered))
 		if self.entered == '':
 			logsupport.Logs.Log('Internal error leaving net screen {}'.format(self.name))
 		else:
