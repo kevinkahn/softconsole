@@ -119,27 +119,29 @@ class ShowVersScreen(screen.BaseKeyScreenDesc):
 		super(ShowVersScreen, self).InitDisplay(nav)
 		hw.screen.fill(wc(self.BackgroundColor))
 		landfont = 15
-		if hw.portrait:
-			pass
-		else:
-			header, ht, wd = screenutil.CreateTextBlock(
-				'  Node       ', landfont, 'white', False,
-				FitLine=False)
+		header, ht, wd = screenutil.CreateTextBlock('  Node       ', landfont, 'white', False, FitLine=False)
 		linestart = 40
 		hw.screen.blit(header, (10, 20))
 		for nd, ndinfo in nodes.items():
 			offline = ' (offline)' if ndinfo.status in ('dead', 'unknown') else ' '
+			ndln = "{:12.12s} ".format(nd)
 			if self.showhw:
-				ln, _, _ = screenutil.CreateTextBlock(
-					["{:12.12s} {} {}".format(nd, ndinfo.hw.replace('\00', ''), offline),
-					 '             {}'.format(ndinfo.osversion.replace('\00', ''))], landfont, 'white', False)
+				ln1 = "{} {}".format(ndinfo.hw.replace('\00', ''), offline)
+				ln2 = '{}'.format(ndinfo.osversion.replace('\00', ''))
 			else:
-				ln, _, _ = screenutil.CreateTextBlock(["{:12.12s} ({}) of {} {}".format(nd, ndinfo.versionname.replace(
-					'\00', ''), ndinfo.versioncommit, offline),
-													   '             Downloaded: {}'.format(ndinfo.versiondnld)],
-													  landfont, 'white', False)
+				ln1 = "({}) of {} {}".format(nd, ndinfo.versionname.replace('\00', ''), ndinfo.versioncommit, offline)
+				ln2 = "Downloaded: {}".format(ndinfo.versiondnld)
+			# ln, ht, _ = screenutil.CreateTextBlock(["{:12.12s} ({}) of {} {}".format(nd, ndinfo.versionname.replace(
+			#	'\00', ''), ndinfo.versioncommit, offline),
+			#									   '             Downloaded: {}'.format(ndinfo.versiondnld)],
+			#									  landfont, 'white', False)
+			if hw.portrait:
+				ln, ht, _ = screenutil.CreateTextBlock([ndln, '  ' + ln1, '  ' + ln2], landfont, 'white', False)
+				pass
+			else:
+				ln, ht, _ = screenutil.CreateTextBlock([ndln + ln1, '             ' + ln2], landfont, 'white', False)
 			hw.screen.blit(ln, (10, linestart))
-			linestart += 2.5 * landfont
+			linestart += ht + landfont //2
 		pygame.display.update()
 
 
@@ -211,10 +213,9 @@ class StatusDisplayScreen(screen.BaseKeyScreenDesc):
 			else:
 				ln, ht, wd = screenutil.CreateTextBlock(
 					'{:12.12s}{}{:10.10s} {}{}  {} {}'.format(nd, active, stat, qmax, estat, cstat, bt), landfont,
-					'white',
-					False)
-				hw.screen.blit(ln, (20, linestart))
-				linestart += int(ht * 1.2)
+					'white', False)
+			hw.screen.blit(ln, (20, linestart))
+			linestart += int(ht * 1.2)
 
 		pygame.display.update()
 
