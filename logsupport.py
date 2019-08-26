@@ -349,15 +349,17 @@ class Logger(object):
 
 			# If MQTT is running then broadcast the error
 			# suppress reports from development systems
-			if severity in [ConsoleWarning, ConsoleError] and not debugitem and config.sysStore.versionname != 'development':
+			if severity in [ConsoleWarning,
+							ConsoleError] and not debugitem:  # tempdel and config.sysStore.versionname != 'development':
 				if primaryBroker is not None and not localonly:
-					try:
-						primaryBroker.Publish('errors', json.dumps(
-							{'node': hw.hostname, 'sev': severity, 'time': entrytime, 'etime': repr(now),
-							 'entry': entry}), node='all')
-					except Exception as E:
-						self.RecordMessage(ConsoleError, "Logger/MQTT error: {}".format(repr(E)),
-										   entrytime, debugitem, False)
+					ReportStatus('error rpt')
+			# try: tempdel
+			#	primaryBroker.Publish('errors', json.dumps(
+			#		{'node': hw.hostname, 'sev': severity, 'time': entrytime, 'etime': repr(now),
+			#		 'entry': entry}), node='all')
+			# except Exception as E:
+			#	self.RecordMessage(ConsoleError, "Logger/MQTT error: {}".format(repr(E)),
+			#					   entrytime, debugitem, False)
 
 			# Paint live log to screen during boot
 			if self.livelog and not debugitem:
