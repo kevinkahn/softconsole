@@ -46,15 +46,17 @@ def AddToTimerList(name, timer):
 	TimerList[name] = timer
 	for i in range(3):
 		try:
+			tmrs = tuple(t for t in TimerList.keys())
+			print('Timers: {}'.format(tmrs))
 			printlist = {}
-			for n, t in TimerList.items():
-				if isinstance(t, RepeatingPost):
-					printlist[n] = "Repeater running: {}".format(t.running.is_set())
-				elif isinstance(t, CountedRepeatingPost):
+			for n in tmrs:
+				if isinstance(TimerList[n], RepeatingPost):
+					printlist[n] = "Repeater running: {}".format(TimerList[n].running.is_set())
+				elif isinstance(TimerList[n], CountedRepeatingPost):
 					printlist[n] = "Counter: {}".format(t.count)
-				elif isinstance(t, OnceTimer):
+				elif isinstance(TimerList[n], OnceTimer):
 					printlist[n] = "Once"
-				elif isinstance(t, ResettableTimer):
+				elif isinstance(TimerList[n], ResettableTimer):
 					printlist[n] = "Resettable"
 				else:
 					printlist[n] = "Error?"
@@ -63,7 +65,7 @@ def AddToTimerList(name, timer):
 		except RuntimeError as E:
 			TimerHB.Entry("Creation race: {} for {}".format(i, name))
 			logsupport.Logs.Log("Timer list race ({}) for {}, {}".format(E, name, i),
-								severity=logsupport.ConsoleDetail, hb=True)
+								severity=logsupport.ConsoleWarning, hb=True)
 		logsupport.Logs.Log('Unresolved timer list race for {}'.format(name), severity=logsupport.ConsoleWarning)
 
 
