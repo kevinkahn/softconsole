@@ -35,6 +35,8 @@ class WeatherVals(valuestore.ValueStore):
 
 	def __init__(self, location, weathersource, refresh):
 		self.fetchtime = 0
+		self.lastgoodfetch = 0
+		self.failedfetchcount = 0
 		self.refreshinterval = 60 * refresh
 		super(WeatherVals, self).__init__(location)
 		self.ws = weathersource  # apixustore.APIXUWeatherSource(self, location)  #
@@ -46,6 +48,7 @@ class WeatherVals(valuestore.ValueStore):
 		self.DoingFetch = None  # thread that is handling a fetch or none
 		self.ValidWeather = False  # status result
 		self.ValidWeatherTime = 0
+		self.CurFetchGood = False
 		self.startedfetch = 0
 		self.Status = ('Weather not available', '(Initial fetch)')
 
@@ -68,6 +71,7 @@ class WeatherVals(valuestore.ValueStore):
 			return
 
 		if self.DoingFetch is None:
+			self.CurFetchGood = False
 			self.DoingFetch = threading.Thread(target=self.ws.FetchWeather, name='WFetch-{}'.format(self.name),
 											   daemon=True)
 			self.DoingFetch.start()
@@ -91,13 +95,26 @@ class WeatherVals(valuestore.ValueStore):
 			#																self.vars['Cond']['Time'].Value))
 			self.DoingFetch = None
 			self.fetchtime = time.time()
-			if self.ValidWeather:
+			if self.CurFetchGood:
+				self.lastgoodfetch = time.time()
+				self.failedfetchcount = 0
 				self.fetchcount += 1
 				self.Status = ("Weather available",)
 			else:
-				self.Status = ("Weather not available", "(failed fetch)")
-				logsupport.Logs.Log('Weather fetch failed for: {}'.format(self.name),
+				self.failedfetchcount += 1
+				if time.time() > self.lastgoodfetch + 4 * self.refreshinterval:
+					# really have stale data
+					self.ValidWeather = False
+					self.Status = ("Weather not available", "(failed fetch)")
+					logsupport.Logs.Log(
+						'{} weather fetch failures for: {} No weather for {} seconds'.format(self.failedfetchcount,
+																							 self.name,
+																							 time.time() - self.lastgoodfetch),
 									severity=logsupport.ConsoleWarning)
+				else:  # tempdel
+					pass
+					logsupport.Logs.Log(
+						'Failed fetch for {} number {} using old weather'.format(self.name, self.failedfetchcount))
 
 
 	def GetVal(self, name, failok=False):
@@ -106,16 +123,3 @@ class WeatherVals(valuestore.ValueStore):
 		self.BlockRefresh()
 		return super(WeatherVals, self).GetVal(name)
 
-	#	def SetVal(self,name,val,modifier=None):
-	#		logsupport.Logs.Log("Setting weather item via SetVal unsupported: "+str(name),severity=ConsoleError)
-
-	"""
-	def dumpweatherresp(self, val, djson, tag, param):
-		if config.sysStore.versionname in ('development', 'homerelease'):
-			self.weathvalfile.write(
-				time.strftime('%H:%M:%S') + ' ' + tag + repr(param) + '\n' + repr(val) + '\n=================')
-			self.weathjsonfile.write(
-				time.strftime('%H:%M:%S') + ' ' + tag + repr(param) + '\n' + repr(djson) + '\n=================')
-			self.weathvalfile.flush()
-			self.weathjsonfile.flush()
-	"""

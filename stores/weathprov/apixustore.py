@@ -107,6 +107,7 @@ class APIXUWeatherSource(object):
 			fetchworked = False
 			trycnt = 4
 			self.json = {}
+			lastE = None
 			while not fetchworked and trycnt > 0:
 				trycnt -= 1
 				# logsupport.Logs.Log('Actual weather fetch attempt: {}'.format(self.location))
@@ -125,14 +126,17 @@ class APIXUWeatherSource(object):
 								'Bad json from apixu call(try {}): {} Text: {}''format(trycnt, repr(E), r.text')
 							time.sleep(2)
 					else:
+						lastE = 'Status code: {}'.format(r.status_code)
 						historybuffer.HBNet.Entry('Weather fetch non success: {} {}'.format(r.status_code, repr(r)))
 						time.sleep(2)
 				except Exception as E:
+					lastE = E
 					historybuffer.HBNet.Entry('Weather fetch exception: {}'.format(repr(E)))
 					time.sleep(2)
 			if not fetchworked:
-				logsupport.Logs.Log("Failed multiple tries to get weather for {}".format(self.location),
-									severity=logsupport.ConsoleWarning, hb=True)
+				logsupport.Logs.Log(
+					"Failed multiple tries to get weather for {} last Exc: {}".format(self.location, lastE),
+					severity=logsupport.ConsoleWarning, hb=True)
 				self.thisStore.ValidWeather = False
 				return
 			try:
@@ -166,6 +170,7 @@ class APIXUWeatherSource(object):
 					val = self.MapItem(self.json, entry)
 					self.thisStore.SetVal(fn, val)
 
+				self.thisStore.CurFetchGood = True
 				self.thisStore.ValidWeather = True
 				self.thisStore.ValidWeatherTime = time.time()
 				controlevents.PostEvent(controlevents.ConsoleEvent(controlevents.CEvent.GeneralRepaint))
@@ -173,8 +178,9 @@ class APIXUWeatherSource(object):
 			except Exception as E:
 				logsupport.Logs.Log('Exception in apixu report processing: ', repr(E), self.json,
 									severity=logsupport.ConsoleWarning, hb=True)
-				logsupport.Logs.Log('Returned text: ', r.text)
-				self.thisStore.ValidWeather = False
+				self.thisStore.CurFetchGood = False
+			# tempdel logsupport.Logs.Log('Returned text: ', r.text)
+		# self.thisStore.ValidWeather = False
 		logsupport.Logs.Log('Multiple decode failures on return data from weather fetch of {}'.format(self.location))
 
 
