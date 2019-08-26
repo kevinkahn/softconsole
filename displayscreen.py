@@ -370,6 +370,10 @@ class DisplayScreen(object):
 								self.Deferrals.append(eventx)  # defer the event until after the clicks are sorted out
 						# Future add handling for hold here with checking for MOUSE UP etc.
 					if tapcount == 3:
+						if self.state == 'Maint':
+							# ignore triple taps if in maintenance mode
+							logsupport.Logs.Log('Secondary chain taps ignored - in Maint mode')
+							continue
 						# Switch screen chains
 						if screens.HomeScreen != screens.HomeScreen2:  # only do if there is a real secondary chain
 							if self.Chain == 0:
@@ -382,9 +386,11 @@ class DisplayScreen(object):
 						continue
 
 					elif tapcount > 3:
+						if self.state == 'Maint':
+							# ignore if already in Maint
+							logsupport.Logs.Log('Maintenance taps ignored - already in Maint mode')
+							continue
 						# Go to maintenance
-						# timers.StartLongOp(
-						#	'maintenance')  # todo a bit ugly - start long op here but end in gohome in maint screen
 						self.SwitchScreen(maintscreen.MaintScreen, 'Bright', 'Tap to maintenance', newstate='Maint')
 						continue
 
