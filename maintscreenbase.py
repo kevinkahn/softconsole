@@ -66,6 +66,12 @@ class MaintScreenDesc(screen.BaseKeyScreenDesc):
 
 	def InitDisplay(self, nav):
 		debug.debugPrint('Main', "Enter to screen: ", self.name)
-		logsupport.Logs.Log('Entering Maintenance Screen: ' + self.name)
+		if self.name == 'Console Maintenance':
+			logsupport.Logs.Log('Entering Console Maintenance')
 		super(MaintScreenDesc, self).InitDisplay(nav)
 		self.ShowScreen()
+
+	def ExitScreen(self, viaPush):
+		super().ExitScreen(viaPush)
+		if self.name == 'Console Maintenance':
+			logsupport.Logs.Log('Leaving Console Maintenance')

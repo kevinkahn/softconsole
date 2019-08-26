@@ -357,9 +357,15 @@ class ScreenDesc(object):
 
 	def PaintBase(self):
 		hw.screen.fill(wc(self.BackgroundColor))
+		lineclr = tint(self.BackgroundColor, tint_factor=.5)
 		if config.sysStore.NetErrorIndicator:
 			pygame.draw.circle(hw.screen, tint(self.BackgroundColor, tint_factor=.5),
 							   (self.markradius, self.markradius), self.markradius, 0)
+			lineclr = wc(self.BackgroundColor)
+		if config.sysStore.ErrorNotice != -1:
+			pygame.draw.line(hw.screen, lineclr, (0, self.markradius), (2 * self.markradius, self.markradius), 3)
+			pygame.draw.line(hw.screen, lineclr, (self.markradius, 0), (self.markradius, 2 * self.markradius), 3)
+
 
 
 class BaseKeyScreenDesc(ScreenDesc):

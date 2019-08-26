@@ -91,10 +91,10 @@ def UpdateStatus(nd, stat):
 	nodes[nd] = nodes[nd]._replace(**stat)
 	t = False
 	for nd, ndinfo in nodes.items():
-		if ndinfo.error != -1:
+		if ndinfo.status not in ('dead', 'unknown') and nd != hw.hostname and ndinfo.error != -1:
 			t = True
 			break
-	config.sysStore.NetErrorIndicator = t or (config.sysStore.ErrorNotice != -1)
+	config.sysStore.NetErrorIndicator = t  # tempdel or (config.sysStore.ErrorNotice != -1)
 
 def GotResp(nd, errs):
 	global ErrorBuffer, ErrorNode, RespRcvd
