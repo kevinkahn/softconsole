@@ -258,7 +258,7 @@ class DisplayScreen(object):
 							logsupport.queuedepthmax > 4 or logsupport.queuetimemax > controlevents.LateTolerance):
 						logsupport.Logs.Log('Console performance({}): maxq: {} maxwait: {}'.format(
 							time.time() - perfdump, logsupport.queuedepthmax, logsupport.queuetimemax),
-							severity=ConsoleWarning, hb=True, localonly=True)
+							severity=ConsoleWarning, hb=True)
 						logsupport.queuetimemax = 0
 						logsupport.queuedepthmax = 0
 						perfdump = time.time()
@@ -522,7 +522,7 @@ class DisplayScreen(object):
 					diff = eventnow - event.TargetTime
 					if abs(diff) > controlevents.latencynotification:
 						logsupport.Logs.Log('Timer late by {} seconds. Event: {}'.format(diff, repr(event)),
-											severity=ConsoleWarning, hb=True, localonly=True, homeonly=True)
+											severity=ConsoleWarning, hb=True, homeonly=True)
 						self.HBEvents.Entry('Event late by {} target: {} now: {}'.format(diff, event.TargetTime, eventnow))
 					event.proc(event)
 
@@ -540,7 +540,7 @@ class DisplayScreen(object):
 				if time.time() - postwaittime > controlevents.latencynotification and not timers.LongOpInProgress:  # this loop took a long time
 					logsupport.Logs.Log(
 						"Slow loop at {} took {} for {}".format(time.time(), time.time() - postwaittime, event),
-						severity=ConsoleWarning, hb=True, localonly=True, homeonly=True)
+						severity=ConsoleWarning, hb=True, homeonly=True)
 				self.HBEvents.Entry('End Event Loop took: {}'.format(time.time() - postwaittime))
 		except Exception as E:
 			logsupport.Logs.Log('Main display loop had exception: {}'.format(repr(E)))

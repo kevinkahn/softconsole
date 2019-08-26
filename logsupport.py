@@ -331,7 +331,6 @@ class Logger(object):
 			tb = kwargs.pop('tb', severity == ConsoleError)
 			hb = kwargs.pop('hb', False)
 			homeonly = kwargs.pop('homeonly', False)
-			localonly = kwargs.pop('localonly', False) or LocalOnly  # don't brcst error until mqtt is up
 			if homeonly and config.sysStore.versionname not in ('development', 'homerelease'):
 				return
 
@@ -347,19 +346,10 @@ class Logger(object):
 
 			self.RecordMessage(severity, entry, entrytime, debugitem, tb)
 
-			# If MQTT is running then broadcast the error
-			# suppress reports from development systems
-			if severity in [ConsoleWarning,
-							ConsoleError] and not debugitem:  # tempdel and config.sysStore.versionname != 'development':
-				if primaryBroker is not None and not localonly:
+			# If MQTT is running, past early config errors then broadcast the error
+			if severity in [ConsoleWarning, ConsoleError] and not debugitem:
+				if primaryBroker is not None and not LocalOnly:
 					ReportStatus('error rpt')
-			# try: tempdel
-			#	primaryBroker.Publish('errors', json.dumps(
-			#		{'node': hw.hostname, 'sev': severity, 'time': entrytime, 'etime': repr(now),
-			#		 'entry': entry}), node='all')
-			# except Exception as E:
-			#	self.RecordMessage(ConsoleError, "Logger/MQTT error: {}".format(repr(E)),
-			#					   entrytime, debugitem, False)
 
 			# Paint live log to screen during boot
 			if self.livelog and not debugitem:
@@ -408,7 +398,7 @@ class Logger(object):
 		if len(self.log) > itemnumber:
 			return "Local Log from {}           Page: {}".format(self.log[itemnumber][2], pageno), True
 		else:
-			return "{}Local Log No more entries        Page: {}".format(pageno), False
+			return "Local Log No more entries        Page: {}".format(pageno), False
 
 def ReportStatus(status, retain=True, hold=0):
 	# held: 0 normal status report, 1 set an override status to be held, 2 clear and override status

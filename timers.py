@@ -47,13 +47,13 @@ def AddToTimerList(name, timer):
 	for i in range(3):
 		try:
 			tmrs = tuple(t for t in TimerList.keys())
-			print('Timers: {}'.format(tmrs))
+			# tempdel print('Timers: {}'.format(tmrs))
 			printlist = {}
 			for n in tmrs:
 				if isinstance(TimerList[n], RepeatingPost):
 					printlist[n] = "Repeater running: {}".format(TimerList[n].running.is_set())
 				elif isinstance(TimerList[n], CountedRepeatingPost):
-					printlist[n] = "Counter: {}".format(t.count)
+					printlist[n] = "Counter: {}".format(TimerList[n].count)
 				elif isinstance(TimerList[n], OnceTimer):
 					printlist[n] = "Once"
 				elif isinstance(TimerList[n], ResettableTimer):
@@ -62,7 +62,7 @@ def AddToTimerList(name, timer):
 					printlist[n] = "Error?"
 			TimerHB.Entry("Timers : {}".format(printlist))
 			break
-		except RuntimeError as E:
+		except Exception as E:
 			TimerHB.Entry("Creation race: {} for {}".format(i, name))
 			logsupport.Logs.Log("Timer list race ({}) for {}, {}".format(E, name, i),
 								severity=logsupport.ConsoleWarning, hb=True)
