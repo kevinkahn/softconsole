@@ -16,6 +16,7 @@ import toucharea
 import utilities
 from logsupport import ConsoleError, ConsoleWarning, ConsoleDetail
 from utilfuncs import wc, tint
+import timers
 
 ScreenParams = {'DimTO': 99,
 				'CharColor': "white",
@@ -144,6 +145,7 @@ class ScreenDesc(object):
 		self.used = False
 		self.Active = False  # true if actually on screen
 		self.ScreenTimers = []
+		self.ScreenClock = None
 		self.DefaultNavKeysShowing = True
 		self.NavKeysShowing = True
 		self.NavKeys = collections.OrderedDict()
@@ -160,6 +162,10 @@ class ScreenDesc(object):
 		self.prevkey = None
 		self.nextkey = None
 		self.NavKeyWidth = (hw.screenwidth - 2 * self.HorizBorder) // 2
+		if Clocked != 0:
+			self.ScreenClock = timers.RepeatingPost(Clocked, paused=True, name='ScreenClock-' + self.name,
+													proc=self._ClockTick)
+			self.ScreenClock.start()
 
 		cvertcenter = hw.screenheight - self.BotBorder / 2
 		# print("NKW {} {} {} {}".format(self.NavKeyWidth, self.HorizBorder, self.HorizButGap, cvertcenter))
@@ -204,6 +210,14 @@ class ScreenDesc(object):
 			self.titleoffset = self.starthorizspace + (self.useablehorizspace - w) // 2
 
 		utilities.register_example('ScreenDesc', self)
+
+	def _ClockTick(self, params):
+		print('Clock: {}'.format(params))
+		if not self.Active: return  # avoid race with timer and screen exit
+		self.ClockTick()
+
+	def ClockTick(self):  # this is meant to be overridden if screen want more complex operation
+		self.ReInitDisplay()
 
 	def CreateNavKeys(self, prevk, nextk):
 		cvertcenter = hw.screenheight - self.BotBorder / 2
@@ -274,6 +288,7 @@ class ScreenDesc(object):
 			logsupport.Logs.Log('Attempted reuse (Init) of single use screen {}'.format(self.name),
 								severity=ConsoleError)
 		debug.debugPrint("Screen", "Base Screen InitDisplay: ", self.name)
+		if self.ScreenClock is not None: self.ScreenClock.resume()
 		self.PaintBase()
 		self.NavKeys = nav
 		self.PaintKeys()
@@ -308,9 +323,9 @@ class ScreenDesc(object):
 	# logsupport.Logs.Log('Var event to screen {} with no handler (Event: {})'.format(self.name,evnt), severity=ConsoleError)
 
 	def ExitScreen(self, viaPush):
+		if self.ScreenClock is not None: self.ScreenClock.pause()
 		for timer in self.ScreenTimers:
-			if timer.is_alive():
-				timer.cancel()
+			if timer.is_alive(): timer.cancel()
 		self.ScreenTimers = []
 		if self.singleuse:
 			if viaPush:
@@ -322,6 +337,13 @@ class ScreenDesc(object):
 				for nm, k in self.NavKeys.items():
 					if hasattr(k, 'userstore'): k.userstore.DropStore()
 				self.used = True
+
+	def DeleteScreen(self):
+		# explicit screen destroy
+		self.userstore.DropStore()
+		if self.ScreenClock is not None: self.ScreenClock.cancel()
+		for timer in self.ScreenTimers:
+			if timer.is_alive(): timer.cancel()
 
 	def PopOver(self):
 		if self.singleuse:
