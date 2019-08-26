@@ -123,7 +123,7 @@ class OctoPrintScreenDesc(screen.BaseKeyScreenDesc):
 		self.OctoPost('files/local/' + self.filepaths[fileno], senddata={'command': 'select'})
 		self.OctoPost('job', senddata={'command': 'start'})
 
-	def OctoGet(self, item):
+	def OctoGet(self, item):  # todo rewrite with some builting retries before error message
 		try:
 			historybuffer.HBNet.Entry('Octoprint get: {} from {}'.format(item, self.url))
 			r = requests.get(self.url + '/api/' + item, headers=self.head)

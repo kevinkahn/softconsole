@@ -230,8 +230,8 @@ class CommandScreen(screen.BaseKeyScreenDesc):
 		screen.BaseKeyScreenDesc.__init__(self, None, 'StatusCmdScreen', SingleUse=True)
 		self.RespProcs = {'getlog': LogDisplay, 'geterrors': LogDisplay}
 		screen.AddUndefaultedParams(self, None, TitleFontSize=40, SubFontSize=25)
-		self.NavKeysShowing = False
-		self.DefaultNavKeysShowing = False
+		self.NavKeysShowing = True
+		self.DefaultNavKeysShowing = True
 		self.SetScreenTitle('Remote Consoles', self.TitleFontSize, 'white')
 		self.FocusNode = ''
 		self.NumNodes = 0
@@ -265,10 +265,6 @@ class CommandScreen(screen.BaseKeyScreenDesc):
 																								   'Advanced', nd))
 			if not odd: vt += butht + 3
 			odd = not odd
-		self.Keys['back'] = toucharea.ManualKeyDesc(self, 'Back', label=('Back',), bcolor='green', charcoloron='white',
-													charcoloroff='white',
-													center=(butcenterleft if odd else butcenterright, vt),
-													size=(butwidth, butht), proc=screen.PopScreen)
 
 		CmdProps = {'KeyCharColorOn': 'white', 'KeyColor': 'maroon', 'BackgroundColor': 'royalblue',
 					'label': ['Maintenance'],
@@ -293,7 +289,8 @@ class CommandScreen(screen.BaseKeyScreenDesc):
 		self.CmdListScreens = {}
 		for t, s in CmdSet.items():
 			self.CmdListScreens[t] = screens.screentypes["Keypad"](s, 'CmdListScreen' + t, parentscreen=self)
-			self.CmdListScreens[t].SetScreenTitle(t + ' Commands', self.TitleFontSize, 'white', force=True)
+
+	# self.CmdListScreens[t].SetScreenTitle(t + ' Commands', self.TitleFontSize, 'white', force=True)
 
 	def IssueSimpleCmd(self, cmd, Key=None):
 		global MsgSeq
@@ -311,6 +308,8 @@ class CommandScreen(screen.BaseKeyScreenDesc):
 	def ShowCmds(self, cmdset, nd):
 		self.entered = cmdset
 		self.FocusNode = nd
+		self.CmdListScreens[cmdset].SetScreenTitle('{} Commands for {}'.format(cmdset, self.FocusNode),
+												   self.TitleFontSize, 'white', force=True)
 		for key in self.CmdListScreens[cmdset].Keys.values():
 			key.State = True
 			key.UnknownState = False if nd != '*' else issuecommands.cmdcalls[key.name].notgroup
@@ -351,10 +350,9 @@ def PageTitle(pageno, itemnumber, node='', loginfo=None):
 
 
 def LogDisplay(evnt):
-	print('Log display {}'.format(evnt))
-	p = supportscreens.PagedDisplay('remotelog', PickStartingSpot, functools.partial(logsupport.LineRenderer,
-																					 uselog=evnt.value),
-									functools.partial(PageTitle, node=evnt.respfrom,
-													  loginfo=evnt.value), config.sysStore.LogFontSize, 'white')
+	p = supportscreens.PagedDisplay('remotelog', PickStartingSpot,
+									functools.partial(logsupport.LineRenderer, uselog=evnt.value),
+									functools.partial(PageTitle, node=evnt.respfrom, loginfo=evnt.value),
+									config.sysStore.LogFontSize, 'white')
 	p.singleuse = True
 	screen.PushToScreen(p)
