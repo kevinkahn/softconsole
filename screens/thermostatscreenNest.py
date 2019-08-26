@@ -27,9 +27,9 @@ def trifromtop(h, v, n, size, c, invert):
 
 
 class NestThermostatScreenDesc(screen.BaseKeyScreenDesc):
-	def __init__(self, screensection, screenname):
+	def __init__(self, screensection, screenname, Clocked=0):
 		debug.debugPrint('Screen', "New Nest ThermostatScreenDesc ", screenname)
-		screen.BaseKeyScreenDesc.__init__(self, screensection, screenname)
+		super().__init__(screensection, screenname, Clocked=Clocked)
 		screen.IncorporateParams(self, 'NestThermostatScreen', {'KeyColor', 'KeyOffOutlineColor', 'KeyOnOutlineColor'},
 								 screensection)
 		nominalfontsz = (30, 50, 80, 160)

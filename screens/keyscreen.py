@@ -12,8 +12,8 @@ from logsupport import ConsoleWarning
 
 
 class KeyScreenDesc(screen.BaseKeyScreenDesc):
-	def __init__(self, screensection, screenname, parentscreen=None):
-		screen.BaseKeyScreenDesc.__init__(self, screensection, screenname, parentscreen=parentscreen)
+	def __init__(self, screensection, screenname, parentscreen=None, Clocked=0):
+		super().__init__(screensection, screenname, parentscreen=parentscreen, Clocked=Clocked)
 		debug.debugPrint('Screen', "New KeyScreenDesc ", screenname)
 
 		# Build the Key objects

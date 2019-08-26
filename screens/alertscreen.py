@@ -20,9 +20,9 @@ alertscreens = {}
 class AlertsScreenDesc(screen.ScreenDesc):
 	global alertscreens
 
-	def __init__(self, screensection, screenname):
+	def __init__(self, screensection, screenname, Clocked=0):
 		global alertscreens
-		screen.ScreenDesc.__init__(self, screensection, screenname)
+		super().__init__(screensection, screenname, Clocked=Clocked)
 		debug.debugPrint('Screen', "Build Alerts Screen")
 		self.NavKeysShowing = False
 		self.DefaultNavKeysShowing = False

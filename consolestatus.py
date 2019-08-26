@@ -112,10 +112,10 @@ def status_interval_str(sec_elapsed):
 
 
 class ShowVersScreen(screen.BaseKeyScreenDesc):
-	def __init__(self, showhw):
+	def __init__(self, showhw, Clocked=0):
 		self.showhw = showhw
 		nm = 'HW Status' if showhw else 'SW Versions'
-		screen.BaseKeyScreenDesc.__init__(self, None, nm)
+		super().__init__(None, nm, Clocked=Clocked)
 		self.NavKeysShowing = False
 		self.DefaultNavKeysShowing = False
 		self.Keys = {'return': toucharea.TouchPoint('back', (hw.screenwidth // 2, hw.screenheight // 2),
@@ -152,8 +152,8 @@ class ShowVersScreen(screen.BaseKeyScreenDesc):
 
 
 class StatusDisplayScreen(screen.BaseKeyScreenDesc):
-	def __init__(self):
-		screen.BaseKeyScreenDesc.__init__(self, None, 'ConsolesStatus')
+	def __init__(self, Clocked=0):
+		super().__init__(None, 'ConsolesStatus', Clocked=Clocked)
 		self.NavKeysShowing = False
 		self.DefaultNavKeysShowing = False
 		self.Keys = {'return': toucharea.TouchPoint('back', (hw.screenwidth // 2, hw.screenheight // 2),
@@ -226,8 +226,8 @@ class StatusDisplayScreen(screen.BaseKeyScreenDesc):
 
 
 class CommandScreen(screen.BaseKeyScreenDesc):
-	def __init__(self):
-		screen.BaseKeyScreenDesc.__init__(self, None, 'StatusCmdScreen', SingleUse=True)
+	def __init__(self, Clocked=0):
+		super().__init__(None, 'StatusCmdScreen', SingleUse=True, Clocked=Clocked)
 		self.RespProcs = {'getlog': LogDisplay, 'geterrors': LogDisplay}
 		screen.AddUndefaultedParams(self, None, TitleFontSize=40, SubFontSize=25)
 		self.NavKeysShowing = True

@@ -128,10 +128,10 @@ class SonosScreenDesc(screen.BaseKeyScreenDesc):
 
 		self.Keys = self.KeysSum
 
-	def __init__(self, screensection, screenname):
+	def __init__(self, screensection, screenname, Clocked=0):
 		config.SonosScreen = self  # todo hack to handle late appearing players
 		debug.debugPrint('Screen', "New SonosScreenDesc ", screenname)
-		screen.BaseKeyScreenDesc.__init__(self, screensection, screenname)
+		super().__init__(screensection, screenname, Clocked=Clocked)
 		screen.IncorporateParams(self, 'SonosScreen', {'KeyColor'}, screensection)
 		self.DullKeyColor = wc(self.KeyColor, .5, self.BackgroundColor)
 		self.HA = self.DefaultHubObj

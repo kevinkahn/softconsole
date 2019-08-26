@@ -19,9 +19,9 @@ fsizes = ((20, False, False), (30, True, False), (45, True, True))
 
 
 class WeatherScreenDesc(screen.ScreenDesc):
-	def __init__(self, screensection, screenname):
+	def __init__(self, screensection, screenname, Clocked=0):
 		debug.debugPrint('Screen', "New WeatherScreenDesc ", screenname)
-		screen.ScreenDesc.__init__(self, screensection, screenname)
+		super().__init__(screensection, screenname, Clocked=Clocked)
 
 		self.fmt = WFormatter()
 

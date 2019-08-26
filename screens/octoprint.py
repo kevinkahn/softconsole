@@ -21,8 +21,8 @@ from keyspecs import _resolvekeyname
 # noinspection PyUnusedLocal
 class OctoPrintScreenDesc(screen.BaseKeyScreenDesc):
 	# todo switch to screen title
-	def __init__(self, screensection, screenname):
-		screen.ScreenDesc.__init__(self, screensection, screenname)
+	def __init__(self, screensection, screenname, Clocked=0):
+		super().__init__(screensection, screenname, Clocked=Clocked)
 		debug.debugPrint('Screen', "New OctoPrintScreenDesc ", screenname)
 		self.JobKeys = {}
 		self.files = []

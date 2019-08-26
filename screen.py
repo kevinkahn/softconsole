@@ -131,7 +131,7 @@ class ScreenDesc(object):
 	def __getattr__(self, key):
 		return self.userstore.GetVal(key)
 
-	def __init__(self, screensection, screenname, parentscreen=None, SingleUse=False):
+	def __init__(self, screensection, screenname, parentscreen=None, SingleUse=False, Clocked=0):
 		self.userstore = paramstore.ParamStore('Screen-' + screenname,
 											   dp=screenStore if parentscreen is None else parentscreen.userstore,
 											   locname=screenname)
@@ -341,8 +341,8 @@ class ScreenDesc(object):
 
 
 class BaseKeyScreenDesc(ScreenDesc):
-	def __init__(self, screensection, screenname, parentscreen=None, SingleUse=False):
-		ScreenDesc.__init__(self, screensection, screenname, parentscreen=parentscreen, SingleUse=SingleUse)
+	def __init__(self, screensection, screenname, parentscreen=None, SingleUse=False, Clocked=0):
+		super().__init__(screensection, screenname, parentscreen=parentscreen, SingleUse=SingleUse, Clocked=Clocked)
 
 		AddUndefaultedParams(self, screensection, KeysPerColumn=0, KeysPerRow=0)
 		self.buttonsperrow = -1

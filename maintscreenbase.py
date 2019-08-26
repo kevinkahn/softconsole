@@ -21,11 +21,11 @@ fixedoverrides = {'CharColor': 'white', 'BackgroundColor': 'royalblue', 'label':
 
 class MaintScreenDesc(screen.BaseKeyScreenDesc):
 	# noinspection PyDefaultArgument
-	def __init__(self, name, keys, overrides=None):
+	def __init__(self, name, keys, overrides=None, Clocked=0):
 		# the following works around what looks like a bug - if I just set overrides=fixoverrides above it keeps using last call's overrides
 		global fixedoverrides
 		ov = configobj.ConfigObj(overrides) if overrides is not None else configobj.ConfigObj(fixedoverrides)
-		screen.BaseKeyScreenDesc.__init__(self, ov, name)
+		super().__init__(ov, name, Clocked=Clocked)
 		debug.debugPrint('Screen', "Build Maintenance Screen")
 		self.NavKeysShowing = False
 		self.DefaultNavKeysShowing = False

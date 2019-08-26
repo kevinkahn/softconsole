@@ -21,8 +21,8 @@ import config
 class VerifyScreen(screen.BaseKeyScreenDesc):
 
 	def __init__(self, key, gomsg, nogomsg, procyes, callingscreen, bcolor, keycoloroff, charcolor, state,
-				 interestlist, SingleUse=False):
-		screen.BaseKeyScreenDesc.__init__(self, {}, key.name + '-Verify', parentscreen=key, SingleUse=SingleUse)
+				 interestlist, SingleUse=False, Clocked=0):
+		super().__init__({}, key.name + '-Verify', parentscreen=key, SingleUse=SingleUse, Clocked=Clocked)
 		debug.debugPrint('Screen', "Build Verify Screen")
 		self.callingkey = key
 		self.yesproc = procyes
@@ -85,8 +85,9 @@ class ValueChangeScreen(screen.ScreenDesc):  # todo may need to call super class
 		pass
 
 	# noinspection PyMissingConstructor
-	def __init__(self, BackgroundColor, Outline, CharColor, label, initvalue, changevals, setvalueproc, returnscreen):
-		screen.ScreenDesc.__init__(self, {}, label + ' -ValChange')
+	def __init__(self, BackgroundColor, Outline, CharColor, label, initvalue, changevals, setvalueproc, returnscreen,
+				 Clocked=0):
+		super().__init__({}, label + ' -ValChange', Clocked=Clocked)
 		self.BackgroundColor = BackgroundColor
 		self.Outline = Outline
 		self.CharColor = CharColor
@@ -194,7 +195,7 @@ def _TriangleCorners(c, hgt, invert):
 
 
 class ListChooserSubScreen(screen.ScreenDesc):
-	def __init__(self, masterscreen, choosername, slots, screenhgt, voffset, proc):
+	def __init__(self, masterscreen, choosername, slots, screenhgt, voffset, proc, Clocked=0):
 		"""
 		Create subscreen(s) that allow choosing from a list
 		:param masterscreen: the real screen for which this operates
@@ -203,8 +204,8 @@ class ListChooserSubScreen(screen.ScreenDesc):
 		:param voffset: vertical offset for start of area to be used
 		:param proc: function called with resultant selection index or -1 if cancelled
 		"""
-		screen.ScreenDesc.__init__(self, {}, masterscreen.name + '-' + choosername + '-Chooser',
-								   parentscreen=masterscreen)
+		super().__init__({}, masterscreen.name + '-' + choosername + '-Chooser',
+						 parentscreen=masterscreen, Clocked=Clocked)
 		self.Result = proc
 		self.masterscreen = masterscreen
 		self.selection = -1
@@ -312,8 +313,8 @@ class ListChooserSubScreen(screen.ScreenDesc):
 
 
 class PagedDisplay(screen.BaseKeyScreenDesc):
-	def __init__(self, nm, StartPosChooser, LineRenderer, GetPageHeader, fontsize, color):
-		super().__init__(None, nm)
+	def __init__(self, nm, StartPosChooser, LineRenderer, GetPageHeader, fontsize, color, Clocked=0):
+		super().__init__(None, nm, Clocked=Clocked)
 		self.StartChooser = StartPosChooser
 		self.LineRenderer = LineRenderer
 		self.GetPageHeader = GetPageHeader

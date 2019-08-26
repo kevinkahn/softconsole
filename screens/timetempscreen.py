@@ -24,8 +24,8 @@ def extref(listitem, indexitem):
 
 class TimeTempScreenDesc(screen.ScreenDesc):
 
-	def __init__(self, screensection, screenname):
-		screen.ScreenDesc.__init__(self, screensection, screenname)
+	def __init__(self, screensection, screenname, Clocked=0):
+		super().__init__(screensection, screenname, Clocked=Clocked)
 		debug.debugPrint('Screen', "New TimeTempDesc ", screenname)
 
 		screen.AddUndefaultedParams(self, screensection, location='', CharSize=[-1],
