@@ -363,7 +363,6 @@ class PagedDisplay(screen.BaseKeyScreenDesc):
 		if self.state == 'init':
 			debug.debugPrint('Main', "Enter to screen: ", self.name)
 			super().InitDisplay(nav)
-			logsupport.Logs.Log('Entering Log Screen')
 			self.startat = 0
 			self.startpage = 0
 			self.item = 0
