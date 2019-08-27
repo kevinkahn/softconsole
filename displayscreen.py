@@ -255,7 +255,7 @@ class DisplayScreen(object):
 				if time.time() - ckperf > 900:  # todo 900:
 					ckperf = time.time()
 					if config.sysStore.versionname in ('development', 'homerelease') and (
-							logsupport.queuedepthmax > 4 or logsupport.queuetimemax > controlevents.LateTolerance):
+							logsupport.queuedepthmax > controlevents.QLengthTrigger or logsupport.queuetimemax > controlevents.LateTolerance):
 						logsupport.Logs.Log('Console performance({}): maxq: {} maxwait: {}'.format(
 							time.time() - perfdump, logsupport.queuedepthmax, logsupport.queuetimemax),
 							severity=ConsoleWarning, hb=True)
@@ -391,6 +391,7 @@ class DisplayScreen(object):
 							logsupport.Logs.Log('Maintenance taps ignored - already in Maint mode')
 							continue
 						# Go to maintenance
+						logsupport.Logs.Log('Entering Console Maintenance')
 						self.SwitchScreen(maintscreen.MaintScreen, 'Bright', 'Tap to maintenance', newstate='Maint')
 						continue
 

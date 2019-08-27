@@ -17,6 +17,7 @@ ConsoleOpsQueue = queue.Queue()  # master sequencer
 
 latencynotification = 1000 # notify if a loop latency is greater than this
 LateTolerance = 1.5  # for my systems
+QLengthTrigger = 4
 
 HBControl = historybuffer.HistoryBuffer(80, 'Control')
 
@@ -34,6 +35,10 @@ def PostEvent(e):
 def GetEvent():
 	global latencynotification
 	qs = ConsoleOpsQueue.qsize()
+	if qs > QLengthTrigger:
+		tq = ConsoleOpsQueue.queue
+		HBControl.Entry('Long queue {}: {}'.format(qs, tq))
+		print('Queue({}: {}'.format(qs, tq))
 	try:
 		evnt = ConsoleOpsQueue.get(block=True,timeout=120) # timeout is set to twice the failsafe injection time so should never see it
 	except queue.Empty:

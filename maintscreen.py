@@ -151,7 +151,7 @@ def adjloglevel(K):
 
 # noinspection PyUnusedLocal
 def gohome():  # neither peram used
-	# timers.EndLongOp('maintenance')
+	logsupport.Logs.Log('Leaving Console Maintenance')
 	screens.DS.SwitchScreen(screens.HomeScreen, 'Bright', 'Maint exit', newstate='Home')
 
 
