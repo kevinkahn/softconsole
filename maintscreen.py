@@ -27,7 +27,8 @@ def SetUpMaintScreens():
 	screenset.append(LogDisp)
 
 	Status = consolestatus.SetUpConsoleStatus()
-	screenset.append(Status)
+	if Status is not None:
+		screenset.append(Status)
 
 	ExitMenu = OrderedDict()
 	for cmd, action in issuecommands.cmdcalls.items():
