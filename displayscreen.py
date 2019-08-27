@@ -25,7 +25,6 @@ import traceback
 
 class DisplayScreen(object):
 	def __init__(self):
-
 		debug.debugPrint("Main", "Screensize: ", hw.screenwidth, hw.screenheight)
 		logsupport.Logs.Log("Screensize: " + str(hw.screenwidth) + " x " + str(hw.screenheight))
 		logsupport.Logs.Log(

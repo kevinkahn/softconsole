@@ -87,7 +87,7 @@ def DumpAll(idline, entrytime):
 							   '{:1s}{:10s}:({:3d}) {:.5f}: [{}] {}\n'.format(initial[nextup], nextup,
 																			  curfirst[nextup][0],
 																			  now - curfirst[nextup][1],
-																			  curfirst[nextup[3]],
+																			  curfirst[nextup][3],
 																			  curfirst[nextup][2]))
 				# f.write(nextup + ': (' + str(curfirst[nextup][0]) + ') ' + str(curfirst[nextup][1]) + ': ' + repr(curfirst[nextup][2]) + '\n')
 				initial[nextup] = ' '
@@ -123,8 +123,8 @@ class HistoryBuffer(object):
 	def Entry(self, entry):
 		self.buf[self.current].entry = entry
 		self.buf[self.current].timeofentry = time.time()
-		self.current = (self.current + 1) % self.size
 		self.buf[self.current].thread = threading.current_thread().name
+		self.current = (self.current + 1) % self.size
 
 	def content(self):
 		# freeze for dump and reset empty

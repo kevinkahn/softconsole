@@ -363,6 +363,7 @@ debug.LogDebugFlags()
 
 logsupport.LogLevel = int(ParsedConfigFile.get('LogLevel', logsupport.LogLevel))
 logsupport.Logs.Log("Log level: ", logsupport.LogLevel)
+
 screens.DS = displayscreen.DisplayScreen()  # create the actual device screen and touch manager
 
 utilities.LogParams()
