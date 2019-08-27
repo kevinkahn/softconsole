@@ -209,7 +209,7 @@ class MQTTBroker(valuestore.ValueStore):
 							  'versionsha': config.sysStore.versionsha,
 							  'versiondnld': config.sysStore.versiondnld,
 							  'versioncommit': config.sysStore.versioncommit,
-							  'boottime': hw.bootime,
+							  'boottime': hw.boottime,
 							  'osversion': hw.osversion,
 							  'hw': hw.hwinfo}),
 						 retain=True, qos=1)

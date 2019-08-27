@@ -1,5 +1,6 @@
 import config
 from stores import valuestore
+import time, hw
 
 
 class SystemStore(valuestore.ValueStore):
@@ -17,4 +18,6 @@ class SystemStore(valuestore.ValueStore):
 			object.__setattr__(self, key, value)
 
 	def __getattr__(self, key):
+		if key == 'Time': return time.time()
+		if key == 'UpTime': return time.time() - self.GetVal('ConsoleStartTime')
 		return self.GetVal(key)

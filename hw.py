@@ -20,7 +20,7 @@ screenwidth = 0
 screenheight = 0
 dimpin = 0
 
-bootime = 0
+boottime = 0
 osversion = ""
 hwinfo = ""
 
@@ -51,7 +51,7 @@ def ResetScreenLevel(storeitem, old, val, dim, unusedsrc):
 
 # noinspection PyBroadException
 def initOS(scrntyp, configdir):
-	global bootime, osversion, hwinfo, screentype, hostname, screenwidth, screenheight, portrait, dispratioW, dispratioH, DimType, dimpin
+	global boottime, osversion, hwinfo, screentype, hostname, screenwidth, screenheight, portrait, dispratioW, dispratioH, DimType, dimpin
 
 	screentype = scrntyp
 
@@ -62,7 +62,7 @@ def initOS(scrntyp, configdir):
 	with open('/proc/stat', 'r') as f:
 		for line in f:
 			if line.startswith('btime'):
-				bootime = int(line.split()[1])
+				boottime = int(line.split()[1])
 	osversion = platform.platform()
 	with open('/proc/device-tree/model') as f:
 		hwinfo = f.read()
