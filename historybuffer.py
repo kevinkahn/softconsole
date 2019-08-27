@@ -2,7 +2,7 @@ import os
 import shutil
 import time
 import gc
-
+import threading
 
 def DummyAsyncFileWrite(fn, writestr, access='a'):
 	print('Called  HB file write before init')
@@ -48,7 +48,6 @@ def NoteGCs(phase, info):
 
 def DumpAll(idline, entrytime):
 	global bufdumpseq
-	# DevPrint('=============== {}'.format(entrytime))
 	if HBdir == '':  # logs not yet set up
 		print(time.strftime('%m-%d-%y %H:%M:%S') + ' Suppressing History Buffer Dump for {}'.format(idline))
 		return
@@ -83,11 +82,13 @@ def DumpAll(idline, entrytime):
 			else:
 				AsyncFileWrite(fn, 'seq error:' + str(prevtime) + ' ' + str(curtime[nextup]) + '\n')
 				prevtime = 0
-			if now - curfirst[nextup][1] < 30000:  # limit history dump to 5 minutes worth todo
+			if now - curfirst[nextup][1] < 300:  # limit history dump to 5 minutes worth
 				AsyncFileWrite(fn,
-							   '{:1s}{:10s}:({:3d}) {:.5f}: {}\n'.format(initial[nextup], nextup, curfirst[nextup][0],
-																		 now - curfirst[nextup][1],
-																		 curfirst[nextup][2]))
+							   '{:1s}{:10s}:({:3d}) {:.5f}: [{}] {}\n'.format(initial[nextup], nextup,
+																			  curfirst[nextup][0],
+																			  now - curfirst[nextup][1],
+																			  curfirst[nextup[3]],
+																			  curfirst[nextup][2]))
 				# f.write(nextup + ': (' + str(curfirst[nextup][0]) + ') ' + str(curfirst[nextup][1]) + ': ' + repr(curfirst[nextup][2]) + '\n')
 				initial[nextup] = ' '
 			try:
@@ -106,6 +107,7 @@ class EntryItem(object):
 	def __init__(self):
 		self.timeofentry = 0
 		self.entry = ""
+		self.thread = ""
 
 
 class HistoryBuffer(object):
@@ -122,6 +124,7 @@ class HistoryBuffer(object):
 		self.buf[self.current].entry = entry
 		self.buf[self.current].timeofentry = time.time()
 		self.current = (self.current + 1) % self.size
+		self.buf[self.current].thread = threading.current_thread().name
 
 	def content(self):
 		# freeze for dump and reset empty
@@ -141,5 +144,5 @@ class HistoryBuffer(object):
 			j = (i + curind) % self.size
 			if cur[j].timeofentry != 0:
 				#DevPrint('Item from {}: {}/{}/{}/{}'.format(self.name, i, j, cur[j].timeofentry, cur[j].entry))
-				yield (j, cur[j].timeofentry, cur[j].entry)
+				yield (j, cur[j].timeofentry, cur[j].entry, cur[j].thread)
 	#DevPrint('Content exit: {}/{}'.format(self.name, j))
