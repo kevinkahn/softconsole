@@ -212,7 +212,6 @@ class ScreenDesc(object):
 		utilities.register_example('ScreenDesc', self)
 
 	def _ClockTick(self, params):
-		print('Clock: {}'.format(params))
 		if not self.Active: return  # avoid race with timer and screen exit
 		self.ClockTick()
 
@@ -341,6 +340,7 @@ class ScreenDesc(object):
 	def DeleteScreen(self):
 		# explicit screen destroy
 		self.userstore.DropStore()
+		print('Deleting screen {}'.format(self.name))
 		if self.ScreenClock is not None: self.ScreenClock.cancel()
 		for timer in self.ScreenTimers:
 			if timer.is_alive(): timer.cancel()

@@ -288,6 +288,7 @@ class CommandScreen(screen.BaseKeyScreenDesc):
 		self.entered = ''
 		self.CmdListScreens = {}
 		for t, s in CmdSet.items():
+			print('Creating screen {}'.format('CmdListScreen' + t))
 			self.CmdListScreens[t] = screens.screentypes["Keypad"](s, 'CmdListScreen' + t, parentscreen=self, Clocked=1)
 
 	# self.CmdListScreens[t].SetScreenTitle(t + ' Commands', self.TitleFontSize, 'white', force=True)
@@ -318,14 +319,11 @@ class CommandScreen(screen.BaseKeyScreenDesc):
 	def ExitScreen(self, viaPush):
 		super().ExitScreen(viaPush)
 		print('Leaving node screen {}'.format(self.entered))
-		if self.entered == '':
-			logsupport.Logs.Log('Internal error leaving net screen {}'.format(self.name))
-		else:
-			# if not viaPush: self.CmdListScreens[self.entered].userstore.DropStore()  #tempdel - this should be replaced by an explicit screen kill
-			if not viaPush:
-				for n, s in self.CmdListScreens.items():
-					print('Kill {}'.format(n))
-					s.DeleteScreen()
+		# if not viaPush: self.CmdListScreens[self.entered].userstore.DropStore()  #tempdel - this should be replaced by an explicit screen kill
+		if not viaPush:
+			for n, s in self.CmdListScreens.items():
+				print('Kill {}'.format(n))
+				s.DeleteScreen()
 
 
 	def RequestErrors(self, nd):
