@@ -124,7 +124,8 @@ class OctoPrintScreenDesc(screen.BaseKeyScreenDesc):
 
 	def AsyncUpdate(self):
 		self.RefreshOctoStatus()
-		while self.StatusGo.wait(5):
+		while True:
+			self.StatusGo.wait(5)
 			self.StatusGo.clear()
 			if self.Active:
 				self.RefreshOctoStatus()
