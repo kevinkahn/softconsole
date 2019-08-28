@@ -136,6 +136,7 @@ def errorexit(opt):
 
 
 def Exit_Screen_Message(msg, scrnmsg1, scrnmsg2='', scrnmsg3=''):
+	config.Exiting = True
 	hw.screen.fill(wc("red"))
 	r = fonts.fonts.Font(40, '', True, True).render(scrnmsg1, 0, wc("white"))
 	hw.screen.blit(r, ((hw.screenwidth - r.get_width()) / 2, hw.screenheight * .2))

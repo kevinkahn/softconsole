@@ -84,7 +84,6 @@ def RebootPi(params=None, Key=None):
 def _SystemTermination(statmsg, exitmsg, exitcode, Key, params):
 	ReportStatus(statmsg)
 	CommandResp(Key, 'ok', params, None)
-	time.sleep(2)  # tempdel
 	Exit_Screen_Message(exitmsg + ' Requested', ('Remote' if Key is None else 'Maintenance') + ' Request', exitmsg)
 	config.terminationreason = ('remote' if Key is None else 'manual') + statmsg
 	Exit(exitcode[1] if Key is None else exitcode[0])

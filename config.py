@@ -3,6 +3,7 @@ import hw
 hooks = None
 
 Running = True
+Exiting = False
 terminationreason = 'unknown'
 
 PRESS = 0

@@ -537,10 +537,12 @@ class DisplayScreen(object):
 				else:
 					logsupport.Logs.Log("Unknown main event {}".format(repr(event)), severity=ConsoleError, hb=True,
 										tb=False)
-				if time.time() - postwaittime > controlevents.latencynotification and not timers.LongOpInProgress:  # this loop took a long time
-					logsupport.Logs.Log(
-						"Slow loop at {} took {} for {}".format(time.time(), time.time() - postwaittime, event),
-						severity=ConsoleWarning, hb=True, homeonly=True)
+				if time.time() - postwaittime > controlevents.latencynotification and not timers.LongOpInProgress:
+					# this loop took a long time
+					if not config.Exiting:
+						logsupport.Logs.Log(
+							"Slow loop at {} took {} for {}".format(time.time(), time.time() - postwaittime, event),
+							severity=ConsoleWarning, hb=True, homeonly=True)
 				self.HBEvents.Entry('End Event Loop took: {}'.format(time.time() - postwaittime))
 		except Exception as E:
 			logsupport.Logs.Log('Main display loop had exception: {}'.format(repr(E)))
