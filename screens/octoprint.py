@@ -13,6 +13,7 @@ import screens.__screens as screens
 import screenutil
 import supportscreens
 import timers
+import time
 import toucharea
 from logsupport import ConsoleWarning
 from keyspecs import _resolvekeyname
@@ -22,12 +23,16 @@ from keyspecs import _resolvekeyname
 class OctoPrintScreenDesc(screen.BaseKeyScreenDesc):
 	# todo switch to screen title
 	def __init__(self, screensection, screenname, Clocked=0):
-		super().__init__(screensection, screenname, Clocked=Clocked)
+		super().__init__(screensection, screenname, Clocked=1)
 		debug.debugPrint('Screen', "New OctoPrintScreenDesc ", screenname)
 		self.JobKeys = {}
 		self.files = []
 		self.filepaths = []
 		self.PowerKeys = {}
+		self.StatusUpdater = threading.Thread(target=self.AsyncUpdate, daemon=True,
+											  name='OctoprintUpdater-' + self.name)
+		self.StatusUpdater.start()
+		self.StatusGo = threading.Event()
 
 		# status of printer
 		self.OPstate = 'unknown'
@@ -38,9 +43,8 @@ class OctoPrintScreenDesc(screen.BaseKeyScreenDesc):
 		self.OPbed = 'unknown'
 		self.ValidState = False
 
-
-		self.PollTimer = timers.RepeatingPost(5.0, paused=True, start=True, name=self.name + '-Poll',
-											  proc=self.RefreshOctoStatus)
+		# self.PollTimer = timers.RepeatingPost(5.0, paused=True, start=True, name=self.name + '-Poll',
+		#									  proc=self.RefreshOctoStatus)
 
 		screen.IncorporateParams(self, 'OctoPrint', {'KeyColor'}, screensection)
 		screen.AddUndefaultedParams(self, screensection, address='', apikey='', extruder='tool0', port='5000',
@@ -118,28 +122,38 @@ class OctoPrintScreenDesc(screen.BaseKeyScreenDesc):
 																 self.titlespace,
 																 self.FilePick)
 
+	def AsyncUpdate(self):
+		self.RefreshOctoStatus()
+		while self.StatusGo.wait(5):
+			self.StatusGo.clear()
+			if self.Active:
+				self.RefreshOctoStatus()
+
 	def FilePick(self, fileno):
 		# called from file chooser screen todo - turn into a post to do work?
 		self.OctoPost('files/local/' + self.filepaths[fileno], senddata={'command': 'select'})
 		self.OctoPost('job', senddata={'command': 'start'})
 
 	def OctoGet(self, item):  # todo rewrite with some builting retries before error message
-		try:
-			historybuffer.HBNet.Entry('Octoprint get: {} from {}'.format(item, self.url))
-			r = requests.get(self.url + '/api/' + item, headers=self.head)
-			historybuffer.HBNet.Entry('Octoprint done with {}'.format(item))
-			return r
-		except Exception as e:
-			logsupport.Logs.Log('Bad octoprint get: ', repr(e), severity=ConsoleWarning)
-			for i in range(5):
-				# noinspection PyBroadException
-				try:
-					historybuffer.HBNet.Entry('Octoprint retry')
-					r = requests.get(self.url + '/api/' + item, headers=self.head)
-					historybuffer.HBNet.Entry('Octoprint retry done')
-					return r
-				except:
-					pass
+		for i in range(5):
+			try:
+				historybuffer.HBNet.Entry('Octoprint get: {} from {}'.format(item, self.url))
+				r = requests.get(self.url + '/api/' + item, headers=self.head)
+				historybuffer.HBNet.Entry('Octoprint done with {}'.format(item))
+				return r
+			except Exception as e:
+				logsupport.Logs.Log('Bad octoprint get: ', repr(e), severity=ConsoleWarning)
+				'''
+				for i in range(5):
+					# noinspection PyBroadException
+					try:
+						historybuffer.HBNet.Entry('Octoprint retry')
+						r = requests.get(self.url + '/api/' + item, headers=self.head)
+						historybuffer.HBNet.Entry('Octoprint retry done')
+						return r
+					except:
+						pass
+				'''
 		logsupport.Logs.Log("Permanent Octoprint Screen Error", severity=ConsoleWarning)
 		raise ValueError
 
@@ -151,7 +165,8 @@ class OctoPrintScreenDesc(screen.BaseKeyScreenDesc):
 			historybuffer.HBNet.Entry('Octoprint post done for {}'.format(item))
 		except Exception as e:
 			logsupport.Logs.Log("Octopost error {}".format(repr(e)), severity=ConsoleWarning)
-		self.AsyncRefreshOctoStatus()
+		# self.AsyncRefreshOctoStatus()
+		self.StatusGo.set()
 		return r
 
 	# noinspection PyUnusedLocal
@@ -201,8 +216,14 @@ class OctoPrintScreenDesc(screen.BaseKeyScreenDesc):
 
 	def InitDisplay(self, nav):
 		super(OctoPrintScreenDesc, self).InitDisplay(nav)
-		self.AsyncRefreshOctoStatus()
-		self.PollTimer.resume()
+		if not self.StatusUpdater.is_alive():
+			logsupport.Logs.Log('Octoprint status updater died - restarting', severity=ConsoleWarning)
+			self.StatusUpdater = threading.Thread(target=self.AsyncUpdate, daemon=True,
+												  name='OctoprintUpdater-' + self.name)
+			self.StatusUpdater.start()
+		self.StatusGo.set()
+		# self.AsyncRefreshOctoStatus()
+		#self.PollTimer.resume()
 		self.ShowScreen()
 
 	def ShowScreen(self, param=None):
@@ -215,9 +236,9 @@ class OctoPrintScreenDesc(screen.BaseKeyScreenDesc):
 		hw.screen.blit(self.title, ((hw.screenwidth - self.tw) / 2, 0))
 		pygame.display.update()
 
-	def AsyncRefreshOctoStatus(self):
-		T = threading.Thread(target=self.RefreshOctoStatus, daemon=True, name='OctoTrigRefresh')
-		T.start()
+	# def AsyncRefreshOctoStatus(self):
+	#	T = threading.Thread(target=self.RefreshOctoStatus, daemon=True, name='OctoTrigRefresh')
+	#	T.start()
 
 	def RefreshOctoStatus(self, param=None):
 		try:
@@ -286,7 +307,7 @@ class OctoPrintScreenDesc(screen.BaseKeyScreenDesc):
 
 	def ExitScreen(self, viaPush):
 		super().ExitScreen(viaPush)
-		self.PollTimer.pause()
+	#self.PollTimer.pause()
 
 
 screens.screentypes["OctoPrint"] = OctoPrintScreenDesc
