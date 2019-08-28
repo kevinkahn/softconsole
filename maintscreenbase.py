@@ -51,14 +51,9 @@ class MaintScreenDesc(screen.BaseKeyScreenDesc):
 		utilities.register_example("MaintScreenDesc", self)
 
 	def ShowScreen(self):
-		# todo use screentitle stuff
-		self.ReInitDisplay()
-		# r = fonts.fonts.Font(self.TitleFontSize, '', True, True).render("Console Maintenance", 0, wc(self.CharColor))
-		# rl = (hw.screenwidth - r.get_width()) / 2
-		#hw.screen.blit(r, (rl, self.TopBorder))
 		r = fonts.fonts.Font(self.SubFontSize, '', True, True).render(
-			"Up: " + interval_str(time.time() - config.sysStore.ConsoleStartTime),
-			0, wc(self.CharColor))
+			'{} Up: {}'.format(time.strftime("%H:%M:%S", time.localtime(config.sysStore.Time)),
+							   interval_str(config.sysStore.UpTime)), 0, wc(self.CharColor))
 		rl = (hw.screenwidth - r.get_width()) / 2
 		hw.screen.blit(r, (rl, self.TopBorder + self.TitleFontSize))
 		self.PaintKeys()
@@ -66,7 +61,11 @@ class MaintScreenDesc(screen.BaseKeyScreenDesc):
 
 	def InitDisplay(self, nav):
 		debug.debugPrint('Main', "Enter to screen: ", self.name)
-		super(MaintScreenDesc, self).InitDisplay(nav)
+		super().InitDisplay(nav)
+		self.ShowScreen()
+
+	def ReInitDisplay(self):
+		super().ReInitDisplay()
 		self.ShowScreen()
 
 	def ExitScreen(self, viaPush):

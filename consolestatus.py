@@ -65,7 +65,7 @@ def SetUpConsoleStatus():
 											  ('versions', ('Console Versions',
 															functools.partial(screen.PushToScreen, ShowVers, 'Maint'))),
 											  ('cmds', ('Issue Network Commands', GenGoNodeCmdScreen)),
-											  ('return', ('Return', screen.PopScreen))]))
+											  ('return', ('Return', screen.PopScreen))]), Clocked=1)
 		StatusDisp.userstore.ReParent(Status)
 		ShowVers.userstore.ReParent(Status)
 		ShowHW.userstore.ReParent(Status)
@@ -227,7 +227,7 @@ class StatusDisplayScreen(screen.BaseKeyScreenDesc):
 
 class CommandScreen(screen.BaseKeyScreenDesc):
 	def __init__(self, Clocked=0):
-		super().__init__(None, 'StatusCmdScreen', SingleUse=True, Clocked=Clocked)
+		super().__init__(None, 'NodeCommandScreen', SingleUse=True, Clocked=Clocked)
 		self.RespProcs = {'getlog': LogDisplay, 'geterrors': LogDisplay}
 		screen.AddUndefaultedParams(self, None, TitleFontSize=40, SubFontSize=25)
 		self.NavKeysShowing = True
@@ -288,7 +288,6 @@ class CommandScreen(screen.BaseKeyScreenDesc):
 		self.entered = ''
 		self.CmdListScreens = {}
 		for t, s in CmdSet.items():
-			print('Creating screen {}'.format('CmdListScreen' + t))
 			self.CmdListScreens[t] = screens.screentypes["Keypad"](s, 'CmdListScreen' + t, parentscreen=self, Clocked=1)
 
 	# self.CmdListScreens[t].SetScreenTitle(t + ' Commands', self.TitleFontSize, 'white', force=True)
@@ -318,13 +317,15 @@ class CommandScreen(screen.BaseKeyScreenDesc):
 
 	def ExitScreen(self, viaPush):
 		super().ExitScreen(viaPush)
-		print('Leaving node screen {}'.format(self.entered))
 		# if not viaPush: self.CmdListScreens[self.entered].userstore.DropStore()  #tempdel - this should be replaced by an explicit screen kill
 		if not viaPush:
 			for n, s in self.CmdListScreens.items():
-				print('Kill {}'.format(n))
 				s.DeleteScreen()
 
+	def PopOver(self):
+		super().PopOver()
+		for n, s in self.CmdListScreens.items():
+			s.DeleteScreen()
 
 	def RequestErrors(self, nd):
 		global ErrorBuffer, ErrorNode, ErrorsRcvd

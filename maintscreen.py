@@ -35,7 +35,7 @@ def SetUpMaintScreens():
 		if issuecommands.Where.LocalMenuExits in action.where:
 			ExitMenu[cmd] = (action.DisplayName, action.Proc, None, action.Verify)
 	ExitMenu['return'] = ('Return', screen.PopScreen)
-	Exits = MaintScreenDesc('System Exit/Restart', ExitMenu)
+	Exits = MaintScreenDesc('System Exit/Restart', ExitMenu, Clocked=1)
 	screenset.append(Exits)
 
 	VersMenu = OrderedDict()
@@ -48,7 +48,7 @@ def SetUpMaintScreens():
 			VersMenuAdv[cmd] = (action.DisplayName, action.Proc)
 	VersMenu['return'] = ('Return', screen.PopScreen)
 	VersMenuAdv['return'] = ('Return', screen.PopScreen)
-	Versions = MaintScreenDesc('Version Control', VersMenu)
+	Versions = MaintScreenDesc('Version Control', VersMenu, Clocked=1)
 	VersionsAdv = MaintScreenDesc('Advanced Version Control', VersMenuAdv)
 	screenset.append(Versions)
 	screenset.append(VersionsAdv)
@@ -107,7 +107,7 @@ def SetUpMaintScreens():
 	'Network Consoles', functools.partial(screen.PushToScreen, Status, 'Maint'))
 	TopLevel['exit'] = ('Exit/Restart', functools.partial(screen.PushToScreen, Exits, 'Maint'))
 
-	MaintScreen = MaintScreenDesc('Console Maintenance', TopLevel)
+	MaintScreen = MaintScreenDesc('Console Maintenance', TopLevel, Clocked=1)
 
 	for s in screenset:
 		s.userstore.ReParent(MaintScreen)
