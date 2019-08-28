@@ -197,6 +197,8 @@ Finally, the consoles will accept commands from MQTT.  A console listens on the 
 * status: issue a status message to MQTT
 * issueError, issueWarning, issueInfo,hbdump: diagnostic/debug commands
 
+**Note:** While you can manually issue MQTT commands from some other utility, the supported way to do this is via the Remote Console commands screen within Console Maintenance.
+
 # Screens
 
 ## Common Parameters

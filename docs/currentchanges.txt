@@ -26,5 +26,16 @@ V3.4 is a moderate update.  The major functional addition is GOTO keys which now
 
 Comma on trailing strings
 Max icon percentage of line
-
-
+Dim Methods PWN18 PWM19 OnOff
+HorizButtonGap, VertButGap pixels to leave between adjacent buttons
+Download dev mainline code to consoledev if desired
+Consolidated Thermostat screen across ISY, HA screentypes Thermostat NestThermostat yield same screen now
+Structural changes to HA implementation - should not be externally visible, Octoprint changes
+Flip for resistive tscreens
+Buster frame buffer number
+Python memory alloc bug in some weather fetches
+Network status and control
+Removal of remote logging
+New screen indicator icon
+More forgiving of weather fetch failures
+Ignore 3 and 5 tap while in Maintenance
