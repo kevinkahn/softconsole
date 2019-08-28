@@ -17,6 +17,11 @@ def StageVersion(vdir, tag, label):
 	print("Staging " + tag + " in " + vdir + ' because ' + label, file=logf)
 
 	cwd = os.getcwd()
+	try:
+		os.chdir(vdir)
+	except Exception as E:
+		print("Staging directory {} doesn't exist - try to create it ({})".format(vdir, E))
+		os.mkdir(vdir)
 	os.chdir(vdir)
 	shutil.rmtree('stagedversion', True)
 	os.mkdir('stagedversion')
