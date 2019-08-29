@@ -64,10 +64,9 @@ def AddToTimerList(name, timer):
 			return
 		except Exception as E:
 			TimerHB.Entry("Creation race: {} for {}".format(i, name))
-			logsupport.Logs.Log("Timer list race ({}) for {}, {}".format(E, name, i),
-								severity=logsupport.ConsoleWarning, hb=True)
+			logsupport.Logs.Log("Timer list race ({}) for {}, {}".format(E, name, i))
 			continue
-	logsupport.Logs.Log('Unresolved timer list race for {}'.format(name), severity=logsupport.ConsoleWarning)
+	logsupport.Logs.Log('Unresolved timer list race for {}'.format(name), severity=logsupport.ConsoleWarning, hb=True)
 
 
 

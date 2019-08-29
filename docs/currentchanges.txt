@@ -40,3 +40,5 @@ Removal of remote logging
 New screen indicator icon
 More forgiving of weather fetch failures
 Ignore 3 and 5 tap while in Maintenance
+
+??Change overscan setting fo pi7 install on Buster
