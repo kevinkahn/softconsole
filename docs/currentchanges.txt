@@ -25,6 +25,7 @@ V3.4 is a moderate update.  The major functional addition is GOTO keys which now
 
 
 Comma on trailing strings
+
 Max icon percentage of line
 Dim Methods PWN18 PWM19 OnOff
 HorizButtonGap, VertButGap pixels to leave between adjacent buttons
