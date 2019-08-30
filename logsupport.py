@@ -120,8 +120,8 @@ def InitLogs(screen, dirnm):
 		except:
 			pass
 		DevPrint = DevPrintDoIt
-	# with open('/home/pi/Console/hlog', 'w') as f:
-	#	f.write('------ {} ------\n'.format(time.time()))
+	with open('/home/pi/Console/hlog', 'w') as f:
+		f.write('------ {} pid: {} ------\n'.format(time.time(), os.getpid()))
 	return Logger(screen, dirnm)
 
 def AsyncFileWrite(fn,writestr,access='a'):
@@ -148,22 +148,25 @@ def LogProcess(q):
 			f.flush()
 
 
-
 	signal.signal(signal.SIGTERM, ExitLog)  # don't want the sig handlers from the main console
 	signal.signal(signal.SIGINT, ExitLog)
 	signal.signal(signal.SIGUSR1, ExitLog)
 	signal.signal(signal.SIGHUP, IgnoreHUP)
 	disklogfile = None
 	running = True
+	lastmsgtime = 0
+	mainpid = 0
 
 	while running:
 		try:
 			try:
 				item = q.get(timeout = 2)
+				lastmsgtime = time.time()
 				if exiting !=0:
-					with open('/home/pi/Console/hlog', 'a') as f:
-						f.write('late item: {} exiting {}\n'.format(item,exiting))
-						f.flush()
+					if time.time() - exiting > 3:  # don't note items within few seconds of exit request just process them
+						with open('/home/pi/Console/hlog', 'a') as f:
+							f.write('@ {} late item: {} exiting {}\n'.format(time.time(), item, exiting))
+							f.flush()
 			except QEmpty:
 				if exiting != 0 and time.time() - exiting > 10:
 					# exiting got set but we seem stuck - just leave
@@ -171,12 +174,29 @@ def LogProcess(q):
 						f.write('{}({}): Logger exiting because seems zombied\n'.format(os.getpid(),time.time()))
 						f.flush()
 					running = False
+					continue
 				elif exiting != 0:  # exiting has been set     todo check if main is alive?
 					with open('/home/pi/Console/hlog', 'a') as f:
 						f.write('Logger waiting to exit {} {}\n'.format(exiting, time.time()))
 						f.flush()
-						continue  # nothing to process
+					continue  # nothing to process
 				else:
+					if time.time() - lastmsgtime > 60:  # 3600: # 1 hour
+						with open('/home/pi/Console/hlog', 'a') as f:
+							f.write('Logger extended quiet at {} lastmsg {}\n'.format(time.time(), lastmsgtime))
+							f.flush()
+						try:
+							os.kill(mainpid, 0)
+							# running
+							with open('/home/pi/Console/hlog', 'a') as f:
+								f.write('Main {} still running\n'.format(mainpid))
+								f.flush()
+						except OSError:
+							# not running
+							with open('/home/pi/Console/hlog', 'a') as f:
+								f.write('Main {} seems dead\n'.format(mainpid))
+								f.flush()
+							# tempdel - set exit here
 					continue  # back to waiting
 
 			if item[0] == Command.LogEntry:
@@ -198,7 +218,6 @@ def LogProcess(q):
 					f.write(stringitem)
 					f.flush()
 			elif item[0] == Command.CloseHlog:
-				# close hlog
 				running = False
 				with open('/home/pi/Console/hlog', 'a') as f:
 					f.write('{}({}): Async Logger ending: {}\n'.format(os.getpid(),time.time(),item[1]))
@@ -207,8 +226,12 @@ def LogProcess(q):
 			elif item[0] == Command.StartLog:
 				# open Console log
 				os.chdir(item[1])
+				mainpid = item[2]
 				disklogfile = open('Console.log', 'w')
 				os.chmod('Console.log', 0o555)
+				with open('/home/pi/Console/hlog', 'w') as f:
+					f.write('Starting hlog for {} at {} main pid: {}\n'.format(os.getpid(), time.time(), mainpid))
+					f.flush()
 			elif item[0] == Command.Touch:
 				# liveness touch
 				os.utime(item[1],None)
@@ -278,7 +301,7 @@ class Logger(object):
 				os.rename('Console.log', 'Console.log.1')
 			except:
 				pass
-			LoggerQueue.put((Command.StartLog, dirnm))
+			LoggerQueue.put((Command.StartLog, dirnm, os.getpid()))
 			#self.disklogfile = open('Console.log', 'w')
 			#os.chmod('Console.log', 0o555)
 			historybuffer.SetupHistoryBuffers(dirnm, maxf)

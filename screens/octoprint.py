@@ -29,9 +29,6 @@ class OctoPrintScreenDesc(screen.BaseKeyScreenDesc):
 		self.files = []
 		self.filepaths = []
 		self.PowerKeys = {}
-		self.StatusUpdater = threading.Thread(target=self.AsyncUpdate, daemon=True,
-											  name='OctoprintUpdater-' + self.name)
-		self.StatusUpdater.start()
 		self.StatusGo = threading.Event()
 
 		# status of printer
@@ -121,6 +118,11 @@ class OctoPrintScreenDesc(screen.BaseKeyScreenDesc):
 		self.FileSubscreen = supportscreens.ListChooserSubScreen(self, 'FileList', 8, useablescreenheight,
 																 self.titlespace,
 																 self.FilePick)
+		self.StatusUpdater = threading.Thread(target=self.AsyncUpdate, daemon=True,
+											  name='OctoprintUpdater-' + self.name)
+		self.StatusUpdater.start()
+
+	# todo Handle printer pause
 
 	def AsyncUpdate(self):
 		self.RefreshOctoStatus()
