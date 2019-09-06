@@ -106,11 +106,6 @@ def SpawnAsyncLogger():
 	config.sysStore.SetVal('AsyncLogger_pid', AsyncLogger.pid)
 
 def InitLogs(screen, dirnm):
-	global DevPrint
-	if config.sysStore.versionname in ('development', 'homerelease'):  # tempdel make everywhere?
-		DevPrint = DevPrintDoIt
-	with open('/home/pi/Console/.HistoryBuffer/hlog', 'w') as f:
-		f.write('------ {} pid: {} ------\n'.format(time.time(), os.getpid()))
 	return Logger(screen, dirnm)
 
 def AsyncFileWrite(fn,writestr,access='a'):
@@ -253,12 +248,16 @@ def LogProcess(q):
 	os.fsync(disklogfile.fileno())
 
 
-def DevPrint(arg):
-	pass
+def DevPrintInit(arg):
+	pstr = '{}({}): {}'.format(str(os.getpid()), time.time(), arg)
+	print(pstr)
 
 def DevPrintDoIt(arg):
 	pstr = '{}({}): {}'.format(str(os.getpid()), time.time(), arg)
 	LoggerQueue.put((Command.DevPrint, pstr))
+
+
+DevPrint = DevPrintInit
 
 
 def EndAsyncLog():
@@ -275,6 +274,7 @@ class Logger(object):
 	log = []
 
 	def __init__(self, screen, dirnm):
+		global DevPrint
 		self.screen = screen
 		if disklogging:
 			cwd = os.getcwd()
@@ -295,6 +295,11 @@ class Logger(object):
 			#self.disklogfile = open('Console.log', 'w')
 			#os.chmod('Console.log', 0o555)
 			historybuffer.SetupHistoryBuffers(dirnm, maxf)
+			with open('/home/pi/Console/.HistoryBuffer/hlog', 'w') as f:
+				f.write('------ {} pid: {} ------\n'.format(time.time(), os.getpid()))
+
+			# if config.sysStore.versionname in ('development', 'homerelease'):  # tempdel make everywhere?
+			DevPrint = DevPrintDoIt
 			os.chdir(cwd)
 
 	def SetSeverePointer(self, severity):
