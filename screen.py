@@ -164,7 +164,7 @@ class ScreenDesc(object):
 		self.NavKeyWidth = (hw.screenwidth - 2 * self.HorizBorder) // 2
 		if Clocked != 0:
 			self.ScreenClock = timers.RepeatingPost(Clocked, paused=True, name='ScreenClock-' + self.name,
-													proc=self._ClockTick)
+													proc=self._ClockTick, eventvalid=self._ClockTickValid)
 			self.ScreenClock.start()
 
 		cvertcenter = hw.screenheight - self.BotBorder / 2
@@ -211,7 +211,10 @@ class ScreenDesc(object):
 
 		utilities.register_example('ScreenDesc', self)
 
-	def _ClockTick(self, params):
+	def _ClockTickValid(self, params):
+		return self.Active
+
+	def _ClockTick(self, params):  # todo make this a validity check and then call ClockTick directly as event.proc
 		if not self.Active: return  # avoid race with timer and screen exit
 		self.ClockTick()
 
@@ -340,7 +343,6 @@ class ScreenDesc(object):
 	def DeleteScreen(self):
 		# explicit screen destroy
 		self.userstore.DropStore()
-		print('Deleting screen {}'.format(self.name))
 		if self.ScreenClock is not None: self.ScreenClock.cancel()
 		for timer in self.ScreenTimers:
 			if timer.is_alive(): timer.cancel()

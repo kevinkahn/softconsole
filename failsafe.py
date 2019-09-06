@@ -22,20 +22,20 @@ def TempThreadList():
 	'''
 	time.sleep(10)
 	while True:
-		# logsupport.AsyncFileWrite('/home/pi/Console/hlog', '=================Start\n')
+		# logsupport.AsyncFileWrite('/home/pi/Console/.HistoryBuffer/hlog', '=================Start\n')
 		L = multiprocessing.active_children()  # clean any zombie failsafe
 		# for x in L:
-		# logsupport.AsyncFileWrite('/home/pi/Console/hlog',
+		# logsupport.AsyncFileWrite('/home/pi/Console/.HistoryBuffer/hlog',
 		#						  '{} Process {}: alive: {} pid: {} daemon: {}\n'.format(time.time(), x.name,
 		#								x.is_alive(), x.pid, x.daemon))
 		threadlist = threading.enumerate()
 		for thd in threadlist:
-			#logsupport.AsyncFileWrite('/home/pi/Console/hlog','{} Threadlist: {} alive: {} ident: {} daemon: {} \n'.format(time.time(), thd.name, thd.is_alive(), thd.ident, thd.daemon))
+			# logsupport.AsyncFileWrite('/home/pi/Console/.HistoryBuffer/hlog','{} Threadlist: {} alive: {} ident: {} daemon: {} \n'.format(time.time(), thd.name, thd.is_alive(), thd.ident, thd.daemon))
 			if thd.name == 'MainThread' and not thd.is_alive():
-				logsupport.AsyncFileWrite('/home/pi/Console/hlog','Main Thread died\n')
+				logsupport.AsyncFileWrite('/home/pi/Console/.HistoryBuffer/hlog', 'Main Thread died\n')
 				os.kill(os.getpid(),signal.SIGINT)  # kill myself
 
-		#logsupport.AsyncFileWrite('/home/pi/Console/hlog','=================End\n')
+		#logsupport.AsyncFileWrite('/home/pi/Console/.HistoryBuffer/hlog','=================End\n')
 		time.sleep(30)
 
 def NoEventInjector():
@@ -60,22 +60,27 @@ def EndWatchDog(signum, frame):
 
 
 def WatchdogDying(signum, frame):
-	if signum == signal.SIGTERM:
-		logsupport.DevPrint('Watchdog saw SIGTERM - must be from systemd')
-		# console should have also seen this - give it time to shut down
-		time.sleep(30) # we should see a USR1 from console
-		os._exit(0)
-	else:
-		logsupport.DevPrint('Watchdog dying signum: {} frame: {}'.format(signum, frame))
-		try:
-			os.kill(config.sysStore.Console_pid, signal.SIGUSR1)
-		except:
-			pass # probably main console already gone
-		time.sleep(3)
-		try:
-			os.kill(config.sysStore.Console_pid, signal.SIGKILL) # with predjudice
-		except:
-			pass # probably already gone
+	try:
+		if signum == signal.SIGTERM:
+			logsupport.DevPrint('Watchdog saw SIGTERM - must be from systemd')
+			# console should have also seen this - give it time to shut down
+			time.sleep(30)  # we should see a USR1 from console
+			os._exit(0)
+		else:
+			logsupport.DevPrint('Watchdog dying signum: {} frame: {}'.format(signum, frame))
+			try:
+				os.kill(config.sysStore.Console_pid, signal.SIGUSR1)
+			except:
+				pass  # probably main console already gone
+			time.sleep(3)
+			try:
+				os.kill(config.sysStore.Console_pid, signal.SIGKILL)  # with predjudice
+			except:
+				pass  # probably already gone
+			os._exit(0)
+	except Exception as E:
+		logsupport.DevPrint('Exception in WatchdogDying: {}'.format(E))
+		time.sleep(1)
 		os._exit(0)
 
 def failsafedeath():
@@ -102,15 +107,17 @@ def MasterWatchDog():
 	logsupport.DevPrint('Master Watchdog Started {} for console pid: {}'.format(os.getpid(),config.sysStore.Console_pid))
 	runningok = True
 	while runningok:
-		while timers.LongOpStart['maintenance'] != 0:
-			logsupport.DevPrint('Failsafe suspended while in maintenance mode')
-			time.sleep(120)
+		# while timers.LongOpStart['maintenance'] != 0:
+		#	logsupport.DevPrint('Failsafe suspended while in maintenance mode')
+		#	time.sleep(120)
 		while KeepAlive.wait(FailsafeInterval):
 			# logsupport.DevPrint('Watchdog ok: {}'.format(time.time()))
 			KeepAlive.clear()
 			time.sleep(FailsafeInterval)
+		runningok = False  # no keepalive seen for failsafe interval - try to restart
+		logsupport.DevPrint('No keepalive in failsafe interval')
 
-		if timers.LongOpStart['maintenance'] == 0:  runningok = False  # not in maintenance mode and not acting alive
+	#if timers.LongOpStart['maintenance'] == 0:  runningok = False  # not in maintenance mode and not acting alive
 	logsupport.DevPrint('Watchdog loop exit: {}'.format(time.time()))
 	# noinspection PyBroadException
 	try:

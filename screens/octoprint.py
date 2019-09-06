@@ -137,7 +137,7 @@ class OctoPrintScreenDesc(screen.BaseKeyScreenDesc):
 		self.OctoPost('files/local/' + self.filepaths[fileno], senddata={'command': 'select'})
 		self.OctoPost('job', senddata={'command': 'start'})
 
-	def OctoGet(self, item):  # todo rewrite with some builting retries before error message
+	def OctoGet(self, item):
 		for i in range(5):
 			try:
 				historybuffer.HBNet.Entry('Octoprint get: {} from {}'.format(item, self.url))
@@ -145,18 +145,7 @@ class OctoPrintScreenDesc(screen.BaseKeyScreenDesc):
 				historybuffer.HBNet.Entry('Octoprint done with {}'.format(item))
 				return r
 			except Exception as e:
-				logsupport.Logs.Log('Bad octoprint get: ', repr(e), severity=ConsoleWarning)
-				'''
-				for i in range(5):
-					# noinspection PyBroadException
-					try:
-						historybuffer.HBNet.Entry('Octoprint retry')
-						r = requests.get(self.url + '/api/' + item, headers=self.head)
-						historybuffer.HBNet.Entry('Octoprint retry done')
-						return r
-					except:
-						pass
-				'''
+				logsupport.Logs.Log('Bad octoprint get ({}): {}'.format(i, e))
 		logsupport.Logs.Log("Permanent Octoprint Screen Error", severity=ConsoleWarning)
 		raise ValueError
 

@@ -19,29 +19,32 @@ class NetworkHealth(object):
 		ok = False
 		cmd = 'ping -c 1 -W 2 ' + dest
 		for i in range(7):
-			# logsupport.LoggerQueue.put((logsupport.Command.FileWrite, '/home/pi/Console/hlog', 'a', 'Ping:\n'))
+			# logsupport.LoggerQueue.put((logsupport.Command.FileWrite, '/home/pi/Console/.HistoryBuffer/hlog', 'a', 'Ping:\n'))
 			try:
 				pingresult = subprocess.check_output(cmd, shell=True, universal_newlines=True, stderr=subprocess.STDOUT).splitlines()
 				ok = True
 				#for l in pingresult:
-				#	logsupport.LoggerQueue.put((logsupport.Command.FileWrite,'/home/pi/Console/hlog', 'a', 'Good ping: {}\n'.format(l)))
+				#	logsupport.LoggerQueue.put((logsupport.Command.FileWrite,'/home/pi/Console/.HistoryBuffer/hlog', 'a', 'Good ping: {}\n'.format(l)))
 				#wlanq = subprocess.check_output('iwconfig wlan0', shell=True, universal_newlines=True,
 				#								stderr=subprocess.STDOUT).splitlines()
 				#for l in wlanq:
-				#	logsupport.LoggerQueue.put((logsupport.Command.FileWrite,'/home/pi/Console/hlog', 'a', 'WLAN     : {}\n'.format(l)))
+				#	logsupport.LoggerQueue.put((logsupport.Command.FileWrite,'/home/pi/Console/.HistoryBuffer/hlog', 'a', 'WLAN     : {}\n'.format(l)))
 				break
 			except subprocess.CalledProcessError as Res:
 				logsupport.LoggerQueue.put(
 					(
-					logsupport.Command.FileWrite, '/home/pi/Console/hlog', 'a', 'Bad ping: {}\n'.format(Res.returncode)))
+						logsupport.Command.FileWrite, '/home/pi/Console/.HistoryBuffer/hlog', 'a',
+						'Bad ping: {}\n'.format(Res.returncode)))
 				pingresult = Res.output.splitlines()
 				for l in pingresult:
 					logsupport.LoggerQueue.put(
-						(logsupport.Command.FileWrite, '/home/pi/Console/hlog', 'a', 'Bad ping: {}\n'.format(l)))
+						(logsupport.Command.FileWrite, '/home/pi/Console/.HistoryBuffer/hlog', 'a',
+						 'Bad ping: {}\n'.format(l)))
 				wlanq = subprocess.check_output('iwconfig wlan0', shell=True, universal_newlines=True, stderr=subprocess.STDOUT).splitlines()
 				for l in wlanq:
 					logsupport.LoggerQueue.put(
-						(logsupport.Command.FileWrite, '/home/pi/Console/hlog', 'a', 'WLAN    : {}\n'.format(l)))
+						(logsupport.Command.FileWrite, '/home/pi/Console/.HistoryBuffer/hlog', 'a',
+						 'WLAN    : {}\n'.format(l)))
 				time.sleep(.25)
 		# logsupport.Logs.Log('Finished ping thread {} in {}'.format(ok, threading.current_thread().name))
 		controlevents.PostEvent(

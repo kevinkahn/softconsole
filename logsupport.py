@@ -107,20 +107,9 @@ def SpawnAsyncLogger():
 
 def InitLogs(screen, dirnm):
 	global DevPrint
-	if config.sysStore.versionname in ('development', 'homerelease'):
-		q = [k for k in os.listdir('/home/pi/Console') if 'hlog' in k]
-		maxf = config.sysStore.MaxLogFiles
-		if "hlog." + str(maxf) in q:
-			os.remove('/home/pi/Console/hlog.' + str(maxf))
-		for i in range(maxf - 1, 0, -1):
-			if "hlog." + str(i) in q:
-				os.rename('/home/pi/Console/hlog.' + str(i), "/home/pi/Console/hlog." + str(i + 1))
-		try:
-			os.rename('/home/pi/Console/hlog','/home/pi/Console/hlog.1')
-		except:
-			pass
+	if config.sysStore.versionname in ('development', 'homerelease'):  # tempdel make everywhere?
 		DevPrint = DevPrintDoIt
-	with open('/home/pi/Console/hlog', 'w') as f:
+	with open('/home/pi/Console/.HistoryBuffer/hlog', 'w') as f:
 		f.write('------ {} pid: {} ------\n'.format(time.time(), os.getpid()))
 	return Logger(screen, dirnm)
 
@@ -137,13 +126,13 @@ def LogProcess(q):
 	def ExitLog(signum, frame):
 		nonlocal exiting
 		exiting = time.time()
-		with open('/home/pi/Console/hlog', 'a') as f:
+		with open('/home/pi/Console/.HistoryBuffer/hlog', 'a') as f:
 			f.write('{}({}): Logger process exiting for signal {} exiting: {}\n'.format(os.getpid(),time.time(),signum, exiting))
 			f.flush()
 		signal.signal(signal.SIGHUP,signal.SIG_IGN)
 
 	def IgnoreHUP(signum, frame):
-		with open('/home/pi/Console/hlog', 'a') as f:
+		with open('/home/pi/Console/.HistoryBuffer/hlog', 'a') as f:
 			f.write('{}({}): Logger process SIGHUP ignored\n'.format(os.getpid(),time.time()))
 			f.flush()
 
@@ -164,39 +153,40 @@ def LogProcess(q):
 				lastmsgtime = time.time()
 				if exiting !=0:
 					if time.time() - exiting > 3:  # don't note items within few seconds of exit request just process them
-						with open('/home/pi/Console/hlog', 'a') as f:
+						with open('/home/pi/Console/.HistoryBuffer/hlog', 'a') as f:
 							f.write('@ {} late item: {} exiting {}\n'.format(time.time(), item, exiting))
 							f.flush()
 			except QEmpty:
 				if exiting != 0 and time.time() - exiting > 10:
 					# exiting got set but we seem stuck - just leave
-					with open('/home/pi/Console/hlog', 'a') as f:
+					with open('/home/pi/Console/.HistoryBuffer/hlog', 'a') as f:
 						f.write('{}({}): Logger exiting because seems zombied\n'.format(os.getpid(),time.time()))
 						f.flush()
 					running = False
 					continue
 				elif exiting != 0:  # exiting has been set     todo check if main is alive?
-					with open('/home/pi/Console/hlog', 'a') as f:
+					with open('/home/pi/Console/.HistoryBuffer/hlog', 'a') as f:
 						f.write('Logger waiting to exit {} {}\n'.format(exiting, time.time()))
 						f.flush()
 					continue  # nothing to process
 				else:
-					if time.time() - lastmsgtime > 60:  # 3600: # 1 hour
-						with open('/home/pi/Console/hlog', 'a') as f:
+					if time.time() - lastmsgtime > 60:  # 3600: # 1 hour # tempdel
+						with open('/home/pi/Console/.HistoryBuffer/hlog', 'a') as f:
 							f.write('Logger extended quiet at {} lastmsg {}\n'.format(time.time(), lastmsgtime))
 							f.flush()
+							lastmsgtime = time.time()  # reset for quiet message
 						try:
 							os.kill(mainpid, 0)
 							# running
-							with open('/home/pi/Console/hlog', 'a') as f:
+							with open('/home/pi/Console/.HistoryBuffer/hlog', 'a') as f:
 								f.write('Main {} still running\n'.format(mainpid))
 								f.flush()
 						except OSError:
 							# not running
-							with open('/home/pi/Console/hlog', 'a') as f:
-								f.write('Main {} seems dead\n'.format(mainpid))
+							with open('/home/pi/Console/.HistoryBuffer/hlog', 'a') as f:
+								f.write('Main {} seems dead - exiting\n'.format(mainpid))
 								f.flush()
-							# tempdel - set exit here
+								running = False
 					continue  # back to waiting
 
 			if item[0] == Command.LogEntry:
@@ -208,7 +198,7 @@ def LogProcess(q):
 				os.fsync(disklogfile.fileno())
 			elif item[0] == Command.DevPrint:
 				# DevPrint
-				with open('/home/pi/Console/hlog', 'a') as f:
+				with open('/home/pi/Console/.HistoryBuffer/hlog', 'a') as f:
 					f.write(item[1]+'\n')
 					f.flush()
 			elif item[0] == Command.FileWrite:
@@ -219,7 +209,7 @@ def LogProcess(q):
 					f.flush()
 			elif item[0] == Command.CloseHlog:
 				running = False
-				with open('/home/pi/Console/hlog', 'a') as f:
+				with open('/home/pi/Console/.HistoryBuffer/hlog', 'a') as f:
 					f.write('{}({}): Async Logger ending: {}\n'.format(os.getpid(),time.time(),item[1]))
 					f.flush()
 				Logs = TempLogger
@@ -229,7 +219,7 @@ def LogProcess(q):
 				mainpid = item[2]
 				disklogfile = open('Console.log', 'w')
 				os.chmod('Console.log', 0o555)
-				with open('/home/pi/Console/hlog', 'w') as f:
+				with open('/home/pi/Console/.HistoryBuffer/hlog', 'w') as f:
 					f.write('Starting hlog for {} at {} main pid: {}\n'.format(os.getpid(), time.time(), mainpid))
 					f.flush()
 			elif item[0] == Command.Touch:
@@ -243,18 +233,18 @@ def LogProcess(q):
 			elif item[0] == Command.DumpRemote:  # force remote message dump
 				pass
 			else:
-				with open('/home/pi/Console/hlog', 'a') as f:
+				with open('/home/pi/Console/.HistoryBuffer/hlog', 'a') as f:
 					f.write('Log process got garbage: {}\n'.format(item))
 					f.flush()
 		except Exception as E:
-			with open('/home/pi/Console/hlog', 'a') as f:
+			with open('/home/pi/Console/.HistoryBuffer/hlog', 'a') as f:
 				f.write('Log process had exception {} handling {}'.format(repr(E), item))
 				f.flush()
 	try:
 		print('{}({}): Logger loop ended'.format(os.getpid(),time.time()))
 	except:
 		pass
-	with open('/home/pi/Console/hlog', 'a') as f:
+	with open('/home/pi/Console/.HistoryBuffer/hlog', 'a') as f:
 		f.write('{}({}): Logger loop ended\n'.format(os.getpid(),time.time()))
 		f.flush()
 	disklogfile.write(

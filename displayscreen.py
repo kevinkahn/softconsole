@@ -517,10 +517,15 @@ class DisplayScreen(object):
 				# Delayed or deferred and true: redundant report
 
 				elif event.type == CEvent.SchedEvent:
+					if hasattr(event, 'eventvalid') and not event.eventvalid:
+						self.HBEvents.Entry('Ignore event that is no longer valid: {}'.format(repr(event)))
+						logsupport.Logs.Log("Stale event ignored: {}".format(repr(event)))  # tempdel
+						continue
 					self.HBEvents.Entry('Sched event {}'.format(repr(event)))
 					eventnow = time.time()
 					diff = eventnow - event.TargetTime
-					if abs(diff) > controlevents.latencynotification:
+					if abs(
+							diff) > controlevents.latencynotification:  # todo 5 tap can cause this - really would like to check if event for active screen first
 						logsupport.Logs.Log('Timer late by {} seconds. Event: {}'.format(diff, repr(event)),
 											severity=ConsoleWarning, hb=True, homeonly=True)
 						self.HBEvents.Entry('Event late by {} target: {} now: {}'.format(diff, event.TargetTime, eventnow))
