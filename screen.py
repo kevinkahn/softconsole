@@ -211,7 +211,7 @@ class ScreenDesc(object):
 
 		utilities.register_example('ScreenDesc', self)
 
-	def _ClockTickValid(self, params):
+	def _ClockTickValid(self):
 		return self.Active
 
 	def _ClockTick(self, params):  # todo make this a validity check and then call ClockTick directly as event.proc

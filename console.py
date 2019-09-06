@@ -240,7 +240,7 @@ logsupport.Logs.Log("Alert classes instantiated")
 Initialize the Console
 """
 # clear the systemd hack once started
-signal.signal(signal.SIGHUP, signal.SIG_DFL)
+signal.signal(signal.SIGHUP, handler)
 
 
 SetUpTermShortener()

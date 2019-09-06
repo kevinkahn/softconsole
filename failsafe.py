@@ -2,16 +2,21 @@ import multiprocessing
 import os
 import signal
 import time
-import timers
 import atexit
 import threading
 
 import config
-import logsupport
+import logsupport as L
 from controlevents import CEvent, PostEvent, ConsoleEvent
 
 KeepAlive = multiprocessing.Event()
 FailsafeInterval = 60
+
+
+def DevPrint(msg):
+	with open('/home/pi/Console/.HistoryBuffer/hlog', 'a') as f:
+		f.write('{}: {}\n'.format(time.time(), msg))
+		f.flush()
 
 def TempThreadList():
 	'''
@@ -22,52 +27,48 @@ def TempThreadList():
 	'''
 	time.sleep(10)
 	while True:
-		# logsupport.AsyncFileWrite('/home/pi/Console/.HistoryBuffer/hlog', '=================Start\n')
 		L = multiprocessing.active_children()  # clean any zombie failsafe
 		# for x in L:
-		# logsupport.AsyncFileWrite('/home/pi/Console/.HistoryBuffer/hlog',
-		#						  '{} Process {}: alive: {} pid: {} daemon: {}\n'.format(time.time(), x.name,
-		#								x.is_alive(), x.pid, x.daemon))
+		#	DevPrint('Process {}: alive: {} pid: {} daemon: {}'.format(x.name, x.is_alive(), x.pid, x.daemon))
 		threadlist = threading.enumerate()
 		for thd in threadlist:
-			# logsupport.AsyncFileWrite('/home/pi/Console/.HistoryBuffer/hlog','{} Threadlist: {} alive: {} ident: {} daemon: {} \n'.format(time.time(), thd.name, thd.is_alive(), thd.ident, thd.daemon))
+			#DevPrint('Threadlist: {} alive: {} ident: {} daemon: {} \n'.format(thd.name, thd.is_alive(), thd.ident, thd.daemon))
 			if thd.name == 'MainThread' and not thd.is_alive():
-				logsupport.AsyncFileWrite('/home/pi/Console/.HistoryBuffer/hlog', 'Main Thread died\n')
+				DevPrint('Main Thread died')
 				os.kill(os.getpid(),signal.SIGINT)  # kill myself
 
-		#logsupport.AsyncFileWrite('/home/pi/Console/.HistoryBuffer/hlog','=================End\n')
+		#DevPrint('=================End')
 		time.sleep(30)
 
 def NoEventInjector():
-	logsupport.Logs.Log('Starting watchdog activity injector')
+	L.Logs.Log('Starting watchdog activity injector')
 	while config.Running:
 		# noinspection PyBroadException
 		try:
 			now = time.time()
-			logsupport.Logs.Log('Inject: {}'.format(now), severity = logsupport.ConsoleDetail)
-			#logsupport.DevPrint('Inject: {}'.format(now))
+			L.Logs.Log('Inject: {}'.format(now), severity=L.ConsoleDetail)
 			PostEvent(ConsoleEvent(CEvent.FailSafePing, inject=now))
 			time.sleep(FailsafeInterval / 2)
 		except Exception as E:
 			time.sleep(FailsafeInterval / 2)
-			logsupport.DevPrint('Inject Exception {}'.format(repr(E)))
+			DevPrint('Inject Exception {}'.format(repr(E)))
 			# spurious exceptions during shutdown
-	logsupport.DevPrint('Injector exiting')
+	DevPrint('Injector exiting')
 
 def EndWatchDog(signum, frame):
-	logsupport.DevPrint('Watchdog ending on shutdown {}'.format(signum))
+	DevPrint('Watchdog ending on shutdown {}'.format(signum))
 	os._exit(0)
 
 
 def WatchdogDying(signum, frame):
 	try:
 		if signum == signal.SIGTERM:
-			logsupport.DevPrint('Watchdog saw SIGTERM - must be from systemd')
+			DevPrint('Watchdog saw SIGTERM - must be from systemd')
 			# console should have also seen this - give it time to shut down
 			time.sleep(30)  # we should see a USR1 from console
 			os._exit(0)
 		else:
-			logsupport.DevPrint('Watchdog dying signum: {} frame: {}'.format(signum, frame))
+			DevPrint('Watchdog dying signum: {} frame: {}'.format(signum, frame))
 			try:
 				os.kill(config.sysStore.Console_pid, signal.SIGUSR1)
 			except:
@@ -79,21 +80,19 @@ def WatchdogDying(signum, frame):
 				pass  # probably already gone
 			os._exit(0)
 	except Exception as E:
-		logsupport.DevPrint('Exception in WatchdogDying: {}'.format(E))
+		DevPrint('Exception in WatchdogDying: {}'.format(E))
 		time.sleep(1)
 		os._exit(0)
 
 def failsafedeath():
-	logsupport.DevPrint('Failsafe exit hook')
-	with open("/home/pi/Console/fsmsg.txt", "a") as f:
-		f.writelines('failsafedeath {} watching {} at {}\n'.format(os.getpid(), config.sysStore.Console_pid, time.time()))
+	DevPrint('Failsafe exit hook')
+	DevPrint('failsafedeath {} watching {} at {}'.format(os.getpid(), config.sysStore.Console_pid, time.time()))
 	os.kill(config.sysStore.Console_pid, signal.SIGUSR1)
 	time.sleep(3)
 	os.kill(config.sysStore.Console_pid, signal.SIGKILL) # with predjudice
 
 def IgnoreHUP(signum, frame):
-	logsupport.DevPrint('Watchdog got HUP - ignoring')
-
+	DevPrint('Watchdog got HUP - ignoring')
 
 def MasterWatchDog():
 	signal.signal(signal.SIGTERM, WatchdogDying)  # don't want the sig handlers from the main console
@@ -104,43 +103,33 @@ def MasterWatchDog():
 	#failsafehooks.hook()
 	atexit.register(failsafedeath)
 
-	logsupport.DevPrint('Master Watchdog Started {} for console pid: {}'.format(os.getpid(),config.sysStore.Console_pid))
+	DevPrint('Master Watchdog Started {} for console pid: {}'.format(os.getpid(), config.sysStore.Console_pid))
 	runningok = True
 	while runningok:
-		# while timers.LongOpStart['maintenance'] != 0:
-		#	logsupport.DevPrint('Failsafe suspended while in maintenance mode')
-		#	time.sleep(120)
 		while KeepAlive.wait(FailsafeInterval):
-			# logsupport.DevPrint('Watchdog ok: {}'.format(time.time()))
 			KeepAlive.clear()
 			time.sleep(FailsafeInterval)
 		runningok = False  # no keepalive seen for failsafe interval - try to restart
-		logsupport.DevPrint('No keepalive in failsafe interval')
+		DevPrint('No keepalive in failsafe interval')
 
-	#if timers.LongOpStart['maintenance'] == 0:  runningok = False  # not in maintenance mode and not acting alive
-	logsupport.DevPrint('Watchdog loop exit: {}'.format(time.time()))
+	DevPrint('Watchdog loop exit: {}'.format(time.time()))
 	# noinspection PyBroadException
 	try:
 		os.kill(config.sysStore.Console_pid, 0)
 	except:
-		logsupport.DevPrint('Normal watchdog exit')
-		# logsupport.Logs.Log("Failsafe watchdog exiting normally")
+		DevPrint('Normal watchdog exit')
 		return
-	logsupport.DevPrint('Failsafe interrupt {}'.format(config.sysStore.Console_pid))
-	# logsupport.Logs.Log("Failsafe watchdog saw console go autistic - interrupting {}".format(config.sysStore.Console_pid))
+	DevPrint('Failsafe interrupt {}'.format(config.sysStore.Console_pid))
 	os.kill(config.sysStore.Console_pid, signal.SIGUSR1)
 	time.sleep(3)  # wait for exit to complete
 	try:
 		os.kill(config.sysStore.Console_pid, 0)  # check if console exited - raises exception if it is gone
-		logsupport.DevPrint("Failsafe watchdog interrupt didn't reset - killing {}".format(config.sysStore.Console_pid))
-		# logsupport.Logs.Log("Failsafe watchdog interrupt didn't reset - killing {}".format(config.sysStore.Console_pid))
+		DevPrint("Failsafe watchdog interrupt didn't reset - killing {}".format(config.sysStore.Console_pid))
 		os.kill(config.sysStore.Console_pid, signal.SIGKILL)
-		logsupport.DevPrint("Failsafe exiting after kill attempt")
-	# logsupport.Logs.Log("Failsafe exiting after kill attempt")
+		DevPrint("Failsafe exiting after kill attempt")
 	except Exception as E:
 		print('Failsafe exiting')
-		logsupport.DevPrint(
-			"Failsafe successfully ended console (pid: {}), failsafe (pid: {}) exiting (Exc: {})".format(config.sysStore.Console_pid,
+		DevPrint("Failsafe successfully ended console (pid: {}), failsafe (pid: {}) exiting (Exc: {})".format(
+			config.sysStore.Console_pid,
 																							   os.getpid(),repr(E)))
-	# logsupport.Logs.Log("Failsafe successfully ended console (pid: {}), failsafe (pid: {}) exiting".format(config.sysStore.Console_pid, os.getpid()))
-	logsupport.DevPrint('Watchdog exiting')
+	DevPrint('Watchdog exiting')
