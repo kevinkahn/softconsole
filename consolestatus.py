@@ -199,9 +199,9 @@ class StatusDisplayScreen(screen.BaseKeyScreenDesc):
 				cstat = "{:14.14s}".format(' ')
 			else:
 				estat = ' ' if ndinfo.error == -1 else '?' if ndinfo.error == -1 else '*'
-				cstat = " {:>14.14s}  ".format(status_interval_str(ndinfo.uptime))
+				cstat = " {:>15.15s}".format(status_interval_str(ndinfo.uptime))
 			if ndinfo.boottime == 0:
-				bt = "{:^17.17}".format('unknown')
+				bt = "{:^19.19}".format('unknown')
 			else:
 				bt = "{:%Y-%m-%d %H:%M:%S}".format(datetime.fromtimestamp(ndinfo.boottime))
 			age = time.time() - ndinfo.rpttime if ndinfo.rpttime != 0 else 0
@@ -213,11 +213,11 @@ class StatusDisplayScreen(screen.BaseKeyScreenDesc):
 
 			if hw.portrait:
 				ln, ht, wd = screenutil.CreateTextBlock(
-					['{:12.12s}{}{:10.10s} {}{}'.format(nd, active, stat, qmax, estat), "  {} {}".format(cstat, bt)],
+					['{:12.12s}{}{:10.10s} {}{}'.format(nd, active, stat, qmax, estat), "  {}/{}".format(cstat, bt)],
 					fontsz, 'white', False)
 			else:
 				ln, ht, wd = screenutil.CreateTextBlock(
-					'{:12.12s}{}{:10.10s} {}{}  {}/{}'.format(nd, active, stat, qmax, estat, cstat, bt), fontsz,
+					'{:12.12s}{}{:10.10s} {}{}  {}   {}'.format(nd, active, stat, qmax, estat, cstat, bt), fontsz,
 					'white', False)
 			hw.screen.blit(ln, (20, linestart))
 			linestart += int(ht * 1.2)

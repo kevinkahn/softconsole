@@ -21,24 +21,6 @@ from exitutils import MAINTEXIT, Exit_Screen_Message, MAINTRESTART, MAINTPISHUT,
 fetcher = None
 
 
-def oldFetchInProgress(reason, action, Key=None):
-	global fetcher
-	print('Call fetch {}'.format(repr(Key)))
-	if fetcher is not None and fetcher.is_alive():
-		if Key is None:
-			print('sched shut')
-			# remote or AutoVer restart
-			logsupport.Logs.Log('Delaying {} until fetch completes'.format(reason))
-			dly = timers.OnceTimer(10, start=True, name='FetchDelay', proc=DoDelayedAction, action=action)
-			ReportStatus('wait restart', hold=1)
-		else:
-			print('just flash')
-			Key.FlashNo(5)
-		return True
-	else:
-		return False
-
-
 def TempCheckSanity(Key, params):  # tempdel
 	if Key is None and params is None:
 		logsupport.Logs.Log('Internal Error: Both Command sources are None', severity=ConsoleError, tb=True, hb=True)
