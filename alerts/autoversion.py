@@ -77,7 +77,7 @@ class AutoVersion(object):
 				logsupport.Logs.Log('Autoversion fetcher found unexpectedly dead - retrying', severity=ConsoleWarning)
 				fetcher = None
 			# noinspection PyBroadException
-			if fetcher is None:
+			if fetcher is None:  # todo randomize check a bit?
 				fetcher = threading.Thread(name='AutoVersionFetch', target=DoFetchRestart, daemon=True)
 				fetcher.start()
 			else:

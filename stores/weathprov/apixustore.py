@@ -160,9 +160,8 @@ class APIXUWeatherSource(object):
 							dbgtmp[fn] = val
 					# logsupport.Logs.Log('Weatherfcst({}): {}'.format(self.location, dbgtmp))
 					except Exception as E:
-						logsupport.Logs.Log(
-							'Exception (try{}) in apixu forecast processing day {}: {}'.format(trydecode, i, repr(E)),
-							severity=logsupport.ConsoleWarning, hb=True)
+						logsupport.DevPrint(
+							'Exception (try{}) in apixu forecast processing day {}: {}'.format(trydecode, i, repr(E)))
 						raise
 				for fn, entry in FcstFieldMap.items():
 					self.thisStore.GetVal(('Fcst', fn)).replacelist(tempfcstinfo[fn])
@@ -176,11 +175,11 @@ class APIXUWeatherSource(object):
 				controlevents.PostEvent(controlevents.ConsoleEvent(controlevents.CEvent.GeneralRepaint))
 				return  # success
 			except Exception as E:
-				logsupport.Logs.Log('Exception in apixu report processing: ', repr(E), self.json,
-									severity=logsupport.ConsoleWarning, hb=True)
+				logsupport.DevPrint('Exception {} in apixu report processing: {}'.format(E, self.json))
+				logsupport.DevPrint('Text was: {}'.format(r.text))
+				# logsupport.Logs.Log('Exception in apixu report processing: ', repr(E), self.json,
+				#					severity=logsupport.ConsoleWarning, hb=True) tempdel
 				self.thisStore.CurFetchGood = False
-			# tempdel logsupport.Logs.Log('Returned text: ', r.text)
-		# self.thisStore.ValidWeather = False
 		logsupport.Logs.Log('Multiple decode failures on return data from weather fetch of {}'.format(self.location))
 
 

@@ -102,7 +102,7 @@ class WeatherVals(valuestore.ValueStore):
 				self.Status = ("Weather available",)
 			else:
 				self.failedfetchcount += 1
-				if time.time() > self.lastgoodfetch + 4 * self.refreshinterval:
+				if time.time() > self.lastgoodfetch + 5 * self.refreshinterval:  # use old weather for up to 5 intervals
 					# really have stale data
 					self.ValidWeather = False
 					self.Status = ("Weather not available", "(failed fetch)")
