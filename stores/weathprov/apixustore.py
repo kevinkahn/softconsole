@@ -177,8 +177,6 @@ class APIXUWeatherSource(object):
 			except Exception as E:
 				logsupport.DevPrint('Exception {} in apixu report processing: {}'.format(E, self.json))
 				logsupport.DevPrint('Text was: {}'.format(r.text))
-				# logsupport.Logs.Log('Exception in apixu report processing: ', repr(E), self.json,
-				#					severity=logsupport.ConsoleWarning, hb=True) tempdel
 				self.thisStore.CurFetchGood = False
 		logsupport.Logs.Log('Multiple decode failures on return data from weather fetch of {}'.format(self.location))
 

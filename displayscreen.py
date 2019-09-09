@@ -519,7 +519,6 @@ class DisplayScreen(object):
 				elif event.type == CEvent.SchedEvent:
 					if hasattr(event, 'eventvalid') and not event.eventvalid():
 						self.HBEvents.Entry('Ignore event that is no longer valid: {}'.format(repr(event)))
-						# logsupport.Logs.Log("Stale event ignored: {}".format(repr(event)))  # tempdel
 						continue
 					self.HBEvents.Entry('Sched event {}'.format(repr(event)))
 					eventnow = time.time()

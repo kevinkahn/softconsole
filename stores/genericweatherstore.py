@@ -110,7 +110,7 @@ class WeatherVals(valuestore.ValueStore):
 						'{} weather fetch failures for: {} No weather for {} seconds'.format(self.failedfetchcount,
 																							 self.name,
 																							 time.time() - self.lastgoodfetch),
-									severity=logsupport.ConsoleWarning)
+						severity=logsupport.ConsoleWarning)
 				else:  # tempdel
 					pass
 					logsupport.Logs.Log(
@@ -118,8 +118,6 @@ class WeatherVals(valuestore.ValueStore):
 
 
 	def GetVal(self, name, failok=False):
-		# if config.BadWunderKey:
-		#	return None
 		self.BlockRefresh()
 		return super(WeatherVals, self).GetVal(name)
 

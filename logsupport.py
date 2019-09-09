@@ -165,7 +165,7 @@ def LogProcess(q):
 						f.flush()
 					continue  # nothing to process
 				else:
-					if time.time() - lastmsgtime > 60:  # 3600: # 1 hour # tempdel
+					if time.time() - lastmsgtime > 3600:
 						with open('/home/pi/Console/.HistoryBuffer/hlog', 'a') as f:
 							f.write('Logger extended quiet at {} lastmsg {}\n'.format(time.time(), lastmsgtime))
 							f.flush()
@@ -297,8 +297,6 @@ class Logger(object):
 			historybuffer.SetupHistoryBuffers(dirnm, maxf)
 			with open('/home/pi/Console/.HistoryBuffer/hlog', 'w') as f:
 				f.write('------ {} pid: {} ------\n'.format(time.time(), os.getpid()))
-
-			# if config.sysStore.versionname in ('development', 'homerelease'):  # tempdel make everywhere?
 			DevPrint = DevPrintDoIt
 			os.chdir(cwd)
 
@@ -430,7 +428,6 @@ def ReportStatus(status, retain=True, hold=0):
 		stat = json.dumps({'status': status if heldstatus == '' else heldstatus, "uptime": time.time() - config.sysStore.ConsoleStartTime,
 						   "error": config.sysStore.ErrorNotice, 'rpttime': time.time(),
 						   "FirstUnseenErrorTime": config.sysStore.FirstUnseenErrorTime,
-						   # "GlobalLogViewTime": 0, # tempdel deprecated
 						   'queuedepthmax': queuedepthmax, 'queuetimemax': queuetimemax,
 						   'queuedepthmaxtime': queuedepthmaxtime,
 						   'queuetimemaxtime': queuetimemaxtime, 'queuedepthmax24': queuedepthmax24,

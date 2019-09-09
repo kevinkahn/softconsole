@@ -82,17 +82,6 @@ class KeyScreenDesc(screen.BaseKeyScreenDesc):
 		else:
 			# noinspection PyBroadException
 			logsupport.Logs.Log('varchange via Node event? {} {}'.format(self.name, evnt), severity=ConsoleWarning)
-			''' tempdel
-			try:
-				# varinfo is (keyname, varname)
-				K = self.Keys[evnt.varinfo[0]]
-				K.PaintKey()
-				pygame.display.update()
-			except:
-				debug.debugPrint('Screen', "Var change reported to screen that doesn't care", self.name,
-								 str(evnt.varinfo))  # todo event reporting correlation to screens could use rework
-				return
-			'''
 
 	def VarEvent(self, evnt):
 		print('Var event called {}'.format(evnt))

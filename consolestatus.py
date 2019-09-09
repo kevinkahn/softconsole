@@ -94,7 +94,7 @@ def UpdateStatus(nd, stat):
 		if ndinfo.status not in ('dead', 'unknown') and nd != hw.hostname and ndinfo.error != -1:
 			t = True
 			break
-	config.sysStore.NetErrorIndicator = t  # tempdel or (config.sysStore.ErrorNotice != -1)
+	config.sysStore.NetErrorIndicator = t
 
 def GotResp(nd, errs):
 	global ErrorBuffer, ErrorNode, RespRcvd
@@ -317,7 +317,6 @@ class CommandScreen(screen.BaseKeyScreenDesc):
 
 	def ExitScreen(self, viaPush):
 		super().ExitScreen(viaPush)
-		# if not viaPush: self.CmdListScreens[self.entered].userstore.DropStore()  #tempdel - this should be replaced by an explicit screen kill
 		if not viaPush:
 			for n, s in self.CmdListScreens.items():
 				s.DeleteScreen()

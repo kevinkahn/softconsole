@@ -47,7 +47,6 @@ def AddToTimerList(name, timer):
 	for i in range(3):
 		try:
 			tmrs = tuple(t for t in TimerList.keys())
-			# tempdel print('Timers: {}'.format(tmrs))
 			printlist = {}
 			for n in tmrs:
 				if isinstance(TimerList[n], RepeatingPost):
@@ -64,7 +63,7 @@ def AddToTimerList(name, timer):
 			return
 		except Exception as E:
 			TimerHB.Entry("Creation race: {} for {}".format(i, name))
-			logsupport.Logs.Log("Timer list race ({}) for {}, {}".format(E, name, i), logsupport.ConsoleDetail)
+			logsupport.Logs.Log("Timer list race ({}) for {}, {}".format(E, name, i), severity=logsupport.ConsoleDetail)
 			continue
 	logsupport.Logs.Log('Unresolved timer list race for {}'.format(name), severity=logsupport.ConsoleWarning, hb=True)
 
@@ -150,10 +149,10 @@ class RepeatingPost(Thread):
 	def run(self):
 		TimerHB.Entry('Start repeater: {}'.format(self.name))
 		targettime = time.time() + self.interval
-		loopend = time.time()  # tempdel
+		loopend = time.time()
 		while not self.finished.wait(self.interval):
 			TimerHB.Entry('Interval expired: {} {} {} {} {}'.format(self.name, targettime, time.time(), self.interval,
-																	time.time() - loopend))  # tempdel
+																	time.time() - loopend))
 			if not self.finished.is_set():
 				if self.running.is_set():
 					self.kwargs['TargetTime'] = targettime
@@ -167,9 +166,9 @@ class RepeatingPost(Thread):
 				else:
 					self.running.wait()
 				targettime = time.time() + self.interval  # don't accumulate errors
-				loopend = time.time()  # tempdel
+				loopend = time.time()
 				TimerHB.Entry(
-					'Next target: {} {} {} {}'.format(self.name, loopend, targettime, self.interval))  # tempdel
+					'Next target: {} {} {} {}'.format(self.name, loopend, targettime, self.interval))
 		del TimerList[self.name]
 		TimerHB.Entry('Exit repeater: {}'.format(self.name))
 
