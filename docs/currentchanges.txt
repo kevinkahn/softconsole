@@ -23,22 +23,9 @@ V3.3.1 is a minor update primarily to handle a discovery I made that any code th
 
 V3.4 is a moderate update.  The major functional addition is GOTO keys which now allow you to specify a tree structured relationship among screens in addition to the chain of screens supported to this point.  This was a user request in the discussion thread and is documented in the usage notes.  Following on to the previous release a number of console activities that can take a while have been made asyncronous including fetching weather, network health checks, checking the sha for automatic updates, and some internal debug logging.  These changes further reduce any console responsiveness lag.  The only visible impact is that on the first access to a weather screen for which weather has not yet been fetched you may see a momentary message that a fetch is in progress whereas previously the screen would be effectively locked while this was happening.  Some console performance stats are now reported via MQTT.  This release supports the Pimoroni 4" display as you may have noted from the lengthy remote development effort above in the thead.  In doing this, I reorganized how screens and touch information are input into the console which should make it easier to incorporate other screens in the future, as well as to handle differences between Stretch and Buster versions of Raspbian (which have frame buffers named slightly differently).  There are changes to the install scripts to allow for user intalled screens versus the set the script handles, to allow installation on Buster systems.  This version has been tested to run on Buster, though since that version has only been available for a few days its use has been somewhat limited.  One other small change: previously key color for a key in the off state would be dulled even when specific colors were provided for KeyColorOn and KeyColorOff.  Now if both of these are specified they are used as is and not dulled.
 
+V3.5 is primarily aimed at simplifying administration of multiple consoles on a network.  It completely reworked the multi-console error indicator and command structure.  If you are running multiple consoles with MQTT, when you enter the Maintenance mode you will see an additional option for network consoles.  That will provide access to screens that report all available status for other consoles on the network, including the error status of their logs, the versions of hw and sw they are running, their uptime, etc.  It also provides access to issue commands to other consoles (or for commands that make sense, all consoles).  You can display error logs (either all or just recent errors), clear error indicators, request restarts, etc.  Note that as part of this rework, the meaning of the error indicator in the upper left corner of the screen has been changed.  A solid cirle indicates an error report on some other console on the network while a cross indicates an error on this console.  Both may be present if appropriate.  Also, remote errors are no longer reported in the local log since they are directly available via the remote screens.  Also note that some advanced commands for administration (accessing development versions for example) have been moved to behind double taps on the main select version and network console name buttons to reduce normal clutter.
 
-Comma on trailing strings
+This release also adds HorizButtonGap and VertButGap parameters to allow separating the buttons on the display.  It incorporates a number of structural changes to how HomeAssistant hubs are handled but none of these should be user visible.  This version has been tested and runs fine on Buster.  However, be aware that some Buster installations seem to locate the frame buffer at /etc/fb0 and others as /etc/fb1.  The code attempts to get the right buffer but if you find that the console seems to start but does not display anything, use the screendefinitions (as described in the useage notes) to force the display to what you need.  The release also is more tolerant of weather outages at APIXU by waiting longer to post errors to the log when the service is not reporting meaningful weather, since APIXU seems to sometimes go autistic for a few hours.
 
-Max icon percentage of line
-Dim Methods PWN18 PWM19 OnOff
-HorizButtonGap, VertButGap pixels to leave between adjacent buttons
-Download dev mainline code to consoledev if desired
-Consolidated Thermostat screen across ISY, HA screentypes Thermostat NestThermostat yield same screen now
-Structural changes to HA implementation - should not be externally visible, Octoprint changes
-Flip for resistive tscreens
-Buster frame buffer number
-Python memory alloc bug in some weather fetches
-Network status and control
-Removal of remote logging
-New screen indicator icon
-More forgiving of weather fetch failures
-Ignore 3 and 5 tap while in Maintenance
 
 ??Change overscan setting fo pi7 install on Buster

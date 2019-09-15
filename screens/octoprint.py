@@ -198,7 +198,7 @@ class OctoPrintScreenDesc(screen.BaseKeyScreenDesc):
 		self.OctoPost('job', senddata={'command': 'cancel'})
 		screens.DS.SwitchScreen(self, 'Bright', 'Verify Run ' + self.name)
 
-	def DoPause(self, go):
+	def DoPause(self):  # todo resume
 		self.OctoPost('job', senddata={'command': 'pause', 'action': 'toggle'})
 		screens.DS.SwitchScreen(self, 'Bright', 'Verify Run ' + self.name)
 
