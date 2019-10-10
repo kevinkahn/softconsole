@@ -94,7 +94,10 @@ class DisplayScreen(object):
 		elif NS == screen.SELFTOKEN:
 			NS = self.AS
 		else:
-			if clear: self.ScreenStack = []  #todo PopEvers
+			if clear:
+				for S in self.ScreenStack:
+					S.PopOver()
+				self.ScreenStack = []
 			if push: self.ScreenStack.append(self.AS)
 
 		NavKeys = NS.DefaultNavKeysShowing if not AsCover else False
@@ -523,11 +526,12 @@ class DisplayScreen(object):
 					self.HBEvents.Entry('Sched event {}'.format(repr(event)))
 					eventnow = time.time()
 					diff = eventnow - event.TargetTime
-					if abs(
-							diff) > controlevents.latencynotification:  # todo 5 tap can cause this - really would like to check if event for active screen first
+					if abs(diff) > controlevents.latencynotification:
+						# todo 5 tap can cause this - really would like to check if event for active screen first
+						self.HBEvents.Entry(
+							'Event late by {} target: {} now: {}'.format(diff, event.TargetTime, eventnow))
 						logsupport.Logs.Log('Timer late by {} seconds. Event: {}'.format(diff, repr(event)),
-											severity=ConsoleWarning, hb=True, homeonly=True)
-						self.HBEvents.Entry('Event late by {} target: {} now: {}'.format(diff, event.TargetTime, eventnow))
+											hb=True, homeonly=True)
 					event.proc(event)
 
 				elif event.type == CEvent.RunProc:
@@ -546,7 +550,7 @@ class DisplayScreen(object):
 					if not config.Exiting:
 						logsupport.Logs.Log(
 							"Slow loop at {} took {} for {}".format(time.time(), time.time() - postwaittime, event),
-							severity=ConsoleWarning, hb=True, homeonly=True)
+							hb=True, homeonly=True)
 				self.HBEvents.Entry('End Event Loop took: {}'.format(time.time() - postwaittime))
 		except Exception as E:
 			logsupport.Logs.Log('Main display loop had exception: {}'.format(repr(E)))

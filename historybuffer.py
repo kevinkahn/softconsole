@@ -89,7 +89,6 @@ def DumpAll(idline, entrytime):
 																			  now - curfirst[nextup][1],
 																			  curfirst[nextup][3],
 																			  curfirst[nextup][2]))
-				# f.write(nextup + ': (' + str(curfirst[nextup][0]) + ') ' + str(curfirst[nextup][1]) + ': ' + repr(curfirst[nextup][2]) + '\n')
 				initial[nextup] = ' '
 			try:
 				curfirst[nextup] = next(t[nextup])

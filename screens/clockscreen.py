@@ -34,12 +34,15 @@ class ClockScreenDesc(screen.ScreenDesc):
 				self.DecodedExtraFields.append(f.split(':'))
 			else:
 				logsupport.Logs.Log("Incomplete field specified on clockscreen", severity=ConsoleWarning)
-		self.poster = RepeatingPost(1.0, paused=True, name=self.name, proc=self.repaintClock)
+		self.poster = RepeatingPost(1.0, paused=True, name=self.name, proc=self.repaintClock,
+									eventvalid=self._ClockTickValid)
 		self.poster.start()
 
 	# noinspection PyUnusedLocal
 	def repaintClock(self, param=None):
-		if not self.Active: return  # handle race conditions where repaint queued just before screen switch
+		if not self.Active:
+			logsupport.Logs.Log('Temp - clock got stale event', severity=ConsoleWarning)  # tempdel
+			return  # handle race conditions where repaint queued just before screen switch
 		h = 0
 		l = []
 

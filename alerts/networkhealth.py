@@ -31,6 +31,7 @@ class NetworkHealth(object):
 				#	logsupport.LoggerQueue.put((logsupport.Command.FileWrite,'/home/pi/Console/.HistoryBuffer/hlog', 'a', 'WLAN     : {}\n'.format(l)))
 				break
 			except subprocess.CalledProcessError as Res:
+				logsupport.DevPrint('Net Health Ping Error:')
 				logsupport.LoggerQueue.put(
 					(
 						logsupport.Command.FileWrite, '/home/pi/Console/.HistoryBuffer/hlog', 'a',
