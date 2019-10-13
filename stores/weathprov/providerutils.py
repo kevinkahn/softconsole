@@ -51,7 +51,7 @@ def TryShorten(term):
 				if word[0].isupper(): phrase[i] = phrase[i].capitalize()
 		if chg:
 			newterm = ' '.join(phrase).replace(' /', '/').replace('/ ', '/').replace('.', '')
-			if len(newterm) > maxlength:
+			if len(newterm) > maxlength and term not in StillLong:
 				logsupport.Logs.Log("Long term: ", term, ' generically shortened to: ', newterm,
 									severity=ConsoleWarning)
 				StillLong[term] = newterm
