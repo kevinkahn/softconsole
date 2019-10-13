@@ -24,18 +24,23 @@ GenericShortener = {
 	'rain': 'rn',
 	'snow': 'snw',
 	'or': '/',
-	'with': 'w/'
+	'with': 'w/',
+	'throughout the day': '',
+	'until': 'til',
+	'evening': 'evng'
 }
 
 
 def TryShorten(term):
 	global TermShortener, StillLong
 	maxlength = 12
-	newterm = term
-	if term in TermShortener:
-		return TermShortener[term]
-	elif len(term) > maxlength and term[0:4] != 'http':
-		phrase = term.split(' ')
+	newterm = term.replace(' throughout the day', '')  # todo def a noise list also del trailing, leading spaces etc
+	newterm = newterm.replace('.', '')
+
+	if newterm in TermShortener:
+		return TermShortener[newterm]
+	elif len(newterm) > maxlength and newterm[0:4] != 'http':
+		phrase = newterm.split(' ')
 		chg = False
 		for i, word in enumerate(list(phrase)):
 			if word.lower() in GenericShortener:
@@ -43,7 +48,7 @@ def TryShorten(term):
 				phrase[i] = GenericShortener[word.lower()]
 				if word[0].isupper(): phrase[i] = phrase[i].capitalize()
 		if chg:
-			newterm = ' '.join(phrase).replace(' /', '/').replace('/ ', '/')
+			newterm = ' '.join(phrase).replace(' /', '/').replace('/ ', '/').replace('.', '')
 			if len(newterm) > maxlength:
 				logsupport.Logs.Log("Long term: ", term, ' generically shortened to: ', newterm,
 									severity=ConsoleWarning)

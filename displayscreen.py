@@ -238,6 +238,7 @@ class DisplayScreen(object):
 		perfdump = time.time()
 		ckperf = time.time()
 		dayord = time.localtime().tm_yday
+		stackdepth = 0
 
 		try:
 			while config.Running:  # Operational Control Loop
@@ -249,7 +250,9 @@ class DisplayScreen(object):
 				self.HBEvents.Entry('Start event loop iteration')
 
 				StackCheck = traceback.format_stack()
-				if len(StackCheck) != 4 and config.sysStore.versionname in ('development', 'homerelease'):
+				if stackdepth == 0:
+					stackdepth = len(StackCheck)
+				if len(StackCheck) != stackdepth and config.sysStore.versionname in ('development', 'homerelease'):
 					logsupport.Logs.Log('Stack growth error', severity=ConsoleWarning, hb=True)
 					for L in StackCheck:
 						logsupport.Logs.Log(L.strip())

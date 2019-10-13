@@ -32,10 +32,10 @@ nodes = OrderedDict()
 noderecord = namedtuple('noderecord', ['status', 'uptime', 'error', 'rpttime', 'FirstUnseenErrorTime',
 									   'registered', 'versionname', 'versionsha',
 									   'versiondnld', 'versioncommit', 'boottime', 'osversion', 'hw',
-									   'APIXUfetches', 'queuetimemax24', 'queuetimemax24time',
+									   'APIXUfetches', 'DarkSkyfetches', 'queuetimemax24', 'queuetimemax24time',
 									   'queuedepthmax24', 'maincyclecnt', 'queuedepthmax24time',
 									   'queuetimemaxtime', 'daystartloops', 'queuedepthmax', 'queuetimemax',
-									   'APIXUfetches24', 'queuedepthmaxtime'])
+									   'APIXUfetches24', 'DarkSkyfetches24', 'queuedepthmaxtime'])
 
 defaults = {k: v for (k, v) in zip_longest(noderecord._fields, (
 	'unknown', 0, -2, 0, 0, 0), fillvalue='unknown*')}
