@@ -25,9 +25,11 @@ GenericShortener = {
 	'snow': 'snw',
 	'or': '/',
 	'with': 'w/',
-	'throughout the day': '',
 	'until': 'til',
-	'evening': 'evng'
+	'evening': 'evng',
+	'possible': 'psbl',
+	'morning': 'mrng',
+	'the': ''
 }
 
 

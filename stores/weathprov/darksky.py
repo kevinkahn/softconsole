@@ -69,6 +69,7 @@ def fcstlength(param):
 IconMap = {'clear-day': 113, 'clear-night': 1113, 'rain': 308, 'snow': 338, 'sleet': 284, 'wind': 0, 'fog': 248,
 		   'cloudy': 119, 'partly-cloudy-day': 116, 'partly-cloudy-night': 1116}
 
+# todo limit precision on temps etc.  define a float0 and float1 that limit value?
 CondFieldMap = {'Time': (getdatetime, ('currently', 'time')),  # todo convert to time/day string
 				# 'Location': (str, ('location', 'name')), #todo get from fixed info
 				'Temp': (float, ('currently', 'temperature')),
