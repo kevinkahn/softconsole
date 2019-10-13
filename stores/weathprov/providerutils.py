@@ -49,13 +49,13 @@ def TryShorten(term):
 				chg = True
 				phrase[i] = GenericShortener[word.lower()]
 				if word[0].isupper(): phrase[i] = phrase[i].capitalize()
-		if chg:
+		if chg:  # todo clean up reporting
 			newterm = ' '.join(phrase).replace(' /', '/').replace('/ ', '/').replace('.', '')
 			if len(newterm) > maxlength and term not in StillLong:
 				logsupport.Logs.Log("Long term: ", term, ' generically shortened to: ', newterm,
 									severity=ConsoleWarning)
 				StillLong[term] = newterm
-			else:
+			elif term not in StillLong:
 				logsupport.Logs.Log("Long term: ", term, ' generically shortened to: ', newterm,
 									severity=ConsoleDetail)
 		else:
