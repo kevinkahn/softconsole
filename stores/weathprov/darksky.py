@@ -91,7 +91,7 @@ FcstFieldMap = {'Day': (getdayname, ('time',)),  # convert to day name
 				'High': (float, ('temperatureHigh',)),
 				'Low': (float, ('temperatureLow',)),
 				'Sky': (TryShorten, ('summary',)),
-				'WindSpd': (str, ('windSpeed',)),
+				'WindSpd': (float, ('windSpeed',)),
 				'WindDir': (degToCompass, ('windBearing',)),
 				'Icon': (geticon, ('icon',))  # get the surface
 				}
