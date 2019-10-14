@@ -32,7 +32,7 @@ GenericShortener = {
 	'the': '',
 	'overnight': 'ovnt',
 	'starting': '',
-	'again': ','
+	'again': ''
 }
 
 NoiseItems = (' throughout the day', '.')
