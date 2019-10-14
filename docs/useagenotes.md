@@ -108,12 +108,12 @@ Stores are also used to store all major system and screen parameters.  System pa
 # Weather Providers
 Screens that display weather need to have a store populated with the current information.  You define a weather provider like you do a hub.  Currently there is support for APIXU.  Define a provider and its key in the config file or an included subfile as:
 ```
-    [APIXU]
+    [DarkSky]
     type = WeatherProvider
     apikey = <key>
 
 ```
-The section names designate the provider and one or both can be used.  Locations for which to get weather are defined like:
+The section names designate the provider and one or both can be used.  Locations for which to get weather are defined like (the actual contents of the Location field will depend upon what the particular weather provider requires):
 ```
 [PortlandW]
 type = APIXU
