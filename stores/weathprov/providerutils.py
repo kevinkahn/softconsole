@@ -59,8 +59,7 @@ def TryShorten(term):
 		if chg:  # todo clean up reporting
 			newterm = ' '.join(phrase).replace(' /', '/').replace('/ ', '/').replace('.', '')
 			if len(newterm) > maxlength and term not in StillLong:
-				logsupport.Logs.Log("Long term: ", term, ' generically shortened to: ', newterm,
-									severity=ConsoleWarning)
+				logsupport.Logs.Log("Long term: ", term, ' generically shortened to: ', newterm)
 				StillLong[term] = newterm
 			elif term not in StillLong:
 				logsupport.Logs.Log("Long term: ", term, ' generically shortened to: ', newterm,
