@@ -69,8 +69,7 @@ class KeyScreenDesc(screen.BaseKeyScreenDesc):
 				K.HandleNodeEvent(evnt)
 			else:
 				logsupport.Logs.Log('Generic node event??? {} {}'.format(K.name, evnt),
-									severity=ConsoleWarning)  # tempdel
-				print('Generic node event handling for {} of type {}'.format(K.name, K))
+									severity=ConsoleWarning)
 				if not isinstance(evnt.value, int):
 					logsupport.Logs.Log("Node event with non integer state: " + evnt,
 										severity=ConsoleWarning)

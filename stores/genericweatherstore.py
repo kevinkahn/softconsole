@@ -102,7 +102,7 @@ class WeatherVals(valuestore.ValueStore):
 				self.Status = ("Weather available",)
 			else:
 				self.failedfetchcount += 1
-				if time.time() > self.lastgoodfetch + 5 * self.refreshinterval:  # use old weather for up to 5 intervals
+				if time.time() > self.lastgoodfetch + 3 * self.refreshinterval:  # use old weather for up to 3 intervals
 					# really have stale data
 					self.ValidWeather = False
 					self.Status = ("Weather not available", "(failed fetch)")
@@ -111,8 +111,7 @@ class WeatherVals(valuestore.ValueStore):
 																							 self.name,
 																							 time.time() - self.lastgoodfetch),
 						severity=logsupport.ConsoleWarning)
-				else:  # tempdel
-					pass
+				else:
 					logsupport.Logs.Log(
 						'Failed fetch for {} number {} using old weather'.format(self.name, self.failedfetchcount))
 

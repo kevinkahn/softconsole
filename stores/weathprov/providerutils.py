@@ -29,15 +29,22 @@ GenericShortener = {
 	'evening': 'evng',
 	'possible': 'psbl',
 	'morning': 'mrng',
-	'the': ''
+	'the': '',
+	'overnight': 'ovnt',
+	'starting': '',
+	'again': ','
 }
+
+NoiseItems = (' throughout the day', '.')
 
 
 def TryShorten(term):
 	global TermShortener, StillLong
 	maxlength = 12
-	newterm = term.replace(' throughout the day', '')  # todo def a noise list also del trailing, leading spaces etc
-	newterm = newterm.replace('.', '')
+	newterm = term
+	for noise in NoiseItems:
+		newterm = newterm.replace(noise, '')
+	newterm = ' '.join(newterm.split())
 
 	if newterm in TermShortener:
 		return TermShortener[newterm]

@@ -23,18 +23,22 @@ WeatherIconCache = {'n/a': EmptyIcon}
 
 
 def geticon(nm):
-	code = IconMap[nm]  # todo exception check
-	daynight = 'day' if code < 1000 else 'night'
-	iconnm = daynight + '/' + str(code if code < 1000 else code - 1000) + '.png'
-	iconpath = icondir + '/' + iconnm
-	if iconpath in WeatherIconCache:
-		return WeatherIconCache[iconpath]
-	else:
-		icon_gif = pygame.image.load(iconpath)
-		icon_scr = pygame.Surface.convert_alpha(icon_gif)
-		icon_scr.set_colorkey(icon_gif.get_colorkey())
-		WeatherIconCache[iconpath] = icon_scr
-	return icon_scr
+	try:
+		code = IconMap[nm]
+		daynight = 'day' if code < 1000 else 'night'
+		iconnm = daynight + '/' + str(code if code < 1000 else code - 1000) + '.png'
+		iconpath = icondir + '/' + iconnm
+		if iconpath in WeatherIconCache:
+			return WeatherIconCache[iconpath]
+		else:
+			icon_gif = pygame.image.load(iconpath)
+			icon_scr = pygame.Surface.convert_alpha(icon_gif)
+			icon_scr.set_colorkey(icon_gif.get_colorkey())
+			WeatherIconCache[iconpath] = icon_scr
+		return icon_scr
+	except Exception as E:
+		logsupport.Logs.Log('No DarkSky icon for {}'.format(nm))
+		return ''
 
 
 def getdayname(param):
@@ -69,9 +73,7 @@ def fcstlength(param):
 IconMap = {'clear-day': 113, 'clear-night': 1113, 'rain': 308, 'snow': 338, 'sleet': 284, 'wind': 0, 'fog': 248,
 		   'cloudy': 119, 'partly-cloudy-day': 116, 'partly-cloudy-night': 1116}
 
-# todo limit precision on temps etc.  define a float0 and float1 that limit value?
-CondFieldMap = {'Time': (getdatetime, ('currently', 'time')),  # todo convert to time/day string
-				# 'Location': (str, ('location', 'name')), #todo get from fixed info
+CondFieldMap = {'Time': (getdatetime, ('currently', 'time')),
 				'Temp': (float, ('currently', 'temperature')),
 				'Sky': (TryShorten, ('currently', 'summary')),
 				'Feels': (float, ('currently', 'apparentTemperature')),
@@ -81,7 +83,7 @@ CondFieldMap = {'Time': (getdatetime, ('currently', 'time')),  # todo convert to
 				'Icon': (geticon, ('currently', 'icon')),  # get the surface
 				'Sunrise': (getTOD, ('daily', 'data', 0, 'sunriseTime')),
 				'Sunset': (getTOD, ('daily', 'data', 0, 'sunsetTime')),
-				# 'Moonrise': (str, ('forecast', 'forecastday', 0, 'astro', 'moonrise')), #todo ??
+				# 'Moonrise': (str, ('forecast', 'forecastday', 0, 'astro', 'moonrise')),
 				# 'Moonset': (str, ('forecast', 'forecastday', 0, 'astro', 'moonset')),
 				'TimeEpoch': (int, ('currently', 'time')),
 				'Age': (setAge, ('currently', 'time'))
@@ -98,7 +100,7 @@ FcstFieldMap = {'Day': (getdayname, ('time',)),  # convert to day name
 
 CommonFieldMap = {'FcstDays': (fcstlength, ('daily', 'data')),
 				  'FcstEpoch': (int, ('daily', 'data', 0, 'time')),
-				  'FcstDate': (getdatetime, ('daily', 'data', 0, 'time'))}  #todo change to get human datetime
+				  'FcstDate': (getdatetime, ('daily', 'data', 0, 'time'))}
 
 icondir = config.sysStore.ExecDir + '/auxinfo/apixuicons/'
 
@@ -165,7 +167,7 @@ class DarkSkyWeatherSource(object):
 				for fn, entry in FcstFieldMap.items():
 					tempfcstinfo[fn] = []
 				# self.thisStore.GetVal(('Fcst', fn)).emptylist()
-				self.thisStore.SetVal(('Cond', 'Location'), self.thisStoreName)  # todo is this right?
+				self.thisStore.SetVal(('Cond', 'Location'), self.thisStoreName)
 				for fn, entry in CondFieldMap.items():
 					val = self.MapItem(forecast, entry)
 					self.thisStore.SetVal(('Cond', fn), val)
