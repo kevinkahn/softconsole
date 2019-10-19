@@ -107,15 +107,23 @@ class WeatherScreenDesc(screen.ScreenDesc):
 
 			else:
 				fcstlines = 0
+				if hw.screenwidth > 350:
+					screenmaxfcstwidth = self.useablehorizspace // 2 - 10
+				else:
+					screenmaxfcstwidth = self.useablehorizspace
 				fcstdays = valuestore.GetVal((self.location, 'FcstDays'))
 				maxfcstwidth = 0
+				maxfcstheight = 0
 				if fcstdays > 0:
 					for i in range(fcstdays):
 						renderedlines.append(
 							CreateWeathBlock(self.fcstformat, self.fcstfields, "", [25], self.CharColor,
 											 # todo compute font size based on useable
-											 (self.location, 'Fcst', 'Icon'), False, day=i))
+											 (self.location, 'Fcst', 'Icon'), False, day=i,
+											 maxhorizwidth=screenmaxfcstwidth))
 						if renderedlines[-1].get_width() > maxfcstwidth: maxfcstwidth = renderedlines[-1].get_width()
+						if renderedlines[-1].get_height() > maxfcstheight: maxfcstheight = renderedlines[
+							-1].get_height()
 						fcstlines += 1
 				else:
 					renderedlines.append(fonts.fonts.Font(35, "").render("No Forecast Available", 0,
@@ -135,8 +143,8 @@ class WeatherScreenDesc(screen.ScreenDesc):
 				horiz_off = (usewidth - maxfcstwidth) / 2
 				for dy, fcst in enumerate(renderedlines):
 					hw.screen.blit(fcst, (horiz_off, vert_off))
-					vert_off = vert_off + s + fcst.get_height()
-					if (dy == 4) and (hw.screenwidth > 350):
+					vert_off = vert_off + s + maxfcstheight
+					if (dy == 3) and (hw.screenwidth > 350):
 						horiz_off = horiz_off + usewidth
 						vert_off = startvert
 
