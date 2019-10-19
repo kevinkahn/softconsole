@@ -22,7 +22,9 @@ from controlevents import CEvent, PostEvent, ConsoleEvent, GetEvent, GetEventNoW
 from logsupport import ConsoleWarning, ConsoleError, ConsoleDetail, ReportStatus
 import controlevents
 import traceback
-import objgraph
+
+
+# import objgraph
 
 
 
@@ -297,10 +299,10 @@ class DisplayScreen(object):
 						print(
 							'Memory({}) use Real: {:.2f}/{:.2f}  Virtual: {:.2f}/{:.2f}'.format(why, realmem, realfree,
 																								virtmem, virtfree))
-						print(objgraph.show_growth(limit=10, peak_stats=peakstats))
+					#print(objgraph.show_growth(limit=10, peak_stats=peakstats))
 					# print(objgraph.show_most_common_types(limit=20))
 					print('{}: Real mem: {}  Virtual mem: {}'.format(time.strftime('%m-%d %H:%M:%S'), realmem, virtmem))
-					print(objgraph.show_growth(limit=20))
+				#print(objgraph.show_growth(limit=20))
 
 				if not Failsafe.is_alive():
 					logsupport.DevPrint('Watchdog died')
