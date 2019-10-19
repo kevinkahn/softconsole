@@ -69,7 +69,7 @@ def CreateWeathBlock(Format, Fields, WeathFont, FontSize, WeathColor, icon, cent
 					l2.insert(0, l1[-1])
 					del l1[-1]
 				rf.append(usefont.render(' '.join(l1), 0, wc(WeathColor)))
-				rf.append(usefont.render(' '.join(l2), 0, wc(WeathColor)))
+				rf.append(usefont.render('  ' + ' '.join(l2), 0, wc(WeathColor)))  # indent extra lines
 			else:
 				rf.append(usefont.render(linetorender, 0, wc(WeathColor)))
 			if FS:
