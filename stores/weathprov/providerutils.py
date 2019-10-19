@@ -24,11 +24,14 @@ GenericShortener = {
 	'rain': 'rn',
 	'snow': 'snw',
 	'or': '/',
+	'and': '&',
+	'in': '',
 	'with': 'w/',
 	'until': 'til',
 	'evening': 'evng',
 	'possible': 'psbl',
 	'morning': 'mrng',
+	'afternoon': 'pm',
 	'the': '',
 	'overnight': 'ovnt',
 	'starting': '',
@@ -57,7 +60,10 @@ def TryShorten(term):
 				phrase[i] = GenericShortener[word.lower()]
 				if word[0].isupper(): phrase[i] = phrase[i].capitalize()
 		if chg:  # todo clean up reporting
-			newterm = ' '.join(phrase).replace(' /', '/').replace('/ ', '/').replace('.', '')
+			newterm = ' '.join(phrase)
+			for punc in ('/', '.', '&', ','):
+				newterm = newterm.replace(' ' + punc, punc).replace(punc + ' ', punc)
+			newterm = ' '.join(newterm.split())
 			if len(newterm) > maxlength and term not in StillLong:
 				logsupport.Logs.Log("Long term: ", term, ' generically shortened to: ', newterm)
 				StillLong[term] = newterm

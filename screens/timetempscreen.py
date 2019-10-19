@@ -139,11 +139,18 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 			cb = CreateWeathBlock(self.ConditionFormat, self.DecodedCondFields, self.Font,
 								  self.CondSize, self.CharColor, self.condicon,
 								  self.FcstLayout == 'LineCentered',
-								  maxiconsize=round(self.IconSizePct / 100 * self.useablehorizspace))
+								  maxiconsize=round(self.IconSizePct / 100 * self.useablehorizspace),
+								  maxhorizwidth=self.useablehorizspace)
 			h = h + cb.get_height()
+
+			if self.FcstLayout in ('2ColVert', '2ColHoriz'):
+				screenmaxfcstwidth = self.useablehorizspace // 2 - 10
+			else:
+				screenmaxfcstwidth = self.useablehorizspace
 
 			maxfcstwidth = 0
 			forecastlines = 0
+			maxfcstheight = 0
 			spaces += 1
 			maxfcsticon = round(self.IconSizePct / 100 * self.useablehorizspace / (
 				2 if self.FcstLayout in ('2ColVert', '2ColHoriz') else 1))
@@ -151,18 +158,19 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 				fb = CreateWeathBlock(self.ForecastFormat, self.DecodedFcstFields, self.Font,
 									  self.FcstSize, self.CharColor, self.fcsticon,
 									  self.FcstLayout == 'LineCentered', day=dy + self.SkipDays,
-									  maxiconsize=maxfcsticon)
+									  maxiconsize=maxfcsticon, maxhorizwidth=screenmaxfcstwidth)
 				renderedforecast.append(fb)
 				if fb.get_width() > maxfcstwidth: maxfcstwidth = fb.get_width()
+				if fb.get_height() > maxfcstheight: maxfcstheight = fb.get_height()
 				forecastlines += 1
-			forecastitemheight = renderedforecast[-1].get_height()
+
 
 			if self.FcstLayout in ('2ColVert', '2ColHoriz'):
-				h = h + forecastitemheight * ((self.ForecastDays + 1) // 2)
+				h = h + maxfcstheight * ((self.ForecastDays + 1) // 2)
 				forecastlines = (forecastlines + 1) // 2
 				usewidth = hw.screenwidth // 2
 			else:
-				h = h + forecastitemheight * self.ForecastDays
+				h = h + maxfcstheight * self.ForecastDays
 				usewidth = hw.screenwidth
 
 			s = (self.useablevertspace - h) / (spaces + forecastlines - 1)
@@ -180,7 +188,7 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 
 			startvert = vert_off
 			maxvert = startvert
-			fcstvert = renderedforecast[0].get_height()
+			fcstvert = maxfcstheight
 			horiz_off = (usewidth - maxfcstwidth) // 2
 			for dy, fcst in enumerate(renderedforecast):
 				h_off = horiz_off

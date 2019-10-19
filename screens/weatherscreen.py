@@ -89,7 +89,7 @@ class WeatherScreenDesc(screen.ScreenDesc):
 				vert_off = vert_off + locblk.get_height() + 10  # todo gap of 10 pixels is arbitrary
 
 			h = vert_off
-			if conditions:
+			if conditions:  # todo add max width and wrap
 				renderedlines.append(
 					CreateWeathBlock(self.condformat, self.condfields, "", [45, 25, 35], self.CharColor,
 									 (self.location, 'Cond', 'Icon'), False))

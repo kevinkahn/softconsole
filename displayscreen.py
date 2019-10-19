@@ -3,6 +3,7 @@ import hw
 import multiprocessing
 import threading
 import time
+import psutil
 
 import pygame
 import screen
@@ -21,6 +22,8 @@ from controlevents import CEvent, PostEvent, ConsoleEvent, GetEvent, GetEventNoW
 from logsupport import ConsoleWarning, ConsoleError, ConsoleDetail, ReportStatus
 import controlevents
 import traceback
+import objgraph
+
 
 
 class DisplayScreen(object):
@@ -239,6 +242,11 @@ class DisplayScreen(object):
 		ckperf = time.time()
 		dayord = time.localtime().tm_yday
 		stackdepth = 0
+		maxreal = 0.0
+		maxvirt = 0.0
+		rptreal = 0.0
+		rptvirt = 0.0
+		peakstats = {}
 
 		try:
 			while config.Running:  # Operational Control Loop
@@ -257,7 +265,7 @@ class DisplayScreen(object):
 					for L in StackCheck:
 						logsupport.Logs.Log(L.strip())
 
-				if time.time() - ckperf > 900:  # todo 900:
+				if time.time() - ckperf > 30:  # todo 900:
 					ckperf = time.time()
 					if config.sysStore.versionname in ('development', 'homerelease') and (
 							logsupport.queuedepthmax > controlevents.QLengthTrigger or logsupport.queuetimemax > controlevents.LateTolerance):
@@ -267,6 +275,32 @@ class DisplayScreen(object):
 						logsupport.queuetimemax = 0
 						logsupport.queuedepthmax = 0
 						perfdump = time.time()
+					p = psutil.Process(config.sysStore.Console_pid)
+					realmem = p.memory_info().rss / (2 ** 10)
+					realfree = psutil.virtual_memory().free / (2 ** 20)
+					virtmem = p.memory_info().vms / (2 ** 10)
+					virtfree = psutil.swap_memory().free / (2 ** 20)
+					newhigh = []
+					if realmem > rptreal * 1.01:
+						rptreal = realmem
+						maxreal = realmem
+						newhigh.append('real')
+					if virtmem > rptvirt * 1.01:
+						rptvirt = virtmem
+						maxvirt = virtfree
+						newhigh.append('virtual')
+					why = '/'.join(newhigh)
+					if why != '':
+						logsupport.Logs.Log(
+							'Memory({}) use Real: {:.2f}/{:.2f}  Virtual: {:.2f}/{:.2f}'.format(why, realmem, realfree,
+																								virtmem, virtfree))
+						print(
+							'Memory({}) use Real: {:.2f}/{:.2f}  Virtual: {:.2f}/{:.2f}'.format(why, realmem, realfree,
+																								virtmem, virtfree))
+						print(objgraph.show_growth(limit=10, peak_stats=peakstats))
+					# print(objgraph.show_most_common_types(limit=20))
+					print('{}: Real mem: {}  Virtual mem: {}'.format(time.strftime('%m-%d %H:%M:%S'), realmem, virtmem))
+					print(objgraph.show_growth(limit=20))
 
 				if not Failsafe.is_alive():
 					logsupport.DevPrint('Watchdog died')
