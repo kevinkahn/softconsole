@@ -174,15 +174,16 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 				h = h + maxfcstheight * self.ForecastDays
 				usewidth = hw.screenwidth
 
-			s = (self.useablevertspace - h) / (spaces + forecastlines - 1)
-			extraspace = max((self.useablevertspace - h - s * (spaces + forecastlines - 1)) / spaces, 0)
+			s = max((self.useablevertspace - h) / (spaces + forecastlines - 1), 0)  # gap between blocks to use
+			extraspace = max((self.useablevertspace - h - s * (spaces + forecastlines - 1)) / spaces,
+							 0)  # round off gap space - use before fcsts
 
 			vert_off = self.startvertspace
 			self.ReInitDisplay()
 			for tmlbl in renderedtimelabel:
 				horiz_off = (hw.screenwidth - tmlbl.get_width()) // 2
 				hw.screen.blit(tmlbl, (horiz_off, vert_off))
-				vert_off = vert_off + s + tmlbl.get_height() + extraspace
+				vert_off = vert_off + s + tmlbl.get_height()
 
 			hw.screen.blit(cb, ((hw.screenwidth - cb.get_width()) // 2, vert_off))
 			vert_off = vert_off + s + cb.get_height() + extraspace
