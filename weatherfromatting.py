@@ -58,6 +58,7 @@ def CreateWeathBlock(Format, Fields, WeathFont, FontSize, WeathColor, icon, cent
 				tfsize = int(tFS.pop(0))
 				tusefont = fonts.fonts.Font(tfsize, WeathFont)
 		if maxiconsize != 0: iconsize = min(iconsize, maxiconsize)
+		if icon is None: iconsize = 0
 
 		for f in Format:
 			linetorender = WFormatter().format(f, d=vals)

@@ -91,6 +91,7 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 
 	# noinspection PyUnusedLocal,PyUnusedLocal
 	def repaintClock(self, param=None):
+		# todo - could save most of the screen between clock repaints so wouldn't need mult calls to Weather Block
 		if not self.Active: return  # handle race condition where repaint queued just before switch
 		h = 0
 		renderedforecast = []
