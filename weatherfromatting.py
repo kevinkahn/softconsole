@@ -63,6 +63,9 @@ def CreateWeathBlock(Format, Fields, WeathFont, FontSize, WeathColor, icon, cent
 			linetorender = WFormatter().format(f, d=vals)
 			renderedline = usefont.render(linetorender, 0, wc(WeathColor))
 			if renderedline.get_width() > maxhorizwidth - iconsize:  # todo make work for > 2 lines
+				logsupport.Logs.Log(
+					'Wrapping weather line: {} {} {} {}'.format(linetorender, renderedline.get_width(), maxhorizwidth,
+																iconsize))
 				l1 = linetorender.split(' ')
 				l2 = []
 				while usefont.render(' '.join(l1), 0, wc(WeathColor)).get_width() > maxhorizwidth - iconsize:

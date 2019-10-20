@@ -30,7 +30,8 @@ class WeatherScreenDesc(screen.ScreenDesc):
 			self.HorizBorder + .5 * butsize[0], self.TopBorder + .5 * butsize[1]), butsize,
 																	proc=self.CondOrFcst)})
 		self.currentconditions = True  # show conditions or forecast
-		screen.AddUndefaultedParams(self, screensection, location='', LocationSize=40)
+		screen.AddUndefaultedParams(self, screensection, location='',
+									LocationSize=0)  # default to no location now that screen title in use
 
 		self.SetScreenTitle(screen.FlatenScreenLabel(self.label), 50, self.CharColor)
 
@@ -39,8 +40,8 @@ class WeatherScreenDesc(screen.ScreenDesc):
 
 		# self.dayformat  = "Sunrise: {d[0]:02d}:{d[1]:02d}","Sunset:  {d[2]:02d}:{d[3]:02d}","Moon rise: {d[4]} set: {d[5]}","{d[6]}% illuminated"
 		# self.dayfields  = list(((self.location, 'Cond', x) for x in ('SunriseH','SunriseM','SunsetH','SunsetM','Moonrise','Moonset','MoonPct')))
-		self.dayformat = "Sunrise: {d[0]}", "Sunset:  {d[1]}", "Moon rise: {d[2]} set: {d[3]}"
-		self.dayfields = list(((self.location, 'Cond', x) for x in ('Sunrise', 'Sunset', 'Moonrise', 'Moonset')))
+		self.dayformat = "Sunrise: {d[0]}", "Sunset:  {d[1]}"  # , "Moon rise: {d[2]} set: {d[3]}"
+		self.dayfields = list(((self.location, 'Cond', x) for x in ('Sunrise', 'Sunset')))  # , 'Moonrise', 'Moonset')))
 
 		self.footformat = "Readings as of {d[0]}",
 		self.footfields = ((self.location, 'Cond', 'Age'),)

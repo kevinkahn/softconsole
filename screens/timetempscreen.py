@@ -174,7 +174,7 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 				usewidth = hw.screenwidth
 
 			s = (self.useablevertspace - h) / (spaces + forecastlines - 1)
-			extraspace = (self.useablevertspace - h - s * (spaces + forecastlines - 1)) / spaces
+			extraspace = max((self.useablevertspace - h - s * (spaces + forecastlines - 1)) / spaces, 0)
 
 			vert_off = self.startvertspace
 			self.ReInitDisplay()
