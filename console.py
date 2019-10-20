@@ -127,7 +127,7 @@ def CO_get(self, key, default, delkey=True):
 	try:
 		rtn = sectionget(self, key, default)
 		tmpr = rtn
-		if isinstance(default, bool):
+		if isinstance(default, bool) and isinstance(rtn, str):
 			rtn = rtn in ('True', 'true', 'TRUE', '1')
 		if isinstance(default,
 					  list):  # todo check this change carefuily.   Cases are [] which is list of strings, [val] which should be list of type(val)
