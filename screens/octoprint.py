@@ -166,7 +166,10 @@ class OctoPrintScreenDesc(screen.BaseKeyScreenDesc):
 		if self.pwrHub is None:
 			_ = self.OctoPost('system/commands/custom/' + opt, {})
 		else:
-			self.pwrHub.GetNode(self.devname)[0].SendOnOffCommand(opt == 'printeron')
+			try:  # todo - this is a hack for the indirector nodes of HA - should be cleaned up to use Undefined
+				self.pwrHub.GetNode(self.devname)[0].SendOnOffCommand(opt == 'printeron')
+			except:
+				logsupport.Logs.Log("Screen: " + self.name + " power key unbound", severity=ConsoleWarning)
 		self.PowerKeys[opt].ScheduleBlinkKey(5)
 
 	# noinspection PyUnusedLocal

@@ -370,7 +370,7 @@ class OnOffKey(ManualKeyDesc):
 			self.ControlObj.SendOnOffCommand(self.State)
 			self.ScheduleBlinkKey(self.Blink)
 		else:
-			logsupport.Logs.Log("Screen: " + self.name + " press unbound key: " + self.name,
+			logsupport.Logs.Log("Screen: " + self.name + " press unbound key: " + self.name,  # todo fix screen name
 								severity=ConsoleWarning)
 			self.ScheduleBlinkKey(20)
 
