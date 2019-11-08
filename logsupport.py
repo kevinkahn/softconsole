@@ -439,7 +439,8 @@ def ReportStatus(status, retain=True, hold=0):
 						   'APIXUfetches': APIXUfetches, 'APIXUfetches24': APIXUfetches24,  # tempdel
 						   'DarkSkyfetches': DarkSkyfetches, 'DarkSkyfetches24': DarkSkyfetches24,
 						   'daystartloops': daystartloops,
-						   'maincyclecnt': maincyclecnt})
+						   'maincyclecnt': maincyclecnt,
+						   'boottime': hw.boottime})  # rereport this because on powerup first NTP update can be after console starts
 
 		primaryBroker.Publish(node=hw.hostname, topic='status', payload=stat, retain=retain, qos=1,
 							  viasvr=True)

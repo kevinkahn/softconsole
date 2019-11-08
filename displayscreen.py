@@ -269,39 +269,40 @@ class DisplayScreen(object):
 
 				if time.time() - ckperf > 30:  # todo 900:
 					ckperf = time.time()
-					if config.sysStore.versionname in ('development', 'homerelease') and (
-							logsupport.queuedepthmax > controlevents.QLengthTrigger or logsupport.queuetimemax > controlevents.LateTolerance):
-						logsupport.Logs.Log('Console performance({}): maxq: {} maxwait: {}'.format(
-							time.time() - perfdump, logsupport.queuedepthmax, logsupport.queuetimemax),
-							severity=ConsoleWarning, hb=True)
-						logsupport.queuetimemax = 0
-						logsupport.queuedepthmax = 0
-						perfdump = time.time()
-					p = psutil.Process(config.sysStore.Console_pid)
-					realmem = p.memory_info().rss / (2 ** 10)
-					realfree = psutil.virtual_memory().free / (2 ** 20)
-					virtmem = p.memory_info().vms / (2 ** 10)
-					virtfree = psutil.swap_memory().free / (2 ** 20)
-					newhigh = []
-					if realmem > rptreal * 1.01:
-						rptreal = realmem
-						maxreal = realmem
-						newhigh.append('real')
-					if virtmem > rptvirt * 1.01:
-						rptvirt = virtmem
-						maxvirt = virtfree
-						newhigh.append('virtual')
-					why = '/'.join(newhigh)
-					if why != '':
-						logsupport.Logs.Log(
-							'Memory({}) use Real: {:.2f}/{:.2f}  Virtual: {:.2f}/{:.2f}'.format(why, realmem, realfree,
-																								virtmem, virtfree))
-						print(
-							'Memory({}) use Real: {:.2f}/{:.2f}  Virtual: {:.2f}/{:.2f}'.format(why, realmem, realfree,
-																								virtmem, virtfree))
+					if config.sysStore.versionname in ('development', 'homerelease'):
+						if logsupport.queuedepthmax > controlevents.QLengthTrigger or logsupport.queuetimemax > controlevents.LateTolerance:
+							logsupport.Logs.Log('Console performance({}): maxq: {} maxwait: {}'.format(
+								time.time() - perfdump, logsupport.queuedepthmax, logsupport.queuetimemax),
+								severity=ConsoleWarning, hb=True)
+							logsupport.queuetimemax = 0
+							logsupport.queuedepthmax = 0
+							perfdump = time.time()
+						p = psutil.Process(config.sysStore.Console_pid)
+						realmem = p.memory_info().rss / (2 ** 10)
+						realfree = psutil.virtual_memory().free / (2 ** 20)
+						virtmem = p.memory_info().vms / (2 ** 10)
+						virtfree = psutil.swap_memory().free / (2 ** 20)
+						newhigh = []
+						if realmem > rptreal * 1.01:
+							rptreal = realmem
+							maxreal = realmem
+							newhigh.append('real')
+						if virtmem > rptvirt * 1.01:
+							rptvirt = virtmem
+							maxvirt = virtfree
+							newhigh.append('virtual')
+						why = '/'.join(newhigh)
+						if why != '':
+							logsupport.Logs.Log(
+								'Memory({}) use Real: {:.2f}/{:.2f}  Virtual: {:.2f}/{:.2f}'.format(why, realmem,
+																									realfree,
+																									virtmem, virtfree))
+							print(
+								'Memory({}) use Real: {:.2f}/{:.2f}  Virtual: {:.2f}/{:.2f}'.format(why, realmem,
+																									realfree,
+																									virtmem, virtfree))
 					#print(objgraph.show_growth(limit=10, peak_stats=peakstats))
 					# print(objgraph.show_most_common_types(limit=20))
-					print('{}: Real mem: {}  Virtual mem: {}'.format(time.strftime('%m-%d %H:%M:%S'), realmem, virtmem))
 				#print(objgraph.show_growth(limit=20))
 
 				if not Failsafe.is_alive():
