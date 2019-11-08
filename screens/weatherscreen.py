@@ -69,7 +69,7 @@ class WeatherScreenDesc(screen.ScreenDesc):
 	def ShowScreen(self, conditions):
 		# todo given the useable vert space change should check for overflow or auto size font
 
-		self.store.BlockRefresh()
+		FreshData = self.store.BlockRefresh()  # use this to control repain?
 
 		vert_off = self.startvertspace
 

@@ -99,7 +99,7 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 		renderedtime = []
 		renderedtimelabel = []
 
-		self.store.BlockRefresh()
+		FreshData = self.store.BlockRefresh()  # todo use this to control repaint?
 
 		tw = 0
 		for i in range(len(self.TimeFormat)):

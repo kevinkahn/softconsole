@@ -64,11 +64,11 @@ class WeatherVals(valuestore.ValueStore):
 		for n, fcst in self.vars['Fcst'].items():
 			fcst.Value = valuestore.StoreList(fcst)
 
-	def BlockRefresh(self):
+	def BlockRefresh(self):  # return True if refresh happened
 
 		if self.fetchtime + self.refreshinterval > time.time():
 			# have recent data
-			return
+			return False
 
 		if self.DoingFetch is None:
 			self.CurFetchGood = False
@@ -115,8 +115,9 @@ class WeatherVals(valuestore.ValueStore):
 					logsupport.Logs.Log(
 						'Failed fetch for {} number {} using old weather'.format(self.name, self.failedfetchcount))
 
+		return True
 
-	def GetVal(self, name, failok=False):
+	def GetVal(self, name, failok=False):  # todo is this ever called? ref BlockRefresh
 		self.BlockRefresh()
 		return super(WeatherVals, self).GetVal(name)
 

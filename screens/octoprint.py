@@ -170,7 +170,7 @@ class OctoPrintScreenDesc(screen.BaseKeyScreenDesc):
 				self.pwrHub.GetNode(self.devname)[0].SendOnOffCommand(opt == 'printeron')
 			except:
 				logsupport.Logs.Log("Screen: " + self.name + " power key unbound", severity=ConsoleWarning)
-		self.PowerKeys[opt].ScheduleBlinkKey(5)
+		self.PowerKeys[opt].ScheduleBlinkKey(5)  # todo should give different feedback
 
 	# noinspection PyUnusedLocal
 	def Connect(self, opt):

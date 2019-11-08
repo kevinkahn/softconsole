@@ -81,6 +81,7 @@ class ISYVars(valuestore.ValueStore):
 
 		for v in self.items():
 			self.GetVal(v)
+		return True
 
 	def CheckValsUpToDate(self, reload=False):
 		goodcheck = True
