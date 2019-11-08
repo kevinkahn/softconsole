@@ -4,6 +4,7 @@ import random
 import ssl
 import threading
 import time
+import copy
 
 import websocket
 import xmltodict
@@ -213,6 +214,7 @@ class ISYEventMonitor(object):
 			try:
 				m = 'parse error'
 				m = xmltodict.parse(message)
+				msav = copy.deepcopy(m)
 				if debug.dbgStore.GetVal('ISYDump'):
 					debug.ISYDump("isystream.dmp", message, pretty=False)
 
@@ -264,7 +266,7 @@ class ISYEventMonitor(object):
 
 						if isinstance(N, isycodes.ThermType):
 							N.cur = isycodes._NormalizeState(eaction)
-						else:
+						elif N is not None:  # todo v5 has other things in stream without a node or with Node not in NodesByAddr?
 							oldstate = N.devState
 							N.devState = isycodes._NormalizeState(eaction)
 							debug.debugPrint('ISYchg', 'ISY Node: ', N.name, ' state change from: ', oldstate,
@@ -440,7 +442,7 @@ class ISYEventMonitor(object):
 					logsupport.Logs.Log(self.hubname + " Strange item in event stream: " + str(m),
 										severity=ConsoleWarning)
 			except Exception as E:
-				logsupport.Logs.Log(self.hubname + " Exception in QH on message: ", repr(m), ' Excp: ', repr(E),
+				logsupport.Logs.Log(self.hubname + " Exception in QH on message: ", repr(msav), ' Excp: ', repr(E),
 									severity=ConsoleWarning)
 			loopend = time.time()
 			self.isy.HBWS.Entry('Processing time: {} Done: {}'.format(loopend - loopstart, repr(
