@@ -22,7 +22,7 @@ def StageVersion(vdir, tag, label):
 	except Exception as E:
 		print("Staging directory {} doesn't exist - try to create it ({})".format(vdir, E))
 		os.mkdir(vdir)
-	os.chdir(vdir)
+		os.chdir(vdir)
 	shutil.rmtree('stagedversion', True)
 	os.mkdir('stagedversion')
 	os.chdir('stagedversion')
