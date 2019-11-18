@@ -104,7 +104,7 @@ if [ -n "$3" ]
 then
   InstallBeta=$3
 else
-  Get_yn $InstallBeta "Download beta also? (Y/N)?"
+  Get_yn InstallBeta "Download beta also? (Y/N)?"
   SkipVerify=N
 fi
 
@@ -149,11 +149,11 @@ LogBanner "Install stuff for console"
 pip install --upgrade pip
 #pip3 install --upgrade pip
 
-if [ $UseWheezy == "Y" ]
-then
-    LogBanner "Old Wheezy Touch system requested"
-    UseWheezyVersion
-fi
+#if [ $UseWheezy == "Y" ]
+#then
+#    LogBanner "Old Wheezy Touch system requested"
+#    UseWheezyVersion
+#fi
 
 cd /home/pi/
 LogBanner "Console Installation"
