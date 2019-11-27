@@ -13,13 +13,10 @@ import logsupport
 from darksky.types import languages, units, weather
 from darksky.request_manager import RequestManger
 
-from stores.weathprov.providerutils import TryShorten, WeathProvs
+from stores.weathprov.providerutils import TryShorten, WeathProvs, MissingIcon
 from utilfuncs import interval_str, TreeDict
 
-EmptyIcon = pygame.Surface((64, 64))
-EmptyIcon.fill((255, 255, 255))
-EmptyIcon.set_colorkey((255, 255, 255))
-WeatherIconCache = {'n/a': EmptyIcon}
+WeatherIconCache = {'n/a': MissingIcon}
 
 
 def geticon(nm):
@@ -38,7 +35,7 @@ def geticon(nm):
 		return icon_scr
 	except Exception as E:
 		logsupport.Logs.Log('No DarkSky icon for {}'.format(nm))
-		return ''
+		return WeatherIconCache['n/a']
 
 
 def getdayname(param):

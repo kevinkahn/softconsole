@@ -1,4 +1,5 @@
 import json
+import pygame
 
 import config
 import logsupport
@@ -39,6 +40,8 @@ GenericShortener = {
 }
 
 NoiseItems = (' throughout the day', '.')
+
+MissingIcon = pygame.Surface((64, 64)).fill((128, 128, 128))
 
 
 def TryShorten(term):

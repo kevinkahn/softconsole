@@ -7,6 +7,7 @@ import logsupport
 from logsupport import ConsoleWarning, ConsoleDetailHigh
 from stores import valuestore
 from utilfuncs import wc
+from stores.weathprov.providerutils import MissingIcon
 
 ICONSPACE = 10
 
@@ -110,15 +111,15 @@ def CreateWeathBlock(Format, Fields, WeathFont, FontSize, WeathColor, icon, cent
 	v = 0
 	# noinspection PyBroadException
 	try:
-		if iconref is not None:
+		if iconref is not None and valuestore.ValueStores[icon[0]].GetVal(iconref) != MissingIcon:
 			tmp = pygame.transform.smoothscale(valuestore.ValueStores[icon[0]].GetVal(iconref), (iconsize, iconsize))
 			# R = pygame.Rect((0, 0), (tmp.get_height(), tmp.get_width()))
 			# pygame.draw.rect(fsfc, (128, 128, 128), R, 3)
 			# print('Scale: '+str(tmp.get_height())+ ' ' + str(valuestore.ValueStores[icon[0]].GetVal(iconref)) )
 			fsfc.blit(tmp, (0, (fh - iconsize) // 2))
-	except:
+	except Exception as E:
 		if useicon:
-			logsupport.Logs.Log("Internal error - missing icon for: ", str(icon[0]), str(iconref),
+			logsupport.Logs.Log("Internal error - missing icon for: ", str(icon[0]), str(iconref), repr(E),
 								severity=ConsoleWarning)
 	# logsupport.Logs.Log("Temp msg: ", valuestore.ValueStores([icon[0], ('Cond', 'IconURL')]))
 	for l in rf:
