@@ -16,8 +16,8 @@ CEvent = Enum('ConsoleEvent',
 ConsoleOpsQueue = queue.Queue()  # master sequencer
 
 latencynotification = 1000 # notify if a loop latency is greater than this
-LateTolerance = 1.5  # for my systems
-QLengthTrigger = 4
+LateTolerance = 2.5  # for my systems
+QLengthTrigger = 5
 
 HBControl = historybuffer.HistoryBuffer(80, 'Control')
 
