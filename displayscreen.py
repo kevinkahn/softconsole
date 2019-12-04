@@ -477,10 +477,14 @@ class DisplayScreen(object):
 												  AsCover=True, clear=True)
 								screens.DimIdleList = screens.DimIdleList[1:] + [screens.DimIdleList[0]]
 								screens.DimIdleTimes = screens.DimIdleTimes[1:] + [screens.DimIdleTimes[0]]
+						elif self.state == 'Maint':
+							# No activity on Maint screens so go home
+							self.SwitchScreen(screens.HomeScreen, 'Dim', 'Dim maint to dim home', newstate='Home',
+											  clear=True)
 						else:  # Maint or Alert - just ignore the activity action
 							# logsupport.Logs.Log('Activity timer fired while in state: {}'.format(self.state),severity=ConsoleWarning)
-							debug.debugPrint('Dispatch', 'TO while in: ', self.state)
-
+							logsupport.Logs.Log('Activity timeout in unknown state: {}'.format(self.state),
+												severity=ConsoleWarning, hb=True)
 
 				elif event.type == CEvent.GeneralRepaint:
 					self.HBEvents.Entry('General Repaint: {}'.format(repr(event)))

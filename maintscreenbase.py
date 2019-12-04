@@ -16,7 +16,7 @@ from utilfuncs import wc, interval_str
 import configobj
 
 fixedoverrides = {'CharColor': 'white', 'BackgroundColor': 'royalblue', 'label': ['Maintenance'], 'DimTO': 60,
-				  'PersistTO': 5, 'KeyColorOff': 'green'}
+				  'PersistTO': 90, 'KeyColorOff': 'green'}
 
 
 class MaintScreenDesc(screen.BaseKeyScreenDesc):
@@ -47,7 +47,7 @@ class MaintScreenDesc(screen.BaseKeyScreenDesc):
 		topoff = self.SubFontSize
 		self.LayoutKeys(topoff, self.useablevertspacesansnav - topoff)
 		self.DimTO = 60
-		self.PersistTO = 1  # setting to 0 would turn off timer and stick us here
+		self.PersistTO = 90  # allow long inactivity in Maint screen but not forever
 		utilities.register_example("MaintScreenDesc", self)
 
 	def ShowScreen(self):
