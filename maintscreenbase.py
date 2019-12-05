@@ -47,7 +47,7 @@ class MaintScreenDesc(screen.BaseKeyScreenDesc):
 		topoff = self.SubFontSize
 		self.LayoutKeys(topoff, self.useablevertspacesansnav - topoff)
 		self.DimTO = 60
-		self.PersistTO = 90  # allow long inactivity in Maint screen but not forever
+		self.PersistTO = 120  # allow long inactivity in Maint screen but not forever
 		utilities.register_example("MaintScreenDesc", self)
 
 	def ShowScreen(self):

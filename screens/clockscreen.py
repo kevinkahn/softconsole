@@ -2,7 +2,6 @@ import time
 
 import pygame
 
-import config
 import debug
 import fonts
 import hw
@@ -11,14 +10,13 @@ import screen
 import screens.__screens as screens
 import utilities
 from logsupport import ConsoleWarning
-from timers import RepeatingPost
 from utilfuncs import wc
 from weatherfromatting import CreateWeathBlock
 
 
 class ClockScreenDesc(screen.ScreenDesc):
 	def __init__(self, screensection, screenname, Clocked=0):
-		super().__init__(screensection, screenname, Clocked=Clocked)
+		super().__init__(screensection, screenname, Clocked=1)
 		debug.debugPrint('Screen', "Build Clock Screen")
 		screen.AddUndefaultedParams(self, screensection, CharSize=[20], Font=fonts.monofont, OutFormat=[],
 									ExtraFields=[],
@@ -34,9 +32,6 @@ class ClockScreenDesc(screen.ScreenDesc):
 				self.DecodedExtraFields.append(f.split(':'))
 			else:
 				logsupport.Logs.Log("Incomplete field specified on clockscreen", severity=ConsoleWarning)
-		self.poster = RepeatingPost(1.0, paused=True, name=self.name, proc=self.repaintClock,
-									eventvalid=self._ClockTickValid)
-		self.poster.start()
 
 	# noinspection PyUnusedLocal
 	def repaintClock(self, param=None):
@@ -69,15 +64,15 @@ class ClockScreenDesc(screen.ScreenDesc):
 			hw.screen.blit(cb, (horiz_off, vert_off))
 		pygame.display.update()
 
-	# config.DS.Tasks.AddTask(self.ClockRepaintEvent, 1)
-
 	def InitDisplay(self, nav):
 		super(ClockScreenDesc, self).InitDisplay(nav)
 		self.repaintClock()
-		self.poster.resume()
+
+	def ClockTick(self):
+		self.repaintClock()
 
 	def ExitScreen(self, viaPush):
-		self.poster.pause()
+		# self.poster.pause()
 		super().ExitScreen(viaPush)
 
 
