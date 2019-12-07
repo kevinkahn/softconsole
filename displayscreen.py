@@ -427,7 +427,7 @@ class DisplayScreen(object):
 								self.SwitchScreen(screens.HomeScreen, 'Bright', 'Chain switch to main', newstate='Home')
 						continue
 
-					elif tapcount > 3:
+					elif tapcount > 3 and tapcount < 8:
 						if self.state == 'Maint':
 							# ignore if already in Maint
 							logsupport.Logs.Log('Maintenance taps ignored - already in Maint mode')
@@ -435,6 +435,10 @@ class DisplayScreen(object):
 						# Go to maintenance
 						logsupport.Logs.Log('Entering Console Maintenance')
 						self.SwitchScreen(maintscreen.MaintScreen, 'Bright', 'Tap to maintenance', newstate='Maint')
+						continue
+					elif tapcount >= 8:
+						logsupport.Logs.Log('Runaway {} taps - likely hardware issue'.format(tapcount),
+											severity=ConsoleWarning, hb=True)
 						continue
 
 					if self.AS.Keys is not None:
