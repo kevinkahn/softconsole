@@ -20,6 +20,21 @@ SecondaryChain = Thermostat - Main, Local, Portland, La Quinta
          Interval = 24 hours
          Invoke = LXPanelRestart.LXPanelRestart
 
+[[DimAway]]
+	Type = VarChange
+	Var = ISY:Int:AwayNonState
+	Test = EQ
+	Value = 1
+	Invoke = AssignVar.Assign
+	Parameter = System:DimLevel = 0
+
+[[DimHome]]
+	Type = VarChange
+	Var = ISY:Int:AwayNonState
+	Test = EQ
+	Value = 0
+	Invoke = AssignVar.Assign
+	Parameter = System:DimLevel = 100
 
 
 

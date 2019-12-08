@@ -13,6 +13,23 @@ SecondaryChain = Portland, Bathroom, BR
 type = Sonos
 DefaultHub = HASS
 
+[[Alerts]]
+[[DimAway]]
+	Type = VarChange
+	Var = ISY:Int:AwayNonState
+	Test = EQ
+	Value = 1
+	Invoke = AssignVar.Assign
+	Parameter = System:DimLevel = 5
+	
+[[DimHome]]
+	Type = VarChange
+	Var = ISY:Int:AwayNonState
+	Test = EQ
+	Value = 0
+	Invoke = AssignVar.Assign
+	Parameter = System:DimLevel = 100
+
 [LR1]
     type = Keypad
     label = Living, Room 1
