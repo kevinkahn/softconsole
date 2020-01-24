@@ -147,6 +147,7 @@ class Indirector(object):
 		except:
 			if name == 'name': return self.impliedname
 			if name == 'address': return self.impliedname
+			if name == 'FriendlyName': return self.impliedname
 			logsupport.Logs.Log(
 				'Attempt to access uncompleted indirector for hub {} node {} (call {})'.format(self.Hub.name,
 																							   self.impliedname, name),

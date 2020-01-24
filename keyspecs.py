@@ -309,7 +309,7 @@ class OnOffKey(ManualKeyDesc):
 
 		if self.ControlObjUndefined():
 			debug.debugPrint('Screen', "Screen", keyname, "unbound")
-			logsupport.Logs.Log('Key Binding missing: ' + self.name, severity=ConsoleWarning)
+			logsupport.Logs.Log('Key Binding missing: ' + self.name, severity=ConsoleWarning)  #todo - should this handle the delayed key case of an indirector?
 
 		if self.Verify:
 			self.VerifyScreen = supportscreens.VerifyScreen(self, self.GoMsg, self.NoGoMsg, self.KeyPressAction,
