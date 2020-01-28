@@ -215,8 +215,10 @@ label = Garage, Door
 #    NormalOn = Main Hall, Landscape, LR Dual Spots
 
 [LR1]
-    ScreenTitle = Living Room
+    Clocked = 2
+    ScreenTitle = Living Room {:.1f}° {:.0f}%
     ScreenTitleColor = red
+    ScreenTitleFields = MQTT:PatioTemp, MQTT:PatioHum
     type = Keypad
     label = Living, Room 1
     [[Office Ceiling]]

@@ -2,7 +2,7 @@ import hw
 
 hooks = None
 
-Running = True
+Running = False
 Exiting = False
 terminationreason = 'unknown'
 

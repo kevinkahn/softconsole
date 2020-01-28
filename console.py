@@ -99,7 +99,14 @@ def handler(signum, frame):
 			if config.sysStore.Watchdog_pid != 0: os.kill(config.sysStore.Watchdog_pid, signal.SIGUSR1)
 			if config.sysStore.Topper_pid != 0: os.kill(config.sysStore.Topper_pid, signal.SIGKILL)
 	else:
-		logsupport.Logs.Log("Console received signal {} - Ignoring".format(signum))
+		if config.Running:
+			logsupport.Logs.Log("Console received signal {} - Ignoring".format(signum))
+		else:
+			print('Development environment exit')
+			if config.sysStore.Watchdog_pid != 0: os.kill(config.sysStore.Watchdog_pid, signal.SIGUSR1)
+			if config.sysStore.Topper_pid != 0: os.kill(config.sysStore.Topper_pid, signal.SIGKILL)
+			sys.exit(999)
+
 
 
 signal.signal(signal.SIGTERM, handler)

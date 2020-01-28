@@ -28,11 +28,12 @@ class MyScreens(object):
 				thisScreen = thisconfig[screenitem]
 				# its a screen
 				tempscreentype = thisScreen.get("type", "unspec")
+				clockedscreen = thisScreen.get("Clocked", 0)
 				debug.debugPrint('Screen', "Screen of type ", tempscreentype)
 
 				if tempscreentype in screens.screentypes:
 					try:
-						NewScreen = screens.screentypes[tempscreentype](thisScreen, screenitem)
+						NewScreen = screens.screentypes[tempscreentype](thisScreen, screenitem, Clocked=clockedscreen)  # todo add a clocked option?
 						logsupport.Logs.Log(tempscreentype + " screen " + screenitem, severity=ConsoleDetail)
 					except ValueError:
 						NewScreen = None

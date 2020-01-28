@@ -2,6 +2,7 @@ import collections
 
 import pygame
 import functools
+import time
 
 import config
 import debug
@@ -38,6 +39,7 @@ ScreenParams = {'DimTO': 99,
 				'ScreenTitleColor': "white",
 				'ScreenTitleSize': 50,
 				'ScreenTitle': '',
+				'ScreenTitleFields': ['', ],
 				'HorizBorder': 20,
 				'TopBorder': 20,
 				'BotBorder': 60,
@@ -87,7 +89,23 @@ def IncorporateParams(this, clsnm, theseparams, screensection):
 			if theseparams[p] is not None: this.userstore.SetVal(p, theseparams[p])
 		else:
 			if p in screensection:
-				this.userstore.SetVal(p, type(ScreenParams[p])(screensection.get(p, "")))  # string only safe default
+				if p == 'xScreenTitleFields':
+					z2 = type(ScreenParams[p])
+					z1 = screensection.get(p, ScreenParams[p])
+					print('Z1: {}  type {}'.format(z1, type(z1)))
+
+					print('Z2: {}'.format(z2))
+					if isinstance(z1, z2):
+						print('types match')
+						z3 = z1
+					else:
+						z3 = z2(z1)
+						print(z3)
+						print('Z3: {}'.format(z3))
+					this.userstore.SetVal(p, z3)
+				else:
+					#this.userstore.SetVal(p, type(ScreenParams[p])(screensection.get(p, "")))  # string only safe default
+					this.userstore.SetVal(p, type(ScreenParams[p])(screensection.get(p, ScreenParams[p])))
 
 
 def AddUndefaultedParams(this, screensection, **kwargs):
@@ -139,6 +157,7 @@ class ScreenDesc(object):
 		# todo add routine to update allowable mods per screen - but rationalize with incorp parameters from hight level guys
 
 		self.markradius = int(min(hw.screenwidth, hw.screenheight) * .025)
+		print("{}: clocked :{}".format(screenname, Clocked))
 
 		self.name = screenname
 		self.singleuse = SingleUse
@@ -156,8 +175,8 @@ class ScreenDesc(object):
 		self.useablehorizspace = hw.screenwidth - 2 * self.HorizBorder
 		self.startvertspace = self.TopBorder
 		self.starthorizspace = self.HorizBorder
-		self.titleoffset = 0
 		self.HubInterestList = {}  # one entry per hub, each entry is a dict mapping addr to Node
+
 		self.ScreenTitleBlk = None
 		self.prevkey = None
 		self.nextkey = None
@@ -187,7 +206,7 @@ class ScreenDesc(object):
 
 		IncorporateParams(self, 'Screen',
 						  {'CharColor', 'DimTO', 'PersistTO', 'BackgroundColor', 'CmdKeyCol', 'CmdCharCol',
-						   'DefaultHub', 'ScreenTitle', 'ScreenTitleColor', 'ScreenTitleSize', 'KeyCharColorOn',
+						   'DefaultHub', 'ScreenTitle', 'ScreenTitleColor', 'ScreenTitleFields', 'ScreenTitleSize', 'KeyCharColorOn',
 						   'KeyCharColorOff', 'KeyColor'}, screensection)
 		AddUndefaultedParams(self, screensection, label=[screenname])
 		try:
@@ -197,24 +216,42 @@ class ScreenDesc(object):
 			logsupport.Logs.Log("Bad default hub name for screen: ", screenname, severity=ConsoleError)
 			raise ValueError
 
+		self.DecodedScreenTitleFields = []
+		for f in self.ScreenTitleFields:
+			if ':' in f:
+				self.DecodedScreenTitleFields.append(f.split(':'))
+
+		# todo compute the vertical space issue for the title if non-null; generate and horiz space the title later
 		if self.ScreenTitle != '':
 			# adjust space for a title
-			self.ScreenTitleBlk = fonts.fonts.Font(self.ScreenTitleSize, bold=True).render(self.ScreenTitle, 0,
-																						   wc(self.ScreenTitleColor))
-			h = self.ScreenTitleBlk.get_height()
-			w = self.ScreenTitleBlk.get_width()
+			tempblk, _ = self._GenerateTitleBlk(self.ScreenTitle, self.DecodedScreenTitleFields, self.ScreenTitleColor)
+			h = tempblk.get_height()
 			titlegap = h // 10  # todo is this the best way to space?
 			self.startvertspace = self.startvertspace + h + titlegap
 			self.useablevertspace = self.useablevertspace - h - titlegap
 			self.useablevertspacesansnav = self.useablevertspacesansnav - h - titlegap
-			self.titleoffset = self.starthorizspace + (self.useablehorizspace - w) // 2
+
+			self.ScreenTitleBlk = tempblk
 
 		utilities.register_example('ScreenDesc', self)
+
+	def _GenerateTitleBlk(self, title, fields, color):
+		vals = []
+		for f in fields:
+			v = valuestore.GetVal(f)
+			if v is None:
+				v = 0
+			vals.append(v)
+		formattedTitle = title.format(*vals)
+		blk = fonts.fonts.Font(self.ScreenTitleSize, bold=True).render(formattedTitle, 0, wc(color))
+		w = blk.get_width()
+		return blk, w
+
 
 	def _ClockTickValid(self):
 		return self.Active
 
-	def _ClockTick(self, params):  # todo make this a validity check and then call ClockTick directly as event.proc
+	def _ClockTick(self, params):
 		if not self.Active: return  # avoid race with timer and screen exit
 		self.ClockTick()
 
@@ -264,7 +301,6 @@ class ScreenDesc(object):
 		self.startvertspace = self.startvertspace + h + titlegap
 		self.useablevertspace = self.useablevertspace - h - titlegap
 		self.useablevertspacesansnav = self.useablevertspacesansnav - h - titlegap
-		self.titleoffset = self.starthorizspace + (self.useablehorizspace - w) // 2
 
 	def ButSize(self, bpr, bpc, height):
 		h = self.useablevertspace if height == 0 else height
@@ -295,7 +331,10 @@ class ScreenDesc(object):
 		self.NavKeys = nav
 		self.PaintKeys()
 		if self.ScreenTitleBlk is not None:
-			hw.screen.blit(self.ScreenTitleBlk, (self.titleoffset, self.TopBorder))
+			self.ScreenTitleBlk, w = self._GenerateTitleBlk(self.ScreenTitle, self.DecodedScreenTitleFields,
+															self.ScreenTitleColor)
+			hw.screen.blit(self.ScreenTitleBlk, (self.starthorizspace + (self.useablehorizspace - w) // 2, self.TopBorder))
+		pygame.display.update()
 
 	def ReInitDisplay(self):
 		if self.used:
@@ -304,7 +343,9 @@ class ScreenDesc(object):
 		self.PaintBase()
 		self.PaintKeys()
 		if self.ScreenTitleBlk is not None:
-			hw.screen.blit(self.ScreenTitleBlk, (self.titleoffset, self.TopBorder))
+			self.ScreenTitleBlk, w = self._GenerateTitleBlk(self.ScreenTitle, self.DecodedScreenTitleFields, self.ScreenTitleColor)
+			hw.screen.blit(self.ScreenTitleBlk, (self.starthorizspace + (self.useablehorizspace - w) // 2, self.TopBorder))
+		pygame.display.update()
 
 	def NodeEvent(self, evnt):
 		if evnt.node is not None:

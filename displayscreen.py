@@ -204,6 +204,7 @@ class DisplayScreen(object):
 		config.sysStore.ErrorNotice = -1  # don't pester for errors during startup
 		time.sleep(1)  # give support services a chance to start (particularly MQTT)
 		logsupport.ReportStatus('mainloop starting')
+		config.Running = True
 
 		with open("{}/.ConsoleStart".format(config.sysStore.HomeDir), "a") as f:
 			f.write(str(time.time()) + '\n')
