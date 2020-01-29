@@ -39,12 +39,11 @@ class KeyScreenDesc(screen.BaseKeyScreenDesc):
 	def __repr__(self):
 		return screen.ScreenDesc.__repr__(self) + "\r\n     KeyScreenDesc:" + ":<" + str(self.Keys) + ">"
 
-	def InitDisplay(self, nav):
+	def InitDisplay(self, nav, specificrepaint = None):
 		debug.debugPrint("Screen", "Keyscreen InitDisplay: ", self.name)
 		for K in self.Keys.values():
 			K.InitDisplay()
 		super().InitDisplay(nav)
-		pygame.display.update()
 
 	def NodeEvent(self, evnt):
 		# Watched node reported change event is ("Node", addr, value, seq)
@@ -58,7 +57,6 @@ class KeyScreenDesc(screen.BaseKeyScreenDesc):
 				K.PaintKey()
 				pygame.display.update()
 		elif evnt.node != 0:
-			# noinspection PyBroadException
 			try:
 				K = self.HubInterestList[evnt.hub][evnt.node]
 			except:
@@ -79,7 +77,6 @@ class KeyScreenDesc(screen.BaseKeyScreenDesc):
 				K.PaintKey()
 				pygame.display.update()
 		else:
-			# noinspection PyBroadException
 			logsupport.Logs.Log('varchange via Node event? {} {}'.format(self.name, evnt), severity=ConsoleWarning)
 
 	def VarEvent(self, evnt):
