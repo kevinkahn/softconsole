@@ -121,7 +121,7 @@ class ShowVersScreen(screen.BaseKeyScreenDesc):
 		self.Keys = {'return': toucharea.TouchPoint('back', (hw.screenwidth // 2, hw.screenheight // 2),
 													(hw.screenwidth, hw.screenheight), proc=screen.PopScreen)}
 
-	def InitDisplay(self, nav):
+	def InitDisplay(self, nav):  # todo fix for specific repaint
 		super(ShowVersScreen, self).InitDisplay(nav)
 		hw.screen.fill(wc(self.BackgroundColor))
 		fontsz = 10 if hw.portrait else 17
@@ -164,7 +164,7 @@ class StatusDisplayScreen(screen.BaseKeyScreenDesc):
 		super().ExitScreen(viaPush)
 		self.T.cancel()
 
-	def InitDisplay(self, nav):
+	def InitDisplay(self, nav): # todo fix for specific repaint
 		super(StatusDisplayScreen, self).InitDisplay(nav)
 		self.T = timers.RepeatingPost(1, False, True, 'StatusDisplay', proc=self.ShowStatus)
 		self.ShowStatus('none')
@@ -331,7 +331,7 @@ class CommandScreen(screen.BaseKeyScreenDesc):
 		ErrorsRcvd = False
 		logsupport.primaryBroker.Publish('cmd', node=nd, payload='geterrors')
 
-	def InitDisplay(self, nav):
+	def InitDisplay(self, nav): # todo fix for specific repaint
 		super(CommandScreen, self).InitDisplay(nav)
 		landfont = 15
 		if hw.portrait:

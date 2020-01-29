@@ -315,13 +315,16 @@ class ScreenDesc(object):
 		for key in self.NavKeys.values():
 			key.PaintKey()
 
+	def ScreenContentRepaint(self):
+		pass
+
 	def AddToHubInterestList(self, hub, item, value):
 		if hub.name in self.HubInterestList:
 			self.HubInterestList[hub.name][item] = value
 		else:
 			self.HubInterestList[hub.name] = {item: value}
 
-	def InitDisplay(self, nav, specificrepaint = None):
+	def InitDisplay(self, nav, specificrepaint = None): # todo should Init and ReInit verify screen active?  Also - could define a generic empty method to be the specific repaint and have screens just def it as needed
 		if self.used:
 			logsupport.Logs.Log('Attempted reuse (Init) of single use screen {}'.format(self.name),
 								severity=ConsoleError)
@@ -335,6 +338,7 @@ class ScreenDesc(object):
 															self.ScreenTitleColor)
 			hw.screen.blit(self.ScreenTitleBlk, (self.starthorizspace + (self.useablehorizspace - w) // 2, self.TopBorder))
 		if specificrepaint is not None: specificrepaint()
+		self.ScreenContentRepaint()
 		pygame.display.update()
 
 	def ReInitDisplay(self, specificrepaint = None):
@@ -347,6 +351,7 @@ class ScreenDesc(object):
 			self.ScreenTitleBlk, w = self._GenerateTitleBlk(self.ScreenTitle, self.DecodedScreenTitleFields, self.ScreenTitleColor)
 			hw.screen.blit(self.ScreenTitleBlk, (self.starthorizspace + (self.useablehorizspace - w) // 2, self.TopBorder))
 		if specificrepaint is not None: specificrepaint()
+		self.ScreenContentRepaint()
 		pygame.display.update()
 
 	def NodeEvent(self, evnt):

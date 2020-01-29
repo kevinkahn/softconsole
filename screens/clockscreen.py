@@ -34,7 +34,7 @@ class ClockScreenDesc(screen.ScreenDesc):
 				logsupport.Logs.Log("Incomplete field specified on clockscreen", severity=ConsoleWarning)
 
 	# noinspection PyUnusedLocal
-	def repaintClock(self, param=None):
+	def ScreenContentRepaint(self):
 		if not self.Active:
 			logsupport.Logs.Log('Temp - clock got stale event', severity=ConsoleWarning)  # tempdel
 			return  # handle race conditions where repaint queued just before screen switch
@@ -52,28 +52,19 @@ class ClockScreenDesc(screen.ScreenDesc):
 			h = h + cb.get_height()
 		s = (self.useablevertspace - h) / (len(l))
 
-		self.ReInitDisplay()
 		vert_off = self.startvertspace
 		for i in range(len(l)):
 			horiz_off = (hw.screenwidth - l[i].get_width()) // 2
 			hw.screen.blit(l[i], (horiz_off, vert_off))
 			vert_off = vert_off + s + l[i].get_height()
 		if self.ExtraSize[0] != 0:
-			# noinspection PyUnboundLocalVariable
 			horiz_off = (hw.screenwidth - cb.get_width()) // 2
 			hw.screen.blit(cb, (horiz_off, vert_off))
-		pygame.display.update()
 
-	def InitDisplay(self, nav):
-		super(ClockScreenDesc, self).InitDisplay(nav)
-		self.repaintClock()
+	def InitDisplay(self, nav, specificrepaint = None):
+		super().InitDisplay(nav)
 
-	def ClockTick(self):
-		self.repaintClock()
-
-	def ExitScreen(self, viaPush):
-		# self.poster.pause()
-		super().ExitScreen(viaPush)
-
+	def ReInitDisplay(self, specificrepaint = None):
+		super().ReInitDisplay()
 
 screens.screentypes["Clock"] = ClockScreenDesc

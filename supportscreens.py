@@ -63,7 +63,7 @@ class VerifyScreen(screen.BaseKeyScreenDesc):
 		self.PaintKeys()
 		pygame.display.update()
 
-	def InitDisplay(self, nav):
+	def InitDisplay(self, nav, specificrepaint = None):
 		# debugPrint('Main', "Enter to screen: ", self.name)
 		logsupport.Logs.Log('Entering Verify Screen: ' + self.name, severity=ConsoleDetail)
 		super(VerifyScreen, self).InitDisplay({})
@@ -158,7 +158,7 @@ class ValueChangeScreen(screen.ScreenDesc):  # todo may need to call super class
 		# need to insert current value (actually in PaintKey probably
 		pass
 
-	def InitDisplay(self, nav):
+	def InitDisplay(self, nav, specificrepaint = None):  #todo integrate with specific repaint stuff
 		super(ValueChangeScreen, self).InitDisplay({})  # why do we pass in the nav keys here?
 
 		self.ReInitDisplay()
@@ -289,11 +289,11 @@ class ListChooserSubScreen(screen.ScreenDesc):
 		self.firstitem = 0
 		self.selection = -1
 
-	def InitDisplay(self, nav):
+	def InitDisplay(self, nav, specificrepaint = None): # todo move the DisplayListSelect to specific repaint
 		super(ListChooserSubScreen, self).InitDisplay(nav)
 		self.DisplayListSelect()
 
-	def ReInitDisplay(self):
+	def ReInitDisplay(self, specificrepaint = None):
 		super(ListChooserSubScreen, self).ReInitDisplay()
 		self.DisplayListSelect()
 
@@ -309,7 +309,7 @@ class ListChooserSubScreen(screen.ScreenDesc):
 		dncolor = wc(self.CharColor) if self.firstitem + self.NumSlots < len(self.itemlist) else self.DullKeyColor
 		pygame.draw.polygon(hw.screen, upcolor, _TriangleCorners(self.SrcPrev, self.sourceheight, False), 3)
 		pygame.draw.polygon(hw.screen, dncolor, _TriangleCorners(self.SrcNext, self.sourceheight, True), 3)
-		pygame.display.update()
+		pygame.display.update()  # todo delete once specific screen is used
 
 
 class PagedDisplay(screen.BaseKeyScreenDesc):
@@ -358,7 +358,7 @@ class PagedDisplay(screen.BaseKeyScreenDesc):
 			self.state = 'init'
 			screens.DS.SwitchScreen(screen.BACKTOKEN, 'Bright', 'Done (prev) showing log', newstate='Maint')
 
-	def InitDisplay(self, nav):
+	def InitDisplay(self, nav, specificrepaint = None): #todo interate with super call below
 		self.BackgroundColor = 'maroon'
 		if self.state == 'init':
 			debug.debugPrint('Main', "Enter to screen: ", self.name)
