@@ -79,15 +79,12 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 		self.fmt = WFormatter()
 
 	def InitDisplay(self, nav, specificrepaint = None):
-		super(TimeTempScreenDesc, self).InitDisplay(nav, specificrepaint=self.repaintClock)
+		super(TimeTempScreenDesc, self).InitDisplay(nav)
 
 	def ReInitDisplay(self, specificrepaint = None):
-		super().ReInitDisplay(specificrepaint=self.repaintClock)
+		super().ReInitDisplay()
 
-	def ExitScreen(self, viaPush): #todo del?
-		super().ExitScreen(viaPush)
-
-	def repaintClock(self, param=None):
+	def ScreenContentRepaint(self):
 		# todo - could save most of the screen between clock repaints so wouldn't need mult calls to Weather Block
 		if not self.Active: return  # handle race condition where repaint queued just before switch
 		h = 0
