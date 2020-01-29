@@ -285,6 +285,7 @@ class ScreenDesc(object):
 		if self.ScreenTitleBlk is None: return
 		h = self.ScreenTitleBlk.get_height()
 		self.ScreenTitleBlk = None
+		self.ScreenTitle = ''
 		titlegap = h // 10
 		self.startvertspace = self.startvertspace - h - titlegap
 		self.useablevertspace = self.useablevertspace + h + titlegap
@@ -294,6 +295,7 @@ class ScreenDesc(object):
 		if self.ScreenTitleBlk is not None and not force:
 			return  # User explicitly set a title so don't override it
 		self.ClearScreenTitle()
+		self.ScreenTitle = name
 		self.ScreenTitleBlk = fonts.fonts.Font(fontsz).render(name, 0, wc(color))
 		h = self.ScreenTitleBlk.get_height()
 		w = self.ScreenTitleBlk.get_width()
