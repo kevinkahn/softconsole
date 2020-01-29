@@ -2,7 +2,7 @@ from collections import OrderedDict
 
 import pygame
 
-import config
+import functools
 import debug
 import fonts
 import hw
@@ -149,17 +149,15 @@ class WeatherScreenDesc(screen.ScreenDesc):
 						horiz_off = horiz_off + usewidth
 						vert_off = startvert
 
-		pygame.display.update()
+		pygame.display.update()  # todo update to use the enhanced Init and ReInit
 
-	def InitDisplay(self, nav):
+	def InitDisplay(self, nav, specificrepaint = None):
 		self.currentconditions = True
-		super().InitDisplay(nav)
-		self.ShowScreen(self.currentconditions)
+		Show = functools.partial(self.ShowScreen, self.currentconditions)
+		super().InitDisplay(nav, specificrepaint=Show)
 
-	def ReInitDisplay(self):
-		super(WeatherScreenDesc, self).ReInitDisplay()
-		self.ShowScreen(self.currentconditions)
-
-
+	def ReInitDisplay(self, specificrepaint = None):
+		Show = functools.partial(self.ShowScreen, self.currentconditions)
+		super().ReInitDisplay(specificrepaint=Show)
 
 screens.screentypes["Weather"] = WeatherScreenDesc
