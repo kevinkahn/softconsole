@@ -321,7 +321,7 @@ class ScreenDesc(object):
 		else:
 			self.HubInterestList[hub.name] = {item: value}
 
-	def InitDisplay(self, nav):
+	def InitDisplay(self, nav, specificrepaint = None):
 		if self.used:
 			logsupport.Logs.Log('Attempted reuse (Init) of single use screen {}'.format(self.name),
 								severity=ConsoleError)
@@ -334,9 +334,10 @@ class ScreenDesc(object):
 			self.ScreenTitleBlk, w = self._GenerateTitleBlk(self.ScreenTitle, self.DecodedScreenTitleFields,
 															self.ScreenTitleColor)
 			hw.screen.blit(self.ScreenTitleBlk, (self.starthorizspace + (self.useablehorizspace - w) // 2, self.TopBorder))
+		if specificrepaint is not None: specificrepaint()
 		pygame.display.update()
 
-	def ReInitDisplay(self):
+	def ReInitDisplay(self, specificrepaint = None):
 		if self.used:
 			logsupport.Logs.Log('Attempted reuse (ReInit) of single use screen {}'.format(self.name),
 								severity=ConsoleError)
@@ -345,6 +346,7 @@ class ScreenDesc(object):
 		if self.ScreenTitleBlk is not None:
 			self.ScreenTitleBlk, w = self._GenerateTitleBlk(self.ScreenTitle, self.DecodedScreenTitleFields, self.ScreenTitleColor)
 			hw.screen.blit(self.ScreenTitleBlk, (self.starthorizspace + (self.useablehorizspace - w) // 2, self.TopBorder))
+		if specificrepaint is not None: specificrepaint()
 		pygame.display.update()
 
 	def NodeEvent(self, evnt):

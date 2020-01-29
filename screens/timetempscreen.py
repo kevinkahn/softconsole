@@ -10,7 +10,6 @@ import screen
 import screens.__screens as screens
 from logsupport import ConsoleWarning
 from stores import valuestore
-from timers import RepeatingPost
 from utilfuncs import wc
 from weatherfromatting import CreateWeathBlock, WFormatter
 
@@ -25,7 +24,8 @@ def extref(listitem, indexitem):
 class TimeTempScreenDesc(screen.ScreenDesc):
 
 	def __init__(self, screensection, screenname, Clocked=0):
-		super().__init__(screensection, screenname, Clocked=Clocked)
+		# time temp screens clock once per second
+		super().__init__(screensection, screenname, Clocked=1)
 		debug.debugPrint('Screen', "New TimeTempDesc ", screenname)
 
 		screen.AddUndefaultedParams(self, screensection, location='', CharSize=[-1],
@@ -76,20 +76,17 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 				self.DecodedFcstFields.append((self.location, 'Fcst', f))
 		self.fcsticon = (self.location, 'Fcst', 'Icon') if self.FcstIcon else None
 
-		self.poster = RepeatingPost(1.0, paused=True, name=self.name, proc=self.repaintClock)
-		self.poster.start()
 		self.fmt = WFormatter()
 
-	def InitDisplay(self, nav):
-		super(TimeTempScreenDesc, self).InitDisplay(nav)
-		self.repaintClock()
-		self.poster.resume()
+	def InitDisplay(self, nav, specificrepaint = None):
+		super(TimeTempScreenDesc, self).InitDisplay(nav, specificrepaint=self.repaintClock)
 
-	def ExitScreen(self, viaPush):
-		self.poster.pause()
+	def ReInitDisplay(self, specificrepaint = None):
+		super().ReInitDisplay(specificrepaint=self.repaintClock)
+
+	def ExitScreen(self, viaPush): #todo del?
 		super().ExitScreen(viaPush)
 
-	# noinspection PyUnusedLocal,PyUnusedLocal
 	def repaintClock(self, param=None):
 		# todo - could save most of the screen between clock repaints so wouldn't need mult calls to Weather Block
 		if not self.Active: return  # handle race condition where repaint queued just before switch
@@ -128,7 +125,6 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 			renderedlines = [
 				fonts.fonts.Font(30, self.Font).render(x, 0, wc(self.CharColor)) for x in self.store.Status]
 			vert_off = self.startvertspace
-			self.ReInitDisplay()
 			for tmlbl in renderedtimelabel:
 				horiz_off = (hw.screenwidth - tmlbl.get_width()) / 2
 				hw.screen.blit(tmlbl, (horiz_off, vert_off))
@@ -179,7 +175,6 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 							 0)  # round off gap space - use before fcsts
 
 			vert_off = self.startvertspace
-			self.ReInitDisplay()
 			for tmlbl in renderedtimelabel:
 				horiz_off = (hw.screenwidth - tmlbl.get_width()) // 2
 				hw.screen.blit(tmlbl, (horiz_off, vert_off))
@@ -214,11 +209,5 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 			if self.FcstLayout == '2ColVert': pygame.draw.line(hw.screen, wc('white'),
 															   (usewidth, startvert + fcstvert // 3),
 															   (usewidth, maxvert + 2 * fcstvert / 3))
-
-		pygame.display.update()
-
-
-# config.DS.Tasks.AddTask(self.ClockRepaintEvent, 1)
-
 
 screens.screentypes["TimeTemp"] = TimeTempScreenDesc
