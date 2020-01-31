@@ -148,8 +148,6 @@ class WeatherScreenDesc(screen.ScreenDesc):
 						horiz_off = horiz_off + usewidth
 						vert_off = startvert
 
-		#pygame.display.update()  # todo update to use the enhanced Init and ReInit
-
 	def InitDisplay(self, nav, specificrepaint = None):
 		self.currentconditions = True
 		Show = functools.partial(self.ShowScreen, self.currentconditions)
