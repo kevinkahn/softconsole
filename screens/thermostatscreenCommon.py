@@ -167,7 +167,7 @@ class ThermostatScreenDesc(screen.BaseKeyScreenDesc):
 		self.mode = self.modes[0]
 
 		debug.debugPrint('Main', "Bump mode: ", self.mode)
-		self.ShowScreen()
+		self.ReInitDisplay()
 		self.TimerName += 1
 		self.TimeBumpModes = timers.OnceTimer(2.0, name='ThermostatModes' + str(self.TimerName), proc=self.PushModes)
 		self.TimeBumpModes.start()
@@ -183,21 +183,19 @@ class ThermostatScreenDesc(screen.BaseKeyScreenDesc):
 		self.fan = self.fanstates[0]
 
 		debug.debugPrint('Main', "Bump fan: ", self.fan)
-		self.ShowScreen()
+		self.ReInitDisplay()
 		self.TimerName += 1
 		self.TimeBumpFan = timers.OnceTimer(2.0, name='ThermostatFan' + str(self.TimerName), proc=self.PushFanState)
 		self.TimeBumpFan.start()
 
 	# push setpoint change after 2 seconds of idle
 
-	def ShowScreen(self):
+	def ScreenContentRepaint(self):
 
 		m = self.modes.index(self.mode)
 		self.modes = self.modes[m:] + self.modes[:m]
 		m = self.fanstates.index(self.fan)
 		self.fanstates = self.fanstates[m:] + self.fanstates[:m]
-
-		self.ReInitDisplay()
 
 		r = fonts.fonts.Font(self.fsize[3], bold=True).render(u"{:4.1f}".format(self.t_cur), 0,
 															  wc(self.CharColor))
@@ -218,15 +216,17 @@ class ThermostatScreenDesc(screen.BaseKeyScreenDesc):
 		r2 = fonts.fonts.Font(self.fsize[1]).render(self.fan.capitalize(), 0, wc(self.CharColor, factor=self.FanLocal))
 		hw.screen.blit(r1, (self.Keys['Mode'].Center[0] - r1.get_width() // 2, self.ModesPos))
 		hw.screen.blit(r2, (self.Keys['Fan'].Center[0] - r2.get_width() // 2, self.ModesPos))
-		pygame.display.update()
+		#pygame.display.update()
 
-	def InitDisplay(self, nav):
-		super(ThermostatScreenDesc, self).InitDisplay(nav)
+	def InitDisplay(self, nav, specificrepaint = None):
 		self.t_cur, self.t_low, self.t_high, self.t_state, self.mode, self.fan = self.ThermNode.GetThermInfo()
 		self.LocalOnly = [0.0, 0.0]
 		self.ModeLocal = 0.0
 		self.FanLocal = 0.0
-		self.ShowScreen()
+		super().InitDisplay(nav)
+
+	def ReInitDisplay(self, specificrepaint = None):
+		super().ReInitDisplay()
 
 	def NodeEvent(self, evnt):
 		# need to verify that this is the real update?
@@ -234,7 +234,7 @@ class ThermostatScreenDesc(screen.BaseKeyScreenDesc):
 		self.ModeLocal = 0.0
 		self.FanLocal = 0.0
 		self.t_cur, self.t_low, self.t_high, self.t_state, self.mode, self.fan = self.ThermNode.GetThermInfo()
-		if self.Active: self.ShowScreen()
+		if self.Active: self.ReInitDisplay()
 
 screens.screentypes["Thermostat"] = ThermostatScreenDesc
 screens.screentypes["NestThermostat"] = ThermostatScreenDesc
