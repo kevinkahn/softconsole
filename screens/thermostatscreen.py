@@ -194,7 +194,7 @@ class ThermostatScreenDesc(screen.BaseKeyScreenDesc):
 		pygame.display.update()
 
 	def InitDisplay(self, nav):
-		super(ThermostatScreenDesc, self).InitDisplay(nav)
+		super().InitDisplay(nav)
 		self.info = {}  # clear any old info to force a display
 		self.ShowScreen()
 
