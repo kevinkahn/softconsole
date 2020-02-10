@@ -236,17 +236,11 @@ class ScreenDesc(object):
 		utilities.register_example('ScreenDesc', self)
 
 	def _GenerateTitleBlk(self, title, fields, color):
-		vals = []
-		for f in fields:
-			v = valuestore.GetVal(f)
-			if v is None:
-				v = 0
-			vals.append(v)
+		vals = [0 if v is None else v for v in [valuestore.GetVal(f)  for f in fields]]
 		formattedTitle = title.format(*vals)
 		blk = fonts.fonts.Font(self.ScreenTitleSize, bold=True).render(formattedTitle, 0, wc(color))
 		w = blk.get_width()
 		return blk, w
-
 
 	def _ClockTickValid(self):
 		return self.Active
@@ -326,14 +320,13 @@ class ScreenDesc(object):
 		else:
 			self.HubInterestList[hub.name] = {item: value}
 
-	def InitDisplay(self, nav, specificrepaint = None): # todo should Init and ReInit verify screen active?  Also - could define a generic empty method to be the specific repaint and have screens just def it as needed
+	def _PrepScreen(self, nav = None, init=True, specificrepaint = None):
 		if self.used:
-			logsupport.Logs.Log('Attempted reuse (Init) of single use screen {}'.format(self.name),
+			logsupport.Logs.Log('Attempted reuse (Init: {}) of single use screen {}'.format(init, self.name),
 								severity=ConsoleError)
-		debug.debugPrint("Screen", "Base Screen InitDisplay: ", self.name)
-		if self.ScreenClock is not None: self.ScreenClock.resume()
+		if init and self.ScreenClock is not None: self.ScreenClock.resume()
+		if init: self.NavKeys = nav
 		self.PaintBase()
-		self.NavKeys = nav
 		self.PaintKeys()
 		if self.ScreenTitleBlk is not None:
 			self.ScreenTitleBlk, w = self._GenerateTitleBlk(self.ScreenTitle, self.DecodedScreenTitleFields,
@@ -343,18 +336,11 @@ class ScreenDesc(object):
 		self.ScreenContentRepaint()
 		pygame.display.update()
 
+	def InitDisplay(self, nav, specificrepaint = None):
+		self._PrepScreen(nav, True, specificrepaint)
+
 	def ReInitDisplay(self, specificrepaint = None):
-		if self.used:
-			logsupport.Logs.Log('Attempted reuse (ReInit) of single use screen {}'.format(self.name),
-								severity=ConsoleError)
-		self.PaintBase()
-		self.PaintKeys()
-		if self.ScreenTitleBlk is not None:
-			self.ScreenTitleBlk, w = self._GenerateTitleBlk(self.ScreenTitle, self.DecodedScreenTitleFields, self.ScreenTitleColor)
-			hw.screen.blit(self.ScreenTitleBlk, (self.starthorizspace + (self.useablehorizspace - w) // 2, self.TopBorder))
-		if specificrepaint is not None: specificrepaint()
-		self.ScreenContentRepaint()
-		pygame.display.update()
+		self._PrepScreen(None, False, specificrepaint)
 
 	def NodeEvent(self, evnt):
 		if evnt.node is not None:
