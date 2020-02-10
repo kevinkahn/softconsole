@@ -158,7 +158,7 @@ label = Garage, Door
 	KeyColor = maroon
 	[[Action]]
 		type = SETVAR
-		Var = LocaVars:InternetUp
+		Var = LocalVars:InternetUp
 		label = Acknowledge, Outage
 
 #[NodeTest]
