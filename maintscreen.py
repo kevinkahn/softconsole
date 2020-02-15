@@ -34,7 +34,6 @@ def SetUpMaintScreens():
 	for cmd, action in issuecommands.cmdcalls.items():
 		if issuecommands.Where.LocalMenuExits in action.where:
 			ExitMenu[cmd] = (action.DisplayName, action.Proc, None, action.Verify)
-	ExitMenu['return'] = ('Return', screen.PopScreen)
 	Exits = MaintScreenDesc('System Exit/Restart', ExitMenu, Clocked=1)
 	screenset.append(Exits)
 
@@ -46,8 +45,6 @@ def SetUpMaintScreens():
 			VersMenuAdv[cmd] = (action.DisplayName, action.Proc)
 		elif issuecommands.Where.LocalMenuVersionsAdv in action.where:
 			VersMenuAdv[cmd] = (action.DisplayName, action.Proc)
-	VersMenu['return'] = ('Return', screen.PopScreen)
-	VersMenuAdv['return'] = ('Return', screen.PopScreen)
 	Versions = MaintScreenDesc('Version Control', VersMenu, Clocked=1)
 	VersionsAdv = MaintScreenDesc('Advanced Version Control', VersMenuAdv)
 	screenset.append(Versions)
@@ -72,8 +69,6 @@ def SetUpMaintScreens():
 		if nflags > 0:  # will need another flag screen so build a "next"
 			tmp['next'] = (
 				'Next', functools.partial(goto, MaintScreen))  # this gets fixed below to be a real next
-		else:
-			tmp['return'] = ('Return', screen.PopScreen)
 		FlagsScreens.append(MaintScreenDesc('Flags Setting ({})'.format(flagscreencnt), tmp, overrides=flagoverrides))
 		flagscreencnt += 1
 		FlagsScreens[-1].KeysPerColumn = flagspercol
@@ -97,8 +92,7 @@ def SetUpMaintScreens():
 	debug.DebugFlagKeys["LogLevelDown"].SetKeyImages(
 		("Log Detail", logsupport.LogLevels[logsupport.LogLevel] + '(' + str(logsupport.LogLevel) + ')', "More"))
 
-	TopLevel = OrderedDict([('return', ('Exit Maintenance', gohome)),
-							('log', ('Show Log', functools.partial(screen.PushToScreen, LogDisp, 'Maint'))),
+	TopLevel = OrderedDict([('log', ('Show Log', functools.partial(screen.PushToScreen, LogDisp, 'Maint'))),
 							('versions', ('Select Version', functools.partial(screen.PushToScreen, Versions, 'Maint'),
 										  functools.partial(screen.PushToScreen, VersionsAdv, 'Maint'))),
 							('flags', ('Set Flags', functools.partial(screen.PushToScreen, FlagsScreens[0], 'Maint')))])
@@ -148,17 +142,9 @@ def adjloglevel(K):
 	logsupport.Logs.Log("Log Level changed via ", K.name, " to ", logsupport.LogLevel, severity=ConsoleWarning)
 	pygame.display.update()
 
-
-# noinspection PyUnusedLocal
-def gohome():  # neither peram used
-	logsupport.Logs.Log('Leaving Console Maintenance')
-	screens.DS.SwitchScreen(screens.HomeScreen, 'Bright', 'Maint exit', newstate='Home')
-
-
 # noinspection PyUnusedLocal
 def goto(newscreen):
 	screens.DS.SwitchScreen(newscreen, 'Bright', 'Maint goto' + newscreen.name, newstate='Maint')
-
 
 def PickStartingSpot():
 	if config.sysStore.ErrorNotice != -1:

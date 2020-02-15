@@ -282,7 +282,7 @@ class SonosScreenDesc(screen.BaseKeyScreenDesc):
 		self.numgroups = len(self.SonosGroups)
 		return assigned == self.numplayers
 
-	def InitDisplay(self, nav):
+	def InitDisplay(self, nav): # todo fix for specific repaint
 		self._check_for_new()
 		super().InitDisplay(nav)
 		self.Subscreen = -1

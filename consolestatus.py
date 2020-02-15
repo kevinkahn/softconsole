@@ -64,8 +64,7 @@ def SetUpConsoleStatus():
 													  functools.partial(screen.PushToScreen, ShowHW, 'Maint'))),
 											  ('versions', ('Console Versions',
 															functools.partial(screen.PushToScreen, ShowVers, 'Maint'))),
-											  ('cmds', ('Issue Network Commands', GenGoNodeCmdScreen)),
-											  ('return', ('Return', screen.PopScreen))]), Clocked=1)
+											  ('cmds', ('Issue Network Commands', GenGoNodeCmdScreen))]), Clocked=1)
 		StatusDisp.userstore.ReParent(Status)
 		ShowVers.userstore.ReParent(Status)
 		ShowHW.userstore.ReParent(Status)

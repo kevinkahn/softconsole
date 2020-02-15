@@ -129,12 +129,12 @@ class AlertsScreenDesc(screen.ScreenDesc):
 		pygame.display.update()
 		self.Msg = not self.Msg
 
-	def InitDisplay(self, nav):
+	def InitDisplay(self, nav): # todo fix for specific repaint
 		super(AlertsScreenDesc, self).InitDisplay(nav)
 
-		self.PaintBase()
-		self.PaintKeys()
-		pygame.display.update()
+		#self.PaintBase()
+		#self.PaintKeys()
+		#pygame.display.update()
 		self.Msg = True
 		if self.BlinkTime != 0:
 			self.TimerName += 1

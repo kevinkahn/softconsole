@@ -92,16 +92,11 @@ def IncorporateParams(this, clsnm, theseparams, screensection):
 				if p == 'xScreenTitleFields':
 					z2 = type(ScreenParams[p])
 					z1 = screensection.get(p, ScreenParams[p])
-					print('Z1: {}  type {}'.format(z1, type(z1)))
 
-					print('Z2: {}'.format(z2))
 					if isinstance(z1, z2):
-						print('types match')
 						z3 = z1
 					else:
 						z3 = z2(z1)
-						print(z3)
-						print('Z3: {}'.format(z3))
 					this.userstore.SetVal(p, z3)
 				else:
 					#this.userstore.SetVal(p, type(ScreenParams[p])(screensection.get(p, "")))  # string only safe default
@@ -187,7 +182,6 @@ class ScreenDesc(object):
 			self.ScreenClock.start()
 
 		cvertcenter = hw.screenheight - self.BotBorder / 2
-		# print("NKW {} {} {} {}".format(self.NavKeyWidth, self.HorizBorder, self.HorizButGap, cvertcenter))
 
 		self.homekey = toucharea.ManualKeyDesc(self, 'Back<' + 'Home', ('Home',),
 											   self.CmdKeyCol, self.CmdCharCol, self.CmdCharCol,

@@ -103,7 +103,8 @@ class DisplayScreen(object):
 				for S in self.ScreenStack:
 					S.PopOver()
 				self.ScreenStack = []
-			if push: self.ScreenStack.append(self.AS)
+			if push:
+				self.ScreenStack.append(self.AS)
 
 		NavKeys = NS.DefaultNavKeysShowing if not AsCover else False
 		ASname = '*None*' if self.AS is None else self.AS.name
@@ -298,10 +299,10 @@ class DisplayScreen(object):
 								'Memory({}) use Real: {:.2f}/{:.2f}  Virtual: {:.2f}/{:.2f}'.format(why, realmem,
 																									realfree,
 																									virtmem, virtfree))
-							print(
-								'Memory({}) use Real: {:.2f}/{:.2f}  Virtual: {:.2f}/{:.2f}'.format(why, realmem,
-																									realfree,
-																									virtmem, virtfree))
+							#print(
+							#	'Memory({}) use Real: {:.2f}/{:.2f}  Virtual: {:.2f}/{:.2f}'.format(why, realmem,
+							#																		realfree,
+							#																		virtmem, virtfree))
 					#print(objgraph.show_growth(limit=10, peak_stats=peakstats))
 					# print(objgraph.show_most_common_types(limit=20))
 				#print(objgraph.show_growth(limit=20))
@@ -435,7 +436,8 @@ class DisplayScreen(object):
 							continue
 						# Go to maintenance
 						logsupport.Logs.Log('Entering Console Maintenance')
-						self.SwitchScreen(maintscreen.MaintScreen, 'Bright', 'Tap to maintenance', newstate='Maint')
+						#self.SwitchScreen(maintscreen.MaintScreen, 'Bright', 'Tap to maintenance', newstate='Maint')
+						screen.PushToScreen(maintscreen.MaintScreen, newstate='Maint', msg='Push to Maint')
 						continue
 					elif tapcount >= 8:
 						logsupport.Logs.Log('Runaway {} taps - likely hardware issue'.format(tapcount),
@@ -603,9 +605,11 @@ class DisplayScreen(object):
 				self.HBEvents.Entry('End Event Loop took: {}'.format(time.time() - postwaittime))
 		except Exception as E:
 			logsupport.Logs.Log('Main display loop had exception: {}'.format(repr(E)))
-			traceback.print_exc()
+			tbinfo = traceback.format_exc().splitlines()
+			for l in tbinfo:
+				logsupport.Logs.Log(l)
 			config.ecode = exitutils.ERRORRESTART
-			print('Display Screen Exception: {}'.format(repr(E)))
+			#print('Display Screen Exception: {}'.format(repr(E)))
 
 		logsupport.Logs.Log('Main GUI loop exiting')
 

@@ -1,4 +1,3 @@
-import functools
 import time
 
 import pygame
@@ -7,7 +6,6 @@ import config
 import debug
 import fonts
 import hw
-import logsupport
 import screen
 import toucharea
 import utilities
@@ -27,8 +25,8 @@ class MaintScreenDesc(screen.BaseKeyScreenDesc):
 		ov = configobj.ConfigObj(overrides) if overrides is not None else configobj.ConfigObj(fixedoverrides)
 		super().__init__(ov, name, Clocked=Clocked)
 		debug.debugPrint('Screen', "Build Maintenance Screen")
-		self.NavKeysShowing = False
-		self.DefaultNavKeysShowing = False
+		self.NavKeysShowing = True
+		self.DefaultNavKeysShowing = True
 		screen.AddUndefaultedParams(self, None, TitleFontSize=40, SubFontSize=25)
 		self.SetScreenTitle(name, self.TitleFontSize, 'white')
 		for k, kt in keys.items():
@@ -45,28 +43,18 @@ class MaintScreenDesc(screen.BaseKeyScreenDesc):
 				self.Keys[k].InsertVerify(VerifyScreen)
 
 		topoff = self.SubFontSize
-		self.LayoutKeys(topoff, self.useablevertspacesansnav - topoff)
+		self.LayoutKeys(topoff, self.useablevertspace - topoff)
 		self.DimTO = 60
 		self.PersistTO = 120  # allow long inactivity in Maint screen but not forever
 		utilities.register_example("MaintScreenDesc", self)
 
-	def ShowScreen(self):
+	def ScreenContentRepaint(self):
+		# todo allow 2 line title? turn into a set title
 		r = fonts.fonts.Font(self.SubFontSize, '', True, True).render(
 			'{} Up: {}'.format(time.strftime("%H:%M:%S", time.localtime(config.sysStore.Time)),
 							   interval_str(config.sysStore.UpTime)), 0, wc(self.CharColor))
 		rl = (hw.screenwidth - r.get_width()) / 2
 		hw.screen.blit(r, (rl, self.TopBorder + self.TitleFontSize))
-		self.PaintKeys()
-		pygame.display.update()
-
-	def InitDisplay(self, nav):
-		debug.debugPrint('Main', "Enter to screen: ", self.name)
-		super().InitDisplay(nav)
-		self.ShowScreen()
-
-	def ReInitDisplay(self):
-		super().ReInitDisplay()
-		self.ShowScreen()
 
 	def ExitScreen(self, viaPush):
 		super().ExitScreen(viaPush)

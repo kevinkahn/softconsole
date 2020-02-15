@@ -205,11 +205,11 @@ class OctoPrintScreenDesc(screen.BaseKeyScreenDesc):
 		self.OctoPost('job', senddata={'command': 'pause', 'action': 'toggle'})
 		screens.DS.SwitchScreen(self, 'Bright', 'Verify Run ' + self.name)
 
-	def ReInitDisplay(self):
+	def ReInitDisplay(self): # todo fix for specific repaint
 		super(OctoPrintScreenDesc, self).ReInitDisplay()
 		self.ShowScreen()
 
-	def InitDisplay(self, nav):
+	def InitDisplay(self, nav): # todo fix for specific repaint
 		super(OctoPrintScreenDesc, self).InitDisplay(nav)
 		if not self.StatusUpdater.is_alive():
 			logsupport.Logs.Log('Octoprint status updater died - restarting', severity=ConsoleWarning)
