@@ -75,7 +75,6 @@ class WeatherVals(valuestore.ValueStore):
 			self.DoingFetch = threading.Thread(target=self.ws.FetchWeather, name='WFetch-{}'.format(self.name),
 											   daemon=True)
 			self.DoingFetch.start()
-			# logsupport.Logs.Log('Starting weather refresh for {}'.format(self.name)) todo keep performance count
 			self.Status = ("Fetching",)
 			self.startedfetch = time.time()
 		# no thread doing a fetch at this point - start one
@@ -117,7 +116,7 @@ class WeatherVals(valuestore.ValueStore):
 
 		return True
 
-	def GetVal(self, name, failok=False):  # todo is this ever called? ref BlockRefresh
-		self.BlockRefresh()
-		return super(WeatherVals, self).GetVal(name)
+#	def GetVal(self, name, failok=False):  # todo is this ever called? ref BlockRefresh
+#		self.BlockRefresh()
+#		return super(WeatherVals, self).GetVal(name)
 

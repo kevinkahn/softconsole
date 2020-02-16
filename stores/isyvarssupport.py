@@ -78,6 +78,7 @@ class ISYVars(valuestore.ValueStore):
 			notify[0](storeitem, oldval, val, notify[1], modifier)
 
 	def BlockRefresh(self):
+		logsupport.Logs.Log('Checking ISY BRefresh',severity=ConsoleError) # todo delete before release
 
 		for v in self.items():
 			self.GetVal(v)
