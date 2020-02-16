@@ -117,6 +117,12 @@ class StatefulHAnode(HAnode):
 					PostEvent(ConsoleEvent(CEvent.HubNodeChange, hub=self.Hub.name, node=self.entity_id,
 										   value=self.internalstate))
 
+	def SendOnOffCommand(self, settoon):
+		pass
+
+	def SendOnOffFastCommand(self, settoon):
+		pass
+
 	def __str__(self):
 		return str(self.name) + '::' + str(self.state)
 

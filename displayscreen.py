@@ -609,7 +609,6 @@ class DisplayScreen(object):
 			for l in tbinfo:
 				logsupport.Logs.Log(l)
 			config.ecode = exitutils.ERRORRESTART
-			#print('Display Screen Exception: {}'.format(repr(E)))
 
 		logsupport.Logs.Log('Main GUI loop exiting')
 

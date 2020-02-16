@@ -152,7 +152,7 @@ class ScreenDesc(object):
 		# todo add routine to update allowable mods per screen - but rationalize with incorp parameters from hight level guys
 
 		self.markradius = int(min(hw.screenwidth, hw.screenheight) * .025)
-		print("{}: clocked :{}".format(screenname, Clocked))
+		#print("{}: clocked :{}".format(screenname, Clocked))
 
 		self.name = screenname
 		self.singleuse = SingleUse

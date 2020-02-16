@@ -26,5 +26,7 @@ class Light(StatefulHAnode):
 							   value=(0, 255)[
 								   settoon]))  # this is a hack to provide immediate faked feedback on zwave lights that take a while to report back
 
+	# todo add fast version that forces full?
+
 
 RegisterDomain('light', Light)
