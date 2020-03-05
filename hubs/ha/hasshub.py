@@ -567,7 +567,7 @@ class HA(object):
 						if version == 0:
 							self.dyndomains['thermostat'] = importlib.import_module('hubs.ha.domains.__oldthermostat')
 						else:
-							self.dyndomains['thermostat'] = importlib.import_module('hubs.ha.domains.oldthermostat')
+							self.dyndomains['thermostat'] = importlib.import_module('hubs.ha.domains.thermostat')
 
 		for dom in hadomains:
 			self.DomainEntityReg[dom] = {}
