@@ -1,5 +1,5 @@
 from hubs.ha import haremote as ha
-from hubs.ha.hasshub import HAnode, _NormalizeState, RegisterDomain, stringtonumeric
+from hubs.ha.hasshub import StatefulHAnode, _NormalizeState, RegisterDomain, stringtonumeric
 from controlevents import CEvent, PostEvent, ConsoleEvent
 import screens.__screens as screens
 import debug
@@ -9,22 +9,24 @@ import config
 import functools
 
 
-class Thermostat(HAnode):  # not stateful since has much state info
+class Thermostat(StatefulHAnode):  # not stateful since has much state info
 	# todo update since state now in pushed stream
 	def __init__(self, HAitem, d):
+		self.climateitem = 0
 		super(Thermostat, self).__init__(HAitem, **d)
 		self.Hub.RegisterEntity('climate', self.entity_id, self)
 		self.timerseq = 0
 		# noinspection PyBroadException
-		try:
+		try:  # todo sort out new climate stuff
 			self.temperature = self.attributes['temperature']
 			self.curtemp = self.attributes['current_temperature']
 			self.target_low = self.attributes['target_temp_low']
 			self.target_high = self.attributes['target_temp_high']
-			self.mode = self.attributes['operation_mode']
+			self.hvac_action = self.attributes['hvac_action']
+			self.mode = self.internalstate #self.attributes['hvac_action']
 			self.fan = self.attributes['fan_mode']
-			self.fanstates = self.attributes['fan_list']
-			self.modelist = self.attributes['operation_list']
+			self.fanstates = self.attributes['fan_modes']
+			self.modelist = self.attributes['hvac_modes']
 		except:
 			pass
 
@@ -38,7 +40,8 @@ class Thermostat(HAnode):  # not stateful since has much state info
 		self.curtemp = self.attributes['current_temperature']
 		self.target_low = self.attributes['target_temp_low']
 		self.target_high = self.attributes['target_temp_high']
-		self.mode = self.attributes['operation_mode']
+		self.hvac_action = self.attributes['hvac_action']
+		self.mode = self.internalstate #self.attributes['hvac_action']
 		self.fan = self.attributes['fan_mode']
 		if screens.DS.AS is not None:
 			if self.Hub.name in screens.DS.AS.HubInterestList:
@@ -61,9 +64,11 @@ class Thermostat(HAnode):  # not stateful since has much state info
 
 	def GetThermInfo(self):
 		if self.target_low is not None:
-			return self.curtemp, self.target_low, self.target_high, self.HVAC_state, self.mode, self.fan
+			#return self.curtemp, self.target_low, self.target_high, self.HVAC_state, self.mode, self.fan
+			return self.curtemp, self.target_low, self.target_high, self.hvac_action, self.internalstate, self.fan
 		else:
-			return self.curtemp, self.temperature, self.temperature, self.HVAC_state, self.mode, self.fan
+			#return self.curtemp, self.temperature, self.temperature, self.HVAC_state, self.mode, self.fan
+			return self.curtemp, self.temperature, self.temperature, self.hvac_action, self.internalstate, self.fan
 
 	# noinspection PyUnusedLocal,PyUnusedLocal,PyUnusedLocal
 	def _HVACstatechange(self, storeitem, old, new, param, chgsource):
@@ -95,8 +100,8 @@ class Thermostat(HAnode):  # not stateful since has much state info
 
 	def PushMode(self, mode):
 		# noinspection PyBroadException
-		ha.call_service_async(self.Hub.api, 'climate', 'set_operation_mode',
-							  {'entity_id': '{}'.format(self.entity_id), 'operation_mode': mode})
+		ha.call_service_async(self.Hub.api, 'climate', 'set_hvac_mode',
+							  {'entity_id': '{}'.format(self.entity_id), 'hvac_mode': mode})
 		self.timerseq += 1
 		_ = timers.OnceTimer(5, start=True, name='fakepushmode -{}'.format(self.timerseq),
 							 proc=self.ErrorFakeChange)
