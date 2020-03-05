@@ -216,7 +216,7 @@ class ISY(object):
 	and useful directories to its nodes/programs.  Provides a debug method to dump the constructed graph.
 	"""
 
-	def __init__(self, name, isyaddr, user, pwd):
+	def __init__(self, name, isyaddr, user, pwd, version):
 
 		if isyaddr == '' or user == '':
 			logsupport.Logs.Log("ISY id info missing:  addr: {} user: {}".format(isyaddr, user), severity=ConsoleError)

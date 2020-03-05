@@ -15,6 +15,7 @@ Copyright 2016, 2017, 2018, 2019 Kevin Kahn
    limitations under the License.
 """
 import os
+import traceback
 
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
 import pygame
@@ -73,8 +74,9 @@ historybuffer.HBNet = historybuffer.HistoryBuffer(80, 'Net')
 
 atexit.register(exitutils.exitlogging)
 
-hubs.hubs.hubtypes['ISY'] = isy.ISY
-hubs.hubs.hubtypes['HASS'] = hasshub.HA
+hubs.hubs.hubtypes['ISY'] = (isy.ISY, 0)
+hubs.hubs.hubtypes['HASS'] = (hasshub.HA, 0)
+hubs.hubs.hubtypes['HASSNEW'] = (hasshub.HA, 1)
 
 
 # noinspection PyUnusedLocal
@@ -412,13 +414,18 @@ for i, v in ParsedConfigFile.items():
 			else:
 				logsupport.Logs.Log("No weather provider type: {}".format(i), severity=ConsoleWarning)
 			del ParsedConfigFile[i]
-		for hubtyp, pkg in hubs.hubs.hubtypes.items():
+		for hubtyp, pkgv in hubs.hubs.hubtypes.items():
 			if stype == hubtyp:
 				# noinspection PyBroadException
+				pkg = pkgv[0]
+				vers = pkgv[1]
 				try:
-					hubs.hubs.Hubs[i] = pkg(i, v.get('address', ''), v.get('user', ''), v.get('password', ''))
+					hubs.hubs.Hubs[i] = pkg(i, v.get('address', ''), v.get('user', ''), v.get('password', ''), vers)
 				except BaseException as e:
 					logsupport.Logs.Log("Fatal console error - fix config file: ", e, severity=ConsoleError, tb=False)
+					tbinfo = traceback.format_exc().splitlines()
+					for l in tbinfo:
+						logsupport.Logs.Log(l)
 					exitutils.Exit(exitutils.ERRORDIE, immediate=True)  # shutdown and don't try restart
 				del ParsedConfigFile[i]
 

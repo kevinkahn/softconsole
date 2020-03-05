@@ -22,7 +22,7 @@ AddIgnoredDomain = None  # gets filled in by ignore to avoid import loop
 
 ignoredeventtypes = ('system_log_event', 'call_service', 'service_executed', 'logbook_entry', 'timer_out_of_sync',
 					 'persistent_notifications_updated', 'zwave.network_complete', 'zwave.scene_activated',
-					 'zwave.network_ready', 'automation_triggered', 'script_started')
+					 'zwave.network_ready', 'automation_triggered', 'script_started', 'service_removed')
 
 def stringtonumeric(v):
 	if not isinstance(v, str):
@@ -98,12 +98,18 @@ class HAnode(object):
 class StatefulHAnode(HAnode):
 	def __init__(self, HAitem, **entries):
 		super(StatefulHAnode, self).__init__(HAitem, **entries)
-		self.internalstate = _NormalizeState(self.state)
+		if hasattr(self, 'climateitem'):  # todo fix climate
+			self.internalstate = self.state
+		else:
+			self.internalstate = _NormalizeState(self.state)
 
 	def Update(self, **ns):
 		self.__dict__.update(ns)
 		oldstate = self.internalstate
-		self.internalstate = _NormalizeState(self.state)
+		if hasattr(self,'climateitem'):  # todo fix climate
+			self.internalstate = self.state
+		else:
+			self.internalstate = _NormalizeState(self.state)
 		if self.internalstate == -1:
 			logsupport.Logs.Log("Node " + self.name + " set unavailable", severity=ConsoleDetail)
 		if oldstate == -1 and self.internalstate != -1:
@@ -337,7 +343,7 @@ class HA(object):
 				if mdecode['type'] == 'platform_discovered':  # todo temp
 					logsupport.Logs.Log('{} discovered platform: {}'.format(self.name, message))
 				if mdecode['type'] in ('result', 'service_registered', 'zwave.network_complete', 'platform_discovered'):
-					return
+					return # todo relation to ignored events?
 				if mdecode['type'] != 'event':
 					debug.debugPrint('HASSgeneral', 'Non event seen on WS stream: ', str(mdecode))
 					return
@@ -433,7 +439,7 @@ class HA(object):
 						"{} has new service: {}".format(self.name, message),
 						severity=ConsoleDetail)  # all the zwave services todo
 				elif m['event_type'] not in ignoredeventtypes:
-					# debug.debugPrint('HASSchg', "Other expected event" + str(m))
+					# todo create list of seen events not on ignore list?
 					logsupport.Logs.Log('{} Event: {}'.format(self.name, message))
 					debug.debugPrint('HASSgeneral', "Unknown event: " + str(m))
 			except Exception as E:
@@ -544,7 +550,7 @@ class HA(object):
 		if self.haconnectstate not in ("Failed", "Closed"): self.haconnectstate = "Exited"
 
 	# noinspection PyUnusedLocal
-	def __init__(self, hubname, addr, user, password):
+	def __init__(self, hubname, addr, user, password, version):
 		self.DomainEntityReg = {}
 		self.knownservices = []
 		self.HB = historybuffer.HistoryBuffer(40, hubname)
@@ -555,7 +561,13 @@ class HA(object):
 			if '__' not in domainimpl:
 				splitname = os.path.splitext(domainimpl)
 				if splitname[1] == '.py':
-					self.dyndomains[splitname[0]] = importlib.import_module('hubs.ha.domains.' + splitname[0])
+					if splitname[0] != 'thermostat':
+						self.dyndomains[splitname[0]] = importlib.import_module('hubs.ha.domains.' + splitname[0])
+					else:
+						if version == 0:
+							self.dyndomains['thermostat'] = importlib.import_module('hubs.ha.domains.__oldthermostat')
+						else:
+							self.dyndomains['thermostat'] = importlib.import_module('hubs.ha.domains.oldthermostat')
 
 		for dom in hadomains:
 			self.DomainEntityReg[dom] = {}
@@ -633,11 +645,14 @@ class HA(object):
 
 			self.Domains[e.domain][e.object_id] = N
 
-		for n, T in self.DomainEntityReg['climate'].items():  # todo why not in Tstat processing
-			tname = n.split('.')[1]
-			tsensor = self.DomainEntityReg['sensor']['sensor.' + tname + '_thermostat_hvac_state']
-			# noinspection PyProtectedMember
-			T._connectsensors(tsensor)
+		for n, T in self.DomainEntityReg['climate'].items():  # todo why not in Tstat processing; fix the empty catch for pool climate
+			try:
+				tname = n.split('.')[1]
+				tsensor = self.DomainEntityReg['sensor']['sensor.' + tname + '_thermostat_hvac_state']
+				# noinspection PyProtectedMember
+				T._connectsensors(tsensor)
+			except:
+				logsupport.Logs.Log('Exception from {} connecting sensor {}'.format(self.name,n),severity=ConsoleWarning)
 		self.haconnectstate = "Init"
 		services = {}
 		for i in range(3):
