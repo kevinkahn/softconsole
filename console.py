@@ -465,7 +465,7 @@ else:
 		hubs.hubs.defaulthub = hubs.hubs.Hubs[nm]
 		logsupport.Logs.Log("Default hub is: ", nm)
 	except KeyError:
-		logsupport.Logs.Log("Specified default Hub doesn't exist", severity=ConsoleWarning)
+		logsupport.Logs.Log("Specified default Hub {} doesn't exist; hubs are: {}".format(screen.screenStore.GetVal('DefaultHub'), list(hubs.hubs.Hubs.keys())), severity=ConsoleWarning)
 		hubs.hubs.defaulthub = None
 
 """
