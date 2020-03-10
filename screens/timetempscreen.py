@@ -10,8 +10,8 @@ import screen
 import screens.__screens as screens
 from logsupport import ConsoleWarning
 from stores import valuestore
-from utilfuncs import wc
-from weatherfromatting import CreateWeathBlock, WFormatter
+from utilfuncs import wc, fmt
+from weatherfromatting import CreateWeathBlock
 
 
 def extref(listitem, indexitem):
@@ -76,8 +76,6 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 				self.DecodedFcstFields.append((self.location, 'Fcst', f))
 		self.fcsticon = (self.location, 'Fcst', 'Icon') if self.FcstIcon else None
 
-		self.fmt = WFormatter()
-
 	def InitDisplay(self, nav, specificrepaint = None):
 		super(TimeTempScreenDesc, self).InitDisplay(nav)
 
@@ -113,7 +111,7 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 		if self.LocationSize != 0:
 			renderedtimelabel.append(
 				fonts.fonts.Font(self.LocationSize, self.Font).render(
-					self.fmt.format("{d}", d=self.scrlabel), 0, wc(self.CharColor)))
+					fmt.format("{d}", d=self.scrlabel), 0, wc(self.CharColor)))
 			h = h + renderedtimelabel[-1].get_height()
 			spaces += 1
 		sizeindex += 1

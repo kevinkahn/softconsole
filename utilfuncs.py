@@ -52,3 +52,40 @@ def TreeDict(d, args):
 		return temp
 	else:
 		return TreeDict(d[args[0]], args[1:])
+
+import string
+class PartialFormatter(string.Formatter):
+    def __init__(self, missing='--', bad_fmt='--'):
+        self.missing, self.bad_fmt=missing, bad_fmt
+
+    def get_field(self, field_name, args, kwargs):
+        # Handle a key not found
+        try:
+            val=super().get_field(field_name, args, kwargs)
+        except (KeyError, AttributeError):
+            val=None,field_name
+        return val
+
+    def format_field(self, value, spec):
+        # handle an invalid format
+        if value==None: return self.missing
+        try:
+            return super().format_field(value, spec)
+        except ValueError:
+            if self.bad_fmt is not None: return self.bad_fmt
+            else: raise
+
+fmt = PartialFormatter()
+
+'''
+class WFormatter(string.Formatter):
+	def format_field(self, value, format_spec):
+		if format_spec.endswith(('f', 'd')) and value is None:
+			return 'n/a'
+		elif value is None:
+			return 'n/a'
+		elif value == -9999.0:
+			return 'n/a'
+		else:
+			return super(WFormatter, self).format_field(value, format_spec)
+'''

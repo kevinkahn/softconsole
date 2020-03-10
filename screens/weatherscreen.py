@@ -12,8 +12,8 @@ import screens.__screens as screens
 import toucharea
 import utilities
 from stores import valuestore
-from utilfuncs import wc
-from weatherfromatting import CreateWeathBlock, WFormatter
+from utilfuncs import wc, fmt
+from weatherfromatting import CreateWeathBlock
 
 fsizes = ((20, False, False), (30, True, False), (45, True, True))
 
@@ -22,8 +22,6 @@ class WeatherScreenDesc(screen.ScreenDesc):
 	def __init__(self, screensection, screenname, Clocked=0):
 		debug.debugPrint('Screen', "New WeatherScreenDesc ", screenname)
 		super().__init__(screensection, screenname, Clocked=Clocked)
-
-		self.fmt = WFormatter()
 
 		butsize = self.ButSize(1, 1, 0)
 		self.Keys = OrderedDict({'condorfcst': toucharea.TouchPoint('condorfcst', (
@@ -83,7 +81,7 @@ class WeatherScreenDesc(screen.ScreenDesc):
 
 			if self.LocationSize != 0:
 				locblk = fonts.fonts.Font(self.LocationSize, "").render(
-					self.fmt.format("{d}", d=self.store.GetVal(('Cond', 'Location'))), 0,
+					fmt.format("{d}", d=self.store.GetVal(('Cond', 'Location'))), 0,
 					wc(self.CharColor))
 				hw.screen.blit(locblk, ((hw.screenwidth - locblk.get_width()) / 2, vert_off))
 				vert_off = vert_off + locblk.get_height() + 10  # todo gap of 10 pixels is arbitrary

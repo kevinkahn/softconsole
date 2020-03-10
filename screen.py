@@ -2,10 +2,8 @@ import collections
 
 import pygame
 import functools
-import time
 
 import config
-import debug
 import fonts
 import hubs.hubs
 import hw
@@ -16,8 +14,9 @@ import stores.valuestore as valuestore
 import toucharea
 import utilities
 from logsupport import ConsoleError, ConsoleWarning, ConsoleDetail
-from utilfuncs import wc, tint
+from utilfuncs import wc, tint, fmt
 import timers
+
 
 ScreenParams = {'DimTO': 99,
 				'CharColor': "white",
@@ -230,11 +229,12 @@ class ScreenDesc(object):
 		utilities.register_example('ScreenDesc', self)
 
 	def _GenerateTitleBlk(self, title, fields, color):
-		vals = [0 if v is None else v for v in [valuestore.GetVal(f)  for f in fields]]
-		formattedTitle = title.format(*vals)
+		vals = ['--' if v is None else v for v in [valuestore.GetVal(f)  for f in fields]]
+		formattedTitle = fmt.format(title, *vals)
 		blk = fonts.fonts.Font(self.ScreenTitleSize, bold=True).render(formattedTitle, 0, wc(color))
 		w = blk.get_width()
 		return blk, w
+
 
 	def _ClockTickValid(self):
 		return self.Active

@@ -172,6 +172,7 @@ class VarKey(ManualKeyDesc):
 			if not lab: lab = self.KeyLabelOn[:]
 			lab2 = []
 			for line in lab:
+				if val is None: val = '--'
 				lab2.append(line.replace('$', str(val)))
 			self.BuildKey(oncolor, offcolor)
 			self.SetKeyImages(lab2, lab2, 0, True)

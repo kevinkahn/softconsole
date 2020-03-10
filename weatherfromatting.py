@@ -6,7 +6,7 @@ import fonts
 import logsupport
 from logsupport import ConsoleWarning, ConsoleDetailHigh
 from stores import valuestore
-from utilfuncs import wc
+from utilfuncs import wc, fmt
 from stores.weathprov.providerutils import MissingIcon
 
 ICONSPACE = 10
@@ -62,7 +62,7 @@ def CreateWeathBlock(Format, Fields, WeathFont, FontSize, WeathColor, icon, cent
 		if icon is None: iconsize = 0
 
 		for f in Format:
-			linetorender = WFormatter().format(f, d=vals)
+			linetorender = fmt.format(f, d=vals)
 			renderedline = usefont.render(linetorender, 0, wc(WeathColor))
 			if renderedline.get_width() > maxhorizwidth - iconsize:  # todo make work for > 2 lines
 				l1 = linetorender.split(' ')
@@ -130,14 +130,3 @@ def CreateWeathBlock(Format, Fields, WeathFont, FontSize, WeathColor, icon, cent
 		v += l.get_height()
 	return fsfc
 
-
-class WFormatter(string.Formatter):
-	def format_field(self, value, format_spec):
-		if format_spec.endswith(('f', 'd')) and value is None:
-			return 'n/a'
-		elif value is None:
-			return 'n/a'
-		elif value == -9999.0:
-			return 'n/a'
-		else:
-			return super(WFormatter, self).format_field(value, format_spec)
