@@ -21,8 +21,8 @@ from stores import valuestore
 AddIgnoredDomain = None  # gets filled in by ignore to avoid import loop
 
 ignoredeventtypes = ('system_log_event', 'call_service', 'service_executed', 'logbook_entry', 'timer_out_of_sync', 'result',
-					 'persistent_notifications_updated', 'zwave.network_complete', 'zwave.scene_activated',
-					 'zwave.network_ready', 'automation_triggered', 'script_started', 'service_removed','hacs/status','hacs/repository','hacs/config')
+					 'persistent_notifications_updated', 'automation_triggered', 'script_started', 'service_removed','hacs/status',
+					 'hacs/repository','hacs/config')
 
 def stringtonumeric(v):
 	if not isinstance(v, str):

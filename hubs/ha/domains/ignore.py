@@ -4,7 +4,7 @@ import hubs.ha.hasshub as hasshub
 import logsupport
 
 IgnoreThese = ('sun', 'person', 'notifications', 'persistent_notification', 'zwave', 'zone', 'history_graph', 'updater',
-			   'configurator', 'weather')
+			   'configurator', 'weather', 'zwave_mqtt', 'scene')
 IngoredEntities = {}
 
 
@@ -16,10 +16,9 @@ class IgnoredDomain(HAnode):
 		IngoredEntities[dom][self.name] = self
 
 	def LogNewEntity(self, newstate):
-		pass
 		logsupport.Logs.Log(  # tempdel
 			"New entity in ignored domain since startup seen from {}: {} (Domain: {}) New: {}".format(
-				self.Hub.name, self.entity_id, self.domname, repr(newstate)))
+				self.Hub.name, self.entity_id, self.domname, repr(newstate)), severity = logsupport.ConsoleDetail)
 
 
 def AddIgnoredDomain(dom):
