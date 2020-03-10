@@ -45,6 +45,10 @@ ERRORPIREBOOT = 43
 def listthreads(l):
 	return ' ,'.join([i.name for i in l])
 
+reasonmap = {signal.SIGTERM:('termination signal', EXTERNALSIGTERM),
+				signal.SIGINT:('interrupt signal', EXTERNALSIGINT),
+				signal.SIGUSR1:('watchdog termination', WATCHDOGTERM) }
+
 
 def exitlogging():
 	print('exitlogging')

@@ -1,6 +1,6 @@
 #!/usr/bin/python -u
 """
-Copyright 2016, 2017, 2018, 2019 Kevin Kahn
+Copyright 2016, 2017, 2018, 2019, 2020 Kevin Kahn
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -83,21 +83,23 @@ hubs.hubs.hubtypes['HASSNEW'] = (hasshub.HA, 1)
 def handler(signum, frame):
 	HBMain.Entry('Signal: {}'.format(signum))
 	if signum in (signal.SIGTERM, signal.SIGINT, signal.SIGUSR1):
+		config.terminationreason = exitutils.reasonmap[signum][0]
+		config.ecode = exitutils.reasonmap[signum][1]
+		if not config.Running:
+			# interrupt before gui is started so just exit here
+			logsupport.Logs.Log("Exit during startup: {}".format(config.ecode))
+			timers.ShutTimers(config.terminationreason)
+			logsupport.Logs.Log('Console exiting')
+			hw.GoBright(100)
+			pygame.quit()
+			sys.exit(config.ecode)
 		config.Running = False
 		if signum == signal.SIGUSR1:
 			logsupport.DevPrint('Watchdog termination')
 			logsupport.Logs.Log("Console received a watchdog termination signal: {} - Exiting".format(signum), tb=True)
-			config.terminationreason = 'watchdog termination'
-			config.ecode = exitutils.WATCHDOGTERM
 		else:
 			logsupport.DevPrint('Signal termination {}'.format(signum))
 			logsupport.Logs.Log("Console received termination signal: {} - Exiting".format(signum))
-			if signum == signal.SIGINT:
-				config.terminationreason = 'interrupt signal'
-				config.ecode = exitutils.EXTERNALSIGINT
-			else:
-				config.terminationreason = 'termination signal'
-				config.ecode = exitutils.EXTERNALSIGTERM
 			if config.sysStore.Watchdog_pid != 0: os.kill(config.sysStore.Watchdog_pid, signal.SIGUSR1)
 			if config.sysStore.Topper_pid != 0: os.kill(config.sysStore.Topper_pid, signal.SIGKILL)
 	else:
@@ -317,7 +319,7 @@ logsupport.Logs = logsupport.InitLogs(hw.screen, os.path.dirname(config.sysStore
 cgitb.enable(format='text')
 logsupport.Logs.Log(u"Soft ISY Console")
 
-logsupport.Logs.Log(u"  \u00A9 Kevin Kahn 2016, 2017, 2018, 2019")
+logsupport.Logs.Log(u"  \u00A9 Kevin Kahn 2016, 2017, 2018, 2019, 2020")
 logsupport.Logs.Log("Software under Apache 2.0 License")
 logsupport.Logs.Log("Version Information:")
 logsupport.Logs.Log(" Running under Python: ", sys.version)
