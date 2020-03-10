@@ -1,5 +1,5 @@
 from hubs.ha import haremote as ha
-from hubs.ha.hasshub import StatefulHAnode, _NormalizeState, RegisterDomain
+from hubs.ha.hasshub import StatefulHAnode, RegisterDomain
 
 
 class Group(StatefulHAnode):

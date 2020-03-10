@@ -1,5 +1,5 @@
 from hubs.ha import haremote as ha
-from hubs.ha.hasshub import HAnode, _NormalizeState, RegisterDomain
+from hubs.ha.hasshub import HAnode, RegisterDomain
 import logsupport
 from logsupport import ConsoleWarning
 

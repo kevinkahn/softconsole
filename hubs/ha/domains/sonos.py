@@ -4,7 +4,7 @@ from logsupport import ConsoleDetail
 import debug
 import config
 from hubs.ha import haremote as ha
-from hubs.ha.hasshub import HAnode, _NormalizeState, RegisterDomain
+from hubs.ha.hasshub import HAnode, RegisterDomain
 import screens.__screens as screens
 from controlevents import CEvent, PostEvent, ConsoleEvent
 
@@ -35,7 +35,7 @@ class MediaPlayer(HAnode):
 		oldst = self.state
 		if 'attributes' in ns: self.attributes = ns['attributes']
 		self.state = ns['state']
-		newst = _NormalizeState(self.state)
+		newst = self._NormalizeState(self.state)
 		if newst != self.internalstate:
 			logsupport.Logs.Log("Mediaplayer state change: ", self.Hub.Entities[self.entity_id].name, ' was ',
 								self.internalstate, ' now ', newst, '(', self.state, ')', severity=ConsoleDetail)

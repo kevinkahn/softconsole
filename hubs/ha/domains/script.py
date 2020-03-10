@@ -1,5 +1,5 @@
 from hubs.ha import haremote as ha
-from hubs.ha.hasshub import HAnode, _NormalizeState, RegisterDomain, stringtonumeric
+from hubs.ha.hasshub import HAnode, RegisterDomain, stringtonumeric
 import debug
 
 

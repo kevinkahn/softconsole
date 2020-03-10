@@ -1,5 +1,5 @@
 from hubs.ha import haremote as ha
-from hubs.ha.hasshub import StatefulHAnode, _NormalizeState, RegisterDomain, stringtonumeric
+from hubs.ha.hasshub import StatefulHAnode, RegisterDomain
 from controlevents import CEvent, PostEvent, ConsoleEvent
 import screens.__screens as screens
 import debug
@@ -7,34 +7,41 @@ import time
 import timers
 import config
 import functools
+import logsupport
 
 
 class Thermostat(StatefulHAnode):  # not stateful since has much state info
 	# todo update since state now in pushed stream
 	def __init__(self, HAitem, d):
-		self.climateitem = 0
+		self.IsThermostat = True
 		super(Thermostat, self).__init__(HAitem, **d)
 		self.Hub.RegisterEntity('climate', self.entity_id, self)
 		self.timerseq = 0
 		# noinspection PyBroadException
-		try:  # todo sort out new climate stuff
+		try:
 			self.temperature = self.attributes['temperature']
 			self.curtemp = self.attributes['current_temperature']
 			self.target_low = self.attributes['target_temp_low']
 			self.target_high = self.attributes['target_temp_high']
 			self.hvac_action = self.attributes['hvac_action']
-			self.mode = self.internalstate #self.attributes['hvac_action']
+			self.mode = self.internalstate # in new climate domain hvac operation mode is the state
 			self.fan = self.attributes['fan_mode']
 			self.fanstates = self.attributes['fan_modes']
 			self.modelist = self.attributes['hvac_modes']
 		except:
-			pass
+			# if attributes are missing then don't do updates later - probably a pool
+			logsupport.Logs.Log('{}: Climate device {} missing attributes - probably a pool/spa'.format(self.Hub.name, self.name))
+			self.IsThermostat  = False
+
+	def _NormalizeState(self, state, brightness=None):  # todo validate state?
+		return state
 
 	# noinspection PyUnusedLocal
 	def ErrorFakeChange(self, param=None):
 		PostEvent(ConsoleEvent(CEvent.HubNodeChange, hub=self.Hub.name, node=self.entity_id, value=self.internalstate))
 
 	def Update(self, **ns):
+		if not self.IsThermostat: return
 		if 'attributes' in ns: self.attributes = ns['attributes']
 		self.temperature = self.attributes['temperature']
 		self.curtemp = self.attributes['current_temperature']
@@ -85,7 +92,6 @@ class Thermostat(StatefulHAnode):  # not stateful since has much state info
 
 	def _connectsensors(self, HVACsensor):
 		self.HVAC_state = HVACsensor.state
-		# noinspection PyProtectedMember
 		HVACsensor._SetSensorAlert(functools.partial(self._HVACstatechange))
 
 	def GetModeInfo(self):

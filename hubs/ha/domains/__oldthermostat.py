@@ -1,5 +1,5 @@
 from hubs.ha import haremote as ha
-from hubs.ha.hasshub import HAnode, _NormalizeState, RegisterDomain, stringtonumeric
+from hubs.ha.hasshub import HAnode, RegisterDomain, stringtonumeric
 from controlevents import CEvent, PostEvent, ConsoleEvent
 import screens.__screens as screens
 import debug
@@ -9,8 +9,7 @@ import config
 import functools
 
 
-class Thermostat(HAnode):  # not stateful since has much state info
-	# todo update since state now in pushed stream
+class Thermostat(HAnode):  # deprecated version
 	def __init__(self, HAitem, d):
 		super(Thermostat, self).__init__(HAitem, **d)
 		self.Hub.RegisterEntity('climate', self.entity_id, self)

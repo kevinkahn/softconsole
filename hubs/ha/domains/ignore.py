@@ -1,4 +1,4 @@
-from hubs.ha.hasshub import HAnode, _NormalizeState, RegisterDomain
+from hubs.ha.hasshub import HAnode, RegisterDomain
 from functools import partial
 import hubs.ha.hasshub as hasshub
 import logsupport

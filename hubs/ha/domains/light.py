@@ -1,6 +1,6 @@
 import debug
 from hubs.ha import haremote as ha
-from hubs.ha.hasshub import StatefulHAnode, _NormalizeState, RegisterDomain
+from hubs.ha.hasshub import StatefulHAnode, RegisterDomain
 from controlevents import CEvent, PostEvent, ConsoleEvent
 
 
@@ -9,12 +9,12 @@ class Light(StatefulHAnode):
 		super(Light, self).__init__(HAitem, **d)
 		self.Hub.RegisterEntity('light', self.entity_id, self)
 		if 'brightness' in self.attributes:
-			self.internalstate = _NormalizeState(self.state, int(self.attributes['brightness']))
+			self.internalstate = self._NormalizeState(self.state, int(self.attributes['brightness']))
 
 	def Update(self, **ns):
 		super(Light, self).Update(**ns)
 		if 'brightness' in self.attributes:
-			self.internalstate = _NormalizeState(self.state, int(self.attributes['brightness']))
+			self.internalstate = self._NormalizeState(self.state, int(self.attributes['brightness']))
 
 	# noinspection PyUnusedLocal
 	def SendOnOffCommand(self, settoon):
