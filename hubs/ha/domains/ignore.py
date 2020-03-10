@@ -20,12 +20,14 @@ class IgnoredDomain(HAnode):
 			"New entity in ignored domain since startup seen from {}: {} (Domain: {}) New: {}".format(
 				self.Hub.name, self.entity_id, self.domname, repr(newstate)), severity = logsupport.ConsoleDetail)
 
+def IgnoreDomainSpecificEvent(e, message):
+	logsupport.Logs.Log("Event {} to ignored domain {}".format(e, message))
 
 def AddIgnoredDomain(dom):
 	global IngoredEntities
 	reg = partial(IgnoredDomain, dom)
 	IngoredEntities[dom] = {}
-	RegisterDomain(dom, reg)
+	RegisterDomain(dom, reg, IgnoreDomainSpecificEvent)
 
 
 hasshub.AddIgnoredDomain = AddIgnoredDomain
@@ -34,4 +36,4 @@ hasshub.AddIgnoredDomain = AddIgnoredDomain
 for d in IgnoreThese:
 	reg = partial(IgnoredDomain, d)
 	IngoredEntities[d] = {}
-	RegisterDomain(d, reg)
+	RegisterDomain(d, reg, IgnoreDomainSpecificEvent)

@@ -160,10 +160,17 @@ class Indirector(object):
 
 
 hadomains = {}
+domainspecificevents = {}
 
 
-def RegisterDomain(domainname, domainmodule):
+def DomainSpecificEvent(e, message):
+	logsupport.Logs.Log('Default event handler {} {}'.format(e, message))
+	pass
+
+
+def RegisterDomain(domainname, domainmodule, eventhdlr=DomainSpecificEvent):
 	hadomains[domainname] = domainmodule
+	domainspecificevents[domainname] = eventhdlr
 
 class HA(object):
 	class HAClose(Exception):
@@ -428,9 +435,16 @@ class HA(object):
 						self.knownservices[d['domain']][d['service']] = d['service']
 					logsupport.Logs.Log(
 						"{} has new service: {}".format(self.name, message), severity=ConsoleDetail)
-				elif m['event_type'] not in ignoredeventtypes:
+				elif m['event_type'] in ignoredeventtypes:
 					# todo create list of seen events not on ignore list?
-					logsupport.Logs.Log('{} Event: {}'.format(self.name, message))
+					pass
+				elif '.' in m['event_type']:
+					# domain specific event
+					d, e = m['event_type'].split('.')
+					if d in domainspecificevents:
+						domainspecificevents[d](e,message)
+				else:
+					logsupport.Logs.Log('{} Unknown event: {}'.format(self.name, message))
 					debug.debugPrint('HASSgeneral', "Unknown event: " + str(m))
 			except Exception as E:
 				logsupport.Logs.Log("Exception handling HA message: ", repr(E), repr(message), severity=ConsoleWarning,
