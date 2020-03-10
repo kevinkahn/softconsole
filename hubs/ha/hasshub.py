@@ -20,9 +20,9 @@ from stores import valuestore
 
 AddIgnoredDomain = None  # gets filled in by ignore to avoid import loop
 
-ignoredeventtypes = ('system_log_event', 'call_service', 'service_executed', 'logbook_entry', 'timer_out_of_sync',
+ignoredeventtypes = ('system_log_event', 'call_service', 'service_executed', 'logbook_entry', 'timer_out_of_sync', 'result',
 					 'persistent_notifications_updated', 'zwave.network_complete', 'zwave.scene_activated',
-					 'zwave.network_ready', 'automation_triggered', 'script_started', 'service_removed')
+					 'zwave.network_ready', 'automation_triggered', 'script_started', 'service_removed','hacs/status','hacs/repository','hacs/config')
 
 def stringtonumeric(v):
 	if not isinstance(v, str):
@@ -43,34 +43,6 @@ def stringtonumeric(v):
 
 
 from ast import literal_eval
-
-
-def _NormalizeState(state, brightness=None):
-	if isinstance(state, str):
-		if state == 'on':
-			if brightness is not None:
-				return brightness
-			else:
-				return 255
-		elif state == 'off':
-			return 0
-		elif state in ['unavailable', 'unknown']:
-			return -1
-		elif state in ['paused', 'playing']:
-			return 255
-		else:
-			try:
-				val = literal_eval(state)
-			except ValueError:
-				logsupport.Logs.Log('HA Hub reports unknown state: ', state, severity=ConsoleError, tb=False)
-				return -1
-	else:
-		val = state
-	if isinstance(val, float):
-		if val.is_integer():
-			return int(val)
-	return val
-
 
 class HAnode(object):
 	def __init__(self, HAitem, **entries):
@@ -96,20 +68,41 @@ class HAnode(object):
 
 
 class StatefulHAnode(HAnode):
+
 	def __init__(self, HAitem, **entries):
 		super(StatefulHAnode, self).__init__(HAitem, **entries)
-		if hasattr(self, 'climateitem'):  # todo fix climate
-			self.internalstate = self.state
+		self.internalstate = self._NormalizeState(self.state)
+
+	def _NormalizeState(self, state, brightness=None): # may be overridden for domains with special state settings
+		if isinstance(state, str):
+			if state == 'on':
+				if brightness is not None:
+					return brightness
+				else:
+					return 255
+			elif state == 'off':
+				return 0
+			elif state in ['unavailable', 'unknown']:
+				return -1
+			elif state in ['paused', 'playing']:
+				return 255
+			else:
+				try:
+					val = literal_eval(state)
+				except ValueError:
+					logsupport.Logs.Log('{} reports unknown state: {}'.format(self.Hub.name, state), severity=ConsoleError, tb=False)
+					return -1
 		else:
-			self.internalstate = _NormalizeState(self.state)
+			val = state
+		if isinstance(val, float):
+			if val.is_integer():
+				return int(val)
+		return val
 
 	def Update(self, **ns):
 		self.__dict__.update(ns)
 		oldstate = self.internalstate
-		if hasattr(self,'climateitem'):  # todo fix climate
-			self.internalstate = self.state
-		else:
-			self.internalstate = _NormalizeState(self.state)
+		self.internalstate = self._NormalizeState(self.state)
 		if self.internalstate == -1:
 			logsupport.Logs.Log("Node " + self.name + " set unavailable", severity=ConsoleDetail)
 		if oldstate == -1 and self.internalstate != -1:
@@ -342,8 +335,6 @@ class HA(object):
 					return
 				if mdecode['type'] == 'platform_discovered':  # todo temp
 					logsupport.Logs.Log('{} discovered platform: {}'.format(self.name, message))
-				if mdecode['type'] in ('result', 'service_registered', 'zwave.network_complete', 'platform_discovered'):
-					return # todo relation to ignored events?
 				if mdecode['type'] != 'event':
 					debug.debugPrint('HASSgeneral', 'Non event seen on WS stream: ', str(mdecode))
 					return
@@ -436,8 +427,7 @@ class HA(object):
 					if d['service'] not in self.knownservices[d['domain']]:
 						self.knownservices[d['domain']][d['service']] = d['service']
 					logsupport.Logs.Log(
-						"{} has new service: {}".format(self.name, message),
-						severity=ConsoleDetail)  # all the zwave services todo
+						"{} has new service: {}".format(self.name, message), severity=ConsoleDetail)
 				elif m['event_type'] not in ignoredeventtypes:
 					# todo create list of seen events not on ignore list?
 					logsupport.Logs.Log('{} Event: {}'.format(self.name, message))
@@ -543,7 +533,7 @@ class HA(object):
 		try:
 			self.haconnectstate = "Running"
 			self.ws.run_forever(ping_timeout=999)
-		except self.HAClose:  # todo this can't happen
+		except self.HAClose:
 			logsupport.Logs.Log(self.name + " Event thread got close")
 		logsupport.Logs.Log(self.name + " Event Thread " + str(self.HAnum) + " exiting", severity=ConsoleWarning,
 							tb=False)
@@ -646,13 +636,14 @@ class HA(object):
 			self.Domains[e.domain][e.object_id] = N
 
 		for n, T in self.DomainEntityReg['climate'].items():  # todo why not in Tstat processing; fix the empty catch for pool climate
-			try:
-				tname = n.split('.')[1]
-				tsensor = self.DomainEntityReg['sensor']['sensor.' + tname + '_thermostat_hvac_state']
-				# noinspection PyProtectedMember
-				T._connectsensors(tsensor)
-			except:
-				logsupport.Logs.Log('Exception from {} connecting sensor {}'.format(self.name,n),severity=ConsoleWarning)
+			if T.IsThermostat:
+				try:
+					tname = n.split('.')[1]
+					tsensor = self.DomainEntityReg['sensor']['sensor.' + tname + '_thermostat_hvac_state']
+					# noinspection PyProtectedMember
+					T._connectsensors(tsensor)
+				except:
+					logsupport.Logs.Log('Exception from {} connecting sensor {}'.format(self.name,n),severity=ConsoleWarning)
 		self.haconnectstate = "Init"
 		services = {}
 		for i in range(3):
