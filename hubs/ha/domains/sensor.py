@@ -16,19 +16,20 @@ class Sensor(HAnode):  # not stateful since it updates directly to store value
 		if 'attributes' in ns: self.attributes = ns['attributes']
 		try:
 			if 'state' in ns:
-				if ns['state'] in ('', 'unknown', 'None'):
+				if ns['state'] in ('', 'unknown', 'None'):  # todo add unavailable
 					logsupport.Logs.Log('Sensor data missing for {} value: {}'.format(ns['entity_id'], ns['state']))
+					self.Hub.sensorstore.SetVal(self.entity_id, None)
 				else:
 					try:
 						stval = stringtonumeric(ns['state'])
 					except ValueError:
+						logsupport.Logs.Log('Special convert {}'.format(ns['state']), severity = logsupport.ConsoleWarning)
 						stval = tuple(map(int, ns['state'].split(
 							'-')))  # this is never executed because str to num returns the string if can't convert todo
 					self.Hub.sensorstore.SetVal(self.entity_id, stval)
 		except Exception as E:
 			logsupport.Logs.Log('Sensor update error: State: {}  Exc:{}'.format(repr(ns), repr(E)))
+			self.Hub.sensorstore.SetVal(self.entity_id, None)
 
-
-# print('Sensor update {} {} {}'.format(self.entity_id, stval, self.Hub.sensorstore.GetVal(self.entity_id)))
 
 RegisterDomain('sensor', Sensor)

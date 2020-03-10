@@ -25,9 +25,9 @@ class BinarySensor(HAnode):
 			elif ns['state'] == 'off':
 				st = False
 			elif ns['state'] == 'unavailable':
-				st = False
+				st = None
 			else:
-				st = False
+				st = None
 				logsupport.Logs.Log("Bad Binary sensor value: ", self.entity_id, ':', ns['state'],
 									severity=ConsoleWarning)
 			self.Hub.sensorstore.SetVal(self.entity_id, st)
