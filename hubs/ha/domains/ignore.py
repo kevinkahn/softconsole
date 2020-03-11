@@ -21,7 +21,7 @@ class IgnoredDomain(HAnode):
 				self.Hub.name, self.entity_id, self.domname, repr(newstate)), severity = logsupport.ConsoleDetail)
 
 def IgnoreDomainSpecificEvent(e, message):
-	logsupport.Logs.Log("Event {} to ignored domain {}".format(e, message))
+	logsupport.Logs.Log("Event {} to ignored domain {}".format(e, message), severity=logsupport.ConsoleDetail)
 
 def AddIgnoredDomain(dom):
 	global IngoredEntities
