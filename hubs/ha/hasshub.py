@@ -44,6 +44,7 @@ def stringtonumeric(v):
 
 from ast import literal_eval
 
+# todo eliminate distinct HAnode and Stateful?
 class HAnode(object):
 	def __init__(self, HAitem, **entries):
 		self.entity_id = ''
@@ -65,13 +66,6 @@ class HAnode(object):
 	def Update(self, **ns):
 		# just updates last triggered etc.
 		self.__dict__.update(ns)
-
-
-class StatefulHAnode(HAnode):
-
-	def __init__(self, HAitem, **entries):
-		super(StatefulHAnode, self).__init__(HAitem, **entries)
-		self.internalstate = self._NormalizeState(self.state)
 
 	def _NormalizeState(self, state, brightness=None): # may be overridden for domains with special state settings
 		if isinstance(state, str):
@@ -98,6 +92,13 @@ class StatefulHAnode(HAnode):
 			if val.is_integer():
 				return int(val)
 		return val
+
+
+class StatefulHAnode(HAnode):
+
+	def __init__(self, HAitem, **entries):
+		super(StatefulHAnode, self).__init__(HAitem, **entries)
+		self.internalstate = self._NormalizeState(self.state)
 
 	def Update(self, **ns):
 		self.__dict__.update(ns)
