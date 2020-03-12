@@ -417,12 +417,16 @@ for i, v in ParsedConfigFile.items():
 				logsupport.Logs.Log("No weather provider type: {}".format(i), severity=ConsoleWarning)
 			del ParsedConfigFile[i]
 		for hubtyp, pkgv in hubs.hubs.hubtypes.items():
+			from hubs.hubs import HubInitError
 			if stype == hubtyp:
 				# noinspection PyBroadException
 				pkg = pkgv[0]
 				vers = pkgv[1]
 				try:
 					hubs.hubs.Hubs[i] = pkg(i, v.get('address', ''), v.get('user', ''), v.get('password', ''), vers)
+				except HubInitError:
+					logsupport.Logs.Log("Hub {} could not initialize".format(i), severity=ConsoleError, tb=False)
+					exitutils.Exit(exitutils.ERRORRESTART, immediate=True)  # retry - hub may be slow initializing
 				except BaseException as e:
 					logsupport.Logs.Log("Fatal console error - fix config file: ", e, severity=ConsoleError, tb=False)
 					tbinfo = traceback.format_exc().splitlines()

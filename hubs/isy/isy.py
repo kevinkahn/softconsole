@@ -17,6 +17,7 @@ import threadmanager
 import utilities
 from logsupport import ConsoleWarning, ConsoleError, ConsoleDetailHigh, ConsoleDetail
 from stores import valuestore, isyvarssupport
+from ..hubs import HubInitError
 
 
 class CommsError(Exception): pass
@@ -275,9 +276,8 @@ class ISY(object):
 					logsupport.Logs.Log('{}:  Hub not responding (nodes) at: {}'.format(self.name, self.ISYprefix))
 					time.sleep(15)
 				else:
-					logsupport.Logs.Log('No ISY response restart (nodes)')
-					exitutils.errorexit(exitutils.ERRORPIREBOOT)
-					logsupport.Logs.Log('Reached unreachable code! ISY1')
+					logsupport.Logs.Log('No ISY response')
+					raise HubInitError
 
 		if r.status_code != 200:
 			logsupport.Logs.Log('Hub (' + self.name + ') text response:', severity=ConsoleError)
@@ -286,9 +286,7 @@ class ISY(object):
 			logsupport.Logs.Log('-----', severity=ConsoleError)
 			logsupport.Logs.Log('Cannot access ISY - check username/password')
 			logsupport.Logs.Log('Status code: ' + str(r.status_code))
-			time.sleep(10)
-			exitutils.errorexit(exitutils.ERRORDIE)
-			logsupport.Logs.Log('Reached unreachable code! ISY2')
+			raise ValueError
 
 		configdict = xmltodict.parse(r.text)['nodes']
 		if debug.dbgStore.GetVal('ISYLoad'):
@@ -432,7 +430,7 @@ class ISY(object):
 					time.sleep(15)
 				else:
 					logsupport.Logs.Log('No ISY response restart (programs)')
-					exitutils.errorexit(exitutils.ERRORPIREBOOT)
+					raise HubInitError
 		configdict = xmltodict.parse(r.text)['programs']['program']
 		if debug.dbgStore.GetVal('ISYLoad'):
 			configdict = xmltodict.parse(x2)['programs']['program']
@@ -482,8 +480,7 @@ class ISY(object):
 					time.sleep(15)
 				else:
 					logsupport.Logs.Log('No ISY response restart (vars)')
-					exitutils.errorexit(exitutils.ERRORPIREBOOT)
-					logsupport.Logs.Log('Reached unreachable code! ISY4')
+					raise HubInitError
 
 		self.Vars = valuestore.NewValueStore(isyvarssupport.ISYVars(self))
 		# noinspection PyBroadException
