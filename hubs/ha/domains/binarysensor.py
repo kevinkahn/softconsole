@@ -32,9 +32,9 @@ class BinarySensor(HAnode):
 									severity=ConsoleWarning)
 			self.Hub.sensorstore.SetVal(self.entity_id, st)
 
-	def Source(self, roomname, sourcename):  # todo why ius this here?
-		ha.call_service(self.Hub.api, 'media_player', 'select_source', {'entity_id': '{}'.format(roomname),
-																		'source': '{}'.format(sourcename)})
+#	def Source(self, roomname, sourcename):   todo delete after test
+#		ha.call_service(self.Hub.api, 'media_player', 'select_source', {'entity_id': '{}'.format(roomname),
+#																		'source': '{}'.format(sourcename)})
 
 
 RegisterDomain('binary_sensor', BinarySensor)
