@@ -20,6 +20,10 @@ class IgnoredDomain(HAnode):
 			"New entity in ignored domain since startup seen from {}: {} (Domain: {}) New: {}".format(
 				self.Hub.name, self.entity_id, self.domname, repr(newstate)), severity = logsupport.ConsoleDetail)
 
+	def _NormalizeState(self, state, brightness=None):
+		# for ignored domains don't validate state info
+		return state
+
 def IgnoreDomainSpecificEvent(e, message):
 	logsupport.Logs.Log("Event {} to ignored domain {}".format(e, message), severity=logsupport.ConsoleDetail)
 
