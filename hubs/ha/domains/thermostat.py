@@ -33,7 +33,7 @@ class Thermostat(StatefulHAnode):  # not stateful since has much state info
 			logsupport.Logs.Log('{}: Climate device {} missing attributes - probably a pool/spa'.format(self.Hub.name, self.name))
 			self.IsThermostat  = False
 
-	def _NormalizeState(self, state, brightness=None):  # todo validate state?
+	def _NormalizeState(self, state, brightness=None):  # state is just the operation mode
 		return state
 
 	# noinspection PyUnusedLocal
@@ -41,6 +41,8 @@ class Thermostat(StatefulHAnode):  # not stateful since has much state info
 		PostEvent(ConsoleEvent(CEvent.HubNodeChange, hub=self.Hub.name, node=self.entity_id, value=self.internalstate))
 
 	def Update(self, **ns):
+		self.__dict__.update(ns)
+		self.internalstate = self._NormalizeState(self.state)
 		if not self.IsThermostat: return
 		if 'attributes' in ns: self.attributes = ns['attributes']
 		self.temperature = self.attributes['temperature']
