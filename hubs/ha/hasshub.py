@@ -3,6 +3,7 @@ import json
 import time
 import os
 import importlib
+from ..hubs import HubInitError
 
 import websocket
 
@@ -63,9 +64,26 @@ class HAnode(object):
 			"New entity since startup seen from {}: {} (Domain: {}) New: {}".format(
 				self.Hub.name, self.entity_id, self.domname, repr(newstate)))
 
+	#def Update(self, **ns):
+	#	# just updates last triggered etc.
+	#	self.__dict__.update(ns)
+
 	def Update(self, **ns):
-		# just updates last triggered etc.
 		self.__dict__.update(ns)
+		oldstate = self.internalstate
+		self.internalstate = self._NormalizeState(self.state)
+		if self.internalstate == -1:
+			logsupport.Logs.Log("Node " + self.name + " set unavailable", severity=ConsoleDetail)
+		if oldstate == -1 and self.internalstate != -1:
+			logsupport.Logs.Log("Node " + self.name + " became available (" + str(self.internalstate) + ")",
+								severity=ConsoleDetail)
+		if screens.DS.AS is not None:
+			if self.Hub.name in screens.DS.AS.HubInterestList:
+				if self.entity_id in screens.DS.AS.HubInterestList[self.Hub.name]:
+					debug.debugPrint('DaemonCtl', time.time() - config.sysStore.ConsoleStartTime, "HA reports node change(screen): ",
+									 "Key: ", self.Hub.Entities[self.entity_id].name)
+					PostEvent(ConsoleEvent(CEvent.HubNodeChange, hub=self.Hub.name, node=self.entity_id,
+										   value=self.internalstate))
 
 	def _NormalizeState(self, state, brightness=None): # may be overridden for domains with special state settings
 		if isinstance(state, str):
@@ -100,22 +118,7 @@ class StatefulHAnode(HAnode):
 		super(StatefulHAnode, self).__init__(HAitem, **entries)
 		self.internalstate = self._NormalizeState(self.state)
 
-	def Update(self, **ns):
-		self.__dict__.update(ns)
-		oldstate = self.internalstate
-		self.internalstate = self._NormalizeState(self.state)
-		if self.internalstate == -1:
-			logsupport.Logs.Log("Node " + self.name + " set unavailable", severity=ConsoleDetail)
-		if oldstate == -1 and self.internalstate != -1:
-			logsupport.Logs.Log("Node " + self.name + " became available (" + str(self.internalstate) + ")",
-								severity=ConsoleDetail)
-		if screens.DS.AS is not None:
-			if self.Hub.name in screens.DS.AS.HubInterestList:
-				if self.entity_id in screens.DS.AS.HubInterestList[self.Hub.name]:
-					debug.debugPrint('DaemonCtl', time.time() - config.sysStore.ConsoleStartTime, "HA reports node change(screen): ",
-									 "Key: ", self.Hub.Entities[self.entity_id].name)
-					PostEvent(ConsoleEvent(CEvent.HubNodeChange, hub=self.Hub.name, node=self.entity_id,
-										   value=self.internalstate))
+
 
 	def SendOnOffCommand(self, settoon):
 		pass
@@ -437,7 +440,6 @@ class HA(object):
 					logsupport.Logs.Log(
 						"{} has new service: {}".format(self.name, message), severity=ConsoleDetail)
 				elif m['event_type'] in ignoredeventtypes:
-					# todo create list of seen events not on ignore list?
 					pass
 				elif '.' in m['event_type']:
 					# domain specific event
@@ -630,7 +632,7 @@ class HA(object):
 			logsupport.Logs.Log('{}: Access accepted'.format(self.name))
 		else:
 			logsupport.Logs.Log('HA access failed multiple trys for: ' + self.name, severity=ConsoleError, tb=False)
-			raise ValueError
+			raise HubInitError
 
 		entities = ha.get_states(self.api)
 		for e in entities:
@@ -650,7 +652,10 @@ class HA(object):
 
 			self.Domains[e.domain][e.object_id] = N
 
-		for n, T in self.DomainEntityReg['climate'].items():  # todo why not in Tstat processing; fix the empty catch for pool climate
+		for n, T in self.DomainEntityReg['climate'].items():
+			# This is special cased for Thermostats to connect the sensor entity with the thermostat to check for changes
+			# If any other domain ever needs the same mechanism this should just be generalized to a "finish-up" call for
+			# every entity
 			if T.IsThermostat:
 				try:
 					tname = n.split('.')[1]
