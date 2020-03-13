@@ -7,6 +7,7 @@ class Sensor(HAnode):  # not stateful since it updates directly to store value
 		super(Sensor, self).__init__(HAitem, **d)
 		self.Hub.RegisterEntity('sensor', self.entity_id, self)
 		self.Hub.sensorstore.SetVal(self.entity_id, stringtonumeric(self.state))
+		self.missinglast = self.state == 'unknown'  # if unknown assume really not there (like pool stuff)
 
 	def _SetSensorAlert(self, p):
 		self.Hub.sensorstore.AddAlert(self.entity_id, p)
@@ -17,7 +18,11 @@ class Sensor(HAnode):  # not stateful since it updates directly to store value
 		try:
 			if 'state' in ns:
 				if ns['state'] in ('', 'unknown', 'None', 'unavailable'):
-					logsupport.Logs.Log('Sensor data missing for {} value: {}'.format(ns['entity_id'], ns['state']))
+					if not self.missinglast: # don't keep reporting same outage
+						logsupport.Logs.Log('Sensor data missing for {} value: {}'.format(ns['entity_id'], ns['state']))
+					else:
+						logsupport.Logs.Log('Sensor data missing for {} value: {}'.format(ns['entity_id'], ns['state']), severity=logsupport.ConsoleDetail)
+					self.missinglast = True
 					stval = None
 				else:
 					stval = stringtonumeric(ns['state'])
