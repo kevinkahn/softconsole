@@ -73,9 +73,9 @@ class HAnode(object):
 		oldstate = self.internalstate
 		self.internalstate = self._NormalizeState(self.state)
 		if self.internalstate == -1:
-			logsupport.Logs.Log("Node " + self.name + " set unavailable", severity=ConsoleDetail)
+			logsupport.Logs.Log("Node {} ({}) set unavailable (was {})".format(self.name, self.entity_id, str(oldstate)), severity=ConsoleDetail)
 		if oldstate == -1 and self.internalstate != -1:
-			logsupport.Logs.Log("Node " + self.name + " became available (" + str(self.internalstate) + ")",
+			logsupport.Logs.Log("Node {} ({}) became availavle ({})".format(self.name, self.entity_id, str(self.internalstate)),
 								severity=ConsoleDetail)
 		if screens.DS.AS is not None:
 			if self.Hub.name in screens.DS.AS.HubInterestList:

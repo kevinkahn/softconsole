@@ -46,7 +46,7 @@ def NoEventInjector():
 		# noinspection PyBroadException
 		try:
 			now = time.time()
-			L.Logs.Log('Inject: {}'.format(now), severity=L.ConsoleDetail)
+			L.Logs.Log('Inject: {}'.format(now), severity=L.ConsoleDetailHigh)
 			PostEvent(ConsoleEvent(CEvent.FailSafePing, inject=now))
 			time.sleep(FailsafeInterval / 2)
 		except Exception as E:
