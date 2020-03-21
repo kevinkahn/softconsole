@@ -319,6 +319,7 @@ class HA(object):
 		def on_message(qws, message):
 			loopstart = time.time()
 			self.HB.Entry(repr(message))
+			#logsupport.Logs.Log("-->{}".format(repr(message)))
 			try:
 				self.msgcount += 1
 				# if self.msgcount <4: logsupport.Logs.Log(self.name + " Message "+str(self.msgcount)+':'+ repr(message))
