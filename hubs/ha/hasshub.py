@@ -561,7 +561,10 @@ class HA(object):
 		self.DomainEntityReg = {}
 		self.knownservices = []
 		self.HB = historybuffer.HistoryBuffer(40, hubname)
-		logsupport.Logs.Log("{}: Creating structure for Home Assistant hub at {}".format(hubname, addr))
+		if version not in (0, 1):
+			logsupport.Logs.Log("Fatal error - no HA hub version {}".format(version), severity = ConsoleError)
+			raise ValueError
+		logsupport.Logs.Log("{}: Creating structure for Home Assistant hub version {} at {}".format(hubname, version, addr))
 
 		self.dyndomains = {}
 		for domainimpl in os.listdir(os.getcwd() + '/hubs/ha/domains'):

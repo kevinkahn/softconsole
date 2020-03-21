@@ -116,7 +116,4 @@ class WeatherVals(valuestore.ValueStore):
 
 		return True
 
-#	def GetVal(self, name, failok=False):  # todo is this ever called? ref BlockRefresh
-#		self.BlockRefresh()
-#		return super(WeatherVals, self).GetVal(name)
 

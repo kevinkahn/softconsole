@@ -74,10 +74,8 @@ historybuffer.HBNet = historybuffer.HistoryBuffer(80, 'Net')
 
 atexit.register(exitutils.exitlogging)
 
-hubs.hubs.hubtypes['ISY'] = (isy.ISY, 0)
-hubs.hubs.hubtypes['HASS'] = (hasshub.HA, 0)
-hubs.hubs.hubtypes['HASSNEW'] = (hasshub.HA, 1)
-
+hubs.hubs.hubtypes['ISY'] = isy.ISY
+hubs.hubs.hubtypes['HASS'] = hasshub.HA
 
 # noinspection PyUnusedLocal
 def handler(signum, frame):
@@ -416,14 +414,16 @@ for i, v in ParsedConfigFile.items():
 			else:
 				logsupport.Logs.Log("No weather provider type: {}".format(i), severity=ConsoleWarning)
 			del ParsedConfigFile[i]
-		for hubtyp, pkgv in hubs.hubs.hubtypes.items():
+		for hubtyp, pkg in hubs.hubs.hubtypes.items():
+			stype_vers = stype.split('.')
+			stype_base = stype_vers[0]
+			hubvers = 0 if len(stype_vers) == 1 else int(stype_vers[1])
 			from hubs.hubs import HubInitError
-			if stype == hubtyp:
+			if stype_base == hubtyp:
 				# noinspection PyBroadException
-				pkg = pkgv[0]
-				vers = pkgv[1]
 				try:
-					hubs.hubs.Hubs[i] = pkg(i, v.get('address', ''), v.get('user', ''), v.get('password', ''), vers)
+					logsupport.Logs.Log('Create {} hub version {} as {}'.format(stype_base, hubvers, i))
+					hubs.hubs.Hubs[i] = pkg(i, v.get('address', ''), v.get('user', ''), v.get('password', ''), hubvers)
 				except HubInitError:
 					logsupport.Logs.Log("Hub {} could not initialize".format(i), severity=ConsoleError, tb=False)
 					exitutils.Exit(exitutils.ERRORRESTART, immediate=True)  # retry - hub may be slow initializing
