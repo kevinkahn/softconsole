@@ -39,7 +39,7 @@ class MQTTBroker(valuestore.ValueStore):
 		# noinspection PyUnusedLocal
 		def on_connect(client, userdata, flags, rc):
 			logm = "Connected" if self.loopexited else "Reconnected"
-			logsupport.Logs.Log("{}: {} stream {} with result code {}".format(self.name, logm, self.MQTTnum, rc))
+			logsupport.Logs.Log("{}: {} stream {} to {} with result code {}".format(self.name, logm, self.MQTTnum, self.address, rc))
 			for i, _ in userdata.topicindex.items():
 				client.subscribe(i)
 			if logsupport.primaryBroker == self:
