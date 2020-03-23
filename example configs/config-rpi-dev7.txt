@@ -216,9 +216,9 @@ label = Garage, Door
 
 [LR1]
     Clocked = 2
-    ScreenTitle = Living Room {:.1f}° {:.0f}%
+    ScreenTitle = Living Room {:.1f}° {:.0f}% at {}
     ScreenTitleColor = red
-    ScreenTitleFields = MQTT:PatioTemp, MQTT:PatioHum
+    ScreenTitleFields = MQTT:PatioTemp, MQTT:PatioHum, System:Time:%H*%M*%S
     type = Keypad
     label = Living, Room 1
     [[Office Ceiling]]
