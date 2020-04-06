@@ -252,6 +252,7 @@ class ISY(object):
 		self.ErrNodes = {}
 		self.Busy = 0
 		self.V3Nodes = []  # temporary way to track and suppress errors from nodes we don't currently handle (todo V3)
+		self.UnknownList = {}
 
 		"""
 		Build the Folder/Node/Scene tree
@@ -547,6 +548,21 @@ class ISY(object):
 					self.try_ISY_comm('vars/set/' + str(varid[0]) + '/' + str(varid[1]) + '/' + str(val), doasync=True)
 			else:
 				logsupport.Logs.Log("Attempt to set ISY var to None: ", storeitem.name)
+
+	def AddToUnknowns(self,node):
+		self.UnknownList[node.name] = node
+		logsupport.Logs.Log('{}: Adding {} to unknowns list {}'.format(self.name,node.name,self.UnknownList), severity = ConsoleWarning)
+
+	def DeleteFromUnknowns(self, node):
+		try:
+			del self.UnknownList[node.name]
+			logsupport.Logs.Log('{}: Deleted {} from unknowns list {}'.format(self.name, node.name, self.UnknownList), severity = ConsoleWarning)
+		except Exception as E:
+			logsupport.Logs.Log('{}: Failed attempt to delete {} from unknowns list {}'.format(self.name, node.name, self.UnknownList), severity = ConsoleWarning)
+
+	def GetActualState(self, ent):
+		logsupport.Logs.Log('{}: Call to GetActualState for {}'.format(self.name, ent), severity=ConsoleWarning)
+		return 0  # fix this to return or fix?  todo
 
 	def CheckStates(self):
 		# sanity check all states in Hub against local cache

@@ -70,6 +70,7 @@ class HAnode(object):
 
 	def Update(self, **ns):
 		self.__dict__.update(ns)
+		#print(self.name, ns) todo del
 		oldstate = self.internalstate
 		self.internalstate = self._NormalizeState(self.state)
 		if self.internalstate == -1:
@@ -213,6 +214,52 @@ class HA(object):
 			logsupport.Logs.Log("Error accessing current state in HA Hub: " + self.name + ' ' + repr(MonitorNode),
 								severity=ConsoleWarning)
 			return None
+
+	def _StatusChecker(self):
+		worktodo = True
+		while worktodo:
+			templist = dict(self.UnknownList)
+			for node in templist:
+				e = self.GetActualState(node.name)
+				# todo should post e as a node state change
+			time.sleep(10)
+			worktodo = bool(self.UnknownList)
+
+
+	def StartStatusChecker(self):
+		# logic here would be to start a thread that runs while List is non empty - need to be careful regarding it changing length
+		# while in the loop.  Also needs to be conservative about stopping and the starter needs to double check the is alive in some way
+		# so as not to get caught with an entry but not running.
+		pass
+
+	def AddToUnknowns(self,node): # todo
+		# need to start a thread that checks periodically the status of the node.  When it changes to known value that thread should exit (perhaps post?)
+		# the delete would get triggered the next time the paint is called (or would it? - can the change to real value happen under the covers?)  Maybe don't need to do the delete
+		# since the thread will be not alive - can just start the thread if not alive and let it die peacefully after doing its job?
+		self.UnknownList[node.name] = node
+		# need a single slot for the node status checker thread per hub instance check is_alive on each entry.  Worst case on the next key repaint this will get
+		# called again and the status checking will start.
+		logsupport.Logs.Log('{}: Adding {} to unknowns list {}'.format(self.name,node.name,self.UnknownList), severity = ConsoleWarning)
+		if self.UnknownList:
+			if self.StatusCheckerThread is None:
+				self.StartStatusChecker()
+			elif not self.StatusCheckerThread.is_alive():
+				self.StartStatusChecker()
+
+	def DeleteFromUnknowns(self, node):
+		try:
+			del self.UnknownList[node.name]
+			logsupport.Logs.Log('{}: Deleted {} from unknowns list {}'.format(self.name, node.name, self.UnknownList), severity = ConsoleWarning)
+		except Exception as E:
+			logsupport.Logs.Log('{}: Failed attempt to delete {} from unknowns list {}'.format(self.name, node.name, self.UnknownList), severity = ConsoleWarning)
+
+	def GetActualState(self, ent):
+		try:
+			e = ha.get_state(self.api, ent)
+		except Exception as E:
+			logsupport.Logs.Log('{}: State check did not complete for {} exc: {}'.format(self.name, ent, E), severity = ConsoleWarning)
+			e = -1
+		return e
 
 	def CheckStates(self):
 		# noinspection PyBroadException
@@ -409,6 +456,7 @@ class HA(object):
 							self.Entities[ent] = N  # only report once
 						return
 					elif new is not None:
+						#print('Call update: {} {}'.format(ent, new)) todo del
 						self.Entities[ent].Update(**new)
 
 					self.HB.Entry(
@@ -559,6 +607,8 @@ class HA(object):
 
 	# noinspection PyUnusedLocal
 	def __init__(self, hubname, addr, user, password, version):
+		self.UnknownList = {}
+		self.StatusCheckerThread = None
 		self.DomainEntityReg = {}
 		self.knownservices = []
 		self.HB = historybuffer.HistoryBuffer(40, hubname)

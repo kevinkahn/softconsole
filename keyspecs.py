@@ -336,8 +336,14 @@ class OnOffKey(ManualKeyDesc):
 			logsupport.Logs.Log("Node event with non integer state: " + evnt,
 								severity=ConsoleWarning)
 			evnt.value = int(evnt.value)
+		oldunknown = self.UnknownState
 		self.State = not (evnt.value == 0)  # K is off (false) only if state is 0
 		self.UnknownState = True if evnt.value == -1 else False
+		if self.UnknownState:
+			# add node to unknowns list for hub
+			self.ControlObj.Hub.AddToUnknowns(self.ControlObj)
+		elif oldunknown:
+			self.ControlObj.Hub.DeleteFromUnknowns(self.ControlObj)
 		self.PaintKey()
 		pygame.display.update()
 

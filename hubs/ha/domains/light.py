@@ -13,7 +13,7 @@ class Light(StatefulHAnode):
 			self.internalstate = self._NormalizeState(self.state, int(self.attributes['brightness']))
 
 	def Update(self, **ns):
-		super(Light, self).Update(**ns)
+		super().Update(**ns)
 		if 'brightness' in self.attributes:
 			self.internalstate = self._NormalizeState(self.state, int(self.attributes['brightness']))
 
