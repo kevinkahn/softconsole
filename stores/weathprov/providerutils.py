@@ -36,7 +36,11 @@ GenericShortener = {
 	'the': '',
 	'overnight': 'ovnt',
 	'starting': '',
-	'again': ''
+	'again': '',
+	'clouds': 'clds',
+	'broken': 'bkn',
+	'overcast': 'ovcst',
+	'scattered': 'scttrd'
 }
 
 NoiseItems = (' throughout the day', '.')

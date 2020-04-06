@@ -107,6 +107,7 @@ class DarkSkyWeatherSource(object):
 		self.apikey = api
 		self.thisStoreName = storename
 		self.thisStore = None
+		self.location = location
 		try:
 			locationstr = location.split(',')
 			if len(locationstr) != 2:

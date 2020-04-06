@@ -65,6 +65,8 @@ APIXUfetches = 0
 APIXUfetches24 = 0
 DarkSkyfetches = 0  # todo generalize?
 DarkSkyfetches24 = 0  # todo generalize
+Weatherbitfetches = 0
+Weatherbitfetches24 = 0
 daystartloops = 0
 maincyclecnt = 0
 

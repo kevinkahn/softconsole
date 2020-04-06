@@ -42,6 +42,7 @@ def TreeDict(d, args):
 	# Allow a nest of dictionaries to be accessed by a tuple of keys for easier code
 	if len(args) == 1:
 		temp = d[args[0]]
+		#temp = getattr(d,args[0])
 		if isinstance(temp, str) and temp.isdigit():
 			temp = int(temp)
 		else:
@@ -52,6 +53,7 @@ def TreeDict(d, args):
 		return temp
 	else:
 		return TreeDict(d[args[0]], args[1:])
+		#return TreeDict(getattr(d,args[0]),args[1:])
 
 import string
 class PartialFormatter(string.Formatter):
