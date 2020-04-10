@@ -42,7 +42,6 @@ class MQTTBroker(valuestore.ValueStore):
 			sckt = self.MQTTclient.socket()
 			svraddr = sckt.getpeername()
 			logsupport.Logs.Log("{}: {} stream {} to {}({}) with result code {}".format(self.name, logm, self.MQTTnum, self.address, svraddr[0], rc))
-			print("{}: {} stream {} to {}({}) with result code {}".format(self.name, logm, self.MQTTnum, self.address, svraddr[0], rc))
 			for i, _ in userdata.topicindex.items():
 				client.subscribe(i)
 			if logsupport.primaryBroker == self:
