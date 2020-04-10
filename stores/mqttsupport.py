@@ -31,7 +31,7 @@ class MQitem(valuestore.StoreItem):
 class MQTTBroker(valuestore.ValueStore):
 
 	def __init__(self, name, configsect):
-		super(MQTTBroker, self).__init__(name, itemtyp=MQitem)
+		super().__init__(name, itemtyp=MQitem)
 		self.MQTTnum = 0
 		self.fetcher = None
 		self.HB = historybuffer.HistoryBuffer(40, name)
@@ -39,7 +39,10 @@ class MQTTBroker(valuestore.ValueStore):
 		# noinspection PyUnusedLocal
 		def on_connect(client, userdata, flags, rc):
 			logm = "Connected" if self.loopexited else "Reconnected"
-			logsupport.Logs.Log("{}: {} stream {} to {} with result code {}".format(self.name, logm, self.MQTTnum, self.address, rc))
+			sckt = self.MQTTclient.socket()
+			svraddr = sckt.getpeername()
+			logsupport.Logs.Log("{}: {} stream {} to {}({}) with result code {}".format(self.name, logm, self.MQTTnum, self.address, svraddr[0], rc))
+			print("{}: {} stream {} to {}({}) with result code {}".format(self.name, logm, self.MQTTnum, self.address, svraddr[0], rc))
 			for i, _ in userdata.topicindex.items():
 				client.subscribe(i)
 			if logsupport.primaryBroker == self:
@@ -179,7 +182,7 @@ class MQTTBroker(valuestore.ValueStore):
 					self.topicindex[tpc] = [rtn]
 				return rtn
 
-		self.address = configsect.get('address', None)
+		self.address = configsect.get('address', 'mqtt')
 		self.password = configsect.get('password', None)
 		self.reportstatus = configsect.get('ReportStatus', False)
 		self.vars = {}
