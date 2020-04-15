@@ -508,35 +508,43 @@ if 'Variables' in ParsedConfigFile:
 		i += 1
 	del ParsedConfigFile['Variables']
 
-"""
-Build the Hub(s) object structure and connect the configured screens to it
-"""
-configobjects.MyScreens(ParsedConfigFile)
-logsupport.Logs.Log("Linked config to Hubs")
+try:
 
-"""
-Build the alerts structures
-"""
-alerttasks.AlertItems = alerttasks.Alerts(alertspec)
-logsupport.Logs.Log("Alerts established")
+	"""
+	Build the Hub(s) object structure and connect the configured screens to it
+	"""
+	configobjects.MyScreens(ParsedConfigFile)
+	logsupport.Logs.Log("Linked config to Hubs")
 
-"""
-Set up the Maintenance Screen
-"""
-maintscreen.SetUpMaintScreens()
-logsupport.Logs.Log("Built Maintenance Screen")
+	"""
+	Build the alerts structures
+	"""
+	alerttasks.AlertItems = alerttasks.Alerts(alertspec)
+	logsupport.Logs.Log("Alerts established")
 
-LogBadParams(ParsedConfigFile, "Globals")
-LogBadParams(alertspec, "Alerts")
-"""
-Dump documentation if development version
-"""
-# if config.sysStore.versionname == 'development':
-#	utilities.DumpDocumentation()
+	"""
+	Set up the Maintenance Screen
+	"""
+	maintscreen.SetUpMaintScreens()
+	logsupport.Logs.Log("Built Maintenance Screen")
+
+	LogBadParams(ParsedConfigFile, "Globals")
+	LogBadParams(alertspec, "Alerts")
+	"""
+	Dump documentation if development version
+	"""
+	# if config.sysStore.versionname == 'development':
+	#	utilities.DumpDocumentation()
+except Exception as E:
+	logsupport.Logs.Log('Fatal Error while starting: {}'.format(E), severity=ConsoleError,hb=True,tb=True)
+	timers.ShutTimers('Initialization failure')
+	hw.GoBright(100)
+	pygame.quit()
+	sys.exit(exitutils.EARLYABORT)
 
 """
 Run the main console loop
-"""
+	"""
 for n in alerttasks.monitoredvars:  # make sure vars used in alerts are updated to starting values
 	valuestore.GetVal(n)
 gui = threading.Thread(name='GUI', target=screens.DS.MainControlLoop, args=(screens.HomeScreen,))
