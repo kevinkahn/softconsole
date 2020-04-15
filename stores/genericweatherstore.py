@@ -38,8 +38,8 @@ class WeatherVals(valuestore.ValueStore):
 		self.lastgoodfetch = 0
 		self.failedfetchcount = 0
 		self.refreshinterval = 60 * refresh
-		super(WeatherVals, self).__init__(location)
-		self.ws = weathersource  # apixustore.APIXUWeatherSource(self, location)  #
+		super().__init__(location)
+		self.ws = weathersource
 		self.fetchcount = 0
 		self.vars = {'Cond': OrderedDict(), 'Fcst': OrderedDict(), 'FcstDays': 0, 'FcstEpoch': 0, 'FcstDate': ''}
 		self.location = location

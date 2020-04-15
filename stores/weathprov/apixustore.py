@@ -81,7 +81,7 @@ icondir = config.sysStore.ExecDir + '/auxinfo/apixuicons/'
 
 
 class APIXUWeatherSource(object):
-	def __init__(self, storename, location, api):
+	def __init__(self, storename, location, api, units='I'):
 		self.baseurl = 'https://api.apixu.com/v1/forecast.json'
 		self.args = {'key': api, 'q': location, 'days': 7}
 		self.apikey = api

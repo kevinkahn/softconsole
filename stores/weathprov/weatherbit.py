@@ -165,13 +165,13 @@ icondir = config.sysStore.ExecDir + '/auxinfo/apixuicons/'
 
 
 class WeatherbitWeatherSource(object):
-	def __init__(self, storename, location, apiky):
+	def __init__(self, storename, location, apiky, units='I'):
 		self.apikey = apiky
 		self.api = Api(self.apikey)
 		self.thisStoreName = storename
 		self.thisStore = None
 		self.location = location
-		self.units = 'I' # todo allow metric
+		self.units = units
 		try: #t try to convert to lat/lon
 			locationstr = location.split(',')
 			if len(locationstr) != 2:

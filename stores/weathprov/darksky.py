@@ -103,7 +103,7 @@ icondir = config.sysStore.ExecDir + '/auxinfo/apixuicons/'
 
 
 class DarkSkyWeatherSource(object):
-	def __init__(self, storename, location, api):
+	def __init__(self, storename, location, api, units='I'):
 		self.apikey = api
 		self.thisStoreName = storename
 		self.thisStore = None
