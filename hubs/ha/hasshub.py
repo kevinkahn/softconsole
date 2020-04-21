@@ -667,11 +667,14 @@ class HA(object):
 			hassok = False
 			apistat = ha.validate_api(self.api)
 			if apistat == ha.APIStatus.OK:
+				if i > 2: # this was probably a power fail restart so need to really wait while HA stabilizes
+					logsupport.Logs.Log('{}: Probable power fail restart so delay to allow HA stabilization'.format(self.name))
+					time.sleep(120)
 				hassok = True
 				break
 			elif apistat == ha.APIStatus.CANNOT_CONNECT:
-				logsupport.Logs.Log('{}: Not yet responding (starting up?)'.format(self.name))
-				time.sleep(10 * i)
+				logsupport.Logs.Log('{}: Not yet responding (starting up?)({})'.format(self.name, i))
+				time.sleep(10 * (i+1))
 			elif apistat == ha.APIStatus.INVALID_PASSWORD:
 				logsupport.Logs.Log('{}: Bad access key'.format(self.name), severity=ConsoleError)
 				raise ValueError
