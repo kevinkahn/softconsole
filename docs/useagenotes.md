@@ -106,13 +106,15 @@ Stores are created for ISY variables (ISY:State:<varname> and ISY:Int:<varname>)
 Stores are also used to store all major system and screen parameters.  System parameters are in the **System** store, while screen parameters are in a store named with the name of the screen.  Note that parameter values that are not explicitly set in a Key (or internally in a "subscreen") will inherit the value of the parameter from the enclosing screen or from an outermost **ScreenParams** store.  Use the maintenance screen, set flags, dump stores to create a StoresDump file in the Console directory if you want to see all the stores and field names.  In addition to the alert and screen references described above there is a general ability to set a store value while the console is running via MQTT.  This is definitely not for the faint of heart - feel free to contact me directly if you need to use this and the discussion below isn't adequate.
 
 # Weather Providers
-Screens that display weather need to have a store populated with the current information.  You define a weather provider like you do a hub.  Currently there is support for APIXU.  Define a provider and its key in the config file or an included subfile as:
+Screens that display weather need to have a store populated with the current information.  You define a weather provider like you do a hub.  Currently there is support for APIXU (now deprecated because the provider is no longer available), DarkSky (provider will go away 12/21), and Weatherbit.  Define a provider and its key in the config file or an included subfile as:
 ```
     [DarkSky]
     type = WeatherProvider
     apikey = <key>
 
 ```
+The Weatherbit provider supports and optional additional parameter units which can be set to 'I' or 'M' to indicate respectively Imperial or Metric readings.  The default is Imperial.  Weatherbit supports either a Lat/Log pair or a City, State pair for location.
+
 The section names designate the provider and one or both can be used.  Locations for which to get weather are defined like (the actual contents of the Location field will depend upon what the particular weather provider requires):
 ```
 [PortlandW]
