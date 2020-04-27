@@ -66,10 +66,6 @@ update-alternatives --install /usr/bin/python python /usr/bin/python3 2
 update-alternatives --install /usr/bin/python python /usr/bin/python2 1
 update-alternatives --set python /usr/bin/python3
 
-LogBanner "Python Compatibility Lib"
-
-pip install future
-
 echo "deb http://mirrordirector.raspbian.org/raspbian/ stretch main contrib non-free rpi firmware" >> /etc/apt/sources.list.d/raspi.list
 
 LogBanner "Set Time Zone"

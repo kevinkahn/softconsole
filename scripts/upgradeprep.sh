@@ -10,7 +10,6 @@ pip install --upgrade websocket-client
 pip install --upgrade wiringpi
 pip install --upgrade paho-mqtt
 pip install --upgrade python-dateutil
-pip install --upgrade future
 pip install darksky_weather
 
 if [ -e setupsystemd.py ]

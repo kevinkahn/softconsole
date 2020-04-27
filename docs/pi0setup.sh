@@ -156,7 +156,6 @@ apt-get install python3-pip -y
 
 LogBanner "python3-pygame"
 apt-get install python3-pygame -y
-pip3 install future
 pip3 install requests
 
 echo "deb http://mirrordirector.raspbian.org/raspbian/ stretch main contrib non-free rpi firmware" >> /etc/apt/sources.list.d/raspi.list
