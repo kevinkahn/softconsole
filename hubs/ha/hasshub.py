@@ -23,7 +23,7 @@ AddIgnoredDomain = None  # gets filled in by ignore to avoid import loop
 
 ignoredeventtypes = ('system_log_event', 'call_service', 'service_executed', 'logbook_entry', 'timer_out_of_sync', 'result',
 					 'persistent_notifications_updated', 'automation_triggered', 'script_started', 'service_removed','hacs/status',
-					 'hacs/repository','hacs/config')
+					 'hacs/repository','hacs/config','entity_registry_updated')
 
 def stringtonumeric(v):
 	if not isinstance(v, str):
@@ -569,6 +569,10 @@ class HA(object):
 
 		# noinspection PyUnusedLocal
 		def on_open(qws):
+			# todo if ws never opens then an error doesn't cause a thread restart - not sure why but should track down
+			# possible logic - record successful open then if error while not yet open cause console to restart by setting some
+			# global flag? Flag would be checked in main gui loop and cause a restart.  It is a one way comm from the threads so
+			# should not be subject to a race
 			self.HB.Entry('Open')
 			logsupport.Logs.Log(self.name + ": WS stream " + str(self.HAnum) + " opened")
 			self.haconnectstate = "Running"
