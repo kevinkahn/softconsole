@@ -121,7 +121,8 @@ config.sysStore.SetVal('Topper_pid',0)
 config.sysStore.SetVal('ExecDir', os.path.dirname(os.path.abspath(__file__)))
 os.chdir(config.sysStore.ExecDir)  # make sure we are in the directory we are executing from
 config.sysStore.SetVal('HomeDir', os.path.dirname(config.sysStore.ExecDir))
-config.sysStore.SetVal('consolestatus','started')
+config.sysStore.SetVal('consolestatus', 'started')
+config.sysStore.SetVal('hostname', hw.hostname)
 logsupport.Logs.Log(u"Console ( " + str(config.sysStore.Console_pid) + u") starting in " + os.getcwd())
 if len(sys.argv) == 2:
 	config.sysStore.configfile = sys.argv[1]

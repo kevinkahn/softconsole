@@ -17,6 +17,7 @@ import consolestatus
 import issuecommands
 import screens.__screens as screens
 import controlevents
+from stores.weathprov.providerutils import WeathProvs
 
 
 
@@ -50,6 +51,7 @@ class MQTTBroker(valuestore.ValueStore):
 								  ('consoles/' + hw.hostname + '/set', 1),
 								  ('consoles/all/set', 1)])
 				client.subscribe('consoles/all/nodes/#')
+				client.subscribe('consoles/all/weather/#')
 				client.subscribe('consoles/+/status')
 				client.subscribe('consoles/+/resp')
 			self.loopexited = False
@@ -93,6 +95,13 @@ class MQTTBroker(valuestore.ValueStore):
 				except Exception as E:
 					logsupport.Logs.Log('Bad set via MQTT: {} Exc: {}'.format(repr(d), E), severity=ConsoleWarning)
 				return
+			elif msg.topic.startswith('consoles/all/weather'):
+				provider = msg.topic.split('/')[3]
+				try:
+					WeathProvs[provider].MQTTWeatherUpdate(msg.payload)
+				except Exception as E:
+					logsupport.Logs.Log('Unkown weather provider MQTT update for {} {}'.format(provider, E),
+										severity=ConsoleWarning)
 			else:
 				# see if it is node specific message
 				topic = msg.topic.split('/')
@@ -216,7 +225,7 @@ class MQTTBroker(valuestore.ValueStore):
 							  'hw': hw.hwinfo}),
 						 retain=True, qos=1)
 		threadmanager.SetUpHelperThread(self.name, self.MQTTLoop)
-		config.monitoringstatus = True
+		config.mqttavailable = True
 		config.MQTTBroker = self
 
 	def MQTTLoop(self):

@@ -14,7 +14,7 @@ ecode = 0  # exit code set for main loop
 SonosScreen = None  # todo hack to handle late appearing players
 
 # Avoids import loops
-monitoringstatus = False
+mqttavailable = False
 MQTTBroker = None
 
 
@@ -56,4 +56,4 @@ sysvals = {
 #  versioncommit
 #  consolestatus
 #  configfile
-
+#  hostname

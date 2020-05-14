@@ -4,6 +4,7 @@ from datetime import datetime
 
 import pygame
 import controlevents
+import json
 
 import config
 import historybuffer
@@ -17,13 +18,17 @@ from utilfuncs import interval_str
 
 WeatherIconCache = {'n/a': MissingIcon}
 
+WeatherCache = {}  # entries are location:(time, current, forecast)
+WeatherFetches = {}  # entries are node: count
+
+
 def TreeDict(d, args):
 	# Allow a nest of dictionaries to be accessed by a tuple of keys for easier code
 	if len(args) == 1:
 		if isinstance(d, dict):
 			temp = d[args[0]]
 		else:
-			temp = getattr(d,args[0])
+			temp = getattr(d, args[0])
 		if isinstance(temp, str) and temp.isdigit():
 			temp = int(temp)
 		else:
@@ -198,74 +203,99 @@ class WeatherbitWeatherSource(object):
 		else:
 			return item
 
+	def MQTTWeatherUpdate(self, payload):
+		weatherinfo = json.loads(payload)
+		WeatherCache[weatherinfo['location']] = (
+		weatherinfo['fetchtime'], weatherinfo['current'], weatherinfo['forecast'], weatherinfo['fetchingnode'])
+		WeatherFetches[weatherinfo['fetchingnode']] = weatherinfo['fetchcount']
+
 	def FetchWeather(self):
-		for trydecode in range(2):  # if a decode fails try another actual fetch
-			r = None
-			fetchworked = False
-			trycnt = 4
-			lastE = None
-			while not fetchworked and trycnt > 0:
-				trycnt -= 1
-				# logsupport.Logs.Log('Actual weather fetch attempt: {}'.format(self.location))
-				try:
-					historybuffer.HBNet.Entry('Weatherbit weather fetch{}: {}'.format(trycnt, self.thisStoreName))
-					current = self.get_current().points[0]  # single point for current reading
-					forecast = self.get_forecast().points   # list of 16 points for forecast point 0 is today
-					historybuffer.HBNet.Entry('Weather fetch done')
-					logsupport.Weatherbitfetches += 2
-					logsupport.Weatherbitfetches24 += 2
-					fetchworked = True
-				except Exception as E:
-					fetchworked = False
-					lastE = E
-					historybuffer.HBNet.Entry('Weather fetch exception: {}'.format(repr(E)))
-					time.sleep(2)
-			if not fetchworked:
-				logsupport.Logs.Log(
-					"Failed multiple tries to get weather for {} last Exc: {}".format(self.location, lastE),
-					severity=logsupport.ConsoleWarning, hb=True)
-				self.thisStore.ValidWeather = False
-				return
-			try:
-				self.thisStore.ValidWeather = False  # show as invalid for the short duration of the update - still possible to race but very unlikely.
-				tempfcstinfo = {}
-				for fn, entry in FcstFieldMap.items():
-					tempfcstinfo[fn] = []
+		# check for a cached set of readings newer that CurrentFetchTime
+		if self.location in WeatherCache and WeatherCache[self.location][0] > self.thisStore.ValidWeatherTime:
+			# Newer weather has been broadcast so use that for now
+			current = WeatherCache[self.location][1]
+			forecast = WeatherCache[self.location][2]
+			fetcher = WeatherCache[self.location][3]
 
-				self.thisStore.SetVal(('Cond', 'Location'), self.thisStoreName)
-				for fn, entry in CondFieldMap.items():
-					val = self.MapItem(current, entry)
-					self.thisStore.SetVal(('Cond', fn), val)
-
-				fcstdays = len(forecast)
-				for i in range(fcstdays):
+		else:
+			for trydecode in range(2):  # if a decode fails try another actual fetch
+				r = None
+				fetchworked = False
+				trycnt = 4
+				lastE = None
+				while not fetchworked and trycnt > 0:
+					trycnt -= 1
+					# logsupport.Logs.Log('Actual weather fetch attempt: {}'.format(self.location))
 					try:
-						dbgtmp = {}
-						fcst = forecast[i]
-
-						for fn, entry in FcstFieldMap.items():
-							val = self.MapItem(fcst, entry)
-							tempfcstinfo[fn].append(val)
-							dbgtmp[fn] = val
-						#logsupport.Logs.Log('Weatherfcst({}): {}'.format(self.location, dbgtmp))
+						historybuffer.HBNet.Entry('Weatherbit weather fetch{}: {}'.format(trycnt, self.thisStoreName))
+						current = self.get_current().points[0]  # single point for current reading
+						forecast = self.get_forecast().points  # list of 16 points for forecast point 0 is today
+						logsupport.Weatherbitfetches += 2
+						logsupport.Weatherbitfetches24 += 2
+						bcst = {'current': current, 'forecast': forecast, 'location': self.location,
+								'fetchtime': time.time(),
+								'fetchcount': logsupport.Weatherbitfetches24, 'fetchingnode': config.sysStore.hostname}
+						if config.mqttavailable:
+							config.MQTTBroker.Publish('Weatherbit', node='all/weather', payload=json.dumps(bcst))
+						historybuffer.HBNet.Entry('Weather fetch done')
+						fetchworked = True
+						fetcher = 'local'
 					except Exception as E:
-						logsupport.DevPrint(
-							'Exception (try{}) in Weatherbit forecast processing day {}: {}'.format(trydecode, i, repr(E)))
-						raise
-				for fn, entry in FcstFieldMap.items():
-					self.thisStore.GetVal(('Fcst', fn)).replacelist(tempfcstinfo[fn])
-				self.thisStore.SetVal('FcstDays',fcstdays)
-				self.thisStore.SetVal('FcstEpoch', int(forecast[0].ts))
-				self.thisStore.SetVal('FcstDate', forecast[0].valid_date)
+						fetchworked = False
+						lastE = E
+						historybuffer.HBNet.Entry('Weather fetch exception: {}'.format(repr(E)))
+						time.sleep(2)
+				if not fetchworked:
+					logsupport.Logs.Log(
+						"Failed multiple tries to get weather for {} last Exc: {}".format(self.location, lastE),
+						severity=logsupport.ConsoleWarning, hb=True)
+					self.thisStore.ValidWeather = False
+					return
+		# noinspection PyUnboundLocalVariable
+		logsupport.Logs.Log(
+			'Fetched weather for {} via {} as {}|||{}'.format(self.location, fetcher, current, forecast))
+		try:
+			self.thisStore.ValidWeather = False  # show as invalid for the short duration of the update - still possible to race but very unlikely.
+			tempfcstinfo = {}
+			for fn, entry in FcstFieldMap.items():
+				tempfcstinfo[fn] = []
 
-				self.thisStore.CurFetchGood = True
-				self.thisStore.ValidWeather = True
-				self.thisStore.ValidWeatherTime = time.time()
-				controlevents.PostEvent(controlevents.ConsoleEvent(controlevents.CEvent.GeneralRepaint))
-				return  # success
-			except Exception as E:
-				logsupport.DevPrint('Exception {} in Weatherrbit report processing: {}'.format(E, forecast))
-				self.thisStore.CurFetchGood = False
+			self.thisStore.SetVal(('Cond', 'Location'), self.thisStoreName)
+			for fn, entry in CondFieldMap.items():
+				val = self.MapItem(current, entry)
+				self.thisStore.SetVal(('Cond', fn), val)
+
+			fcstdays = len(forecast)
+			for i in range(fcstdays):
+				try:
+					dbgtmp = {}
+					fcst = forecast[i]
+
+					for fn, entry in FcstFieldMap.items():
+						val = self.MapItem(fcst, entry)
+						tempfcstinfo[fn].append(val)
+						dbgtmp[fn] = val
+				# logsupport.Logs.Log('Weatherfcst({}): {}'.format(self.location, dbgtmp))
+				except Exception as E:
+					logsupport.Logs.Log(
+						'Exception in Weatherbit forecast processing day {}: {}'.format(i, repr(E)))
+					logsupport.Logs.Log('Forecast: {}'.format(forecast))
+					raise
+			for fn, entry in FcstFieldMap.items():
+				self.thisStore.GetVal(('Fcst', fn)).replacelist(tempfcstinfo[fn])
+			self.thisStore.SetVal('FcstDays', fcstdays)
+			self.thisStore.SetVal('FcstEpoch', int(forecast[0].ts))
+			self.thisStore.SetVal('FcstDate', forecast[0].valid_date)
+
+			self.thisStore.CurFetchGood = True
+			self.thisStore.ValidWeather = True
+			self.thisStore.ValidWeatherTime = time.time()
+			controlevents.PostEvent(controlevents.ConsoleEvent(controlevents.CEvent.GeneralRepaint))
+			return  # success
+		except Exception as E:
+			logsupport.DevPrint(
+				'Exception {} in Weatherrbit report processing: {} (via: {})'.format(E, forecast, fetcher))
+			self.thisStore.CurFetchGood = False
 		logsupport.Logs.Log('Multiple decode failures on return data from weather fetch of {}'.format(self.location))
 
 

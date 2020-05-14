@@ -1,6 +1,5 @@
-from .utils import UnicodeMixin, PropertyUnavailable, LocalizeDateTime, _get_date_from_timestamp
+from .utils import UnicodeMixin, LocalizeDateTime, _get_date_from_timestamp
 import datetime
-import requests
 
 class TimeSeries(UnicodeMixin):
     def __init__(self, data, response, headers):
@@ -10,16 +9,6 @@ class TimeSeries(UnicodeMixin):
         self.points = []
         self._load(self.json)
 
-            
-    def update(self):
-        """""
-        Call update() to refresh the object state, and any stale data from the API.
-        """""
-        r = requests.get(self.response.url)
-        self.json = r.json()
-        self.response = r
-        self.points = []
-        self._load(self.json)
 
     def _load(self, response):
         self.city_name = response['city_name']
@@ -69,16 +58,6 @@ class SingleTime(UnicodeMixin):
         self._load(self.json)
 
             
-    def update(self):
-        """""
-        Call update() to refresh the object state, and any stale data from the API.
-        """""
-        r = requests.get(self.response.url)
-        self.json = r.json()
-        self.response = r
-        self.points = []
-        self._load(self.json)
-
     def _load(self, response):
         self.count = int(response['count'])
         self._load_from_points(response['data'])

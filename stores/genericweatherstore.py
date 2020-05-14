@@ -34,7 +34,7 @@ class WeatherItem(valuestore.StoreItem):
 class WeatherVals(valuestore.ValueStore):
 
 	def __init__(self, location, weathersource, refresh):
-		self.fetchtime = 0
+		# self.fetchtime = 0
 		self.lastgoodfetch = 0
 		self.failedfetchcount = 0
 		self.refreshinterval = 60 * refresh
@@ -66,7 +66,8 @@ class WeatherVals(valuestore.ValueStore):
 
 	def BlockRefresh(self):  # return True if refresh happened
 
-		if self.fetchtime + self.refreshinterval > time.time():
+		# if self.fetchtime + self.refreshinterval > time.time():
+		if self.ValidWeatherTime + self.refreshinterval > time.time():
 			# have recent data
 			return False
 
@@ -93,7 +94,7 @@ class WeatherVals(valuestore.ValueStore):
 			#	'Weather fetch complete for {} at {} fetchedtime {}'.format(self.name, self.ValidWeatherTime,
 			#																self.vars['Cond']['Time'].Value))
 			self.DoingFetch = None
-			self.fetchtime = time.time()
+			# self.fetchtime = time.time()
 			if self.CurFetchGood:
 				self.lastgoodfetch = time.time()
 				self.failedfetchcount = 0

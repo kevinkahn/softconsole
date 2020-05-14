@@ -21,11 +21,9 @@ import logsupport
 import keyspecs
 import config
 
-
-
-def Publish(topic, payload=None, node=hw.hostname, qos=1, retain=False, viasvr=False):
-	# this gets replaced by actual Publish when MQTT starts up
-	pass
+# def Publish(topic, payload=None, node=hw.hostname, qos=1, retain=False, viasvr=False):
+#	# this gets replaced by actual Publish when MQTT starts up
+#	pass
 
 nodes = OrderedDict()
 
@@ -52,7 +50,7 @@ MsgSeq = 0
 
 def SetUpConsoleStatus():
 	global StatusDisp, ShowHW, ShowVers, Status
-	if config.monitoringstatus:
+	if config.mqttavailable:
 		StatusDisp = StatusDisplayScreen()
 		ShowHW = ShowVersScreen(True)
 		ShowVers = ShowVersScreen(False)
