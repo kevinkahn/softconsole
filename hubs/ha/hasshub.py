@@ -21,9 +21,11 @@ from stores import valuestore
 
 AddIgnoredDomain = None  # gets filled in by ignore to avoid import loop
 
-ignoredeventtypes = ('system_log_event', 'call_service', 'service_executed', 'logbook_entry', 'timer_out_of_sync', 'result',
-					 'persistent_notifications_updated', 'automation_triggered', 'script_started', 'service_removed','hacs/status',
-					 'hacs/repository','hacs/config','entity_registry_updated')
+ignoredeventtypes = (
+'system_log_event', 'call_service', 'service_executed', 'logbook_entry', 'timer_out_of_sync', 'result',
+'persistent_notifications_updated', 'automation_triggered', 'script_started', 'service_removed', 'hacs/status',
+'hacs/repository', 'hacs/config', 'entity_registry_updated', 'component_loaded', 'device_registry_updated',
+'entity_registry_updated', 'lovelace_updated')
 
 def stringtonumeric(v):
 	if not isinstance(v, str):
@@ -97,8 +99,6 @@ class HAnode(object):
 				return 0
 			elif state in ['unavailable', 'unknown']:
 				return -1
-			elif state in ['paused', 'playing']:
-				return 255
 			else:
 				try:
 					val = literal_eval(state)

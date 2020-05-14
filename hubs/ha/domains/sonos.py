@@ -26,6 +26,12 @@ class MediaPlayer(HAnode):
 			self.artist = self.attributes['media_artist'] if 'media_artist' in self.attributes else ''
 			self.album = self.attributes['media_album_name'] if 'media_album_name' in self.attributes else ''
 
+	def _NormalizeState(self, state, brightness=None):
+		if state in ['paused', 'playing', 'idle']:
+			return 255
+		else:
+			return super()._NormalizeState(state, brightness=None)
+
 	def AddPlayer(self):
 		if self.Sonos:
 			logsupport.Logs.Log("{}: added new Sonos player {}".format(self.Hub.name, self.name))

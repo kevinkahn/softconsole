@@ -13,7 +13,7 @@ SecondaryChain = Portland, Bathroom, BR
 type = Sonos
 DefaultHub = HASS
 
-[[Alerts]]
+[Alerts]
 [[DimAway]]
 	Type = VarChange
 	Var = ISY:Int:AwayNonState
