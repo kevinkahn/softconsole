@@ -116,9 +116,15 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 			spaces += 1
 		sizeindex += 1
 
-		if not self.store.ValidWeather:  # todo  font size for error?
-			renderedlines = [
-				fonts.fonts.Font(30, self.Font).render(x, 0, wc(self.CharColor)) for x in self.store.Status]
+		if not self.store.ValidWeather:
+			maxh = hw.screenwidth + 10
+			fontsize = 30
+			while maxh > hw.screenwidth:
+				renderedlines = [
+					fonts.fonts.Font(fontsize, self.Font).render(x, 0, wc(self.CharColor)) for x in self.store.Status]
+				maxh = max([x.get_width() for x in renderedlines])
+				fontsize = fontsize - 2
+
 			vert_off = self.startvertspace
 			for tmlbl in renderedtimelabel:
 				horiz_off = (hw.screenwidth - tmlbl.get_width()) / 2
