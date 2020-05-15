@@ -178,6 +178,8 @@ class WeatherbitWeatherSource(object):
 		self.thisStore = None
 		self.location = location
 		self.units = units
+		self.dailyreset = 0
+		self.resettime = '(unset)'
 		try:  # t try to convert to lat/lon
 			locationstr = location.split(',')
 			if len(locationstr) != 2:
@@ -219,13 +221,17 @@ class WeatherbitWeatherSource(object):
 
 	def FetchWeather(self):
 		# check for a cached set of readings newer that CurrentFetchTime
-		if self.location in WeatherCache and WeatherCache[self.location][
-			0] > self.thisStore.ValidWeatherTime:  # and WeatherCache[self.location][1] != 0:
+		if self.location in WeatherCache and \
+				WeatherCache[self.location][0] > self.thisStore.ValidWeatherTime:
 			# Newer weather has been broadcast so use that for now
 			current = WeatherCache[self.location][1].points[0]
 			forecast = WeatherCache[self.location][2].points
 			fetcher = WeatherCache[self.location][3]
-
+		elif time.time() < self.dailyreset:
+			logsupport.Logs.Log(
+				"Skip Weatherbit fetch for {}, over limit until {}".format(self.location, self.resettime))
+			self.thisStore.ValidWeather = False
+			return
 		else:
 			r = None
 			fetchworked = False
@@ -246,9 +252,23 @@ class WeatherbitWeatherSource(object):
 				fetchworked = True
 				fetcher = 'local'
 			except Exception as E:
-				logsupport.Logs.Log(
-					"Weatherbit failed to get weather for {} last Exc: {}".format(self.location, E),
-					severity=logsupport.ConsoleWarning, hb=True)
+				if E.response.status_code == 429:
+					try:
+						resetin = float(
+							json.loads(E.response.text)['status_message'].split("after ", 1)[1].split(' ')[0])
+						self.resettime = time.strftime('%H:%M', time.localtime(time.time() + 60 * resetin))
+					except:
+						resetin = 0
+						self.resettime = '(unknown)'
+					logsupport.Logs.Log('Weatherbit over daily limit, reset at {} for'.format(resettime, self.location),
+										severity=logsupport.ConsoleWarning)
+					self.dailyreset = time.time() + 60 * resetin
+					self.thisStore.StatusDetail = "(Over Limit until {})".format(resettime)
+				else:
+					logsupport.Logs.Log(
+						"Weatherbit failed to get weather for {} last Exc: {}".format(self.location, E),
+						severity=logsupport.ConsoleWarning, hb=True)
+					self.thisStore.StatusDetail = None
 				historybuffer.HBNet.Entry('Weather fetch exception: {}'.format(repr(E)))
 			if not fetchworked:
 				self.thisStore.ValidWeather = False
@@ -291,6 +311,7 @@ class WeatherbitWeatherSource(object):
 
 			self.thisStore.CurFetchGood = True
 			self.thisStore.ValidWeather = True
+			self.thisStore.StatusDetail = None
 			self.thisStore.ValidWeatherTime = time.time()
 			controlevents.PostEvent(controlevents.ConsoleEvent(controlevents.CEvent.GeneralRepaint))
 			return  # success

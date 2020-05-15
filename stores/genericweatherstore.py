@@ -48,6 +48,7 @@ class WeatherVals(valuestore.ValueStore):
 		self.ws.ConnectStore(self)
 		self.DoingFetch = None  # thread that is handling a fetch or none
 		self.ValidWeather = False  # status result
+		self.StatusDetail = None
 		self.ValidWeatherTime = 0
 		self.CurFetchGood = False
 		self.startedfetch = 0
@@ -106,13 +107,16 @@ class WeatherVals(valuestore.ValueStore):
 				if time.time() > self.lastgoodfetch + 3 * self.refreshinterval:  # use old weather for up to 3 intervals
 					# really have stale data
 					self.ValidWeather = False
-					self.Status = ("Weather not available", "(failed fetch)")
+					if self.StatusDetail is None:
+						self.Status = ("Weather not available", "(failed fetch)")
+						logsupport.Logs.Log(
+							'{} weather fetch failures for: {} No weather for {} seconds'.format(self.failedfetchcount,
+																								 self.name,
+																								 time.time() - self.lastgoodfetch),
+							severity=logsupport.ConsoleWarning)
+					else:
+						self.Status = ("Weather not available", self.StatusDetail)
 					self.failedfetchtime = time.time()
-					logsupport.Logs.Log(
-						'{} weather fetch failures for: {} No weather for {} seconds'.format(self.failedfetchcount,
-																							 self.name,
-																							 time.time() - self.lastgoodfetch),
-						severity=logsupport.ConsoleWarning)
 				else:
 					logsupport.Logs.Log(
 						'Failed fetch for {} number {} using old weather'.format(self.name, self.failedfetchcount))
