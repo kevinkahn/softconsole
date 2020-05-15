@@ -229,7 +229,7 @@ class WeatherbitWeatherSource(object):
 			fetcher = WeatherCache[self.location][3]
 		elif time.time() < self.dailyreset:
 			logsupport.Logs.Log(
-				"Skip Weatherbit fetch for {}, over limit until {}".format(self.location, self.resettime))
+				"Skip Weatherbit fetch for {}, over limit until {}".format(self.thisStoreName, self.resettime))
 			self.thisStore.ValidWeather = False
 			return
 		else:
@@ -260,13 +260,14 @@ class WeatherbitWeatherSource(object):
 					except:
 						resetin = 0
 						self.resettime = '(unknown)'
-					logsupport.Logs.Log('Weatherbit over daily limit, reset at {} for'.format(resettime, self.location),
-										severity=logsupport.ConsoleWarning)
+					logsupport.Logs.Log(
+						'Weatherbit over daily limit, reset at {} for {}'.format(self.resettime, self.thisStoreName),
+						severity=logsupport.ConsoleWarning)
 					self.dailyreset = time.time() + 60 * resetin
-					self.thisStore.StatusDetail = "(Over Limit until {})".format(resettime)
+					self.thisStore.StatusDetail = "(Over Limit until {})".format(self.resettime)
 				else:
 					logsupport.Logs.Log(
-						"Weatherbit failed to get weather for {} last Exc: {}".format(self.location, E),
+						"Weatherbit failed to get weather for {} last Exc: {}".format(self.thisStoreName, E),
 						severity=logsupport.ConsoleWarning, hb=True)
 					self.thisStore.StatusDetail = None
 				historybuffer.HBNet.Entry('Weather fetch exception: {}'.format(repr(E)))
@@ -275,7 +276,7 @@ class WeatherbitWeatherSource(object):
 				return
 		# noinspection PyUnboundLocalVariable
 		logsupport.Logs.Log(
-			'Fetched weather for {} via {}'.format(self.location, fetcher))
+			'Fetched weather for {} ({}) via {}'.format(self.thisStoreName, self.location, fetcher))
 		try:
 			self.thisStore.ValidWeather = False  # show as invalid for the short duration of the update - still possible to race but very unlikely.
 			tempfcstinfo = {}
@@ -297,10 +298,10 @@ class WeatherbitWeatherSource(object):
 						val = self.MapItem(fcst, entry)
 						tempfcstinfo[fn].append(val)
 						dbgtmp[fn] = val
-				# logsupport.Logs.Log('Weatherfcst({}): {}'.format(self.location, dbgtmp))
 				except Exception as E:
 					logsupport.Logs.Log(
-						'Exception in Weatherbit forecast processing day {}: {}'.format(i, repr(E)))
+						'Exception in Weatherbit forecast processing for {} day {}: {}'.format(self.thisStoreName, i,
+																							   repr(E)))
 					logsupport.Logs.Log('Forecast: {}'.format(forecast))
 					raise
 			for fn, entry in FcstFieldMap.items():
@@ -320,7 +321,7 @@ class WeatherbitWeatherSource(object):
 				'Exception {} in Weatherrbit report processing: {} (via: {})'.format(E, forecast, fetcher))
 			self.thisStore.CurFetchGood = False
 		logsupport.Logs.Log(
-			'Decode failure on return data from weather fetch of {} via {}'.format(self.location, fetcher))
+			'Decode failure on return data from weather fetch of {} via {}'.format(self.thisStoreName, fetcher))
 
 
 WeathProvs['Weatherbit'] = [WeatherbitWeatherSource, '']  # api key gets filled in from config file
