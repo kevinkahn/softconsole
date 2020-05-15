@@ -178,7 +178,6 @@ class WeatherbitWeatherSource(object):
 		self.thisStore = None
 		self.location = location
 		self.units = units
-		WeatherCache[self.location] = (self, 0, 0, 0)
 		try:  # t try to convert to lat/lon
 			locationstr = location.split(',')
 			if len(locationstr) != 2:
