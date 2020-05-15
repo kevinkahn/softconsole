@@ -37,6 +37,7 @@ class WeatherVals(valuestore.ValueStore):
 		# self.fetchtime = 0
 		self.lastgoodfetch = 0
 		self.failedfetchcount = 0
+		self.failedfetchtime = 0
 		self.refreshinterval = 60 * refresh
 		super().__init__(location)
 		self.ws = weathersource
@@ -67,8 +68,9 @@ class WeatherVals(valuestore.ValueStore):
 	def BlockRefresh(self):  # return True if refresh happened
 
 		# if self.fetchtime + self.refreshinterval > time.time():
-		if self.ValidWeatherTime + self.refreshinterval > time.time():
-			# have recent data
+		now = time.time()
+		if (now - self.ValidWeatherTime < self.refreshinterval) or (now - self.failedfetchtime < 120):
+			# have recent data or a recent failure
 			return False
 
 		if self.DoingFetch is None:
@@ -94,7 +96,6 @@ class WeatherVals(valuestore.ValueStore):
 			#	'Weather fetch complete for {} at {} fetchedtime {}'.format(self.name, self.ValidWeatherTime,
 			#																self.vars['Cond']['Time'].Value))
 			self.DoingFetch = None
-			# self.fetchtime = time.time()
 			if self.CurFetchGood:
 				self.lastgoodfetch = time.time()
 				self.failedfetchcount = 0
@@ -106,6 +107,7 @@ class WeatherVals(valuestore.ValueStore):
 					# really have stale data
 					self.ValidWeather = False
 					self.Status = ("Weather not available", "(failed fetch)")
+					self.failedfetchtime = time.time()
 					logsupport.Logs.Log(
 						'{} weather fetch failures for: {} No weather for {} seconds'.format(self.failedfetchcount,
 																							 self.name,

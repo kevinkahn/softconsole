@@ -67,6 +67,8 @@ Weatherbitfetches = 0
 Weatherbitfetches24 = 0
 daystartloops = 0
 maincyclecnt = 0
+WeatherMsgCount = {}  # entries are location, msgcnt*2
+WeatherFetches = {}  # entries are node: count
 
 Command = Enum('Command', 'LogEntry DevPrint FileWrite CloseHlog StartLog Touch LogString DumpRemote')
 
@@ -92,7 +94,7 @@ def NewDay(Report=True):
 		Logs.Log(
 			"                           MaxQTime:  {} at {}".format(queuetimemax24, datetime.datetime.fromtimestamp(
 				queuetimemax24time).strftime("%H:%M:%S.%f")))
-		Logs.Log("                           DarkSky Fetches: {}".format(DarkSkyfetches24))
+		Logs.Log("                           Weatherbit Fetches: {}".format(Weatherbitfetches24))
 		Logs.Log("                           Cycles: {}/{}".format(maincyclecnt - daystartloops, maincyclecnt))
 	daystartloops = maincyclecnt
 	queuedepthmax24 = 0
@@ -101,12 +103,24 @@ def NewDay(Report=True):
 	queuetimemax24time = 0
 	DarkSkyfetches24 = 0
 	Weatherbitfetches24 = 0
+	totfetch = 0
+	Logs.Log("Weatherbit global detail (by location):")
+	for loc in WeatherMsgCount:
+		totfetch = totfetch + WeatherMsgCount[loc]
+		Logs.Log("     {}:  {}".format(loc, WeatherMsgCount[loc]))
+		WeatherMsgCount[loc] = 0
+	Logs.Log('   Total:  {}'.format(totfetch))
+	Logs.Log("Weatherbit global detail (by node):")
+	for nod in WeatherFetches:
+		Logs.Log("     {}:  {}".format(nod, WeatherFetches[loc]))
+
 
 def SpawnAsyncLogger():
 	global AsyncLogger
-	AsyncLogger = multiprocessing.Process(name='AsyncLogger', target= LogProcess, args=(LoggerQueue,))
+	AsyncLogger = multiprocessing.Process(name='AsyncLogger', target=LogProcess, args=(LoggerQueue,))
 	AsyncLogger.start()
 	config.sysStore.SetVal('AsyncLogger_pid', AsyncLogger.pid)
+
 
 def InitLogs(screen, dirnm):
 	return Logger(screen, dirnm)

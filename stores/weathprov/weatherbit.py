@@ -12,6 +12,7 @@ import logsupport
 
 from ._weatherbit.api import Api
 from ._weatherbit.utils import LocalizeDateTime
+from ._weatherbit.models import Current, Forecast
 
 from stores.weathprov.providerutils import TryShorten, WeathProvs, MissingIcon
 from utilfuncs import interval_str
@@ -19,7 +20,7 @@ from utilfuncs import interval_str
 WeatherIconCache = {'n/a': MissingIcon}
 
 WeatherCache = {}  # entries are location:(time, current, forecast)
-WeatherFetches = {}  # entries are node: count
+
 
 
 def TreeDict(d, args):
@@ -177,7 +178,8 @@ class WeatherbitWeatherSource(object):
 		self.thisStore = None
 		self.location = location
 		self.units = units
-		try: #t try to convert to lat/lon
+		WeatherCache[self.location] = (self, 0, 0, 0)
+		try:  # t try to convert to lat/lon
 			locationstr = location.split(',')
 			if len(locationstr) != 2:
 				raise ValueError
@@ -192,6 +194,18 @@ class WeatherbitWeatherSource(object):
 			logsupport.Logs.Log(
 				'Powered by Weatherbit: Created weather for {} as {}'.format(self.location, storename))
 
+	@staticmethod
+	def MQTTWeatherUpdate(payload):
+		weatherinfo = json.loads(payload)
+		c = Current(weatherinfo['current'], 'viaMQTT', weatherinfo['fetchingnode'])
+		f = Forecast(weatherinfo['forecast'], 'viaMQTT', weatherinfo['fetchingnode'])
+		WeatherCache[weatherinfo['location']] = (weatherinfo['fetchtime'], c, f, weatherinfo['fetchingnode'])
+		logsupport.WeatherFetches[weatherinfo['fetchingnode']] = weatherinfo['fetchcount']
+		if weatherinfo in logsupport.WeatherMsgCount:
+			logsupport.WeatherMsgCount[weatherinfo['location']] += 2
+		else:
+			logsupport.WeatherMsgCount[weatherinfo['location']] = 2
+
 	def ConnectStore(self, store):
 		self.thisStore = store
 
@@ -203,57 +217,46 @@ class WeatherbitWeatherSource(object):
 		else:
 			return item
 
-	def MQTTWeatherUpdate(self, payload):
-		weatherinfo = json.loads(payload)
-		WeatherCache[weatherinfo['location']] = (
-		weatherinfo['fetchtime'], weatherinfo['current'], weatherinfo['forecast'], weatherinfo['fetchingnode'])
-		WeatherFetches[weatherinfo['fetchingnode']] = weatherinfo['fetchcount']
 
 	def FetchWeather(self):
 		# check for a cached set of readings newer that CurrentFetchTime
-		if self.location in WeatherCache and WeatherCache[self.location][0] > self.thisStore.ValidWeatherTime:
+		if self.location in WeatherCache and WeatherCache[self.location][
+			0] > self.thisStore.ValidWeatherTime:  # and WeatherCache[self.location][1] != 0:
 			# Newer weather has been broadcast so use that for now
-			current = WeatherCache[self.location][1]
-			forecast = WeatherCache[self.location][2]
+			current = WeatherCache[self.location][1].points[0]
+			forecast = WeatherCache[self.location][2].points
 			fetcher = WeatherCache[self.location][3]
 
 		else:
-			for trydecode in range(2):  # if a decode fails try another actual fetch
-				r = None
-				fetchworked = False
-				trycnt = 4
-				lastE = None
-				while not fetchworked and trycnt > 0:
-					trycnt -= 1
-					# logsupport.Logs.Log('Actual weather fetch attempt: {}'.format(self.location))
-					try:
-						historybuffer.HBNet.Entry('Weatherbit weather fetch{}: {}'.format(trycnt, self.thisStoreName))
-						current = self.get_current().points[0]  # single point for current reading
-						forecast = self.get_forecast().points  # list of 16 points for forecast point 0 is today
-						logsupport.Weatherbitfetches += 2
-						logsupport.Weatherbitfetches24 += 2
-						bcst = {'current': current, 'forecast': forecast, 'location': self.location,
-								'fetchtime': time.time(),
-								'fetchcount': logsupport.Weatherbitfetches24, 'fetchingnode': config.sysStore.hostname}
-						if config.mqttavailable:
-							config.MQTTBroker.Publish('Weatherbit', node='all/weather', payload=json.dumps(bcst))
-						historybuffer.HBNet.Entry('Weather fetch done')
-						fetchworked = True
-						fetcher = 'local'
-					except Exception as E:
-						fetchworked = False
-						lastE = E
-						historybuffer.HBNet.Entry('Weather fetch exception: {}'.format(repr(E)))
-						time.sleep(2)
-				if not fetchworked:
-					logsupport.Logs.Log(
-						"Failed multiple tries to get weather for {} last Exc: {}".format(self.location, lastE),
-						severity=logsupport.ConsoleWarning, hb=True)
-					self.thisStore.ValidWeather = False
-					return
+			r = None
+			fetchworked = False
+			try:
+				historybuffer.HBNet.Entry('Weatherbit weather fetch{}'.format(self.thisStoreName))
+				c = self.get_current()
+				current = c.points[0]  # single point for current reading
+				f = self.get_forecast()
+				forecast = f.points  # list of 16 points for forecast point 0 is today
+				logsupport.Weatherbitfetches += 2
+				logsupport.Weatherbitfetches24 += 2
+				bcst = {'current': c.json, 'forecast': f.json, 'location': self.location,
+						'fetchtime': time.time(),
+						'fetchcount': logsupport.Weatherbitfetches24, 'fetchingnode': config.sysStore.hostname}
+				if config.mqttavailable:
+					config.MQTTBroker.Publish('Weatherbit', node='all/weather', payload=json.dumps(bcst))
+				historybuffer.HBNet.Entry('Weather fetch done')
+				fetchworked = True
+				fetcher = 'local'
+			except Exception as E:
+				logsupport.Logs.Log(
+					"Weatherbit failed to get weather for {} last Exc: {}".format(self.location, E),
+					severity=logsupport.ConsoleWarning, hb=True)
+				historybuffer.HBNet.Entry('Weather fetch exception: {}'.format(repr(E)))
+			if not fetchworked:
+				self.thisStore.ValidWeather = False
+				return
 		# noinspection PyUnboundLocalVariable
 		logsupport.Logs.Log(
-			'Fetched weather for {} via {} as {}|||{}'.format(self.location, fetcher, current, forecast))
+			'Fetched weather for {} via {}'.format(self.location, fetcher))
 		try:
 			self.thisStore.ValidWeather = False  # show as invalid for the short duration of the update - still possible to race but very unlikely.
 			tempfcstinfo = {}
@@ -296,7 +299,8 @@ class WeatherbitWeatherSource(object):
 			logsupport.DevPrint(
 				'Exception {} in Weatherrbit report processing: {} (via: {})'.format(E, forecast, fetcher))
 			self.thisStore.CurFetchGood = False
-		logsupport.Logs.Log('Multiple decode failures on return data from weather fetch of {}'.format(self.location))
+		logsupport.Logs.Log(
+			'Decode failure on return data from weather fetch of {} via {}'.format(self.location, fetcher))
 
 
 WeathProvs['Weatherbit'] = [WeatherbitWeatherSource, '']  # api key gets filled in from config file

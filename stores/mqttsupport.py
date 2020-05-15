@@ -74,8 +74,8 @@ class MQTTBroker(valuestore.ValueStore):
 			for t, item in userdata.topicindex.items():
 				if t == msg.topic:
 					var.extend(item)
-
-			if msg.topic in ('consoles/all/cmd', 'consoles/' + hw.hostname + '/cmd'):
+			topic = msg.topic
+			if topic in ('consoles/all/cmd', 'consoles/' + hw.hostname + '/cmd'):
 				payld = msg.payload.decode('ascii').split('|')
 
 				cmd = payld[0]
@@ -87,7 +87,7 @@ class MQTTBroker(valuestore.ValueStore):
 				# if fromnd != 'unknown':
 				#	self.Publish('resp', '{}|ok|{}'.format(cmd, seq), fromnd)
 				return
-			elif msg.topic in ('consoles/all/set', 'consoles/' + hw.hostname + '/set'):
+			elif topic in ('consoles/all/set', 'consoles/' + hw.hostname + '/set'):
 				d = json.loads(msg.payload.decode('ascii'))
 				try:
 					logsupport.Logs.Log('{}: set {} = {}'.format(self.name, d['name'], d['value']))
@@ -95,16 +95,17 @@ class MQTTBroker(valuestore.ValueStore):
 				except Exception as E:
 					logsupport.Logs.Log('Bad set via MQTT: {} Exc: {}'.format(repr(d), E), severity=ConsoleWarning)
 				return
-			elif msg.topic.startswith('consoles/all/weather'):
-				provider = msg.topic.split('/')[3]
+			elif topic.startswith('consoles/all/weather'):
+				provider = topic.split('/')[3]
 				try:
-					WeathProvs[provider].MQTTWeatherUpdate(msg.payload)
+					WeathProvs[provider][0].MQTTWeatherUpdate(msg.payload.decode('ascii'))
 				except Exception as E:
 					logsupport.Logs.Log('Unkown weather provider MQTT update for {} {}'.format(provider, E),
 										severity=ConsoleWarning)
+				return
 			else:
 				# see if it is node specific message
-				topic = msg.topic.split('/')
+				topic = topic.split('/')
 
 				msgdcd = json.loads(msg.payload.decode('ascii'))
 				if topic[2] == 'nodes':
