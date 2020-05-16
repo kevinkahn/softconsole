@@ -68,7 +68,9 @@ Weatherbitfetches24 = 0
 daystartloops = 0
 maincyclecnt = 0
 WeatherMsgCount = {}  # entries are location, msgcnt*2
+WeatherMsgStoreName = {}  # entries loc:storename
 WeatherFetches = {}  # entries are node: count
+WeatherFetchNodeInfo = {}  # entries are node: last seen count
 
 Command = Enum('Command', 'LogEntry DevPrint FileWrite CloseHlog StartLog Touch LogString DumpRemote')
 
@@ -100,12 +102,13 @@ def NewDay(Report=True):
 		Logs.Log("Weatherbit global detail (by location):")
 		for loc in WeatherMsgCount:
 			totfetch = totfetch + WeatherMsgCount[loc]
-			Logs.Log("     {}:  {}".format(loc, WeatherMsgCount[loc]))
+			Logs.Log("     {} ({}):  {}".format(WeatherMsgStoreName[loc], loc, WeatherMsgCount[loc]))
 			WeatherMsgCount[loc] = 0
+
 		Logs.Log('   Total:  {}'.format(totfetch))
 		Logs.Log("Weatherbit global detail (by node):")
 		for nod in WeatherFetches:
-			Logs.Log("     {}:  {}".format(nod, WeatherFetches[loc]))
+			Logs.Log("     {}:  {} (node value: {})".format(nod, WeatherFetches[nod], WeatherFetchNodeInfo[nod]))
 	daystartloops = maincyclecnt
 	queuedepthmax24 = 0
 	queuetimemax24 = 0

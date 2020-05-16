@@ -73,6 +73,10 @@ class WeatherVals(valuestore.ValueStore):
 		if (now - self.ValidWeatherTime < self.refreshinterval) or (now - self.failedfetchtime < 120):
 			# have recent data or a recent failure
 			return False
+		logsupport.Logs.Log(
+			'Try weather refresh: {} age: {} {} {} {} {}'.format(self.name, (now - self.ValidWeatherTime),
+																 self.ValidWeatherTime, self.refreshinterval,
+																 self.failedfetchtime, now))
 
 		if self.DoingFetch is None:
 			self.CurFetchGood = False

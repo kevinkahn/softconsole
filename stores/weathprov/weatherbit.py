@@ -180,6 +180,8 @@ class WeatherbitWeatherSource(object):
 		self.units = units
 		self.dailyreset = 0
 		self.resettime = '(unset)'
+		logsupport.WeatherMsgCount[location] = 0
+		logsupport.WeatherMsgStoreName[location] = storename
 		try:  # t try to convert to lat/lon
 			locationstr = location.split(',')
 			if len(locationstr) != 2:
@@ -198,14 +200,22 @@ class WeatherbitWeatherSource(object):
 	@staticmethod
 	def MQTTWeatherUpdate(payload):
 		weatherinfo = json.loads(payload)
+		logsupport.Logs.Log(
+			'Cache update: {} {} {} {}'.format(weatherinfo['location'], weatherinfo['fetchtime'], time.time(),
+											   weatherinfo['fetchingnode']))
 		c = Current(weatherinfo['current'], 'viaMQTT', weatherinfo['fetchingnode'])
 		f = Forecast(weatherinfo['forecast'], 'viaMQTT', weatherinfo['fetchingnode'])
 		WeatherCache[weatherinfo['location']] = (weatherinfo['fetchtime'], c, f, weatherinfo['fetchingnode'])
-		logsupport.WeatherFetches[weatherinfo['fetchingnode']] = weatherinfo['fetchcount']
+		if weatherinfo['fetchingnode'] in logsupport.WeatherFetches:
+			logsupport.WeatherFetches[weatherinfo['fetchingnode']] += 2
+		else:
+			logsupport.WeatherFetches[weatherinfo['fetchingnode']] = 2
+		logsupport.WeatherFetchNodeInfo[weatherinfo['fetchingnode']] = weatherinfo['fetchcount']
 		if weatherinfo['location'] in logsupport.WeatherMsgCount:
 			logsupport.WeatherMsgCount[weatherinfo['location']] += 2
 		else:
 			logsupport.WeatherMsgCount[weatherinfo['location']] = 2
+			logsupport.WeatherMsgStoreName[weatherinfo['location']] = '(Not on Node)'
 
 	def ConnectStore(self, store):
 		self.thisStore = store
@@ -228,6 +238,8 @@ class WeatherbitWeatherSource(object):
 			forecast = WeatherCache[self.location][2].points
 			fetcher = WeatherCache[self.location][3]
 			weathertime = WeatherCache[self.location][0]
+			logsupport.Logs.Log(
+				'Using cache weather: {} {} {} {}'.format(self.location, weathertime, time.time(), fetcher))
 		elif time.time() < self.dailyreset:
 			logsupport.Logs.Log(
 				"Skip Weatherbit fetch for {}, over limit until {}".format(self.thisStoreName, self.resettime))
