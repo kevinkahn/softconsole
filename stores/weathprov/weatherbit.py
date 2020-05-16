@@ -247,7 +247,8 @@ class WeatherbitWeatherSource(object):
 						'fetchtime': time.time(),
 						'fetchcount': logsupport.Weatherbitfetches24, 'fetchingnode': config.sysStore.hostname}
 				if config.mqttavailable:
-					config.MQTTBroker.Publish('Weatherbit', node='all/weather', payload=json.dumps(bcst))
+					config.MQTTBroker.Publish('Weatherbit/{}'.format(self.thisStoreName), node='all/weather',
+											  payload=json.dumps(bcst), retain=True)
 				historybuffer.HBNet.Entry('Weather fetch done')
 				fetchworked = True
 				fetcher = 'local'
