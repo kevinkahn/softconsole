@@ -202,7 +202,7 @@ class WeatherbitWeatherSource(object):
 		f = Forecast(weatherinfo['forecast'], 'viaMQTT', weatherinfo['fetchingnode'])
 		WeatherCache[weatherinfo['location']] = (weatherinfo['fetchtime'], c, f, weatherinfo['fetchingnode'])
 		logsupport.WeatherFetches[weatherinfo['fetchingnode']] = weatherinfo['fetchcount']
-		if weatherinfo in logsupport.WeatherMsgCount:
+		if weatherinfo['location'] in logsupport.WeatherMsgCount:
 			logsupport.WeatherMsgCount[weatherinfo['location']] += 2
 		else:
 			logsupport.WeatherMsgCount[weatherinfo['location']] = 2
