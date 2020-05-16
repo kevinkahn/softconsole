@@ -1,9 +1,12 @@
 import time
 from collections import OrderedDict
+from random import random
 
 import pygame
 
 import threading
+
+import config
 import logsupport
 
 from stores import valuestore
@@ -39,6 +42,8 @@ class WeatherVals(valuestore.ValueStore):
 		self.failedfetchcount = 0
 		self.failedfetchtime = 0
 		self.refreshinterval = 60 * refresh
+		if config.mqttavailable:  # randomize refresh intervals
+			self.refreshinterval += int((random() * .05) * self.refreshinterval)
 		super().__init__(location)
 		self.ws = weathersource
 		self.fetchcount = 0
@@ -97,9 +102,6 @@ class WeatherVals(valuestore.ValueStore):
 		# else just wait for next time
 		else:
 			# fetch completed
-			# logsupport.Logs.Log(
-			#	'Weather fetch complete for {} at {} fetchedtime {}'.format(self.name, self.ValidWeatherTime,
-			#																self.vars['Cond']['Time'].Value))
 			self.DoingFetch = None
 			if self.CurFetchGood:
 				self.lastgoodfetch = time.time()
