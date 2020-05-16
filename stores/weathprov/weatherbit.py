@@ -227,6 +227,7 @@ class WeatherbitWeatherSource(object):
 			current = WeatherCache[self.location][1].points[0]
 			forecast = WeatherCache[self.location][2].points
 			fetcher = WeatherCache[self.location][3]
+			weathertime = WeatherCache[self.location][0]
 		elif time.time() < self.dailyreset:
 			logsupport.Logs.Log(
 				"Skip Weatherbit fetch for {}, over limit until {}".format(self.thisStoreName, self.resettime))
@@ -275,9 +276,12 @@ class WeatherbitWeatherSource(object):
 			if not fetchworked:
 				self.thisStore.ValidWeather = False
 				return
+			else:
+				weathertime = time.time()
 		# noinspection PyUnboundLocalVariable
 		logsupport.Logs.Log(
-			'Fetched weather for {} ({}) via {}'.format(self.thisStoreName, self.location, fetcher))
+			'Fetched weather for {} ({}) via {} (age: {} min.)'.format(self.thisStoreName, self.location, fetcher,
+																	   (time.time() - weathertime) // 60))
 		try:
 			self.thisStore.ValidWeather = False  # show as invalid for the short duration of the update - still possible to race but very unlikely.
 			tempfcstinfo = {}
@@ -314,7 +318,7 @@ class WeatherbitWeatherSource(object):
 			self.thisStore.CurFetchGood = True
 			self.thisStore.ValidWeather = True
 			self.thisStore.StatusDetail = None
-			self.thisStore.ValidWeatherTime = time.time()
+			self.thisStore.ValidWeatherTime = weathertime
 			controlevents.PostEvent(controlevents.ConsoleEvent(controlevents.CEvent.GeneralRepaint))
 			return  # success
 		except Exception as E:
