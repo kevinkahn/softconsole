@@ -155,6 +155,7 @@ CondFieldMap = {'Time': (getdatetime, ('datetime',)),
 				# 'Moonrise': (str, ('forecast', 'forecastday', 0, 'astro', 'moonrise')),
 				# 'Moonset': (str, ('forecast', 'forecastday', 0, 'astro', 'moonset')),
 				'TimeEpoch': (makeEpoch, ('datetime',)),
+				# todo - should this be just the ts field?  and what is diff to ob_time
 				'Age': (setAge, ('datetime',))
 				}
 
@@ -200,22 +201,23 @@ class WeatherbitWeatherSource(object):
 	@staticmethod
 	def MQTTWeatherUpdate(payload):
 		weatherinfo = json.loads(payload)
+		loc = weatherinfo['location']
+		storename = logsupport.WeatherMsgStoreName[loc] if loc in logsupport.WeatherMsgStoreName else '(Not on Node)'
 		logsupport.Logs.Log(
-			'Cache update: {} {} {} {}'.format(weatherinfo['location'], weatherinfo['fetchtime'], time.time(),
-											   weatherinfo['fetchingnode']))
+			'Cache update: {} ({}) {} {} {}'.format(storename, loc, weatherinfo['fetchtime'], time.time(),
+													weatherinfo['fetchingnode']))
 		c = Current(weatherinfo['current'], 'viaMQTT', weatherinfo['fetchingnode'])
 		f = Forecast(weatherinfo['forecast'], 'viaMQTT', weatherinfo['fetchingnode'])
-		WeatherCache[weatherinfo['location']] = (weatherinfo['fetchtime'], c, f, weatherinfo['fetchingnode'])
+		WeatherCache[loc] = (weatherinfo['fetchtime'], c, f, weatherinfo['fetchingnode'])
 		if weatherinfo['fetchingnode'] in logsupport.WeatherFetches:
 			logsupport.WeatherFetches[weatherinfo['fetchingnode']] += 2
 		else:
 			logsupport.WeatherFetches[weatherinfo['fetchingnode']] = 2
 		logsupport.WeatherFetchNodeInfo[weatherinfo['fetchingnode']] = weatherinfo['fetchcount']
-		if weatherinfo['location'] in logsupport.WeatherMsgCount:
-			logsupport.WeatherMsgCount[weatherinfo['location']] += 2
+		if loc in logsupport.WeatherMsgCount:
+			logsupport.WeatherMsgCount[loc] += 2
 		else:
-			logsupport.WeatherMsgCount[weatherinfo['location']] = 2
-			logsupport.WeatherMsgStoreName[weatherinfo['location']] = '(Not on Node)'
+			logsupport.WeatherMsgCount[loc] = 2
 
 	def ConnectStore(self, store):
 		self.thisStore = store
@@ -243,11 +245,9 @@ class WeatherbitWeatherSource(object):
 			elif time.time() < self.dailyreset:
 				logsupport.Logs.Log(
 					"Skip Weatherbit fetch for {}, over limit until {}".format(self.thisStoreName, self.resettime))
-				self.thisStore.ValidWeather = False
 				return
 			else:
 				r = None
-				fetchworked = False
 				try:
 					historybuffer.HBNet.Entry('Weatherbit weather fetch{}'.format(self.thisStoreName))
 					c = self.get_current()
@@ -263,7 +263,7 @@ class WeatherbitWeatherSource(object):
 						config.MQTTBroker.Publish('Weatherbit/{}'.format(self.thisStoreName), node='all/weather',
 												  payload=json.dumps(bcst), retain=True)
 					historybuffer.HBNet.Entry('Weather fetch done')
-					fetchworked = True
+					weathertime = time.time()
 					fetcher = 'local'
 				except Exception as E:
 					if E.response.status_code == 429:
@@ -286,11 +286,8 @@ class WeatherbitWeatherSource(object):
 							severity=logsupport.ConsoleWarning, hb=True)
 						self.thisStore.StatusDetail = None
 					historybuffer.HBNet.Entry('Weather fetch exception: {}'.format(repr(E)))
-				if not fetchworked:
-					self.thisStore.ValidWeather = False
 					return
-				else:
-					weathertime = time.time()
+
 			# noinspection PyUnboundLocalVariable
 			logsupport.Logs.Log(
 				'Fetched weather for {} ({}) via {} (age: {} min.)'.format(self.thisStoreName, self.location, fetcher,
@@ -298,6 +295,10 @@ class WeatherbitWeatherSource(object):
 		except Exception as E:
 			logsupport.Logs.Log('Unhandled exception in Weatherbit fetch: {}'.format(E),
 								severity=logsupport.ConsoleWarning)
+			return
+
+		# Now normalize weatherinfo into store
+
 		try:
 			self.thisStore.ValidWeather = False  # show as invalid for the short duration of the update - still possible to race but very unlikely.
 			tempfcstinfo = {}

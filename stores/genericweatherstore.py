@@ -84,6 +84,10 @@ class WeatherVals(valuestore.ValueStore):
 																 self.failedfetchtime, now))
 
 		if self.DoingFetch is None:
+			logsupport.Logs.Log(
+				'Do weather refresh: {} age: {} {} {} {} {}'.format(self.name, (now - self.ValidWeatherTime),
+																	self.ValidWeatherTime, self.refreshinterval,
+																	self.failedfetchtime, now))
 			self.CurFetchGood = False
 			self.DoingFetch = threading.Thread(target=self.ws.FetchWeather, name='WFetch-{}'.format(self.name),
 											   daemon=True)
@@ -94,6 +98,12 @@ class WeatherVals(valuestore.ValueStore):
 
 		elif self.DoingFetch.is_alive():
 			# fetch in progress
+			logsupport.Logs.Log(
+				'Weather refresh already in progress: {} age: {} {} {} {} {}'.format(self.name,
+																					 (now - self.ValidWeatherTime),
+																					 self.ValidWeatherTime,
+																					 self.refreshinterval,
+																					 self.failedfetchtime, now))
 			if self.startedfetch + self.refreshinterval < time.time():
 				# fetch ongoing too long - don't use stale data any longer
 				self.Status = ('Weather not available', '(trying to fetch)')
