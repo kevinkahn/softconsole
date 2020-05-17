@@ -86,7 +86,7 @@ def degToCompass(num):
 	return arr[(val % 16)]
 
 def setAge(param):
-	readingepoch = LocalizeDateTime(param).timestamp()
+	readingepoch = param.timestamp()
 	return functools.partial(doage, readingepoch)
 
 
@@ -228,72 +228,76 @@ class WeatherbitWeatherSource(object):
 		else:
 			return item
 
-
 	def FetchWeather(self):
-		# check for a cached set of readings newer that CurrentFetchTime
-		if self.location in WeatherCache and \
-				WeatherCache[self.location][0] > self.thisStore.ValidWeatherTime:
-			# Newer weather has been broadcast so use that for now
-			current = WeatherCache[self.location][1].points[0]
-			forecast = WeatherCache[self.location][2].points
-			fetcher = WeatherCache[self.location][3]
-			weathertime = WeatherCache[self.location][0]
-			logsupport.Logs.Log(
-				'Using cache weather: {} {} {} {}'.format(self.location, weathertime, time.time(), fetcher))
-		elif time.time() < self.dailyreset:
-			logsupport.Logs.Log(
-				"Skip Weatherbit fetch for {}, over limit until {}".format(self.thisStoreName, self.resettime))
-			self.thisStore.ValidWeather = False
-			return
-		else:
-			r = None
-			fetchworked = False
-			try:
-				historybuffer.HBNet.Entry('Weatherbit weather fetch{}'.format(self.thisStoreName))
-				c = self.get_current()
-				current = c.points[0]  # single point for current reading
-				f = self.get_forecast()
-				forecast = f.points  # list of 16 points for forecast point 0 is today
-				logsupport.Weatherbitfetches += 2
-				logsupport.Weatherbitfetches24 += 2
-				bcst = {'current': c.json, 'forecast': f.json, 'location': self.location,
-						'fetchtime': time.time(),
-						'fetchcount': logsupport.Weatherbitfetches24, 'fetchingnode': config.sysStore.hostname}
-				if config.mqttavailable:
-					config.MQTTBroker.Publish('Weatherbit/{}'.format(self.thisStoreName), node='all/weather',
-											  payload=json.dumps(bcst), retain=True)
-				historybuffer.HBNet.Entry('Weather fetch done')
-				fetchworked = True
-				fetcher = 'local'
-			except Exception as E:
-				if E.response.status_code == 429:
-					try:
-						resetin = float(
-							json.loads(E.response.text)['status_message'].split("after ", 1)[1].split(' ')[0])
-						self.resettime = time.strftime('%H:%M', time.localtime(time.time() + 60 * resetin))
-					except:
-						resetin = 0
-						self.resettime = '(unknown)'
-					logsupport.Logs.Log(
-						'Weatherbit over daily limit, reset at {} for {}'.format(self.resettime, self.thisStoreName),
-						severity=logsupport.ConsoleWarning)
-					self.dailyreset = time.time() + 60 * resetin
-					self.thisStore.StatusDetail = "(Over Limit until {})".format(self.resettime)
-				else:
-					logsupport.Logs.Log(
-						"Weatherbit failed to get weather for {} last Exc: {}".format(self.thisStoreName, E),
-						severity=logsupport.ConsoleWarning, hb=True)
-					self.thisStore.StatusDetail = None
-				historybuffer.HBNet.Entry('Weather fetch exception: {}'.format(repr(E)))
-			if not fetchworked:
+		try:
+			# check for a cached set of readings newer that CurrentFetchTime
+			if self.location in WeatherCache and \
+					WeatherCache[self.location][0] > self.thisStore.ValidWeatherTime:
+				# Newer weather has been broadcast so use that for now
+				current = WeatherCache[self.location][1].points[0]
+				forecast = WeatherCache[self.location][2].points
+				fetcher = WeatherCache[self.location][3]
+				weathertime = WeatherCache[self.location][0]
+				logsupport.Logs.Log(
+					'Using cache weather: {} {} {} {}'.format(self.location, weathertime, time.time(), fetcher))
+			elif time.time() < self.dailyreset:
+				logsupport.Logs.Log(
+					"Skip Weatherbit fetch for {}, over limit until {}".format(self.thisStoreName, self.resettime))
 				self.thisStore.ValidWeather = False
 				return
 			else:
-				weathertime = time.time()
-		# noinspection PyUnboundLocalVariable
-		logsupport.Logs.Log(
-			'Fetched weather for {} ({}) via {} (age: {} min.)'.format(self.thisStoreName, self.location, fetcher,
-																	   (time.time() - weathertime) // 60))
+				r = None
+				fetchworked = False
+				try:
+					historybuffer.HBNet.Entry('Weatherbit weather fetch{}'.format(self.thisStoreName))
+					c = self.get_current()
+					current = c.points[0]  # single point for current reading
+					f = self.get_forecast()
+					forecast = f.points  # list of 16 points for forecast point 0 is today
+					logsupport.Weatherbitfetches += 2
+					logsupport.Weatherbitfetches24 += 2
+					bcst = {'current': c.json, 'forecast': f.json, 'location': self.location,
+							'fetchtime': time.time(),
+							'fetchcount': logsupport.Weatherbitfetches24, 'fetchingnode': config.sysStore.hostname}
+					if config.mqttavailable:
+						config.MQTTBroker.Publish('Weatherbit/{}'.format(self.thisStoreName), node='all/weather',
+												  payload=json.dumps(bcst), retain=True)
+					historybuffer.HBNet.Entry('Weather fetch done')
+					fetchworked = True
+					fetcher = 'local'
+				except Exception as E:
+					if E.response.status_code == 429:
+						try:
+							resetin = float(
+								json.loads(E.response.text)['status_message'].split("after ", 1)[1].split(' ')[0])
+							self.resettime = time.strftime('%H:%M', time.localtime(time.time() + 60 * resetin))
+						except:
+							resetin = 0
+							self.resettime = '(unknown)'
+						logsupport.Logs.Log(
+							'Weatherbit over daily limit, reset at {} for {}'.format(self.resettime,
+																					 self.thisStoreName),
+							severity=logsupport.ConsoleWarning)
+						self.dailyreset = time.time() + 60 * resetin
+						self.thisStore.StatusDetail = "(Over Limit until {})".format(self.resettime)
+					else:
+						logsupport.Logs.Log(
+							"Weatherbit failed to get weather for {} last Exc: {}".format(self.thisStoreName, E),
+							severity=logsupport.ConsoleWarning, hb=True)
+						self.thisStore.StatusDetail = None
+					historybuffer.HBNet.Entry('Weather fetch exception: {}'.format(repr(E)))
+				if not fetchworked:
+					self.thisStore.ValidWeather = False
+					return
+				else:
+					weathertime = time.time()
+			# noinspection PyUnboundLocalVariable
+			logsupport.Logs.Log(
+				'Fetched weather for {} ({}) via {} (age: {} min.)'.format(self.thisStoreName, self.location, fetcher,
+																		   (time.time() - weathertime) // 60))
+		except Exception as E:
+			logsupport.Logs.Log('Unhandled exception in Weatherbit fetch: {}'.format(E),
+								severity=logsupport.ConsoleWarning)
 		try:
 			self.thisStore.ValidWeather = False  # show as invalid for the short duration of the update - still possible to race but very unlikely.
 			tempfcstinfo = {}
