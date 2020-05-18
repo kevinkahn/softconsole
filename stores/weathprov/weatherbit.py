@@ -340,13 +340,15 @@ class WeatherbitWeatherSource(object):
 			self.thisStore.ValidWeatherTime = weathertime
 			logsupport.Logs.Log('Loaded new weather for {} via {}'.format(self.thisStoreName, fetcher))
 			controlevents.PostEvent(controlevents.ConsoleEvent(controlevents.CEvent.GeneralRepaint))
-			return  # success
+			self.thisStore.FetchComplete()  # clear the thread since work is done
 		except Exception as E:
 			logsupport.DevPrint(
 				'Exception {} in Weatherrbit report processing: {} (via: {})'.format(E, forecast, fetcher))
 			self.thisStore.CurFetchGood = False
-		logsupport.Logs.Log(
-			'Decode failure on return data from weather fetch of {} via {}'.format(self.thisStoreName, fetcher))
+			self.thisStore.StatusDetail = "(Failed Decode)"
+			logsupport.Logs.Log(
+				'Decode failure on return data from weather fetch of {} via {} Exc: {}'.format(self.thisStoreName,
+																							   fetcher, E))
 
 
 WeathProvs['Weatherbit'] = [WeatherbitWeatherSource, '']  # api key gets filled in from config file

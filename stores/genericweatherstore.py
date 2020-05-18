@@ -37,8 +37,6 @@ class WeatherItem(valuestore.StoreItem):
 class WeatherVals(valuestore.ValueStore):
 
 	def __init__(self, location, weathersource, refresh):
-		# self.fetchtime = 0
-		self.lastgoodfetch = 0
 		self.failedfetchcount = 0
 		self.failedfetchtime = 0
 		self.refreshinterval = 60 * refresh
@@ -71,6 +69,31 @@ class WeatherVals(valuestore.ValueStore):
 		for n, fcst in self.vars['Fcst'].items():
 			fcst.Value = valuestore.StoreList(fcst)
 
+	def FetchComplete(self):
+		self.DoingFetch = None
+		if self.CurFetchGood:
+			self.failedfetchcount = 0
+			self.fetchcount += 1
+			self.Status = ("Weather available",)
+		else:
+			self.failedfetchcount += 1
+			if time.time() > self.ValidWeatherTime + 3 * self.refreshinterval:  # use old weather for up to 3 intervals
+				# really have stale data
+				self.ValidWeather = False
+				if self.StatusDetail is None:
+					self.Status = ("Weather not available", "(failed fetch)")
+					logsupport.Logs.Log(
+						'{} weather fetch failures for: {} No weather for {} seconds'.format(self.failedfetchcount,
+																							 self.name,
+																							 time.time() - self.ValidWeatherTime),
+						severity=logsupport.ConsoleWarning)
+				else:
+					self.Status = ("Weather not available", self.StatusDetail)
+				self.failedfetchtime = time.time()
+			else:
+				logsupport.Logs.Log(
+					'Failed fetch for {} number {} using old weather'.format(self.name, self.failedfetchcount))
+
 	def BlockRefresh(self):  # return True if refresh happened
 
 		# if self.fetchtime + self.refreshinterval > time.time():
@@ -78,6 +101,7 @@ class WeatherVals(valuestore.ValueStore):
 		if (now - self.ValidWeatherTime < self.refreshinterval) or (now - self.failedfetchtime < 120):
 			# have recent data or a recent failure
 			return False
+
 		logsupport.Logs.Log(
 			'Try weather refresh: {} age: {} {} {} {} {}'.format(self.name, (now - self.ValidWeatherTime),
 																 self.ValidWeatherTime, self.refreshinterval,
@@ -110,37 +134,15 @@ class WeatherVals(valuestore.ValueStore):
 				logsupport.Logs.Log('Weather fetch taking long time for: {}'.format(self.name),
 									severity=logsupport.ConsoleWarning)
 		else:
-			# fetch completed
+			# fetch completed todo not needed once Weatherbit is only provider since moved to FetchComplete in provider - this then should get replaced by anomoly error
 			logsupport.Logs.Log('Weather refresh completed: {} age: {} {} {} {} {}'.format(self.name,
 																						   (
 																									   now - self.ValidWeatherTime),
 																						   self.ValidWeatherTime,
 																						   self.refreshinterval,
 																						   self.failedfetchtime, now))
-			self.DoingFetch = None
-			if self.CurFetchGood:
-				self.lastgoodfetch = time.time()
-				self.failedfetchcount = 0
-				self.fetchcount += 1
-				self.Status = ("Weather available",)
-			else:
-				self.failedfetchcount += 1
-				if time.time() > self.lastgoodfetch + 3 * self.refreshinterval:  # use old weather for up to 3 intervals
-					# really have stale data
-					self.ValidWeather = False
-					if self.StatusDetail is None:
-						self.Status = ("Weather not available", "(failed fetch)")
-						logsupport.Logs.Log(
-							'{} weather fetch failures for: {} No weather for {} seconds'.format(self.failedfetchcount,
-																								 self.name,
-																								 time.time() - self.lastgoodfetch),
-							severity=logsupport.ConsoleWarning)
-					else:
-						self.Status = ("Weather not available", self.StatusDetail)
-					self.failedfetchtime = time.time()
-				else:
-					logsupport.Logs.Log(
-						'Failed fetch for {} number {} using old weather'.format(self.name, self.failedfetchcount))
+
+			self.FetchComplete()
 
 		return True
 
