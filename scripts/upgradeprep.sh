@@ -11,6 +11,7 @@ pip install --upgrade wiringpi
 pip install --upgrade paho-mqtt
 pip install --upgrade python-dateutil
 pip install darksky_weather
+pip uninstall homeassistant
 
 if [ -e setupsystemd.py ]
 then

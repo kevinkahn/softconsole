@@ -101,7 +101,10 @@ def initOS(scrntyp, configdir):
 	os.environ['SDL_FBDEV'] = screendev
 	os.environ['SDL_VIDEODRIVER'] = screendefs[screentype][1]
 	DimType = screendefs[screentype][2]
-
+	#	with open('/home/pi/check', 'w') as f:
+	#		f.write('{}\n'.format(wiringpi.__file__))
+	#		f.write('{}\n'.format(dir(wiringpi)))
+	#		f.write('{}\n'.format(len(dir(wiringpi))))
 	if DimType in ('PWM18', 'PWM19'):
 		if DimType == 'PWM18':
 			dimpin = 18
@@ -113,7 +116,6 @@ def initOS(scrntyp, configdir):
 				f.write('0')
 		except:
 			pass
-
 		wiringpi.wiringPiSetupGpio()
 		wiringpi.pinMode(dimpin, 2)
 		wiringpi.pwmSetMode(wiringpi.PWM_MODE_MS)  # default balanced mode makes screen dark at about 853/1024
