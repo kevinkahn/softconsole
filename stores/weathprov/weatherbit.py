@@ -241,7 +241,8 @@ class WeatherbitWeatherSource(object):
 				fetcher = WeatherCache[self.location][3]
 				weathertime = WeatherCache[self.location][0]
 				logsupport.Logs.Log(
-					'Using cache weather: {} {} {} {}'.format(self.location, weathertime, time.time(), fetcher))
+					'Using cache weather: {} ({}) {} {} {}'.format(self.thisStoreName, self.location, weathertime,
+																   time.time(), fetcher))
 			elif time.time() < self.dailyreset:
 				logsupport.Logs.Log(
 					"Skip Weatherbit fetch for {}, over limit until {}".format(self.thisStoreName, self.resettime))
@@ -265,6 +266,9 @@ class WeatherbitWeatherSource(object):
 					historybuffer.HBNet.Entry('Weather fetch done')
 					weathertime = time.time()
 					fetcher = 'local'
+					logsupport.Logs.Log(
+						'Fetched weather for {} ({}) locally'.format(self.thisStoreName, self.location))
+
 				except Exception as E:
 					if E.response.status_code == 429:
 						try:
@@ -289,9 +293,7 @@ class WeatherbitWeatherSource(object):
 					return
 
 			# noinspection PyUnboundLocalVariable
-			logsupport.Logs.Log(
-				'Fetched weather for {} ({}) via {} (age: {} min.)'.format(self.thisStoreName, self.location, fetcher,
-																		   (time.time() - weathertime) // 60))
+
 		except Exception as E:
 			logsupport.Logs.Log('Unhandled exception in Weatherbit fetch: {}'.format(E),
 								severity=logsupport.ConsoleWarning)
@@ -336,6 +338,7 @@ class WeatherbitWeatherSource(object):
 			self.thisStore.ValidWeather = True
 			self.thisStore.StatusDetail = None
 			self.thisStore.ValidWeatherTime = weathertime
+			logsupport.Logs.Log('Loaded new weather for {} via {}'.format(self.thisStoreName, fetcher))
 			controlevents.PostEvent(controlevents.ConsoleEvent(controlevents.CEvent.GeneralRepaint))
 			return  # success
 		except Exception as E:

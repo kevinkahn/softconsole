@@ -109,9 +109,14 @@ class WeatherVals(valuestore.ValueStore):
 				self.Status = ('Weather not available', '(trying to fetch)')
 				logsupport.Logs.Log('Weather fetch taking long time for: {}'.format(self.name),
 									severity=logsupport.ConsoleWarning)
-		# else just wait for next time
 		else:
 			# fetch completed
+			logsupport.Logs.Log('Weather refresh completed: {} age: {} {} {} {} {}'.format(self.name,
+																						   (
+																									   now - self.ValidWeatherTime),
+																						   self.ValidWeatherTime,
+																						   self.refreshinterval,
+																						   self.failedfetchtime, now))
 			self.DoingFetch = None
 			if self.CurFetchGood:
 				self.lastgoodfetch = time.time()
