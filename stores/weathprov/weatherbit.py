@@ -9,6 +9,7 @@ import json
 import config
 import historybuffer
 import logsupport
+from logsupport import ConsoleWarning, ConsoleDetail
 
 from ._weatherbit.api import Api
 from ._weatherbit.utils import LocalizeDateTime
@@ -205,7 +206,7 @@ class WeatherbitWeatherSource(object):
 		storename = logsupport.WeatherMsgStoreName[loc] if loc in logsupport.WeatherMsgStoreName else '(Not on Node)'
 		logsupport.Logs.Log(
 			'Cache update: {} ({}) {} {} {}'.format(storename, loc, weatherinfo['fetchtime'], time.time(),
-													weatherinfo['fetchingnode']))
+													weatherinfo['fetchingnode']), severity=ConsoleDetail)
 		c = Current(weatherinfo['current'], 'viaMQTT', weatherinfo['fetchingnode'])
 		f = Forecast(weatherinfo['forecast'], 'viaMQTT', weatherinfo['fetchingnode'])
 		WeatherCache[loc] = (weatherinfo['fetchtime'], c, f, weatherinfo['fetchingnode'])
@@ -242,7 +243,7 @@ class WeatherbitWeatherSource(object):
 				weathertime = WeatherCache[self.location][0]
 				logsupport.Logs.Log(
 					'Using cache weather: {} ({}) {} {} {}'.format(self.thisStoreName, self.location, weathertime,
-																   time.time(), fetcher))
+																   time.time(), fetcher), severity=ConsoleDetail)
 			elif time.time() < self.dailyreset:
 				logsupport.Logs.Log(
 					"Skip Weatherbit fetch for {}, over limit until {}".format(self.thisStoreName, self.resettime))
@@ -267,7 +268,8 @@ class WeatherbitWeatherSource(object):
 					weathertime = time.time()
 					fetcher = 'local'
 					logsupport.Logs.Log(
-						'Fetched weather for {} ({}) locally'.format(self.thisStoreName, self.location))
+						'Fetched weather for {} ({}) locally'.format(self.thisStoreName, self.location),
+						severity=ConsoleDetail)
 
 				except Exception as E:
 					if E.response.status_code == 429:
@@ -281,13 +283,13 @@ class WeatherbitWeatherSource(object):
 						logsupport.Logs.Log(
 							'Weatherbit over daily limit, reset at {} for {}'.format(self.resettime,
 																					 self.thisStoreName),
-							severity=logsupport.ConsoleWarning)
+							severity=ConsoleWarning)
 						self.dailyreset = time.time() + 60 * resetin
 						self.thisStore.StatusDetail = "(Over Limit until {})".format(self.resettime)
 					else:
 						logsupport.Logs.Log(
 							"Weatherbit failed to get weather for {} last Exc: {}".format(self.thisStoreName, E),
-							severity=logsupport.ConsoleWarning, hb=True)
+							severity=ConsoleWarning, hb=True)
 						self.thisStore.StatusDetail = None
 					historybuffer.HBNet.Entry('Weather fetch exception: {}'.format(repr(E)))
 					return
@@ -296,7 +298,7 @@ class WeatherbitWeatherSource(object):
 
 		except Exception as E:
 			logsupport.Logs.Log('Unhandled exception in Weatherbit fetch: {}'.format(E),
-								severity=logsupport.ConsoleWarning)
+								severity=ConsoleWarning)
 			return
 
 		# Now normalize weatherinfo into store
@@ -325,7 +327,8 @@ class WeatherbitWeatherSource(object):
 				except Exception as E:
 					logsupport.Logs.Log(
 						'Exception in Weatherbit forecast processing for {} day {}: {}'.format(self.thisStoreName, i,
-																							   repr(E)))
+																							   repr(E)),
+						severity=ConsoleWarning)
 					logsupport.Logs.Log('Forecast: {}'.format(forecast))
 					raise
 			for fn, entry in FcstFieldMap.items():
@@ -338,7 +341,8 @@ class WeatherbitWeatherSource(object):
 			self.thisStore.ValidWeather = True
 			self.thisStore.StatusDetail = None
 			self.thisStore.ValidWeatherTime = weathertime
-			logsupport.Logs.Log('Loaded new weather for {} via {}'.format(self.thisStoreName, fetcher))
+			logsupport.Logs.Log('Loaded new weather for {} via {}'.format(self.thisStoreName, fetcher),
+								severity=ConsoleDetail)
 			controlevents.PostEvent(controlevents.ConsoleEvent(controlevents.CEvent.GeneralRepaint))
 			self.thisStore.FetchComplete()  # clear the thread since work is done
 		except Exception as E:
@@ -348,7 +352,8 @@ class WeatherbitWeatherSource(object):
 			self.thisStore.StatusDetail = "(Failed Decode)"
 			logsupport.Logs.Log(
 				'Decode failure on return data from weather fetch of {} via {} Exc: {}'.format(self.thisStoreName,
-																							   fetcher, E))
+																							   fetcher, E),
+				severity=ConsoleWarning)
 
 
 WeathProvs['Weatherbit'] = [WeatherbitWeatherSource, '']  # api key gets filled in from config file

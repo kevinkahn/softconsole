@@ -8,6 +8,7 @@ import threading
 
 import config
 import logsupport
+from logsupport import ConsoleWarning, ConsoleDetail
 
 from stores import valuestore
 
@@ -86,7 +87,7 @@ class WeatherVals(valuestore.ValueStore):
 						'{} weather fetch failures for: {} No weather for {} seconds'.format(self.failedfetchcount,
 																							 self.name,
 																							 time.time() - self.ValidWeatherTime),
-						severity=logsupport.ConsoleWarning)
+						severity=ConsoleWarning)
 				else:
 					self.Status = ("Weather not available", self.StatusDetail)
 				self.failedfetchtime = time.time()
@@ -105,13 +106,15 @@ class WeatherVals(valuestore.ValueStore):
 		logsupport.Logs.Log(
 			'Try weather refresh: {} age: {} {} {} {} {}'.format(self.name, (now - self.ValidWeatherTime),
 																 self.ValidWeatherTime, self.refreshinterval,
-																 self.failedfetchtime, now))
+																 self.failedfetchtime, now),
+			severity=ConsoleDetail)
 
 		if self.DoingFetch is None:
 			logsupport.Logs.Log(
 				'Do weather refresh: {} age: {} {} {} {} {}'.format(self.name, (now - self.ValidWeatherTime),
 																	self.ValidWeatherTime, self.refreshinterval,
-																	self.failedfetchtime, now))
+																	self.failedfetchtime, now),
+				severity=ConsoleDetail)
 			self.CurFetchGood = False
 			self.DoingFetch = threading.Thread(target=self.ws.FetchWeather, name='WFetch-{}'.format(self.name),
 											   daemon=True)
@@ -127,20 +130,22 @@ class WeatherVals(valuestore.ValueStore):
 																					 (now - self.ValidWeatherTime),
 																					 self.ValidWeatherTime,
 																					 self.refreshinterval,
-																					 self.failedfetchtime, now))
+																					 self.failedfetchtime, now),
+				severity=ConsoleDetail)
 			if self.startedfetch + self.refreshinterval < time.time():
 				# fetch ongoing too long - don't use stale data any longer
 				self.Status = ('Weather not available', '(trying to fetch)')
 				logsupport.Logs.Log('Weather fetch taking long time for: {}'.format(self.name),
-									severity=logsupport.ConsoleWarning)
+									severity=ConsoleWarning)
 		else:
 			# fetch completed todo not needed once Weatherbit is only provider since moved to FetchComplete in provider - this then should get replaced by anomoly error
 			logsupport.Logs.Log('Weather refresh completed: {} age: {} {} {} {} {}'.format(self.name,
 																						   (
-																									   now - self.ValidWeatherTime),
+																								   now - self.ValidWeatherTime),
 																						   self.ValidWeatherTime,
 																						   self.refreshinterval,
-																						   self.failedfetchtime, now))
+																						   self.failedfetchtime, now),
+								severity=ConsoleDetail)
 
 			self.FetchComplete()
 
