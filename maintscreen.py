@@ -150,7 +150,7 @@ def PickStartingSpot():
 	if config.sysStore.ErrorNotice != -1:
 		startat = config.sysStore.ErrorNotice
 		config.sysStore.ErrorNotice = -1
-		logsupport.ReportStatus('error ind cleared')
+		consolestatus.ReportStatus('error ind cleared')
 	else:
 		startat = 0
 	return startat

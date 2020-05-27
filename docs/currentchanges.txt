@@ -43,7 +43,7 @@ V3.6.1
 This release adds support for Weatherbit as a provider.  This is to provide an alternative to DarkSky which announced ending it service in 12/21.  Use type=Weatherbit for this provider.  This provider supports an additional option units = 'I' or units ='M' to request Imperial or Metric reports.  If omitted it defaults to Imperial.
 
 V3.6.2
-This release adds support for multiple consoles on a network to share Weatherbit data so as to reduce the number of daily calls to the serice.  Provided that the
+This release adds support for multiple consoles on a network to share Weatherbit data so as to reduce the number of daily calls to the service.  Provided that the
 consoles are running MQTT, they will broadcast their weather fetches to caches in other consoles.  If a recent update exists in its cache, a console will use that
 data rather than doing its own fetch.  Thus, e.g., if the consoles are all set to update weather for a location once per hour, only one of them will actually do a
 fetch from the service while the others will see that data appear in their caches without an explicit fetch.  This helps limit the use of the service calls which for

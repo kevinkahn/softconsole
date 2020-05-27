@@ -2,15 +2,14 @@ import os
 import threading
 import subprocess
 import functools
-import json
+
 
 import githubutil as U
 import logsupport
 import historybuffer
 import time
-from logsupport import ConsoleWarning, ConsoleError, ConsoleInfo, ReportStatus
+from logsupport import ConsoleWarning, ConsoleError, ConsoleInfo
 from controlevents import PostEvent, ConsoleEvent, CEvent
-import timers
 import config
 from collections import OrderedDict
 from typing import NamedTuple, Callable
@@ -20,6 +19,7 @@ from exitutils import MAINTEXIT, Exit_Screen_Message, MAINTRESTART, MAINTPISHUT,
 
 fetcher = None
 
+ReportStatus = None
 
 def TempCheckSanity(Key, params):  # tempdel
 	if Key is None and params is None:
@@ -158,7 +158,7 @@ def GetLog(params=None):  # remote only
 def ClearIndicator(params=None, Key=None):
 	TempCheckSanity(Key, params)
 	config.sysStore.ErrorNotice = -1  # clear indicator
-	logsupport.ReportStatus('cleared indicator')
+	ReportStatus('cleared indicator')
 	CommandResp(Key, 'ok', params, None)
 
 

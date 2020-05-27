@@ -5,6 +5,7 @@ from datetime import datetime
 import pygame
 import controlevents
 import json
+import stats
 
 import config
 import historybuffer
@@ -21,7 +22,16 @@ from utilfuncs import interval_str
 WeatherIconCache = {'n/a': MissingIcon}
 
 WeatherCache = {}  # entries are location:(time, current, forecast)
+WeatherMsgStoreName = {}  # entries loc:storename
 
+WeatherFetchNodeInfo = {}  # entries are node: last seen count todo should we track last seen count on MQTT messages
+
+WBstats = stats.StatReportGroup(name='Weather', title='Weatherbit Statistics', reporttime=stats.GMT(0))  # EVERY(0,1))#
+ByLocStatGp = stats.StatSubGroup(name='ByLocation', PartOf=WBstats, title='Fetches by Location', totals='Total Fetches')
+ByNodeStatGp = stats.StatSubGroup(name='ByNode', PartOf=WBstats, title='Fetches by Node', totals='Total Fetches')
+LocalFetches = stats.StatSubGroup(name='Local', PartOf=WBstats, title='Actual Local Fetches',
+								  totals='Total Local Fetches',
+								  netreport=('Weatherbitfetches24', 'Weatherbitfetches'))
 
 
 def TreeDict(d, args):
@@ -182,8 +192,9 @@ class WeatherbitWeatherSource(object):
 		self.units = units
 		self.dailyreset = 0
 		self.resettime = '(unset)'
-		logsupport.WeatherMsgCount[location] = 0
-		logsupport.WeatherMsgStoreName[location] = storename
+		WeatherMsgStoreName[location] = storename
+		self.actualfetch = stats.CntStat(name=storename, title=storename, keeplaps=True, PartOf=LocalFetches, inc=2,
+										 init=2)
 		try:  # t try to convert to lat/lon
 			locationstr = location.split(',')
 			if len(locationstr) != 2:
@@ -203,22 +214,23 @@ class WeatherbitWeatherSource(object):
 	def MQTTWeatherUpdate(payload):
 		weatherinfo = json.loads(payload)
 		loc = weatherinfo['location']
-		storename = logsupport.WeatherMsgStoreName[loc] if loc in logsupport.WeatherMsgStoreName else '(Not on Node)'
+		storename = WeatherMsgStoreName[loc] if loc in WeatherMsgStoreName else '(Not on Node)'
 		logsupport.Logs.Log(
 			'Cache update: {} ({}) {} {} {}'.format(storename, loc, weatherinfo['fetchtime'], time.time(),
 													weatherinfo['fetchingnode']), severity=ConsoleDetail)
 		c = Current(weatherinfo['current'], 'viaMQTT', weatherinfo['fetchingnode'])
 		f = Forecast(weatherinfo['forecast'], 'viaMQTT', weatherinfo['fetchingnode'])
 		WeatherCache[loc] = (weatherinfo['fetchtime'], c, f, weatherinfo['fetchingnode'])
-		if weatherinfo['fetchingnode'] in logsupport.WeatherFetches:
-			logsupport.WeatherFetches[weatherinfo['fetchingnode']] += 2
+
+		if ByNodeStatGp.Exists(weatherinfo['fetchingnode']):
+			ByNodeStatGp.Op(name=weatherinfo['fetchingnode'])
 		else:
-			logsupport.WeatherFetches[weatherinfo['fetchingnode']] = 2
-		logsupport.WeatherFetchNodeInfo[weatherinfo['fetchingnode']] = weatherinfo['fetchcount']
-		if loc in logsupport.WeatherMsgCount:
-			logsupport.WeatherMsgCount[loc] += 2
+			stats.CntStat(name=weatherinfo['fetchingnode'], PartOf=ByNodeStatGp, inc=2, init=2)
+		if ByLocStatGp.Exists(loc):
+			ByLocStatGp.Op(name=loc)
 		else:
-			logsupport.WeatherMsgCount[loc] = 2
+			stats.CntStat(name=loc, title=WeatherMsgStoreName[loc] if loc in WeatherMsgStoreName else loc,
+						  PartOf=ByLocStatGp, inc=2, init=2)
 
 	def ConnectStore(self, store):
 		self.thisStore = store
@@ -256,11 +268,10 @@ class WeatherbitWeatherSource(object):
 					current = c.points[0]  # single point for current reading
 					f = self.get_forecast()
 					forecast = f.points  # list of 16 points for forecast point 0 is today
-					logsupport.Weatherbitfetches += 2
-					logsupport.Weatherbitfetches24 += 2
+					self.actualfetch.Op()  # cound actual local fetches
 					bcst = {'current': c.json, 'forecast': f.json, 'location': self.location,
 							'fetchtime': time.time(),
-							'fetchcount': logsupport.Weatherbitfetches24, 'fetchingnode': config.sysStore.hostname}
+							'fetchcount': self.actualfetch.Values()[0], 'fetchingnode': config.sysStore.hostname}
 					if config.mqttavailable:
 						config.MQTTBroker.Publish('Weatherbit/{}'.format(self.thisStoreName), node='all/weather',
 												  payload=json.dumps(bcst), retain=True)

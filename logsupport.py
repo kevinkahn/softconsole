@@ -4,7 +4,7 @@ import traceback
 import multiprocessing
 import signal
 from queue import Empty as QEmpty
-import datetime
+
 
 import pygame
 import webcolors
@@ -16,8 +16,10 @@ import screens.__screens as screens
 
 wc = webcolors.name_to_rgb  # can't use the safe version from utilities due to import loop but this is only used with
 
-
 # known color names
+
+ReportStatus = None
+
 
 class TempLogger(object):
 	def __init__(self):
@@ -52,25 +54,6 @@ primaryBroker = None  # for cross system reporting if mqtt is running
 errorlogfudge = 0  # force a new log start time for each use of the log to make sure other nodes see it as a change in value due to the alert only on change
 LoggerQueue = multiprocessing.Queue()
 
-# Performance info
-queuedepthmax = 0
-queuetimemax = 0
-queuedepthmaxtime = 0
-queuetimemaxtime = 0
-queuedepthmax24 = 0
-queuetimemax24 = 0
-queuedepthmax24time = 0
-queuetimemax24time = 0
-DarkSkyfetches = 0  # todo generalize?
-DarkSkyfetches24 = 0  # todo generalize
-Weatherbitfetches = 0
-Weatherbitfetches24 = 0
-daystartloops = 0
-maincyclecnt = 0
-WeatherMsgCount = {}  # entries are location, msgcnt*2
-WeatherMsgStoreName = {}  # entries loc:storename
-WeatherFetches = {}  # entries are node: count
-WeatherFetchNodeInfo = {}  # entries are node: last seen count
 
 Command = Enum('Command', 'LogEntry DevPrint FileWrite CloseHlog StartLog Touch LogString DumpRemote')
 
@@ -82,40 +65,6 @@ LogLevel = 3
 LocalOnly = True
 
 
-heldstatus = ''
-
-
-def NewDay(Report=True):
-	global queuedepthmax24, queuetimemax24, queuedepthmax24time, queuetimemax24time, DarkSkyfetches24, Weatherbitfetches24, daystartloops, maincyclecnt
-
-	if Report:
-		Logs.Log("Daily Performance Summary: MaxQDepth: {} at {}".format(queuedepthmax24,
-																		 datetime.datetime.fromtimestamp(
-																			 queuedepthmax24time).strftime(
-																			 "%H:%M:%S.%f")))
-		Logs.Log(
-			"                           MaxQTime:  {} at {}".format(queuetimemax24, datetime.datetime.fromtimestamp(
-				queuetimemax24time).strftime("%H:%M:%S.%f")))
-		Logs.Log("                           Weatherbit Fetches: {}".format(Weatherbitfetches24))
-		Logs.Log("                           Cycles: {}/{}".format(maincyclecnt - daystartloops, maincyclecnt))
-		totfetch = 0
-		Logs.Log("Weatherbit global detail (by location):")
-		for loc in WeatherMsgCount:
-			totfetch = totfetch + WeatherMsgCount[loc]
-			Logs.Log("     {} ({}):  {}".format(WeatherMsgStoreName[loc], loc, WeatherMsgCount[loc]))
-			WeatherMsgCount[loc] = 0
-
-		Logs.Log('   Total:  {}'.format(totfetch))
-		Logs.Log("Weatherbit global detail (by node):")
-		for nod in WeatherFetches:
-			Logs.Log("     {}:  {} (node value: {})".format(nod, WeatherFetches[nod], WeatherFetchNodeInfo[nod]))
-	daystartloops = maincyclecnt
-	queuedepthmax24 = 0
-	queuetimemax24 = 0
-	queuedepthmax24time = 0
-	queuetimemax24time = 0
-	DarkSkyfetches24 = 0
-	Weatherbitfetches24 = 0
 
 def SpawnAsyncLogger():
 	global AsyncLogger
@@ -434,9 +383,11 @@ class Logger(object):
 		else:
 			return "Local Log No more entries        Page: {}".format(pageno), False
 
-def ReportStatus(status, retain=True, hold=0):
+
+'''
+def ReportStatus(status, retain=True, hold=0):  # todo need to generalize stat report with stats packeage
 	# held: 0 normal status report, 1 set an override status to be held, 2 clear and override status
-	global heldstatus, queuedepthmax, queuetimemax, queuedepthmaxtime, queuetimemaxtime, queuedepthmax24, queuetimemax24, queuedepthmax24time, queuetimemax24time, Weatherbitfetches, Weatherbitfetches24, DarkSkyfetches, DarkSkyfetches24, daystartloops, maincyclecnt
+	global heldstatus, queuedepthmax, queuetimemax, queuedepthmaxtime, queuetimemaxtime, queuedepthmax24, queuetimemax24, queuedepthmax24time, queuetimemax24time, DarkSkyfetches, DarkSkyfetches24, daystartloops, maincyclecnt
 	if hold == 1:
 		heldstatus = status
 	elif hold == 2:
@@ -451,7 +402,7 @@ def ReportStatus(status, retain=True, hold=0):
 						   'queuetimemaxtime': queuetimemaxtime, 'queuedepthmax24': queuedepthmax24,
 						   'queuetimemax24': queuetimemax24,
 						   'queuedepthmax24time': queuedepthmax24time, 'queuetimemax24time': queuetimemax24time,
-						   'Weatherbitfetches': Weatherbitfetches, 'Weatherbitfetches24': Weatherbitfetches24,
+						   #'Weatherbitfetches': weatherbit.localfetches.Values()[1], 'Weatherbitfetches24': weatherbit.localfetches.Values()[0],
 						   'DarkSkyfetches': DarkSkyfetches, 'DarkSkyfetches24': DarkSkyfetches24,
 						   'daystartloops': daystartloops,
 						   'maincyclecnt': maincyclecnt,
@@ -460,7 +411,7 @@ def ReportStatus(status, retain=True, hold=0):
 		primaryBroker.Publish(node=hw.hostname, topic='status', payload=stat, retain=retain, qos=1,
 							  viasvr=True)
 
-
+'''
 
 def LineRenderer(itemnumber, font, uselog):
 	if not (len(uselog) > itemnumber):

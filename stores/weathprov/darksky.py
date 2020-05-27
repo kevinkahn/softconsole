@@ -9,6 +9,7 @@ import controlevents
 import config
 import historybuffer
 import logsupport
+import stats
 
 from darksky.types import languages, units, weather
 from darksky.request_manager import RequestManger
@@ -145,8 +146,8 @@ class DarkSkyWeatherSource(object):
 					forecast = self.request_manager.make_request(url=self.url, extend=None, lang=languages.ENGLISH,
 																 units=units.AUTO, exclude='minutely,hourly,flags')
 					historybuffer.HBNet.Entry('Weather fetch done')
-					logsupport.DarkSkyfetches += 1
-					logsupport.DarkSkyfetches24 += 1
+					stats.DarkSkyfetches += 1
+					stats.DarkSkyfetches24 += 1
 					fetchworked = True
 				except Exception as E:
 					fetchworked = False

@@ -9,6 +9,7 @@ import historybuffer
 import config
 import logsupport
 
+
 # noinspection PyArgumentList
 CEvent = Enum('ConsoleEvent',
 			  'FailSafePing ACTIVITYTIMER HubNodeChange ISYAlert ISYVar GeneralRepaint RunProc SchedEvent MouseDown MouseUp MouseMotion')
@@ -44,27 +45,35 @@ def GetEvent():
 	except queue.Empty:
 		logsupport.DevPrint('Queue wait timeout')
 		HBControl.Entry("Main loop timeout - inserting ping event")
-		evnt = ConsoleEvent(CEvent.FailSafePing,inject=time.time(),QTime=time.time())
+		evnt = ConsoleEvent(CEvent.FailSafePing, inject=time.time(), QTime=time.time())
 		logsupport.Logs.Log('Main queue timeout', severity=logsupport.ConsoleWarning, hb=True)
 	if evnt is None: logsupport.Logs.Log('Got none from blocking get', severity=logsupport.ConsoleError, hb=True)
 	cpu = psutil.Process(config.sysStore.Console_pid).cpu_times()
-	HBControl.Entry("Get: {} queuesize: {}".format(evnt,qs))
+	HBControl.Entry("Get: {} queuesize: {}".format(evnt, qs))
 
 	now = time.time()
-	if qs >= logsupport.queuedepthmax:
-		logsupport.queuedepthmax = qs
-		logsupport.queuedepthmaxtime = now
-	if qs >= logsupport.queuedepthmax24:
-		logsupport.queuedepthmax24 = qs
-		logsupport.queuedepthmax24time = now
 
 	qt = time.time() - evnt.QTime
-	if qt > logsupport.queuetimemax:
-		logsupport.queuetimemax = qt
-		logsupport.queuetimemaxtime = now
-	if qt > logsupport.queuetimemax24:
-		logsupport.queuetimemax24 = qt
-		logsupport.queuetimemax24time = now
+	'''
+	if qs >= consolestatus.queuedepthmax:
+		consolestatus.queuedepthmax = qs
+		consolestatus.queuedepthmaxtime = now
+	if qs >= consolestatus.queuedepthmax24:
+		consolestatus.queuedepthmax24 = qs
+		consolestatus.queuedepthmax24time = now
+
+
+	
+	if qt > consolestatus.queuetimemax:
+		consolestatus.queuetimemax = qt
+		consolestatus.queuetimemaxtime = now
+	if qt > consolestatus.queuetimemax24:
+		consolestatus.queuetimemax24 = qt
+		consolestatus.queuetimemax24time = now
+	'''
+
+	config.sysstats.Op('queuedepthmax', val=qs)
+	config.sysstats.Op('queuetimemax', val=qt)
 
 	if qt > latencynotification:
 		HBControl.Entry(
@@ -72,13 +81,18 @@ def GetEvent():
 																	 cpu.system - evnt.syscpu, evnt))
 		if not timers.LongOpInProgress:
 			logsupport.Logs.Log('Long on queue {} (user: {} sys: {}) event: {}'.format(time.time() - evnt.QTime,
-								cpu.user - evnt.usercpu, cpu.system - evnt.syscpu, evnt),
+																					   cpu.user - evnt.usercpu,
+																					   cpu.system - evnt.syscpu, evnt),
 								hb=True, homeonly=True)
-	if time.time() - evnt.QTime < 2: # cleared any pending long waiting startup events
+	if time.time() - evnt.QTime < 2:  # cleared any pending long waiting startup events
 		if config.sysStore.versionname in ('development', 'homerelease') and (latencynotification != LateTolerance):  # after some startup stabilisation sensitize latency watch if my system
 			latencynotification = LateTolerance
-			logsupport.queuedepthmax = 0
-			logsupport.queuetimemax = 0
+			config.sysstats.Reset('queuedepthmax')
+			config.sysstats.Reset('queuetimemax')
+			'''
+			consolestatus.queuedepthmax = 0
+			consolestatus.queuetimemax = 0
+			'''
 	# logsupport.DevPrint('Set latency tolerance: {}'.format(latencynotification))
 	return evnt
 

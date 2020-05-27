@@ -6,6 +6,7 @@ import functools
 import configobj
 import issuecommands
 import supportscreens
+import json
 
 import pygame
 
@@ -20,6 +21,7 @@ from maintscreenbase import MaintScreenDesc
 import logsupport
 import keyspecs
 import config
+import stats
 
 # def Publish(topic, payload=None, node=hw.hostname, qos=1, retain=False, viasvr=False):
 #	# this gets replaced by actual Publish when MQTT starts up
@@ -33,10 +35,17 @@ noderecord = namedtuple('noderecord', ['status', 'uptime', 'error', 'rpttime', '
 									   'DarkSkyfetches', 'queuetimemax24', 'queuetimemax24time',
 									   'queuedepthmax24', 'maincyclecnt', 'queuedepthmax24time',
 									   'queuetimemaxtime', 'daystartloops', 'queuedepthmax', 'queuetimemax',
-									   'DarkSkyfetches24', 'queuedepthmaxtime'])
+									   'DarkSkyfetches24', 'queuedepthmaxtime', 'Weatherbitfetches',
+									   'Weatherbitfetches24'])
 
 defaults = {k: v for (k, v) in zip_longest(noderecord._fields, (
 	'unknown', 0, -2, 0, 0, 0), fillvalue='unknown*')}
+
+unknownstats = []
+
+heldstatus = ''
+
+# Performance info
 
 StatusDisp = None
 Status = None
@@ -46,6 +55,13 @@ RespBuffer = []
 RespNode = ''
 RespRcvd = False
 MsgSeq = 0
+
+
+def NewDay(Report=True):
+	if Report:
+		logsupport.Logs.Log("Daily Performance Summary: ")
+		logsupport.Logs.Log("     Cycles: {}/{}".format(stats.maincyclecnt - stats.daystartloops, stats.maincyclecnt))
+	stats.daystartloops = stats.maincyclecnt
 
 
 def SetUpConsoleStatus():
@@ -78,13 +94,19 @@ def GenGoNodeCmdScreen():
 	IssueCmds.userstore.ReParent(Status)
 	screen.PushToScreen(IssueCmds, 'Maint')
 
+
 def UpdateStatus(nd, stat):
+	global unknownstats
 	if nd not in nodes: NewNode(nd)
 	# Handle cases where nodes are reporting status fields we are not tracking
 	updts = [f for f in stat.keys()]
 	for k in updts:
 		if not hasattr(nodes[nd], k):
 			del stat[k]
+			if k not in unknownstats:
+				logsupport.Logs.Log('Saw update for untracked stat: {} from node {}'.format(k, nd),
+									severity=logsupport.ConsoleWarning)
+				unknownstats.append(k)
 	nodes[nd] = nodes[nd]._replace(**stat)
 	t = False
 	for nd, ndinfo in nodes.items():
@@ -357,3 +379,31 @@ def LogDisplay(evnt):
 									config.sysStore.LogFontSize, 'white')
 	p.singleuse = True
 	screen.PushToScreen(p)
+
+
+def ReportStatus(status, retain=True, hold=0):  # todo need to generalize stat report with stats packeage
+	# held: 0 normal status report, 1 set an override status to be held, 2 clear and override status
+	global heldstatus
+	if hold == 1:
+		heldstatus = status
+	elif hold == 2:
+		heldstatus = ''
+
+	if logsupport.primaryBroker is not None:
+		stattoreport = stats.GetReportables(stats.statroot)
+		stattoreport.update({'status': status if heldstatus == '' else heldstatus,
+							 "uptime": time.time() - config.sysStore.ConsoleStartTime,
+							 "error": config.sysStore.ErrorNotice, 'rpttime': time.time(),
+							 "FirstUnseenErrorTime": config.sysStore.FirstUnseenErrorTime,
+							 'DarkSkyfetches': stats.DarkSkyfetches, 'DarkSkyfetches24': stats.DarkSkyfetches24,
+							 'daystartloops': stats.daystartloops,
+							 'maincyclecnto': stats.maincyclecnt,
+							 'boottime': hw.boottime})  # rereport this because on powerup first NTP update can be after console starts
+		stat = json.dumps(stattoreport)
+
+		logsupport.primaryBroker.Publish(node=hw.hostname, topic='status', payload=stat, retain=retain, qos=1,
+										 viasvr=True)
+
+
+issuecommands.ReportStatus = ReportStatus
+logsupport.ReportStatus = ReportStatus

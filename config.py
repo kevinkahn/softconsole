@@ -17,6 +17,7 @@ SonosScreen = None  # todo hack to handle late appearing players
 mqttavailable = False
 MQTTBroker = None
 
+sysstats = None
 
 # Global Defaults Settable in config.txt in Console
 sysStore = None

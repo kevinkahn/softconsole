@@ -7,7 +7,8 @@ import githubutil
 import historybuffer
 import logsupport
 import threading
-from logsupport import ConsoleWarning, ConsoleDetail, ReportStatus
+from logsupport import ConsoleWarning, ConsoleDetail
+from consolestatus import ReportStatus
 import controlevents
 
 

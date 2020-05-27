@@ -4,6 +4,8 @@ import multiprocessing
 import threading
 import time
 import psutil
+import stats
+from stats import LOCAL, EVERY
 
 import pygame
 import screen
@@ -19,13 +21,14 @@ import screens.__screens as screens
 import threadmanager
 import timers
 from controlevents import CEvent, PostEvent, ConsoleEvent, GetEvent, GetEventNoWait
-from logsupport import ConsoleWarning, ConsoleError, ConsoleDetail, ReportStatus
+from logsupport import ConsoleWarning, ConsoleError, ConsoleDetail
+from consolestatus import ReportStatus
+import consolestatus
 import controlevents
 import traceback
 
 
 # import objgraph
-
 
 
 class DisplayScreen(object):
@@ -204,7 +207,7 @@ class DisplayScreen(object):
 		logsupport.Logs.livelog = False  # turn off logging to the screen
 		config.sysStore.ErrorNotice = -1  # don't pester for errors during startup
 		time.sleep(1)  # give support services a chance to start (particularly MQTT)
-		logsupport.ReportStatus('mainloop starting')
+		ReportStatus('mainloop starting')
 		config.Running = True
 
 		with open("{}/.ConsoleStart".format(config.sysStore.HomeDir), "a") as f:
@@ -252,13 +255,29 @@ class DisplayScreen(object):
 		rptvirt = 0.0
 		peakstats = {}
 
+		config.sysstats = stats.StatReportGroup(name='System', title='System Statistics',
+												reporttime=LOCAL(0))  # EVERY(0,2))#
+		stats.MaxStat(name='queuedepthmax', PartOf=config.sysstats, keeplaps=True, title='Maximum Queue Depth',
+					  netreport=('queuedepthmax', 'queuedepthmax24', 'queuedepthmaxtime', 'queuedepthmax24time'))
+		stats.MaxStat(name='queuetimemax', PartOf=config.sysstats, keeplaps=True, title='Maximum Queued Time',
+					  netreport=('queuetimemax', 'queuetimemax24', 'queuetimemaxtime', 'queuetimemax24time'))
+		stats.MaxStat(name='realmem', PartOf=config.sysstats, keeplaps=False, title='Real memory use')
+		stats.MaxStat(name='virtmem', PartOf=config.sysstats, keeplaps=False, title='Virtual Memory Use')
+		maincyc = stats.CntStat(name='maincyclecnt', PartOf=config.sysstats, title='Main Loop Cycle:', keeplaps=True,
+								netreport='maincyclecnt')
+		nextstat = stats.GetNextReportTime()
+
 		try:
 			while config.Running:  # Operational Control Loop
-				logsupport.maincyclecnt += 1
-				if logsupport.maincyclecnt == 4: logsupport.NewDay(Report=False)  # ignore startup delays
+				stats.maincyclecnt += 1  # todo del
+				if maincyc.Op() == 4: config.sysstats.ResetGrp(exclude=maincyc)
+				if nextstat[0][0] < time.time():
+					nextstat = stats.TimeToReport(nextstat)
+
+				if stats.maincyclecnt == 4: consolestatus.NewDay(Report=False)  # ignore startup delays
 				if dayord != time.localtime().tm_yday:
 					dayord = time.localtime().tm_yday
-					logsupport.NewDay(Report=True)
+					consolestatus.NewDay(Report=True)
 				self.HBEvents.Entry('Start event loop iteration')
 
 				StackCheck = traceback.format_stack()
@@ -271,15 +290,18 @@ class DisplayScreen(object):
 
 				if time.time() - ckperf > 30:  # todo 900:
 					ckperf = time.time()
-					if config.sysStore.versionname in ('development', 'homerelease'):
-						if logsupport.queuedepthmax > controlevents.QLengthTrigger or logsupport.queuetimemax > controlevents.LateTolerance:
-							logsupport.Logs.Log('Console performance({}): maxq: {} maxwait: {}'.format(
-								time.time() - perfdump, logsupport.queuedepthmax, logsupport.queuetimemax),
-								severity=ConsoleWarning, hb=True)
-							logsupport.queuetimemax = 0
-							logsupport.queuedepthmax = 0
-							perfdump = time.time()
-						p = psutil.Process(config.sysStore.Console_pid)
+					p = psutil.Process(config.sysStore.Console_pid)
+					config.sysstats.Op('realmem', val=p.memory_info().rss / (2 ** 10))
+					config.sysstats.Op('virtmem', val=p.memory_info().vms / (2 ** 10))
+					if config.sysStore.versionname in ('development', 'homerelease'):  # todo - replace following?
+						# if consolestatus.queuedepthmax > controlevents.QLengthTrigger or consolestatus.queuetimemax > controlevents.LateTolerance:
+						#	logsupport.Logs.Log('Console performance({}): maxq: {} maxwait: {}'.format(
+						#		time.time() - perfdump, consolestatus.queuedepthmax, consolestatus.queuetimemax),
+						#		severity=ConsoleWarning, hb=True)
+						#	consolestatus.queuetimemax = 0
+						#	consolestatus.queuedepthmax = 0
+						#	perfdump = time.time()
+
 						realmem = p.memory_info().rss / (2 ** 10)
 						realfree = psutil.virtual_memory().free / (2 ** 20)
 						virtmem = p.memory_info().vms / (2 ** 10)
