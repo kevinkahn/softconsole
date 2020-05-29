@@ -23,11 +23,51 @@ import keyspecs
 import config
 import stats
 
+import collections.abc
+
+
+def update(d, u):
+	for k, v in u.items():
+		if isinstance(v, collections.abc.Mapping):
+			d[k] = update(d.get(k, {}), v)
+		else:
+			d[k] = v
+	return d
+
+
 # def Publish(topic, payload=None, node=hw.hostname, qos=1, retain=False, viasvr=False):
 #	# this gets replaced by actual Publish when MQTT starts up
 #	pass
 
 nodes = OrderedDict()
+
+
+class Noderecord(object):
+	def __init__(self):
+		self.hw = 'unknown*'
+		self.osversion = 'unknown*'
+		self.boottime = 'unknown*'
+		self.versioncommit = 'unknown*'
+		self.versiondnld = 'unknown*'
+		self.versionsha = 'unknown*'
+		self.versionname = 'unknown*'
+		self.registered = 0
+		self.FirstUnseenErrorTime = 0
+		self.rpttime = 0
+		self.error = -2
+		self.uptime = 0
+		self.status = 'unknown'
+		self.reportedstats = {}
+
+
+EmptyNodeRecord = {'hw': 'unknown*', 'osversion': 'unknown*', 'boottime': 'unknown*', "versioncommit": 'unknown*',
+				   'versiondnld': 'unknown*', 'versionsha': 'unknown*', 'versionname': 'unknown*',
+				   'registered': 0, "FirstUnseenErrorTime": 0, 'rpttime': 0, 'error': -2, "uptime": 0,
+				   'status': 'unknown'}  # ,
+# "stats":{}}
+
+
+Nodes = OrderedDict()
 
 noderecord = namedtuple('noderecord', ['status', 'uptime', 'error', 'rpttime', 'FirstUnseenErrorTime',
 									   'registered', 'versionname', 'versionsha',
@@ -41,7 +81,7 @@ noderecord = namedtuple('noderecord', ['status', 'uptime', 'error', 'rpttime', '
 defaults = {k: v for (k, v) in zip_longest(noderecord._fields, (
 	'unknown', 0, -2, 0, 0, 0), fillvalue='unknown*')}
 
-unknownstats = []
+unknownstats = ['stats']
 
 heldstatus = ''
 
@@ -55,13 +95,6 @@ RespBuffer = []
 RespNode = ''
 RespRcvd = False
 MsgSeq = 0
-
-
-def NewDay(Report=True):
-	if Report:
-		logsupport.Logs.Log("Daily Performance Summary: ")
-		logsupport.Logs.Log("     Cycles: {}/{}".format(stats.maincyclecnt - stats.daystartloops, stats.maincyclecnt))
-	stats.daystartloops = stats.maincyclecnt
 
 
 def SetUpConsoleStatus():
@@ -86,8 +119,10 @@ def SetUpConsoleStatus():
 	else:
 		return None
 
-def NewNode(nd):
+
+def NewNode(nd):  # del
 	nodes[nd] = noderecord(**defaults)
+
 
 def GenGoNodeCmdScreen():
 	IssueCmds = CommandScreen()
@@ -95,9 +130,22 @@ def GenGoNodeCmdScreen():
 	screen.PushToScreen(IssueCmds, 'Maint')
 
 
+def UpdateNodeStatus(nd, stat):
+	if nd not in Nodes: Nodes[nd] = EmptyNodeRecord.copy()
+	update(Nodes[nd], stat)
+	t = False
+	for nd, ndinfo in Nodes:
+		if ndinfo['status'] not in ('dead', 'unknown') and nd != hw.hostname and ndinfo['error'] != -1:
+			t = True
+			break
+	config.sysStore.NetErrorIndicator = t
+
+
 def UpdateStatus(nd, stat):
 	global unknownstats
-	if nd not in nodes: NewNode(nd)
+	# if nd not in Nodes: Nodes[nd] = EmptyNodeRecord.copy()
+	if nd not in nodes: NewNode(nd)  # del
+
 	# Handle cases where nodes are reporting status fields we are not tracking
 	updts = [f for f in stat.keys()]
 	for k in updts:
@@ -156,10 +204,7 @@ class ShowVersScreen(screen.BaseKeyScreenDesc):
 			else:
 				ln1 = "({}) of {} {}".format(nd, ndinfo.versionname.replace('\00', ''), ndinfo.versioncommit, offline)
 				ln2 = "Downloaded: {}".format(ndinfo.versiondnld)
-			# ln, ht, _ = screenutil.CreateTextBlock(["{:12.12s} ({}) of {} {}".format(nd, ndinfo.versionname.replace(
-			#	'\00', ''), ndinfo.versioncommit, offline),
-			#									   '             Downloaded: {}'.format(ndinfo.versiondnld)],
-			#									  landfont, 'white', False)
+
 			if hw.portrait:
 				ln, ht, _ = screenutil.CreateTextBlock([ndln, '  ' + ln1, '  ' + ln2], fontsz, 'white', False)
 				pass
@@ -205,30 +250,40 @@ class StatusDisplayScreen(screen.BaseKeyScreenDesc):
 		linestart = 60 + int(ht * 1.2)
 		hw.screen.blit(header, (10, 60))
 		for nd, ndinfo in nodes.items():
-			if ndinfo.maincyclecnt == 'unknown*':
-				stat = ndinfo.status
-				qmax = '     '
+			statinfo = Nodes[nd]['stats']['System'] if 'stats' in Nodes[nd] else None
+			if statinfo is None:
+				if ndinfo.maincyclecnt == 'unknown*':
+					stat = ndinfo.status
+					qmax = '     '
+				else:
+					stat = '{} cyc'.format(ndinfo.maincyclecnt) if ndinfo.status in (
+					'idle', 'active') else ndinfo.status
+					qmax = '{:4.2f} '.format(ndinfo.queuetimemax24)
+				active = '*' if ndinfo.status == 'active' else ' '
+				if ndinfo.status in ('dead', 'unknown'):
+					estat = ''
+					cstat = "{:14.14s}".format(' ')
+				else:
+					estat = ' ' if ndinfo.error == -1 else '?' if ndinfo.error == -1 else '*'
+					cstat = " {:>15.15s}".format(status_interval_str(ndinfo.uptime))
 			else:
-				stat = '{} cyc'.format(ndinfo.maincyclecnt) if ndinfo.status in ('idle', 'active') else ndinfo.status
-				qmax = '{:4.2f} '.format(ndinfo.queuetimemax24)
-			active = '*' if ndinfo.status == 'active' else ' '
+				stat = '{} cyc'.format(statinfo['maincyclecnt']) if Nodes[nd]['status'] in ('idle', 'active') else \
+				Nodes[nd]['status']
+				qmax = '{:4.2f} '.format(statinfo['queuetimemax24'])
+				active = '*' if Nodes[nd]['status'] == 'active' else ' '
+				if Nodes[nd]['status'] in ('dead', 'unknown'):
+					estat = ''
+					cstat = "{:14.14s}".format(' ')
+				else:
+					estat = ' ' if Nodes[nd]['error'] == -1 else '?' if Nodes[nd]['error'] == -2 else '*'
+					cstat = " {:>15.15s}".format(status_interval_str(Nodes[nd]['uptime']))
+			# --- todo convert to dict:  also fix above for inner if
 
-			if ndinfo.status in ('dead', 'unknown'):
-				estat = ''
-				cstat = "{:14.14s}".format(' ')
-			else:
-				estat = ' ' if ndinfo.error == -1 else '?' if ndinfo.error == -1 else '*'
-				cstat = " {:>15.15s}".format(status_interval_str(ndinfo.uptime))
 			if ndinfo.boottime == 0:
 				bt = "{:^19.19}".format('unknown')
 			else:
 				bt = "{:%Y-%m-%d %H:%M:%S}".format(datetime.fromtimestamp(ndinfo.boottime))
 			age = time.time() - ndinfo.rpttime if ndinfo.rpttime != 0 else 0
-			# if age > 180:  # seconds?  todo use to determine likel#y powerfail case
-			#	print(' (old:{})'.format(age))
-			#	print('Boottime: {}'.format(ndinfo.boottime))
-			# else:
-			#	print()
 
 			if hw.portrait:
 				ln, ht, wd = screenutil.CreateTextBlock(
@@ -390,14 +445,11 @@ def ReportStatus(status, retain=True, hold=0):  # todo need to generalize stat r
 		heldstatus = ''
 
 	if logsupport.primaryBroker is not None:
-		stattoreport = stats.GetReportables(stats.statroot)
+		stattoreport = {'stats': stats.GetReportables()[1]}
 		stattoreport.update({'status': status if heldstatus == '' else heldstatus,
 							 "uptime": time.time() - config.sysStore.ConsoleStartTime,
 							 "error": config.sysStore.ErrorNotice, 'rpttime': time.time(),
 							 "FirstUnseenErrorTime": config.sysStore.FirstUnseenErrorTime,
-							 'DarkSkyfetches': stats.DarkSkyfetches, 'DarkSkyfetches24': stats.DarkSkyfetches24,
-							 'daystartloops': stats.daystartloops,
-							 'maincyclecnto': stats.maincyclecnt,
 							 'boottime': hw.boottime})  # rereport this because on powerup first NTP update can be after console starts
 		stat = json.dumps(stattoreport)
 
