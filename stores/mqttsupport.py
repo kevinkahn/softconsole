@@ -18,6 +18,7 @@ import issuecommands
 import screens.__screens as screens
 import controlevents
 from stores.weathprov.providerutils import WeathProvs
+import stats
 
 
 
@@ -36,13 +37,19 @@ class MQTTBroker(valuestore.ValueStore):
 		self.MQTTnum = 0
 		self.fetcher = None
 		self.HB = historybuffer.HistoryBuffer(40, name)
+		self.mqttstats = stats.StatReportGroup(name='mqtt-{}'.format(self.name),
+											   title='{} Broker Statistics'.format(self.name),
+											   reporttime=stats.LOCAL(0))
+		self.discon = stats.CntStat(name='Disconnects', keeplaps=True, PartOf=self.mqttstats)
 
 		# noinspection PyUnusedLocal
 		def on_connect(client, userdata, flags, rc):
 			logm = "Connected" if self.loopexited else "Reconnected"
 			sckt = self.MQTTclient.socket()
 			svraddr = sckt.getpeername()
-			logsupport.Logs.Log("{}: {} stream {} to {}({}) with result code {}".format(self.name, logm, self.MQTTnum, self.address, svraddr[0], rc))
+			logsupport.Logs.Log(
+				"{}: {} stream {} to {}({}) with result code {}".format(self.name, logm, self.MQTTnum, self.address,
+																		svraddr[0], rc))
 			for i, _ in userdata.topicindex.items():
 				client.subscribe(i)
 			if logsupport.primaryBroker == self:
@@ -61,6 +68,7 @@ class MQTTBroker(valuestore.ValueStore):
 
 		# noinspection PyUnusedLocal
 		def on_disconnect(client, userdata, rc):
+			self.discon.Op()
 			logsupport.Logs.Log("{}: Disconnected stream {} with result code {}".format(self.name, self.MQTTnum, rc))
 
 		# noinspection PyUnusedLocal
@@ -109,10 +117,14 @@ class MQTTBroker(valuestore.ValueStore):
 
 				msgdcd = json.loads(msg.payload.decode('ascii'))
 				if topic[2] == 'nodes':
-					consolestatus.UpdateStatus(topic[-1], msgdcd)
+					# consolestatus.UpdateStatus(topic[-1], msgdcd) todo del
+					consolestatus.UpdateNodeStatus(topic[-1], msgdcd)
 					return
 				elif topic[2] == 'status':
-					consolestatus.UpdateStatus(topic[1], msgdcd)
+					if 'stats' in msgdcd:
+						consolestatus.UpdateNodeStatus(topic[1], msgdcd)
+					else:
+						consolestatus.UpdateStatus(topic[1], msgdcd)
 					return
 				elif topic[2] == 'resp':
 					if self.name in screens.DS.AS.HubInterestList:

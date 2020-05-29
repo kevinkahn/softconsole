@@ -19,7 +19,7 @@ from exitutils import MAINTEXIT, Exit_Screen_Message, MAINTRESTART, MAINTPISHUT,
 
 fetcher = None
 
-ReportStatus = None
+ReportStatus = None  # filled in by consolestatus to avoid dependency loop
 
 def TempCheckSanity(Key, params):  # tempdel
 	if Key is None and params is None:

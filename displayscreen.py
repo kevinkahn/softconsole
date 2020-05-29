@@ -247,10 +247,7 @@ class DisplayScreen(object):
 
 		perfdump = time.time()
 		ckperf = time.time()
-		dayord = time.localtime().tm_yday
 		stackdepth = 0
-		maxreal = 0.0
-		maxvirt = 0.0
 		rptreal = 0.0
 		rptvirt = 0.0
 		peakstats = {}
@@ -263,21 +260,28 @@ class DisplayScreen(object):
 					  netreport=('queuetimemax', 'queuetimemax24', 'queuetimemaxtime', 'queuetimemax24time'))
 		stats.MaxStat(name='realmem', PartOf=config.sysstats, keeplaps=False, title='Real memory use')
 		stats.MaxStat(name='virtmem', PartOf=config.sysstats, keeplaps=False, title='Virtual Memory Use')
+		stats.MinStat(name='realmemfree', PartOf=config.sysstats, keeplaps=False, title='Min Real Mem')
+		stats.MinStat(name='virtmemfree', PartOf=config.sysstats, keeplaps=False, title='Min Free Swap')
 		maincyc = stats.CntStat(name='maincyclecnt', PartOf=config.sysstats, title='Main Loop Cycle:', keeplaps=True,
 								netreport='maincyclecnt')
 		nextstat = stats.GetNextReportTime()
 
 		try:
 			while config.Running:  # Operational Control Loop
-				stats.maincyclecnt += 1  # todo del
 				if maincyc.Op() == 4: config.sysstats.ResetGrp(exclude=maincyc)
 				if nextstat[0][0] < time.time():
-					nextstat = stats.TimeToReport(nextstat)
+					nextstat, rpt = stats.TimeToReport(nextstat)
 
-				if stats.maincyclecnt == 4: consolestatus.NewDay(Report=False)  # ignore startup delays
-				if dayord != time.localtime().tm_yday:
-					dayord = time.localtime().tm_yday
-					consolestatus.NewDay(Report=True)
+					# rpt is list of lists of lines per report due
+					def loglist(l, tab=''):
+						for i in l:
+							if isinstance(i, str):
+								logsupport.Logs.Log(tab + i)
+							else:
+								loglist(i, tab=tab + '    ')
+
+					for r in rpt: loglist(r)
+
 				self.HBEvents.Entry('Start event loop iteration')
 
 				StackCheck = traceback.format_stack()
@@ -291,8 +295,15 @@ class DisplayScreen(object):
 				if time.time() - ckperf > 30:  # todo 900:
 					ckperf = time.time()
 					p = psutil.Process(config.sysStore.Console_pid)
-					config.sysstats.Op('realmem', val=p.memory_info().rss / (2 ** 10))
-					config.sysstats.Op('virtmem', val=p.memory_info().vms / (2 ** 10))
+					realmem = p.memory_info().rss / (2 ** 10)
+					realfree = psutil.virtual_memory().free / (2 ** 20)
+					virtmem = p.memory_info().vms / (2 ** 10)
+					virtfree = psutil.swap_memory().free / (2 ** 20)
+
+					config.sysstats.Op('realmem', val=realmem)
+					config.sysstats.Op('virtmem', val=virtmem)
+					config.sysstats.Op('realmemfree', val=realfree)
+					config.sysstats.Op('virtmemfree', val=virtfree)
 					if config.sysStore.versionname in ('development', 'homerelease'):  # todo - replace following?
 						# if consolestatus.queuedepthmax > controlevents.QLengthTrigger or consolestatus.queuetimemax > controlevents.LateTolerance:
 						#	logsupport.Logs.Log('Console performance({}): maxq: {} maxwait: {}'.format(
@@ -302,18 +313,12 @@ class DisplayScreen(object):
 						#	consolestatus.queuedepthmax = 0
 						#	perfdump = time.time()
 
-						realmem = p.memory_info().rss / (2 ** 10)
-						realfree = psutil.virtual_memory().free / (2 ** 20)
-						virtmem = p.memory_info().vms / (2 ** 10)
-						virtfree = psutil.swap_memory().free / (2 ** 20)
 						newhigh = []
 						if realmem > rptreal * 1.01:
 							rptreal = realmem
-							maxreal = realmem
 							newhigh.append('real')
 						if virtmem > rptvirt * 1.01:
 							rptvirt = virtmem
-							maxvirt = virtfree
 							newhigh.append('virtual')
 						why = '/'.join(newhigh)
 						if why != '':

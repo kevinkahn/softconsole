@@ -1,4 +1,3 @@
-import json
 import sys
 import traceback
 import multiprocessing
@@ -347,6 +346,11 @@ class Logger(object):
 		except Exception as E:
 			self.RecordMessage(ConsoleError, 'Exception while local logging: {}'.format(repr(E)),
 							   defentrytime, False, True)
+			tbinfo = traceback.format_exception().splitlines()
+			for l in tbinfo:
+				print('---{}'.format(l))
+				self.RecordMessage(ConsoleError, ({}).format(l),
+								   defentrytime, False, True)
 
 
 	def RenderLogLine(self, itext, clr, pos):  # todo switch initial log display to using LineRenderer

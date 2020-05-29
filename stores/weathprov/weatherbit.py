@@ -26,7 +26,8 @@ WeatherMsgStoreName = {}  # entries loc:storename
 
 WeatherFetchNodeInfo = {}  # entries are node: last seen count todo should we track last seen count on MQTT messages
 
-WBstats = stats.StatReportGroup(name='Weather', title='Weatherbit Statistics', reporttime=stats.GMT(0))  # EVERY(0,1))#
+WBstats = stats.StatReportGroup(name='Weatherbit', title='Weatherbit Statistics',
+								reporttime=stats.GMT(0))  # EVERY(0,1))#
 ByLocStatGp = stats.StatSubGroup(name='ByLocation', PartOf=WBstats, title='Fetches by Location', totals='Total Fetches')
 ByNodeStatGp = stats.StatSubGroup(name='ByNode', PartOf=WBstats, title='Fetches by Node', totals='Total Fetches')
 LocalFetches = stats.StatSubGroup(name='Local', PartOf=WBstats, title='Actual Local Fetches',
@@ -244,6 +245,7 @@ class WeatherbitWeatherSource(object):
 			return item
 
 	def FetchWeather(self):
+		Esave = None
 		try:
 			# check for a cached set of readings newer that CurrentFetchTime
 			if self.location in WeatherCache and \
@@ -283,6 +285,7 @@ class WeatherbitWeatherSource(object):
 						severity=ConsoleDetail)
 
 				except Exception as E:
+					Esave = E
 					if E.response.status_code == 429:
 						try:
 							resetin = float(
@@ -308,7 +311,7 @@ class WeatherbitWeatherSource(object):
 			# noinspection PyUnboundLocalVariable
 
 		except Exception as E:
-			logsupport.Logs.Log('Unhandled exception in Weatherbit fetch: {}'.format(E),
+			logsupport.Logs.Log('Unhandled exception in Weatherbit fetch: {} PrevExc: {}'.format(E, Esave),
 								severity=ConsoleWarning)
 			return
 

@@ -1,23 +1,18 @@
-import logsupport
 import datetime
 import time
-from operator import itemgetter
+from operator import itemgetter, lt, gt
 
 # Performance info
+# todo triggered callbacks for immediate anomoly reports?
 
-DarkSkyfetches = 0  # todo generalize?
-DarkSkyfetches24 = 0  # todo generalize
-WeatherMsgStoreName = {}  # entries loc:storename
 
-daystartloops = 0
-maincyclecnt = 0
-
+statroot = None
 ReportTimes = []  # time:group
 gmtoffset = (time.timezone / 3600 - time.localtime().tm_isdst) % 24
 lastreporttime = -1
 
 
-def Get(start=None):
+def Get(start=None):  # test code
 	at = lastreporttime if start is None else start
 	testtime = datetime.datetime.combine(datetime.datetime.today(), datetime.time.min).timestamp() + at
 	n = GetNextReportTime(at=testtime)
@@ -46,9 +41,10 @@ def GetNextReportTime(at=None):
 
 
 def TimeToReport(reports):
+	report = []
 	for i in reports:
-		i[1].Report()
-	return GetNextReportTime()
+		report.append(i[1].Report()[1])
+	return GetNextReportTime(), report
 
 
 def GMT(hour, minutes=0):
@@ -61,10 +57,7 @@ def LOCAL(hour, minutes=0):
 
 
 def EVERY(hour, minutes=0):
-	return tuple(range(0, 24 * 60 * 60, hour * 3600 + minutes * 15))
-
-
-statroot = None
+	return tuple(range(0, 24 * 60 * 60, hour * 3600 + minutes * 60))
 
 
 class StatGroup(object):
@@ -108,17 +101,19 @@ class StatGroup(object):
 		return tot
 
 	def Report(self):
-		logsupport.Logs.Log(self.title)
+		rpt = []
 		tot = 0
+		rtntot = 0
 		for e in self.elements.values():
 			logitems = e.Report()
 			if logitems is not None:
-				for l in logitems[1:]: logsupport.Logs.Log('    {}'.format(l))
+				for l in logitems[1]: rpt.append(l)
 				tot += logitems[0]
 
 		if self.totals != '':
-			logsupport.Logs.Log('    {}: {}'.format(self.totals, tot))
-		return None
+			rpt.append('{}: {}'.format(self.totals, tot))
+			rtntot = tot
+		return rtntot, [self.title, rpt]
 
 
 StatGroup(name='statroot', title='')  # initialize tree
@@ -135,10 +130,11 @@ class StatReportGroup(StatGroup):
 		super().__init__(**kwargs)
 		global ReportTimes
 		# reporttime = seconds after midnight, list of such
-		self.times = reporttime if isinstance(reporttime, tuple) else (reporttime,)
-		for i in self.times:
-			ReportTimes.append((i, self))
-		ReportTimes = sorted(ReportTimes, key=itemgetter(0))
+		if reporttime is not None:
+			self.times = reporttime if isinstance(reporttime, tuple) else (reporttime,)
+			for i in self.times:
+				ReportTimes.append((i, self))
+			ReportTimes = sorted(ReportTimes, key=itemgetter(0))
 
 	def ResetTimes(self, reporttime=None):
 		pass
@@ -185,35 +181,39 @@ class CntStat(Stat):
 		return self.value - self.lastrpt, self.value
 
 	def Report(self, clear=True):
+		val = self.value
 		if self.keeplaps:
-			rtn = (self.value, '{}: {}'.format(self.title, self.value - self.lastrpt),
+			rtn = (('{}: {}'.format(self.title, self.value - self.lastrpt)),
 				   '{} (since start): {}'.format(self.title, self.value))
 			self.lastrpt = self.value
 		else:
-			rtn = (self.value, '{}: {}'.format(self.title, self.value))
+			rtn = (('{}: {}'.format(self.title, self.value),))
 			self.value = 0
-		return rtn
+		return val, rtn
 
 
-class MaxStat(Stat):
-	def __init__(self, keeplaps=False, **kwargs):
+class LimitStat(Stat):
+	def __init__(self, max=True, keeplaps=False, **kwargs):
 		super().__init__(**kwargs)
 		self.keeplaps = keeplaps
 		self.maxvalue = 0
 		self.maxtime = 0
 		self.overallmaxvalue = 0
 		self.overallmaxtime = 0
+		self.operator = gt if max else lt
 
-	def Op(self, val=9999999):
-		if self.maxvalue < val:
+	def Op(self, val=None):
+		if val is None:
+			raise ValueError
+		if self.operator(val, self.maxvalue):
 			self.maxvalue = val
 			self.maxtime = time.time()
-		if self.overallmaxvalue < val:
+		if self.operator(val, self.overallmaxvalue):
 			self.overallmaxvalue = val
 			self.overallmaxtime = time.time()
 		return self.maxvalue
 
-	def Set(self, max, overallmax):
+	def Set(self, max, overallmax):  # debug function
 		self.maxvalue = max
 		self.maxtime = time.time()
 		self.overallmaxvalue = overallmax
@@ -229,8 +229,9 @@ class MaxStat(Stat):
 		return self.maxvalue, self.overallmaxvalue, self.maxtime, self.overallmaxtime
 
 	def Report(self, clear=True):
-		rtn = (self.maxvalue, '{}: {} at {}'.format(self.title, self.maxvalue,
-													datetime.datetime.fromtimestamp(self.maxtime).strftime('%H:%M:%S')))
+		max = self.maxvalue
+		rtn = ('{}: {} at {}'.format(self.title, self.maxvalue,
+									 datetime.datetime.fromtimestamp(self.maxtime).strftime('%H:%M:%S')),)
 		if self.keeplaps:
 			rtn = rtn + ('{} (since start): {} at {}'.format(self.title, self.overallmaxvalue,
 															 datetime.datetime.fromtimestamp(
@@ -238,26 +239,57 @@ class MaxStat(Stat):
 		if clear:
 			self.maxvalue = 0
 			self.maxtime = time.time()
-		return rtn
+		return max, rtn
 
 
-def GetReportables(root):
+class MaxStat(LimitStat):
+	def __init__(self, **kwargs):
+		super().__init__(max=True, **kwargs)
+
+
+class MinStat(LimitStat):
+	def __init__(self, **kwargs):
+		super().__init__(max=False, **kwargs)
+
+
+def _NetRpr(st):
+	tempd = {}
+	if st.netreport is None:
+		pass
+	elif isinstance(st.netreport, str):
+		tempd[st.netreport] = st.Values()[0]
+	else:
+		for i in range(len(st.netreport)): tempd[st.netreport[i]] = st.Values()[i]
+	return tempd
+
+
+def GetReportables(root=statroot, rptnm=''):
 	temp = {}
+	tempdict = {}
+	t = _NetRpr(root)
+	if t != {}: tempdict['*Totals*'] = t
 	for nm, st in root.elements.items():
-		if st.netreport is None:
-			pass
-		elif isinstance(st.netreport, str):
-			temp.update({st.netreport: st.Values()[0]})
-		else:
-			temp.update({st.netreport[i]: st.Values()[i] for i in range(len(st.netreport))})
-		if isinstance(st, StatGroup):
-			temp.update(GetReportables(st))
+		if not isinstance(st, StatGroup):
 
-	return temp
+			# Label with group if group level stats (totals)
+			label = '{}.{}'.format(rptnm, st.name) if isinstance(st, StatGroup) else rptnm
+			if st.netreport is None:
+				pass
+			elif isinstance(st.netreport, str):
+				# temp.update({'{}.{}'.format(label,st.netreport): st.Values()[0]})
+				tempdict[st.netreport] = st.Values()[0]
+			else:
+				# temp.update({'{}.{}'.format(label,st.netreport[i]): st.Values()[i] for i in range(len(st.netreport))})
+				for i in range(len(st.netreport)): tempdict[st.netreport[i]] = st.Values()[i]
+		if isinstance(st, StatGroup):
+			# temp.update(GetReportables(st,'{}.{}'.format(rptnm,st.name))[0])
+			t = GetReportables(st, '{}.{}'.format(rptnm, st.name))[1]
+			if t != {}: tempdict[st.name] = t
+	return temp, tempdict
 
 
 '''
-Testing code
+#Testing code
 
 sysstats = StatReportGroup(name='System', title='System Statistics', totals=False, reporttime=(LOCAL(0), LOCAL(1), LOCAL(1,30)))
 qd = MaxStat(name='queuedepthmax', PartOf=sysstats, netreport='maxqd',keeplaps=True, title='Maximum Queue Depth')
@@ -272,32 +304,11 @@ bl = StatSubGroup(name='ByLocation', PartOf=wb, title='Fetches by Location', tot
 bn = StatSubGroup(name='ByNode', PartOf=wb, title='Fetches by Node', totals='Total Fetches')
 lf = StatSubGroup(name='Local', PartOf=wb, title='Actual Local Fetches', totals='Total Local Fetches',
 								  netreport=('Weatherbitfetches24','Weatherbitfetches'))
-l1 = CntStat(name='loc1',keeplaps=True,PartOf=lf)
+l1 = CntStat(name='loc1',keeplaps=True,PartOf=lf, netreport=('t1','t2'))
 l2 = CntStat(name='loc2',keeplaps=True,PartOf=lf)
 l1.Set(25,12)
 l2.Set(55,10)
 
-'''
-'''
+GetReportables()
 
-def NewDay(Report=True):
-	global queuedepthmax24, queuetimemax24, queuedepthmax24time, queuetimemax24time, DarkSkyfetches24, daystartloops, maincyclecnt
-
-	if Report:
-		Logs.Log("Daily Performance Summary: MaxQDepth: {} at {}".format(queuedepthmax24,
-																		 datetime.datetime.fromtimestamp(
-																			 queuedepthmax24time).strftime(
-																			 "%H:%M:%S.%f")))
-		Logs.Log(
-			"                           MaxQTime:  {} at {}".format(queuetimemax24, datetime.datetime.fromtimestamp(
-				queuetimemax24time).strftime("%H:%M:%S.%f")))
-
-
-	daystartloops = maincyclecnt
-	queuedepthmax24 = 0
-	queuetimemax24 = 0
-	queuedepthmax24time = 0
-	queuetimemax24time = 0
-	DarkSkyfetches24 = 0
-	
 '''

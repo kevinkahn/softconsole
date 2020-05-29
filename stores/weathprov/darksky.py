@@ -1,7 +1,6 @@
 import functools
 import time
 from datetime import datetime, timezone
-import dateutil
 
 import pygame
 import controlevents
@@ -19,6 +18,8 @@ from utilfuncs import interval_str, TreeDict
 
 WeatherIconCache = {'n/a': MissingIcon}
 
+DSstats = stats.StatReportGroup(name='DarkSky', title='DarkSky Statistics', reporttime=stats.LOCAL(0),
+								netreport=('Darkskyfetches24', 'Darkskyfetches'), totals='Total Fetches')
 
 def geticon(nm):
 	try:
@@ -109,6 +110,7 @@ class DarkSkyWeatherSource(object):
 		self.thisStoreName = storename
 		self.thisStore = None
 		self.location = location
+		self.lf = stats.CntStat(name=storename, title=storename, keeplaps=True, PartOf=DSstats)
 		try:
 			locationstr = location.split(',')
 			if len(locationstr) != 2:
@@ -146,8 +148,7 @@ class DarkSkyWeatherSource(object):
 					forecast = self.request_manager.make_request(url=self.url, extend=None, lang=languages.ENGLISH,
 																 units=units.AUTO, exclude='minutely,hourly,flags')
 					historybuffer.HBNet.Entry('Weather fetch done')
-					stats.DarkSkyfetches += 1
-					stats.DarkSkyfetches24 += 1
+					self.lf.Op()
 					fetchworked = True
 				except Exception as E:
 					fetchworked = False
