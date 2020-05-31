@@ -347,7 +347,7 @@ class Logger(object):
 			self.RecordMessage(ConsoleError, 'Exception while local logging: {}'.format(repr(E)),
 							   defentrytime, False, True)
 			tbinfo = traceback.format_exception().splitlines()
-			for l in tbinfo:
+			for l in tbinfo:  # todo doesn't seem to work?
 				print('---{}'.format(l))
 				self.RecordMessage(ConsoleError, ({}).format(l),
 								   defentrytime, False, True)
@@ -387,35 +387,6 @@ class Logger(object):
 		else:
 			return "Local Log No more entries        Page: {}".format(pageno), False
 
-
-'''
-def ReportStatus(status, retain=True, hold=0):  # todo need to generalize stat report with stats packeage
-	# held: 0 normal status report, 1 set an override status to be held, 2 clear and override status
-	global heldstatus, queuedepthmax, queuetimemax, queuedepthmaxtime, queuetimemaxtime, queuedepthmax24, queuetimemax24, queuedepthmax24time, queuetimemax24time, DarkSkyfetches, DarkSkyfetches24, daystartloops, maincyclecnt
-	if hold == 1:
-		heldstatus = status
-	elif hold == 2:
-		heldstatus = ''
-
-	if primaryBroker is not None:
-		stat = json.dumps({'status': status if heldstatus == '' else heldstatus, "uptime": time.time() - config.sysStore.ConsoleStartTime,
-						   "error": config.sysStore.ErrorNotice, 'rpttime': time.time(),
-						   "FirstUnseenErrorTime": config.sysStore.FirstUnseenErrorTime,
-						   'queuedepthmax': queuedepthmax, 'queuetimemax': queuetimemax,
-						   'queuedepthmaxtime': queuedepthmaxtime,
-						   'queuetimemaxtime': queuetimemaxtime, 'queuedepthmax24': queuedepthmax24,
-						   'queuetimemax24': queuetimemax24,
-						   'queuedepthmax24time': queuedepthmax24time, 'queuetimemax24time': queuetimemax24time,
-						   #'Weatherbitfetches': weatherbit.localfetches.Values()[1], 'Weatherbitfetches24': weatherbit.localfetches.Values()[0],
-						   'DarkSkyfetches': DarkSkyfetches, 'DarkSkyfetches24': DarkSkyfetches24,
-						   'daystartloops': daystartloops,
-						   'maincyclecnt': maincyclecnt,
-						   'boottime': hw.boottime})  # rereport this because on powerup first NTP update can be after console starts
-
-		primaryBroker.Publish(node=hw.hostname, topic='status', payload=stat, retain=retain, qos=1,
-							  viasvr=True)
-
-'''
 
 def LineRenderer(itemnumber, font, uselog):
 	if not (len(uselog) > itemnumber):

@@ -239,14 +239,14 @@ class DisplayScreen(object):
 		pcslist = ''
 		for pcs in ('Console', 'Watchdog', 'AsyncLogger', 'Topper'):
 			try:
-				if config.sysStore.GetVal(pcs+'_pid') != 0:
-					pcslist = pcslist + '{}: {} '.format(pcs,config.sysStore.GetVal(pcs+'_pid'))
+				if config.sysStore.GetVal(pcs + '_pid') != 0:
+					pcslist = pcslist + '{}: {} '.format(pcs, config.sysStore.GetVal(pcs + '_pid'))
 			except:
 				pass
 		logsupport.Logs.Log('Console Up: {}'.format(pcslist))
 
 		perfdump = time.time()
-		ckperf = time.time()
+		ckperf = 0
 		stackdepth = 0
 		rptreal = 0.0
 		rptvirt = 0.0
@@ -255,20 +255,23 @@ class DisplayScreen(object):
 		config.sysstats = stats.StatReportGroup(name='System', title='System Statistics',
 												reporttime=LOCAL(0))  # EVERY(0,2))#
 		stats.MaxStat(name='queuedepthmax', PartOf=config.sysstats, keeplaps=True, title='Maximum Queue Depth',
-					  netreport=('queuedepthmax', 'queuedepthmax24', 'queuedepthmaxtime', 'queuedepthmax24time'))
+					  rpt=stats.timeddaily)
 		stats.MaxStat(name='queuetimemax', PartOf=config.sysstats, keeplaps=True, title='Maximum Queued Time',
-					  netreport=('queuetimemax', 'queuetimemax24', 'queuetimemaxtime', 'queuetimemax24time'))
-		stats.MaxStat(name='realmem', PartOf=config.sysstats, keeplaps=False, title='Real memory use')
-		stats.MaxStat(name='virtmem', PartOf=config.sysstats, keeplaps=False, title='Virtual Memory Use')
-		stats.MinStat(name='realmemfree', PartOf=config.sysstats, keeplaps=False, title='Min Real Mem')
-		stats.MinStat(name='virtmemfree', PartOf=config.sysstats, keeplaps=False, title='Min Free Swap')
+					  rpt=stats.timeddaily)
+		stats.MaxStat(name='realmem', PartOf=config.sysstats, keeplaps=False, title='Real memory use', rpt=stats.daily)
+		stats.MaxStat(name='virtmem', PartOf=config.sysstats, keeplaps=False, title='Virtual Memory Use',
+					  rpt=stats.daily)
+		stats.MinStat(name='realfree', PartOf=config.sysstats, keeplaps=False, title='Min Real Mem', rpt=stats.daily)
+		stats.MinStat(name='swapfree', PartOf=config.sysstats, keeplaps=False, title='Min Free Swap', rpt=stats.daily)
 		maincyc = stats.CntStat(name='maincyclecnt', PartOf=config.sysstats, title='Main Loop Cycle:', keeplaps=True,
-								netreport='maincyclecnt')
+								rpt=stats.daily)
 		nextstat = stats.GetNextReportTime()
 
 		try:
 			while config.Running:  # Operational Control Loop
-				if maincyc.Op() == 4: config.sysstats.ResetGrp(exclude=maincyc)
+				if maincyc.Op() == 4:
+					config.sysstats.ResetGrp(exclude=maincyc)
+					ckperf = 0  # get a initial mem reading next cycle
 				if nextstat[0][0] < time.time():
 					nextstat, rpt = stats.TimeToReport(nextstat)
 
@@ -296,14 +299,14 @@ class DisplayScreen(object):
 					ckperf = time.time()
 					p = psutil.Process(config.sysStore.Console_pid)
 					realmem = p.memory_info().rss / (2 ** 10)
-					realfree = psutil.virtual_memory().free / (2 ** 20)
+					realfree = psutil.virtual_memory().available / (2 ** 20)
 					virtmem = p.memory_info().vms / (2 ** 10)
 					virtfree = psutil.swap_memory().free / (2 ** 20)
 
 					config.sysstats.Op('realmem', val=realmem)
 					config.sysstats.Op('virtmem', val=virtmem)
-					config.sysstats.Op('realmemfree', val=realfree)
-					config.sysstats.Op('virtmemfree', val=virtfree)
+					config.sysstats.Op('realfree', val=realfree)
+					config.sysstats.Op('swapfree', val=virtfree)
 					if config.sysStore.versionname in ('development', 'homerelease'):  # todo - replace following?
 						# if consolestatus.queuedepthmax > controlevents.QLengthTrigger or consolestatus.queuetimemax > controlevents.LateTolerance:
 						#	logsupport.Logs.Log('Console performance({}): maxq: {} maxwait: {}'.format(

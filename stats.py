@@ -11,6 +11,12 @@ ReportTimes = []  # time:group
 gmtoffset = (time.timezone / 3600 - time.localtime().tm_isdst) % 24
 lastreporttime = -1
 
+# types of reports
+none = 1
+daily = 2  # name24, name
+timeddaily = 4  # name24 name name24time nametime
+suffix = ('24', '', '24time', 'time')
+
 
 def Get(start=None):  # test code
 	at = lastreporttime if start is None else start
@@ -61,13 +67,13 @@ def EVERY(hour, minutes=0):
 
 
 class StatGroup(object):
-	def __init__(self, name='', title='', totals='', netreport=None, PartOf=None):
+	def __init__(self, name='', title='', totals='', PartOf=None, rpt=none):
 		global statroot
 		self.totals = totals
 		self.title = title
 		self.name = name
 		self.elements = {}
-		self.netreport = netreport
+		self.rpt = rpt
 		if PartOf is not None:
 			PartOf.elements[name] = self
 			self.PartOf = PartOf
@@ -142,11 +148,11 @@ class StatReportGroup(StatGroup):
 
 
 class Stat(object):
-	def __init__(self, name, title=None, PartOf=None, netreport=None):
+	def __init__(self, name, title=None, PartOf=None, rpt=none):
 		self.title = title if title is not None else name
 		self.name = name
 		PartOf.elements[name] = self
-		self.netreport = netreport
+		self.rpt = rpt
 
 	def Op(self, val=999999):
 		self.value = val
@@ -196,10 +202,11 @@ class LimitStat(Stat):
 	def __init__(self, max=True, keeplaps=False, **kwargs):
 		super().__init__(**kwargs)
 		self.keeplaps = keeplaps
-		self.maxvalue = 0
+		self.maxvalue = 0 if max else 999999999999999
 		self.maxtime = 0
-		self.overallmaxvalue = 0
+		self.overallmaxvalue = 0 if max else 999999999999999
 		self.overallmaxtime = 0
+		self.max = max
 		self.operator = gt if max else lt
 
 	def Op(self, val=None):
@@ -220,9 +227,9 @@ class LimitStat(Stat):
 		self.overallmaxtime = time.time() + 100
 
 	def Reset(self):
-		self.maxvalue = 0
+		self.maxvalue = 0 if self.max else 999999999999999
 		self.maxtime = time.time()
-		self.overallmaxvalue = 0
+		self.overallmaxvalue = 0 if self.max else 999999999999999
 		self.overallmaxtime = time.time()
 
 	def Values(self):
@@ -253,37 +260,29 @@ class MinStat(LimitStat):
 
 
 def _NetRpr(st):
-	tempd = {}
-	if st.netreport is None:
-		pass
-	elif isinstance(st.netreport, str):
-		tempd[st.netreport] = st.Values()[0]
+	if st.rpt == none:
+		return {}
 	else:
-		for i in range(len(st.netreport)): tempd[st.netreport[i]] = st.Values()[i]
-	return tempd
+		v = st.Values()
+		return {st.name + suffix[i]: v[i] for i in range(st.rpt)}
 
 
-def GetReportables(root=statroot, rptnm=''):
+def GetReportables(root=statroot):
 	temp = {}
 	tempdict = {}
 	t = _NetRpr(root)
 	if t != {}: tempdict['*Totals*'] = t
 	for nm, st in root.elements.items():
 		if not isinstance(st, StatGroup):
-
-			# Label with group if group level stats (totals)
-			label = '{}.{}'.format(rptnm, st.name) if isinstance(st, StatGroup) else rptnm
-			if st.netreport is None:
+			if st.rpt == none:
 				pass
-			elif isinstance(st.netreport, str):
-				# temp.update({'{}.{}'.format(label,st.netreport): st.Values()[0]})
-				tempdict[st.netreport] = st.Values()[0]
 			else:
-				# temp.update({'{}.{}'.format(label,st.netreport[i]): st.Values()[i] for i in range(len(st.netreport))})
-				for i in range(len(st.netreport)): tempdict[st.netreport[i]] = st.Values()[i]
+				v = st.Values()
+				for i in range(st.rpt):
+					tempdict[st.name + suffix[i]] = v[i]
+
 		if isinstance(st, StatGroup):
-			# temp.update(GetReportables(st,'{}.{}'.format(rptnm,st.name))[0])
-			t = GetReportables(st, '{}.{}'.format(rptnm, st.name))[1]
+			t = GetReportables(st)[1]
 			if t != {}: tempdict[st.name] = t
 	return temp, tempdict
 
@@ -292,8 +291,8 @@ def GetReportables(root=statroot, rptnm=''):
 #Testing code
 
 sysstats = StatReportGroup(name='System', title='System Statistics', totals=False, reporttime=(LOCAL(0), LOCAL(1), LOCAL(1,30)))
-qd = MaxStat(name='queuedepthmax', PartOf=sysstats, netreport='maxqd',keeplaps=True, title='Maximum Queue Depth')
-qt = MaxStat(name='queuetimemax', PartOf=sysstats, netreport=('qtm','qta'),keeplaps=True, title='Maximum Queued Time')
+qd = MaxStat(name='queuedepthmax', PartOf=sysstats, rpt=2,keeplaps=True, title='Maximum Queue Depth')
+qt = MaxStat(name='queuetimemax', PartOf=sysstats, rpt=2,keeplaps=True, title='Maximum Queued Time')
 c1 = CntStat(name='maincyclecnt', PartOf=sysstats, title='Main Loop Cycle:', keeplaps=True)
 qd.Set(55, 66)
 qt.Set(43, 21)
@@ -302,9 +301,8 @@ qt.Set(43, 21)
 wb = StatReportGroup(name='Weather', title='Weatherbit Statistics', reporttime= (LOCAL(1), LOCAL(1,30), GMT(0), LOCAL(3)))
 bl = StatSubGroup(name='ByLocation', PartOf=wb, title='Fetches by Location', totals='Total Fetches')
 bn = StatSubGroup(name='ByNode', PartOf=wb, title='Fetches by Node', totals='Total Fetches')
-lf = StatSubGroup(name='Local', PartOf=wb, title='Actual Local Fetches', totals='Total Local Fetches',
-								  netreport=('Weatherbitfetches24','Weatherbitfetches'))
-l1 = CntStat(name='loc1',keeplaps=True,PartOf=lf, netreport=('t1','t2'))
+lf = StatSubGroup(name='Local', PartOf=wb, title='Actual Local Fetches', totals='Total Local Fetches', rpt=stats.daily
+l1 = CntStat(name='loc1',keeplaps=True,PartOf=lf, rtp= 2)
 l2 = CntStat(name='loc2',keeplaps=True,PartOf=lf)
 l1.Set(25,12)
 l2.Set(55,10)

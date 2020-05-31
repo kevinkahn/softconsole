@@ -30,9 +30,8 @@ WBstats = stats.StatReportGroup(name='Weatherbit', title='Weatherbit Statistics'
 								reporttime=stats.GMT(0))  # EVERY(0,1))#
 ByLocStatGp = stats.StatSubGroup(name='ByLocation', PartOf=WBstats, title='Fetches by Location', totals='Total Fetches')
 ByNodeStatGp = stats.StatSubGroup(name='ByNode', PartOf=WBstats, title='Fetches by Node', totals='Total Fetches')
-LocalFetches = stats.StatSubGroup(name='Local', PartOf=WBstats, title='Actual Local Fetches',
-								  totals='Total Local Fetches',
-								  netreport=('Weatherbitfetches24', 'Weatherbitfetches'))
+LocalFetches = stats.StatSubGroup(name='LocalWeatherbitFetches', PartOf=WBstats, title='Actual Local Fetches',
+								  totals='Total Local Fetches', rpt=stats.daily)
 
 
 def TreeDict(d, args):

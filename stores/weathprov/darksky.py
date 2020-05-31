@@ -18,8 +18,9 @@ from utilfuncs import interval_str, TreeDict
 
 WeatherIconCache = {'n/a': MissingIcon}
 
-DSstats = stats.StatReportGroup(name='DarkSky', title='DarkSky Statistics', reporttime=stats.LOCAL(0),
-								netreport=('Darkskyfetches24', 'Darkskyfetches'), totals='Total Fetches')
+DSstats = stats.StatReportGroup(name='DarkSkyFetches', title='DarkSky Statistics', reporttime=stats.LOCAL(0),
+								rpt=stats.daily,
+								totals='Total Fetches')
 
 def geticon(nm):
 	try:

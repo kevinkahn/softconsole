@@ -21,7 +21,7 @@ fetcher = None
 
 ReportStatus = None  # filled in by consolestatus to avoid dependency loop
 
-def TempCheckSanity(Key, params):  # tempdel
+def TempCheckSanity(Key, params):
 	if Key is None and params is None:
 		logsupport.Logs.Log('Internal Error: Both Command sources are None', severity=ConsoleError, tb=True, hb=True)
 

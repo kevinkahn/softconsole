@@ -20,6 +20,8 @@ import controlevents
 from stores.weathprov.providerutils import WeathProvs
 import stats
 
+MQTTstats = stats.StatReportGroup(name='MQTT', title='MQTT Statistics',
+								  reporttime=stats.LOCAL(0))
 
 
 class MQitem(valuestore.StoreItem):
@@ -40,7 +42,11 @@ class MQTTBroker(valuestore.ValueStore):
 		self.mqttstats = stats.StatReportGroup(name='mqtt-{}'.format(self.name),
 											   title='{} Broker Statistics'.format(self.name),
 											   reporttime=stats.LOCAL(0))
-		self.discon = stats.CntStat(name='Disconnects', keeplaps=True, PartOf=self.mqttstats)
+		brokerstats = stats.StatGroup(name='Broker-{}'.format(self.name), title='{} Statistics'.format(self.name),
+									  PartOf=MQTTstats)
+		self.discon = stats.CntStat(name='Disconnects', keeplaps=True, PartOf=brokerstats, rpt=stats.daily)
+		self.rcvd = stats.CntStat(name='Received', keeplaps=True, PartOf=brokerstats, rpt=stats.daily)
+		self.sent = stats.CntStat(name='Sent', keeplaps=True, PartOf=brokerstats, rpt=stats.daily)
 
 		# noinspection PyUnusedLocal
 		def on_connect(client, userdata, flags, rc):
@@ -76,6 +82,7 @@ class MQTTBroker(valuestore.ValueStore):
 
 		# noinspection PyUnusedLocal
 		def on_message(client, userdata, msg):
+			self.rcvd.Op()
 			# command to force get: mosquitto_pub -t consoles/all/cmd -m getstable;  mosquitto_pub -t consoles/all/cmd -m restart
 			loopstart = time.time()
 			var = []
@@ -121,10 +128,7 @@ class MQTTBroker(valuestore.ValueStore):
 					consolestatus.UpdateNodeStatus(topic[-1], msgdcd)
 					return
 				elif topic[2] == 'status':
-					if 'stats' in msgdcd:
-						consolestatus.UpdateNodeStatus(topic[1], msgdcd)
-					else:
-						consolestatus.UpdateStatus(topic[1], msgdcd)
+					consolestatus.UpdateNodeStatus(topic[1], msgdcd)
 					return
 				elif topic[2] == 'resp':
 					if self.name in screens.DS.AS.HubInterestList:
@@ -287,6 +291,7 @@ class MQTTBroker(valuestore.ValueStore):
 		self.Publish('resp', payld, node=fromnd)
 
 	def Publish(self, topic, payload=None, node=hw.hostname, qos=1, retain=False, viasvr=False):
+		self.sent.Op()
 		fulltopic = 'consoles/' + node + '/' + topic
 		if self.MQTTrunning:
 			self.MQTTclient.publish(fulltopic, payload, qos=qos, retain=retain)
