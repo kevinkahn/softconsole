@@ -194,7 +194,7 @@ class WeatherbitWeatherSource(object):
 		self.resettime = '(unset)'
 		WeatherMsgStoreName[location] = storename
 		self.actualfetch = stats.CntStat(name=storename, title=storename, keeplaps=True, PartOf=LocalFetches, inc=2,
-										 init=2)
+										 init=0)
 		try:  # t try to convert to lat/lon
 			locationstr = location.split(',')
 			if len(locationstr) != 2:
