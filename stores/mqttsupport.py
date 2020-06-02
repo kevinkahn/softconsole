@@ -20,10 +20,6 @@ import controlevents
 from stores.weathprov.providerutils import WeathProvs
 import stats
 
-MQTTstats = stats.StatReportGroup(name='MQTT', title='MQTT Statistics',
-								  reporttime=stats.LOCAL(0))
-
-
 class MQitem(valuestore.StoreItem):
 	def __init__(self, name, Topic, Type, Expires, jsonflds, Store):
 		self.Topic = Topic
@@ -42,11 +38,9 @@ class MQTTBroker(valuestore.ValueStore):
 		self.mqttstats = stats.StatReportGroup(name='mqtt-{}'.format(self.name),
 											   title='{} Broker Statistics'.format(self.name),
 											   reporttime=stats.LOCAL(0))
-		brokerstats = stats.StatGroup(name='Broker-{}'.format(self.name), title='{} Statistics'.format(self.name),
-									  PartOf=MQTTstats)
-		self.discon = stats.CntStat(name='Disconnects', keeplaps=True, PartOf=brokerstats, rpt=stats.daily)
-		self.rcvd = stats.CntStat(name='Received', keeplaps=True, PartOf=brokerstats, rpt=stats.daily)
-		self.sent = stats.CntStat(name='Sent', keeplaps=True, PartOf=brokerstats, rpt=stats.daily)
+		self.discon = stats.CntStat(name='Disconnects', keeplaps=True, PartOf=self.mqttstats, rpt=stats.daily)
+		self.rcvd = stats.CntStat(name='Received', keeplaps=True, PartOf=self.mqttstats, rpt=stats.daily)
+		self.sent = stats.CntStat(name='Sent', keeplaps=True, PartOf=self.mqttstats, rpt=stats.daily)
 
 		# noinspection PyUnusedLocal
 		def on_connect(client, userdata, flags, rc):
