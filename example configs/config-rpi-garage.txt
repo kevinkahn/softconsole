@@ -22,7 +22,7 @@ SecondaryChain = Thermostat - Main, Local, Portland, La Quinta
 
 [[DimAway]]
 	Type = VarChange
-	Var = ISY:Int:AwayNonState
+	Var = ISY:Int:HA_AwayNonState
 	Test = EQ
 	Value = 1
 	Invoke = AssignVar.Assign
@@ -30,7 +30,7 @@ SecondaryChain = Thermostat - Main, Local, Portland, La Quinta
 
 [[DimHome]]
 	Type = VarChange
-	Var = ISY:Int:AwayNonState
+	Var = ISY:Int:HA_AwayNonState
 	Test = EQ
 	Value = 0
 	Invoke = AssignVar.Assign

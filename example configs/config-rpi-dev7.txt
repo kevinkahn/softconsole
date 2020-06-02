@@ -70,7 +70,7 @@ CharColor = white
 	Invoke = AutoVersion.CheckUpToDate
 	[[DimAway]]
 	Type = VarChange
-	Var = ISY:Int:AwayNonState
+	Var = ISY:Int:HA_AwayNonState
 	Test = EQ
 	Value = 1
 	Invoke = AssignVar.Assign
@@ -78,7 +78,7 @@ CharColor = white
 
     [[DimHome]]
 	Type = VarChange
-	Var = ISY:Int:AwayNonState
+	Var = ISY:Int:HA_AwayNonState
 	Test = EQ
 	Value = 0
 	Invoke = AssignVar.Assign
