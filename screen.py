@@ -151,13 +151,13 @@ class ScreenDesc(object):
 		# todo add routine to update allowable mods per screen - but rationalize with incorp parameters from hight level guys
 
 		self.markradius = int(min(hw.screenwidth, hw.screenheight) * .025)
-		#print("{}: clocked :{}".format(screenname, Clocked))
+		# print("{}: clocked :{}".format(screenname, Clocked))
 
 		self.name = screenname
 		self.singleuse = SingleUse
 		self.used = False
 		self.Active = False  # true if actually on screen
-		self.ScreenTimers = []
+		self.ScreenTimers = []  # (Timer, Cancel Proc or None)
 		self.ScreenClock = None
 		self.DefaultNavKeysShowing = True
 		self.NavKeysShowing = True
@@ -357,7 +357,9 @@ class ScreenDesc(object):
 	def ExitScreen(self, viaPush):
 		if self.ScreenClock is not None: self.ScreenClock.pause()
 		for timer in self.ScreenTimers:
-			if timer.is_alive(): timer.cancel()
+			if timer[0].is_alive():
+				timer[0].cancel()
+				if timer[1] is not None: timer[1]()
 		self.ScreenTimers = []
 		if self.singleuse:
 			if viaPush:
@@ -375,7 +377,9 @@ class ScreenDesc(object):
 		self.userstore.DropStore()
 		if self.ScreenClock is not None: self.ScreenClock.cancel()
 		for timer in self.ScreenTimers:
-			if timer.is_alive(): timer.cancel()
+			if timer[0].is_alive():
+				timer[0].cancel()
+				if timer[1] is not None: timer[1]()
 
 	def PopOver(self):
 		if self.singleuse:

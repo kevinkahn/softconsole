@@ -107,7 +107,7 @@ class SetVarValueKey(ManualKeyDesc):
 	def InitDisplay(self):
 		debug.debugPrint("Screen", "SetVarValue Key.InitDisplay ", self.Screen.name, self.name)
 		self.Value = valuestore.GetVal(self.Var)
-		super(SetVarValueKey, self).InitDisplay()
+		super().InitDisplay()
 
 	def FinishKey(self, center, size, firstfont=0, shrink=True):
 		super(SetVarValueKey, self).FinishKey(center, size, firstfont, shrink)
@@ -363,7 +363,7 @@ class OnOffKey(ManualKeyDesc):
 		else:
 			self.State = not (state == 0)  # K is off (false) only if state is 0
 		self.UnknownState = True if state == -1 else False
-		super(OnOffKey, self).InitDisplay()
+		super().InitDisplay()
 
 	def KeyPressAction(self):
 		if self.KeyAction == "OnOff":
@@ -417,7 +417,7 @@ class InternalProcKey(ManualKeyDesc):
 	def InitDisplay(self):
 		debug.debugPrint("Screen", "InternalProcKey.InitDisplay ", self.Screen.name, self.name)
 		self.State = True
-		super(InternalProcKey, self).InitDisplay()
+		super().InitDisplay()
 
 	def Pressed(self, tapcount):
 		if not self.UnknownState: super().Pressed(tapcount)

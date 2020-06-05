@@ -93,6 +93,7 @@ class ManualKeyDesc(TouchPoint):
 		self.KeyUnknownOverlay = None  # type: pygame.Surface
 		self.userstore = None
 		self.BlinkTimer = None
+		self.BlinkState = 0  # 0: not blinking 1: blink on 2: blink off
 		self.autocolordull = True
 		self.usekeygaps = True
 
@@ -178,7 +179,12 @@ class ManualKeyDesc(TouchPoint):
 		x = self.Center[0] - self.GappedSize[0] / 2
 		y = self.Center[1] - self.GappedSize[1] / 2
 		if not ForceDisplay:
-			DisplayState = self.State
+			if self.BlinkState == 1:
+				DisplayState = True
+			elif self.BlinkState == 1:
+				DisplayState = False
+			else:
+				DisplayState = self.State
 		# ignore Key state and display as "DisplayState"
 		if DisplayState:
 			hw.screen.blit(self.KeyOnImage, (x, y))
@@ -198,7 +204,7 @@ class ManualKeyDesc(TouchPoint):
 					pygame.display.update()
 			self.BlinkTimer = timers.CountedRepeatingPost(.5, cycle, start=True, name=self.name + '-Blink',
 														  proc=self._FlashNo)
-			self.Screen.ScreenTimers.append(self.BlinkTimer)
+			self.Screen.ScreenTimers.append((self.BlinkTimer, None))
 
 	def _FlashNo(self, event):
 		if self.Screen.Active:
@@ -217,13 +223,18 @@ class ManualKeyDesc(TouchPoint):
 
 	def ScheduleBlinkKey(self, cycle):
 		if cycle != 0:
-			if self.BlinkTimer is not None: # if there is an existing Blink going end it
+			if self.BlinkTimer is not None:  # if there is an existing Blink going end it
 				if self.BlinkTimer.is_alive():
 					self.BlinkTimer.cancel()
-					self.PaintKey() # force to real state
+					self.PaintKey()  # force to real state
+					self.BlinkState = 0
 					pygame.display.update()
-			self.BlinkTimer = timers.CountedRepeatingPost(.5, cycle, start=True, name=self.name + '-Blink', proc=self.BlinkKey)
-			self.Screen.ScreenTimers.append(self.BlinkTimer)
+			self.BlinkTimer = timers.CountedRepeatingPost(.5, cycle, start=True, name=self.name + '-Blink',
+														  proc=self.BlinkKey)
+			self.Screen.ScreenTimers.append((self.BlinkTimer, self.AbortBlink))
+
+	def AbortBlink(self):
+		self.BlinkState = 0
 
 	def BlinkKey(self, event):
 		if self.Screen.Active:
@@ -231,10 +242,13 @@ class ManualKeyDesc(TouchPoint):
 			if cycle > 1:
 				if cycle % 2 == 0:
 					self.PaintKey(ForceDisplay=True, DisplayState=True)  # force on
+					self.BlinkState = 1
 				else:
 					self.PaintKey(ForceDisplay=True, DisplayState=False)  # force off
+					self.BlinkState = 2
 			else:
 				self.PaintKey()  # make sure to leave it in real state
+				self.BlinkState = 0
 			pygame.display.update()  # actually change the display - used to do in PaintKey but that causes redundancy
 
 	def FindFontSize(self, lab, firstfont, shrink):
@@ -272,6 +286,7 @@ class ManualKeyDesc(TouchPoint):
 	def InitDisplay(self):
 		# called for each key on a screen when it first displays - allows setting initial state for key display
 		debug.debugPrint("Screen", "Base Key.InitDisplay ", self.Screen.name, self.name)
+		self.BlinkState = 0
 
 	def BuildKey(self, coloron, coloroff):
 		if self.usekeygaps:
