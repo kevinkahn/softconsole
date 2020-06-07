@@ -115,10 +115,8 @@ class MQTTBroker(valuestore.ValueStore):
 			else:
 				# see if it is node specific message
 				topic = topic.split('/')
-
 				msgdcd = json.loads(msg.payload.decode('ascii'))
 				if topic[2] == 'nodes':
-					# consolestatus.UpdateStatus(topic[-1], msgdcd) todo del
 					consolestatus.UpdateNodeStatus(topic[-1], msgdcd)
 					return
 				elif topic[2] == 'status':

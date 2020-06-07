@@ -97,11 +97,11 @@ def UpdateNodeStatus(nd, stat):
 	if nd not in Nodes: Nodes[nd] = copy.deepcopy(EmptyNodeRecord)
 
 	# handle old style records
-	if not 'stats' in stat:
+	if not 'registered' in stat and not 'stats' in stat:
 		tempSys = {'stats': {'System': {}}}
 		for nodestat in (
-		'queuetimemax24', 'queuetimemax24time', 'queuedepthmax24', 'maincyclecnt', 'queuedepthmax24time',
-		'queuetimemaxtime', 'queuedepthmax', 'queuetimemax', 'queuedepthmaxtime'):
+				'queuetimemax24', 'queuetimemax24time', 'queuedepthmax24', 'maincyclecnt', 'queuedepthmax24time',
+				'queuetimemaxtime', 'queuedepthmax', 'queuetimemax', 'queuedepthmaxtime'):
 			tempSys['stats']['System'][nodestat] = stat[nodestat]
 			del stat[nodestat]
 		update(Nodes[nd], tempSys)
