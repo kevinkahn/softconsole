@@ -1,13 +1,13 @@
 import debug
 from hubs.ha import haremote as ha
-from hubs.ha.hasshub import StatefulHAnode, RegisterDomain
+from hubs.ha.hasshub import HAnode, RegisterDomain
 from controlevents import CEvent, PostEvent, ConsoleEvent
 import logsupport
 
 
-class Light(StatefulHAnode):
+class Light(HAnode):
 	def __init__(self, HAitem, d):
-		super(Light, self).__init__(HAitem, **d)
+		super().__init__(HAitem, **d)
 		self.Hub.RegisterEntity('light', self.entity_id, self)
 		if 'brightness' in self.attributes:
 			self.internalstate = self._NormalizeState(self.state, int(self.attributes['brightness']))

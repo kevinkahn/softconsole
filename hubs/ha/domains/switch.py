@@ -1,12 +1,12 @@
 import debug
 from hubs.ha import haremote as ha
-from hubs.ha.hasshub import StatefulHAnode, RegisterDomain
+from hubs.ha.hasshub import HAnode, RegisterDomain
 import logsupport
 
 
-class Switch(StatefulHAnode):
+class Switch(HAnode):
 	def __init__(self, HAitem, d):
-		super(Switch, self).__init__(HAitem, **d)
+		super().__init__(HAitem, **d)
 		self.Hub.RegisterEntity('switch', self.entity_id, self)
 
 	# noinspection PyUnusedLocal

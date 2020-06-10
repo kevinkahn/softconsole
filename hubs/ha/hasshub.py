@@ -47,14 +47,13 @@ def stringtonumeric(v):
 
 from ast import literal_eval
 
-# todo eliminate distinct HAnode and Stateful?
 class HAnode(object):
 	def __init__(self, HAitem, **entries):
 		self.entity_id = ''
 		self.name = ''
 		self.attributes = {}
 		self.state = 0
-		self.internalstate = -1  # 0 = off, non-zero = on, 1 - 255 = intensity
+		self.internalstate = self._NormalizeState(self.state)
 		self.__dict__.update(entries)
 		if 'friendly_name' in self.attributes: self.FriendlyName = self.attributes['friendly_name']
 		self.address = self.entity_id
@@ -72,7 +71,6 @@ class HAnode(object):
 
 	def Update(self, **ns):
 		self.__dict__.update(ns)
-		#print(self.name, ns) todo del
 		oldstate = self.internalstate
 		self.internalstate = self._NormalizeState(self.state)
 		if self.internalstate == -1:
@@ -111,15 +109,6 @@ class HAnode(object):
 			if val.is_integer():
 				return int(val)
 		return val
-
-
-class StatefulHAnode(HAnode):
-
-	def __init__(self, HAitem, **entries):
-		super(StatefulHAnode, self).__init__(HAitem, **entries)
-		self.internalstate = self._NormalizeState(self.state)
-
-
 
 	def SendOnOffCommand(self, settoon):
 		pass
@@ -205,12 +194,15 @@ class HA(object):
 								severity=ConsoleWarning)
 			return None
 
+	# todo - add checks for actual state if stuff continues to get out of sync between console and hub
+	# seems to happen when hub restarts sometimes not sure if other times
+	# partial implementatiom between here and ending comment below
 	def GetCurrentStatus(self, MonitorNode):
 		# noinspection PyBroadException
 		try:
 			return MonitorNode.internalstate
 		except:
-			#todo part of handling late discovered nodes
+			# ** part of handling late discovered nodes
 			logsupport.Logs.Log("Error accessing current state in HA Hub: " + self.name + ' ' + repr(MonitorNode),
 								severity=ConsoleWarning)
 			return None
@@ -221,10 +213,9 @@ class HA(object):
 			templist = dict(self.UnknownList)
 			for node in templist:
 				e = self.GetActualState(node.name)
-				# todo should post e as a node state change
+			# ** should post e as a node state change
 			time.sleep(10)
 			worktodo = bool(self.UnknownList)
-
 
 	def StartStatusChecker(self):
 		# logic here would be to start a thread that runs while List is non empty - need to be careful regarding it changing length
@@ -232,14 +223,15 @@ class HA(object):
 		# so as not to get caught with an entry but not running.
 		pass
 
-	def AddToUnknowns(self,node): # todo
+	def AddToUnknowns(self, node):  # ** flesh out
 		# need to start a thread that checks periodically the status of the node.  When it changes to known value that thread should exit (perhaps post?)
 		# the delete would get triggered the next time the paint is called (or would it? - can the change to real value happen under the covers?)  Maybe don't need to do the delete
 		# since the thread will be not alive - can just start the thread if not alive and let it die peacefully after doing its job?
 		self.UnknownList[node.name] = node
 		# need a single slot for the node status checker thread per hub instance check is_alive on each entry.  Worst case on the next key repaint this will get
 		# called again and the status checking will start.
-		logsupport.Logs.Log('{}: Adding {} to unknowns list {}'.format(self.name,node.name,self.UnknownList), severity = ConsoleWarning)
+		logsupport.Logs.Log('{}: Adding {} to unknowns list {}'.format(self.name, node.name, self.UnknownList),
+							severity=ConsoleWarning)
 		if self.UnknownList:
 			if self.StatusCheckerThread is None:
 				self.StartStatusChecker()
@@ -251,15 +243,20 @@ class HA(object):
 			del self.UnknownList[node.name]
 			logsupport.Logs.Log('{}: Deleted {} from unknowns list {}'.format(self.name, node.name, self.UnknownList), severity = ConsoleWarning)
 		except Exception as E:
-			logsupport.Logs.Log('{}: Failed attempt to delete {} from unknowns list {}'.format(self.name, node.name, self.UnknownList), severity = ConsoleWarning)
+			logsupport.Logs.Log(
+				'{}: Failed attempt to delete {} from unknowns list {}'.format(self.name, node.name, self.UnknownList),
+				severity=ConsoleWarning)
 
 	def GetActualState(self, ent):
 		try:
 			e = ha.get_state(self.api, ent)
 		except Exception as E:
-			logsupport.Logs.Log('{}: State check did not complete for {} exc: {}'.format(self.name, ent, E), severity = ConsoleWarning)
+			logsupport.Logs.Log('{}: State check did not complete for {} exc: {}'.format(self.name, ent, E),
+								severity=ConsoleWarning)
 			e = -1
 		return e
+
+	# end of WIP for checking actual status with hub
 
 	def CheckStates(self):
 		# noinspection PyBroadException
@@ -392,7 +389,7 @@ class HA(object):
 										severity=ConsoleError,
 										tb=False)  # since already validate with API shouldn't get here
 					return
-				if mdecode['type'] == 'platform_discovered':  # todo temp
+				if mdecode['type'] == 'platform_discovered':
 					logsupport.Logs.Log('{} discovered platform: {}'.format(self.name, message))
 				if mdecode['type'] != 'event':
 					debug.debugPrint('HASSgeneral', 'Non event seen on WS stream: ', str(mdecode))
@@ -456,7 +453,6 @@ class HA(object):
 							self.Entities[ent] = N  # only report once
 						return
 					elif new is not None:
-						#print('Call update: {} {}'.format(ent, new)) todo del
 						self.Entities[ent].Update(**new)
 
 					self.HB.Entry(
@@ -514,11 +510,11 @@ class HA(object):
 			try:
 				if error.args[0] == "'NoneType' object has no attribute 'connected'":
 					# library bug workaround - get this error after close happens just ignore
-					logsupport.Logs.Log("WS lib workaround hit (1)")  # tempdel
+					logsupport.Logs.Log("WS lib workaround hit (1)", severity=ConsoleWarning)  # tempdel
 					return
 			except:
 				pass
-				logsupport.Logs.Log("WS lib workaround hit (2)")  # tempdel
+				logsupport.Logs.Log("WS lib workaround hit (2)", severity=ConsoleWarning)  # tempdel
 			if isinstance(error, websocket.WebSocketConnectionClosedException):
 				self.delaystart = 20  # server or network business?
 				logsupport.Logs.Log(self.name + " closed WS stream " + str(self.HAnum) + "; attempt to reopen",
@@ -544,7 +540,7 @@ class HA(object):
 			try:
 				if isinstance(error, AttributeError):
 					# error = (errno.ETIMEDOUT,"Websock bug catch")
-					logsupport.Logs.Log("WS lib workaround hit (3)")  # tempdel
+					logsupport.Logs.Log("WS lib workaround hit (3)", severity=ConsoleWarning)  # tempdel
 			except:
 				pass
 			self.haconnectstate = "Failed"
@@ -565,7 +561,7 @@ class HA(object):
 				severity=ConsoleWarning, tb=False, hb=True)
 			if self.haconnectstate != "Failed": self.haconnectstate = "Closed"
 
-		# raise self.HAClose
+		# raise self.HAClose todo - should this do a raise to signal out to thread?
 
 		# noinspection PyUnusedLocal
 		def on_open(qws):

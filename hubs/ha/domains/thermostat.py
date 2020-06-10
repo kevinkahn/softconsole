@@ -1,5 +1,5 @@
 from hubs.ha import haremote as ha
-from hubs.ha.hasshub import StatefulHAnode, RegisterDomain
+from hubs.ha.hasshub import HAnode, RegisterDomain
 from controlevents import CEvent, PostEvent, ConsoleEvent
 import screens.__screens as screens
 import debug
@@ -10,11 +10,11 @@ import functools
 import logsupport
 
 
-class Thermostat(StatefulHAnode):  # not stateful since has much state info
+class Thermostat(HAnode):  # not stateful since has much state info
 	# todo update since state now in pushed stream
 	def __init__(self, HAitem, d):
 		self.IsThermostat = True
-		super(Thermostat, self).__init__(HAitem, **d)
+		super().__init__(HAitem, **d)
 		self.Hub.RegisterEntity('climate', self.entity_id, self)
 		self.timerseq = 0
 		# noinspection PyBroadException
@@ -24,7 +24,7 @@ class Thermostat(StatefulHAnode):  # not stateful since has much state info
 			self.target_low = self.attributes['target_temp_low']
 			self.target_high = self.attributes['target_temp_high']
 			self.hvac_action = self.attributes['hvac_action']
-			self.mode = self.internalstate # in new climate domain hvac operation mode is the state
+			self.mode = self.internalstate  # in new climate domain hvac operation mode is the state
 			self.fan = self.attributes['fan_mode']
 			self.fanstates = self.attributes['fan_modes']
 			self.modelist = self.attributes['hvac_modes']
