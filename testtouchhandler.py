@@ -145,7 +145,7 @@ class Touchscreen(object):
 		self._running = True
 		while self._running:
 			self.poll()
-			time.sleep(0.00001)  # todo deeper analysis of whether this loop can hog cpu
+			time.sleep(0.00001)
 
 	def run(self):
 		self._run()
@@ -260,10 +260,10 @@ class Touchscreen(object):
 						self._capscreen = False
 						with open('/etc/pointercal', 'r') as pc:
 							self.a = list(int(x) for x in next(pc).split())
-						# set to do corrections? TODO read pointercal and set a flag to correct
+						# set to do corrections?  read pointercal and set a flag to correct
 						return os.path.join('/dev', 'input', os.path.basename(evdev))
 					elif dev == self.TOUCHSCREEN28CAP:
-						self._flipx = 0  # 240  todo auto fix orientation?
+						self._flipx = 0  # 240   auto fix orientation?
 						self._flipy = 0  # 320
 						return os.path.join('/dev', 'input', os.path.basename(evdev))
 			except IOError as e:

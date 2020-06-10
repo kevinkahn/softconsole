@@ -73,7 +73,7 @@ class ISYEventMonitor(object):
 			logsupport.Logs.Log(self.hubname + ": Query (" + str(seq) + ") attempt failed for node: " + ndnm,
 								severity=ConsoleWarning)
 		else:
-			time.sleep(2)  # todo allow other nodes to report clearing - perhaps should make message Detail only
+			time.sleep(2)
 			logsupport.Logs.Log(self.hubname + ": Query (" + str(seq) + ") attempt succeeded for node: " + ndnm)
 		if enode in self.isy.ErrNodes: del self.isy.ErrNodes[enode]
 		if enode in self.queryqueued: del self.queryqueued[enode]
@@ -144,7 +144,6 @@ class ISYEventMonitor(object):
 				# likely home network down so wait a bit
 				logsupport.Logs.Log(self.hubname + ' WS restart for NETUNREACH - delay likely router reboot or down',
 									severity=ConsoleWarning)
-				# todo overlay a screen delay message so locked up console is understood
 				self.delayedstart = 121
 			elif self.lasterror == 'ISYClose':
 				logsupport.Logs.Log(self.hubname + ' Recovering closed WS stream')
@@ -346,7 +345,7 @@ class ISYEventMonitor(object):
 						except KeyError:
 							logsupport.Logs.Log(
 								"Unknown variable from " + self.hubname + " - probably added since startup",
-								severity=ConsoleWarning)  # todo cause a restart?
+								severity=ConsoleWarning)
 
 					elif prcode == 'Heartbeat':
 						if self.hbcount > 0:
@@ -446,10 +445,8 @@ class ISYEventMonitor(object):
 									severity=ConsoleWarning)
 			loopend = time.time()
 			self.isy.HBWS.Entry('Processing time: {} Done: {}'.format(loopend - loopstart, repr(
-				message)))  # todo try to force other thread to run
+				message)))
 			time.sleep(.001)  # force thread to give up processor to allow response to time events
-
-		# self.isy.HBWS.Entry('Gave up control for: {}'.format(time.time() - loopend))
 
 		self.THstate = 'delaying'
 		logsupport.Logs.Log("{}: WS stream thread {} setup".format(self.hubname, self.QHnum))

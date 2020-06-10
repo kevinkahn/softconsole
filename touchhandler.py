@@ -168,7 +168,7 @@ class Touchscreen(object):
 		self._running = True
 		while self._running:
 			self.poll()
-			time.sleep(0.00001)  # todo deeper analysis of whether this loop can hog cpu
+			time.sleep(0.00001)
 
 	def run(self):
 		self._run()

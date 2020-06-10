@@ -33,7 +33,7 @@ class MyScreens(object):
 
 				if tempscreentype in screens.screentypes:
 					try:
-						NewScreen = screens.screentypes[tempscreentype](thisScreen, screenitem, Clocked=clockedscreen)  # todo add a clocked option?
+						NewScreen = screens.screentypes[tempscreentype](thisScreen, screenitem, Clocked=clockedscreen)
 						logsupport.Logs.Log(tempscreentype + " screen " + screenitem, severity=ConsoleDetail)
 					except ValueError:
 						NewScreen = None

@@ -137,7 +137,7 @@ class Thermostat(Node):
 		return self.Tmodes, self.Tfan
 
 	def PushSetpoints(self, t_low, t_high):
-		# ISY needs 2 times the temp val todo can this be done in one net op?
+		# ISY needs 2 times the temp val
 		self.Hub.try_ISY_comm('nodes/' + self.address + '/cmd/CLISPH/' + str(t_low * 2), doasync=True)
 		self.Hub.try_ISY_comm('nodes/' + self.address + '/cmd/CLISPC/' + str(t_high * 2), doasync=True)
 
@@ -586,7 +586,7 @@ class ISY(object):
 				thrd = 'asyn thread'
 		# print('Do cmd in ' + threading.current_thread().name + ' ' + urlcmd + ' Async:' + str(doasync) + str(timeout) + str(closeonfail))
 		error = ['Errors']
-		busyloop = 0  # todo do Busy case and retry case async
+		busyloop = 0
 		while self.Busy != 0:
 			busyloop += 1
 			time.sleep(1)

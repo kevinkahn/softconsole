@@ -83,7 +83,6 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 		super().ReInitDisplay()
 
 	def ScreenContentRepaint(self):
-		# todo - could save most of the screen between clock repaints so wouldn't need mult calls to Weather Block
 		if not self.Active: return  # handle race condition where repaint queued just before switch
 		h = 0
 		renderedforecast = []
@@ -91,7 +90,7 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 		renderedtime = []
 		renderedtimelabel = []
 
-		FreshData = self.store.BlockRefresh()  # todo use this to control repaint?
+		self.store.BlockRefresh()
 
 		tw = 0
 		for i in range(len(self.TimeFormat)):

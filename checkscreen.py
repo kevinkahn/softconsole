@@ -341,7 +341,7 @@ if __name__ == "__main__":
 
 	screendev = screendefs[scrntp][0]
 	if scrntp[-1] == 'B':  # Buster system
-		if screendev[-1] == '0':  # check if there is an fb1 and use that if available todo Buster hack
+		if screendev[-1] == '0':  # check if there is an fb1 and use that if available Buster hack
 			try:
 				with open('/dev/fb1') as f:
 					screendev = '/dev/fb1'

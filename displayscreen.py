@@ -307,15 +307,7 @@ class DisplayScreen(object):
 					config.sysstats.Op('virtmem', val=virtmem)
 					config.sysstats.Op('realfree', val=realfree)
 					config.sysstats.Op('swapfree', val=virtfree)
-					if config.sysStore.versionname in ('development', 'homerelease'):  # todo - replace following?
-						# if consolestatus.queuedepthmax > controlevents.QLengthTrigger or consolestatus.queuetimemax > controlevents.LateTolerance:
-						#	logsupport.Logs.Log('Console performance({}): maxq: {} maxwait: {}'.format(
-						#		time.time() - perfdump, consolestatus.queuedepthmax, consolestatus.queuetimemax),
-						#		severity=ConsoleWarning, hb=True)
-						#	consolestatus.queuetimemax = 0
-						#	consolestatus.queuedepthmax = 0
-						#	perfdump = time.time()
-
+					if config.sysStore.versionname in ('development', 'homerelease'):
 						newhigh = []
 						if realmem > rptreal * 1.01:
 							rptreal = realmem
@@ -329,13 +321,6 @@ class DisplayScreen(object):
 								'Memory({}) use Real: {:.2f}/{:.2f}  Virtual: {:.2f}/{:.2f}'.format(why, realmem,
 																									realfree,
 																									virtmem, virtfree))
-							#print(
-							#	'Memory({}) use Real: {:.2f}/{:.2f}  Virtual: {:.2f}/{:.2f}'.format(why, realmem,
-							#																		realfree,
-							#																		virtmem, virtfree))
-					#print(objgraph.show_growth(limit=10, peak_stats=peakstats))
-					# print(objgraph.show_most_common_types(limit=20))
-				#print(objgraph.show_growth(limit=20))
 
 				if not Failsafe.is_alive():
 					logsupport.DevPrint('Watchdog died')

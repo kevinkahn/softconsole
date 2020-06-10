@@ -36,7 +36,6 @@ class ClockScreenDesc(screen.ScreenDesc):
 	# noinspection PyUnusedLocal
 	def ScreenContentRepaint(self):
 		if not self.Active:
-			logsupport.Logs.Log('Temp - clock got stale event', severity=ConsoleWarning)  # tempdel
 			return  # handle race conditions where repaint queued just before screen switch
 		h = 0
 		l = []

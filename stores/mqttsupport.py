@@ -135,7 +135,8 @@ class MQTTBroker(valuestore.ValueStore):
 																				   respfrom=respnode,
 																				   value=usevalue))
 							except Exception as E:
-								print('Exc: {}'.format(E))
+								logsupport.Logs.Log('Exception posting event from mqtt resp: ({}) Exception {}'.format(
+									(self.name, msgdcd, respnode, userdata), E), severity=ConsoleError)
 					return
 
 			# noinspection PySimplifyBooleanCheck

@@ -220,8 +220,6 @@ class StatusDisplayScreen(screen.BaseKeyScreenDesc):
 				estat = ' ' if ndinfo['error'] == -1 else '?' if ndinfo['error'] == -1 else '*'
 				cstat = " {:>15.15s}".format(status_interval_str(ndinfo['uptime']))
 
-			# --- todo convert to dict:  also fix above for inner if
-
 			if ndinfo['boottime'] == 0:
 				bt = "{:^19.19}".format('unknown')
 			else:
@@ -313,7 +311,6 @@ class CommandScreen(screen.BaseKeyScreenDesc):
 		MsgSeq += 1
 		Key.Seq = MsgSeq
 		if self.FocusNode == '*':
-			# print('Issue Group command {} to {} nodes'.format(cmd, self.NumNodes))
 			Key.ExpectedNumResponses = self.NumNodes
 			config.MQTTBroker.Publish('cmd', '{}|{}|{}'.format(cmd, hw.hostname, MsgSeq), 'all')
 		else:
