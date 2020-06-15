@@ -244,7 +244,7 @@ class LimitStat(Stat):
 															 datetime.datetime.fromtimestamp(
 																 self.overallmaxtime).strftime('%Y-%m-%d %H:%M:%S')),)
 		if clear:
-			self.maxvalue = 0
+			self.maxvalue = 0 if self.max else 999999999999999
 			self.maxtime = time.time()
 		return max, rtn
 
