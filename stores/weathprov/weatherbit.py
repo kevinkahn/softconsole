@@ -377,6 +377,8 @@ class WeatherbitWeatherSource(object):
 				config.MQTTBroker.Publish('Weatherbit/{}'.format(self.thisStoreName), node='all/weather',
 										  payload=json.dumps({'current': 'CACHEPURGE', 'location': self.location,
 															  'fetchingnode': config.sysStore.hostname}))
+				config.MQTTBroker.Publish('Weatherbit/{}'.format(self.thisStoreName), node='all/weather',
+										  payload=None, retain=True)
 				logsupport.Logs.Log('Force cache clear for {}({})'.format(self.location, self.thisStoreName))
 			self.thisStore.CurFetchGood = False
 			self.thisStore.StatusDetail = "(Failed Decode)"

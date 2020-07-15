@@ -106,11 +106,14 @@ class MQTTBroker(valuestore.ValueStore):
 				return
 			elif topic.startswith('consoles/all/weather'):
 				provider = topic.split('/')[3]
-				try:
-					WeathProvs[provider][0].MQTTWeatherUpdate(msg.payload.decode('ascii'))
-				except Exception as E:
-					logsupport.Logs.Log('Unkown weather provider MQTT update for {} {}'.format(provider, E),
-										severity=ConsoleWarning)
+				if msg.payload is None:
+					logsupport.Logs.Log('MQTT Entry clear for {}'.format(topic))
+				else:
+					try:
+						WeathProvs[provider][0].MQTTWeatherUpdate(msg.payload.decode('ascii'))
+					except Exception as E:
+						logsupport.Logs.Log('Unkown weather provider MQTT update for {} {}'.format(provider, E),
+											severity=ConsoleWarning)
 				return
 			else:
 				# see if it is node specific message
