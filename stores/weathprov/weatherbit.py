@@ -215,6 +215,13 @@ class WeatherbitWeatherSource(object):
 		weatherinfo = json.loads(payload)
 		loc = weatherinfo['location']
 		storename = WeatherMsgStoreName[loc] if loc in WeatherMsgStoreName else '(Not on Node)'
+		if weatherinfo['current'] == 'CACHEPURGE':
+			logsupport.Logs.Log(
+				'Purge weatherbit cache for {}({}) issued by {}'.format(loc, storename, weatherinfo['fetchingnode']))
+			if loc in WeatherCache:
+				del WeatherCache[loc]
+				logsupport.Logs.Log('Removed entry for {}'.format(loc))
+			return
 		logsupport.Logs.Log(
 			'Cache update: {} ({}) {} {} {}'.format(storename, loc, weatherinfo['fetchtime'], time.time(),
 													weatherinfo['fetchingnode']), severity=ConsoleDetail)
@@ -238,10 +245,14 @@ class WeatherbitWeatherSource(object):
 	# noinspection PyMethodMayBeStatic
 	# access item by name
 	def MapItem(self, src, item):
-		if isinstance(item, tuple):
-			return item[0](TreeDict(src, item[1]))
-		else:
-			return item
+		try:
+			if isinstance(item, tuple):
+				return item[0](TreeDict(src, item[1]))
+			else:
+				return item
+		except Exception as E:
+			logsupport.Logs.Log('Exception {} mapping weather item {} {}'.format(E, src, item), severity=ConsoleWarning)
+			return None
 
 	def FetchWeather(self):
 		Esave = None
@@ -276,6 +287,7 @@ class WeatherbitWeatherSource(object):
 					if config.mqttavailable:
 						config.MQTTBroker.Publish('Weatherbit/{}'.format(self.thisStoreName), node='all/weather',
 												  payload=json.dumps(bcst), retain=True)
+					# print('Pub weather {}'.format(self.thisStoreName))
 					historybuffer.HBNet.Entry('Weather fetch done')
 					weathertime = time.time()
 					fetcher = 'local'
@@ -361,6 +373,11 @@ class WeatherbitWeatherSource(object):
 		except Exception as E:
 			logsupport.DevPrint(
 				'Exception {} in Weatherrbit report processing: {} (via: {})'.format(E, forecast, fetcher))
+			if config.mqttavailable:  # force bad fetch out of the cache
+				config.MQTTBroker.Publish('Weatherbit/{}'.format(self.thisStoreName), node='all/weather',
+										  payload=json.dumps({'current': 'CACHEPURGE', 'location': self.location,
+															  'fetchingnode': config.sysStore.hostname}))
+				logsupport.Logs.Log('Force cache clear for {}({})'.format(self.location, self.thisStoreName))
 			self.thisStore.CurFetchGood = False
 			self.thisStore.StatusDetail = "(Failed Decode)"
 			logsupport.Logs.Log(

@@ -210,6 +210,8 @@ class ISYEventMonitor(object):
 		def on_message(qws, message):
 			loopstart = time.time()
 			self.isy.HBWS.Entry('Message: {}'.format(repr(message)))
+
+			# print('Message: {}'.format(message))
 			try:
 				m = 'parse error'
 				m = xmltodict.parse(message)
