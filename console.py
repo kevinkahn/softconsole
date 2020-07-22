@@ -136,7 +136,6 @@ sectionget = Section.get
 def CO_get(self, key, default, delkey=True):
 	try:
 		rtn = sectionget(self, key, default)
-		tmpr = rtn
 		if isinstance(default, bool) and isinstance(rtn, str):
 			rtn = rtn in ('True', 'true', 'TRUE', '1')
 		if isinstance(default,
@@ -177,9 +176,14 @@ if os.getegid() != 0:
 	logsupport.Logs.Log(u"Not running as root - exit")
 	print(u"Must run as root")
 	# noinspection PyProtectedMember
-	sys.exit(exitutils.EARLYABORT)
+	exitutils.EarlyAbort('Not Running as Root')
+#	sys.exit(exitutils.EARLYABORT)
 
-utilities.InitializeEnvironment()
+try:
+	utilities.InitializeEnvironment()
+except Exception as E:
+	logsupport.Logs.Log('HW Config Exception: {}'.format(E))
+	exitutils.EarlyAbort('HW Config Issue', screen=False)
 
 logsupport.Logs.Log(u'Environment initialized on host ' + hw.hostname)
 if 'Zero' in hw.hwinfo:
@@ -537,13 +541,14 @@ try:
 	# if config.sysStore.versionname == 'development':
 	#	utilities.DumpDocumentation()
 except Exception as E:
-	logsupport.Logs.Log('Fatal Error while starting: {}'.format(E), severity=ConsoleError,hb=True,tb=True)
+	logsupport.Logs.Log('Fatal Error while starting: {}'.format(E), severity=ConsoleError, hb=True, tb=True)
 	timers.ShutTimers('Initialization failure')
-	hw.GoBright(100)
-	pygame.quit()
-	sys.exit(exitutils.EARLYABORT)
+	# hw.GoBright(100)
+	# pygame.quit()
+	# sys.exit(exitutils.EARLYABORT)
+	exitutils.EarlyAbort('Configuration Error')
 
-"""
+	"""
 Run the main console loop
 	"""
 for n in alerttasks.monitoredvars:  # make sure vars used in alerts are updated to starting values

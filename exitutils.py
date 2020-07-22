@@ -51,9 +51,9 @@ reasonmap = {signal.SIGTERM:('termination signal', EXTERNALSIGTERM),
 
 
 def exitlogging():
-	print('exitlogging')
+	print('----------------- Exit Logging')
 	# logsupport.Logs.Log("Exittime threads: {}".format(listthreads(threading.enumerate())))
-	#if config.hooks.exit_code not in (
+	# if config.hooks.exit_code not in (
 	if config.ecode not in (
 			EARLYABORT, MAINTEXIT, MAINTPISHUT, REMOTEPISHUT, MAINTRESTART, AUTORESTART, REMOTERESTART, EXTERNALSIGTERM,
 			MAINTPIREBOOT, REMOTEPIREBOOT):
@@ -61,17 +61,19 @@ def exitlogging():
 		historybuffer.DumpAll('Exit Trace', time.strftime('%m-%d-%y %H:%M:%S'))
 	else:
 		logsupport.Logs.Log("Exiting without history trace")
-	time.sleep(1) # let messages get out
+	time.sleep(1)  # let messages get out
 	logsupport.LoggerQueue.put((logsupport.Command.CloseHlog, 'Exit Logging'))
 
 
-def EarlyAbort(scrnmsg):
-	hw.screen.fill(wc("red"))
-	# this font is manually loaded into the fontcache to avoid log message on early abort before log is up
-	# see fonts.py
-	r = fonts.fonts.Font(40, '', True, True).render(scrnmsg, 0, wc("white"))
-	hw.screen.blit(r, ((hw.screenwidth - r.get_width()) / 2, hw.screenheight * .4))
-	pygame.display.update()
+def EarlyAbort(scrnmsg, screen=True):
+	if screen:
+		hw.screen.fill(wc("red"))
+		# this font is manually loaded into the fontcache to avoid log message on early abort before log is up
+		# see fonts.py
+		hw.GoBright(100)
+		r = fonts.fonts.Font(40, '', True, True).render(scrnmsg, 0, wc("white"))
+		hw.screen.blit(r, ((hw.screenwidth - r.get_width()) / 2, hw.screenheight * .4))
+		pygame.display.update()
 	print(time.strftime('%m-%d-%y %H:%M:%S'), scrnmsg)
 	time.sleep(10)
 	timers.ShutTimers('earlyabort')

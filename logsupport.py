@@ -81,6 +81,7 @@ def AsyncFileWrite(fn,writestr,access='a'):
 historybuffer.AsyncFileWrite = AsyncFileWrite  # to avoid circular imports
 
 def LogProcess(q):
+	global Logs
 	item = (99, 'init')
 	exiting = 0
 
@@ -88,9 +89,11 @@ def LogProcess(q):
 		nonlocal exiting
 		exiting = time.time()
 		with open('/home/pi/Console/.HistoryBuffer/hlog', 'a') as f:
-			f.write('{}({}): Logger process exiting for signal {} exiting: {}\n'.format(os.getpid(),time.time(),signum, exiting))
+			f.write(
+				'{}({}): Logger process exiting for signal {} exiting: {}\n'.format(os.getpid(), time.time(), signum,
+																					exiting))
 			f.flush()
-		signal.signal(signal.SIGHUP,signal.SIG_IGN)
+		signal.signal(signal.SIGHUP, signal.SIG_IGN)
 
 	def IgnoreHUP(signum, frame):
 		with open('/home/pi/Console/.HistoryBuffer/hlog', 'a') as f:
@@ -170,9 +173,12 @@ def LogProcess(q):
 					f.flush()
 			elif item[0] == Command.CloseHlog:
 				running = False
-				with open('/home/pi/Console/.HistoryBuffer/hlog', 'a') as f:
-					f.write('{}({}): Async Logger ending: {}\n'.format(os.getpid(),time.time(),item[1]))
-					f.flush()
+				try:
+					with open('/home/pi/Console/.HistoryBuffer/hlog', 'a') as f:
+						f.write('{}({}): Async Logger ending: {}\n'.format(os.getpid(), time.time(), item[1]))
+						f.flush()
+				except:
+					pass  # hlog was never set up
 				Logs = TempLogger
 			elif item[0] == Command.StartLog:
 				# open Console log
@@ -202,16 +208,19 @@ def LogProcess(q):
 				f.write('Log process had exception {} handling {}'.format(repr(E), item))
 				f.flush()
 	try:
-		print('{}({}): Logger loop ended'.format(os.getpid(),time.time()))
+		print('----------------- {}({}): Logger loop ended'.format(os.getpid(), time.time()))
 	except:
 		pass
-	with open('/home/pi/Console/.HistoryBuffer/hlog', 'a') as f:
-		f.write('{}({}): Logger loop ended\n'.format(os.getpid(),time.time()))
-		f.flush()
-	disklogfile.write(
-		'{} Sev: {} {}\n'.format(time.strftime('%m-%d-%y %H:%M:%S', time.localtime(time.time())), 3, "End Log"))
-	disklogfile.flush()
-	os.fsync(disklogfile.fileno())
+	try:
+		with open('/home/pi/Console/.HistoryBuffer/hlog', 'a') as f:
+			f.write('{}({}): Logger loop ended\n'.format(os.getpid(), time.time()))
+			f.flush()
+		disklogfile.write(
+			'{} Sev: {} {}\n'.format(time.strftime('%m-%d-%y %H:%M:%S', time.localtime(time.time())), 3, "End Log"))
+		disklogfile.flush()
+		os.fsync(disklogfile.fileno())
+	except:
+		print('----------------- No disk logs to close')
 
 
 def DevPrintInit(arg):
