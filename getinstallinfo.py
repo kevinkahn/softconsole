@@ -1,4 +1,5 @@
 import sys
+from functools import partial as p
 
 
 def GetYN(prompt, Allownum=False):
@@ -40,6 +41,45 @@ def AddToScript(varset, value):
 	scriptvars.append(varset + '=' + set + '\n')
 
 
+def adafruit(scr, rot):
+	fin = open('/home/pi/adafruit-pitft.sh')
+	displays = []
+	while not displays:
+		l = fin.readline()
+		if l.startswith('PITFT_TYPES='):
+			displays = l[l.index('(') + 1: l.index(')')].replace('"', '').split(' ')
+		else:
+			pass
+	fin.close()
+
+	try:
+		dnum = displays.index(scr) + 1
+	except:
+		print('Screen name not found in Adafruit scripts - report to developer!')
+		sys.exit(1)
+	fout = open('adafinput', 'w')
+	fout.write(str(dnum) + '\n')
+	fout.write(str(rot) + '\n')
+	fout.write('Y\n')  # pi console to pitft
+	fout.write('N\n')  # don't reboot
+	fout.close()
+	return ("echo Adafruit {} screen\n".format(scr),
+			"./adafruit-pitft.sh < adafinput\n",
+			"raspi-config nonint do_boot_behaviour B4 # set boot to desktop already logged in\n")
+
+
+def doflip(scr):
+	flip = GetYN("Flip 7 inch screen so power at top? (Y/N)")
+	if flip:
+		return ('echo Flip 7 inch screen\n', 'echo "lcd_rotate=2" >> /boot/config.txt\n')
+	else:
+		return ('echo Nornmal 7 inch screen\n',)
+
+
+def noscreen(scr):
+	return ('echo User setup screen with type: {}\n'.format(scr),)
+
+
 AddToScript('NodeName', GetVal("What name for this system?"))
 AddToScript('VNCstdPort', GetYN("Install VNC on standard port (Y/N/alt port number)?", Allownum=True))
 AddToScript('Personal', GetYN("Is this the developer personal system (Y/N) (bit risky to say Y if it not)?"))
@@ -50,42 +90,26 @@ AddToScript('Reboot', GetYN("Automatically reboot to continue install after syst
 flip7 = False
 screentype = '--'
 supportedscreens = ('28r', '28c', '35r', 'pi7')
-rotationcodes = {'28r': 4, '28c': 2, '35r': 4}
+# adafruit script rotations {'28r': 4, '28c': 2, '35r': 4}
+screeninstallcode = {'28r': p(adafruit, '28r', 4), '28c': p(adafruit, '28c', 2), '35r': p(adafruit, '35r', 4),
+					 'pi7': p(doflip, 'pi7'), '--': p(noscreen, '--')}
 
 doscreen = GetYN("Do you want to install a known screen (Alternative is to install any screen drivers yourself)?")
 if doscreen:
 	screentype = GetVal("What type screen ({})?".format(supportedscreens), supportedscreens)
-	if screentype == 'pi7':
-		flip7 = GetYN("Flip 7 inch screen so power at top? (Y/N)")
-AddToScript('Flip7', flip7)
+else:
+	screentype = GetVal("Enter name of screen for console reference:")
+	screeninstallcode[screentype] = p(noscreen, screentype)
+
 AddToScript('ScreenType', screentype)
-
-fin = open('/home/pi/adafruit-pitft.sh')
-displays = []
-while not displays:
-	l = fin.readline()
-	if l.startswith('PITFT_TYPES='):
-		displays = l[l.index('(') + 1: l.index(')')].replace('"', '').split(' ')
-	else:
-		pass
-fin.close()
-
-try:
-	dnum = displays.index(screentype) + 1
-except:
-	print('Screen name not found in Adafruit scripts - report to developer!')
-	sys.exit(1)
 
 fout = open('installvals', 'w')
 fout.writelines(scriptvars)
 fout.close()
-if screentype in rotationcodes:
-	fout = open('adafinput', 'w')
-	fout.write(str(dnum) + '\n')
-	fout.write(str(rotationcodes[screentype]) + '\n')
-	fout.write('Y\n')  # pi console to pitft
-	fout.write('N\n')  # don't reboot
-	fout.close()
+
+installsrc = screeninstallcode[screentype]()
+with open('installscreencode', 'w') as f:
+	f.writelines(installsrc)
 
 ISYname = ""
 ans = ""

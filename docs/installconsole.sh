@@ -39,40 +39,6 @@ function LogBanner()
   echo "----------------------------------------------------------"
 }
 
-function UseWheezyVersion()
-{
-    # PiTFT touch using PyGame requires the older wheezy sdl library (long term problem that PyGame needs to resolve)
-
-    LogBanner "Setup to downgrade touch stuff to wheezy"
-    #enable wheezy package sources
-    echo "deb http://archive.raspbian.org/raspbian wheezy main
-    " > /etc/apt/sources.list.d/wheezy.list
-
-    #set stable as default package source (currently jessie)
-    echo "APT::Default-release \"stable\";
-    " > /etc/apt/apt.conf.d/10defaultRelease
-
-    #set the priority for libsdl from wheezy higher then the jessie package
-    echo "Package: libsdl1.2debian
-    Pin: release n=jessie
-    Pin-Priority: -10
-    Package: libsdl1.2debian
-    Pin: release n=stretch
-    Pin-Priority: -10
-    Package: libsdl1.2debian
-    Pin: release n=wheezy
-    Pin-Priority: 900
-    " > /etc/apt/preferences.d/libsdl
-
-    #install
-
-    echo "Update to downgrade"
-    apt-get -y --force-yes update
-    echo "Install the downgrade"
-    apt-get -y --force-yes install libsdl1.2debian/wheezy
-
-}
-
 LogBanner "Console Setup Script" > /home/pi/prep.log
 if [[ "$EUID" -ne 0 ]]
 then
@@ -145,13 +111,6 @@ echo 1 > /proc/sys/vm/drop_caches # try to avoid kswap problem
 LogBanner "Install stuff for console"
 
 pip install --upgrade pip
-#pip3 install --upgrade pip
-
-#if [ $UseWheezy == "Y" ]
-#then
-#    LogBanner "Old Wheezy Touch system requested"
-#    UseWheezyVersion
-#fi
 
 cd /home/pi/
 LogBanner "Console Installation"
@@ -222,6 +181,7 @@ mv installc* consoleinstallleftovers
 mv installvals consoleinstallleftovers
 mv adafinput consoleinstallleftovers
 mv di.log    consoleinstallleftovers
+mv installscreencode consoleinstallleftovers
 
 LogBanner "Install and setup finished"
 rm -f /home/pi/CONSOLEINSTALLRUNNING

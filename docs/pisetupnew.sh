@@ -52,12 +52,14 @@ sudo passwd pi
 wget https://raw.githubusercontent.com/kevinkahn/softconsole/master/getinstallinfo.py
 wget https://raw.githubusercontent.com/adafruit/Adafruit-PiTFT-Helper/master/adafruit-pitft-touch-cal
 wget https://raw.githubusercontent.com/adafruit/Raspberry-Pi-Installer-Scripts/master/adafruit-pitft.sh
+chmod +x adafruit-pitft-touch-cal adafruit-pitft.sh
 
-python getqinstallinfo.py
+python getinstallinfo.py
 if [ $? -ne 0]
 then
   echo "Exiting pisetup due to error in getting getinstallinfo"
   exit 1
+fi
 
 source installvals
 
@@ -169,57 +171,56 @@ cd /home/pi
 
 if [[ `cat /etc/issue` == *"Linux 10"* ]]
 then
-    LogBanner "Adjust adafruit scritp for Buster (now fixed in Adafruit as of 7/2019)"
-    sed -isav 's/evtest tslib libts\-bin/evtest tslib/' adafruit-pitft.sh
-    sed  -isav '/evtest tslib/a  apt-get install -y libts-bin' adafruit-pitft.sh
+#    LogBanner "Adjust adafruit scritp for Buster (now fixed in Adafruit as of 7/2019)"
+#    sed -isav 's/evtest tslib libts\-bin/evtest tslib/' adafruit-pitft.sh
+#    sed  -isav '/evtest tslib/a  apt-get install -y libts-bin' adafruit-pitft.sh
     echo "$ScreenType"B > .Screentype
 else
     sed -isav s/fb0/fb1/ /usr/share/X11/xorg.conf.d/99-fbturbo.conf
     echo $ScreenType > .Screentype
 fi
 
-chmod +x adafruit-pitft-touch-cal adafruit-pitft.sh
-UseWheezy='N'
+LogBanner "Run screen specific install code"
+source installscreencode
+LogBanner "Completed screen specific install code"
 
-
-case $ScreenType in
-  28r|28c|35r)
-   ./adafruit-pitft.sh < adafinput
-    raspi-config nonint do_boot_behaviour B4 # set boot to desktop already logged in
-    #sed -isav s/fb0/fb1/ /usr/share/X11/xorg.conf.d/99-fbturbo.conf
-  ;;
-  pi7)
-    LogBanner "7 Inch Pi Screen"
-    if [ $Flip7 == 'Y' ]
-    then
-        echo "lcd_rotate=2" >> /boot/config.txt
-    fi
-    ;;
-  wave35)
-    LogBanner "Install Waveshare screen"
-    echo "Following link as of 8//30/18"
-    wget https://www.waveshare.com/w/upload/3/34/LCD-show-180331.tar.gz
-    tar xvf LCD-show-*.tar.gz
-    cd LCD-show 90
-    chmod +x LCD35-show
-    sed -i 's/sudo reboot/echo skip sudo reboot/' "LCD35-show"
-    ./LCD35-show 90
-    cd ..
-
-    echo "Update pointercal"
-    cat > /etc/pointercal <<EOF
-5729 138 -1857350 78 8574 -2707152 65536
-EOF
+#case $ScreenType in
+#  28r|28c|35r)
+#   ./adafruit-pitft.sh < adafinput
+#    raspi-config nonint do_boot_behaviour B4 # set boot to desktop already logged in
+#  ;;
+#  pi7)
+#    LogBanner "7 Inch Pi Screen"
+#    if [ $Flip7 == 'Y' ]
+#    then
+#        echo "lcd_rotate=2" >> /boot/config.txt
+#    fi
+#    ;;
+#  wave35)
+#    LogBanner "Install Waveshare screen"
+#    echo "Following link as of 8//30/18"
+#    wget https://www.waveshare.com/w/upload/3/34/LCD-show-180331.tar.gz
+#    tar xvf LCD-show-*.tar.gz
+#    cd LCD-show 90
+#    chmod +x LCD35-show
+#    sed -i 's/sudo reboot/echo skip sudo reboot/' "LCD35-show"
+#    ./LCD35-show 90
+#    cd ..
+#
+#    echo "Update pointercal"
+#    cat > /etc/pointercal <<EOF
+#5729 138 -1857350 78 8574 -2707152 65536
+#EOF
 
 # 5672 -28 -1130318 -203 8466 -1835732 65536
 
-    echo "Finished waveshare install"
-    ;;
-  *)
-    LogBanner "User installed screen"
-    echo Screen type: $ScreenType
-    ;;
-esac
+#    echo "Finished waveshare install"
+#    ;;
+#  *)
+#    LogBanner "User installed screen"
+#    echo Screen type: $ScreenType
+#    ;;
+#esac
 
 mv --backup=numbered /etc/rc.local.hold /etc/rc.local
 chmod +x /etc/rc.local
