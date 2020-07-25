@@ -1,30 +1,6 @@
 #!/bin/bash
 #
 # Meant to be put on boot file system when SD card is created then run as root
-function Get_yn()
-{
-  # params: var, prompt
-  read -p "$2 " resp
-  case $resp in
-    "Y" | "y")
-      resp="Y" ;;
-    "N" | "n")
-      resp="N" ;;
-    *)
-      ;;
-  esac
-  eval $1="'$resp'"
-}
-function Get_val()
-{
-  # params: var, prompt
-  read -p "$2 " resp
-  eval $1="'$resp'"
-}
-function InList()
-{
-  [[ $1 =~ (^|[[:space:]])$2($|[[:space:]]) ]] && return 1 || return 0
-}
 
 function LogBanner()
 {
@@ -73,51 +49,26 @@ dpkg-reconfigure tzdata
 LogBanner "Pi User Password"
 sudo passwd pi
 
-Get_val NodeName "What name for this system?"
-Get_yn VNCstdPort "Install VNC on standard port (Y/N/alt port number)?"
-Get_yn Personal "Is this the developer personal system (Y/N) (bit risky to say Y if it not)?"
-Get_yn InstallBeta "Download current beta as well as stable? (usually waste of time)"
-Get_yn AutoConsole "Autostart console (Y/N)?"
+wget https://raw.githubusercontent.com/kevinkahn/softconsole/master/getinstallinfo.py
+wget https://raw.githubusercontent.com/adafruit/Adafruit-PiTFT-Helper/master/adafruit-pitft-touch-cal
+wget https://raw.githubusercontent.com/adafruit/Raspberry-Pi-Installer-Scripts/master/adafruit-pitft.sh
 
-Get_yn InstallScreen "Do you want to install a known screen (Alternative is to install any screen drivers yourself)?"
-if [ "$InstallScreen" == "Y" ]
+python getsinstallinfo.py
+if [ $? -ne 0]
 then
-    Screens="28r 28c 35r pi7"
-    ScreenType="--"
-
-    until [ $ScreenType != "--" ]
-    do
-      Get_val ScreenType "What type screen($Screens)?"
-      InList "$Screens" "$ScreenType"
-      if [ $? -ne 1 ]
-      then
-        echo Not a valid screen type
-        ScreenType="--"
-      fi
-    done
-    if [ $ScreenType == 'pi7' ]
-    then
-      Get_yn Flip7 "Flip 7 inch screen so power at top? (Y/N)"
-    fi
-else
-    Get_val ScreenType "What is your screen type?"
-fi
-
-
-Get_yn Reboot "Automatically reboot to continue install after system setup?"
+  echo "Exiting pisetup due to error in getting getinstallinfo"
+  exit 1
 
 if [ "$Personal" == "Y" ]
 then
   echo Get homerelease versions of setup scripts
   wget https://raw.githubusercontent.com/kevinkahn/softconsole/homerelease/docs/installconsole.sh
-  wget https://raw.githubusercontent.com/kevinkahn/softconsole/homerelease/getsetupinfo.py
   wget https://raw.githubusercontent.com/kevinkahn/softconsole/homerelease/scripts/vncserverpi.service
   wget https://raw.githubusercontent.com/kevinkahn/softconsole/homerelease/scripts/lxterminal.conf
 else
   # NOTE to test with current master version from github replace "currentrelease" with 'master'
   echo Get currentrelease version of setup scripts
   wget https://raw.githubusercontent.com/kevinkahn/softconsole/currentrelease/docs/installconsole.sh
-  wget https://raw.githubusercontent.com/kevinkahn/softconsole/currentrelease/getsetupinfo.py
   wget https://raw.githubusercontent.com/kevinkahn/softconsole/currentrelease/scripts/vncserverpi.service
   wget https://raw.githubusercontent.com/kevinkahn/softconsole/currentrelease/scripts/lxterminal.conf
 # fix issue in adafruit install script as of 3/31/2018
@@ -126,11 +77,10 @@ if [ "$InstallBeta" == "Y" ]
 then
   echo use beta install scripts
   mv installconsole.sh consoleinstallleftovers/stable-installconsole.sh
-  mv getsetupinfo.py consoleinstallleftovers/stable-getsetupinfo.py
+  mv screeninstall.py consoleinstallleftovers/stable-screeninstall.py
   mv vncserverpi.service consoleinstallleftovers/stable-vncserverpi.service
   mv lxterminal.conf consoleinstallleftovers/stable-lxterminal.conf
   wget https://raw.githubusercontent.com/kevinkahn/softconsole/currentbeta/docs/installconsole.sh
-  wget https://raw.githubusercontent.com/kevinkahn/softconsole/currentbeta/getsetupinfo.py
   wget https://raw.githubusercontent.com/kevinkahn/softconsole/currentbeta/scripts/vncserverpi.service
   wget https://raw.githubusercontent.com/kevinkahn/softconsole/currentbeta/scripts/lxterminal.conf
 fi
@@ -138,14 +88,6 @@ fi
 
 chmod +x installconsole.sh
 chown pi:pi lxterminal.conf
-
-python getsetupinfo.py
-
-Get_yn Go "Proceed?"
-if [ "$Go" != "Y" ]
-then
-  exit 1
-fi
 
 
 LogBanner "Force WiFi to US"
@@ -223,9 +165,6 @@ cp /etc/rc.local /etc/rc.local.hold # helper script below screws up rc.local
 
 cd /home/pi
 
-wget https://raw.githubusercontent.com/adafruit/Adafruit-PiTFT-Helper/master/adafruit-pitft-touch-cal
-wget https://raw.githubusercontent.com/adafruit/Raspberry-Pi-Installer-Scripts/master/adafruit-pitft.sh
-
 if [[ `cat /etc/issue` == *"Linux 10"* ]]
 then
     LogBanner "Adjust adafruit scritp for Buster (now fixed in Adafruit as of 7/2019)"
@@ -237,40 +176,15 @@ else
     echo $ScreenType > .Screentype
 fi
 
-
 chmod +x adafruit-pitft-touch-cal adafruit-pitft.sh
 UseWheezy='N'
 
 
 case $ScreenType in
   28r|28c|35r)
-  case $ScreenType in
-    28r)
-    LogBanner "Run PiTFT Helper 28r"
-    echo 1 > tmp
-    echo 4 >> tmp # rotation
-    echo Y >> tmp # pi console to pitft
-    echo N >> tmp # don't reboot
-    ;;
-    28c)
-    LogBanner "Run PiTFT Helper 28c"
-    echo 3 > tmp
-    echo 2 >> tmp # rotation
-    echo Y >> tmp # pi console to pitft
-    echo N >> tmp # don't reboot
-    ;;
-    35r)
-    LogBanner "Run PiTFT Helper 35r"
-    echo 4 > tmp
-    echo 4 >> tmp # rotation
-    echo Y >> tmp # pi console to pitft
-    echo N >> tmp # don't reboot
-    ;;
-    esac
-
-  ./adafruit-pitft.sh < tmp
-  raspi-config nonint do_boot_behaviour B4 # set boot to desktop already logged in
-  #sed -isav s/fb0/fb1/ /usr/share/X11/xorg.conf.d/99-fbturbo.conf
+   ./adafruit-pitft.sh < adafinput
+    raspi-config nonint do_boot_behaviour B4 # set boot to desktop already logged in
+    #sed -isav s/fb0/fb1/ /usr/share/X11/xorg.conf.d/99-fbturbo.conf
   ;;
   pi7)
     LogBanner "7 Inch Pi Screen"

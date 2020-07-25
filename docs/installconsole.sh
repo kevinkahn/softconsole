@@ -6,8 +6,6 @@
 # It installs needed python packages and downgrades the sdllib to the stable Wheezy version for the
 # touchscreen to work since sdllibn 2 breaks pygame.
 
-# Before running this script you should load a current Jessie on the SD card, add earlyprep.sh to the /boot, and run earlyprep.sh
-# to set up the system and display.
 
 function Get_yn()
 {
@@ -218,10 +216,11 @@ fi
 
 mv prep.log earlyprep.log consoleinstallleftovers
 mv adafruit* consoleinstallleftovers
-rm tmp
-rm getsetupinfo.py
+mv getinstallinfo.py consoleinstallleftovers
 mv doinstall.sh consoleinstallleftovers
 mv installc* consoleinstallleftovers
+mv installvals consoleinstallleftovers
+mv adafinput consoleinstallleftovers
 mv di.log    consoleinstallleftovers
 
 LogBanner "Install and setup finished"
