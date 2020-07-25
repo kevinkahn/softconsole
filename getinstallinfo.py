@@ -69,7 +69,7 @@ while not displays:
 	else:
 		pass
 fin.close()
-print(displays)
+
 try:
 	dnum = displays.index(screentype) + 1
 except:
@@ -139,10 +139,10 @@ if MinExamp:
 			   "\n")
 		f.write("\n".join(cfg))
 
-print("Softconsole install paramters:")
+print("\n\nSoftconsole install paramters:")
 for l in scriptvars:
-	print(l)
+	print('    ' + l.replace('\n', ''))
 if MinExamp:
-	print("Create minimal example configuration")
+	print("    Create minimal example configuration")
 else:
-	print("Skip minimal example configuration")
+	print("    Skip minimal example configuration")

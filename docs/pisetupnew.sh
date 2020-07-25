@@ -53,11 +53,13 @@ wget https://raw.githubusercontent.com/kevinkahn/softconsole/master/getinstallin
 wget https://raw.githubusercontent.com/adafruit/Adafruit-PiTFT-Helper/master/adafruit-pitft-touch-cal
 wget https://raw.githubusercontent.com/adafruit/Raspberry-Pi-Installer-Scripts/master/adafruit-pitft.sh
 
-python getsinstallinfo.py
+python getqinstallinfo.py
 if [ $? -ne 0]
 then
   echo "Exiting pisetup due to error in getting getinstallinfo"
   exit 1
+
+source installvals
 
 if [ "$Personal" == "Y" ]
 then
