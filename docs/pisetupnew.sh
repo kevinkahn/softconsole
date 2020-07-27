@@ -2,8 +2,7 @@
 #
 # Meant to be put on boot file system when SD card is created then run as root
 
-function LogBanner()
-{
+function LogBanner() {
   echo
   echo "----------------------------------------------------------"
   echo "----------------------------------------------------------"
@@ -13,9 +12,7 @@ function LogBanner()
   echo "----------------------------------------------------------"
 }
 
-
-if [[ "$EUID" -ne 0 ]]
-then
+if [[ "$EUID" -ne 0 ]]; then
   echo "Must be run as root"
   exit
 fi
@@ -40,8 +37,7 @@ wget https://raw.githubusercontent.com/adafruit/Raspberry-Pi-Installer-Scripts/m
 chmod +x adafruit-pitft-touch-cal adafruit-pitft.sh
 
 python getinstallinfo.py
-if [ $? -ne 0]
-then
+if [ $? -ne 0]; then
   echo "Exiting pisetup due to error in getinstallinfo"
   exit 1
 fi
@@ -59,14 +55,11 @@ update-alternatives --install /usr/bin/python python /usr/bin/python3 2
 update-alternatives --install /usr/bin/python python /usr/bin/python2 1
 update-alternatives --set python /usr/bin/python3
 
-echo "deb http://mirrordirector.raspbian.org/raspbian/ stretch main contrib non-free rpi firmware" >> /etc/apt/sources.list.d/raspi.list
-
-
+echo "deb http://mirrordirector.raspbian.org/raspbian/ stretch main contrib non-free rpi firmware" >>/etc/apt/sources.list.d/raspi.list
 
 source installvals
 
-if [ "$Personal" == "Y" ]
-then
+if [ "$Personal" == "Y" ]; then
   echo Get homerelease versions of setup scripts
   wget https://raw.githubusercontent.com/kevinkahn/softconsole/homerelease/docs/installconsole.sh
   wget https://raw.githubusercontent.com/kevinkahn/softconsole/homerelease/scripts/vncserverpi.service
@@ -79,8 +72,7 @@ else
   wget https://raw.githubusercontent.com/kevinkahn/softconsole/currentrelease/scripts/lxterminal.conf
 # fix issue in adafruit install script as of 3/31/2018
 fi
-if [ "$InstallBeta" == "Y" ]
-then
+if [ "$InstallBeta" == "Y" ]; then
   echo use beta install scripts
   mv installconsole.sh consoleinstallleftovers/stable-installconsole.sh
   mv screeninstall.py consoleinstallleftovers/stable-screeninstall.py
@@ -91,21 +83,19 @@ then
   wget https://raw.githubusercontent.com/kevinkahn/softconsole/currentbeta/scripts/lxterminal.conf
 fi
 
-
 chmod +x installconsole.sh
 chown pi:pi lxterminal.conf
-
 
 LogBanner "Force WiFi to US"
 COUNTRY=US
 if [ -e /etc/wpa_supplicant/wpa_supplicant.conf ]; then
-    if grep -q "^country=" /etc/wpa_supplicant/wpa_supplicant.conf ; then
-        sed -i --follow-symlinks "s/^country=.*/country=$COUNTRY/g" /etc/wpa_supplicant/wpa_supplicant.conf
-    else
-        sed -i --follow-symlinks "1i country=$COUNTRY" /etc/wpa_supplicant/wpa_supplicant.conf
-    fi
+  if grep -q "^country=" /etc/wpa_supplicant/wpa_supplicant.conf; then
+    sed -i --follow-symlinks "s/^country=.*/country=$COUNTRY/g" /etc/wpa_supplicant/wpa_supplicant.conf
+  else
+    sed -i --follow-symlinks "1i country=$COUNTRY" /etc/wpa_supplicant/wpa_supplicant.conf
+  fi
 else
-    echo "country=$COUNTRY" > /etc/wpa_supplicant/wpa_supplicant.conf
+  echo "country=$COUNTRY" >/etc/wpa_supplicant/wpa_supplicant.conf
 fi
 
 LogBanner "Fix Keyboard"
@@ -117,7 +107,7 @@ XKBLAYOUT=\"us\"
 XKBVARIANT=\"\"
 XKBOPTIONS=\"\"
 BACKSPACE=\"guess\"
-" > /etc/default/keyboard
+" >/etc/default/keyboard
 invoke-rc.d keyboard-setup start
 udevadm trigger --subsystem-match=input --action=change
 
@@ -128,8 +118,8 @@ touch /boot/ssh # turn on ssh
 
 LogBanner "Changing Node Name to: $NodeName"
 mv -n /etc/hosts /etc/hosts.orig
-sed s/raspberrypi/$NodeName/ /etc/hosts.orig > /etc/hosts
-echo $NodeName > /etc/hostname
+sed s/raspberrypi/$NodeName/ /etc/hosts.orig >/etc/hosts
+echo $NodeName >/etc/hostname
 hostname $NodeName
 
 LogBanner "Set better LX Terminal parameters"
@@ -137,33 +127,32 @@ sudo -u pi mkdir -p /home/pi/.config/lxterminal
 mv -f lxterminal.conf /home/pi/.config/lxterminal
 
 case $VNCstdPort in # if [ $VNCstdPort != "Y" ]
-  Y)
-    echo "VNC will be set up on its normal port"
-    su pi -c vncserver
-    ;;
-  N)
-    echo "No VNC will ne set up"
-    ;;
-  *)
-    su pi -c vncserver # create the Xvnc file in ~pi/.vnc/config.d so it can be modified below
-    SSHDport=$(($VNCstdPort - 100))
-    VNCConsole=$(($VNCstdPort - 1))
-    echo "Virtual VNC will be set up on port " $VNCstdPort
-    echo "sshd will be moved to port " $SSHDport
-    cp /etc/ssh/sshd_config /etc/ssh/sshd_config.sav
-    sed "/Port /s/.*/Port $SSHDport/" /etc/ssh/sshd_config.sav > /etc/ssh/sshd_config
-    echo "RfbPort=$VNCstdPort" >> /home/pi/.vnc/config.d/Xvnc
-    chown pi:pi /home/pi/.vnc/config.d/Xvnc
-    ;;
+Y)
+  echo "VNC will be set up on its normal port"
+  su pi -c vncserver
+  ;;
+N)
+  echo "No VNC will ne set up"
+  ;;
+*)
+  su pi -c vncserver # create the Xvnc file in ~pi/.vnc/config.d so it can be modified below
+  SSHDport=$(($VNCstdPort - 100))
+  VNCConsole=$(($VNCstdPort - 1))
+  echo "Virtual VNC will be set up on port " $VNCstdPort
+  echo "sshd will be moved to port " $SSHDport
+  cp /etc/ssh/sshd_config /etc/ssh/sshd_config.sav
+  sed "/Port /s/.*/Port $SSHDport/" /etc/ssh/sshd_config.sav >/etc/ssh/sshd_config
+  echo "RfbPort=$VNCstdPort" >>/home/pi/.vnc/config.d/Xvnc
+  chown pi:pi /home/pi/.vnc/config.d/Xvnc
+  ;;
 esac
 LogBanner "Setup Virtual VNC Service"
 
-if [ $VNCstdPort == "N" ]
-then
-    echo "VNC service file installation skipped"
+if [ $VNCstdPort == "N" ]; then
+  echo "VNC service file installation skipped"
 else
-    echo "VNC service file installed"
-    mv /home/pi/vncserverpi.service /usr/lib/systemd/system
+  echo "VNC service file installed"
+  mv /home/pi/vncserverpi.service /usr/lib/systemd/system
 fi
 
 # Save initial rc.local to restore after helper scripts run
@@ -171,15 +160,14 @@ cp /etc/rc.local /etc/rc.local.hold # helper script below screws up rc.local
 
 cd /home/pi
 
-if [[ `cat /etc/issue` == *"Linux 10"* ]]
-then
-#    LogBanner "Adjust adafruit scritp for Buster (now fixed in Adafruit as of 7/2019)"
-#    sed -isav 's/evtest tslib libts\-bin/evtest tslib/' adafruit-pitft.sh
-#    sed  -isav '/evtest tslib/a  apt-get install -y libts-bin' adafruit-pitft.sh
-    echo "$ScreenType"B > .Screentype
+if [[ $(cat /etc/issue) == *"Linux 10"* ]]; then
+  #    LogBanner "Adjust adafruit scritp for Buster (now fixed in Adafruit as of 7/2019)"
+  #    sed -isav 's/evtest tslib libts\-bin/evtest tslib/' adafruit-pitft.sh
+  #    sed  -isav '/evtest tslib/a  apt-get install -y libts-bin' adafruit-pitft.sh
+  echo "$ScreenType"B >.Screentype
 else
-    sed -isav s/fb0/fb1/ /usr/share/X11/xorg.conf.d/99-fbturbo.conf
-    echo $ScreenType > .Screentype
+  sed -isav s/fb0/fb1/ /usr/share/X11/xorg.conf.d/99-fbturbo.conf
+  echo $ScreenType >.Screentype
 fi
 
 LogBanner "Run screen specific install code"
@@ -232,19 +220,17 @@ chmod +x /etc/rc.local
 LogBanner "Reboot now installconsole.sh will autorun as root unless aborted"
 echo "Install will set Personal $Personal and AutoConsole $AutoConsole"
 
-if [ "$Reboot" == "Y" ]
-then
+if [ "$Reboot" == "Y" ]; then
 
-    LogBanner "Rebooting in 10 seconds"
-    for i in 10 9 8 7 6 5 4 3 2 1
-    do
-      echo Rebooting $i
-      sleep 1
-    done
-    echo "Reboot . . ."
-    cd /home/pi
-    mv .bashrc .bashrc.real
-    cat > .bashrc << EOF
+  LogBanner "Rebooting in 10 seconds"
+  for i in 10 9 8 7 6 5 4 3 2 1; do
+    echo Rebooting $i
+    sleep 1
+  done
+  echo "Reboot . . ."
+  cd /home/pi
+  mv .bashrc .bashrc.real
+  cat >.bashrc <<EOF
 cd /home/pi
 source .bashrc.real
 cp .bashrc .bashrc.sav
@@ -254,7 +240,7 @@ sleep 15 # delay to allow X system to startup for next command (is this long eno
 #DISPLAY=:0.0 x-terminal-emulator -t "Console Install" --geometry=40x17 -e sudo bash /home/pi/doinstall.sh 2>> /home/pi/di.log
 sudo bash /home/pi/doinstall.sh 2>> /home/pi/di.log
 EOF
-    cat > doinstall.sh << EOF
+  cat >doinstall.sh <<EOF
 echo Autorunning console install in 10 second - ctl-c to stop
 for i in 10 9 8 7 6 5 4 3 2 1
     do
@@ -264,6 +250,6 @@ for i in 10 9 8 7 6 5 4 3 2 1
 sudo bash -c "echo 1 > /proc/sys/vm/drop_caches"  # trying to avoid the kswap issue
 sudo bash ./installconsole.sh $Personal $AutoConsole $InstallBeta
 EOF
-    reboot now
+  reboot now
 fi
 LogBanner "Chose to manually reboot and run installconsole.sh"
