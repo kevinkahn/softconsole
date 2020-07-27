@@ -46,7 +46,7 @@ wget https://raw.githubusercontent.com/adafruit/Raspberry-Pi-Installer-Scripts/m
 chmod +x adafruit-pitft-touch-cal adafruit-pitft.sh
 
 python getinstallinfo.py
-if [ $? -ne 0]; then
+if [ $? -ne 0 ]; then
   echo "Exiting pisetup due to error in getinstallinfo"
   exit 1
 fi
