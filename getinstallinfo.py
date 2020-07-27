@@ -179,11 +179,11 @@ if MinExamp:
 else:
 	print("    Skip minimal example configuration")
 
-print("**************************************************************")
-print("**************************************************************")
-print(" System will now update/upgrade Raspbian")
-print(" THIS MAY TAKE 15-20 MINUTES DEPENDING ON OUTSTANDING UPDATES!")
-print(" After that it will install the softconsole using your input")
-print("**************************************************************")
+print("**************************************************************", flush=True)
+print("**************************************************************", flush=True)
+print(" System will now update/upgrade Raspbian", flush=True)
+print(" THIS MAY TAKE 15-20 MINUTES DEPENDING ON OUTSTANDING UPDATES!", flush=True)
+print(" After that it will install the softconsole using your input", flush=True)
+print("**************************************************************", flush=True)
 print("**************************************************************", flush=True)
 time.sleep(5)
