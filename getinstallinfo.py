@@ -80,11 +80,11 @@ def noscreen(scr):
 	return ('echo User setup screen with type: {}\n'.format(scr),)
 
 
-print("**************************************************************")
-print("**************************************************************")
-print(" Will now collect all necessary configuration information")
-print(" After this the install can run unattended to completion")
-print("**************************************************************")
+print("**************************************************************", flush=True)
+print("**************************************************************", flush=True)
+print(" Will now collect all necessary configuration information", flush=True)
+print(" After this the install can run unattended to completion", flush=True)
+print("**************************************************************", flush=True)
 print("**************************************************************", flush=True)
 time.sleep(3)
 

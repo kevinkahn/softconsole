@@ -26,6 +26,15 @@ LogBanner "Connect WiFI if needed"
 mkdir consoleinstallleftovers
 read -p "Press Enter to continue"
 
+LogBanner "Install Python2/3 Compatibility Support"
+echo "Note - installation switches system default Python to version 3"
+echo "To undo this run 'sudo update-alternatives --config python' to select desired alternative"
+
+LogBanner "Switch default Python to Python3"
+update-alternatives --install /usr/bin/python python /usr/bin/python3 2
+update-alternatives --install /usr/bin/python python /usr/bin/python2 1
+update-alternatives --set python /usr/bin/python3
+
 LogBanner "Set Time Zone"
 dpkg-reconfigure tzdata
 LogBanner "Pi User Password"
@@ -45,15 +54,6 @@ fi
 LogBanner "Upgrade/Update System"
 apt-get update
 DEBIAN_FRONTEND=noninteractive apt-get -y upgrade
-
-LogBanner "Install Python2/3 Compatibility Support"
-echo "Note - installation switches system default Python to version 3"
-echo "To undo this run 'sudo update-alternatives --config python' to select desired alternative"
-
-LogBanner "Switch default Python to Python3"
-update-alternatives --install /usr/bin/python python /usr/bin/python3 2
-update-alternatives --install /usr/bin/python python /usr/bin/python2 1
-update-alternatives --set python /usr/bin/python3
 
 echo "deb http://mirrordirector.raspbian.org/raspbian/ stretch main contrib non-free rpi firmware" >>/etc/apt/sources.list.d/raspi.list
 
