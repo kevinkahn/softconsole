@@ -48,3 +48,11 @@ consoles are running MQTT, they will broadcast their weather fetches to caches i
 data rather than doing its own fetch.  Thus, e.g., if the consoles are all set to update weather for a location once per hour, only one of them will actually do a
 fetch from the service while the others will see that data appear in their caches without an explicit fetch.  This helps limit the use of the service calls which for
 free accounts are limited to effectively 250 current/forecast calls per day.  As part of this update, error messages around weather fetch errors have been cleaned up.
+
+V3.6.3
+New Stats Tracking
+Bug fix blinking key on a clocked screen
+Fix bug with a bad weather fetch poluting the weather info cache
+Compat: Buster new name for touch controller for 7" pi screen
+Compat: Adafruit script change safeguard
+Better install sequencing to get all the interaction done early before system updates which take a long time

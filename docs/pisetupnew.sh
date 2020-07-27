@@ -29,6 +29,23 @@ LogBanner "Connect WiFI if needed"
 mkdir consoleinstallleftovers
 read -p "Press Enter to continue"
 
+LogBanner "Set Time Zone"
+dpkg-reconfigure tzdata
+LogBanner "Pi User Password"
+sudo passwd pi
+
+wget https://raw.githubusercontent.com/kevinkahn/softconsole/master/getinstallinfo.py
+wget https://raw.githubusercontent.com/adafruit/Adafruit-PiTFT-Helper/master/adafruit-pitft-touch-cal
+wget https://raw.githubusercontent.com/adafruit/Raspberry-Pi-Installer-Scripts/master/adafruit-pitft.sh
+chmod +x adafruit-pitft-touch-cal adafruit-pitft.sh
+
+python getinstallinfo.py
+if [ $? -ne 0]
+then
+  echo "Exiting pisetup due to error in getinstallinfo"
+  exit 1
+fi
+
 LogBanner "Upgrade/Update System"
 apt-get update
 DEBIAN_FRONTEND=noninteractive apt-get -y upgrade
@@ -44,22 +61,7 @@ update-alternatives --set python /usr/bin/python3
 
 echo "deb http://mirrordirector.raspbian.org/raspbian/ stretch main contrib non-free rpi firmware" >> /etc/apt/sources.list.d/raspi.list
 
-LogBanner "Set Time Zone"
-dpkg-reconfigure tzdata
-LogBanner "Pi User Password"
-sudo passwd pi
 
-wget https://raw.githubusercontent.com/kevinkahn/softconsole/master/getinstallinfo.py
-wget https://raw.githubusercontent.com/adafruit/Adafruit-PiTFT-Helper/master/adafruit-pitft-touch-cal
-wget https://raw.githubusercontent.com/adafruit/Raspberry-Pi-Installer-Scripts/master/adafruit-pitft.sh
-chmod +x adafruit-pitft-touch-cal adafruit-pitft.sh
-
-python getinstallinfo.py
-if [ $? -ne 0]
-then
-  echo "Exiting pisetup due to error in getting getinstallinfo"
-  exit 1
-fi
 
 source installvals
 

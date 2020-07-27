@@ -1,4 +1,4 @@
-import sys
+import sys, time
 from functools import partial as p
 
 
@@ -79,6 +79,14 @@ def doflip(scr):
 def noscreen(scr):
 	return ('echo User setup screen with type: {}\n'.format(scr),)
 
+
+print("**************************************************************")
+print("**************************************************************")
+print(" Will now collect all necessary configuration information")
+print(" After this the install can run unattended to completion")
+print("**************************************************************")
+print("**************************************************************")
+time.sleep(5)
 
 AddToScript('NodeName', GetVal("What name for this system?"))
 AddToScript('VNCstdPort', GetYN("Install VNC on standard port (Y/N/alt port number)?", Allownum=True))
@@ -170,3 +178,12 @@ if MinExamp:
 	print("    Create minimal example configuration")
 else:
 	print("    Skip minimal example configuration")
+
+print("**************************************************************")
+print("**************************************************************")
+print(" System will now update/upgrade Raspbian")
+print(" THIS MAY TAKE 15-20 MINUTES DEPENDING ON OUTSTANDING UPDATES!")
+print(" After that it will install the softconsole using your input")
+print("**************************************************************")
+print("**************************************************************")
+time.sleep(5)
