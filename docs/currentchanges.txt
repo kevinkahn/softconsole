@@ -50,9 +50,12 @@ fetch from the service while the others will see that data appear in their cache
 free accounts are limited to effectively 250 current/forecast calls per day.  As part of this update, error messages around weather fetch errors have been cleaned up.
 
 V3.6.3
-New Stats Tracking
-Bug fix blinking key on a clocked screen
-Fix bug with a bad weather fetch poluting the weather info cache
-Compat: Buster new name for touch controller for 7" pi screen
-Compat: Adafruit script change safeguard
-Better install sequencing to get all the interaction done early before system updates which take a long time
+This release fixes some installation issues caused by changes in the underlying OS release support for the Raspberry Pi 7" screen and
+the Adafruit installation scripts for the PiTFT 3.5" and 2.8" screens.  The fixes are also a bit more resilient against future changes that
+might occur to such scripts.  While ultimately it is impossible to guarantee compatibilty with any future changes, at least the errors raised
+may more directly point to the problem so that it can be quickly resolved.  The installation process also now gets all the user
+interaction done before anything else so that the long running part of the scripts that update the OS can be done unattended.
+
+The release also fixes a bug with blinking keys on clocked screens where the blinking didn't show up and a bug where a bad weather fetch from
+Weatherbit could pollute the weather info cache for a fairly long period of time.  Some of the periodic statistics reporting in the log file
+has also been revised.

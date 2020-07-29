@@ -1,6 +1,29 @@
 #!/bin/bash
 #
 # Meant to be put on boot file system when SD card is created then run as root
+function Get_yn() {
+  # params: var, prompt
+  read -p "$2 " resp
+  case $resp in
+  "Y" | "y")
+    resp="Y"
+    ;;
+  "N" | "n")
+    resp="N"
+    ;;
+  *) ;;
+
+  esac
+  eval $1="'$resp'"
+}
+function Get_val() {
+  # params: var, prompt
+  read -p "$2 " resp
+  eval $1="'$resp'"
+}
+function InList() {
+  [[ $1 =~ (^|[[:space:]])$2($|[[:space:]]) ]] && return 1 || return 0
+}
 
 function LogBanner() {
   echo
@@ -26,6 +49,10 @@ LogBanner "Connect WiFI if needed"
 mkdir consoleinstallleftovers
 read -p "Press Enter to continue"
 
+LogBanner "Upgrade/Update System"
+apt-get update
+DEBIAN_FRONTEND=noninteractive apt-get -y upgrade
+
 LogBanner "Install Python2/3 Compatibility Support"
 echo "Note - installation switches system default Python to version 3"
 echo "To undo this run 'sudo update-alternatives --config python' to select desired alternative"
@@ -35,39 +62,52 @@ update-alternatives --install /usr/bin/python python /usr/bin/python3 2
 update-alternatives --install /usr/bin/python python /usr/bin/python2 1
 update-alternatives --set python /usr/bin/python3
 
+echo "deb http://mirrordirector.raspbian.org/raspbian/ stretch main contrib non-free rpi firmware" >>/etc/apt/sources.list.d/raspi.list
+
 LogBanner "Set Time Zone"
 dpkg-reconfigure tzdata
 LogBanner "Pi User Password"
 sudo passwd pi
 
-wget https://raw.githubusercontent.com/kevinkahn/softconsole/master/getinstallinfo.py
-wget https://raw.githubusercontent.com/adafruit/Adafruit-PiTFT-Helper/master/adafruit-pitft-touch-cal
-wget https://raw.githubusercontent.com/adafruit/Raspberry-Pi-Installer-Scripts/master/adafruit-pitft.sh
-chmod +x adafruit-pitft-touch-cal adafruit-pitft.sh
+Get_val NodeName "What name for this system?"
+Get_yn VNCstdPort "Install VNC on standard port (Y/N/alt port number)?"
+Get_yn Personal "Is this the developer personal system (Y/N) (bit risky to say Y if it not)?"
+Get_yn InstallBeta "Download current beta as well as stable? (usually waste of time)"
+Get_yn AutoConsole "Autostart console (Y/N)?"
 
-python getinstallinfo.py
-if [ $? -ne 0 ]; then
-  echo "Exiting pisetup due to error in getinstallinfo"
-  exit 1
+Get_yn InstallScreen "Do you want to install a known screen (Alternative is to install any screen drivers yourself)?"
+if [ "$InstallScreen" == "Y" ]; then
+  Screens="28r 28c 35r pi7"
+  ScreenType="--"
+
+  until [ $ScreenType != "--" ]; do
+    Get_val ScreenType "What type screen($Screens)?"
+    InList "$Screens" "$ScreenType"
+    if [ $? -ne 1 ]; then
+      echo Not a valid screen type
+      ScreenType="--"
+    fi
+  done
+  if [ $ScreenType == 'pi7' ]; then
+    Get_yn Flip7 "Flip 7 inch screen so power at top? (Y/N)"
+  fi
+else
+  Get_val ScreenType "What is your screen type?"
 fi
 
-LogBanner "Upgrade/Update System"
-apt-get update
-DEBIAN_FRONTEND=noninteractive apt-get -y upgrade
-
-echo "deb http://mirrordirector.raspbian.org/raspbian/ stretch main contrib non-free rpi firmware" >>/etc/apt/sources.list.d/raspi.list
-
-source installvals
+Get_yn Reboot "Automatically reboot to continue install after system setup?"
 
 if [ "$Personal" == "Y" ]; then
   echo Get homerelease versions of setup scripts
   wget https://raw.githubusercontent.com/kevinkahn/softconsole/homerelease/docs/installconsole.sh
+  wget https://raw.githubusercontent.com/kevinkahn/softconsole/homerelease/getsetupinfo.py
   wget https://raw.githubusercontent.com/kevinkahn/softconsole/homerelease/scripts/vncserverpi.service
   wget https://raw.githubusercontent.com/kevinkahn/softconsole/homerelease/scripts/lxterminal.conf
 else
   # NOTE to test with current master version from github replace "currentrelease" with 'master'
   echo Get currentrelease version of setup scripts
   wget https://raw.githubusercontent.com/kevinkahn/softconsole/currentrelease/docs/installconsole.sh
+  wget https://raw.githubusercontent.com/kevinkahn/softconsole/currentrelease/getsetupinfo.py
   wget https://raw.githubusercontent.com/kevinkahn/softconsole/currentrelease/scripts/vncserverpi.service
   wget https://raw.githubusercontent.com/kevinkahn/softconsole/currentrelease/scripts/lxterminal.conf
 # fix issue in adafruit install script as of 3/31/2018
@@ -75,16 +115,24 @@ fi
 if [ "$InstallBeta" == "Y" ]; then
   echo use beta install scripts
   mv installconsole.sh consoleinstallleftovers/stable-installconsole.sh
-  mv screeninstall.py consoleinstallleftovers/stable-screeninstall.py
+  mv getsetupinfo.py consoleinstallleftovers/stable-getsetupinfo.py
   mv vncserverpi.service consoleinstallleftovers/stable-vncserverpi.service
   mv lxterminal.conf consoleinstallleftovers/stable-lxterminal.conf
   wget https://raw.githubusercontent.com/kevinkahn/softconsole/currentbeta/docs/installconsole.sh
+  wget https://raw.githubusercontent.com/kevinkahn/softconsole/currentbeta/getsetupinfo.py
   wget https://raw.githubusercontent.com/kevinkahn/softconsole/currentbeta/scripts/vncserverpi.service
   wget https://raw.githubusercontent.com/kevinkahn/softconsole/currentbeta/scripts/lxterminal.conf
 fi
 
 chmod +x installconsole.sh
 chown pi:pi lxterminal.conf
+
+python getsetupinfo.py
+
+Get_yn Go "Proceed?"
+if [ "$Go" != "Y" ]; then
+  exit 1
+fi
 
 LogBanner "Force WiFi to US"
 COUNTRY=US
@@ -160,57 +208,83 @@ cp /etc/rc.local /etc/rc.local.hold # helper script below screws up rc.local
 
 cd /home/pi
 
+wget https://raw.githubusercontent.com/adafruit/Adafruit-PiTFT-Helper/master/adafruit-pitft-touch-cal
+wget https://raw.githubusercontent.com/adafruit/Raspberry-Pi-Installer-Scripts/master/adafruit-pitft.sh
+
 if [[ $(cat /etc/issue) == *"Linux 10"* ]]; then
-  #    LogBanner "Adjust adafruit scritp for Buster (now fixed in Adafruit as of 7/2019)"
-  #    sed -isav 's/evtest tslib libts\-bin/evtest tslib/' adafruit-pitft.sh
-  #    sed  -isav '/evtest tslib/a  apt-get install -y libts-bin' adafruit-pitft.sh
+  LogBanner "Adjust adafruit scritp for Buster (now fixed in Adafruit as of 7/2019)"
+  sed -isav 's/evtest tslib libts\-bin/evtest tslib/' adafruit-pitft.sh
+  sed -isav '/evtest tslib/a  apt-get install -y libts-bin' adafruit-pitft.sh
   echo "$ScreenType"B >.Screentype
 else
   sed -isav s/fb0/fb1/ /usr/share/X11/xorg.conf.d/99-fbturbo.conf
   echo $ScreenType >.Screentype
 fi
 
-LogBanner "Run screen specific install code"
-source installscreencode
-LogBanner "Completed screen specific install code"
+chmod +x adafruit-pitft-touch-cal adafruit-pitft.sh
+UseWheezy='N'
 
-#case $ScreenType in
-#  28r|28c|35r)
-#   ./adafruit-pitft.sh < adafinput
-#    raspi-config nonint do_boot_behaviour B4 # set boot to desktop already logged in
-#  ;;
-#  pi7)
-#    LogBanner "7 Inch Pi Screen"
-#    if [ $Flip7 == 'Y' ]
-#    then
-#        echo "lcd_rotate=2" >> /boot/config.txt
-#    fi
-#    ;;
-#  wave35)
-#    LogBanner "Install Waveshare screen"
-#    echo "Following link as of 8//30/18"
-#    wget https://www.waveshare.com/w/upload/3/34/LCD-show-180331.tar.gz
-#    tar xvf LCD-show-*.tar.gz
-#    cd LCD-show 90
-#    chmod +x LCD35-show
-#    sed -i 's/sudo reboot/echo skip sudo reboot/' "LCD35-show"
-#    ./LCD35-show 90
-#    cd ..
-#
-#    echo "Update pointercal"
-#    cat > /etc/pointercal <<EOF
-#5729 138 -1857350 78 8574 -2707152 65536
-#EOF
+case $ScreenType in
+28r | 28c | 35r)
+  case $ScreenType in
+  28r)
+    LogBanner "Run PiTFT Helper 28r"
+    echo 1 >tmp
+    echo 4 >>tmp # rotation
+    echo Y >>tmp # pi console to pitft
+    echo N >>tmp # don't reboot
+    ;;
+  28c)
+    LogBanner "Run PiTFT Helper 28c"
+    echo 3 >tmp
+    echo 2 >>tmp # rotation
+    echo Y >>tmp # pi console to pitft
+    echo N >>tmp # don't reboot
+    ;;
+  35r)
+    LogBanner "Run PiTFT Helper 35r"
+    echo 4 >tmp
+    echo 4 >>tmp # rotation
+    echo Y >>tmp # pi console to pitft
+    echo N >>tmp # don't reboot
+    ;;
+  esac
 
-# 5672 -28 -1130318 -203 8466 -1835732 65536
+  ./adafruit-pitft.sh <tmp
+  raspi-config nonint do_boot_behaviour B4 # set boot to desktop already logged in
+  #sed -isav s/fb0/fb1/ /usr/share/X11/xorg.conf.d/99-fbturbo.conf
+  ;;
+pi7)
+  LogBanner "7 Inch Pi Screen"
+  if [ $Flip7 == 'Y' ]; then
+    echo "lcd_rotate=2" >>/boot/config.txt
+  fi
+  ;;
+wave35)
+  LogBanner "Install Waveshare screen"
+  echo "Following link as of 8//30/18"
+  wget https://www.waveshare.com/w/upload/3/34/LCD-show-180331.tar.gz
+  tar xvf LCD-show-*.tar.gz
+  cd LCD-show 90
+  chmod +x LCD35-show
+  sed -i 's/sudo reboot/echo skip sudo reboot/' "LCD35-show"
+  ./LCD35-show 90
+  cd ..
 
-#    echo "Finished waveshare install"
-#    ;;
-#  *)
-#    LogBanner "User installed screen"
-#    echo Screen type: $ScreenType
-#    ;;
-#esac
+  echo "Update pointercal"
+  cat >/etc/pointercal <<EOF
+5729 138 -1857350 78 8574 -2707152 65536
+EOF
+
+  # 5672 -28 -1130318 -203 8466 -1835732 65536
+
+  echo "Finished waveshare install"
+  ;;
+*)
+  LogBanner "User installed screen"
+  echo Screen type: $ScreenType
+  ;;
+esac
 
 mv --backup=numbered /etc/rc.local.hold /etc/rc.local
 chmod +x /etc/rc.local

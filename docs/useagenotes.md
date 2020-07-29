@@ -24,6 +24,8 @@
           }
           ```
              Also, if it finds an ssh file (content of no importance) it will enable ssh access.  So I find it easiest when I finish burning the OS image on the SD card, to then copy my wpa file and an empty ssh file to the boot partition (it will be available on your PC).  Then when you first boot the Pi you will be able to immediately log into it over the network via ssh and run the pisetup script with no need to ever use an HDMI cable.  In the same spirit as this, my script looks for a directory called "auth" and copies its contents to ~pi/Console/local so you can create your password stuff once and put it in a file that gets included in your config file.
+             
+        * Note 3: The installation scripts have to make some assumptions about the way the underlying OS sets things up and about how the Adafruit PiTFT scripts handle install of those screens.  While the installation scripts attempt to be resilent against changes in these dependencies, it is always possible (and has occurred multiple times) that a dependency will change in an unexpected manner.  The scripts at least attempt to report the problem if this happens.  Please report any such issue to me and I'll try to resolve the changes promptly.
 
         This script will ask questions needed to configure the console hardware and software:
         * A node name: allows the node to be addressed by name on the network versus only by it's IP address.  Set this and make sure it is unique on your network.  You should be able to address the node later as <nodename>.local.
