@@ -601,7 +601,8 @@ class HA(object):
 			self.ws.run_forever(ping_timeout=999)
 		except self.HAClose:
 			logsupport.Logs.Log(self.name + " Event thread got close")
-		logsupport.Logs.Log(self.name + " Event Thread " + str(self.HAnum) + " exiting", severity=ConsoleWarning,
+		sev = ConsoleWarning if config.sysStore.ErrLogReconnects else logsupport.ConsoleInfo
+		logsupport.Logs.Log(self.name + " Event Thread " + str(self.HAnum) + " exiting", severity=sev,
 							tb=False)
 		if self.haconnectstate not in ("Failed", "Closed"): self.haconnectstate = "Exited"
 
@@ -766,5 +767,6 @@ class HA(object):
 
 		threadmanager.SetUpHelperThread(self.name, self.HAevents, prerestart=self.PreRestartHAEvents,
 										poststart=self.PostStartHAEvents, postrestart=self.PostStartHAEvents,
-										prestart=self.PreRestartHAEvents, checkok=self.HACheckThread)
+										prestart=self.PreRestartHAEvents, checkok=self.HACheckThread,
+										rpterr=config.sysStore.ErrLogReconnects)
 		logsupport.Logs.Log("{}: Finished creating structure for hub".format(self.name))

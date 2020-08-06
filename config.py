@@ -39,7 +39,8 @@ sysvals = {
 	'ErrorNotice': (int, -1, None, False),
 	'NetErrorIndicator': (bool, False, None, False),
 	'LogStartTime': (int, 0, None, False),
-	'FirstUnseenErrorTime': (int, 0, None, False)
+	'FirstUnseenErrorTime': (int, 0, None, False),
+	'ErrLogReconnects': (bool, True, None, True)
 }
 
 # Non user sysfile entries

@@ -3,6 +3,7 @@ include = /home/pi/Console/local/auth.cfg, pdxalerts.cfg, timetempPR.cfg, timete
 HomeScreenName = LR1
 DimLevel = 50
 DimTO = 25
+ErrLogReconnects = False
 DimIdleListNames = MyClock, TimeTemp, Pumpkin, LQTT
 DimIdleListTimes =	20, 20, 20, 20
 

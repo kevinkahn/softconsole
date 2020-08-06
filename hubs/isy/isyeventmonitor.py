@@ -164,9 +164,10 @@ class ISYEventMonitor(object):
 		def on_error(qws, error):
 			self.isy.HBWS.Entry(repr(error))
 			self.lasterror = "ISYUnknown"
+			sev = ConsoleWarning if config.sysStore.ErrLogReconnects else logsupport.ConsoleInfo
 			if isinstance(error, websocket.WebSocketConnectionClosedException):
 				logsupport.Logs.Log(self.hubname + " WS connection closed - attempt to recontact ISY",
-									severity=ConsoleWarning)
+									severity=sev)
 				self.lasterror = 'ISYClose'
 			elif isinstance(error, websocket.WebSocketTimeoutException):
 				logsupport.Logs.Log(self.hubname + " WS connection timed out", severity=ConsoleWarning)
@@ -195,8 +196,9 @@ class ISYEventMonitor(object):
 		# noinspection PyUnusedLocal
 		def on_close(qws, code, reason):
 			self.isy.HBWS.Entry("Close")
+			sev = ConsoleWarning if config.sysStore.ErrLogReconnects else logsupport.ConsoleInfo
 			logsupport.Logs.Log("{} WS stream {} closed: {}:{}".format(self.hubname, self.QHnum, code, reason),
-								severity=ConsoleWarning, hb=True)
+								severity=sev, hb=True)
 			debug.debugPrint('DaemonCtl', "ISY Websocket stream closed", str(code), str(reason))
 
 		def on_open(qws):
@@ -479,5 +481,6 @@ class ISYEventMonitor(object):
 		ws.run_forever(ping_timeout=999, sslopt={"cert_reqs": ssl.CERT_NONE})
 		self.THstate = 'failed'
 		self.isy._HubOnline = False
-		logsupport.Logs.Log(self.hubname + " QH Thread " + str(self.QHnum) + " exiting", severity=ConsoleWarning,
+		sev = ConsoleWarning if config.sysStore.ErrLogReconnects else logsupport.ConsoleInfo
+		logsupport.Logs.Log(self.hubname + " QH Thread " + str(self.QHnum) + " exiting", severity=sev,
 							tb=False)

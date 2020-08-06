@@ -14,7 +14,7 @@ class ThreadStartException(Exception):
 
 
 class ThreadItem(object):
-	def __init__(self, name, proc, prestart, poststart, prerestart, postrestart, checkok):
+	def __init__(self, name, proc, prestart, poststart, prerestart, postrestart, checkok, rpterr=True):
 		self.name = name
 		self.seq = 0
 		self.Proc = proc  # base procedure of thread
@@ -24,14 +24,16 @@ class ThreadItem(object):
 		self.PostRestartThread = postrestart
 		self.Thread = None
 		self.CheckOk = checkok
+		self.ReportError = rpterr
 
 
 #	def StopThread(self):
 #		self.Thread.stop()
 
-def SetUpHelperThread(name, proc, prestart=None, poststart=None, prerestart=None, postrestart=None, checkok=None):
+def SetUpHelperThread(name, proc, prestart=None, poststart=None, prerestart=None, postrestart=None, checkok=None,
+					  rpterr=True):
 	global HelperThreads
-	HelperThreads[name] = ThreadItem(name, proc, prestart, poststart, prerestart, postrestart, checkok)
+	HelperThreads[name] = ThreadItem(name, proc, prestart, poststart, prerestart, postrestart, checkok, rpterr)
 
 
 def DoRestart(T):
@@ -53,7 +55,8 @@ def CheckThreads():
 	try:
 		for T in HelperThreads.values():
 			if not T.Thread.is_alive():  # or T.ServiceNotOK this would be an optional procedure to do semantic checking a la heartbeat
-				logsupport.Logs.Log("Thread for: " + T.name + " is dead", severity=ConsoleWarning)
+				sev = ConsoleWarning if T.ReportError else logsupport.ConsoleInfo
+				logsupport.Logs.Log("Thread for: " + T.name + " is dead", severity=sev)
 				if not DoRestart(T):
 					# Fatal Error
 					FatalError("Unrecoverable helper thread error(is_alive): " + T.name)

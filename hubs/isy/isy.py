@@ -7,7 +7,7 @@ import time
 import xmltodict
 
 import debug
-import exitutils
+import config
 import historybuffer
 import hw
 import hubs.isy.isycodes as isycodes
@@ -535,7 +535,8 @@ class ISY(object):
 		self.isyEM = isyeventmonitor.ISYEventMonitor(self)
 		threadmanager.SetUpHelperThread(self.name, self.isyEM.QHandler, prerestart=self.isyEM.PreRestartQHThread,
 										poststart=self.isyEM.PostStartQHThread,
-										postrestart=self.isyEM.PostStartQHThread)
+										postrestart=self.isyEM.PostStartQHThread,
+										rpterr=config.sysStore.ErrLogReconnects)
 		logsupport.Logs.Log("{}: Finished creating structure for hub".format(name))
 
 	# noinspection PyUnusedLocal
