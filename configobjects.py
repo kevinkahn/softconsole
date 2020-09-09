@@ -35,11 +35,13 @@ class MyScreens(object):
 					try:
 						NewScreen = screens.screentypes[tempscreentype](thisScreen, screenitem, Clocked=clockedscreen)
 						logsupport.Logs.Log(tempscreentype + " screen " + screenitem, severity=ConsoleDetail)
-					except ValueError:
+					except Exception as E:
 						NewScreen = None
-						logsupport.Logs.Log(tempscreentype + " screen not created due to error " + screenitem,
-											severity=ConsoleWarning)
+						logsupport.Logs.Log(
+							'{} screen {} not created due to error ({})'.format(tempscreentype, screenitem, E),
+							severity=ConsoleWarning)
 						del thisconfig[screenitem]
+
 				else:
 					logsupport.Logs.Log("Screentype error " + screenitem + " type " + tempscreentype,
 										severity=ConsoleWarning)

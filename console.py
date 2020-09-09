@@ -154,9 +154,9 @@ def CO_get(self, key, default, delkey=True):
 		if key in self and delkey:
 			del self[key]
 		return rtn
-	except Exception as E:
+	except Exception as Eco:
 		logsupport.Logs.Log(
-			'Internal exception in handling config param get: key {} default {} exc: {}'.format(key, default, E),
+			'Internal exception in handling config param get: key {} default {} exc: {}'.format(key, default, Eco),
 			severity=ConsoleError)
 
 Section.get = CO_get
@@ -543,9 +543,6 @@ try:
 except Exception as E:
 	logsupport.Logs.Log('Fatal Error while starting: {}'.format(E), severity=ConsoleError, hb=True, tb=True)
 	timers.ShutTimers('Initialization failure')
-	# hw.GoBright(100)
-	# pygame.quit()
-	# sys.exit(exitutils.EARLYABORT)
 	exitutils.EarlyAbort('Configuration Error')
 
 	"""
