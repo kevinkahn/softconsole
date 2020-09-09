@@ -28,6 +28,7 @@ class Thermostat(HAnode):  # not stateful since has much state info
 			self.fan = self.attributes['fan_mode']
 			self.fanstates = self.attributes['fan_modes']
 			self.modelist = self.attributes['hvac_modes']
+			self.internalstate = self._NormalizeState(self.state)
 		except:
 			# if attributes are missing then don't do updates later - probably a pool
 			logsupport.Logs.Log('{}: Climate device {} missing attributes - probably a pool/spa'.format(self.Hub.name, self.name))
