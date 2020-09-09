@@ -290,8 +290,9 @@ class HA(object):
 
 	def HACheckThread(self):
 		if self.haconnectstate != "Running":
-			logsupport.Logs.Log("{} failed thread check; state: {}".format(self.name, self.haconnectstate),
-								severity=ConsoleWarning)
+			logsupport.Logs.Log(
+				"{}({}) failed thread check; state: {}".format(self.name, self.HAnum, self.haconnectstate),
+				severity=ConsoleWarning)
 			return False
 		return True
 
@@ -560,8 +561,6 @@ class HA(object):
 				self.name + " WS stream " + str(self.HAnum) + " closed: " + str(code) + ' : ' + str(reason),
 				severity=ConsoleWarning, tb=False, hb=True)
 			if self.haconnectstate != "Failed": self.haconnectstate = "Closed"
-
-		# raise self.HAClose todo - should this do a raise to signal out to thread?
 
 		# noinspection PyUnusedLocal
 		def on_open(qws):
