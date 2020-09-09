@@ -206,11 +206,14 @@ class SonosScreenDesc(screen.BaseKeyScreenDesc):
 			if self.Active: self.ShowScreen()  # handle any race with another screen just having come up
 
 	def VolChange(self, slotnum, chg):
+		# print(slotnum, chg)
 		if slotnum >= len(self.nms): return
 		rm = self.nms[slotnum]
 		if chg == 0:
+			# print('Mute {} {}'.format(slotnum,rm.entity_id))
 			rm.Mute(rm.entity_id, not rm.muted)
 		else:
+			# print('Volchg {} {} {}'.format(slotnum,chg,rm.entity_id))
 			rm.VolumeUpDown(rm.entity_id, chg)
 
 	def GpCtlOK(self):
@@ -362,13 +365,11 @@ class SonosScreenDesc(screen.BaseKeyScreenDesc):
 			hw.screen.blit(volrndr, (volx, self.ButLocSize[i]['Dn'][0][1] - h // 2))
 			hw.screen.blit(rn[0], (20, self.GPCtlVPos[i]))
 			pygame.draw.polygon(hw.screen, wc(self.CharColor),
-								supportscreens._TriangleCorners(self.ButLocSize[i]['Dn'][0],
-																self.ButLocSize[i]['Dn'][1][0],
-																True), 2)
+								supportscreens.TriangleCorners(self.ButLocSize[i]['Dn'][0],
+															   self.ButLocSize[i]['Dn'][1][0], True), 2)
 			pygame.draw.polygon(hw.screen, wc(self.CharColor),
-								supportscreens._TriangleCorners(self.ButLocSize[i]['Up'][0],
-																self.ButLocSize[i]['Up'][1][0],
-																False), 2)
+								supportscreens.TriangleCorners(self.ButLocSize[i]['Up'][0],
+															   self.ButLocSize[i]['Up'][1][0], False), 2)
 			spkr, diagbar = self._Speaker(self.ButLocSize[i]['Mute'][0], self.ButLocSize[i]['Mute'][1][0])
 			pygame.draw.polygon(hw.screen, wc(self.CharColor), spkr, 2)
 			if self.nms[-1].muted:
@@ -404,11 +405,9 @@ class SonosScreenDesc(screen.BaseKeyScreenDesc):
 			voff = self.SrcSlotsVPos[slot] + (self.sourceheight - h) // 2
 			hw.screen.blit(rs, (self.HorizBorder, voff))
 		pygame.draw.polygon(hw.screen, wc(self.CharColor),
-							supportscreens._TriangleCorners(self.SrcPrev, self.sourceheight,
-															False), 3)
+							supportscreens.TriangleCorners(self.SrcPrev, self.sourceheight, False), 3)
 		pygame.draw.polygon(hw.screen, wc(self.CharColor),
-							supportscreens._TriangleCorners(self.SrcNext, self.sourceheight,
-															True), 3)
+							supportscreens.TriangleCorners(self.SrcNext, self.sourceheight, True), 3)
 
 	def ShowScreen(self):
 		_ = self.UpdateGroups()

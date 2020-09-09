@@ -16,7 +16,6 @@ from logsupport import ConsoleDetail
 import toucharea
 from utilfuncs import wc
 import timers
-import config
 
 class VerifyScreen(screen.BaseKeyScreenDesc):
 
@@ -182,7 +181,7 @@ class ValueChangeScreen(screen.ScreenDesc):  # todo may need to call super class
 		pass
 
 
-def _TriangleCorners(c, hgt, invert):
+def TriangleCorners(c, hgt, invert):
 	h = .8 * hgt
 	top = c[1] - h // 2
 	bot = c[1] + h // 2
@@ -307,14 +306,15 @@ class ListChooserSubScreen(screen.ScreenDesc):
 			hw.screen.blit(rs, (self.HorizBorder, voff))
 		upcolor = wc(self.CharColor) if self.firstitem != 0 else self.DullKeyColor
 		dncolor = wc(self.CharColor) if self.firstitem + self.NumSlots < len(self.itemlist) else self.DullKeyColor
-		pygame.draw.polygon(hw.screen, upcolor, _TriangleCorners(self.SrcPrev, self.sourceheight, False), 3)
-		pygame.draw.polygon(hw.screen, dncolor, _TriangleCorners(self.SrcNext, self.sourceheight, True), 3)
+		pygame.draw.polygon(hw.screen, upcolor, TriangleCorners(self.SrcPrev, self.sourceheight, False), 3)
+		pygame.draw.polygon(hw.screen, dncolor, TriangleCorners(self.SrcNext, self.sourceheight, True), 3)
 		pygame.display.update()  # todo delete once specific screen is used
 
 
 class PagedDisplay(screen.BaseKeyScreenDesc):
 	def __init__(self, nm, StartPosChooser, LineRenderer, GetPageHeader, fontsize, color, Clocked=0):
 		super().__init__(None, nm, Clocked=Clocked)
+		self.BackgroundColor = 'maroon'
 		self.StartChooser = StartPosChooser
 		self.LineRenderer = LineRenderer
 		self.GetPageHeader = GetPageHeader
