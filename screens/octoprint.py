@@ -110,6 +110,12 @@ class OctoPrintScreenDesc(screen.BaseKeyScreenDesc):
 														center=(3 * hw.screenwidth // 4, ctlpos * 5),
 														size=(hw.screenwidth // 3, ctlhgt), KOn='', KOff='',
 														proc=self.PreDoPause, Verify=True)
+		self.JobKeysPaused = self.JobKeys.copy()
+		self.JobKeysPaused['Pause'] = toucharea.ManualKeyDesc(self, 'Resume', ['Resume'], self.KeyColor,
+															  self.CharColor, self.CharColor,
+															  center=(3 * hw.screenwidth // 4, ctlpos * 5),
+															  size=(hw.screenwidth // 3, ctlhgt), KOn='', KOff='',
+															  proc=self.DoResume, Verify=False)
 		self.VerifyScreenCancel = supportscreens.VerifyScreen(self.JobKeys['Cancel'], ('Cancel', 'Job'), ('Back',),
 															  self.DoCancel, None,
 															  screen, self.KeyColor, self.CharColor, self.CharColor,
@@ -198,6 +204,7 @@ class OctoPrintScreenDesc(screen.BaseKeyScreenDesc):
 		if not self.paused:
 			self.VerifyScreenPause.Invoke()
 		else:
+			logsupport.Logs.Log('Octoprint Pause while paused', severity=ConsoleWarning)
 			self.DoResume()
 
 	def NoVerify(self):
@@ -208,14 +215,13 @@ class OctoPrintScreenDesc(screen.BaseKeyScreenDesc):
 		screens.DS.SwitchScreen(self, 'Bright', 'Verify Run ' + self.name)
 
 	def DoPause(self):  # todo add indication that it is paused
-		self.OctoPost('job', senddata={'command': 'pause', 'action': 'toggle'})
+		self.OctoPost('job', senddata={'command': 'pause', 'action': 'pause'})
 		self.paused = True
 		screens.DS.SwitchScreen(self, 'Bright', 'Verify Run ' + self.name)
 
 	def DoResume(self):
-		self.OctoPost('job', senddata={'comand': 'resume', 'action': 'toggle'})
+		self.OctoPost('job', senddata={'command': 'pause', 'action': 'resume'})
 		self.paused = False
-		screens.DS.SwitchScreen(self, 'Bright', 'Verify Run ' + self.name)
 
 	def ReInitDisplay(self):  # todo fix for specific repaint
 		super(OctoPrintScreenDesc, self).ReInitDisplay()
@@ -261,7 +267,15 @@ class OctoPrintScreenDesc(screen.BaseKeyScreenDesc):
 			self.OPtimeleft = ' - Left' if tl is None else '{0:.0f} min'.format(tl / 60)
 
 			if self.OPstate in ['Printing', 'Paused', 'Operational']:
-				self.Keys = self.JobKeys if self.OPstate != 'Operational' else self.PowerPlusKeys
+				if self.OPstate == 'Printing':
+					self.paused = False
+					self.Keys = self.JobKeys
+				elif self.OPstate == 'Operational':
+					self.paused = False
+					self.Keys = self.PowerPlusKeys
+				else:
+					paused = True
+					self.Keys = self.JobKeysPaused
 				r = self.OctoGet('printer').json()
 				temp1 = r['temperature'][self.extruder]
 				# noinspection PyBroadException
@@ -278,6 +292,9 @@ class OctoPrintScreenDesc(screen.BaseKeyScreenDesc):
 
 			elif self.OPstate in ['Closed', 'Offline']:
 				self.Keys = self.PowerKeys
+
+			elif self.OPstate in ['Pausing']:
+				self.Keys = None
 
 			else:
 				self.Keys = self.PowerKeys  # todo Error state case - should actually be some sort of reset
