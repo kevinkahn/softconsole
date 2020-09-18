@@ -55,7 +55,9 @@ class OctoPrintScreenDesc(screen.BaseKeyScreenDesc):
 			self.pwrHub = None
 			self.devname = ''
 
-		self.errornotice, th, self.errwid = screenutil.CreateTextBlock('Access Error', hw.screenheight / 12, self.CharColor, True) # todo fix for new vertspace
+		self.errornotice, th, self.errwid = screenutil.CreateTextBlock('Access Error', hw.screenheight / 12,
+																	   self.CharColor,
+																	   True)  # todo fix for new vertspace
 		self.titlespace = th + hw.screenheight / 32
 		useablescreenheight = hw.screenheight - self.TopBorder - self.BotBorder - self.titlespace
 		ctlpos = useablescreenheight / 5.5  # todo should lay out screen with real values computed
@@ -63,6 +65,7 @@ class OctoPrintScreenDesc(screen.BaseKeyScreenDesc):
 		self.head = {"X-Api-Key": self.apikey}
 		self.url = 'http://' + self.address + ':' + self.port
 		retp = self.OctoGet('connection')
+		self.paused = False
 		if retp.status_code != 200:
 			logsupport.Logs.Log('Access to OctoPrint denied: ', retp.text, severity=logsupport.ConsoleWarning)
 
@@ -192,7 +195,10 @@ class OctoPrintScreenDesc(screen.BaseKeyScreenDesc):
 		self.VerifyScreenCancel.Invoke()
 
 	def PreDoPause(self):
-		self.VerifyScreenPause.Invoke()
+		if not self.paused:
+			self.VerifyScreenPause.Invoke()
+		else:
+			self.DoResume()
 
 	def NoVerify(self):
 		screens.DS.SwitchScreen(self, 'Bright', 'Verify Run ' + self.name)
@@ -201,15 +207,21 @@ class OctoPrintScreenDesc(screen.BaseKeyScreenDesc):
 		self.OctoPost('job', senddata={'command': 'cancel'})
 		screens.DS.SwitchScreen(self, 'Bright', 'Verify Run ' + self.name)
 
-	def DoPause(self):  # todo resume
+	def DoPause(self):  # todo add indication that it is paused
 		self.OctoPost('job', senddata={'command': 'pause', 'action': 'toggle'})
+		self.paused = True
 		screens.DS.SwitchScreen(self, 'Bright', 'Verify Run ' + self.name)
 
-	def ReInitDisplay(self): # todo fix for specific repaint
+	def DoResume(self):
+		self.OctoPost('job', senddata={'comand': 'resume', 'action': 'toggle'})
+		self.paused = False
+		screens.DS.SwitchScreen(self, 'Bright', 'Verify Run ' + self.name)
+
+	def ReInitDisplay(self):  # todo fix for specific repaint
 		super(OctoPrintScreenDesc, self).ReInitDisplay()
 		self.ShowScreen()
 
-	def InitDisplay(self, nav): # todo fix for specific repaint
+	def InitDisplay(self, nav):  # todo fix for specific repaint
 		super(OctoPrintScreenDesc, self).InitDisplay(nav)
 		if not self.StatusUpdater.is_alive():
 			logsupport.Logs.Log('Octoprint status updater died - restarting', severity=ConsoleWarning)
