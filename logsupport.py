@@ -302,6 +302,7 @@ class Logger(object):
 				DevPrint('Traceback:')
 				for line in traceback.format_stack()[0:-2]:
 					DevPrint(line.strip())
+				DevPrint('End Traceback')
 				frames = traceback.extract_tb(sys.exc_info()[2])
 				for f in frames:
 					fname, lineno, fn, text = f

@@ -497,7 +497,7 @@ class HA(object):
 					debug.debugPrint('HASSgeneral', "Unknown event: " + str(m))
 			except Exception as E:
 				logsupport.Logs.Log("Exception handling HA message: ", repr(E), repr(message), severity=ConsoleWarning,
-									tb=True)
+									tb=True, hb=True)
 			loopend = time.time()
 			self.HB.Entry('Processing time: {} Done: {}'.format(loopend - loopstart, repr(message)))
 			time.sleep(.1)  # force thread to give up processor to allow response to time events
