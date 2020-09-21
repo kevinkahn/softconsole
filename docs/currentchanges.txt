@@ -59,3 +59,11 @@ interaction done before anything else so that the long running part of the scrip
 The release also fixes a bug with blinking keys on clocked screens where the blinking didn't show up and a bug where a bad weather fetch from
 Weatherbit could pollute the weather info cache for a fairly long period of time.  Some of the periodic statistics reporting in the log file
 has also been revised.
+
+V3.6.4
+Minor release for some bug fixes and small improvements:
+  Adds an option to suppress Warning level message on reconnects to handle weak WiFi units (ErrLogReconnects defaults to True)
+  Catches more errors while creating screens to provide better diagnosis and avoid early abort
+  Fixes bug where HA climate wasn't initializing state correctly which meant display was wrong until first climate update happened
+  Fixes bug to handle network status display error gracefully
+  Adds pause/resume to Octoprint screen
