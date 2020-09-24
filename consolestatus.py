@@ -94,26 +94,29 @@ def GenGoNodeCmdScreen():
 
 
 def UpdateNodeStatus(nd, stat):
-	if nd not in Nodes: Nodes[nd] = copy.deepcopy(EmptyNodeRecord)
+	try:
+		if nd not in Nodes: Nodes[nd] = copy.deepcopy(EmptyNodeRecord)
 
-	# handle old style records
-	if not 'registered' in stat and not 'stats' in stat:
-		tempSys = {'stats': {'System': {}}}
-		for nodestat in (
-				'queuetimemax24', 'queuetimemax24time', 'queuedepthmax24', 'maincyclecnt', 'queuedepthmax24time',
-				'queuetimemaxtime', 'queuedepthmax', 'queuetimemax', 'queuedepthmaxtime'):
-			tempSys['stats']['System'][nodestat] = stat[nodestat]
-			del stat[nodestat]
-		update(Nodes[nd], tempSys)
+		# handle old style records
+		if not 'registered' in stat and not 'stats' in stat:
+			tempSys = {'stats': {'System': {}}}
+			for nodestat in (
+					'queuetimemax24', 'queuetimemax24time', 'queuedepthmax24', 'maincyclecnt', 'queuedepthmax24time',
+					'queuetimemaxtime', 'queuedepthmax', 'queuetimemax', 'queuedepthmaxtime'):
+				tempSys['stats']['System'][nodestat] = stat[nodestat]
+				del stat[nodestat]
+			update(Nodes[nd], tempSys)
 
-	update(Nodes[nd], stat)
+		update(Nodes[nd], stat)
 
-	t = False
-	for nd, ndinfo in Nodes.items():
-		if ndinfo['status'] not in ('dead', 'unknown') and nd != hw.hostname and ndinfo['error'] != -1:
-			t = True
-			break
-	config.sysStore.NetErrorIndicator = t
+		t = False
+		for nd, ndinfo in Nodes.items():
+			if ndinfo['status'] not in ('dead', 'unknown') and nd != hw.hostname and ndinfo['error'] != -1:
+				t = True
+				break
+		config.sysStore.NetErrorIndicator = t
+	except Exception as E:
+		logsupport.Logs.Log('UpdtStat {}'.format(E))
 
 
 def GotResp(nd, errs):
