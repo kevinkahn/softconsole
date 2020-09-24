@@ -62,10 +62,6 @@ class MQTTBroker(valuestore.ValueStore):
 				client.subscribe('consoles/+/status')
 				client.subscribe('consoles/+/resp')
 			self.loopexited = False
-			logsupport.Logs.Log('Subscribe Completed')
-
-		#			for i, v in userdata.vars.items():
-		#				client.subscribe(v.Topic)
 
 		# noinspection PyUnusedLocal
 		def on_disconnect(client, userdata, rc):
@@ -178,7 +174,7 @@ class MQTTBroker(valuestore.ValueStore):
 				self.HB.Entry('Processing time: {} Done: {}'.format(loopend - loopstart, repr(msg)))
 				time.sleep(.1)  # force thread to give up processor to allow response to time events
 			except Exception as E:
-				logsupport.Logs.Log('MQTT: {}'.format(E))
+				logsupport.Logs.Log('MQTT Error: {}'.format(repr(E)))
 
 		# self.HB.Entry('Gave up control for: {}'.format(time.time() - loopend))
 
