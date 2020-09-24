@@ -62,114 +62,123 @@ class MQTTBroker(valuestore.ValueStore):
 				client.subscribe('consoles/+/status')
 				client.subscribe('consoles/+/resp')
 			self.loopexited = False
+			logsupport.Logs.Log('Subscribe Completed')
 
 		#			for i, v in userdata.vars.items():
 		#				client.subscribe(v.Topic)
 
 		# noinspection PyUnusedLocal
 		def on_disconnect(client, userdata, rc):
-			self.discon.Op()
+
 			logsupport.Logs.Log("{}: Disconnected stream {} with result code {}".format(self.name, self.MQTTnum, rc))
+			self.discon.Op()
 
 		# noinspection PyUnusedLocal
 
 
 		# noinspection PyUnusedLocal
 		def on_message(client, userdata, msg):
-			self.rcvd.Op()
-			# command to force get: mosquitto_pub -t consoles/all/cmd -m getstable;  mosquitto_pub -t consoles/all/cmd -m restart
-			loopstart = time.time()
-			var = []
-			for t, item in userdata.topicindex.items():
-				if t == msg.topic:
-					var.extend(item)
-			topic = msg.topic
-			if topic in ('consoles/all/cmd', 'consoles/' + hw.hostname + '/cmd'):
-				payld = msg.payload.decode('ascii').split('|')
+			try:
+				self.rcvd.Op()
+				# command to force get: mosquitto_pub -t consoles/all/cmd -m getstable;  mosquitto_pub -t consoles/all/cmd -m restart
+				loopstart = time.time()
+				var = []
+				for t, item in userdata.topicindex.items():
+					if t == msg.topic:
+						var.extend(item)
+				topic = msg.topic
+				if topic in ('consoles/all/cmd', 'consoles/' + hw.hostname + '/cmd'):
+					payld = msg.payload.decode('ascii').split('|')
 
-				cmd = payld[0]
-				fromnd = 'unknown' if len(payld) < 2 else payld[1]
-				seq = 'unknown' if len(payld) < 3 else payld[2]
-				logsupport.Logs.Log(
-					'{}: Remote command received on {} from {}-{}: {}'.format(self.name, msg.topic, fromnd, seq, cmd))
-				issuecommands.IssueCommand(self.name, cmd, seq, fromnd)
-				# if fromnd != 'unknown':
-				#	self.Publish('resp', '{}|ok|{}'.format(cmd, seq), fromnd)
-				return
-			elif topic in ('consoles/all/set', 'consoles/' + hw.hostname + '/set'):
-				d = json.loads(msg.payload.decode('ascii'))
-				try:
-					logsupport.Logs.Log('{}: set {} = {}'.format(self.name, d['name'], d['value']))
-					valuestore.SetVal(d['name'], d['value'])
-				except Exception as E:
-					logsupport.Logs.Log('Bad set via MQTT: {} Exc: {}'.format(repr(d), E), severity=ConsoleWarning)
-				return
-			elif topic.startswith('consoles/all/weather'):
-				provider = topic.split('/')[3]
-				if msg.payload is None:
-					logsupport.Logs.Log('MQTT Entry clear for {}'.format(topic))
-				else:
+					cmd = payld[0]
+					fromnd = 'unknown' if len(payld) < 2 else payld[1]
+					seq = 'unknown' if len(payld) < 3 else payld[2]
+					logsupport.Logs.Log(
+						'{}: Remote command received on {} from {}-{}: {}'.format(self.name, msg.topic, fromnd, seq,
+																				  cmd))
+					issuecommands.IssueCommand(self.name, cmd, seq, fromnd)
+					# if fromnd != 'unknown':
+					#	self.Publish('resp', '{}|ok|{}'.format(cmd, seq), fromnd)
+					return
+				elif topic in ('consoles/all/set', 'consoles/' + hw.hostname + '/set'):
+					d = json.loads(msg.payload.decode('ascii'))
 					try:
-						WeathProvs[provider][0].MQTTWeatherUpdate(msg.payload.decode('ascii'))
+						logsupport.Logs.Log('{}: set {} = {}'.format(self.name, d['name'], d['value']))
+						valuestore.SetVal(d['name'], d['value'])
 					except Exception as E:
-						logsupport.Logs.Log('Unkown weather provider MQTT update for {} {}'.format(provider, E),
-											severity=ConsoleWarning)
-				return
-			else:
-				# see if it is node specific message
-				topic = topic.split('/')
-				msgdcd = json.loads(msg.payload.decode('ascii'))
-				if topic[2] == 'nodes':
-					consolestatus.UpdateNodeStatus(topic[-1], msgdcd)
+						logsupport.Logs.Log('Bad set via MQTT: {} Exc: {}'.format(repr(d), E), severity=ConsoleWarning)
 					return
-				elif topic[2] == 'status':
-					consolestatus.UpdateNodeStatus(topic[1], msgdcd)
-					return
-				elif topic[2] == 'resp':
-					if self.name in screens.DS.AS.HubInterestList:
-						if msgdcd['cmd'] in screens.DS.AS.HubInterestList[self.name]:
-							usevalue = msgdcd['value'] if 'value' in msgdcd else ''
-							respnode = msgdcd['respfrom'] if 'respfrom' in msgdcd else '*oldsys*'
-							try:
-								controlevents.PostEvent(controlevents.ConsoleEvent(controlevents.CEvent.HubNodeChange,
-																				   hub=self.name, stat=msgdcd['status'],
-																				   seq=msgdcd['seq'],
-																				   node=msgdcd['cmd'],
-																				   respfrom=respnode,
-																				   value=usevalue))
-							except Exception as E:
-								logsupport.Logs.Log('Exception posting event from mqtt resp: ({}) Exception {}'.format(
-									(self.name, msgdcd, respnode, userdata), E), severity=ConsoleError)
-					return
-
-			# noinspection PySimplifyBooleanCheck
-			if var == []:
-				logsupport.Logs.Log('Unknown topic ', msg.topic, ' from broker ', self.name, severity=ConsoleWarning)
-			else:
-				for v in var:
-					v.SetTime = time.time()
-					if not v.jsonflds:
-						v.Value = v.Type(msg.payload)
-					# debug.debugPrint('StoreTrack', "Store(mqtt): ", self.name, ':', v, ' Value: ', v.Value)
+				elif topic.startswith('consoles/all/weather'):
+					provider = topic.split('/')[3]
+					if msg.payload is None:
+						logsupport.Logs.Log('MQTT Entry clear for {}'.format(topic))
 					else:
-						payload = '*bad json*' + msg.payload.decode('ascii')  # for exception log below
 						try:
-							payload = json.loads(msg.payload.decode('ascii').replace('nan',
-																					 'null'))  # work around bug in tasmota returning bad json
-							for i in v.jsonflds:
-								payload = payload[i]
-							if payload is not None:
-								v.Value = v.Type(payload)
-							else:
-								v.Value = None
-						# debug.debugPrint('StoreTrack', "Store(mqtt): ", self.name, ':', v, ' Value: ', v.Value)
-						except Exception as e:
-							logsupport.Logs.Log('Error handling json MQTT item: ', v.name, str(v.jsonflds),
-												msg.payload.decode('ascii'), str(e), repr(payload),
+							WeathProvs[provider][0].MQTTWeatherUpdate(msg.payload.decode('ascii'))
+						except Exception as E:
+							logsupport.Logs.Log('Unkown weather provider MQTT update for {} {}'.format(provider, E),
 												severity=ConsoleWarning)
-			loopend = time.time()
-			self.HB.Entry('Processing time: {} Done: {}'.format(loopend - loopstart, repr(msg)))
-			time.sleep(.1)  # force thread to give up processor to allow response to time events
+					return
+				else:
+					# see if it is node specific message
+					topic = topic.split('/')
+					msgdcd = json.loads(msg.payload.decode('ascii'))
+					if topic[2] == 'nodes':
+						consolestatus.UpdateNodeStatus(topic[-1], msgdcd)
+						return
+					elif topic[2] == 'status':
+						consolestatus.UpdateNodeStatus(topic[1], msgdcd)
+						return
+					elif topic[2] == 'resp':
+						if self.name in screens.DS.AS.HubInterestList:
+							if msgdcd['cmd'] in screens.DS.AS.HubInterestList[self.name]:
+								usevalue = msgdcd['value'] if 'value' in msgdcd else ''
+								respnode = msgdcd['respfrom'] if 'respfrom' in msgdcd else '*oldsys*'
+								try:
+									controlevents.PostEvent(
+										controlevents.ConsoleEvent(controlevents.CEvent.HubNodeChange,
+																   hub=self.name, stat=msgdcd['status'],
+																   seq=msgdcd['seq'],
+																   node=msgdcd['cmd'],
+																   respfrom=respnode,
+																   value=usevalue))
+								except Exception as E:
+									logsupport.Logs.Log(
+										'Exception posting event from mqtt resp: ({}) Exception {}'.format(
+											(self.name, msgdcd, respnode, userdata), E), severity=ConsoleError)
+						return
+
+				# noinspection PySimplifyBooleanCheck
+				if var == []:
+					logsupport.Logs.Log('Unknown topic ', msg.topic, ' from broker ', self.name,
+										severity=ConsoleWarning)
+				else:
+					for v in var:
+						v.SetTime = time.time()
+						if not v.jsonflds:
+							v.Value = v.Type(msg.payload)
+						# debug.debugPrint('StoreTrack', "Store(mqtt): ", self.name, ':', v, ' Value: ', v.Value)
+						else:
+							payload = '*bad json*' + msg.payload.decode('ascii')  # for exception log below
+							try:
+								payload = json.loads(msg.payload.decode('ascii').replace('nan',
+																						 'null'))  # work around bug in tasmota returning bad json
+								for i in v.jsonflds:
+									payload = payload[i]
+								if payload is not None:
+									v.Value = v.Type(payload)
+								else:
+									v.Value = None
+							# debug.debugPrint('StoreTrack', "Store(mqtt): ", self.name, ':', v, ' Value: ', v.Value)
+							except Exception as e:
+								logsupport.Logs.Log('Error handling json MQTT item: ', v.name, str(v.jsonflds),
+													msg.payload.decode('ascii'), str(e), repr(payload),
+													severity=ConsoleWarning)
+				loopend = time.time()
+				self.HB.Entry('Processing time: {} Done: {}'.format(loopend - loopstart, repr(msg)))
+				time.sleep(.1)  # force thread to give up processor to allow response to time events
+			except Exception as E:
+				logsupport.Logs.Log('MQTT: {}'.format(E))
 
 		# self.HB.Entry('Gave up control for: {}'.format(time.time() - loopend))
 
