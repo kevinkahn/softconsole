@@ -103,8 +103,9 @@ def UpdateNodeStatus(nd, stat):
 			for nodestat in (
 					'queuetimemax24', 'queuetimemax24time', 'queuedepthmax24', 'maincyclecnt', 'queuedepthmax24time',
 					'queuetimemaxtime', 'queuedepthmax', 'queuetimemax', 'queuedepthmaxtime'):
-				tempSys['stats']['System'][nodestat] = stat[nodestat]
-				del stat[nodestat]
+				if nodestat in stat:
+					tempSys['stats']['System'][nodestat] = stat[nodestat]
+					del stat[nodestat]
 			update(Nodes[nd], tempSys)
 
 		update(Nodes[nd], stat)
@@ -116,7 +117,7 @@ def UpdateNodeStatus(nd, stat):
 				break
 		config.sysStore.NetErrorIndicator = t
 	except Exception as E:
-		logsupport.Logs.Log('UpdtStat {}'.format(E))
+		logsupport.Logs.Log('UpdtStat {}'.format(repr(E)))
 
 
 def GotResp(nd, errs):
