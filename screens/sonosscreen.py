@@ -279,6 +279,8 @@ class SonosScreenDesc(screen.BaseKeyScreenDesc):
 				if p.internalstate != -1:
 					# if node went unavailable skip this to keep lsst state of groups for now
 					self.SonosGroups[n] = p.attributes['sonos_group']
+				else:
+					print('Sonos: {}'.format(p))
 				assigned += len(self.SonosGroups[n])
 			else:
 				if n in self.SonosGroups: del self.SonosGroups[n]

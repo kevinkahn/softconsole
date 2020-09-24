@@ -31,8 +31,9 @@ class Thermostat(HAnode):  # not stateful since has much state info
 			self.internalstate = self._NormalizeState(self.state)
 		except:
 			# if attributes are missing then don't do updates later - probably a pool
-			logsupport.Logs.Log('{}: Climate device {} missing attributes - probably a pool/spa'.format(self.Hub.name, self.name))
-			self.IsThermostat  = False
+			logsupport.Logs.Log(
+				'{}: Climate device {} missing attributes - probably a pool/spa'.format(self.Hub.name, self.name))
+			self.IsThermostat = False
 
 	def _NormalizeState(self, state, brightness=None):  # state is just the operation mode
 		return state
@@ -40,6 +41,14 @@ class Thermostat(HAnode):  # not stateful since has much state info
 	# noinspection PyUnusedLocal
 	def ErrorFakeChange(self, param=None):
 		PostEvent(ConsoleEvent(CEvent.HubNodeChange, hub=self.Hub.name, node=self.entity_id, value=self.internalstate))
+
+	def _SafeUpdate(self, attrname, deflt):
+		if attrname in self.attributes:
+			return self.attributes[attrname]
+		else:
+			logsupport.Logs.Log(
+				'{} Missing {} attribute in update for {} using {}'.format(self.Hub.name, attrname, self.name, deflt))
+			return deflt
 
 	def Update(self, **ns):
 		self.__dict__.update(ns)
@@ -50,8 +59,8 @@ class Thermostat(HAnode):  # not stateful since has much state info
 		self.curtemp = self.attributes['current_temperature']
 		self.target_low = self.attributes['target_temp_low']
 		self.target_high = self.attributes['target_temp_high']
-		self.hvac_action = self.attributes['hvac_action']
-		self.mode = self.internalstate #self.attributes['hvac_action']
+		self.hvac_action = self._SafeUpdate('hvac_action', self.hvac_action)
+		self.mode = self.internalstate  # self.attributes['hvac_action']
 		self.fan = self.attributes['fan_mode']
 		if screens.DS.AS is not None:
 			if self.Hub.name in screens.DS.AS.HubInterestList:

@@ -15,10 +15,14 @@ class IgnoredDomain(HAnode):
 		self.Hub.RegisterEntity(self.domname, self.entity_id, self)
 		IngoredEntities[dom][self.name] = self
 
+	def Update(self, **ns):
+		# print("ignore")
+		return
+
 	def LogNewEntity(self, newstate):
 		logsupport.Logs.Log(  # tempdel
 			"New entity in ignored domain since startup seen from {}: {} (Domain: {}) New: {}".format(
-				self.Hub.name, self.entity_id, self.domname, repr(newstate)), severity = logsupport.ConsoleDetail)
+				self.Hub.name, self.entity_id, self.domname, repr(newstate)), severity=logsupport.ConsoleDetail)
 
 	def _NormalizeState(self, state, brightness=None):
 		# for ignored domains don't validate state info

@@ -25,7 +25,8 @@ ignoredeventtypes = (
 	'system_log_event', 'call_service', 'service_executed', 'logbook_entry', 'timer_out_of_sync', 'result',
 	'persistent_notifications_updated', 'automation_triggered', 'script_started', 'service_removed', 'hacs/status',
 	'hacs/repository', 'hacs/config', 'entity_registry_updated', 'component_loaded', 'device_registry_updated',
-	'entity_registry_updated', 'lovelace_updated', 'isy994_control')
+	'entity_registry_updated', 'lovelace_updated', 'isy994_control', 'core_config_updated', 'homeassistant_start',
+	'config_entry_discovered')
 
 def stringtonumeric(v):
 	if not isinstance(v, str):
@@ -194,9 +195,6 @@ class HA(object):
 								severity=ConsoleWarning)
 			return None
 
-	# todo - add checks for actual state if stuff continues to get out of sync between console and hub
-	# seems to happen when hub restarts sometimes not sure if other times
-	# partial implementatiom between here and ending comment below
 	def GetCurrentStatus(self, MonitorNode):
 		# noinspection PyBroadException
 		try:
@@ -298,19 +296,26 @@ class HA(object):
 
 	def PreRestartHAEvents(self):
 		self.haconnectstate = "Prestart"
-		self.config = ha.get_config(self.api)
-		if self.config == {}:
-			# HA not responding yet - long delay
-			self.delaystart = 180
-		if isinstance(self.lasterror, ConnectionRefusedError):
-			self.delaystart = 152  # HA probably restarting so give it a chance to get set up
+		trycnt = 30
+		while True:
+			self.config = ha.get_config(self.api)
+			if self.config != {}:
+				break  # HA is up
+			trycnt -= 1
+			if trycnt < 0:
+				logsupport.Logs.Log("{}: Waiting for HA to come up - retrying: ".format(self.name),
+									severity=ConsoleWarning)
+				trycnt = 30
+			time.sleep(1)  # don't flood network
 		self.watchstarttime = time.time()
 		self.HAnum += 1
 
 	def PostStartHAEvents(self):
+		# todo need to get all the current state since unlike ISY, HA doesn't just push it
 		while self.haconnectstate == "Delaying":
 			time.sleep(1)
 		i = 0
+
 		while self.haconnectstate != "Running":
 			i += 1
 			if i > 60:
@@ -333,6 +338,23 @@ class HA(object):
 		else:
 			self.DomainEntityReg[domain] = {entity: item}
 
+	def GetAllCurrentState(self):
+		entities = ha.get_states(self.api)
+		# with open('/home/pi/Console/msglog{}'.format(self.name), 'a') as f:
+		#	f.write('----------REFRESH\n')
+		for e in entities:
+			try:
+				p2 = dict(e.as_dict(), **{'domain': e.domain, 'name': e.name, 'object_id': e.object_id})
+				if e.entity_id in self.Entities:
+					self.Entities[e.entity_id].Update(**p2)
+				else:
+					logsupport.Logs.Log("{} restart found new entity {} state: {}".format(self.name, e, p2),
+										severity=ConsoleWarning)
+				# it's new
+			except Exception as E:
+				logsupport.Logs.Log(
+					"{}: Exception in getting current states for {} Exception: {}".format(self.name, e.entity_id, E),
+					severity=ConsoleWarning)
 
 	def HAevents(self):
 
@@ -364,7 +386,9 @@ class HA(object):
 		def on_message(qws, message):
 			loopstart = time.time()
 			self.HB.Entry(repr(message))
-			#logsupport.Logs.Log("-->{}".format(repr(message)))
+			# logsupport.Logs.Log("-->{}".format(repr(message)))
+			# with open('/home/pi/Console/msglog{}'.format(self.name),'a') as f:
+			#	f.write('{}\n'.format(repr(message)))
 			try:
 				self.msgcount += 1
 				# if self.msgcount <4: logsupport.Logs.Log(self.name + " Message "+str(self.msgcount)+':'+ repr(message))
@@ -475,8 +499,6 @@ class HA(object):
 				elif m['event_type'] == 'system_log_event':
 					logsupport.Logs.Log('Hub: ' + self.name + ' logged at level: ' + d['level'] + ' Msg: ' + d[
 						'message'])
-				elif m['event_type'] == 'config_entry_discovered':
-					logsupport.Logs.Log("{} config entry discovered: {}".format(self.name, message))
 				elif m['event_type'] == 'service_registered':  # fix plus add service removed
 					d = m['data']
 					if d['domain'] not in self.knownservices:
@@ -491,7 +513,12 @@ class HA(object):
 					# domain specific event
 					d, e = m['event_type'].split('.')
 					if d in domainspecificevents:
-						domainspecificevents[d](e,message)
+						domainspecificevents[d](e, message)
+				elif m['event_type'] == 'homeassistant_started':
+					# HA just finished initializing everything so we may have been quicker - refresh all state
+					# with open('/home/pi/Console/msglog{}'.format(self.name), 'a') as f:
+					#	f.write('DO REFRESH FOR STARTED')
+					self.GetAllCurrentState()
 				else:
 					logsupport.Logs.Log('{} Unknown event: {}'.format(self.name, message))
 					debug.debugPrint('HASSgeneral', "Unknown event: " + str(m))
@@ -517,24 +544,18 @@ class HA(object):
 				pass
 				logsupport.Logs.Log("WS lib workaround hit (2)", severity=ConsoleWarning)  # tempdel
 			if isinstance(error, websocket.WebSocketConnectionClosedException):
-				self.delaystart = 20  # server or network business?
 				logsupport.Logs.Log(self.name + " closed WS stream " + str(self.HAnum) + "; attempt to reopen",
 									severity=ConsoleWarning)
 			elif isinstance(error, ConnectionRefusedError):
-				self.delaystart = 149  # likely initial message after attempt to reconnect - server still down
 				logsupport.Logs.Log(self.name + " WS socket refused connection", severity=ConsoleWarning)
 			elif isinstance(error, TimeoutError):
-				self.delaystart = 150  # likely router reboot delay
 				logsupport.Logs.Log(self.name + " WS socket timed out", severity=ConsoleWarning)
 			elif isinstance(error, OSError):
 				if error.errno == errno.ENETUNREACH:
-					self.delaystart = 151  # likely router reboot delay
 					logsupport.Logs.Log(self.name + " WS network down", severity=ConsoleWarning)
 				else:
-					self.delaystart = 21  # likely router reboot delay
 					logsupport.Logs.Log(self.name + ' WS OS error', repr(error), severity=ConsoleError, tb=False)
 			else:
-				self.delaystart = 15
 				logsupport.Logs.Log(self.name + ": Unknown Error in WS stream " + str(self.HAnum) + ':' + repr(error),
 									severity=ConsoleWarning)
 			# noinspection PyBroadException
@@ -555,8 +576,6 @@ class HA(object):
 			:type qws: websocket.WebSocketApp
 			"""
 			self.HB.Entry('Close')
-			if self.delaystart == 0:
-				self.delaystart = 30  # if no other delay set just delay a bit
 			logsupport.Logs.Log(
 				self.name + " WS stream " + str(self.HAnum) + " closed: " + str(code) + ' : ' + str(reason),
 				severity=ConsoleWarning, tb=False, hb=True)
@@ -568,33 +587,25 @@ class HA(object):
 			# possible logic - record successful open then if error while not yet open cause console to restart by setting some
 			# global flag? Flag would be checked in main gui loop and cause a restart.  It is a one way comm from the threads so
 			# should not be subject to a race
+			# with open('/home/pi/Console/msglog{}'.format(self.name),'a') as f:
+			#	f.write('----------OPEN\n')
 			self.HB.Entry('Open')
 			logsupport.Logs.Log(self.name + ": WS stream " + str(self.HAnum) + " opened")
+			# refresh state after the web socket stream is open
+			self.GetAllCurrentState()
 			self.haconnectstate = "Running"
 
-		# if self.password != '':
-		#	ws.send({"type": "auth","api_password": self.password})
-		# ws.send(json.dumps({'id': self.HAnum, 'type': 'subscribe_events'})) #, 'event_type': 'state_changed'}))
-
-		if self.delaystart > 0:
-			logsupport.Logs.Log(
-				self.name + ' thread delaying start for ' + str(self.delaystart) + ' seconds to allow HA to restart')
-			self.haconnectstate = "Delaying"
-			time.sleep(self.delaystart)
-		self.delaystart = 0
 		self.haconnectstate = "Starting"
 		websocket.setdefaulttimeout(30)
-		while True:
-			try:
-				# websocket.enableTrace(True)
-				self.ws = websocket.WebSocketApp(self.wsurl, on_message=on_message,
-												 on_error=on_error,
-												 on_close=on_close, on_open=on_open, header=self.api._headers)
-				self.msgcount = 0
-				break
-			except AttributeError as e:
-				logsupport.Logs.Log(self.name + ": Problem starting WS handler - retrying: ", repr(e),
-									severity=ConsoleWarning)
+		try:
+			# websocket.enableTrace(True)
+			self.ws = websocket.WebSocketApp(self.wsurl, on_message=on_message,
+											 on_error=on_error,
+											 on_close=on_close, on_open=on_open, header=self.api._headers)
+			self.msgcount = 0
+		except AttributeError as e:
+			logsupport.Logs.Log(self.name + ": Problem starting WS handler - retrying: ", repr(e),
+								severity=ConsoleWarning)
 		try:
 			self.haconnectstate = "Running"
 			self.ws.run_forever(ping_timeout=999)
@@ -637,6 +648,8 @@ class HA(object):
 
 		self.sensorstore = valuestore.NewValueStore(valuestore.ValueStore(hubname, itemtyp=valuestore.StoreItem))
 		self.name = hubname
+		# with open('/home/pi/Console/msglog{}'.format(self.name), 'w') as f:
+		#	f.write('----------START Log\n')
 		self.addr = addr
 		self.url = addr
 		self.config = None
@@ -658,7 +671,6 @@ class HA(object):
 		self.alertspeclist = {}  # if ever want auto alerts like ISY command vars they get put here
 		self.AlertNodes = {}
 		self.lasterror = None
-		self.delaystart = 0
 		if password != '':
 			self.api = ha.API(self.url, password)
 		else:
@@ -763,6 +775,8 @@ class HA(object):
 		logsupport.Logs.Log(self.name + ": Processed " + str(len(self.Entities)) + " total entities")
 		for d, e in self.DomainEntityReg.items():
 			if e != {}: logsupport.Logs.Log("    {}: {}".format(d, len(e)))
+
+		self.initialstartup = True
 
 		threadmanager.SetUpHelperThread(self.name, self.HAevents, prerestart=self.PreRestartHAEvents,
 										poststart=self.PostStartHAEvents, postrestart=self.PostStartHAEvents,

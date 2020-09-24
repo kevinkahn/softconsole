@@ -323,6 +323,13 @@ def get_services(api: API) -> Dict:
 		logsupport.Logs.Log("HA Got unexpected services result")
 		return {}
 
+def safe_call_service(api: API, domain: str, service: str,
+					  service_data: Dict = None,
+					  timeout: int = 5) -> None:
+	try:
+		call_service(api, domain, service, service_data, timeout)
+	except:
+		pass
 
 def call_service(api: API, domain: str, service: str,
 				 service_data: Dict = None,

@@ -74,29 +74,29 @@ class MediaPlayer(HAnode):
 											   value=self.internalstate))
 
 	def Join(self, master, roomname):
-		ha.call_service(self.Hub.api, 'sonos', 'join', {'master': '{}'.format(master),
-														'entity_id': '{}'.format(roomname)})
+		ha.safe_call_service(self.Hub.api, 'sonos', 'join', {'master': '{}'.format(master),
+															 'entity_id': '{}'.format(roomname)})
 
 	def UnJoin(self, roomname):
-		ha.call_service(self.Hub.api, 'sonos', 'unjoin', {'entity_id': '{}'.format(roomname)})
+		ha.safe_call_service(self.Hub.api, 'sonos', 'unjoin', {'entity_id': '{}'.format(roomname)})
 
 	def VolumeUpDown(self, roomname, up):
 		updown = 'volume_up' if up >= 1 else 'volume_down'
-		ha.call_service(self.Hub.api, 'media_player', updown, {'entity_id': '{}'.format(roomname)})
+		ha.safe_call_service(self.Hub.api, 'media_player', updown, {'entity_id': '{}'.format(roomname)})
 		ha.call_service(self.Hub.api, 'media_player', 'media_play', {'entity_id': '{}'.format(roomname)})
 
 	def Mute(self, roomname, domute):
-		ha.call_service(self.Hub.api, 'media_player', 'volume_mute', {'entity_id': '{}'.format(roomname),
-																	  'is_volume_muted': domute})
+		ha.safe_call_service(self.Hub.api, 'media_player', 'volume_mute', {'entity_id': '{}'.format(roomname),
+																		   'is_volume_muted': domute})
 		if not domute:  # implicitly start playing if unmuting in case source was stopped
-			ha.call_service(self.Hub.api, 'media_player', 'media_play', {'entity_id': '{}'.format(roomname)})
+			ha.safe_call_service(self.Hub.api, 'media_player', 'media_play', {'entity_id': '{}'.format(roomname)})
 
 	def Stop(self, roomname):
-		ha.call_service(self.Hub.api, 'media_player', 'stop', {'entity_id': '{}'.format(roomname)})
+		ha.safe_call_service(self.Hub.api, 'media_player', 'stop', {'entity_id': '{}'.format(roomname)})
 
 	def Source(self, roomname, sourcename):
-		ha.call_service(self.Hub.api, 'media_player', 'select_source', {'entity_id': '{}'.format(roomname),
-																		'source': '{}'.format(sourcename)})
+		ha.safe_call_service(self.Hub.api, 'media_player', 'select_source', {'entity_id': '{}'.format(roomname),
+																			 'source': '{}'.format(sourcename)})
 
 
 RegisterDomain('media_player', MediaPlayer)
