@@ -99,7 +99,7 @@ flip7 = False
 screentype = '--'
 supportedscreens = ('28r', '28c', '35r', 'pi7')
 # adafruit script rotations {'28r': 4, '28c': 2, '35r': 4}
-screeninstallcode = {'28r': p(adafruit, '28r', 4), '28c': p(adafruit, '28c', 4), '35r': p(adafruit, '35r', 4),
+screeninstallcode = {'28r': p(adafruit, '28r', 4), '28c': p(adafruit, '28c', 2), '35r': p(adafruit, '35r', 4),
 					 'pi7': p(doflip, 'pi7'), '--': p(noscreen, '--')}
 
 doscreen = GetYN("Do you want to install a known screen (Alternative is to install any screen drivers yourself)?")
@@ -187,4 +187,11 @@ print(" AND THE SPEED OF YOUR SD CARD!", flush=True)
 print(" After that it will install the softconsole using your input", flush=True)
 print("****************************************************************", flush=True)
 print("****************************************************************", flush=True)
-time.sleep(5)
+# todo automate a fix?
+print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+print(" NOTE!!! ")
+print(" If you are using the 28c screen, the settings from Adafruit that")
+print(" sets up are likely wrong.  Look at /boot/config.txt")
+print(" Next to last line should be: dtoverlay=pitft28-capacitive,rotate=180")
+print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+time.sleep(10)
