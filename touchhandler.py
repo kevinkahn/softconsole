@@ -107,9 +107,9 @@ class Touch(object):
 			if event == TS_MOVE and callable(self.on_move):
 				self.on_move(event, self)
 			if event == TS_PRESS and callable(self.on_press):
-				with (open('templog', 'a')) as f:
-					f.write('{} {} {}\n'.format(self.x, self.y, self.slot))
-					f.flush()
+				# with (open('templog', 'a')) as f:
+				#	f.write('{} {} {}\n'.format(self.x, self.y, self.slot))
+				#	f.flush()
 
 				self.on_press(event, self)
 			if event == TS_RELEASE and callable(self.on_release):
@@ -130,6 +130,7 @@ class Touchscreen(object):
 
 	def __init__(self, configdir):
 		self.touchdefs = {}
+		self.touchmod = ''
 		with open('touchdefinitions') as f:
 			defs = f.read().splitlines()
 			for l in defs:
@@ -143,6 +144,11 @@ class Touchscreen(object):
 					self.touchdefs[touchitem[0]] = touchitem[1:]
 		except:
 			pass
+		try:
+			with open(configdir + '/touchmodifier') as f:
+				self.touchmod = f.readline().rstrip('\n')
+		except:
+			self.touchmod = ''
 
 		self._use_multitouch = True
 		self.controller = "unknown"
@@ -282,11 +288,14 @@ class Touchscreen(object):
 		return []
 
 	def _touch_device(self):
+		global ABS_MT_POSITION_Y, ABS_MT_POSITION_X
 		# return '/dev/input/touchscreen'
 		for evdev in glob.glob("/sys/class/input/event*"):
 			try:
 				with io.open(os.path.join(evdev, 'device', 'name'), 'r') as f:
 					dev = f.read().strip()
+					if self.touchmod != '':
+						dev = dev + '.' + self.touchmod
 					if dev in self.touchdefs:
 						self.controller = dev
 						vals = self.touchdefs[dev]
@@ -296,6 +305,16 @@ class Touchscreen(object):
 						self._flipy = int(vals[4])
 						self._scalex = float(vals[5])
 						self._scaley = float(vals[6])
+						if len(vals) > 7:
+							self._swapaxes = vals[7] in ('True', '1', 'true', 'TRUE')
+						else:
+							self._swapaxes = False
+
+						if self._swapaxes:
+							tmp = ABS_MT_POSITION_X
+							ABS_MT_POSITION_X = ABS_MT_POSITION_Y
+							ABS_MT_POSITION_Y = tmp
+
 						self._capscreen = vals[0] in ('True', '1', 'true', 'TRUE')
 						if not self._capscreen:
 							with open('/etc/pointercal', 'r') as pc:

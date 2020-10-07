@@ -347,13 +347,15 @@ logsupport.Logs.Log(
 															hw.DimType))
 logsupport.Logs.Log("Touch controller: {}".format(utilities.ts.controller))
 logsupport.Logs.Log(
-	"(Capacitive: {} Shifts: x: {} y: {} Flips: x: {} y: {} Scale: x: {} y: {})".format(utilities.ts._capscreen,
-																						utilities.ts._shiftx,
-																						utilities.ts._shifty,
-																						utilities.ts._flipx,
-																						utilities.ts._flipy,
-																						utilities.ts._scalex,
-																						utilities.ts._scaley))
+	"(Capacitive: {} Shifts: x: {} y: {} Flips: x: {} y: {} Scale: x: {} y: {} swapaxes: {})".format(
+		utilities.ts._capscreen,
+		utilities.ts._shiftx,
+		utilities.ts._shifty,
+		utilities.ts._flipx,
+		utilities.ts._flipy,
+		utilities.ts._scalex,
+		utilities.ts._scaley,
+		utilities.ts._swapaxes))
 logsupport.Logs.Log("Screen Orientation: ", ("Landscape", "Portrait")[hw.portrait])
 if config.sysStore.PersonalSystem:
 	logsupport.Logs.Log("Personal System")
