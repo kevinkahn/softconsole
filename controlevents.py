@@ -39,7 +39,7 @@ def GetEvent():
 	if qs > QLengthTrigger:
 		tq = ConsoleOpsQueue.queue
 		HBControl.Entry('Long queue {}: {}'.format(qs, tq))
-		print('Queue({}: {}'.format(qs, tq))
+	# print('Queue({}: {}'.format(qs, tq))
 	try:
 		evnt = ConsoleOpsQueue.get(block=True,timeout=120) # timeout is set to twice the failsafe injection time so should never see it
 	except queue.Empty:

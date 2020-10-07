@@ -102,6 +102,7 @@ class DisplayScreen(object):
 		elif NS == screen.SELFTOKEN:
 			NS = self.AS
 		else:
+			# simple switch - if there is an existing stack should it be cleared? Probably not unless in stack traverses are prohibited todo
 			if clear:
 				for S in self.ScreenStack:
 					S.PopOver()

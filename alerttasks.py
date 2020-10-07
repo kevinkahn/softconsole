@@ -53,7 +53,8 @@ class Alert(object):
 	def Invoke(self, param=None):
 		if isinstance(self.actiontarget, screens.screentypes["Alert"]):
 			self.state = 'Active'
-			screens.DS.SwitchScreen(self.actiontarget, 'Bright', 'Go to alert screen', newstate='Alert')
+			# if system is in a stack empty it.  End of alert will go back to home and not the stack
+			screens.DS.SwitchScreen(self.actiontarget, 'Bright', 'Go to alert screen', newstate='Alert', clear=True)
 		else:
 			self.state = 'Active'
 			self.actiontarget(self)  # target is the proc

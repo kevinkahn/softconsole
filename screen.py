@@ -382,13 +382,17 @@ class ScreenDesc(object):
 				if timer[1] is not None: timer[1]()
 
 	def PopOver(self):
-		if self.singleuse:
-			self.userstore.DropStore()
-			for nm, k in self.Keys.items():
-				k.userstore.DropStore()
-			for nm, k in self.NavKeys.items():
-				k.userstore.DropStore()
-			self.used = True
+		try:
+			if self.singleuse:
+				self.userstore.DropStore()
+				for nm, k in self.Keys.items():
+					k.userstore.DropStore()
+				for nm, k in self.NavKeys.items():
+					k.userstore.DropStore()
+				self.used = True
+		except Exception as E:
+			logsupport.Logs.Log('Screen sequencing exception for screen {}: {}'.format(self.name, repr(E)),
+								severity=ConsoleWarning)
 
 
 	def PaintBase(self):
