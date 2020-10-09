@@ -5,9 +5,9 @@ import xmltodict
 from pygame import gfxdraw
 
 import debug
+import displayupdate
 import fonts
 import hw
-import hubs.isy.isy as isy  # only to test that the hub for this is an ISY hub
 import logsupport
 import screen
 import screens.__screens as screens
@@ -133,14 +133,16 @@ class ThermostatScreenDesc(screen.BaseKeyScreenDesc):
 			rL = fonts.fonts.Font(self.fsize[2]).render("{:2d}".format(self.t_low), 0,
 														wc(self.CharColor, factor=self.LocalOnly[0]))
 			hw.screen.blit(rL, (self.SPHPosL - self.SPWdt // 2, self.SPVPos))
-			pygame.display.update(pygame.Rect(self.SPHPosL - self.SPWdt // 2, self.SPVPos, self.SPWdt, self.SPHgt))
+			displayupdate.updatedisplay()
+		# pygame.display.update(pygame.Rect(self.SPHPosL - self.SPWdt // 2, self.SPVPos, self.SPWdt, self.SPHgt))
 		else:
 			self.t_high += change
 			hw.screen.blit(self.SetPointSurf, (self.SPHPosR - self.SPWdt // 2, self.SPVPos))
 			rH = fonts.fonts.Font(self.fsize[2]).render("{:2d}".format(self.t_high), 0,
 														wc(self.CharColor, factor=self.LocalOnly[1]))
 			hw.screen.blit(rH, (self.SPHPosR - self.SPWdt // 2, self.SPVPos))
-			pygame.display.update(pygame.Rect(self.SPHPosR - self.SPWdt // 2, self.SPVPos, self.SPWdt, self.SPHgt))
+			displayupdate.updatedisplay()
+		#pygame.display.update(pygame.Rect(self.SPHPosR - self.SPWdt // 2, self.SPVPos, self.SPWdt, self.SPHgt))
 		self.TimerName += 1
 		self.TimeBumpSP = timers.OnceTimer(2.0, name='ThermostatSP' + str(self.TimerName), proc=self.PushTemp)
 		self.TimeBumpSP.start()
@@ -216,7 +218,6 @@ class ThermostatScreenDesc(screen.BaseKeyScreenDesc):
 		r2 = fonts.fonts.Font(self.fsize[1]).render(self.fan.capitalize(), 0, wc(self.CharColor, factor=self.FanLocal))
 		hw.screen.blit(r1, (self.Keys['Mode'].Center[0] - r1.get_width() // 2, self.ModesPos))
 		hw.screen.blit(r2, (self.Keys['Fan'].Center[0] - r2.get_width() // 2, self.ModesPos))
-		#pygame.display.update()
 
 	def InitDisplay(self, nav, specificrepaint = None):
 		self.t_cur, self.t_low, self.t_high, self.t_state, self.mode, self.fan = self.ThermNode.GetThermInfo()

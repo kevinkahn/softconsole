@@ -1,6 +1,7 @@
 import pygame
 import inspect
 
+import displayupdate
 import logsupport
 import debug
 import fonts
@@ -201,7 +202,7 @@ class ManualKeyDesc(TouchPoint):
 				if self.BlinkTimer.is_alive():
 					self.BlinkTimer.cancel()
 					self.PaintKey()  # force to real state
-					pygame.display.update()
+					displayupdate.updatedisplay()
 			self.BlinkTimer = timers.CountedRepeatingPost(.5, cycle, start=True, name=self.name + '-Blink',
 														  proc=self._FlashNo)
 			self.Screen.ScreenTimers.append((self.BlinkTimer, None))
@@ -218,7 +219,7 @@ class ManualKeyDesc(TouchPoint):
 			else:
 				self.UnknownState = False
 				self.PaintKey()  # make sure to leave it in real state
-			pygame.display.update()  # actually change the display - used to do in PaintKey but that causes redundancy
+			displayupdate.updatedisplay()  # actually change the display - used to do in PaintKey but that causes redundancy
 			self.UnknownState = False  # alsways leave it false since we may never return if screen is left
 
 	def ScheduleBlinkKey(self, cycle):
@@ -228,7 +229,7 @@ class ManualKeyDesc(TouchPoint):
 					self.BlinkTimer.cancel()
 					self.PaintKey()  # force to real state
 					self.BlinkState = 0
-					pygame.display.update()
+					displayupdate.updatedisplay()
 			self.BlinkTimer = timers.CountedRepeatingPost(.5, cycle, start=True, name=self.name + '-Blink',
 														  proc=self.BlinkKey)
 			self.Screen.ScreenTimers.append((self.BlinkTimer, self.AbortBlink))
@@ -249,7 +250,7 @@ class ManualKeyDesc(TouchPoint):
 			else:
 				self.PaintKey()  # make sure to leave it in real state
 				self.BlinkState = 0
-			pygame.display.update()  # actually change the display - used to do in PaintKey but that causes redundancy
+			displayupdate.updatedisplay()  # actually change the display - used to do in PaintKey but that causes redundancy
 
 	def FindFontSize(self, lab, firstfont, shrink):
 		lines = len(lab)

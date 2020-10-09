@@ -5,6 +5,8 @@ import time
 
 import pygame
 
+import displayupdate
+
 import config
 import fonts
 import historybuffer
@@ -73,7 +75,7 @@ def EarlyAbort(scrnmsg, screen=True):
 		hw.GoBright(100)
 		r = fonts.fonts.Font(40, '', True, True).render(scrnmsg, 0, wc("white"))
 		hw.screen.blit(r, ((hw.screenwidth - r.get_width()) / 2, hw.screenheight * .4))
-		pygame.display.update()
+		displayupdate.updatedisplay()
 	print(time.strftime('%m-%d-%y %H:%M:%S'), scrnmsg)
 	time.sleep(10)
 	timers.ShutTimers('earlyabort')
@@ -151,7 +153,7 @@ def Exit_Screen_Message(msg, scrnmsg1, scrnmsg2='', scrnmsg3=''):
 	r = fonts.fonts.Font(40, '', True, True).render(scrnmsg3, 0, wc("white"))
 	hw.screen.blit(r, ((hw.screenwidth - r.get_width()) / 2, hw.screenheight * .6))
 	logsupport.Logs.Log(msg)
-	pygame.display.update()
+	displayupdate.updatedisplay()
 	time.sleep(5)
 
 

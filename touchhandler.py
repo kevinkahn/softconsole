@@ -128,9 +128,9 @@ class Touchscreen(object):
 	EVENT_FORMAT = str('llHHi')
 	EVENT_SIZE = struct.calcsize(EVENT_FORMAT)
 
-	def __init__(self, configdir):
+	def __init__(self, configdir, touchmod):
 		self.touchdefs = {}
-		self.touchmod = ''
+		self.touchmod = touchmod
 		with open('touchdefinitions') as f:
 			defs = f.read().splitlines()
 			for l in defs:
@@ -144,11 +144,6 @@ class Touchscreen(object):
 					self.touchdefs[touchitem[0]] = touchitem[1:]
 		except:
 			pass
-		try:
-			with open(configdir + '/touchmodifier') as f:
-				self.touchmod = f.readline().rstrip('\n')
-		except:
-			self.touchmod = ''
 
 		self._use_multitouch = True
 		self.controller = "unknown"

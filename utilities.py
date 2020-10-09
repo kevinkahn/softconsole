@@ -3,6 +3,7 @@ import os
 import signal
 
 import pygame
+import displayupdate
 
 import config
 import debug
@@ -93,18 +94,22 @@ def InitializeEnvironment():
 	# end hack
 	try:
 		with open("{}/.Screentype".format(config.sysStore.HomeDir)) as f:
-			scrntyp = f.readline().rstrip('\n')
+			screeninfo = f.readline().rstrip('\n').split(',')
+			scrntyp = screeninfo[0]
+			softrotate = int(screeninfo[1]) if len(screeninfo) > 1 else 0
+			touchmod = screeninfo[2] if len(screeninfo) > 2 else displayupdate.touchmodifier[softrotate]
+			displayupdate.actualtouchmodifier = touchmod
 	except IOError:
 		scrntyp = "*Unknown*"
 
 	hw.initOS(scrntyp, os.path.dirname(config.sysStore.configfile))
 
-	config.sysStore.SetVal('PersonalSystem',os.path.isfile(config.sysStore.HomeDir + "/homesystem"))
+	config.sysStore.SetVal('PersonalSystem', os.path.isfile(config.sysStore.HomeDir + "/homesystem"))
 
 	# todo move touchhandler selection to hw - return the handler to start for the thread
 
 	from touchhandler import Touchscreen, TS_PRESS, TS_RELEASE, TS_MOVE
-	ts = Touchscreen(os.path.dirname(config.sysStore.configfile))
+	ts = Touchscreen(os.path.dirname(config.sysStore.configfile), touchmod)
 
 	def touchhandler(event, touch):
 		global evntcnt
@@ -149,8 +154,22 @@ def InitializeEnvironment():
 	signal.signal(signal.SIGALRM, alarm_handler)  # HACK
 	signal.alarm(3)  # HACK
 	try:  # HACK
-		hw.screen = pygame.display.set_mode((hw.screenwidth, hw.screenheight),
-											pygame.FULLSCREEN)  # real needed line
+		if softrotate == 0:
+			hw.screen = pygame.display.set_mode((hw.screenwidth, hw.screenheight),
+												pygame.FULLSCREEN)  # real needed line
+		else:
+			hw.realscreen = pygame.display.set_mode((hw.screenwidth, hw.screenheight),
+													pygame.FULLSCREEN)
+			if softrotate in (1, 3):
+				hw.screenwidth, hw.screenheight = hw.screenheight, hw.screenwidth
+
+			hw.screen = pygame.Surface((hw.screenwidth, hw.screenheight))
+
+			displayupdate.initdisplayupdate(softrotate)
+
+		if hw.screenwidth > hw.screenheight:
+			displayupdate.portrait = False
+
 		signal.alarm(0)  # HACK
 	except Alarm:  # HACK
 		raise KeyboardInterrupt  # HACK

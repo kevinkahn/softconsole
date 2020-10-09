@@ -1,6 +1,7 @@
 import functools
 
-import pygame
+import displayupdate
+import utilities
 import requests
 import threading
 import controlevents
@@ -247,7 +248,7 @@ class OctoPrintScreenDesc(screen.BaseKeyScreenDesc):
 		except ValueError:
 			hw.screen.blit(self.errornotice, ((hw.screenwidth - self.errwid) / 2, 30))
 		hw.screen.blit(self.title, ((hw.screenwidth - self.tw) / 2, 0))
-		pygame.display.update()
+		displayupdate.updatedisplay()
 
 	# def AsyncRefreshOctoStatus(self):
 	#	T = threading.Thread(target=self.RefreshOctoStatus, daemon=True, name='OctoTrigRefresh')

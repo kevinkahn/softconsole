@@ -3,6 +3,9 @@ from collections import OrderedDict
 
 import pygame
 
+import displayupdate
+import utilities
+
 import config
 import debug
 import hw
@@ -116,12 +119,12 @@ def setdbg(K):
 	st = debug.dbgStore.GetVal(K.name)
 	K.State = not st
 	K.PaintKey()
-	pygame.display.update()
+	displayupdate.updatedisplay()
 	debug.dbgStore.SetVal(K.name, not st)
 	K.State = debug.dbgStore.GetVal(K.name)
 	# this allows for case where flag gets reset by proc called servicing the set
 	K.PaintKey()
-	pygame.display.update()
+	displayupdate.updatedisplay()
 	logsupport.Logs.Log("Debug flag ", K.name, ' = ', K.State)
 
 
@@ -140,7 +143,7 @@ def adjloglevel(K):
 	debug.DebugFlagKeys["LogLevelUp"].PaintKey()
 	debug.DebugFlagKeys["LogLevelDown"].PaintKey()
 	logsupport.Logs.Log("Log Level changed via ", K.name, " to ", logsupport.LogLevel, severity=ConsoleWarning)
-	pygame.display.update()
+	displayupdate.updatedisplay()
 
 # noinspection PyUnusedLocal
 def goto(newscreen):

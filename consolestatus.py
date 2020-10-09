@@ -3,12 +3,15 @@ import time
 from datetime import datetime
 import functools
 import configobj
+
+import displayupdate
 import issuecommands
 import supportscreens
 import json
 import copy
 
 import pygame
+import utilities
 
 import hw
 import screen
@@ -148,7 +151,7 @@ class ShowVersScreen(screen.BaseKeyScreenDesc):
 	def InitDisplay(self, nav):  # todo fix for specific repaint
 		super(ShowVersScreen, self).InitDisplay(nav)
 		hw.screen.fill(wc(self.BackgroundColor))
-		fontsz = 10 if hw.portrait else 17
+		fontsz = 10 if displayupdate.portrait else 17
 		header, ht, wd = screenutil.CreateTextBlock('  Node       ', fontsz, 'white', False, FitLine=False)
 		linestart = 40
 		hw.screen.blit(header, (10, 20))
@@ -163,14 +166,14 @@ class ShowVersScreen(screen.BaseKeyScreenDesc):
 											 offline)
 				ln2 = "Downloaded: {}".format(ndinfo['versiondnld'])
 
-			if hw.portrait:
+			if displayupdate.portrait:
 				ln, ht, _ = screenutil.CreateTextBlock([ndln, '  ' + ln1, '  ' + ln2], fontsz, 'white', False)
 				pass
 			else:
 				ln, ht, _ = screenutil.CreateTextBlock([ndln + ln1, '             ' + ln2], fontsz, 'white', False)
 			hw.screen.blit(ln, (10, linestart))
 			linestart += ht + fontsz // 2
-		pygame.display.update()
+		displayupdate.updatedisplay()
 
 
 class StatusDisplayScreen(screen.BaseKeyScreenDesc):
@@ -195,11 +198,11 @@ class StatusDisplayScreen(screen.BaseKeyScreenDesc):
 		if self.T.finished.is_set():
 			return
 		hw.screen.fill(wc(self.BackgroundColor))
-		fontsz = 10 if hw.portrait else 17
+		fontsz = 10 if displayupdate.portrait else 17
 		tm, ht, wd = screenutil.CreateTextBlock('{}'.format(time.strftime('%c')), fontsz, 'white', False,
 												FitLine=False)
 		hw.screen.blit(tm, (10, 20))
-		if hw.portrait:
+		if displayupdate.portrait:
 			header, ht, wd = screenutil.CreateTextBlock(
 				['    Node       Status   QMax E', '-->    Uptime/Last Boot'], fontsz, 'white', False)
 		else:
@@ -231,7 +234,7 @@ class StatusDisplayScreen(screen.BaseKeyScreenDesc):
 					bt = "{:%Y-%m-%d %H:%M:%S}".format(datetime.fromtimestamp(ndinfo['boottime']))
 				age = time.time() - ndinfo['rpttime'] if ndinfo['rpttime'] != 0 else 0
 
-				if hw.portrait:
+				if displayupdate.portrait:
 					ln, ht, wd = screenutil.CreateTextBlock(
 						['{:12.12s}{}{:10.10s} {}{}'.format(nd, active, stat, qmax, estat),
 						 "  {}/{}".format(cstat, bt)],
@@ -246,7 +249,7 @@ class StatusDisplayScreen(screen.BaseKeyScreenDesc):
 				logsupport.Logs.Log('Error displaying node status for {} Exc: {}'.format(nd, E),
 									severity=logsupport.ConsoleWarning)
 
-		pygame.display.update()
+		displayupdate.updatedisplay()
 
 
 class CommandScreen(screen.BaseKeyScreenDesc):
@@ -356,12 +359,12 @@ class CommandScreen(screen.BaseKeyScreenDesc):
 	def InitDisplay(self, nav): # todo fix for specific repaint
 		super(CommandScreen, self).InitDisplay(nav)
 		landfont = 15
-		if hw.portrait:
+		if displayupdate.portrait:
 			pass
 		else:
 			header, ht, wd = screenutil.CreateTextBlock(
 				'  Node       ', landfont, 'white', False)
-		pygame.display.update()
+		displayupdate.updatedisplay()
 
 
 def PickStartingSpot():

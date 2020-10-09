@@ -3,9 +3,11 @@ import traceback
 import multiprocessing
 import signal
 from queue import Empty as QEmpty
-
+from threading import Lock
 
 import pygame
+
+import displayupdate
 import webcolors
 
 import fonts
@@ -244,13 +246,15 @@ historybuffer.DevPrint = DevPrintDoIt  # to avoid circular imports
 LogColors = ("teal", "lightgreen", "darkgreen", "white", "yellow", "red")
 
 class Logger(object):
-	livelog = True
-	livelogpos = 0
+
 	log = []
 
 	def __init__(self, screen, dirnm):
 		global DevPrint
 		self.screen = screen
+		self.livelog = True
+		self.livelogLock = Lock()
+		self.livelogpos = 0
 		if disklogging:
 			cwd = os.getcwd()
 			os.chdir(dirnm)
@@ -345,13 +349,15 @@ class Logger(object):
 
 			# Paint live log to screen during boot
 			if self.livelog and not debugitem:
+				self.livelogLock.acquire()
 				if self.livelogpos == 0:
 					hw.screen.fill(wc('royalblue'))
 				self.livelogpos = self.RenderLogLine(entry, LogColors[severity], self.livelogpos)
 				if self.livelogpos > hw.screenheight - screens.screenStore.BotBorder:
 					time.sleep(1)
 					self.livelogpos = 0
-				pygame.display.update()
+				displayupdate.updatedisplay()
+				self.livelogLock.release()
 
 		except Exception as E:
 			self.RecordMessage(ConsoleError, 'Exception while local logging: {}'.format(repr(E)),
@@ -385,10 +391,12 @@ class Logger(object):
 					ptext.append(ltext[0])
 					del ltext[0]
 			l = logfont.render(''.join(ptext), False, wc(clr))
+			while self.screen.get_locked():
+				print("Locked {}".format(self.screen.get_locks()))
 			self.screen.blit(l, (10, pos))
 			ptext = ["    "]
 			pos = pos + logfont.get_linesize()
-		pygame.display.update()
+		displayupdate.updatedisplay()
 		return pos
 
 	def PageTitle(self, pageno, itemnumber):

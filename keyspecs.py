@@ -2,6 +2,7 @@ import shlex
 
 import pygame
 import debug
+import displayupdate
 import hubs.hubs
 import logsupport
 import screen
@@ -345,7 +346,7 @@ class OnOffKey(ManualKeyDesc):
 		elif oldunknown:
 			self.ControlObj.Hub.DeleteFromUnknowns(self.ControlObj)
 		self.PaintKey()
-		pygame.display.update()
+		displayupdate.updatedisplay()
 
 	def FinishKey(self, center, size, firstfont=0, shrink=True):
 		super(OnOffKey, self).FinishKey(center, size, firstfont, shrink)

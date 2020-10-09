@@ -4,6 +4,7 @@ import pygame
 
 import config
 import debug
+import displayupdate
 import hubs.ha.hasshub as hasshub  # only to test that the hub for this is an HA hub
 import hw
 import logsupport
@@ -298,7 +299,7 @@ class SonosScreenDesc(screen.BaseKeyScreenDesc):
 			errmsg, _, _ = screenutil.CreateTextBlock([' ', 'No Players', 'Found', 'Check', 'Configuration', ' '], 30,
 													  'white', True)
 			hw.screen.blit(errmsg, (self.HorizBorder + 15, 40))
-			pygame.display.update()
+			displayupdate.updatedisplay()
 			return
 		self.Keys = self.KeysSum
 		self.ReInitDisplay()
@@ -425,7 +426,7 @@ class SonosScreenDesc(screen.BaseKeyScreenDesc):
 		else:
 			self.GroupScreen(self.SlotToGp[self.Subscreen])
 
-		pygame.display.update()
+		displayupdate.updatedisplay()
 
 
 screens.screentypes["Sonos"] = SonosScreenDesc

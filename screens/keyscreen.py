@@ -3,6 +3,7 @@ import pygame
 from configobj import Section
 
 import debug
+import displayupdate
 import keyspecs
 import logsupport
 import screen
@@ -55,7 +56,7 @@ class KeyScreenDesc(screen.BaseKeyScreenDesc):
 				debug.debugPrint('Screen', 'KS Wildcard ISYEvent ', K.name, evnt)
 				K.UnknownState = True
 				K.PaintKey()
-				pygame.display.update()
+				displayupdate.updatedisplay()
 		elif evnt.node != 0:
 			try:
 				K = self.HubInterestList[evnt.hub][evnt.node]
@@ -75,7 +76,7 @@ class KeyScreenDesc(screen.BaseKeyScreenDesc):
 				K.State = not (evnt.value == 0)  # K is off (false) only if state is 0
 				K.UnknownState = True if evnt.value == -1 else False
 				K.PaintKey()
-				pygame.display.update()
+				displayupdate.updatedisplay()
 		else:
 			logsupport.Logs.Log('varchange via Node event? {} {}'.format(self.name, evnt), severity=ConsoleWarning)
 
@@ -84,7 +85,7 @@ class KeyScreenDesc(screen.BaseKeyScreenDesc):
 		try:
 			K = self.Keys[evnt.varinfo[0]]
 			K.PaintKey()
-			pygame.display.update()
+			displayupdate.updatedisplay()
 		except:
 			debug.debugPrint('Screen', "Var change reported to screen that doesn't care", self.name,
 							 str(evnt.varinfo))  # todo event reporting correlation to screens could use rework

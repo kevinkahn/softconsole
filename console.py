@@ -38,6 +38,7 @@ import hubs.hubs
 import screens.__screens as screens
 import timers
 from stores import mqttsupport, valuestore, localvarsupport, sysstore
+import displayupdate
 
 config.sysStore = valuestore.NewValueStore(sysstore.SystemStore('System'))
 config.sysStore.SetVal('ConsoleStartTime', time.time())
@@ -319,6 +320,7 @@ screens.ScaleScreensInfo()
 logsupport.Logs.Log("Parsed globals")
 logsupport.Logs.Log("Switching to real log")
 logsupport.Logs = logsupport.InitLogs(hw.screen, os.path.dirname(config.sysStore.configfile))
+utilities.Logs = logsupport.Logs
 cgitb.enable(format='text')
 logsupport.Logs.Log(u"Soft ISY Console")
 
@@ -341,7 +343,10 @@ with open("{}/.ConsoleStart".format(config.sysStore.HomeDir), "w") as f:
 	f.write(str(config.sysStore.ConsoleStartTime) + '\n')
 logsupport.Logs.Log("Console Starting  pid: ", config.sysStore.Console_pid)
 logsupport.Logs.Log("Host name: ", hw.hostname)
-logsupport.Logs.Log("Screen type: ", hw.screentype)
+logsupport.Logs.Log("Screen type: {}".format(hw.screentype))
+if displayupdate.softrotate != 0:
+	logsupport.Logs.Log(
+		"Software rotation by {} degrees cw".format(displayupdate.rotationangle[displayupdate.softrotate]))
 logsupport.Logs.Log(
 	'(Display device: {} Driver: {} Dim Method: {})'.format(os.environ['SDL_FBDEV'], os.environ['SDL_VIDEODRIVER'],
 															hw.DimType))
@@ -356,7 +361,7 @@ logsupport.Logs.Log(
 		utilities.ts._scalex,
 		utilities.ts._scaley,
 		utilities.ts._swapaxes))
-logsupport.Logs.Log("Screen Orientation: ", ("Landscape", "Portrait")[hw.portrait])
+logsupport.Logs.Log("Screen Orientation: ", ("Landscape", "Portrait")[displayupdate.portrait])
 if config.sysStore.PersonalSystem:
 	logsupport.Logs.Log("Personal System")
 	logsupport.Logs.Log("Latency Tolerance: {}".format(controlevents.LateTolerance))

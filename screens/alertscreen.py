@@ -2,6 +2,7 @@ import pygame
 
 import alerttasks
 import debug
+import displayupdate
 import fonts
 import hw
 import keyspecs
@@ -126,15 +127,12 @@ class AlertsScreenDesc(screen.ScreenDesc):
 			hw.screen.blit(self.messageimage, self.upperleft)
 		else:
 			hw.screen.blit(self.messageblank, self.upperleft)
-		pygame.display.update()
+		displayupdate.updatedisplay()
 		self.Msg = not self.Msg
 
 	def InitDisplay(self, nav): # todo fix for specific repaint
 		super(AlertsScreenDesc, self).InitDisplay(nav)
 
-		#self.PaintBase()
-		#self.PaintKeys()
-		#pygame.display.update()
 		self.Msg = True
 		if self.BlinkTime != 0:
 			self.TimerName += 1
@@ -150,7 +148,7 @@ class AlertsScreenDesc(screen.ScreenDesc):
 												   start=True)
 		else:
 			hw.screen.blit(self.messageimage, self.upperleft)
-			pygame.display.update()
+			displayupdate.updatedisplay()
 
 
 	def ExitScreen(self, viaPush):

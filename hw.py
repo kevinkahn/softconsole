@@ -5,12 +5,15 @@ import socket
 import pygame
 import wiringpi
 
+import displayupdate
+
 disklogging = True
 
 IsDim = False
 DimType = 'None'
 
 screen = None  # pygame screen to blit on etc
+realscreen = None  # used for soft rotate
 
 baseheight = 480  # program design height
 basewidth = 320  # program design width
@@ -18,6 +21,7 @@ dispratioW = 1
 dispratioH = 1
 screenwidth = 0
 screenheight = 0
+
 dimpin = 0
 
 boottime = 0
@@ -26,7 +30,6 @@ hwinfo = ""
 
 hostname = socket.gethostname()
 screentype = ""
-portrait = True
 
 
 def scaleW(p):
@@ -51,7 +54,7 @@ def ResetScreenLevel(storeitem, old, val, dim, unusedsrc):
 
 # noinspection PyBroadException
 def initOS(scrntyp, configdir):
-	global boottime, osversion, hwinfo, screentype, hostname, screenwidth, screenheight, portrait, dispratioW, dispratioH, DimType, dimpin
+	global boottime, osversion, hwinfo, screentype, hostname, screenwidth, screenheight, dispratioW, dispratioH, DimType, dimpin
 
 	screentype = scrntyp
 
@@ -126,9 +129,6 @@ def initOS(scrntyp, configdir):
 
 	pygame.display.init()
 	screenwidth, screenheight = (pygame.display.Info().current_w, pygame.display.Info().current_h)
-
-	if screenwidth > screenheight:
-		portrait = False
 
 	dispratioW = float(screenwidth) / float(basewidth)
 	dispratioH = float(screenheight) / float(baseheight)

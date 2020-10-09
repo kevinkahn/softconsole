@@ -4,6 +4,7 @@ import pygame
 import functools
 
 import config
+import displayupdate
 import fonts
 import hubs.hubs
 import hw
@@ -325,10 +326,11 @@ class ScreenDesc(object):
 		if self.ScreenTitleBlk is not None:
 			self.ScreenTitleBlk, w = self._GenerateTitleBlk(self.ScreenTitle, self.DecodedScreenTitleFields,
 															self.ScreenTitleColor)
-			hw.screen.blit(self.ScreenTitleBlk, (self.starthorizspace + (self.useablehorizspace - w) // 2, self.TopBorder))
+			hw.screen.blit(self.ScreenTitleBlk,
+						   (self.starthorizspace + (self.useablehorizspace - w) // 2, self.TopBorder))
 		if specificrepaint is not None: specificrepaint()
 		self.ScreenContentRepaint()
-		pygame.display.update()
+		displayupdate.updatedisplay()
 
 	def InitDisplay(self, nav, specificrepaint = None):
 		self._PrepScreen(nav, True, specificrepaint)

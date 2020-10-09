@@ -5,6 +5,7 @@ from pygame import draw
 import inspect
 
 import debug
+import displayupdate
 import fonts
 import hw
 import logsupport
@@ -60,7 +61,7 @@ class VerifyScreen(screen.BaseKeyScreenDesc):
 	def ShowScreen(self):
 		self.ReInitDisplay()
 		self.PaintKeys()
-		pygame.display.update()
+		displayupdate.updatedisplay()
 
 	def InitDisplay(self, nav, specificrepaint = None):
 		# debugPrint('Main', "Enter to screen: ", self.name)
@@ -170,14 +171,14 @@ class ValueChangeScreen(screen.ScreenDesc):  # todo may need to call super class
 						   self.offsetpoint(self.uparrowcenter[i], (fho, -self.arrowht / 2 + self.arrowht / 10)))
 			hw.screen.blit(self.chgval[i][1],
 						   self.offsetpoint(self.dnarrowcenter[i],
-												(fho, self.arrowht / 2 - fvo - self.arrowht / 10)))
+											(fho, self.arrowht / 2 - fvo - self.arrowht / 10)))
 			draw.lines(hw.screen, wc(self.Outline), True, self.uparrowverts[i], 5)
 			draw.lines(hw.screen, wc(self.Outline), True, self.dnarrowverts[i], 5)
 		# need to add in the value to change by l
 		hw.screen.blit(self.labelrend, self.labelloc)
 		self.Keys['accept'].SetKeyImages(("Accept", str(self.Value)))
 		self.PaintKeys()
-		pygame.display.update()
+		displayupdate.updatedisplay()
 		pass
 
 
@@ -308,7 +309,7 @@ class ListChooserSubScreen(screen.ScreenDesc):
 		dncolor = wc(self.CharColor) if self.firstitem + self.NumSlots < len(self.itemlist) else self.DullKeyColor
 		pygame.draw.polygon(hw.screen, upcolor, TriangleCorners(self.SrcPrev, self.sourceheight, False), 3)
 		pygame.draw.polygon(hw.screen, dncolor, TriangleCorners(self.SrcNext, self.sourceheight, True), 3)
-		pygame.display.update()  # todo delete once specific screen is used
+		displayupdate.updatedisplay()  # todo delete once specific screen is used
 
 
 class PagedDisplay(screen.BaseKeyScreenDesc):
@@ -397,11 +398,11 @@ class PagedDisplay(screen.BaseKeyScreenDesc):
 			l = self.pagefont.render(hdr, False, wc(self.color))
 			hw.screen.blit(l, (10, pos))
 			pos = pos + self.pagefont.get_linesize()
-			pygame.display.update()
+			displayupdate.updatedisplay()
 		while moretorender:
 			l, moretorender = self.LineRenderer(itemnumber, self.pagefont)
 			hw.screen.blit(l, (10, pos))  # todo this can cause long lines to render off the screen
-			pygame.display.update()
+			displayupdate.updatedisplay()
 			pos = pos + l.get_height()
 			itemnumber += 1
 			if pos > hw.screenheight - screens.screenStore.BotBorder:
@@ -409,5 +410,5 @@ class PagedDisplay(screen.BaseKeyScreenDesc):
 
 		l = self.pagefont.render('***** End *****', False, wc(self.color))
 		hw.screen.blit(l, ((hw.screenwidth - l.get_width()) / 2, pos + l.get_height()))
-		pygame.display.update()
+		displayupdate.updatedisplay()
 		return -1

@@ -1,8 +1,10 @@
 ControllerName|cap(True/False)|shiftx|shifty|flipx|flipy|scalex|scaley|swapaxes
 FT5406 memory based driver|True|0|0|0|0|1.0|1.0
 raspberrypi-ts|True|0|0|0|0|1.0|1.0
-raspberrypi-ts.portrait|True|0|0|0|800|1.0|1.0|True
+raspberrypi-ts.cc90|True|0|0|0|800|1.0|1.0|True
+raspberrypi-ts.cc270|True|0|0|480|0|1.0|1.0|True
+raspberrypi-ts.flip|True|0|0|800|480|1.0|1.0|False
 Goodix Capacitive TouchScreen|True|-330|303|0|0|1.666|0.6
-stmpe-ts|False|0|0|0|0|1.0|1.0
+stmpe-ts|False|0|0|0|0|1.0|1.0qq
 EP0110M09|True|0|0|0|0|1.0|1.0
 generic ft5x06 (11)|True|0|0|0|0|1.0|1.0
