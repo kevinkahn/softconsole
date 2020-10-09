@@ -67,3 +67,6 @@ Minor release for some bug fixes and small improvements:
   Fixes bug where HA climate wasn't initializing state correctly which meant display was wrong until first climate update happened
   Fixes bug to handle network status display error gracefully
   Adds pause/resume to Octoprint screen
+
+V3.7
+This release primarily adds support for soft rotation of the display that is required for the Pi4, at least when used with the 7" Pi display.  Pi 4 display drivers don't use the frame buffer in the same way as previous models so they may not honor rotations set at the system level.  This results in the native desktop displaying in one orientation but the console displaying in another.  The useage notes explain how to set the screen type to use soft rotation. (Note this has only been tested with the Pi 7" screen at this point but should work generally.)  The release also fixes a bug when an alert screen gets invoked while in Maintenance mode, a bug in MQTT status handling.  It also reworks Home Assistant restart code to insure that states are correct for changes that happened while the console was offline.  Finally it again adjusts the use of Adafruit install script use to handle their changes related to a 28c PiTFT.
