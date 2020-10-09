@@ -284,6 +284,7 @@ class Touchscreen(object):
 
 	def _touch_device(self):
 		global ABS_MT_POSITION_Y, ABS_MT_POSITION_X
+		dev = 'unknown'
 		# return '/dev/input/touchscreen'
 		for evdev in glob.glob("/sys/class/input/event*"):
 			try:
@@ -319,7 +320,7 @@ class Touchscreen(object):
 			except IOError as e:
 				if e.errno != errno.ENOENT:
 					raise
-		raise RuntimeError('Unable to locate touchscreen device')
+		raise RuntimeError('Unable to locate touchscreen device ({})'.format(dev))
 
 	def read(self):
 		return next(iter(self))
