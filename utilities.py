@@ -154,12 +154,14 @@ def InitializeEnvironment():
 	signal.signal(signal.SIGALRM, alarm_handler)  # HACK
 	signal.alarm(3)  # HACK
 	try:  # HACK
-		if softrotate == 0:
-			hw.screen = pygame.display.set_mode((hw.screenwidth, hw.screenheight),
-												pygame.FULLSCREEN)  # real needed line
-		else:
-			hw.realscreen = pygame.display.set_mode((hw.screenwidth, hw.screenheight),
-													pygame.FULLSCREEN)
+		if softrotate > 4:
+			logsupport.Logs.Log("Ignoring bad soft rotation value: {}".format(softrotate),
+								severity=logsupport.ConsoleWarning)
+			softrotate = 0
+		if softrotate == 0:  # use hardware orientation/rotation
+			hw.screen = pygame.display.set_mode((hw.screenwidth, hw.screenheight), pygame.FULLSCREEN)
+		else:  # use software rotation
+			hw.realscreen = pygame.display.set_mode((hw.screenwidth, hw.screenheight), pygame.FULLSCREEN)
 			if softrotate in (1, 3):
 				hw.screenwidth, hw.screenheight = hw.screenheight, hw.screenwidth
 
