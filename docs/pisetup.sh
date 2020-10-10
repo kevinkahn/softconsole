@@ -160,14 +160,8 @@ cp /etc/rc.local /etc/rc.local.hold # helper script below screws up rc.local
 
 cd /home/pi
 
-if [[ $(cat /etc/issue) == *"Linux 10"* ]]; then
-  #    LogBanner "Adjust adafruit scritp for Buster (now fixed in Adafruit as of 7/2019)"
-  #    sed -isav 's/evtest tslib libts\-bin/evtest tslib/' adafruit-pitft.sh
-  #    sed  -isav '/evtest tslib/a  apt-get install -y libts-bin' adafruit-pitft.sh
-  echo "$ScreenType"B >.Screentype
-else
+if [ $Buster == 'N']; then
   sed -isav s/fb0/fb1/ /usr/share/X11/xorg.conf.d/99-fbturbo.conf
-  echo $ScreenType >.Screentype
 fi
 
 LogBanner "Run screen specific install code"
@@ -175,17 +169,6 @@ source installscreencode
 LogBanner "Completed screen specific install code"
 
 #case $ScreenType in
-#  28r|28c|35r)
-#   ./adafruit-pitft.sh < adafinput
-#    raspi-config nonint do_boot_behaviour B4 # set boot to desktop already logged in
-#  ;;
-#  pi7)
-#    LogBanner "7 Inch Pi Screen"
-#    if [ $Flip7 == 'Y' ]
-#    then
-#        echo "lcd_rotate=2" >> /boot/config.txt
-#    fi
-#    ;;
 #  wave35)
 #    LogBanner "Install Waveshare screen"
 #    echo "Following link as of 8//30/18"
@@ -214,8 +197,6 @@ LogBanner "Completed screen specific install code"
 
 mv --backup=numbered /etc/rc.local.hold /etc/rc.local
 chmod +x /etc/rc.local
-#echo "# Dummy entry to keep this file from being recreated in Stretch" > /usr/share/X11/xorg.conf.d/99-fbturbo.conf
-#cat /usr/share/X11/xorg.conf.d/99-fbturbo.conf
 
 LogBanner "Reboot now installconsole.sh will autorun as root unless aborted"
 echo "Install will set Personal $Personal and AutoConsole $AutoConsole"

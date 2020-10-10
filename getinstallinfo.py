@@ -84,11 +84,14 @@ def adafruit(scr, rot):
 
 
 def doflip(scr):
-	print("If you are not using a Pi4 you can use hardware to flip the screen so the power connector")
-	print("is on the top.  If you are on a Pi4 use the soft rotation option that will get asked for next")
+	global baseorientation
+	print("If you are not using a Pi4 you can use hardware to flip the base orientation")
+	print("of the display so that the power connector is on the top.")
+	print("If you are on a Pi4 use the soft rotation option that will get asked for next")
 	print("Also use the soft rotation option for other orientations.")
 	flip = GetYN("Flip 7 inch screen so power at top using hardware option? (Y/N)")
 	if flip:
+		baseorientation['pi7'] = 'power at top'
 		return ('echo Flip 7 inch screen\n', 'echo "lcd_rotate=2" >> /boot/config.txt\n')
 	else:
 		return ('echo Nornmal 7 inch screen\n',)
@@ -105,7 +108,11 @@ print(" After this the install can run unattended to completion", flush=True)
 print("**************************************************************", flush=True)
 print("**************************************************************", flush=True)
 time.sleep(3)
-
+with open('/etc/issue') as f:
+	sysver = f.readline()
+	if "Linux 10" in sysver:
+		Buster = True
+AddToScript('Buster', 'Y' if Buster else 'N')
 AddToScript('NodeName', GetVal("What name for this system?"))
 AddToScript('VNCstdPort', GetYN("Install VNC on standard port (Y/N/alt port number)?", Allownum=True))
 AddToScript('Personal', GetYN("Is this the developer personal system (Y/N) (bit risky to say Y if it not)?"))
@@ -113,7 +120,6 @@ AddToScript('InstallBeta', GetYN("Download current beta as well as stable? (usua
 AddToScript('AutoConsole', GetYN("Autostart console (Y/N)?"))
 AddToScript('Reboot', GetYN("Automatically reboot to continue install after system setup?"))
 
-flip7 = False
 screentype = '--'
 supportedscreens = ('28r', '28c', '35r', 'pi7')
 # adafruit script rotations {'28r': 4, '28c': 2, '35r': 4}
@@ -126,32 +132,34 @@ baseorientation = {'28c': 'power on left',
 doscreen = GetYN("Do you want to install a known screen (Alternative is to install any screen drivers yourself)?")
 if doscreen:
 	screentype = GetVal("What type screen ({})?".format(supportedscreens), supportedscreens)
-	rot = 0
-	if screentype in baseorientation:
-		print(" You can choose to rotate the display from its base orientation")
-		print(" Base orientation for {} screen is with {}".format(screentype, baseorientation[screentype]))
-		print(" Rotation options(power connection for reference:")
-		print("     0: use base orientation")
-		print("     1: 90 degrees counterclockwise")
-		print("     2: 180 degrees counterclockwise (vertical flip)")
-		print("     3: 270 degrees counterclockwise")
-		rot = GetInt('Rotation option:', (0, 1, 2, 3, 4))
-
-
 else:
 	screentype = GetVal("Enter name of screen for console reference:")
 	screeninstallcode[screentype] = p(noscreen, screentype)
-
-if rot == 0:
-	AddToScript('ScreenType', screentype)
-else:
-	AddToScript('ScreenType', screentype + ',' + str(rot))
 
 fout = open('installvals', 'w')
 fout.writelines(scriptvars)
 fout.close()
 
 installsrc = screeninstallcode[screentype]()
+
+rot = 0
+if screentype in baseorientation:
+	print(" You can choose to rotate the display from its base orientation")
+	print(" Base orientation for {} screen is with {}".format(screentype, baseorientation[screentype]))
+	print(" Rotation options(power connection for reference:")
+	print("     0: use base orientation")
+	print("     1: 90 degrees counterclockwise")
+	print("     2: 180 degrees counterclockwise (vertical flip)")
+	print("     3: 270 degrees counterclockwise")
+	rot = GetInt('Rotation option:', (0, 1, 2, 3, 4))
+
+screentp = screentype + 'B' if Buster else screentype
+
+if rot == 0:
+	AddToScript('ScreenType', screentp)
+else:
+	AddToScript('ScreenType', screentp + ',' + str(rot))
+
 with open('installscreencode', 'w') as f:
 	f.writelines(installsrc)
 
