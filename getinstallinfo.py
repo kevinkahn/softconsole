@@ -27,6 +27,21 @@ def GetVal(prompt, allowed=None):
 				print('Choices are {}'.format(allowed))
 
 
+def GetInt(prompt, allowed=None):
+	while True:
+		try:
+			ans = int(input(prompt + ' '))
+			if allowed is None:
+				return ans
+			else:
+				if ans in allowed:
+					return ans
+				else:
+					print('Choices are {}'.format(allowed))
+		except:
+			print('Bad input - choices are: {}'.format(allowed))
+
+
 scriptvars = []
 
 
@@ -69,7 +84,10 @@ def adafruit(scr, rot):
 
 
 def doflip(scr):
-	flip = GetYN("Flip 7 inch screen so power at top? (Y/N)")
+	print("If you are not using a Pi4 you can use hardware to flip the screen so the power connector")
+	print("is on the top.  If you are on a Pi4 use the soft rotation option that will get asked for next")
+	print("Also use the soft rotation option for other orientations.")
+	flip = GetYN("Flip 7 inch screen so power at top using hardware option? (Y/N)")
 	if flip:
 		return ('echo Flip 7 inch screen\n', 'echo "lcd_rotate=2" >> /boot/config.txt\n')
 	else:
@@ -101,15 +119,33 @@ supportedscreens = ('28r', '28c', '35r', 'pi7')
 # adafruit script rotations {'28r': 4, '28c': 2, '35r': 4}
 screeninstallcode = {'28r': p(adafruit, '28r', 4), '28c': p(adafruit, '28c', 2), '35r': p(adafruit, '35r', 4),
 					 'pi7': p(doflip, 'pi7'), '--': p(noscreen, '--')}
+baseorientation = {'28c': 'power on left',
+				   '35r': 'power on left',
+				   'pi7': 'power at bottom'}
 
 doscreen = GetYN("Do you want to install a known screen (Alternative is to install any screen drivers yourself)?")
 if doscreen:
 	screentype = GetVal("What type screen ({})?".format(supportedscreens), supportedscreens)
+	rot = 0
+	if screentype in baseorientation:
+		print(" You can choose to rotate the display from its base orientation")
+		print(" Base orientation for {} screen is with {}".format(screentype, baseorientation[screentype]))
+		print(" Rotation options(power connection for reference:")
+		print("     0: use base orientation")
+		print("     1: 90 degrees counterclockwise")
+		print("     2: 180 degrees counterclockwise (vertical flip)")
+		print("     3: 270 degrees counterclockwise")
+		rot = GetInt('Rotation option:', (0, 1, 2, 3, 4))
+
+
 else:
 	screentype = GetVal("Enter name of screen for console reference:")
 	screeninstallcode[screentype] = p(noscreen, screentype)
 
-AddToScript('ScreenType', screentype)
+if rot == 0:
+	AddToScript('ScreenType', screentype)
+else:
+	AddToScript('ScreenType', screentype + ',' + str(rot))
 
 fout = open('installvals', 'w')
 fout.writelines(scriptvars)
