@@ -69,15 +69,26 @@ class PartialFormatter(string.Formatter):
         return val
 
     def format_field(self, value, spec):
-        # handle an invalid format
-        if value==None: return self.missing
-        try:
-            return super().format_field(value, spec)
-        except ValueError:
-            if self.bad_fmt is not None: return self.bad_fmt
-            else: raise
+		# handle an invalid format
+		if value == None: return self.missing
+		try:
+			return super().format_field(value, spec)
+		except ValueError:
+			if self.bad_fmt is not None:
+				return self.bad_fmt
+			else:
+				raise
+
 
 fmt = PartialFormatter()
+
+
+def safeprint(*args, **kwargs):
+	try:
+		print(*args, **kwargs)
+	except Exception:
+		pass
+
 
 '''
 class WFormatter(string.Formatter):

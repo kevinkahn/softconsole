@@ -53,7 +53,8 @@ reasonmap = {signal.SIGTERM:('termination signal', EXTERNALSIGTERM),
 
 
 def exitlogging():
-	print('----------------- Exit Logging')
+	safeprint('----------------- Exit Logging')
+
 	# logsupport.Logs.Log("Exittime threads: {}".format(listthreads(threading.enumerate())))
 	# if config.hooks.exit_code not in (
 	if config.ecode not in (
@@ -76,7 +77,7 @@ def EarlyAbort(scrnmsg, screen=True):
 		r = fonts.fonts.Font(40, '', True, True).render(scrnmsg, 0, wc("white"))
 		hw.screen.blit(r, ((hw.screenwidth - r.get_width()) / 2, hw.screenheight * .4))
 		displayupdate.updatedisplay()
-	print(time.strftime('%m-%d-%y %H:%M:%S'), scrnmsg)
+	safeprint(time.strftime('%m-%d-%y %H:%M:%S'), scrnmsg)
 	time.sleep(10)
 	timers.ShutTimers('earlyabort')
 	pygame.quit()
@@ -93,13 +94,13 @@ def Exit(ecode, immediate=False):
 	os.chdir(config.sysStore.ExecDir)  # set cwd to be correct when dirs move underneath us so that scripts execute
 	logsupport.Logs.Log("Console Exiting - Ecode: " + str(ecode))
 	if config.sysStore.Watchdog_pid != 0: os.kill(config.sysStore.Watchdog_pid, signal.SIGUSR1)
-	print('Console exit with code: ' + str(ecode) + ' at ' + time.strftime('%m-%d-%y %H:%M:%S'))
+	safeprint('Console exit with code: ' + str(ecode) + ' at ' + time.strftime('%m-%d-%y %H:%M:%S'))
 	if ecode in range(10, 20):
 		# exit console without restart
-		print("Shutdown")
+		safeprint("Shutdown")
 	elif ecode in range(20, 30):
 		# shutdown the pi
-		print("Shutdown the Pi")
+		safeprint("Shutdown the Pi")
 		subprocess.Popen(['sudo', 'shutdown', '-P', 'now'])
 	elif ecode in range(30, 40):
 		# restart the console
@@ -115,7 +116,7 @@ def Exit(ecode, immediate=False):
 		subprocess.Popen(['sudo', 'shutdown', '-r', 'now'])
 	else:
 		# should never happen
-		print('Undefined console exit code!  Code: ' + str(ecode))
+		safeprint('Undefined console exit code!  Code: ' + str(ecode))
 		# reboot pi?
 		pass
 	if immediate:
