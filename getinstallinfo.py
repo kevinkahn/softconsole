@@ -6,14 +6,13 @@ neededfiles = {'adafruit-pitft-touch-cal': 'https://raw.githubusercontent.com/ad
 
 gitselector = {'stable': 'currentrelease', 'personal': 'homerelease', 'beta': 'currentbeta'}
 gitprefix = 'https://raw.githubusercontent.com/kevinkahn/softconsole/'
-installscripts = {'finishinstall.sh': 'docs/', 'vncserverpi.service': 'scripts/', 'lxterminal.conf': 'scripts/',
-				  'githubutil.py': ''}
+installscripts = {'vncserverpi.service': 'scripts/', 'lxterminal.conf': 'scripts/', 'githubutil.py': ''}
 
 
 def GetScripts(vers, save=''):
 	if save != '':
 		for s in installscripts:
-			os.rename(s, 'consoleinstallleftovers/' + s + '.' + save)
+			os.rename(s, '.consoleinstallleftovers/' + s + '.' + save)
 	for n, loc in installscripts.items():
 		wget.download(gitprefix + gitselector[vers] + '/' + loc + n, n, bar=None)
 	os.chmod('finishinstall.sh', stat.S_IXUSR)
@@ -121,8 +120,8 @@ def noscreen(scr):
 
 # Start of script
 
-shutil.rmtree('consoleinstallleftovers', ignore_errors=True)
-os.mkdir('consoleinstallleftovers')
+shutil.rmtree('.consoleinstallleftovers', ignore_errors=True)
+os.mkdir('.consoleinstallleftovers')
 
 for n, loc in neededfiles.items():
 	try:
@@ -154,7 +153,7 @@ AddToScript('Personal', personal)
 beta = GetYN("Download current beta as well as stable? (usually waste of time)")
 AddToScript('InstallBeta', beta)
 AddToScript('AutoConsole', GetYN("Autostart console (Y/N)?"))
-AddToScript('Reboot', GetYN("Automatically reboot to continue install after system setup?"))
+AddToScript('Reboot', GetYN("Automatically reboot to clean system after install?"))
 
 GetScripts('personal' if personal else 'stable')
 if beta: GetScripts('beta', save=('personal' if personal else 'stable'))

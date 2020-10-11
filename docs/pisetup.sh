@@ -176,12 +176,13 @@ else
 fi
 
 rm githubutil.*
-mv adafruit* consoleinstallleftovers
-mv getinstallinfo.py consoleinstallleftovers
-mv installvals consoleinstallleftovers
-mv adafinput consoleinstallleftovers
-mv installscreencode consoleinstallleftovers
-mv *.log consoleinstallleftovers
+mv adafruit* .consoleinstallleftovers
+mv getinstallinfo.py .consoleinstallleftovers
+mv installvals .consoleinstallleftovers
+mv adafinput .consoleinstallleftovers
+mv installscreencode .consoleinstallleftovers
+mv *.log .consoleinstallleftovers
+rm -r __pycache__
 
 #mv --backup=numbered /etc/rc.local.hold /etc/rc.local
 #chmod +x /etc/rc.local
@@ -198,6 +199,8 @@ if [ "$Reboot" == "Y" ]; then
   echo "Reboot . . ."
   reboot now
   sleep 15
+
+fi
 
 LogBanner "Chose to manually reboot, reboot system to clean up install"
 #  cd /home/pi
