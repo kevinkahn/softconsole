@@ -19,7 +19,7 @@ if os.getegid() != 0:
 print("*** Setupconsole ***")
 piuid = pwd.getpwnam('pi')[2]
 pigrp = grp.getgrnam('pi')[2]
-for pdir in ('Console', 'consolestable', 'consolebeta', 'consolerem', 'consoledev'):
+for pdir in ('Console', 'consolestable', 'consolebeta', 'consolerem', 'consoledev', 'Console/cfglib'):
 	# noinspection PyBroadException
 	try:
 		os.mkdir(pdir)

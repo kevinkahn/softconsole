@@ -31,7 +31,7 @@ cd /home/pi/
 LogBanner "Finish Console Installation"
 source installvals
 
-rm setupconsole.* githubutil.*
+rm githubutil.*
 
 # set Console to start automatically at boot
 if [ "$AutoConsole" == "Y" ]; then

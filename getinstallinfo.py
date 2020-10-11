@@ -7,7 +7,7 @@ neededfiles = {'adafruit-pitft-touch-cal': 'https://raw.githubusercontent.com/ad
 gitselector = {'stable': 'currentrelease', 'personal': 'homerelease', 'beta': 'currentbeta'}
 gitprefix = 'https://raw.githubusercontent.com/kevinkahn/softconsole/'
 installscripts = {'finishinstall.sh': 'docs/', 'vncserverpi.service': 'scripts/', 'lxterminal.conf': 'scripts/',
-				  'setupconsole.py': '', 'githubutil.py': ''}
+				  'githubutil.py': ''}
 
 
 def GetScripts(vers, save=''):
@@ -147,6 +147,9 @@ AddToScript('Buster', 'Y' if Buster else 'N')
 AddToScript('NodeName', GetVal("What name for this system?"))
 AddToScript('VNCstdPort', GetYN("Install VNC on standard port (Y/N/alt port number)?", Allownum=True))
 personal = GetYN("Is this the developer personal system (Y/N) (bit risky to say Y if it not)?")
+if personal:
+	with open('homesystem', 'w') as f:
+		f.write('homesystem\n')
 AddToScript('Personal', personal)
 beta = GetYN("Download current beta as well as stable? (usually waste of time)")
 AddToScript('InstallBeta', beta)
@@ -207,6 +210,22 @@ ISYPWD = ""
 exswitch = ""
 MinExamp = GetYN("Set up minimal example system?")
 
+print("Set up directory environment for console")
+
+with open('versionselector', 'w') as f:
+	f.write('stable\n')
+
+dirs = ['Console', 'consolestable', 'consolebeta', 'consolerem', 'consoledev', 'Console', 'Console/cfglib']
+if personal: dirs.append('consolecur')
+for pdir in dirs:
+	# noinspection PyBroadException
+	try:
+		os.mkdir(pdir)
+		print("Created: " + str(pdir))
+	except:
+		print("Already present: " + str(pdir))
+	shutil.chown(pdir, user='pi', group='pi')
+
 if MinExamp:
 	go = False
 	while not go:
@@ -225,7 +244,7 @@ if MinExamp:
 		print("PASSWORD: " + ISYPWD)
 		print("SWITCH:   " + "[[" + exswitch + "]]")
 		go = GetYN("OK? (y/n)")
-	with open('/home/pi/Consoleauth', "w") as f:
+	with open('/home/pi/Console/cfglib/auth.cfg', "w") as f:
 		cfg = ("[" + ISYname + "]",
 			   "type = ISY",
 			   "address = " + ISYIP,
@@ -233,7 +252,7 @@ if MinExamp:
 			   "password = " + ISYPWD,
 			   "\n")
 		f.write("\n".join(cfg))
-	with open('/home/pi/ConsoleMinEx', 'w') as f:
+	with open('/home/pi/Console/config.txt', 'w') as f:
 		cfg = ('cfglib = cfglib',
 			   'include = auth.cfg, myclock.cfg',
 			   'DefaultHub = ' + ISYname,
@@ -259,21 +278,6 @@ if MinExamp:
 else:
 	print("    Skip minimal example configuration")
 
-print("Set up directory environment for console")
-
-with open('versionselector', 'w') as f:
-	f.write('stable\n')
-
-dirs = ['Console', 'consolestable', 'consolebeta', 'consolerem', 'consoledev']
-if personal: dirs.append('consolecur')
-for pdir in dirs:
-	# noinspection PyBroadException
-	try:
-		os.mkdir(pdir)
-		print("Created: " + str(pdir))
-	except:
-		print("Already present: " + str(pdir))
-	shutil.chown(pdir, user='pi', group='pi')
 
 import githubutil as U
 
@@ -293,10 +297,6 @@ if beta:
 	print('Stage beta also')
 	U.InstallStagedVersion('consolebeta')
 	print('Intalled staged beta')
-
-if MinExamp:
-	shutil.move('Consoleauth', 'Console/cfglib/auth.cfg')
-	shutil.move('ConsoleMinEx', 'Console/config.txt')
 
 if os.path.exists('/boot/auth'):
 	shutil.rmtree('Console/local', ignore_errors=True)
