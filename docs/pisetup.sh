@@ -204,4 +204,4 @@ EOF
   reboot now
 fi
 sleep 15
-LogBanner "Chose to manually reboot and run installconsole.sh"
+LogBanner "Chose to manually reboot and run finishinstall.sh"
