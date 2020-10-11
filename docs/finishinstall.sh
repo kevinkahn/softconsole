@@ -31,29 +31,8 @@ cd /home/pi/
 LogBanner "Finish Console Installation"
 source installvals
 
-rm githubutil.*
-
-# set Console to start automatically at boot
-if [ "$AutoConsole" == "Y" ]; then
-  LogBanner "Set Console to Start at Boot"
-  systemctl enable softconsole.service
-else
-  LogBanner "Set No Console Autostart at Boot"
-fi
-
-if [ -e /usr/lib/systemd/system/vncserverpi.service ]; then
-  LogBanner "Enable VNC"
-  systemctl enable vncserverpi
-fi
-
-mv adafruit* consoleinstallleftovers
-mv getinstallinfo.py consoleinstallleftovers
 mv doinstall.sh consoleinstallleftovers
-mv installc* consoleinstallleftovers
-mv installvals consoleinstallleftovers
-mv adafinput consoleinstallleftovers
-mv installscreencode consoleinstallleftovers
-mv *.log consoleinstallleftovers
+
 mv finishinstall.sh consoleinstallleftovers
 
 LogBanner "Install and setup finished"

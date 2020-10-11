@@ -17,7 +17,7 @@ if [[ "$EUID" -ne 0 ]]; then
   exit
 fi
 
-exec > >(tee -a /home/pi/earlyprep.log)
+exec > >(tee -a /home/pi/prep.log)
 exec 2>&1
 
 cd /home/pi
@@ -124,6 +124,7 @@ if [ $VNCstdPort == "N" ]; then
 else
   echo "VNC service file installed"
   mv /home/pi/vncserverpi.service /usr/lib/systemd/system
+  systemctl enable vncserverpi
 fi
 
 # Save initial rc.local to restore after helper scripts run
@@ -166,10 +167,26 @@ LogBanner "Completed screen specific install code"
 #    ;;
 #esac
 
-mv --backup=numbered /etc/rc.local.hold /etc/rc.local
-chmod +x /etc/rc.local
+# set Console to start automatically at boot
+if [ "$AutoConsole" == "Y" ]; then
+  LogBanner "Set Console to Start at Boot"
+  systemctl enable softconsole.service
+else
+  LogBanner "Set No Console Autostart at Boot"
+fi
 
-LogBanner "Reboot now finishinstall.sh will autorun as root unless aborted"
+rm githubutil.*
+mv adafruit* consoleinstallleftovers
+mv getinstallinfo.py consoleinstallleftovers
+mv installvals consoleinstallleftovers
+mv adafinput consoleinstallleftovers
+mv installscreencode consoleinstallleftovers
+mv *.log consoleinstallleftovers
+
+#mv --backup=numbered /etc/rc.local.hold /etc/rc.local
+#chmod +x /etc/rc.local
+
+#LogBanner "Reboot now finishinstall.sh will autorun as root unless aborted"
 
 if [ "$Reboot" == "Y" ]; then
 
@@ -179,29 +196,33 @@ if [ "$Reboot" == "Y" ]; then
     sleep 1
   done
   echo "Reboot . . ."
-  cd /home/pi
-  mv .bashrc .bashrc.real
-  cat >.bashrc <<EOF
-cd /home/pi
-source .bashrc.real
-cp .bashrc .bashrc.sav
-mv -f .bashrc.real .bashrc
-touch /home/pi/CONSOLEINSTALLRUNNING
-sleep 15 # delay to allow X system to startup for next command (is this long enough in a Pi0)
-#DISPLAY=:0.0 x-terminal-emulator -t "Console Install" --geometry=40x17 -e sudo bash /home/pi/doinstall.sh 2>> /home/pi/di.log
-sudo bash /home/pi/doinstall.sh 2>> /home/pi/di.log
-EOF
-  cat >doinstall.sh <<EOF
-echo Autorunning console install in 10 second - ctl-c to stop
-for i in 10 9 8 7 6 5 4 3 2 1
-    do
-      echo finishinstall.sh start in \$i
-      sleep 1
-    done
-sudo bash -c "echo 1 > /proc/sys/vm/drop_caches"  # trying to avoid the kswap issue
-sudo bash ./finishinstall.sh
-EOF
   reboot now
-fi
-sleep 15
-LogBanner "Chose to manually reboot and run finishinstall.sh"
+  sleep 15
+
+LogBanner "Chose to manually reboot, reboot system to clean up install"
+#  cd /home/pi
+#  mv .bashrc .bashrc.real
+#  cat >.bashrc <<EOF
+#cd /home/pi
+#source .bashrc.real
+#cp .bashrc .bashrc.sav
+#mv -f .bashrc.real .bashrc
+#touch /home/pi/CONSOLEINSTALLRUNNING
+#sleep 15 # delay to allow X system to startup for next command (is this long enough in a Pi0)
+#DISPLAY=:0.0 x-terminal-emulator -t "Console Install" --geometry=40x17 -e sudo bash /home/pi/doinstall.sh 2>> /home/pi/di.log
+#sudo bash /home/pi/doinstall.sh 2>> /home/pi/di.log
+#EOF
+#  cat >doinstall.sh <<EOF
+#echo Autorunning console install in 10 second - ctl-c to stop
+#for i in 10 9 8 7 6 5 4 3 2 1
+#    do
+#      echo finishinstall.sh start in \$i
+#      sleep 1
+#    done
+#sudo bash -c "echo 1 > /proc/sys/vm/drop_caches"  # trying to avoid the kswap issue
+#sudo bash ./finishinstall.sh
+#EOF
+#  reboot now
+#fi
+#sleep 15
+#LogBanner "Chose to manually reboot and run finishinstall.sh"
