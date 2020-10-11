@@ -1,5 +1,22 @@
-import sys, time
+import sys, time, os, wget, stat, shutil
 from functools import partial as p
+
+neededfiles = {'adafruit-pitft-touch-cal': 'https://raw.githubusercontent.com/adafruit/Adafruit-PiTFT-Helper/master/',
+			   'adafruit-pitft.sh': 'https://raw.githubusercontent.com/adafruit/Raspberry-Pi-Installer-Scripts/master/'}
+
+gitselector = {'stable': 'currentrelease', 'personal': 'homerelease', 'beta': 'currentbeta'}
+gitprefix = 'https://raw.githubusercontent.com/kevinkahn/softconsole/'
+installscripts = {'installconsole.sh': 'docs/', 'vncserverpi.service': 'scripts/', 'lxterminal.conf': 'scripts/'}
+
+
+def GetScripts(vers, save=''):
+	if save != '':
+		for s in installscripts:
+			os.rename(s, 'consoleinstallleftovers/' + s + '.' + save)
+	for n, loc in installscripts.items():
+		wget.download(gitprefix + gitselector[vers] + '/' + loc + n, n, bar=None)
+	os.chmod('installconsole.sh', stat.S_IXUSR)
+	shutil.chown('lxterminal.conf', user='pi', group='pi')
 
 
 def GetYN(prompt, Allownum=False):
@@ -78,9 +95,9 @@ def adafruit(scr, rot):
 	fout.write('Y\n')  # pi console to pitft
 	fout.write('N\n')  # don't reboot
 	fout.close()
-	return ("echo Adafruit {} screen\n".format(scr),
+	return ["echo Adafruit {} screen\n".format(scr),
 			"./adafruit-pitft.sh < adafinput\n",
-			"raspi-config nonint do_boot_behaviour B4 # set boot to desktop already logged in\n")
+			"raspi-config nonint do_boot_behaviour B4 # set boot to desktop already logged in\n"]
 
 
 def doflip(scr):
@@ -92,14 +109,27 @@ def doflip(scr):
 	flip = GetYN("Flip 7 inch screen so power at top using hardware option? (Y/N)")
 	if flip:
 		baseorientation['pi7'] = 'power at top'
-		return ('echo Flip 7 inch screen\n', 'echo "lcd_rotate=2" >> /boot/config.txt\n')
+		return ['echo Flip 7 inch screen\n', 'echo "lcd_rotate=2" >> /boot/config.txt\n']
 	else:
-		return ('echo Nornmal 7 inch screen\n',)
+		return ['echo Nornmal 7 inch screen\n', ]
 
 
 def noscreen(scr):
 	return ('echo User setup screen with type: {}\n'.format(scr),)
 
+
+# Start of script
+
+shutil.rmtree('consoleinstallleftovers', ignore_errors=True)
+os.mkdir('consoleinstallleftovers')
+
+for n, loc in neededfiles.items():
+	try:
+		os.remove(n)
+	except Exception:
+		pass
+	wget.download(loc + n, n, bar=None)
+	os.chmod(n, stat.S_IXUSR)
 
 print("**************************************************************", flush=True)
 print("**************************************************************", flush=True)
@@ -115,10 +145,15 @@ with open('/etc/issue') as f:
 AddToScript('Buster', 'Y' if Buster else 'N')
 AddToScript('NodeName', GetVal("What name for this system?"))
 AddToScript('VNCstdPort', GetYN("Install VNC on standard port (Y/N/alt port number)?", Allownum=True))
-AddToScript('Personal', GetYN("Is this the developer personal system (Y/N) (bit risky to say Y if it not)?"))
-AddToScript('InstallBeta', GetYN("Download current beta as well as stable? (usually waste of time)"))
+personal = GetYN("Is this the developer personal system (Y/N) (bit risky to say Y if it not)?")
+AddToScript('Personal', personal)
+beta = GetYN("Download current beta as well as stable? (usually waste of time)")
+AddToScript('InstallBeta', beta)
 AddToScript('AutoConsole', GetYN("Autostart console (Y/N)?"))
 AddToScript('Reboot', GetYN("Automatically reboot to continue install after system setup?"))
+
+GetScripts('personal' if personal else 'stable')
+if beta: GetScripts('beta', save=('personal' if personal else 'stable'))
 
 screentype = '--'
 supportedscreens = ('28r', '28c', '35r', 'pi7')
@@ -136,10 +171,6 @@ else:
 	screentype = GetVal("Enter name of screen for console reference:")
 	screeninstallcode[screentype] = p(noscreen, screentype)
 
-fout = open('installvals', 'w')
-fout.writelines(scriptvars)
-fout.close()
-
 installsrc = screeninstallcode[screentype]()
 
 rot = 0
@@ -152,6 +183,7 @@ if screentype in baseorientation:
 	print("     2: 180 degrees counterclockwise (vertical flip)")
 	print("     3: 270 degrees counterclockwise")
 	rot = GetInt('Rotation option:', (0, 1, 2, 3, 4))
+	if rot != 0: installsrc.append('echo Soft rotation code {}\n'.format(rot))
 
 screentp = screentype + 'B' if Buster else screentype
 
@@ -160,6 +192,8 @@ if rot == 0:
 else:
 	AddToScript('ScreenType', screentp + ',' + str(rot))
 
+with open('installvals', 'w') as f:
+	f.writelines(scriptvars)
 with open('installscreencode', 'w') as f:
 	f.writelines(installsrc)
 
@@ -232,10 +266,12 @@ print(" After that it will install the softconsole using your input", flush=True
 print("****************************************************************", flush=True)
 print("****************************************************************", flush=True)
 # todo automate a fix?
-print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-print(" NOTE!!! ")
-print(" If you are using the 28c screen, the settings from Adafruit that")
-print(" sets up are likely wrong.  Look at /boot/config.txt")
-print(" Next to last line should be: dtoverlay=pitft28-capacitive,rotate=180")
-print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-time.sleep(10)
+if screentype == '28c':
+	print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+	print(" NOTE!!! ")
+	print(" If you are using the 28c screen, the settings from Adafruit that")
+	print(" sets up are likely wrong.  Look at /boot/config.txt")
+	print(" Next to last line should be: dtoverlay=pitft28-capacitive,rotate=180")
+	print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+	time.sleep(10)
+time.sleep(3)

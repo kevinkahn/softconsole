@@ -23,7 +23,6 @@ exec 2>&1
 cd /home/pi
 LogBanner "This is the system setup script"
 LogBanner "Connect WiFI if needed"
-mkdir consoleinstallleftovers
 read -p "Press Enter to continue"
 
 LogBanner "Install Python2/3 Compatibility Support"
@@ -34,6 +33,7 @@ LogBanner "Switch default Python to Python3"
 update-alternatives --install /usr/bin/python python /usr/bin/python3 2
 update-alternatives --install /usr/bin/python python /usr/bin/python2 1
 update-alternatives --set python /usr/bin/python3
+pip install wget
 
 LogBanner "Set Time Zone"
 dpkg-reconfigure tzdata
@@ -41,9 +41,6 @@ LogBanner "Pi User Password"
 sudo passwd pi
 
 wget https://raw.githubusercontent.com/kevinkahn/softconsole/master/getinstallinfo.py
-wget https://raw.githubusercontent.com/adafruit/Adafruit-PiTFT-Helper/master/adafruit-pitft-touch-cal
-wget https://raw.githubusercontent.com/adafruit/Raspberry-Pi-Installer-Scripts/master/adafruit-pitft.sh
-chmod +x adafruit-pitft-touch-cal adafruit-pitft.sh
 
 python getinstallinfo.py
 if [ $? -ne 0 ]; then
@@ -58,33 +55,6 @@ DEBIAN_FRONTEND=noninteractive apt-get -y upgrade
 echo "deb http://mirrordirector.raspbian.org/raspbian/ stretch main contrib non-free rpi firmware" >>/etc/apt/sources.list.d/raspi.list
 
 source installvals
-
-if [ "$Personal" == "Y" ]; then
-  echo Get homerelease versions of setup scripts
-  wget https://raw.githubusercontent.com/kevinkahn/softconsole/homerelease/docs/installconsole.sh
-  wget https://raw.githubusercontent.com/kevinkahn/softconsole/homerelease/scripts/vncserverpi.service
-  wget https://raw.githubusercontent.com/kevinkahn/softconsole/homerelease/scripts/lxterminal.conf
-else
-  # NOTE to test with current master version from github replace "currentrelease" with 'master'
-  echo Get currentrelease version of setup scripts
-  wget https://raw.githubusercontent.com/kevinkahn/softconsole/currentrelease/docs/installconsole.sh
-  wget https://raw.githubusercontent.com/kevinkahn/softconsole/currentrelease/scripts/vncserverpi.service
-  wget https://raw.githubusercontent.com/kevinkahn/softconsole/currentrelease/scripts/lxterminal.conf
-# fix issue in adafruit install script as of 3/31/2018
-fi
-if [ "$InstallBeta" == "Y" ]; then
-  echo use beta install scripts
-  mv installconsole.sh consoleinstallleftovers/stable-installconsole.sh
-  mv screeninstall.py consoleinstallleftovers/stable-screeninstall.py
-  mv vncserverpi.service consoleinstallleftovers/stable-vncserverpi.service
-  mv lxterminal.conf consoleinstallleftovers/stable-lxterminal.conf
-  wget https://raw.githubusercontent.com/kevinkahn/softconsole/currentbeta/docs/installconsole.sh
-  wget https://raw.githubusercontent.com/kevinkahn/softconsole/currentbeta/scripts/vncserverpi.service
-  wget https://raw.githubusercontent.com/kevinkahn/softconsole/currentbeta/scripts/lxterminal.conf
-fi
-
-chmod +x installconsole.sh
-chown pi:pi lxterminal.conf
 
 LogBanner "Force WiFi to US"
 COUNTRY=US
@@ -160,7 +130,7 @@ cp /etc/rc.local /etc/rc.local.hold # helper script below screws up rc.local
 
 cd /home/pi
 
-if [ $Buster == 'N']; then
+if [ $Buster == 'N' ]; then
   sed -isav s/fb0/fb1/ /usr/share/X11/xorg.conf.d/99-fbturbo.conf
 fi
 
