@@ -46,7 +46,6 @@ if [ -e /usr/lib/systemd/system/vncserverpi.service ]; then
   systemctl enable vncserverpi
 fi
 
-
 mv adafruit* consoleinstallleftovers
 mv getinstallinfo.py consoleinstallleftovers
 mv doinstall.sh consoleinstallleftovers
