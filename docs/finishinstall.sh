@@ -46,15 +46,16 @@ if [ -e /usr/lib/systemd/system/vncserverpi.service ]; then
   systemctl enable vncserverpi
 fi
 
-mv prep.log earlyprep.log consoleinstallleftovers
+
 mv adafruit* consoleinstallleftovers
 mv getinstallinfo.py consoleinstallleftovers
 mv doinstall.sh consoleinstallleftovers
 mv installc* consoleinstallleftovers
 mv installvals consoleinstallleftovers
 mv adafinput consoleinstallleftovers
-mv di.log consoleinstallleftovers
 mv installscreencode consoleinstallleftovers
+mv *.log consoleinstallleftovers
+mv finishinstall.sh consoleinstallleftovers
 
 LogBanner "Install and setup finished"
 rm -f /home/pi/CONSOLEINSTALLRUNNING

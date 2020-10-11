@@ -210,22 +210,6 @@ ISYPWD = ""
 exswitch = ""
 MinExamp = GetYN("Set up minimal example system?")
 
-print("Set up directory environment for console")
-
-with open('versionselector', 'w') as f:
-	f.write('stable\n')
-
-dirs = ['Console', 'consolestable', 'consolebeta', 'consolerem', 'consoledev', 'Console', 'Console/cfglib']
-if personal: dirs.append('consolecur')
-for pdir in dirs:
-	# noinspection PyBroadException
-	try:
-		os.mkdir(pdir)
-		print("Created: " + str(pdir))
-	except:
-		print("Already present: " + str(pdir))
-	shutil.chown(pdir, user='pi', group='pi')
-
 if MinExamp:
 	go = False
 	while not go:
@@ -244,6 +228,24 @@ if MinExamp:
 		print("PASSWORD: " + ISYPWD)
 		print("SWITCH:   " + "[[" + exswitch + "]]")
 		go = GetYN("OK? (y/n)")
+
+print("Set up directory environment for console")
+
+with open('versionselector', 'w') as f:
+	f.write('stable\n')
+
+dirs = ['Console', 'consolestable', 'consolebeta', 'consolerem', 'consoledev', 'Console', 'Console/cfglib']
+if personal: dirs.append('consolecur')
+for pdir in dirs:
+	# noinspection PyBroadException
+	try:
+		os.mkdir(pdir)
+		print("Created: " + str(pdir))
+	except:
+		print("Already present: " + str(pdir))
+	shutil.chown(pdir, user='pi', group='pi')
+
+if MinExamp:
 	with open('/home/pi/Console/cfglib/auth.cfg', "w") as f:
 		cfg = ("[" + ISYname + "]",
 			   "type = ISY",
@@ -277,9 +279,11 @@ if MinExamp:
 	print("    Create minimal example configuration")
 else:
 	print("    Skip minimal example configuration")
-
+print('---------------------', flush=True)
 
 import githubutil as U
+
+print('Download console code', flush=True)
 
 if personal:
 	# personal system
@@ -290,7 +294,7 @@ else:
 	print("Stage standard stable release")
 
 U.InstallStagedVersion('consolestable')
-print('Installed stable version')
+print('Installed stable version', flush=True)
 
 if beta:
 	U.StageVersion('consolebeta', 'currentbeta', 'Initial Install')
