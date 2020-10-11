@@ -1,4 +1,4 @@
-import sys, time, os, wget, stat, shutil
+import sys, time, os, wget, stat, shutil, subprocess
 from functools import partial as p
 
 neededfiles = {'adafruit-pitft-touch-cal': 'https://raw.githubusercontent.com/adafruit/Adafruit-PiTFT-Helper/master/',
@@ -6,7 +6,8 @@ neededfiles = {'adafruit-pitft-touch-cal': 'https://raw.githubusercontent.com/ad
 
 gitselector = {'stable': 'currentrelease', 'personal': 'homerelease', 'beta': 'currentbeta'}
 gitprefix = 'https://raw.githubusercontent.com/kevinkahn/softconsole/'
-installscripts = {'installconsole.sh': 'docs/', 'vncserverpi.service': 'scripts/', 'lxterminal.conf': 'scripts/'}
+installscripts = {'finishinstall.sh': 'docs/', 'vncserverpi.service': 'scripts/', 'lxterminal.conf': 'scripts/',
+				  'setupconsole.py': '', 'githubutil.py': ''}
 
 
 def GetScripts(vers, save=''):
@@ -15,7 +16,7 @@ def GetScripts(vers, save=''):
 			os.rename(s, 'consoleinstallleftovers/' + s + '.' + save)
 	for n, loc in installscripts.items():
 		wget.download(gitprefix + gitselector[vers] + '/' + loc + n, n, bar=None)
-	os.chmod('installconsole.sh', stat.S_IXUSR)
+	os.chmod('finishinstall.sh', stat.S_IXUSR)
 	shutil.chown('lxterminal.conf', user='pi', group='pi')
 
 
@@ -187,10 +188,11 @@ if screentype in baseorientation:
 
 screentp = screentype + 'B' if Buster else screentype
 
-if rot == 0:
-	AddToScript('ScreenType', screentp)
-else:
-	AddToScript('ScreenType', screentp + ',' + str(rot))
+with open('.Screentype', 'w') as f:
+	if rot == 0:
+		f.write(screentp)
+	else:
+		f.write(screentp + ',' + str(rot))
 
 with open('installvals', 'w') as f:
 	f.writelines(scriptvars)
@@ -256,6 +258,50 @@ if MinExamp:
 	print("    Create minimal example configuration")
 else:
 	print("    Skip minimal example configuration")
+
+print("Set up directory environment for console")
+
+with open('versionselector', 'w') as f:
+	f.write('stable\n')
+
+dirs = ['Console', 'consolestable', 'consolebeta', 'consolerem', 'consoledev']
+if personal: dirs.append('consolecur')
+for pdir in dirs:
+	# noinspection PyBroadException
+	try:
+		os.mkdir(pdir)
+		print("Created: " + str(pdir))
+	except:
+		print("Already present: " + str(pdir))
+	shutil.chown(pdir, user='pi', group='pi')
+
+import githubutil as U
+
+if personal:
+	# personal system
+	U.StageVersion('consolestable', 'homerelease', 'Initial Install')
+	print("Stage homerelease as stable")
+else:
+	U.StageVersion('consolestable', 'currentrelease', 'Initial Install')
+	print("Stage standard stable release")
+
+U.InstallStagedVersion('consolestable')
+
+if beta:
+	U.StageVersion('consolebeta', 'currentbeta', 'Initial Install')
+	print('Stage beta also')
+	U.InstallStagedVersion('consolebeta')
+	print('Intalled staged beta')
+
+if MinExamp:
+	shutil.move('Consoleauth', 'Console/cfglib/auth.cfg')
+	shutil.move('ConsoleMinEx', 'Console/config.txt')
+
+if os.path.exists('/boot/auth'):
+	shutil.rmtree('Console/local', ignore_errors=True)
+	shutil.move('/boot/auth', 'Console/local')
+
+subprocess.call("cp -r /home/pi/consolestable/'example configs'/* /home/pi/Console", shell=True)
 
 print("****************************************************************", flush=True)
 print("****************************************************************", flush=True)

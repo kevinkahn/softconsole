@@ -33,6 +33,7 @@ LogBanner "Switch default Python to Python3"
 update-alternatives --install /usr/bin/python python /usr/bin/python3 2
 update-alternatives --install /usr/bin/python python /usr/bin/python2 1
 update-alternatives --set python /usr/bin/python3
+pip install --upgrade pip
 pip install wget
 
 LogBanner "Set Time Zone"
