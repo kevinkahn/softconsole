@@ -190,9 +190,9 @@ screentp = screentype + 'B' if Buster else screentype
 
 with open('.Screentype', 'w') as f:
 	if rot == 0:
-		f.write(screentp)
+		f.write(screentp + '\n')
 	else:
-		f.write(screentp + ',' + str(rot))
+		f.write(screentp + ',' + str(rot) + '\n')
 
 with open('installvals', 'w') as f:
 	f.writelines(scriptvars)
@@ -286,6 +286,7 @@ else:
 	print("Stage standard stable release")
 
 U.InstallStagedVersion('consolestable')
+print('Installed stable version')
 
 if beta:
 	U.StageVersion('consolebeta', 'currentbeta', 'Initial Install')

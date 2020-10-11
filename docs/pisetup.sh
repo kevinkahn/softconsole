@@ -169,8 +169,7 @@ LogBanner "Completed screen specific install code"
 mv --backup=numbered /etc/rc.local.hold /etc/rc.local
 chmod +x /etc/rc.local
 
-LogBanner "Reboot now installconsole.sh will autorun as root unless aborted"
-echo "Install will set Personal $Personal and AutoConsole $AutoConsole"
+LogBanner "Reboot now finishinstall.sh will autorun as root unless aborted"
 
 if [ "$Reboot" == "Y" ]; then
 
@@ -196,12 +195,13 @@ EOF
 echo Autorunning console install in 10 second - ctl-c to stop
 for i in 10 9 8 7 6 5 4 3 2 1
     do
-      echo installconsole.sh start in \$i
+      echo finishinstall.sh start in \$i
       sleep 1
     done
 sudo bash -c "echo 1 > /proc/sys/vm/drop_caches"  # trying to avoid the kswap issue
-sudo bash ./installconsole.sh $Personal $AutoConsole $InstallBeta
+sudo bash ./finishinstall.sh
 EOF
   reboot now
 fi
+sleep 15
 LogBanner "Chose to manually reboot and run installconsole.sh"
