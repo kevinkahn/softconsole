@@ -212,21 +212,25 @@ class StatusDisplayScreen(screen.BaseKeyScreenDesc):
 		hw.screen.blit(header, (10, 60))
 		for nd, ndinfo in Nodes.items():
 			try:
-				statinfo = Nodes[nd]['stats']['System']
-				if statinfo['maincyclecnt'] == 'unknown*':
-					stat = ndinfo['status']
-					qmax = '     '
-				else:
-					stat = '{} cyc'.format(statinfo['maincyclecnt']) if ndinfo['status'] in (
-						'idle', 'active') else ndinfo['status']
-					qmax = '{:4.2f} '.format(statinfo['queuetimemax24'])
-				active = '*' if ndinfo['status'] == 'active' else ' '
 				if ndinfo['status'] in ('dead', 'unknown'):
 					estat = ''
 					cstat = "{:14.14s}".format(' ')
+					stat = ndinfo['status']
+					qmax = '     '
 				else:
 					estat = ' ' if ndinfo['error'] == -1 else '?' if ndinfo['error'] == -1 else '*'
 					cstat = " {:>15.15s}".format(status_interval_str(ndinfo['uptime']))
+
+					statinfo = Nodes[nd]['stats']['System']
+					if statinfo['maincyclecnt'] == 'unknown*':
+						stat = ndinfo['status']
+						qmax = '     '
+					else:
+						stat = '{} cyc'.format(statinfo['maincyclecnt']) if ndinfo['status'] in (
+							'idle', 'active') else ndinfo['status']
+						qmax = '{:4.2f} '.format(statinfo['queuetimemax24'])
+
+				active = '*' if ndinfo['status'] == 'active' else ' '
 
 				if ndinfo['boottime'] == 0:
 					bt = "{:^19.19}".format('unknown')
@@ -246,7 +250,7 @@ class StatusDisplayScreen(screen.BaseKeyScreenDesc):
 				hw.screen.blit(ln, (20, linestart))
 				linestart += int(ht * 1.2)
 			except Exception as E:
-				logsupport.Logs.Log('Error displaying node status for {} Exc: {}'.format(nd, E),
+				logsupport.Logs.Log('Error displaying node status for {} Exc: {} Data: {}'.format(nd, E, ndinfo),
 									severity=logsupport.ConsoleWarning)
 
 		displayupdate.updatedisplay()

@@ -317,10 +317,11 @@ print("****************************************************************", flush=
 # todo automate a fix?
 if screentype == '28c':
 	print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-	print(" NOTE!!! ")
+	print(" NOTE!!! NOTE!!! NOTE!!!")
 	print(" If you are using the 28c screen, the settings from Adafruit that")
 	print(" sets up are likely wrong.  Look at /boot/config.txt")
 	print(" Next to last line should be: dtoverlay=pitft28-capacitive,rotate=180")
+	print(" It may well show as rotate=90 after install due to bugs in their scripts")
 	print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
 	time.sleep(10)
 time.sleep(3)
