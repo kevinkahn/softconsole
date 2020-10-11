@@ -15,7 +15,6 @@ def GetScripts(vers, save=''):
 			os.rename(s, '.consoleinstallleftovers/' + s + '.' + save)
 	for n, loc in installscripts.items():
 		wget.download(gitprefix + gitselector[vers] + '/' + loc + n, n, bar=None)
-	os.chmod('finishinstall.sh', stat.S_IXUSR)
 	shutil.chown('lxterminal.conf', user='pi', group='pi')
 
 
