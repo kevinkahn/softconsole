@@ -291,8 +291,8 @@ class CommandScreen(screen.BaseKeyScreenDesc):
 													size=(butwidth, butht),
 													proc=None if offline else functools.partial(self.ShowCmds,
 																								'Regular', nd),
-													procdbl=None if offline else functools.partial(self.ShowCmds,
-																								   'Advanced', nd))
+													procdbl=functools.partial(self.ShowCmds, 'Dead', nd) if offline
+													else functools.partial(self.ShowCmds, 'Advanced', nd))
 			if not odd: vt += butht + 3
 			odd = not odd
 
@@ -300,7 +300,8 @@ class CommandScreen(screen.BaseKeyScreenDesc):
 					'label': ['Maintenance'],
 					'DimTO': 60, 'PersistTO': 5, 'ScreenTitle': 'Placeholder'}
 
-		CmdSet = {'Regular': configobj.ConfigObj(CmdProps), 'Advanced': configobj.ConfigObj(CmdProps)}
+		CmdSet = {'Regular': configobj.ConfigObj(CmdProps), 'Advanced': configobj.ConfigObj(CmdProps),
+				  'Dead': configobj.ConfigObj(CmdProps)}
 
 		for cmd, action in issuecommands.cmdcalls.items():
 			DN = action.DisplayName.split(' ')
@@ -309,12 +310,15 @@ class CommandScreen(screen.BaseKeyScreenDesc):
 				keyspecs.internalprocs['Command' + cmd] = functools.partial(self.IssueSimpleCmd, cmd)
 				if action.simple:
 					CmdSet[whichscreen][cmd] = {"type": "REMOTEPROC", "ProcName": 'Command' + cmd, "label": DN,
-								 "Verify": action.Verify}
+												"Verify": action.Verify}
 				else:
 					CmdSet[whichscreen][cmd] = {"type": "REMOTECPLXPROC", "ProcName": 'Command' + cmd, "label": DN,
-								 "Verify": action.Verify, "EventProcName": 'Commandresp' + cmd}
+												"Verify": action.Verify, "EventProcName": 'Commandresp' + cmd}
 					keyspecs.internalprocs['Commandresp' + cmd] = self.RespProcs[cmd]
-
+			elif issuecommands.Where.RemoteMenuDead in action.where:
+				keyspecs.internalprocs['Command' + cmd] = functools.partial(self.IssueDeadCmd, cmd)
+				CmdSet['Dead'][cmd] = {"type": "REMOTEPROC", "ProcName": 'Command' + cmd, "label": DN,
+									   "Verify": action.Verify}
 		self.entered = ''
 		self.CmdListScreens = {}
 		for t, s in CmdSet.items():
@@ -333,6 +337,16 @@ class CommandScreen(screen.BaseKeyScreenDesc):
 			Key.ExpectedNumResponses = 1
 			config.MQTTBroker.Publish('cmd', '{}|{}|{}'.format(cmd, hw.hostname, MsgSeq), self.FocusNode)
 		self.CmdListScreens[self.entered].AddToHubInterestList(config.MQTTBroker, cmd, Key)
+
+	def IssueDeadCmd(self, cmd, Key=None):
+		# local processing only for a command regarding a dead node
+		if cmd == 'deletehistory':
+			del Nodes[self.FocusNode]
+			config.MQTTBroker.Publish('status', node=self.FocusNode, retain=True)
+			config.MQTTBroker.Publish(self.FocusNode, node='all/nodes', retain=True)
+			logsupport.Logs.Log("Purging network history of node {}".format(self.FocusNode))
+		else:
+			logsupport.Logs.Log('Internal error on dead node command: {} for {}'.format(cmd, self.FocusNode))
 
 	def ShowCmds(self, cmdset, nd):
 		self.entered = cmdset

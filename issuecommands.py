@@ -161,14 +161,17 @@ def ClearIndicator(params=None, Key=None):
 	ReportStatus('cleared indicator')
 	CommandResp(Key, 'ok', params, None)
 
+def DelHistory(params=None, Key=None):
+	CommandResp(Key, 'ok', params, None)
 
 Where = Enum('Where',
-			 'LocalMenuExits LocalMenuVersions LocalMenuVersionsAdv RemoteMenu RemoteMenuAdv MQTTCmds')
+			 'LocalMenuExits LocalMenuVersions LocalMenuVersionsAdv RemoteMenu RemoteMenuAdv MQTTCmds RemoteMenuDead')
 MaintVers = (Where.LocalMenuVersions, Where.RemoteMenu, Where.MQTTCmds)
 MaintVersAdv = (Where.LocalMenuVersionsAdv, Where.RemoteMenuAdv, Where.MQTTCmds)
 MaintExits = (Where.LocalMenuExits, Where.RemoteMenu, Where.MQTTCmds)
 RemoteOnly = (Where.RemoteMenu, Where.MQTTCmds)
 RemoteOnlyAdv = (Where.RemoteMenuAdv, Where.MQTTCmds)
+RemoteOnlyDead = (Where.RemoteMenuDead,)
 
 CommandRecord = NamedTuple('CommandRecord',
 						   [('Proc', Callable), ('simple', bool), ('DisplayName', str), ('Verify', str),
@@ -205,7 +208,8 @@ cmdcalls = OrderedDict({
 	'issuewarning': CommandRecord(functools.partial(LogItem, ConsoleWarning), True, "Issue Warning", 'False',
 								  RemoteOnlyAdv, False),
 	'issueinfo': CommandRecord(functools.partial(LogItem, ConsoleInfo), True, "Issue Info", 'False',
-							   RemoteOnlyAdv, False)})
+							   RemoteOnlyAdv, False),
+	'deletehistory': CommandRecord(DelHistory, True, 'Clear History', 'True', RemoteOnlyDead, True)})
 
 
 def IssueCommand(source, cmd, seq, fromnd):
