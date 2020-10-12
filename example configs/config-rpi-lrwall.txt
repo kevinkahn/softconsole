@@ -34,8 +34,8 @@ DefaultHub = HASS
 [LR1]
     type = Keypad
     label = Living, Room 1
-    [[LR Wall Plugs]]
-	label = Wall, Plugs
+#    [[LR Wall Plugs]]
+#	label = Wall, Plugs
     [[LR Dual Spots]]
         label = Dual, Spots
     [[LR Pict Spot]]
