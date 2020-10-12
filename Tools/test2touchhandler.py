@@ -128,7 +128,7 @@ class Touchscreen(object):
 
 	def __init__(self):
 		self.touchdefs = {}
-		with open('touchdefinitions') as f:
+		with open('../touchdefinitions') as f:
 			defs = f.read().splitlines()
 			for l in defs:
 				touchitem = l.split('|')
