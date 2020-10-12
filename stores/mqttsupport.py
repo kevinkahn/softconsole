@@ -209,6 +209,7 @@ class MQTTBroker(valuestore.ValueStore):
 				return rtn
 
 		self.address = configsect.get('address', 'mqtt')
+		self.username = configsect.get('username', None)
 		self.password = configsect.get('password', None)
 		self.reportstatus = configsect.get('ReportStatus', False)
 		self.vars = {}
@@ -222,6 +223,7 @@ class MQTTBroker(valuestore.ValueStore):
 				self.vars[itemname] = _parsesection([itemname], value)
 
 		self.MQTTclient = mqtt.Client(userdata=self)
+		self.MQTTclient.username_pw_set(self.username, self.password)
 		self.MQTTclient.on_connect = on_connect
 		self.MQTTclient.on_message = on_message
 		self.MQTTclient.on_disconnect = on_disconnect
