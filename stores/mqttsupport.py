@@ -211,6 +211,10 @@ class MQTTBroker(valuestore.ValueStore):
 		self.address = configsect.get('address', 'mqtt')
 		self.username = configsect.get('username', None)
 		self.password = configsect.get('password', None)
+		if self.username is not None:
+			self.auth = {"username": self.username, "password": self.password}
+		else:
+			self.auth = None
 		self.reportstatus = configsect.get('ReportStatus', False)
 		self.vars = {}
 		self.ids = {}
@@ -303,7 +307,7 @@ class MQTTBroker(valuestore.ValueStore):
 				logsupport.Logs.Log("{}: Publish attempt with server not running ({})".format(self.name, repr(payload)),
 									severity=ConsoleWarning)
 			else:
-				publish.single(fulltopic, payload, hostname=self.address, qos=qos, retain=retain)
+				publish.single(fulltopic, payload, hostname=self.address, qos=qos, retain=retain, auth=self.auth)
 
 	# noinspection PyUnusedLocal
 	def PushToMQTT(self, storeitem, old, new, param, modifier):
