@@ -32,6 +32,7 @@ class MQTTBroker(valuestore.ValueStore):
 
 	def __init__(self, name, configsect):
 		super().__init__(name, itemtyp=MQitem)
+		self.MQTTCommFailed = False
 		self.MQTTnum = 0
 		self.fetcher = None
 		self.HB = historybuffer.HistoryBuffer(40, name)
@@ -253,7 +254,14 @@ class MQTTBroker(valuestore.ValueStore):
 		config.MQTTBroker = self
 
 	def MQTTLoop(self):
-		self.MQTTclient.connect(self.address, keepalive=20)
+		try:
+			self.MQTTclient.connect(self.address, keepalive=20)
+		except Exception as E:
+			self.MQTTCommFailed = True
+			logsupport.Logs.Log('Exception connecting to MQTT - authentication or server down error ({})'.format(E),
+								severity=ConsoleError)
+			threadmanager.DeleteHelperThread(self.name)
+			return
 		self.MQTTrunning = True
 		self.MQTTnum += 1
 		self.MQTTclient.loop_forever()
@@ -298,17 +306,25 @@ class MQTTBroker(valuestore.ValueStore):
 		self.Publish('resp', payld, node=fromnd)
 
 	def Publish(self, topic, payload=None, node=hw.hostname, qos=1, retain=False, viasvr=False):
+		if self.MQTTCommFailed: return
 		self.sent.Op()
 		fulltopic = 'consoles/' + node + '/' + topic
 		if self.MQTTrunning:
-			self.MQTTclient.publish(fulltopic, payload, qos=qos, retain=retain)
+			try:
+				self.MQTTclient.publish(fulltopic, payload, qos=qos, retain=retain)
+			except Exception as E:
+				self.MQTTCommFailed = True
+				logsupport.Logs.Log('MQTT Publish error ({}).format(repr(E)', severity=ConsoleError)
 		else:
 			if viasvr:
 				logsupport.Logs.Log("{}: Publish attempt with server not running ({})".format(self.name, repr(payload)),
 									severity=ConsoleWarning)
 			else:
-				publish.single(fulltopic, payload, hostname=self.address, qos=qos, retain=retain, auth=self.auth)
-
+				try:
+					publish.single(fulltopic, payload, hostname=self.address, qos=qos, retain=retain, auth=self.auth)
+				except Exception as E:
+					self.MQTTCommFailed = True
+					logsupport.Logs.Log("MQTT single publish error ({})".format(repr(E)), severity=ConsoleError)
 	# noinspection PyUnusedLocal
 	def PushToMQTT(self, storeitem, old, new, param, modifier):
 		self.Publish('/'.join(storeitem.name), str(new))

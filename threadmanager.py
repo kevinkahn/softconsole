@@ -36,6 +36,11 @@ def SetUpHelperThread(name, proc, prestart=None, poststart=None, prerestart=None
 	HelperThreads[name] = ThreadItem(name, proc, prestart, poststart, prerestart, postrestart, checkok, rpterr)
 
 
+def DeleteHelperThread(name):
+	global HelperThreads
+	del HelperThreads[name]
+
+
 def DoRestart(T):
 	T.seq += 1
 	logsupport.Logs.Log("Restarting helper thread (", T.seq, ") for: ", T.name)
