@@ -12,7 +12,6 @@ import PIL.Image
 import logsupport
 from logsupport import ConsoleWarning
 
-
 class PictureScreenDesc(screen.ScreenDesc):
 	def __init__(self, screensection, screenname, Clocked=0):
 		super().__init__(screensection, screenname, Clocked=1)
@@ -63,6 +62,8 @@ class PictureScreenDesc(screen.ScreenDesc):
 	def QueuePics(self):
 		issueerror = True
 		reportedpics = []
+		pictureset = []
+		select = 0
 		while True:
 			dirtime = os.path.getmtime(self.picturedir)
 			if dirtime != self.modtime:
@@ -81,6 +82,7 @@ class PictureScreenDesc(screen.ScreenDesc):
 				picture = pictureset[select]
 			except IndexError:
 				if len(pictureset) == 0:
+					picture = '*Empty*'
 					if issueerror:
 						logsupport.Logs.Log("Empty picture directory for screen {}".format(self.name),
 											severity=ConsoleWarning)
@@ -110,13 +112,15 @@ class PictureScreenDesc(screen.ScreenDesc):
 		if not self.singlepicmode: self.holdtime = 0
 		super().InitDisplay(nav)
 
-	def _preppic(self, pic):
+	@staticmethod
+	def _preppic(pic):
 		rawp = pygame.image.load(pic)
 		try:
 			exif = PIL.Image.open(pic)._getexif()[274]
 		except Exception:
 			exif = 1
-		if exif == 6: rawp = pygame.transform.rotate(rawp, 270)  # use 90 for 8. 180 for 3
+		rot = [0, 0, 0, 180, 0, 0, 270, 0, 90][exif]
+		if rot != 0: rawp = pygame.transform.rotate(rawp, rot)
 		ph = rawp.get_height()
 		pw = rawp.get_width()
 		vertratio = hw.screenheight / ph
