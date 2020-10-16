@@ -10,7 +10,7 @@ import threading, queue
 import os
 import PIL.Image
 import logsupport
-from logsupport import ConsoleWarning
+from logsupport import ConsoleWarning, ConsoleDetail
 
 class PictureScreenDesc(screen.ScreenDesc):
 	def __init__(self, screensection, screenname, Clocked=0):
@@ -154,7 +154,7 @@ class PictureScreenDesc(screen.ScreenDesc):
 					logsupport.Logs.Log('Picture not ready for screen {} holding {} ({})'.format(self.name,
 																								 self.picture,
 																								 self.holdtime),
-										severity=ConsoleWarning)
+										severity=ConsoleDetail)
 		hw.screen.blit(self.picshowing, (self.woffset, self.hoffset))
 
 screens.screentypes["Picture"] = PictureScreenDesc
