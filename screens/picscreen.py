@@ -3,6 +3,7 @@ import screens.__screens as screens
 import pygame
 import debug
 import utilities
+import time
 import hw
 import config
 import threading, queue
@@ -20,39 +21,61 @@ class PictureScreenDesc(screen.ScreenDesc):
 		self.KeyList = None
 		utilities.register_example("PictureScreen", self)
 
-		screen.AddUndefaultedParams(self, screensection, picturedir="", picturetime=5)
-		if self.picturedir == '':
-			self.picturedir = os.path.dirname(config.sysStore.configfile) + '/pics'
-		elif self.picturedir[0] != '/':
-			self.picturedir = os.path.dirname(config.sysStore.configfile) + '/' + self.picturedir
+		screen.AddUndefaultedParams(self, screensection, picturedir="", picturetime=5, singlepic='')
+		self.singlepicmode = self.singlepic != ''
+		if self.singlepicmode:
+			if self.singlepic[0] != '/':
+				self.singlepic = os.path.dirname(config.sysStore.configfile) + '/' + self.singlepic
+			logsupport.Logs.Log('Picture screen {} in single mode for {}'.format(self.name, self.singlepic))
+			self.picturetime = 9999
+		else:
+			if self.picturedir == '':
+				self.picturedir = os.path.dirname(config.sysStore.configfile) + '/pics'
+			elif self.picturedir[0] != '/':
+				self.picturedir = os.path.dirname(config.sysStore.configfile) + '/' + self.picturedir
+			logsupport.Logs.Log('Picture screen {} in directory mode for {}'.format(self.name, self.picturedir))
+
 		self.holdtime = 0
-		self.picshowing = None
-		self.woffset = 0
-		self.hoffset = 0
+		self.blankpic = (pygame.Surface((1, 1)), 1, 1)
+		self.picshowing = self.blankpic[0]
+		self.woffset = 1
+		self.hoffset = 1
 		self.picture = '*none*'
-		self.dirmodtime = 0
+		self.modtime = 0
 		self.picqueue = queue.Queue(maxsize=1)
-		self.queueingthread = threading.Thread(name=self.name + 'qthread', target=self.QueuePics, daemon=True)
+		self.DoSinglePic = threading.Event()
+		self.DoSinglePic.set()
+		self.queueingthread = threading.Thread(name=self.name + 'qthread',
+											   target=[self.QueuePics, self.QueueSinglePic][self.singlepicmode],
+											   daemon=True)
 		self.queueingthread.start()
 
-	# def InitScreen - read the list of pics file to allow updating it
-	# keep a line counter for next pic to display (be careful in case list shortens)
-	# show next piocture for picture time
-	# list file is fn,rotcode  (if no file then just use ls?)
+	def QueueSinglePic(self):
+		while True:
+			pictime = os.path.getmtime(self.singlepic)
+			if pictime != self.modtime:
+				self.modtime = pictime
+				picdescr = self._preppic(self.singlepic)
+				self.picqueue.put(('*single*', picdescr), block=True)
+				self.holdtime = -1
+			time.sleep(1)
 
 	def QueuePics(self):
 		issueerror = True
-		blankpic = (pygame.Surface((1, 1)), 1, 1)
 		reportedpics = []
 		while True:
 			dirtime = os.path.getmtime(self.picturedir)
-			if dirtime != self.dirmodtime:
-				self.dirmodtime = dirtime
+			if dirtime != self.modtime:
+				self.modtime = dirtime
 				reportedpics = []
 				pictureset = os.listdir(self.picturedir)
+				picsettrimmed = pictureset.copy()
 				for n in pictureset:
-					if not n.endswith(('.jpg', '.JPG')): pictureset.remove(n)
+					if not n.endswith(('.jpg', '.JPG')):
+						picsettrimmed.remove(n)
+				pictureset = picsettrimmed
 				pictureset.sort()
+				logsupport.Logs.Log('Screen {} reset using {} pictures'.format(self.name, len(pictureset)))
 				select = 0
 			try:
 				picture = pictureset[select]
@@ -70,7 +93,7 @@ class PictureScreenDesc(screen.ScreenDesc):
 
 			if select == -1:
 				picture = '*None*'
-				picdescr = blankpic
+				picdescr = self.blankpic
 			else:
 				try:
 					select += 1
@@ -80,11 +103,11 @@ class PictureScreenDesc(screen.ScreenDesc):
 						logsupport.Logs.Log('Error processing picture {} ({})'.format(picture, E),
 											severity=ConsoleWarning)
 						reportedpics.append(picture)
-					picdescr = blankpic
+					picdescr = self.blankpic
 			self.picqueue.put((picture, picdescr), block=True)
 
 	def InitDisplay(self, nav, specificrepaint=None):
-		self.holdtime = 0
+		if not self.singlepicmode: self.holdtime = 0
 		super().InitDisplay(nav)
 
 	def _preppic(self, pic):
@@ -123,9 +146,11 @@ class PictureScreenDesc(screen.ScreenDesc):
 				self.picshowing, self.woffset, self.hoffset = picdescr
 
 			except queue.Empty:
-				logsupport.Logs.Log('Picture not ready for screen {} holding {}'.format(self.name, self.picture),
-									severity=ConsoleWarning)
+				if not self.singlepicmode:  # normal case in single mode is nothing changed
+					logsupport.Logs.Log('Picture not ready for screen {} holding {} ({})'.format(self.name,
+																								 self.picture,
+																								 self.holdtime),
+										severity=ConsoleWarning)
 		hw.screen.blit(self.picshowing, (self.woffset, self.hoffset))
-
 
 screens.screentypes["Picture"] = PictureScreenDesc
