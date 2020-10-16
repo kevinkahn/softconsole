@@ -8,11 +8,11 @@ import queue
 import struct
 import time
 from collections import namedtuple
-import logsupport
-
+import pygame
+import subprocess
 
 import select
-import debug
+
 
 TOUCH_X = 0
 TOUCH_Y = 1
@@ -212,7 +212,7 @@ class Touchscreen(object):
 
 		while not self._event_queue.empty():
 			event = self._event_queue.get()
-			debug.debugPrint('LLTouch', 'Touch: ' + str(event))
+
 			self._event_queue.task_done()
 
 			if event.type == EV_SYN:  # Sync
@@ -253,8 +253,8 @@ class Touchscreen(object):
 					if self._flipx != 0:
 						tmp = self._flipx - event.value
 					if tmp < 0:
-						logsupport.Logs.Log('Negative touch position(x): {}'.format(tmp),
-											severity=logsupport.ConsoleWarning)
+						print('Negative touch position(x): {}'.format(tmp))
+
 						tmp = 0
 					self._current_touch.x = round(tmp * self._scalex)
 
@@ -263,8 +263,8 @@ class Touchscreen(object):
 					if self._flipy != 0:
 						tmp = self._flipy - event.value
 					if tmp < 0:
-						logsupport.Logs.Log('Negative touch position(y): {}'.format(tmp),
-											severity=logsupport.ConsoleWarning)
+						print('Negative touch position(y): {}'.format(tmp))
+
 						tmp = 0
 					self._current_touch.y = round(tmp * self._scaley)
 
@@ -321,27 +321,40 @@ class Touchscreen(object):
 		return next(iter(self))
 
 
-'''
 if __name__ == "__main__":
-	import signal
+	import sys
 
+	touchmod = sys.argv[1] if len(sys.argv) == 2 else ''
+
+	# subprocess.call(('fbset', '-fb', '/dev/fb1'))
 	pygame.init()
 	pygame.fastevent.init()
+
+	minx = 1000000
+	maxx = -1000000
+	miny = 1000000
+	maxy = -1000000
+
 	a = [5724, -6, -1330074, 26, 8427, -1034528, 65536]
 	b = [34, 952, 38, 943]
 
-	ts = Touchscreen()
+	ts = Touchscreen('/home/pi/Console', touchmod)
+
+	print('Test touch points:')
 
 
 	def handle_event(event, tch):
-		#xx = (a[2] + a[0] * touch.x + a[1] * touch.y) / a[6]
-		#yy = (a[5] + a[3] * touch.x + a[4] * touch.y) / a[6]
-		#Xx = (touch.x - b[0]) * 320 / (b[1] - b[0])
-		#Xy = (touch.y - b[2]) * 480 / (b[3] - b[2])
-		print(["Release", "Press", "Move"][event],
-			  tch.slot,
-			  tch.x,
-			  tch.y)
+		global minx, miny, maxx, maxy
+		# xx = (a[2] + a[0] * touch.x + a[1] * touch.y) / a[6]
+		# yy = (a[5] + a[3] * touch.x + a[4] * touch.y) / a[6]
+		# Xx = (touch.x - b[0]) * 320 / (b[1] - b[0])
+		# Xy = (touch.y - b[2]) * 480 / (b[3] - b[2])
+		print("Event: {} {} {} (slot {})".format(["Release", "Press", "Move"][event], tch.x, tch.y, tch.slot))
+
+		minx = min(minx, tch.x)
+		miny = min(miny, tch.y)
+		maxx = max(maxx, tch.x)
+		maxy = max(maxy, tch.y)
 		return
 		# noinspection PyUnreachableCode
 		if event == 1:
@@ -357,12 +370,11 @@ if __name__ == "__main__":
 		touch.on_release = handle_event
 		touch.on_move = handle_event
 
-#	ts.run()
-
 	try:
-		signal.pause()
+		ts.run()
+	# signal.pause()
 	except KeyboardInterrupt:
 		print("Stopping thread...")
+		print('MinX: {} MaxX: {}   MinY: {} MaxY: {}'.format(minx, maxx, miny, maxy))
 		ts.stop()
 		exit()
-'''
