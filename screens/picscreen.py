@@ -32,6 +32,7 @@ class PictureScreenDesc(screen.ScreenDesc):
 				self.picturedir = os.path.dirname(config.sysStore.configfile) + '/pics'
 			elif self.picturedir[0] != '/':
 				self.picturedir = os.path.dirname(config.sysStore.configfile) + '/' + self.picturedir
+			if '*' in self.picturedir: self.picturedir = self.picturedir.replace('*', config.sysStore.hostname)
 			logsupport.Logs.Log('Picture screen {} in directory mode for {}'.format(self.name, self.picturedir))
 
 		self.holdtime = 0

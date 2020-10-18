@@ -1,12 +1,12 @@
 cfglib = cfglib
-include = /home/pi/Console/local/auth.cfg, pdxalerts.cfg, pdxtempalerts.cfg, weathLQ.cfg, weathCC.cfg, weathPDX.cfg,timetempPDX.cfg,BR-suzi.cfg, tstat.cfg, suzi-misc1.cfg,suzi-misc2.cfg, pdxmqtt.cfg, weathersources.cfg, timetempLQ.cfg
+include = /home/pi/Console/local/auth.cfg, picscreen.cfg, pdxalerts.cfg, pdxtempalerts.cfg, weathLQ.cfg, weathCC.cfg, weathPDX.cfg,timetempPDX.cfg,BR-suzi.cfg, tstat.cfg, suzi-misc1.cfg,suzi-misc2.cfg, pdxmqtt.cfg, weathersources.cfg, timetempLQ.cfg
 
 HomeScreenName = BR
 DimLevel = 5
 DimTO = 25
 
-DimIdleListNames = TimeTemp, LQTT
-DimIdleListTimes =	30, 30
+DimIdleListNames = TimeTemp, LQTT, Pictures
+DimIdleListTimes =	5, 5, 45
 
 MainChain = BR, TimeTemp, Suzi Misc1, Sonos
 SecondaryChain = Thermostat - Main, Local, Portland, La Quinta, Suzi Misc2

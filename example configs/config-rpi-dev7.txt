@@ -1,7 +1,7 @@
 LogLevel = 3
 #Touch = True
 #Screen = True
-#Main = Trueq
+#Main = True
 #Dispatch = True
 #DaemonCtl = True
 #ISYDump = True
@@ -18,9 +18,9 @@ DimLevel = 10
 DimTO = 5
 PersistTO = 3
 #DimIdleListNames = Portland, PDXTTbig, MyClock, LQTTbig, Pumpkin
-DimIdleListNames = MyClock, PDXTTbig, LQTTbig, LQTTbigdks, Pumpkin
+DimIdleListNames = MyClock, Pic, PDXTTbig, LQTTbig, LQTTbigdks, Pumpkin
 
-DimIdleListTimes =	5, 5, 5, 5
+DimIdleListTimes =	5, 20, 5, 5
 
 MainChain = Prusa, wxHouse,TreeTest, LR1,Sonos,LR2, Pumpkin, Local, Upper Level, Test #Creator Pro,
 SecondaryChain = Portland, Bathroom, BR, Thermostat - Main,LQTTbig, climate.master_bedroom, climate.living_room, pgawBR, pgawOther, pgawBath
@@ -62,6 +62,10 @@ CharColor = white
 [Sonos]
     type = Sonos
     DefaultHub = HASS
+
+[Pic]
+type = Picture
+#singlepic = '/home/pi/Console/spcpic.jpg'
 
 [Alerts]
 	[[AutoVersion]]

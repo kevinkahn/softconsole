@@ -38,12 +38,6 @@ def update(d, u):
 	return d
 
 
-# def Publish(topic, payload=None, node=hw.hostname, qos=1, retain=False, viasvr=False):
-#	# this gets replaced by actual Publish when MQTT starts up
-#	pass
-
-
-
 EmptyNodeRecord = {'hw': 'unknown*', 'osversion': 'unknown*', 'boottime': 'unknown*', "versioncommit": 'unknown*',
 				   'versiondnld': 'unknown*', 'versionsha': 'unknown*', 'versionname': 'unknown*',
 				   'registered': 0, "FirstUnseenErrorTime": 0, 'rpttime': 0, 'error': -2, "uptime": 0,
