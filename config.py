@@ -58,4 +58,5 @@ sysvals = {
 #  versioncommit
 #  consolestatus
 #  configfile
+#  configdir
 #  hostname
