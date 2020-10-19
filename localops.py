@@ -5,7 +5,7 @@ import subprocess
 
 
 def PreOp():
-	if not os.path.exists(config.sysStore.HomeDir + '/homerelease'):
+	if not os.path.exists(config.sysStore.HomeDir + '/homesystem'):
 		print('Not home system')
 		return
 	try:
