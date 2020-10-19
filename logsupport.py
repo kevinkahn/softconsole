@@ -196,7 +196,7 @@ def LogProcess(q):
 				os.utime(item[1],None)
 			elif item[0] == Command.LogString:
 				# Logentry string (7,entry)
-				disklogfile.write('\n'.format(item[1]))
+				disklogfile.write('{}\n'.format(item[1]))
 				disklogfile.flush()
 				os.fsync(disklogfile.fileno())
 			elif item[0] == Command.DumpRemote:  # force remote message dump
@@ -245,8 +245,21 @@ historybuffer.DevPrint = DevPrintDoIt  # to avoid circular imports
 
 LogColors = ("teal", "lightgreen", "darkgreen", "white", "yellow", "red")
 
-class Logger(object):
 
+class Stream_to_Logger(object):
+	def __init__(self):
+		pass
+
+	def write(self, buf):
+		print(buf)  # also put on stdout
+		if len(buf) > 1:
+			LoggerQueue.put((Command.LogString, '-------------Captured Python Exception-------------'))
+			for line in buf.rstrip().splitlines():
+				LoggerQueue.put((Command.LogString, line.rstrip()))
+			LoggerQueue.put((Command.LogString, '---------------End Captured Exception--------------'))
+
+
+class Logger(object):
 	log = []
 
 	def __init__(self, screen, dirnm):
@@ -271,12 +284,13 @@ class Logger(object):
 			except:
 				pass
 			LoggerQueue.put((Command.StartLog, dirnm, os.getpid()))
-			#self.disklogfile = open('Console.log', 'w')
-			#os.chmod('Console.log', 0o555)
+			# self.disklogfile = open('Console.log', 'w')
+			# os.chmod('Console.log', 0o555)
 			historybuffer.SetupHistoryBuffers(dirnm, maxf)
 			with open('/home/pi/Console/.HistoryBuffer/hlog', 'w') as f:
 				f.write('------ {} pid: {} ------\n'.format(time.time(), os.getpid()))
 			DevPrint = DevPrintDoIt
+			sys.stderr = Stream_to_Logger()
 			os.chdir(cwd)
 
 	def SetSeverePointer(self, severity):
