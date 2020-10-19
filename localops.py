@@ -28,4 +28,3 @@ def PreOp():
 			fout.write(
 				"//pdxhome.pdxhome/data/PythonProjects/softconsole/example\\040configs /home/pi/.exconfs cifs username=kevin,password=kcjck237,iocharset=utf8,ro 0 0\n")
 		subprocess.run(["mount", "-a"])
-	print("completed preop")
