@@ -31,9 +31,9 @@ def DoFetchRestart():
 		else:
 			fetcher = None  # allow next autoversion to proceed
 			return
-	except:
+	except Exception as E:
 		historybuffer.HBNet.Entry('GitHub access failure: {}:{}'.format(str(sys.exc_info()[0]), str(sys.exc_info()[1])))
-		logsupport.Logs.Log('Github check not available', severity=ConsoleWarning)
+		logsupport.Logs.Log('Github check not available ({})'.format(E), severity=ConsoleWarning)
 		fetcher = None  # allow next autoversion to proceed
 		return
 	try:
@@ -49,10 +49,10 @@ def DoFetchRestart():
 		controlevents.PostEvent(
 			controlevents.ConsoleEvent(controlevents.CEvent.RunProc, proc=ForceRestart, name='ForceRestart'))
 		fetcher = None
-	except:
+	except Exception as E:
 		historybuffer.HBNet.Entry(
 			'Version access failure: {}:{}'.format(str(sys.exc_info()[0]), str(sys.exc_info()[1])))
-		logsupport.Logs.Log('Version access failed', severity=ConsoleWarning)
+		logsupport.Logs.Log('Version access failed ({})'.format(E), severity=ConsoleWarning)
 		fetcher = None  # allow next autoversion to proceed
 
 def ForceRestart():
