@@ -8,17 +8,27 @@ import hw
 import config
 import threading, queue
 import os
+import shutil
 import PIL.Image
 import logsupport
 from logsupport import ConsoleWarning, ConsoleDetail
 
+
 class PictureScreenDesc(screen.ScreenDesc):
+	def _reset_cache(self):
+		self.piccache = {}
+		self.cachedir = config.sysStore.configdir + '/.pics/'
+		shutil.rmtree(self.cachedir, ignore_errors=True)
+		os.mkdir(self.cachedir)
+
 	def __init__(self, screensection, screenname, Clocked=0):
 		super().__init__(screensection, screenname, Clocked=1)
 		debug.debugPrint('Screen', "Build Picture Screen")
 
 		self.KeyList = None
 		utilities.register_example("PictureScreen", self)
+		self.piccache = {}
+		# self._reset_cache() not needed because initial modtime value forces it on first pass
 
 		screen.AddUndefaultedParams(self, screensection, picturedir="", picturetime=5, singlepic='')
 		self.singlepicmode = self.singlepic != ''
@@ -70,6 +80,7 @@ class PictureScreenDesc(screen.ScreenDesc):
 			if dirtime != self.modtime:
 				self.modtime = dirtime
 				reportedpics = []
+				self._reset_cache()
 				pictureset = os.listdir(self.picturedir)
 				picsettrimmed = pictureset.copy()
 				for n in pictureset:
@@ -98,15 +109,31 @@ class PictureScreenDesc(screen.ScreenDesc):
 				picture = '*None*'
 				picdescr = self.blankpic
 			else:
-				try:
+				pictime = os.path.getmtime(self.picturedir + '/' + picture)
+				savpic = picture.rpartition('.')[0] + ".bmp"
+				if picture in self.piccache and pictime == self.piccache[picture][0]:
 					select += 1
-					picdescr = self._preppic(self.picturedir + '/' + picture)
-				except Exception as E:
-					if picture not in reportedpics:
-						logsupport.Logs.Log('Error processing picture {} ({})'.format(picture, E),
-											severity=ConsoleWarning)
-						reportedpics.append(picture)
-					picdescr = self.blankpic
+					try:
+						picdescr = (
+						pygame.image.load(self.cachedir + savpic), self.piccache[picture][1], self.piccache[picture][2])
+					except Exception as E:
+						logsupport.Logs.Log(
+							'{} screen cache consistency error for {} ({})'.format(self.name, picture, E),
+							severity=ConsoleWarning)
+						picdescr = self.blankpic
+						self._reset_cache()
+				else:
+					try:
+						select += 1
+						picdescr = self._preppic(self.picturedir + '/' + picture)
+					except Exception as E:
+						if picture not in reportedpics:
+							logsupport.Logs.Log('Error processing picture {} ({})'.format(picture, E),
+												severity=ConsoleWarning)
+							reportedpics.append(picture)
+						picdescr = self.blankpic
+					self.piccache[picture] = (pictime, picdescr[1], picdescr[2])
+					pygame.image.save(picdescr[0], self.cachedir + savpic)
 			self.picqueue.put((picture, picdescr), block=True)
 
 	def InitDisplay(self, nav, specificrepaint=None):
