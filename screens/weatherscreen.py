@@ -109,7 +109,7 @@ class WeatherScreenDesc(screen.ScreenDesc):
 					screenmaxfcstwidth = self.useablehorizspace // 2 - 10
 				else:
 					screenmaxfcstwidth = self.useablehorizspace
-				fcstdays = valuestore.GetVal((self.location, 'FcstDays'))
+				fcstdays = min(valuestore.GetVal((self.location, 'FcstDays')), 14)  # cap at 2 weeks
 				maxfcstwidth = 0
 				maxfcstheight = 0
 				if fcstdays > 0:
@@ -139,10 +139,12 @@ class WeatherScreenDesc(screen.ScreenDesc):
 
 				startvert = vert_off
 				horiz_off = (usewidth - maxfcstwidth) / 2
+				swcol = -int(-fcstdays // 2) - 1
 				for dy, fcst in enumerate(renderedlines):
 					hw.screen.blit(fcst, (horiz_off, vert_off))
 					vert_off = vert_off + s + maxfcstheight
-					if (dy == 3) and (hw.screenwidth > 350):
+
+					if (dy == swcol) and (hw.screenwidth > 350):
 						horiz_off = horiz_off + usewidth
 						vert_off = startvert
 
