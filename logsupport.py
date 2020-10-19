@@ -344,6 +344,8 @@ class Logger(object):
 			entrytime = kwargs.pop('entrytime', time.strftime('%m-%d-%y %H:%M:%S', localnow))
 			tb = kwargs.pop('tb', severity == ConsoleError)
 			hb = kwargs.pop('hb', False)
+			localonly = kwargs.pop('localonly',
+								   False)  # to avoid error storms if MQTT is slow don't pub to net from MQTT
 			homeonly = kwargs.pop('homeonly', False)
 			if homeonly and config.sysStore.versionname not in ('development', 'homerelease'):
 				return
@@ -362,7 +364,7 @@ class Logger(object):
 
 			# If MQTT is running, past early config errors then broadcast the error
 			if severity in [ConsoleWarning, ConsoleError] and not debugitem:
-				if primaryBroker is not None and not LocalOnly:
+				if primaryBroker is not None and not LocalOnly and not localonly:
 					ReportStatus('error rpt')
 
 			# Paint live log to screen during boot

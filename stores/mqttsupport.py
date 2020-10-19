@@ -314,17 +314,18 @@ class MQTTBroker(valuestore.ValueStore):
 				self.MQTTclient.publish(fulltopic, payload, qos=qos, retain=retain)
 			except Exception as E:
 				self.MQTTCommFailed = True
-				logsupport.Logs.Log('MQTT Publish error ({}).format(repr(E)', severity=ConsoleError)
+				logsupport.Logs.Log('MQTT Publish error ({}).format(repr(E)', severity=ConsoleError, localonly=True)
 		else:
 			if viasvr:
 				logsupport.Logs.Log("{}: Publish attempt with server not running ({})".format(self.name, repr(payload)),
-									severity=ConsoleWarning)
+									severity=ConsoleWarning, localonly=True)  # don't push error to net if net is down
 			else:
 				try:
 					publish.single(fulltopic, payload, hostname=self.address, qos=qos, retain=retain, auth=self.auth)
 				except Exception as E:
 					self.MQTTCommFailed = True
-					logsupport.Logs.Log("MQTT single publish error ({})".format(repr(E)), severity=ConsoleError)
+					logsupport.Logs.Log("MQTT single publish error ({})".format(repr(E)), severity=ConsoleError,
+										localonly=True)
 	# noinspection PyUnusedLocal
 	def PushToMQTT(self, storeitem, old, new, param, modifier):
 		self.Publish('/'.join(storeitem.name), str(new))
