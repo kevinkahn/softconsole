@@ -62,15 +62,28 @@ import screen
 import historybuffer
 import controlevents
 
+config.sysStore.SetVal('ExecDir', os.path.dirname(os.path.abspath(__file__)))
+config.sysStore.SetVal('HomeDir', os.path.dirname(config.sysStore.ExecDir))
+
+try:
+	print('try local op')
+	sys.path.insert(0, '../')  # search for a local ops module first in the home dir then one up
+	import localops
+
+	del sys.path[0]  # don't leave junk in search path
+	localops.PreOp()
+	print('Local op preop called')
+except:
+	pass
+
 '''
 Constants
 '''
 configfilebase = "/home/pi/Console/"  # actual config file can be overridden from arg1
 configfilelist = {}  # list of configfiles and their timestamps
 
-
 logsupport.SpawnAsyncLogger()
-HBMain = historybuffer.HistoryBuffer(40,'Main')
+HBMain = historybuffer.HistoryBuffer(40, 'Main')
 historybuffer.HBNet = historybuffer.HistoryBuffer(80, 'Net')
 
 atexit.register(exitutils.exitlogging)
@@ -119,9 +132,7 @@ signal.signal(signal.SIGUSR1, handler)
 config.sysStore.SetVal('Console_pid', os.getpid())
 config.sysStore.SetVal('Watchdog_pid', 0)  # gets set for real later but for now make sure the variable exists
 config.sysStore.SetVal('Topper_pid',0)
-config.sysStore.SetVal('ExecDir', os.path.dirname(os.path.abspath(__file__)))
 os.chdir(config.sysStore.ExecDir)  # make sure we are in the directory we are executing from
-config.sysStore.SetVal('HomeDir', os.path.dirname(config.sysStore.ExecDir))
 config.sysStore.SetVal('consolestatus', 'started')
 config.sysStore.SetVal('hostname', hw.hostname)
 logsupport.Logs.Log(u"Console ( " + str(config.sysStore.Console_pid) + u") starting in " + os.getcwd())
