@@ -250,6 +250,10 @@ class Stream_to_Logger(object):
 	def __init__(self):
 		pass
 
+	def flush(self):
+		time.sleep(1)
+		print('Got a flush')
+
 	def write(self, buf):
 		print(buf)  # also put on stdout
 		if len(buf) > 1:
