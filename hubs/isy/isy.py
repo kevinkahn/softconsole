@@ -660,7 +660,7 @@ class ISY(object):
 				else:
 					if i != 0:
 						logsupport.Logs.Log(self.name + " required ", str(i + 1) + " tries over " +
-											str(time.time() - reqtm) + " seconds in" + thrd + ' ' + str(
+											str(time.time() - reqtm) + " seconds in " + thrd + ' ' + str(
 							error) + ' Cmd: ' + urlcmd)
 					self.HBDirect.Entry(r.text)
 					return r.text
