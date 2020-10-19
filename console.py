@@ -273,6 +273,7 @@ ParsedConfigFile = ConfigObj(config.sysStore.configfile)  # read the config.txt 
 logsupport.Logs.Log("Parsed base config file")
 
 configdir = os.path.dirname(config.sysStore.configfile)
+config.sysStore.configdir = configdir
 
 configfilelist[config.sysStore.configfile] = os.path.getmtime(config.sysStore.configfile)
 
