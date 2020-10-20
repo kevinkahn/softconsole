@@ -24,7 +24,7 @@ def PreOp():
 				if 'cifs' not in ln:
 					fout.write(ln)
 			fout.write(
-				"//pdxhome.pdxhome/data/ConsolePhotos /home/pi/photos cifs username=kevin,password=kcjck237,iocharset=utf8,ro 0 0\n")
+				"//pdxhome.pdxhome/data/ConsolePhotos /home/pi/photos cifs username=kevin,password=xxx,iocharset=utf8,ro 0 0\n")
 			fout.write(
-				"//pdxhome.pdxhome/data/PythonProjects/softconsole/example\\040configs /home/pi/.exconfs cifs username=kevin,password=kcjck237,iocharset=utf8,ro 0 0\n")
+				"//pdxhome.pdxhome/data/PythonProjects/softconsole/example\\040configs /home/pi/.exconfs cifs username=kevin,password=xxx,iocharset=utf8,ro 0 0\n")
 		subprocess.run(["mount", "-a"])

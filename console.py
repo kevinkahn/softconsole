@@ -65,16 +65,6 @@ import controlevents
 config.sysStore.SetVal('ExecDir', os.path.dirname(os.path.abspath(__file__)))
 config.sysStore.SetVal('HomeDir', os.path.dirname(config.sysStore.ExecDir))
 
-try:
-	print('try local op')
-	sys.path.insert(0, '../')  # search for a local ops module first in the home dir then one up
-	import localops
-
-	del sys.path[0]  # don't leave junk in search path
-	localops.PreOp()
-	print('Local op preop called')
-except:
-	pass
 
 '''
 Constants
@@ -142,6 +132,19 @@ elif os.path.isfile(configfilebase + "config.txt"):
 	config.sysStore.configfile = configfilebase + "config.txt"
 else:
 	config.sysStore.configfile = configfilebase + "config-" + hw.hostname + ".txt"
+
+configdir = os.path.dirname(config.sysStore.configfile)
+config.sysStore.configdir = configdir
+
+try:
+	sys.path.insert(0, '../')  # search for a local ops module first in the home dir then one up
+	import localops
+
+	del sys.path[0]  # don't leave junk in search path
+	localops.PreOp()
+except:
+	pass
+
 sectionget = Section.get
 
 
@@ -170,6 +173,7 @@ def CO_get(self, key, default, delkey=True):
 		logsupport.Logs.Log(
 			'Internal exception in handling config param get: key {} default {} exc: {}'.format(key, default, Eco),
 			severity=ConsoleError)
+
 
 Section.get = CO_get
 
@@ -283,9 +287,6 @@ ParsedConfigFile = ConfigObj(config.sysStore.configfile)  # read the config.txt 
 
 logsupport.Logs.Log("Parsed base config file")
 
-configdir = os.path.dirname(config.sysStore.configfile)
-config.sysStore.configdir = configdir
-
 configfilelist[config.sysStore.configfile] = os.path.getmtime(config.sysStore.configfile)
 
 cfiles = []
@@ -383,6 +384,11 @@ if utilities.lastup > 0:
 	logsupport.Logs.Log("Console Last Running at: ", time.ctime(utilities.lastup))
 	logsupport.Logs.Log("Previous Console Downtime: ",
 						str(datetime.timedelta(seconds=(config.sysStore.ConsoleStartTime - utilities.lastup))))
+try:
+	localops.LogUp()
+except:
+	pass
+
 logsupport.Logs.Log("Main config file: ", config.sysStore.configfile,
 					time.strftime(' %c', time.localtime(configfilelist[config.sysStore.configfile])))
 logsupport.Logs.Log("Default config file library: ", cfglib)
