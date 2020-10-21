@@ -26,6 +26,7 @@ class PictureScreenDesc(screen.ScreenDesc):
 		debug.debugPrint('Screen', "Build Picture Screen")
 
 		self.KeyList = None
+		self.shownav = False
 		utilities.register_example("PictureScreen", self)
 		self.piccache = {}
 		# self._reset_cache() not needed because initial modtime value forces it on first pass
@@ -137,6 +138,7 @@ class PictureScreenDesc(screen.ScreenDesc):
 			self.picqueue.put((picture, picdescr), block=True)
 
 	def InitDisplay(self, nav, specificrepaint=None):
+		self.shownav = (nav is not None)
 		if not self.singlepicmode: self.holdtime = 0
 		super().InitDisplay(nav)
 
@@ -184,5 +186,6 @@ class PictureScreenDesc(screen.ScreenDesc):
 																								 self.holdtime),
 										severity=ConsoleDetail)
 		hw.screen.blit(self.picshowing, (self.woffset, self.hoffset))
+		if self.shownav: self.PaintNavKeys()
 
 screens.screentypes["Picture"] = PictureScreenDesc

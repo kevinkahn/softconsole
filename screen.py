@@ -298,13 +298,16 @@ class ScreenDesc(object):
 		return (
 			self.useablehorizspace / bpr, h / bpc)
 
+	def PaintNavKeys(self):
+		for key in self.NavKeys.values():
+			key.PaintKey()
+
 	def PaintKeys(self):
 		if self.Keys is not None:
 			for key in self.Keys.values():
 				if type(key) is not toucharea.TouchPoint:
 					key.PaintKey()
-		for key in self.NavKeys.values():
-			key.PaintKey()
+		self.PaintNavKeys()
 
 	def ScreenContentRepaint(self):
 		pass
