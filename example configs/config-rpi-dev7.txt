@@ -22,7 +22,7 @@ DimIdleListNames = MyClock, Pic, PDXTTbig, LQTTbig, LQTTbigdks, Pumpkin
 
 DimIdleListTimes =	5, 20, 5, 5
 
-MainChain = Prusa, wxHouse,TreeTest, LR1,Sonos,LR2, Pumpkin, Local, Upper Level, Test #Creator Pro,
+MainChain = Prusa, wxHouse, Pic, TreeTest, LR1,Sonos,LR2, Pumpkin, Local, Upper Level, Test #Creator Pro,
 SecondaryChain = Portland, Bathroom, BR, Thermostat - Main,LQTTbig, climate.master_bedroom, climate.living_room, pgawBR, pgawOther, pgawBath
 
 DefaultHub = ISY
@@ -65,7 +65,7 @@ CharColor = white
 
 [Pic]
 type = Picture
-#singlepic = '/home/pi/Console/spcpic.jpg'
+#singlepic = 'spcpic.jpg'
 
 [Alerts]
 	[[AutoVersion]]
