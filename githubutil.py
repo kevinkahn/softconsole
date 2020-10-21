@@ -66,10 +66,7 @@ def InstallStagedVersion(d):
 	if os.path.exists('../homesystem'):
 		# noinspection PyBroadException
 		try:
-			subprocess.call('cp -u -r --backup=numbered "example configs"/* ../Console', shell=True, stdout=logf, stderr=logf)
-			subprocess.call('rm ../Console/*~[67890]~ ../Console/*~??~', shell=True, stdout=logf, stderr=logf)
-		# os.remove('../Console/termshortenlist')
-		# print('Removed existing shortenlist from homesystem', file=open("stagelog.log", "a"))
+			subprocess.call('cp -u -r "example configs"/* ../Console', shell=True, stdout=logf, stderr=logf)
 		except:
 			print('Copy of example configs failed on homesystem', file=logf)
 
