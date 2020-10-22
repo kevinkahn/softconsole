@@ -175,7 +175,7 @@ class MQTTBroker(valuestore.ValueStore):
 				self.HB.Entry('Processing time: {} Done: {}'.format(loopend - loopstart, repr(msg)))
 				time.sleep(.1)  # force thread to give up processor to allow response to time events
 			except Exception as E:
-				logsupport.Logs.Log('MQTT Error: {}'.format(repr(E)))
+				logsupport.Logs.Log('MQTT Error: {} userdata: {} msg: {}'.format(repr(E)), userdata, msg)
 
 		# self.HB.Entry('Gave up control for: {}'.format(time.time() - loopend))
 
