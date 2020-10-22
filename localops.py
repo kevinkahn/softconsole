@@ -41,6 +41,8 @@ def PreOp():
 								stderr=subprocess.STDOUT, text=True, shell=True)
 			PreOpScripts.append('------runalways---------')
 			PreOpScripts.append('Return code {}'.format(cp.returncode))
+			if cp.returncode != 0:
+				PreOpFailure.append('Error in runalways script')
 			for ln in cp.stdout.split('\n'):
 				PreOpScripts.append(ln)
 			PreOpScripts.append('---------------')
@@ -70,6 +72,8 @@ def PreOp():
 									stderr=subprocess.STDOUT, text=True, shell=True)
 				PreOpScripts.append('-------runonce--------')
 				PreOpScripts.append('Return code {}'.format(cp.returncode))
+				if cp.returncode != 0:
+					PreOpFailure.append('Error in runonce script')
 				for ln in cp.stdout.split('\n'):
 					PreOpScripts.append(ln)
 				PreOpScripts.append('---------------')
@@ -128,7 +132,7 @@ def LogUp():
 	global NewCfgs, DeletedCfgs, PreOpFailure, CopiedConfig
 	logsupport.Logs.Log('-----Local Ops Executed-----')
 	for l in PreOpScripts:
-		logsupport.Logs.Log('PreOp Script: {}'.format(l), severity=logsupport.ConsoleWarning)
+		logsupport.Logs.Log('PreOp Script: {}'.format(l))
 	for f in NewCfgs:
 		logsupport.Logs.Log("Updated cfg library element: {}".format(f))
 	if CopiedConfig != "":
