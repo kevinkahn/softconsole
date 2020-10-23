@@ -91,6 +91,7 @@ def PreOp():
 		cfgliblocal = set()
 		cfglibserver = set()
 
+	reftime = os.path.getmtime('console.py')  # use as install time of the console tar
 	try:
 		for f in cfglibserver:
 			mt = os.path.getmtime(cfgdirserver + f)
@@ -102,9 +103,12 @@ def PreOp():
 				NewCfgs.add(f)
 				shutil.copy2(cfgdirserver + f, conflocal + f)
 			elif mt < mtloc:
-				shutil.copy2(conflocal + f, newerlocal)
-				shutil.copy2(cfgdirserver + f, conflocal + f)
-				PreOpFailure.append('Newer cfglib file on local system: {}'.format(f))
+				if mtloc != reftime:
+					shutil.copy2(conflocal + f, newerlocal)
+					shutil.copy2(cfgdirserver + f, conflocal + f)
+					PreOpFailure.append('Newer cfglib file on local system: {}'.format(f))
+				else:
+					print('Not saving "newer" file from version installation {}'.format(f))  # todo del
 		DeletedCfgs = cfgliblocal - cfglibserver
 		for f in DeletedCfgs:
 			shutil.move(conflocal + f, oldlocal)
