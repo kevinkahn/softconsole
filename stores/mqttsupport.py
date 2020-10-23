@@ -108,13 +108,15 @@ class MQTTBroker(valuestore.ValueStore):
 				elif topic.startswith('consoles/all/weather'):
 					provider = topic.split('/')[3]
 					if msg.payload is None:
-						logsupport.Logs.Log('MQTT Entry clear for {}'.format(topic))
+						logsupport.Logs.Log(
+							'MQTT Entry clear for {}'.format(topic))  # todo shouldn't this actually do a clear?qqqqq
 					else:
 						try:
 							WeathProvs[provider][0].MQTTWeatherUpdate(msg.payload.decode('ascii'))
 						except Exception as E:
-							logsupport.Logs.Log('Unkown weather provider MQTT update for {} {}'.format(provider, E),
-												severity=ConsoleWarning)
+							logsupport.Logs.Log(
+								'Unkown weather provider MQTT update for {} {} ({})'.format(provider, msg.payload, E),
+								severity=ConsoleWarning)
 					return
 				else:
 					# see if it is node specific message
@@ -175,7 +177,7 @@ class MQTTBroker(valuestore.ValueStore):
 				self.HB.Entry('Processing time: {} Done: {}'.format(loopend - loopstart, repr(msg)))
 				time.sleep(.1)  # force thread to give up processor to allow response to time events
 			except Exception as E:
-				logsupport.Logs.Log('MQTT Error: {} userdata: {} msg: {}'.format(repr(E)), userdata, msg)
+				logsupport.Logs.Log('MQTT Error: {} userdata: {} msg: {}'.format(repr(E), userdata, msg))
 
 		# self.HB.Entry('Gave up control for: {}'.format(time.time() - loopend))
 
