@@ -66,7 +66,7 @@ def InstallStagedVersion(d):
 	if os.path.exists('../homesystem'):
 		# noinspection PyBroadException
 		try:
-			subprocess.call('cp -u -r "example configs"/* ../Console', shell=True, stdout=logf, stderr=logf)
+			subprocess.call('cp -u -r -p "example configs"/* ../Console', shell=True, stdout=logf, stderr=logf)
 		except:
 			print('Copy of example configs failed on homesystem', file=logf)
 
