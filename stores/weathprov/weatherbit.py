@@ -14,10 +14,10 @@ from logsupport import ConsoleWarning, ConsoleDetail
 
 from ._weatherbit.api import Api
 from ._weatherbit.utils import LocalizeDateTime
-from ._weatherbit.models import Current, Forecast
 
 from stores.weathprov.providerutils import TryShorten, WeathProvs, MissingIcon
 from utilfuncs import interval_str
+from ._weatherbit.utils import _get_date_from_timestamp
 
 WeatherIconCache = {'n/a': MissingIcon}
 
@@ -78,14 +78,27 @@ def getdayname(param):
 	return datetime.utcfromtimestamp(param).strftime('%a')
 
 
-def getdatetime(param):  #make string from Localized date time  todo - move localization of sunrise here?
+def getdatetime(param):  # make string from Localized date time  todo - move localization of sunrise here?
 	return LocalizeDateTime(param).strftime('%H:%M')
 
+
+def specgetdatetime(param):
+	return datetime.fromtimestamp(param).strftime('%H:%M')
+
+
 def strFromDateTime(param):
-	return param.strftime('%H:%M')
+	# return param.strftime('%H:%M')
+	return _get_date_from_timestamp(param).strftime('%H:%M')
+
+
+def LstrFromDateTime(param):
+	# return param.strftime('%H:%M')
+	return LocalizeDateTime(_get_date_from_timestamp(param)).strftime('%H:%M')
+
 
 def makeEpoch(param):
-	return param.timestamp()
+	return datetime.fromtimestamp(param).timestamp()
+
 
 def doage(param):
 	return interval_str(time.time() - param)
@@ -96,8 +109,9 @@ def degToCompass(num):
 	arr = ["N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE", "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW"]
 	return arr[(val % 16)]
 
+
 def setAge(param):
-	readingepoch = param.timestamp()
+	readingepoch = datetime.fromtimestamp(param).timestamp()
 	return functools.partial(doage, readingepoch)
 
 
@@ -153,22 +167,23 @@ IconMap = {'c01':113, 'c02':116, 'c03':119, 'c04':122, 'a05':143, 'r05':176, 's0
 		   's06':323, 't01':386, 't02':386, 't03':386, 't04':389, 't05':395, 'a01':248, 'a02':248, 'a03':248, 'a04':248,
 		   'a06':248}
 
-CondFieldMap = {'Time': (getdatetime, ('datetime',)),
-				'Temp': (float, ('temp',)),
-				'Sky': (TryShorten, ('weather', 'description')),
-				'Feels': (float, ('app_temp',)),
-				'WindDir': (degToCompass, ('wind_dir',)),
-				'WindMPH': (float, ('wind_spd',)),
-				'Humidity': (str, ('rh',)),
-				'Icon': (geticon, ('weather', 'icon')),  # get the surface
-				'Sunrise': (strFromDateTime, ('sunrise',)),
-				'Sunset': (strFromDateTime, ('sunset',)),
-				# 'Moonrise': (str, ('forecast', 'forecastday', 0, 'astro', 'moonrise')),
-				# 'Moonset': (str, ('forecast', 'forecastday', 0, 'astro', 'moonset')),
-				'TimeEpoch': (makeEpoch, ('datetime',)),
-				# todo - should this be just the ts field?  and what is diff to ob_time
-				'Age': (setAge, ('datetime',))
-				}
+CondFieldMap = {  # 'Time': (getdatetime, ('datetime',)),
+	'Time': (specgetdatetime, ('ts',)),
+	'Temp': (float, ('temp',)),
+	'Sky': (TryShorten, ('weather', 'description')),
+	'Feels': (float, ('app_temp',)),
+	'WindDir': (degToCompass, ('wind_dir',)),
+	'WindMPH': (float, ('wind_spd',)),
+	'Humidity': (str, ('rh',)),
+	'Icon': (geticon, ('weather', 'icon')),  # get the surface
+	'Sunrise': (LstrFromDateTime, ('sunrise',)),
+	'Sunset': (LstrFromDateTime, ('sunset',)),
+	# 'Moonrise': (str, ('forecast', 'forecastday', 0, 'astro', 'moonrise')),
+	# 'Moonset': (str, ('forecast', 'forecastday', 0, 'astro', 'moonset')),
+	'TimeEpoch': (makeEpoch, ('ts',)),  # datetime
+	# todo - should this be just the ts field?  and what is diff to ob_time
+	'Age': (setAge, ('ts',))
+}
 
 FcstFieldMap = {'Day': (getdayname, ('ts',)),  # convert to day name
 				'High': (float, ('max_temp',)),
@@ -225,8 +240,9 @@ class WeatherbitWeatherSource(object):
 		logsupport.Logs.Log(
 			'Cache update: {} ({}) {} {} {}'.format(storename, loc, weatherinfo['fetchtime'], time.time(),
 													weatherinfo['fetchingnode']), severity=ConsoleDetail)
-		c = Current(weatherinfo['current'], 'viaMQTT', weatherinfo['fetchingnode'])
-		f = Forecast(weatherinfo['forecast'], 'viaMQTT', weatherinfo['fetchingnode'])
+		c = weatherinfo['current']
+		# f = Forecast(weatherinfo['forecast'], 'viaMQTT', weatherinfo['fetchingnode'])
+		f = weatherinfo['forecast']
 		WeatherCache[loc] = (weatherinfo['fetchtime'], c, f, weatherinfo['fetchingnode'])
 
 		if ByNodeStatGp.Exists(weatherinfo['fetchingnode']):
@@ -261,8 +277,8 @@ class WeatherbitWeatherSource(object):
 			if self.location in WeatherCache and \
 					WeatherCache[self.location][0] > self.thisStore.ValidWeatherTime:
 				# Newer weather has been broadcast so use that for now
-				current = WeatherCache[self.location][1].points[0]
-				forecast = WeatherCache[self.location][2].points
+				current = WeatherCache[self.location][1]['data'][0]
+				forecast = WeatherCache[self.location][2]['data']
 				fetcher = WeatherCache[self.location][3]
 				weathertime = WeatherCache[self.location][0]
 				logsupport.Logs.Log(
@@ -277,17 +293,16 @@ class WeatherbitWeatherSource(object):
 				try:
 					historybuffer.HBNet.Entry('Weatherbit weather fetch{}'.format(self.thisStoreName))
 					c = self.get_current()
-					current = c.points[0]  # single point for current reading
+					current = c['data'][0]  # single point for current reading
 					f = self.get_forecast()
-					forecast = f.points  # list of 16 points for forecast point 0 is today
+					forecast = f['data']  # f.points  # list of 16 points for forecast point 0 is today
 					self.actualfetch.Op()  # cound actual local fetches
-					bcst = {'current': c.json, 'forecast': f.json, 'location': self.location,
+					bcst = {'current': c, 'forecast': f, 'location': self.location,
 							'fetchtime': time.time(),
 							'fetchcount': self.actualfetch.Values()[0], 'fetchingnode': config.sysStore.hostname}
 					if config.mqttavailable:
 						config.MQTTBroker.Publish('Weatherbit/{}'.format(self.thisStoreName), node='all/weather',
 												  payload=json.dumps(bcst), retain=True)
-					# print('Pub weather {}'.format(self.thisStoreName))
 					historybuffer.HBNet.Entry('Weather fetch done')
 					weathertime = time.time()
 					fetcher = 'local'
@@ -330,15 +345,17 @@ class WeatherbitWeatherSource(object):
 
 		try:
 			self.thisStore.ValidWeather = False  # show as invalid for the short duration of the update - still possible to race but very unlikely.
+			specfields = self.thisStore.InitSourceSpecificFields(forecast[0])
 			tempfcstinfo = {}
-			for fn, entry in FcstFieldMap.items():
-				tempfcstinfo[fn] = []
+			for fn in FcstFieldMap: tempfcstinfo[fn] = []
+			for fn in specfields: tempfcstinfo[fn] = []
 
 			self.thisStore.SetVal(('Cond', 'Location'), self.thisStoreName)
 			for fn, entry in CondFieldMap.items():
 				val = self.MapItem(current, entry)
 				self.thisStore.SetVal(('Cond', fn), val)
 
+			self.thisStore.LoadDicttoStore({'Cond': current})
 			fcstdays = len(forecast)
 			for i in range(fcstdays):
 				try:
@@ -356,11 +373,16 @@ class WeatherbitWeatherSource(object):
 						severity=ConsoleWarning)
 					logsupport.Logs.Log('Forecast: {}'.format(forecast))
 					raise
-			for fn, entry in FcstFieldMap.items():
+				for fn in specfields:
+					tempfcstinfo[fn].append(fcst[fn])
+
+			for fn in FcstFieldMap:
+				self.thisStore.GetVal(('Fcst', fn)).replacelist(tempfcstinfo[fn])
+			for fn in specfields:
 				self.thisStore.GetVal(('Fcst', fn)).replacelist(tempfcstinfo[fn])
 			self.thisStore.SetVal('FcstDays', fcstdays)
-			self.thisStore.SetVal('FcstEpoch', int(forecast[0].ts))
-			self.thisStore.SetVal('FcstDate', forecast[0].valid_date)
+			self.thisStore.SetVal('FcstEpoch', int(forecast[0]['ts']))
+			self.thisStore.SetVal('FcstDate', forecast[0]['valid_date'])
 
 			self.thisStore.CurFetchGood = True
 			self.thisStore.ValidWeather = True

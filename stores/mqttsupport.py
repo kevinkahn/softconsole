@@ -107,7 +107,7 @@ class MQTTBroker(valuestore.ValueStore):
 					return
 				elif topic.startswith('consoles/all/weather'):
 					provider = topic.split('/')[3]
-					if msg.payload is None:
+					if msg.payload is None or msg.payload == '':
 						logsupport.Logs.Log(
 							'MQTT Entry clear for {}'.format(topic))  # todo shouldn't this actually do a clear?qqqqq
 					else:

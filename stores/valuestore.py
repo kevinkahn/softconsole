@@ -334,6 +334,13 @@ class ValueStore(object):
 				for notify in t.Alerts:
 					notify[0](t, oldval, t.Value, notify[1], modifier)
 
+	def LoadDicttoStore(self, dicttoload, itemname=None):
+		for k, v in dicttoload.items():
+			if isinstance(v, dict):
+				self.LoadDicttoStore(v, itemname=k if itemname is None else itemname + ':' + k)
+			else:
+				self.SetVal(k if itemname is None else itemname + ':' + k, v)
+
 	def items(self, parents=(), d=None):
 		if d is None: d = self.vars
 		try:

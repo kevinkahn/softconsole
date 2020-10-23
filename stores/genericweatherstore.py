@@ -38,6 +38,7 @@ class WeatherItem(valuestore.StoreItem):
 class WeatherVals(valuestore.ValueStore):
 
 	def __init__(self, location, weathersource, refresh):
+		self.sourcespecset = []
 		self.failedfetchcount = 0
 		self.failedfetchtime = 0
 		self.refreshinterval = 60 * refresh
@@ -69,6 +70,16 @@ class WeatherVals(valuestore.ValueStore):
 			self.vars[fld] = WeatherItem(fld, self, vt=fldtype)
 		for n, fcst in self.vars['Fcst'].items():
 			fcst.Value = valuestore.StoreList(fcst)
+
+	def InitSourceSpecificFields(self, fcst):
+		if self.sourcespecset != []: return self.sourcespecset  # only do once
+		for fld, val in fcst.items():
+			if not isinstance(dict, val):
+				nm = ('Fcst', fld)
+				self.vars['Fcst'][fld] = WeatherItem(nm, self, vt=type(val))
+				self.vars['Fcst'][fld].Value = valuestore.StoreList(self.vars['Fcst'][fld])
+				self.sourcespecset.append(fld)
+		return self.sourcespecset
 
 	def FetchComplete(self):
 		self.DoingFetch = None
