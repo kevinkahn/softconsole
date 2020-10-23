@@ -74,7 +74,7 @@ class WeatherVals(valuestore.ValueStore):
 	def InitSourceSpecificFields(self, fcst):
 		if self.sourcespecset != []: return self.sourcespecset  # only do once
 		for fld, val in fcst.items():
-			if not isinstance(dict, val):
+			if not isinstance(val, dict):
 				nm = ('Fcst', fld)
 				self.vars['Fcst'][fld] = WeatherItem(nm, self, vt=type(val))
 				self.vars['Fcst'][fld].Value = valuestore.StoreList(self.vars['Fcst'][fld])
