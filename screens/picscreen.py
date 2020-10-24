@@ -137,7 +137,7 @@ class PictureScreenDesc(screen.ScreenDesc):
 					pygame.image.save(picdescr[0], self.cachedir + savpic)
 			self.picqueue.put((picture, picdescr), block=True)
 
-	def InitDisplay(self, nav, specificrepaint=None):
+	def InitDisplay(self, nav):
 		self.shownav = (nav is not None)
 		if not self.singlepicmode: self.holdtime = 0
 		super().InitDisplay(nav)

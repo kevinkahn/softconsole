@@ -57,13 +57,12 @@ class VerifyScreen(screen.BaseKeyScreenDesc):
 
 		screen.PushToScreen(self, msg='Do Verify' + self.name)
 
-
 	def ShowScreen(self):
 		self.ReInitDisplay()
 		self.PaintKeys()
 		displayupdate.updatedisplay()
 
-	def InitDisplay(self, nav, specificrepaint = None):
+	def InitDisplay(self, nav):
 		# debugPrint('Main', "Enter to screen: ", self.name)
 		logsupport.Logs.Log('Entering Verify Screen: ' + self.name, severity=ConsoleDetail)
 		super(VerifyScreen, self).InitDisplay({})
@@ -153,12 +152,12 @@ class ValueChangeScreen(screen.ScreenDesc):  # todo may need to call super class
 													  cancelsize, proc=self.CancelChange)
 		self.Keys['accept'] = toucharea.ManualKeyDesc(self, 'accept', ["Accept", "#"], BackgroundColor, CharColor,
 													  CharColor,
-											valuebuttoncenter,
-											valuebuttonsize, proc=self.AcceptChange)
+													  valuebuttoncenter,
+													  valuebuttonsize, proc=self.AcceptChange)
 		# need to insert current value (actually in PaintKey probably
 		pass
 
-	def InitDisplay(self, nav, specificrepaint = None):  #todo integrate with specific repaint stuff
+	def InitDisplay(self, nav):  # todo integrate with specific repaint stuff
 		super(ValueChangeScreen, self).InitDisplay({})  # why do we pass in the nav keys here?
 
 		self.ReInitDisplay()
@@ -289,11 +288,11 @@ class ListChooserSubScreen(screen.ScreenDesc):
 		self.firstitem = 0
 		self.selection = -1
 
-	def InitDisplay(self, nav, specificrepaint = None): # todo move the DisplayListSelect to specific repaint
+	def InitDisplay(self, nav):  # todo move the DisplayListSelect to specific repaint
 		super(ListChooserSubScreen, self).InitDisplay(nav)
 		self.DisplayListSelect()
 
-	def ReInitDisplay(self, specificrepaint = None):
+	def ReInitDisplay(self):
 		super(ListChooserSubScreen, self).ReInitDisplay()
 		self.DisplayListSelect()
 
@@ -359,7 +358,7 @@ class PagedDisplay(screen.BaseKeyScreenDesc):
 			self.state = 'init'
 			screens.DS.SwitchScreen(screen.BACKTOKEN, 'Bright', 'Done (prev) showing log', newstate='Maint')
 
-	def InitDisplay(self, nav, specificrepaint = None): #todo interate with super call below
+	def InitDisplay(self, nav):  # todo interate with super call below
 		self.BackgroundColor = 'maroon'
 		if self.state == 'init':
 			debug.debugPrint('Main', "Enter to screen: ", self.name)

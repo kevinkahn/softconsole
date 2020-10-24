@@ -40,7 +40,7 @@ class KeyScreenDesc(screen.BaseKeyScreenDesc):
 	def __repr__(self):
 		return screen.ScreenDesc.__repr__(self) + "\r\n     KeyScreenDesc:" + ":<" + str(self.Keys) + ">"
 
-	def InitDisplay(self, nav, specificrepaint = None):
+	def InitDisplay(self, nav):
 		debug.debugPrint("Screen", "Keyscreen InitDisplay: ", self.name)
 		for K in self.Keys.values():
 			K.InitDisplay()

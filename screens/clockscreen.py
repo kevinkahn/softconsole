@@ -60,10 +60,10 @@ class ClockScreenDesc(screen.ScreenDesc):
 			horiz_off = (hw.screenwidth - cb.get_width()) // 2
 			hw.screen.blit(cb, (horiz_off, vert_off))
 
-	def InitDisplay(self, nav, specificrepaint = None):
+	def InitDisplay(self, nav):
 		super().InitDisplay(nav)
 
-	def ReInitDisplay(self, specificrepaint = None):
+	def ReInitDisplay(self):
 		super().ReInitDisplay()
 
 screens.screentypes["Clock"] = ClockScreenDesc

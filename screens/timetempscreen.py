@@ -76,10 +76,10 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 				self.DecodedFcstFields.append((self.location, 'Fcst', f))
 		self.fcsticon = (self.location, 'Fcst', 'Icon') if self.FcstIcon else None
 
-	def InitDisplay(self, nav, specificrepaint = None):
+	def InitDisplay(self, nav):
 		super(TimeTempScreenDesc, self).InitDisplay(nav)
 
-	def ReInitDisplay(self, specificrepaint = None):
+	def ReInitDisplay(self):
 		super().ReInitDisplay()
 
 	def ScreenContentRepaint(self):

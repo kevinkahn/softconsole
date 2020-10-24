@@ -63,7 +63,7 @@ class WeatherScreenDesc(screen.ScreenDesc):
 		self.currentconditions = not self.currentconditions
 		self.ReInitDisplay()
 
-	def ShowScreen(self, conditions):
+	def ScreenContentRepaint(self):
 		# todo given the useable vert space change should check for overflow or auto size font
 
 		FreshData = self.store.BlockRefresh()  # use this to control repain?
@@ -87,7 +87,7 @@ class WeatherScreenDesc(screen.ScreenDesc):
 				vert_off = vert_off + locblk.get_height() + 10  # todo gap of 10 pixels is arbitrary
 
 			h = vert_off
-			if conditions:  # todo add max width and wrap
+			if self.currentconditions:  # todo add max width and wrap
 				renderedlines.append(
 					CreateWeathBlock(self.condformat, self.condfields, "", [45, 25, 35], self.CharColor,
 									 (self.location, 'Cond', 'Icon'), False))
@@ -148,13 +148,11 @@ class WeatherScreenDesc(screen.ScreenDesc):
 						horiz_off = horiz_off + usewidth
 						vert_off = startvert
 
-	def InitDisplay(self, nav, specificrepaint = None):
+	def InitDisplay(self, nav):
 		self.currentconditions = True
-		Show = functools.partial(self.ShowScreen, self.currentconditions)
-		super().InitDisplay(nav, specificrepaint=Show)
+		super().InitDisplay(nav)
 
-	def ReInitDisplay(self, specificrepaint = None):
-		Show = functools.partial(self.ShowScreen, self.currentconditions)
-		super().ReInitDisplay(specificrepaint=Show)
+	def ReInitDisplay(self):
+		super().ReInitDisplay()
 
 screens.screentypes["Weather"] = WeatherScreenDesc

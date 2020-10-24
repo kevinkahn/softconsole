@@ -219,14 +219,14 @@ class ThermostatScreenDesc(screen.BaseKeyScreenDesc):
 		hw.screen.blit(r1, (self.Keys['Mode'].Center[0] - r1.get_width() // 2, self.ModesPos))
 		hw.screen.blit(r2, (self.Keys['Fan'].Center[0] - r2.get_width() // 2, self.ModesPos))
 
-	def InitDisplay(self, nav, specificrepaint = None):
+	def InitDisplay(self, nav):
 		self.t_cur, self.t_low, self.t_high, self.t_state, self.mode, self.fan = self.ThermNode.GetThermInfo()
 		self.LocalOnly = [0.0, 0.0]
 		self.ModeLocal = 0.0
 		self.FanLocal = 0.0
 		super().InitDisplay(nav)
 
-	def ReInitDisplay(self, specificrepaint = None):
+	def ReInitDisplay(self):
 		super().ReInitDisplay()
 
 	def NodeEvent(self, evnt):

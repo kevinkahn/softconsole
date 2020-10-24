@@ -318,7 +318,7 @@ class ScreenDesc(object):
 		else:
 			self.HubInterestList[hub.name] = {item: value}
 
-	def _PrepScreen(self, nav = None, init=True, specificrepaint = None):
+	def _PrepScreen(self, nav=None, init=True):
 		if self.used:
 			logsupport.Logs.Log('Attempted reuse (Init: {}) of single use screen {}'.format(init, self.name),
 								severity=ConsoleError)
@@ -331,15 +331,14 @@ class ScreenDesc(object):
 															self.ScreenTitleColor)
 			hw.screen.blit(self.ScreenTitleBlk,
 						   (self.starthorizspace + (self.useablehorizspace - w) // 2, self.TopBorder))
-		if specificrepaint is not None: specificrepaint()
 		self.ScreenContentRepaint()
 		displayupdate.updatedisplay()
 
-	def InitDisplay(self, nav, specificrepaint = None):
-		self._PrepScreen(nav, True, specificrepaint)
+	def InitDisplay(self, nav):
+		self._PrepScreen(nav, True)
 
-	def ReInitDisplay(self, specificrepaint = None):
-		self._PrepScreen(None, False, specificrepaint)
+	def ReInitDisplay(self):
+		self._PrepScreen(None, False)
 
 	def NodeEvent(self, evnt):
 		if evnt.node is not None:
