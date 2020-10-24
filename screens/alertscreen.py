@@ -16,25 +16,27 @@ from logsupport import ConsoleDetail, ConsoleWarning
 from utilfuncs import wc
 
 alertscreens = {}
-
+ScreenType = 'Alert'
 
 class AlertsScreenDesc(screen.ScreenDesc):
 	global alertscreens
 
+	# todo add centermes option, make clocked and use clock for blinking, move to content repaint, allow messages with store refs
+
 	def __init__(self, screensection, screenname, Clocked=0):
 		global alertscreens
-		super().__init__(screensection, screenname, Clocked=Clocked)
+		super().__init__(screensection, screenname, Clocked=1)
+		self.ScreenType = ScreenType
 		debug.debugPrint('Screen', "Build Alerts Screen")
 		self.NavKeysShowing = False
 		self.DefaultNavKeysShowing = False
 		screen.IncorporateParams(self, screenname, {'KeyColor', 'KeyCharColorOn', 'KeyCharColorOff'}, screensection)
 		screen.AddUndefaultedParams(self, screensection, CharSize=[20], Font=fonts.monofont, MessageBack='',
-									Message=[], DeferTime="2 minutes", BlinkTime=0)
+									Message=[], CenterMessage=True, DeferTime="2 minutes", BlinkTime=0)
 		if self.MessageBack == '':
 			self.MessageBack = self.BackgroundColor
 		self.DimTO = 0  # alert screens don't dim or yield voluntarily
 		self.PersistTO = 0
-		self.BlinkTimer = None
 		self.TimerName = 0
 		self.DeferTimer = None
 
@@ -107,56 +109,30 @@ class AlertsScreenDesc(screen.ScreenDesc):
 		# Deferral timer will get set in Exit Screen
 		screens.DS.SwitchScreen(screens.HomeScreen, 'Bright', 'Manual defer an alert', newstate='Home')
 
-	# noinspection PyUnusedLocal
-	def BlinkMsg(self, param):
-		if not self.Active:
-			logsupport.Logs.Log('Alert timer while not active from: {}'.format(param.name),
-								severity=logsupport.ConsoleWarning)
-			# race condition posted a blink just as screen was exiting so skip screen update
-			if self.BlinkTimer is not None:
+	def InitDisplay(self, nav):  # todo fix for specific repaint
+		self.BlinkState = True
+		if self.BlinkTime != 0:
+			self.NextBlink = self.BlinkTime
+		print('init {} {}'.format(self.BlinkState, self.NextBlink))
+		super().InitDisplay(nav)
 
-				logsupport.Logs.Log('Alert timer from blink try for {} ({})'.format(self.BlinkTimer.name,
-																					self.BlinkTimer.is_alive()))
-				self.BlinkTimer.cancel()
-				if not self.BlinkTimer.is_alive(): self.BlinkTimer = None
-			if param.timer.is_alive():
-				logsupport.Logs.Log("Blink came from {}".format(param.timer.name))
-				param.timer.cancel()
-			return
-		if self.Msg:
+	def ReInitDisplay(self):
+		if self.BlinkTime != 0:
+			self.NextBlink -= 1
+			if self.NextBlink <= 0:
+				self.BlinkState = not self.BlinkState
+				self.NextBlink = self.BlinkTime
+		print('reinit {} {}'.format(self.BlinkState, self.NextBlink))
+		super().ReInitDisplay()
+
+	def ScreenContentRepaint(self):
+		if self.BlinkState:
 			hw.screen.blit(self.messageimage, self.upperleft)
 		else:
 			hw.screen.blit(self.messageblank, self.upperleft)
-		displayupdate.updatedisplay()
-		self.Msg = not self.Msg
-
-	def InitDisplay(self, nav): # todo fix for specific repaint
-		super(AlertsScreenDesc, self).InitDisplay(nav)
-
-		self.Msg = True
-		if self.BlinkTime != 0:
-			self.TimerName += 1
-			# logsupport.Logs.Log('Create Blink Timer {}-Blink-{}'.format(self.name,self.TimerName))
-			if self.BlinkTimer is not None:
-				logsupport.Logs.Log(
-					"Entering Alert Screen with Blink Timer not null: {} {}".format(self.BlinkTimer.name,
-																					self.BlinkTimer.is_alive()),
-					severity=logsupport.ConsoleWarning, tb=True)
-				self.BlinkTimer.cancel()
-			self.BlinkTimer = timers.RepeatingPost(float(self.BlinkTime),
-												   name=self.name + '-Blink-' + str(self.TimerName), proc=self.BlinkMsg,
-												   start=True)
-		else:
-			hw.screen.blit(self.messageimage, self.upperleft)
-			displayupdate.updatedisplay()
-
 
 	def ExitScreen(self, viaPush):
 		super().ExitScreen(viaPush)
-		if self.BlinkTimer is not None:
-			#logsupport.Logs.Log('Cancelling alert blink for {}'.format(self.BlinkTimer.name))
-			self.BlinkTimer.cancel()
-			self.BlinkTimer = None
 
 		if self.Alert.trigger.IsTrue():  # if the trigger condition is still true requeue post deferral
 			self.Alert.state = 'Deferred'
@@ -170,4 +146,4 @@ class AlertsScreenDesc(screen.ScreenDesc):
 			logsupport.Logs.Log("Alert screen " + self.name + " cause cleared", severity=ConsoleDetail)
 
 
-screens.screentypes["Alert"] = AlertsScreenDesc
+screens.screentypes[ScreenType] = AlertsScreenDesc

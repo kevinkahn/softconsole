@@ -143,13 +143,13 @@ class InitTrigger(object):
 		pass
 
 
-AlertUnigue = 0
+AlertUnique = 0
 
 
 def SchedulePeriodicEvent(alert):
-	global AlertUnigue
-	AlertUnigue += 1
-	t = timers.OnceTimer(alert.trigger.NextInterval(), name=alert.name + '-Periodic-' + str(AlertUnigue), alert=alert,
+	global AlertUnique
+	AlertUnique += 1
+	t = timers.OnceTimer(alert.trigger.NextInterval(), name=alert.name + '-Periodic-' + str(AlertUnique), alert=alert,
 						 type='Periodic', proc=alert.Invoke)
 	t.start()
 

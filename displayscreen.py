@@ -72,13 +72,14 @@ class DisplayScreen(object):
 		self.HBScreens.Entry(
 			'SwitchScreen old: {} new: {} chain: {} reason: {}'.format(oldname, NS.name, self.Chain, reason))
 		if NS == self.AS:
-			debug.debugPrint('Dispatch', 'Null SwitchScreen: ', reason)
-			logsupport.Logs.Log(
-				'Null switchscreen for {}: {}'.format(NS.name, reason))
-			if config.sysStore.versionname in ('development', 'homerelease'):
-				logsupport.Logs.Log('Null switch stack:', severity=ConsoleWarning, hb=True)
-				for L in traceback.format_stack():
-					logsupport.Logs.Log(L.strip())
+			if NS.ScreenType not in ('Alert'):  # screens for which reinvokation can make sense
+				debug.debugPrint('Dispatch', 'Null SwitchScreen: ', reason)
+				logsupport.Logs.Log(
+					'Null switchscreen for {}: {}'.format(NS.name, reason))
+				if config.sysStore.versionname in ('development', 'homerelease'):
+					logsupport.Logs.Log('Null switch stack:', severity=ConsoleWarning, hb=True)
+					for L in traceback.format_stack():
+						logsupport.Logs.Log(L.strip())
 		if NS == screen.BACKTOKEN:
 			if self.ScreenStack:
 				NS = self.ScreenStack.pop()
