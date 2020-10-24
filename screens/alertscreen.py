@@ -1,3 +1,5 @@
+ScreenType = 'Alert'
+
 import pygame
 
 import alerttasks
@@ -16,7 +18,7 @@ from logsupport import ConsoleDetail, ConsoleWarning
 from utilfuncs import wc
 
 alertscreens = {}
-ScreenType = 'Alert'
+
 
 class AlertsScreenDesc(screen.ScreenDesc):
 	global alertscreens
@@ -25,8 +27,7 @@ class AlertsScreenDesc(screen.ScreenDesc):
 
 	def __init__(self, screensection, screenname, Clocked=0):
 		global alertscreens
-		super().__init__(screensection, screenname, Clocked=1)
-		self.ScreenType = ScreenType
+		super().__init__(screensection, screenname, Clocked=1, Type=ScreenType)
 		debug.debugPrint('Screen', "Build Alerts Screen")
 		self.NavKeysShowing = False
 		self.DefaultNavKeysShowing = False
@@ -43,9 +44,9 @@ class AlertsScreenDesc(screen.ScreenDesc):
 		self.Msg = True
 
 		messageareapart = .7
-		messageareaheight = (
-									hw.screenheight - 2 * self.TopBorder) * messageareapart  # no Nav keys todo switch to new screen sizing
-		alertbutheight = (hw.screenheight - messageareaheight - 2 * self.TopBorder) / 2
+		self.messageareaheight = (
+										 hw.screenheight - 2 * self.TopBorder) * messageareapart  # no Nav keys todo switch to new screen sizing
+		alertbutheight = (hw.screenheight - self.messageareaheight - 2 * self.TopBorder) / 2
 		self.upperleft = (self.HorizBorder, self.TopBorder)
 
 		self.Defer = utilities.get_timedelta(self.DeferTime)
@@ -53,7 +54,7 @@ class AlertsScreenDesc(screen.ScreenDesc):
 		self.Keys = {'defer': toucharea.ManualKeyDesc(self, 'defer', ['Defer'], self.KeyColor, self.KeyCharColorOn,
 													  self.KeyCharColorOff,
 													  center=(hw.screenwidth / 2,
-															  self.TopBorder + messageareaheight + 0.5 * alertbutheight),
+															  self.TopBorder + self.messageareaheight + 0.5 * alertbutheight),
 													  size=(
 														  hw.screenwidth - 2 * self.HorizBorder, alertbutheight),
 													  proc=self.DeferAction)}
@@ -63,7 +64,7 @@ class AlertsScreenDesc(screen.ScreenDesc):
 			self.Keys['action'] = keyspecs.CreateKey(self, action, '*Action*')
 			# this is only case so far that is a user descibed key that gets explicit positioning so just do it here
 			self.Keys['action'].Center = (
-				hw.screenwidth / 2, self.TopBorder + messageareaheight + 1.5 * alertbutheight)
+				hw.screenwidth / 2, self.TopBorder + self.messageareaheight + 1.5 * alertbutheight)
 			self.Keys['action'].Size = (hw.screenwidth - 2 * self.HorizBorder, alertbutheight)
 			self.Keys['action'].State = True  # for appearance only
 			self.Keys['action'].FinishKey((0, 0), (0, 0))
@@ -76,25 +77,8 @@ class AlertsScreenDesc(screen.ScreenDesc):
 		for i in range(len(self.CharSize), len(self.Message)):
 			self.CharSize.append(self.CharSize[-1])
 
-		h = 0
-		l = []
-
-		for i, ln in enumerate(self.Message):
-			l.append(
-				fonts.fonts.Font(self.CharSize[i], self.Font).render(ln, 0, wc(self.KeyCharColorOn)))
-			h = h + l[i].get_height()
-		s = (messageareaheight - h) / (len(l))
-
-		self.messageimage = pygame.Surface((hw.screenwidth - 2 * self.HorizBorder, messageareaheight))
-		self.messageblank = pygame.Surface((hw.screenwidth - 2 * self.HorizBorder, messageareaheight))
-		self.messageimage.fill(wc(self.MessageBack))
+		self.messageblank = pygame.Surface((hw.screenwidth - 2 * self.HorizBorder, self.messageareaheight))
 		self.messageblank.fill(wc(self.BackgroundColor))
-
-		vert_off = s / 2
-		for i in range(len(l)):
-			horiz_off = (hw.screenwidth - l[i].get_width()) / 2 - self.HorizBorder
-			self.messageimage.blit(l[i], (horiz_off, vert_off))
-			vert_off = vert_off + s + l[i].get_height()
 
 		self.Alert = None  # gets filled in by code that parses/defines an alert that invokes the screen
 		alertscreens[screenname] = self
@@ -126,6 +110,25 @@ class AlertsScreenDesc(screen.ScreenDesc):
 		super().ReInitDisplay()
 
 	def ScreenContentRepaint(self):
+		h = 0
+		l = []
+
+		# todo process dynamics for message
+
+		for i, ln in enumerate(self.Message):
+			l.append(
+				fonts.fonts.Font(self.CharSize[i], self.Font).render(ln, 0, wc(self.KeyCharColorOn)))
+			h = h + l[i].get_height()
+		s = (self.messageareaheight - h) / (len(l))
+
+		self.messageimage = pygame.Surface((hw.screenwidth - 2 * self.HorizBorder, self.messageareaheight))
+		self.messageimage.fill(wc(self.MessageBack))
+
+		vert_off = s / 2
+		for i in range(len(l)):
+			horiz_off = (hw.screenwidth - l[i].get_width()) / 2 - self.HorizBorder
+			self.messageimage.blit(l[i], (horiz_off, vert_off))
+			vert_off = vert_off + s + l[i].get_height()
 		if self.BlinkState:
 			hw.screen.blit(self.messageimage, self.upperleft)
 		else:

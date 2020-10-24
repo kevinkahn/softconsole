@@ -145,13 +145,13 @@ class ScreenDesc(object):
 	def __getattr__(self, key):
 		return self.userstore.GetVal(key)
 
-	def __init__(self, screensection, screenname, parentscreen=None, SingleUse=False, Clocked=0):
+	def __init__(self, screensection, screenname, parentscreen=None, SingleUse=False, Clocked=0, Type='unset'):
 		self.userstore = paramstore.ParamStore('Screen-' + screenname,
 											   dp=screenStore if parentscreen is None else parentscreen.userstore,
 											   locname=screenname)
 		# todo add routine to update allowable mods per screen - but rationalize with incorp parameters from hight level guys
 
-		self.ScreenType = "unset"
+		self.ScreenType = Type
 		self.markradius = int(min(hw.screenwidth, hw.screenheight) * .025)
 		# print("{}: clocked :{}".format(screenname, Clocked))
 
