@@ -103,7 +103,7 @@ def on_message(mqclient, ud, msg):
 	# print(msg.topic+  repr(msg.payload) + str(msg.timestamp))
 	try:
 		topic = msg.topic.split('/')
-		msgdcd = json.loads(msg.payload.decode('ascii'))
+		msgdcd = json.loads(msg.payload.decode('ascii') or '{}')
 		if topic[2] == 'nodes':
 			# print(topic)
 			# print(msgdcd)

@@ -227,7 +227,7 @@ class WeatherbitWeatherSource(object):
 
 	@staticmethod
 	def MQTTWeatherUpdate(payload):
-		weatherinfo = json.loads(payload)
+		weatherinfo = json.loads(payload or '{}')
 		loc = weatherinfo['location']
 		storename = WeatherMsgStoreName[loc] if loc in WeatherMsgStoreName else '(Not on Node)'
 		if weatherinfo['current'] == 'CACHEPURGE':

@@ -115,13 +115,14 @@ class MQTTBroker(valuestore.ValueStore):
 							WeathProvs[provider][0].MQTTWeatherUpdate(msg.payload.decode('ascii'))
 						except Exception as E:
 							logsupport.Logs.Log(
-								'Unkown weather provider MQTT update for {} {} ({})'.format(provider, msg.payload, E),
+								'Unkown weather provider MQTT update for {} {} {} ({})'.format(provider, msg.topic,
+																							   msg.payload, E),
 								severity=ConsoleWarning)
 					return
 				else:
 					# see if it is node specific message
 					topic = topic.split('/')
-					msgdcd = json.loads(msg.payload.decode('ascii'))
+					msgdcd = json.loads(msg.payload.decode('ascii') or '{}')
 					if topic[2] == 'nodes':
 						consolestatus.UpdateNodeStatus(topic[-1], msgdcd)
 						return
