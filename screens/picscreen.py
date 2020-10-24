@@ -1,3 +1,4 @@
+ScreenType = 'Picture'
 import screen
 import screens.__screens as screens
 import pygame
@@ -6,12 +7,14 @@ import utilities
 import time
 import hw
 import config
-import threading, queue
+from threading import Event
+from queue import Queue, Empty
 import os
 import shutil
 import PIL.Image
 import logsupport
 from logsupport import ConsoleWarning, ConsoleDetail
+import threadmanager
 
 
 class PictureScreenDesc(screen.ScreenDesc):
@@ -22,7 +25,7 @@ class PictureScreenDesc(screen.ScreenDesc):
 		os.mkdir(self.cachedir)
 
 	def __init__(self, screensection, screenname, Clocked=0):
-		super().__init__(screensection, screenname, Clocked=1)
+		super().__init__(screensection, screenname, Clocked=1, Type=ScreenType)
 		debug.debugPrint('Screen', "Build Picture Screen")
 
 		self.KeyList = None
@@ -53,13 +56,12 @@ class PictureScreenDesc(screen.ScreenDesc):
 		self.hoffset = 1
 		self.picture = '*none*'
 		self.modtime = 0
-		self.picqueue = queue.Queue(maxsize=1)
-		self.DoSinglePic = threading.Event()
+		self.picqueue = Queue(maxsize=1)
+		self.DoSinglePic = Event()
 		self.DoSinglePic.set()
-		self.queueingthread = threading.Thread(name=self.name + 'qthread',
-											   target=[self.QueuePics, self.QueueSinglePic][self.singlepicmode],
-											   daemon=True)
-		self.queueingthread.start()
+		threadmanager.SetUpHelperThread(self.name + '-picqueue',
+										[self.QueuePics, self.QueueSinglePic][self.singlepicmode], prestart=None,
+										poststart=None, prerestart=None, postrestart=None, checkok=None, rpterr=True)
 
 	def QueueSinglePic(self):
 		while True:
@@ -179,7 +181,7 @@ class PictureScreenDesc(screen.ScreenDesc):
 				self.holdtime = self.picturetime
 				self.picshowing, self.woffset, self.hoffset = picdescr
 
-			except queue.Empty:
+			except Empty:
 				if not self.singlepicmode:  # normal case in single mode is nothing changed
 					logsupport.Logs.Log('Picture not ready for screen {} holding {} ({})'.format(self.name,
 																								 self.picture,
@@ -188,4 +190,5 @@ class PictureScreenDesc(screen.ScreenDesc):
 		hw.screen.blit(self.picshowing, (self.woffset, self.hoffset))
 		if self.shownav: self.PaintNavKeys()
 
-screens.screentypes["Picture"] = PictureScreenDesc
+
+screens.screentypes[ScreenType] = PictureScreenDesc
