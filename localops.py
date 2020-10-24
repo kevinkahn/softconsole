@@ -53,7 +53,6 @@ def PreOp():
 
 	try:
 		if os.path.exists(confserver + "runonce.sh"):
-			print('once')
 			try:
 				rtime = os.path.getmtime(config.sysStore.configdir + '/runonce.sh.done')
 			except Exception:
