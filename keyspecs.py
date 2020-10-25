@@ -1,6 +1,5 @@
 import shlex
 
-import pygame
 import debug
 import displayupdate
 import hubs.hubs
@@ -16,7 +15,6 @@ from toucharea import ManualKeyDesc
 from utilfuncs import *
 from configobjects import GoToTargetList
 import config
-import time
 
 # noinspection PyUnusedLocal
 def KeyWithVarChanged(storeitem, old, new, param, modifier):

@@ -37,15 +37,11 @@ class PictureScreenDesc(screen.ScreenDesc):
 		screen.AddUndefaultedParams(self, screensection, picturedir="", picturetime=5, singlepic='')
 		self.singlepicmode = self.singlepic != ''
 		if self.singlepicmode:
-			if self.singlepic[0] != '/':
-				self.singlepic = os.path.dirname(config.sysStore.configfile) + '/' + self.singlepic
+			self.singlepic = utilities.inputfileparam(self.singlepic, config.sysStore.configdir, '/pic.jpg')
 			logsupport.Logs.Log('Picture screen {} in single mode for {}'.format(self.name, self.singlepic))
 			self.picturetime = 9999
 		else:
-			if self.picturedir == '':
-				self.picturedir = os.path.dirname(config.sysStore.configfile) + '/pics'
-			elif self.picturedir[0] != '/':
-				self.picturedir = os.path.dirname(config.sysStore.configfile) + '/' + self.picturedir
+			self.picturedir = utilities.inputfileparam(self.picturedir, config.sysStore.configdir, '/pics')
 			if '*' in self.picturedir: self.picturedir = self.picturedir.replace('*', config.sysStore.hostname)
 			logsupport.Logs.Log('Picture screen {} in directory mode for {}'.format(self.name, self.picturedir))
 

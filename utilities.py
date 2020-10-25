@@ -12,6 +12,7 @@ import logsupport
 import threadmanager  # should not depend on in project files - move somewhere else
 from controlevents import CEvent, PostEvent, ConsoleEvent
 from logsupport import ConsoleDetail
+from stores import valuestore
 
 # from sets import Set
 
@@ -264,6 +265,48 @@ class Enumerate(object):
 	def __init__(self, names):
 		for number, name in enumerate(names.split()):
 			setattr(self, name, name)
+
+
+def inputfileparam(param, reldir, defdir):
+	fixreldir = reldir if reldir[-1] == '/' else reldir + '/'
+	if param == '':
+		return fixreldir + defdir
+	elif param[0] != '/':
+		return fixreldir + param
+	else:
+		return param
+
+
+def ExpandTextwitVars(txt):
+	temptxt = [txt] if not isinstance(txt, list) else txt
+	newtext = []
+	for ln in temptxt:
+		line = ln
+		tokens = [x for x in ln.split() if ':' in x]
+		if tokens:
+			lnreduced = ln
+			for d in tokens: lnreduced = lnreduced.replace(d, ':')
+			l1 = lnreduced.split(':')
+			partialline = l1[0]
+			for i, x in enumerate(tokens):
+				val = valuestore.GetVal(x)
+				if isinstance(val, list):
+					newtext.append(partialline + str(val[0]).rstrip('\n'))
+					print('A:{}'.format(partialline))
+					for l2 in val[1:-1]:
+						newtext.append(str(l2).rstrip('\n'))
+						print('B:{}'.format(partialline))
+					if len(val) > 2:
+						partialline = str(val[-1]).rstrip('\n') + l1[i + 1]
+						print('C:{}'.format(partialline))
+				else:
+					partialline = partialline + str(val).rstrip('\n') + l1[i + 1]
+					print('D:{}'.format(partialline))
+			newtext.append(partialline)
+		else:
+			newtext.append(ln)
+
+	return newtext
 
 
 mqttregistered = False
