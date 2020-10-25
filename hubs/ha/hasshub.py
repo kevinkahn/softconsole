@@ -780,7 +780,14 @@ class HA(object):
 		# listeners = ha.get_event_listeners(self.api)
 		logsupport.Logs.Log(self.name + ": Processed " + str(len(self.Entities)) + " total entities")
 		for d, e in self.DomainEntityReg.items():
-			if e != {}: logsupport.Logs.Log("    {}: {}".format(d, len(e)))
+			if e != {}:
+				if isinstance(list(e.values())[0], self.dyndomains['ignore'].IgnoredDomain):
+					logsupport.Logs.Log("    {}: {}  (Ignored)".format(d, len(e)))
+				else:
+					logsupport.Logs.Log("    {}: {}".format(d, len(e)))
+			if d == 'unset':
+				for i in e:
+					logsupport.Logs.Log('  :{}'.format(i))
 
 		self.initialstartup = True
 
