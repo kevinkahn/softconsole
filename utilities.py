@@ -287,7 +287,6 @@ def ExpandTextwitVars(txt):
 	temptxt = [txt] if not isinstance(txt, list) else txt
 	newtext = []
 	for ln in temptxt:
-		line = ln
 		tokens = [x for x in ln.split() if ':' in x]
 		if tokens:
 			lnreduced = ln
@@ -298,16 +297,16 @@ def ExpandTextwitVars(txt):
 				val = valuestore.GetVal(x)
 				if isinstance(val, list):
 					newtext.append(partialline + str(val[0]).rstrip('\n'))
-					print('A:{}'.format(partialline))
+					# print('A:{}'.format(partialline))
 					for l2 in val[1:-1]:
 						newtext.append(str(l2).rstrip('\n'))
-						print('B:{}'.format(partialline))
+					# print('B:{}'.format(partialline))
 					if len(val) > 2:
 						partialline = str(val[-1]).rstrip('\n') + l1[i + 1]
-						print('C:{}'.format(partialline))
+				# print('C:{}'.format(partialline))
 				else:
 					partialline = partialline + str(val).rstrip('\n') + l1[i + 1]
-					print('D:{}'.format(partialline))
+				#print('D:{}'.format(partialline))
 			newtext.append(partialline)
 		else:
 			newtext.append(ln)

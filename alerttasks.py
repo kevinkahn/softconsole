@@ -16,15 +16,18 @@ from controlevents import CEvent, PostEvent, ConsoleEvent
 from logsupport import ConsoleWarning, ConsoleDetail, ConsoleError
 from screens import alertscreen
 from stores import valuestore
+import config
 
 alertprocs = {}  # set by modules from alerts directory
 monitoredvars = []
 
 AlertItems = None
 
+
 Tests = ('EQ', 'NE')
 AlertType = (
-'NodeChange', 'VarChange', 'StateVarChange', 'IntVarChange', 'LocalVarChange', 'Periodic', 'TOD', 'External', 'Init')
+	'NodeChange', 'VarChange', 'StateVarChange', 'IntVarChange', 'LocalVarChange', 'Periodic', 'TOD', 'External',
+	'Init', 'FileWatch')
 
 AlertsHB = historybuffer.HistoryBuffer(100, 'Alerts')
 
@@ -51,7 +54,10 @@ class Alert(object):
 
 	# noinspection PyUnusedLocal
 	def Invoke(self, param=None):
-		if isinstance(self.actiontarget, screens.screentypes["Alert"]):
+		if self.actiontarget is None:
+			# alert causes no action (e.g., filewatch may just update vars)
+			pass
+		elif isinstance(self.actiontarget, screens.screentypes["Alert"]):
 			self.state = 'Active'
 			# if system is in a stack empty it.  End of alert will go back to home and not the stack
 			screens.DS.SwitchScreen(self.actiontarget, 'Bright', 'Go to alert screen', newstate='Alert', clear=True)
@@ -65,15 +71,43 @@ class Alert(object):
 			SchedulePeriodicEvent(self)
 
 	def __repr__(self):
-		if isinstance(self.actiontarget, screen.ScreenDesc):
+		if self.actiontarget is None:
+			targtype = 'No Action'
+		elif isinstance(self.actiontarget, screen.ScreenDesc):
 			targtype = 'Screen'
 		else:
 			targtype = 'Proc'
 		tname = '*no timer*'
 		if self.timer is not None: tname = self.timer.name
-		return self.name + ': ' + self.type + ' Alert (' + self.state + ') Trigger: ' + repr(
-			self.trigger) + ' Invoke: ' + targtype + ':' + self.actionname + str(
-			self.actiontarget) + 'Timer: {}'.format(tname)
+		return '{}:{} Alert({}) Trigger: {} \n  Invoke: {}:{} Target:{}\n  Params: {}\n  Timer: {}'.format(self.name,
+																										   self.type,
+																										   self.state,
+																										   repr(
+																											   self.trigger),
+																										   targtype,
+																										   self.actionname,
+																										   str(
+																											   self.actiontarget),
+																										   self.param,
+																										   tname)
+
+
+class FileWatchTrigger(object):
+	def __init__(self, filename):
+		self.filename = filename
+		self.trigstate = False
+
+	def IsTrue(self):
+		return self.trigstate
+
+	def ClearTrigger(self):
+		self.trigstate = False
+
+	def SetTrigger(self):
+		self.trigstate = True
+
+	def __repr__(self):
+		return 'Filename = {}'.format(self.filename)
 
 
 class NodeChgtrigger(object):
@@ -209,32 +243,36 @@ def ParseAlertParams(nm, spec):
 	t = spec.get('Invoke', None)
 	param = spec.get('Parameter', None)
 	if t is None:
-		logsupport.Logs.Log('Missing alert proc invoke spec in ' + nm, severity=ConsoleWarning)
-		return None
-	nmlist = t.split('.')
-
-	if nmlist[0] in alertprocs:
-		if len(nmlist) != 2:
-			logsupport.Logs.Log('Bad alert proc spec ' + t + ' in ' + nm, severity=ConsoleWarning)
-			return None
-		# noinspection PyBroadException
-		try:
-			action = getattr(alertprocs[nmlist[0]], nmlist[1])
-		except:
-			logsupport.Logs.Log('No proc ', nmlist[1], ' in ', nmlist[0], severity=ConsoleWarning)
-			return None
-		actionname = t
+		logsupport.Logs.Log('Alert {} has no action'.format(nm), severity=ConsoleWarning)
+		action = None
+		actionname = '*none*'
 		fixscreen = False
-	elif nmlist[0] in alertscreen.alertscreens:
-		if len(nmlist) != 1:
-			logsupport.Logs.Log('Alert screen name must be unqualified in ' + nm, severity=ConsoleWarning)
-			return None
-		action = alertscreen.alertscreens[nmlist[0]]
-		actionname = t
-		fixscreen = True
 	else:
-		logsupport.Logs.Log('No such action name for alert: ' + nm, severity=ConsoleWarning)
-		return None
+		nmlist = t.split('.')
+
+		if nmlist[0] in alertprocs:
+			if len(nmlist) != 2:
+				logsupport.Logs.Log('Bad alert proc spec ' + t + ' in ' + nm, severity=ConsoleWarning)
+				return None
+			# noinspection PyBroadException
+			try:
+				action = getattr(alertprocs[nmlist[0]], nmlist[1])
+			except:
+				logsupport.Logs.Log('No proc ', nmlist[1], ' in ', nmlist[0], severity=ConsoleWarning)
+				return None
+			actionname = t
+			fixscreen = False
+		elif nmlist[0] in alertscreen.alertscreens:
+			if len(nmlist) != 1:
+				logsupport.Logs.Log('Alert screen name must be unqualified in ' + nm, severity=ConsoleWarning)
+				return None
+			action = alertscreen.alertscreens[nmlist[0]]
+			actionname = t
+			fixscreen = True
+		else:
+			logsupport.Logs.Log('No such action name for alert: ' + nm, severity=ConsoleWarning)
+			return None
+
 	triggertype = getvalid(spec, 'Type', AlertType)
 	if triggertype == 'Periodic':
 		# parse time specs
@@ -304,6 +342,15 @@ def ParseAlertParams(nm, spec):
 	elif triggertype == 'Init':  # Trigger once at start up passing in the configobj spec
 		trig = InitTrigger()
 		A = Alert(nm, triggertype, trig, action, actionname, param)
+	elif triggertype == 'FileWatch':
+		# parse the filename
+		tmp = spec.get('File', None)
+		if tmp is None:
+			logsupport.Logs.Log("Alert: ", nm, " Must supply file name", severity=ConsoleWarning)
+			return None
+		trig = FileWatchTrigger(utilities.inputfileparam(tmp, config.sysStore.configdir, 'news.txt'))
+		A = Alert(nm, triggertype, trig, action, actionname, param)
+
 	else:
 		logsupport.Logs.Log("Internal triggertype error", severity=ConsoleError)
 		A = None

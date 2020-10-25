@@ -1,10 +1,10 @@
 ScreenType = 'Alert'
 
 import pygame
+import functools
 
 import alerttasks
 import debug
-import displayupdate
 import fonts
 import hw
 import keyspecs
@@ -16,14 +16,13 @@ import toucharea
 import utilities
 from logsupport import ConsoleDetail, ConsoleWarning
 from utilfuncs import wc
+from configobj import ConfigObj
 
 alertscreens = {}
 
 
 class AlertsScreenDesc(screen.ScreenDesc):
 	global alertscreens
-
-	# todo add centermes option, make clocked and use clock for blinking, move to content repaint, allow messages with store refs
 
 	def __init__(self, screensection, screenname, Clocked=0):
 		global alertscreens
@@ -33,13 +32,20 @@ class AlertsScreenDesc(screen.ScreenDesc):
 		self.DefaultNavKeysShowing = False
 		screen.IncorporateParams(self, screenname, {'KeyColor', 'KeyCharColorOn', 'KeyCharColorOff'}, screensection)
 		screen.AddUndefaultedParams(self, screensection, CharSize=[20], Font=fonts.monofont, MessageBack='',
-									Message=[], CenterMessage=True, DeferTime="2 minutes", BlinkTime=0)
+									Message=[], CenterMessage=True, DeferTime="2 minutes", BlinkTime=[])
 		if self.MessageBack == '':
 			self.MessageBack = self.BackgroundColor
 		self.DimTO = 0  # alert screens don't dim or yield voluntarily
 		self.PersistTO = 0
 		self.TimerName = 0
 		self.DeferTimer = None
+		if not isinstance(self.BlinkTime, list):
+			self.BlinkTime = [int(self.BlinkTime), int(self.BlinkTime)]
+		else:
+			if len(self.BlinkTime) != 2:
+				self.BlinkTime = [0, 0]
+			else:
+				self.BlinkTime = [int(self.BlinkTime[0]), int(self.BlinkTime[1])]
 
 		self.Msg = True
 
@@ -59,23 +65,25 @@ class AlertsScreenDesc(screen.ScreenDesc):
 														  hw.screenwidth - 2 * self.HorizBorder, alertbutheight),
 													  proc=self.DeferAction)}
 
+		def CallClear(screen):
+			screen.Alert.trigger.ClearTrigger()
+			screens.DS.SwitchScreen(screens.HomeScreen, 'Bright', 'Manual defer an alert', newstate='Home')
+
 		if 'Action' in screensection:
 			action = screensection['Action']
 			self.Keys['action'] = keyspecs.CreateKey(self, action, '*Action*')
-			# this is only case so far that is a user descibed key that gets explicit positioning so just do it here
-			self.Keys['action'].Center = (
-				hw.screenwidth / 2, self.TopBorder + self.messageareaheight + 1.5 * alertbutheight)
-			self.Keys['action'].Size = (hw.screenwidth - 2 * self.HorizBorder, alertbutheight)
-			self.Keys['action'].State = True  # for appearance only
-			self.Keys['action'].FinishKey((0, 0), (0, 0))
 		else:
-			pass
-		# no key created - just a blank spot on the alert screen
+			keyspecs.internalprocs[self.name + '-ACK'] = functools.partial(CallClear, self)
+			temp = ConfigObj()
+			temp['action'] = {'type': 'PROC', 'ProcName': self.name + '-ACK', 'label': 'Clear'}
+			self.Keys['action'] = keyspecs.CreateKey(self, temp['action'], '*Action*')
 
-		#
-
-		for i in range(len(self.CharSize), len(self.Message)):
-			self.CharSize.append(self.CharSize[-1])
+		# this is only case so far that is a user descibed key that gets explicit positioning so just do it here
+		self.Keys['action'].Center = (
+			hw.screenwidth / 2, self.TopBorder + self.messageareaheight + 1.5 * alertbutheight)
+		self.Keys['action'].Size = (hw.screenwidth - 2 * self.HorizBorder, alertbutheight)
+		self.Keys['action'].State = True  # for appearance only
+		self.Keys['action'].FinishKey((0, 0), (0, 0))
 
 		self.messageblank = pygame.Surface((hw.screenwidth - 2 * self.HorizBorder, self.messageareaheight))
 		self.messageblank.fill(wc(self.BackgroundColor))
@@ -87,6 +95,9 @@ class AlertsScreenDesc(screen.ScreenDesc):
 		utilities.register_example("AlertsScreen", self)
 
 	# noinspection PyUnusedLocal
+	def getCharSize(self, lineno):
+		return self.CharSize[lineno] if lineno < len(self.CharSize) else self.CharSize[-1]
+
 	def DeferAction(self):
 		debug.debugPrint('Screen', 'Alertscreen manual defer: ' + self.name)
 		self.Alert.state = 'Deferred'
@@ -96,8 +107,7 @@ class AlertsScreenDesc(screen.ScreenDesc):
 	def InitDisplay(self, nav):  # todo fix for specific repaint
 		self.BlinkState = True
 		if self.BlinkTime != 0:
-			self.NextBlink = self.BlinkTime
-		print('init {} {}'.format(self.BlinkState, self.NextBlink))
+			self.NextBlink = self.BlinkTime[not self.BlinkState]
 		super().InitDisplay(nav)
 
 	def ReInitDisplay(self):
@@ -105,8 +115,7 @@ class AlertsScreenDesc(screen.ScreenDesc):
 			self.NextBlink -= 1
 			if self.NextBlink <= 0:
 				self.BlinkState = not self.BlinkState
-				self.NextBlink = self.BlinkTime
-		print('reinit {} {}'.format(self.BlinkState, self.NextBlink))
+				self.NextBlink = self.BlinkTime[not self.BlinkState]
 		super().ReInitDisplay()
 
 	def ScreenContentRepaint(self):
@@ -114,10 +123,11 @@ class AlertsScreenDesc(screen.ScreenDesc):
 		l = []
 
 		# todo process dynamics for message
+		Message = utilities.ExpandTextwitVars(self.Message)
 
-		for i, ln in enumerate(self.Message):
+		for i, ln in enumerate(Message):
 			l.append(
-				fonts.fonts.Font(self.CharSize[i], self.Font).render(ln, 0, wc(self.KeyCharColorOn)))
+				fonts.fonts.Font(self.getCharSize(i), self.Font).render(ln, 0, wc(self.KeyCharColorOn)))
 			h = h + l[i].get_height()
 		s = (self.messageareaheight - h) / (len(l))
 
@@ -126,7 +136,10 @@ class AlertsScreenDesc(screen.ScreenDesc):
 
 		vert_off = s / 2
 		for i in range(len(l)):
-			horiz_off = (hw.screenwidth - l[i].get_width()) / 2 - self.HorizBorder
+			if self.CenterMessage:
+				horiz_off = (hw.screenwidth - l[i].get_width()) / 2 - self.HorizBorder
+			else:
+				horiz_off = self.HorizBorder
 			self.messageimage.blit(l[i], (horiz_off, vert_off))
 			vert_off = vert_off + s + l[i].get_height()
 		if self.BlinkState:
