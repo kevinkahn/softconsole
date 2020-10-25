@@ -11,8 +11,8 @@ IngoredEntities = {}
 
 class IgnoredDomain(HAnode):
 	def __init__(self, dom, HAitem, d):
-		self.domname = dom
 		super(IgnoredDomain, self).__init__(HAitem, **d)
+		self.domname = dom
 		self.Hub.RegisterEntity(self.domname, self.entity_id, self)
 		IngoredEntities[dom][self.name] = self
 
