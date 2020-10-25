@@ -4,7 +4,8 @@ import hubs.ha.hasshub as hasshub
 import logsupport
 
 IgnoreThese = ('sun', 'person', 'notifications', 'persistent_notification', 'zwave', 'zone', 'history_graph', 'updater',
-			   'configurator', 'weather', 'zwave_mqtt', 'scene', 'counter')
+			   'configurator', 'weather', 'zwave_mqtt', 'scene', 'counter', 'camera', 'lock', 'alarm_control_panel',
+			   'device_tracker')
 IngoredEntities = {}
 
 
@@ -36,12 +37,14 @@ def AddIgnoredDomain(dom):
 	reg = partial(IgnoredDomain, dom)
 	IngoredEntities[dom] = {}
 	RegisterDomain(dom, reg, IgnoreDomainSpecificEvent)
+	logsupport.Logs.Log('Adding ignored HA domain: {}'.format(dom))
 
 
 hasshub.AddIgnoredDomain = AddIgnoredDomain
 
-
+logsupport.Logs.Log('Note: following HA domains are ignored by the console:')
 for d in IgnoreThese:
+	logsupport.Logs.Log('     {}'.format(d))
 	reg = partial(IgnoredDomain, d)
 	IngoredEntities[d] = {}
 	RegisterDomain(d, reg, IgnoreDomainSpecificEvent)
