@@ -7,6 +7,7 @@ from logsupport import ConsoleWarning
 
 HelperThreads = {}
 Watcher = None
+ThreadStarted = False
 
 
 class ThreadStartException(Exception):
@@ -32,8 +33,9 @@ class ThreadItem(object):
 
 def SetUpHelperThread(name, proc, prestart=None, poststart=None, prerestart=None, postrestart=None, checkok=None,
 					  rpterr=True):
-	global HelperThreads
+	global HelperThreads, ThreadStarted
 	HelperThreads[name] = ThreadItem(name, proc, prestart, poststart, prerestart, postrestart, checkok, rpterr)
+	if ThreadStarted: StartThread(HelperThreads[name])
 
 
 def DeleteHelperThread(name):
@@ -77,18 +79,24 @@ def CheckThreads():
 		logsupport.Logs.Log("Check threads fatal error: {}".format(repr(E)))
 
 
+def StartThread(T):
+	T.seq += 1
+	logsupport.Logs.Log("Starting helper thread (", T.seq, ") for: ", T.name)
+	if T.PreStartThread is not None: T.PreStartThread()
+	T.Thread = threading.Thread(name=T.name, target=T.Proc, daemon=True)
+	T.Thread.start()
+	if T.PostStartThread is not None: T.PostStartThread()
+
+
 def StartThreads():
+	global ThreadStarted
 	global Watcher
 
 	for T in HelperThreads.values():
-		T.seq += 1
-		logsupport.Logs.Log("Starting helper thread (", T.seq, ") for: ", T.name)
-		if T.PreStartThread is not None: T.PreStartThread()
-		T.Thread = threading.Thread(name=T.name, target=T.Proc, daemon=True)
-		T.Thread.start()
-		if T.PostStartThread is not None: T.PostStartThread()
+		StartThread(T)
 	Watcher = threading.Thread(name='Watcher', target=Watch, daemon=True)
 	Watcher.start()
+	ThreadStarted = True
 
 
 def Watch():
