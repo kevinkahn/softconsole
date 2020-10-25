@@ -23,7 +23,7 @@ import timers
 from controlevents import CEvent, PostEvent, ConsoleEvent, GetEvent, GetEventNoWait
 from logsupport import ConsoleWarning, ConsoleError, ConsoleDetail
 from consolestatus import ReportStatus
-import consolestatus
+import filewatcher
 import controlevents
 import traceback
 
@@ -202,6 +202,8 @@ class DisplayScreen(object):
 				pass
 			elif a.type == 'Init':
 				a.Invoke()
+			elif a.type == 'FileWatch':
+				filewatcher.SetUpForFile(a)
 			else:
 				logsupport.Logs.Log("Internal error - unknown alert type: ", a.type, ' for ', a.name,
 									severity=ConsoleError, tb=False)
