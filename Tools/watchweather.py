@@ -1,5 +1,6 @@
 import paho.mqtt.client as mqtt
 import json, time
+from utilities import CheckPayload
 
 NodeTally = {}
 LocationTally = {}
@@ -19,7 +20,7 @@ def on_message(client, userdata, msg):
 	try:
 		topic = msg.topic.split('/')[4]
 		payload = msg.payload.decode('ascii')
-		p = json.loads(payload)
+		p = json.loads(CheckPayload(payload, topic, 'watchweather'))
 		loc = p['location']
 		ft = p['fetchtime']
 		fn = p['fetchingnode']

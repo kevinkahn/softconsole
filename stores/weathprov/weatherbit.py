@@ -18,6 +18,7 @@ from ._weatherbit.utils import LocalizeDateTime
 from stores.weathprov.providerutils import TryShorten, WeathProvs, MissingIcon
 from utilfuncs import interval_str
 from ._weatherbit.utils import _get_date_from_timestamp
+from utilities import CheckPayload
 
 WeatherIconCache = {'n/a': MissingIcon}
 
@@ -227,7 +228,7 @@ class WeatherbitWeatherSource(object):
 
 	@staticmethod
 	def MQTTWeatherUpdate(payload):
-		weatherinfo = json.loads(payload or '{}')
+		weatherinfo = json.loads(CheckPayload(payload, 'wbupdate', 'wbupdate'))
 		loc = weatherinfo['location']
 		storename = WeatherMsgStoreName[loc] if loc in WeatherMsgStoreName else '(Not on Node)'
 		if weatherinfo['current'] == 'CACHEPURGE':

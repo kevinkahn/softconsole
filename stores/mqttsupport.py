@@ -19,6 +19,7 @@ import screens.__screens as screens
 import controlevents
 from stores.weathprov.providerutils import WeathProvs
 import stats
+from utilities import CheckPayload
 
 class MQitem(valuestore.StoreItem):
 	def __init__(self, name, Topic, Type, Expires, jsonflds, Store):
@@ -98,7 +99,7 @@ class MQTTBroker(valuestore.ValueStore):
 					#	self.Publish('resp', '{}|ok|{}'.format(cmd, seq), fromnd)
 					return
 				elif topic in ('consoles/all/set', 'consoles/' + hw.hostname + '/set'):
-					d = json.loads(msg.payload.decode('ascii'))
+					d = json.loads(CheckPayload(msg.payload.decode('ascii'), topic, 'mqtt-consoles-set'))
 					try:
 						logsupport.Logs.Log('{}: set {} = {}'.format(self.name, d['name'], d['value']))
 						valuestore.SetVal(d['name'], d['value'])
@@ -122,7 +123,7 @@ class MQTTBroker(valuestore.ValueStore):
 				else:
 					# see if it is node specific message
 					topic = topic.split('/')
-					msgdcd = json.loads(msg.payload.decode('ascii') or '{}')
+					msgdcd = json.loads(CheckPayload(msg.payload.decode('ascii'), topic, 'mqtt-nodespec'))
 					if topic[2] == 'nodes':
 						consolestatus.UpdateNodeStatus(topic[-1], msgdcd)
 						return
@@ -161,8 +162,9 @@ class MQTTBroker(valuestore.ValueStore):
 						else:
 							payload = '*bad json*' + msg.payload.decode('ascii')  # for exception log below
 							try:
-								payload = json.loads(msg.payload.decode('ascii').replace('nan',
-																						 'null'))  # work around bug in tasmota returning bad json
+								payload = json.loads(CheckPayload(msg.payload.decode('ascii').replace('nan',
+																									  'null'), v,
+																  'mqtt-var'))  # work around bug in tasmota returning bad json
 								for i in v.jsonflds:
 									payload = payload[i]
 								if payload is not None:
@@ -178,7 +180,7 @@ class MQTTBroker(valuestore.ValueStore):
 				self.HB.Entry('Processing time: {} Done: {}'.format(loopend - loopstart, repr(msg)))
 				time.sleep(.1)  # force thread to give up processor to allow response to time events
 			except Exception as E:
-				logsupport.Logs.Log('MQTT Error: {} userdata: {} msg: {}'.format(repr(E), userdata, msg))
+				logsupport.Logs.Log('MQTT Error: {} topic: {} msg: {}'.format(repr(E), msg.topic, msg.payload))
 
 		# self.HB.Entry('Gave up control for: {}'.format(time.time() - loopend))
 

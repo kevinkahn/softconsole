@@ -18,6 +18,7 @@ import threadmanager
 from controlevents import CEvent, PostEvent, ConsoleEvent
 from logsupport import ConsoleWarning, ConsoleError, ConsoleDetail
 from stores import valuestore
+from utilities import CheckPayload
 
 AddIgnoredDomain = None  # gets filled in by ignore to avoid import loop
 
@@ -394,7 +395,7 @@ class HA(object):
 				# if self.msgcount <4: logsupport.Logs.Log(self.name + " Message "+str(self.msgcount)+':'+ repr(message))
 				# noinspection PyBroadException
 				try:
-					mdecode = json.loads(message)
+					mdecode = json.loads(CheckPayload(message, 'none', 'hasshubmsg'))
 				except:
 					logsupport.Logs.Log("HA event with bad message: ", message, severity=ConsoleError)
 					return
@@ -725,14 +726,19 @@ class HA(object):
 			# This is special cased for Thermostats to connect the sensor entity with the thermostat to check for changes
 			# If any other domain ever needs the same mechanism this should just be generalized to a "finish-up" call for
 			# every entity
-			if T.IsThermostat:
-				try:
-					tname = n.split('.')[1]
-					tsensor = self.DomainEntityReg['sensor']['sensor.' + tname + '_thermostat_hvac_state']
-					# noinspection PyProtectedMember
-					T._connectsensors(tsensor)
-				except:
-					logsupport.Logs.Log('Exception from {} connecting sensor {}'.format(self.name,n),severity=ConsoleWarning)
+			try:
+				if T.IsThermostat:
+					try:
+						tname = n.split('.')[1]
+						tsensor = self.DomainEntityReg['sensor']['sensor.' + tname + '_thermostat_hvac_state']
+						# noinspection PyProtectedMember
+						T._connectsensors(tsensor)
+					except:
+						logsupport.Logs.Log('Exception from {} connecting sensor {}'.format(self.name, n),
+											severity=ConsoleWarning)
+			except Exception as E:
+				logsupport.Logs.Log('Exception looking at climate devices: {} ({})'.format(n, E),
+									severity=ConsoleWarning)
 		self.haconnectstate = "Init"
 		services = {}
 		for i in range(3):

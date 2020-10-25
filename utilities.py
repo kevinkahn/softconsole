@@ -11,7 +11,7 @@ import hw
 import logsupport
 import threadmanager  # should not depend on in project files - move somewhere else
 from controlevents import CEvent, PostEvent, ConsoleEvent
-from logsupport import ConsoleDetail
+from logsupport import ConsoleDetail, ConsoleWarning
 from stores import valuestore
 
 # from sets import Set
@@ -45,6 +45,12 @@ except AttributeError:
 
 # end SIGHUP hack
 
+def CheckPayload(payload, topic, tag):
+	if payload is '':
+		logsupport('Empty payload string at {} for topic {}'.format(tag, topic), severity=ConsoleWarning)
+		return '{}'
+	else:
+		return payload
 
 class clsstruct:
 	def __init__(self, nm):

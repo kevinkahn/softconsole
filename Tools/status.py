@@ -6,6 +6,7 @@ import time
 from itertools import zip_longest
 from datetime import datetime
 import statusinput
+from utilities import CheckPayload
 
 import paho.mqtt.client as mqtt
 
@@ -103,7 +104,7 @@ def on_message(mqclient, ud, msg):
 	# print(msg.topic+  repr(msg.payload) + str(msg.timestamp))
 	try:
 		topic = msg.topic.split('/')
-		msgdcd = json.loads(msg.payload.decode('ascii') or '{}')
+		msgdcd = json.loads(CheckPayload(msg.payload.decode('ascii'), topic, 'statusmsg'))
 		if topic[2] == 'nodes':
 			# print(topic)
 			# print(msgdcd)
