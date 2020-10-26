@@ -4,6 +4,7 @@ import time
 from stores import valuestore
 import os
 import logsupport
+from logsupport import ConsoleWarning
 from controlevents import CEvent, PostEvent, ConsoleEvent
 
 FileWatchInfo = None  # entry modtime: 0.0, params: str
@@ -25,13 +26,28 @@ def FileWatcher():
 	global FileWatchInfo
 	while not config.Running:
 		time.sleep(1)
+	BadFiles = []
 	for f, info in FileWatchInfo.items():
-		FileWatchInfo[f]['modtime'] = os.path.getmtime(f)
-		ParseFile(info['store'], f, info['param'])
+		try:
+			FileWatchInfo[f]['modtime'] = os.path.getmtime(f)
+			ParseFile(info['store'], f, info['param'])
+		except Exception as E:
+			logsupport.Logs.Log("Error accessing watched file {} ({})".format(f, E), severity=ConsoleWarning)
+			BadFiles.append(f)
 	while True:
 		time.sleep(1)
 		for f, info in FileWatchInfo.items():
-			t = os.path.getmtime(f)
+			try:
+				t = os.path.getmtime(f)
+			except Exception as E:
+				if not f in BadFiles:
+					logsupport.Logs.Log("Watched file {} became inaccessible ({})".format(f, E),
+										severity=ConsoleWarning)
+					BadFiles.append(f)
+				continue
+			if f in BadFiles:
+				BadFiles.remove(f)
+				print("Became ok")
 			if t != info['modtime']:
 				info['alert'].trigger.SetTrigger()
 				info['modtime'] = t

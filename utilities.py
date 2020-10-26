@@ -27,6 +27,13 @@ previousup = 0
 
 ts = None
 
+ErroredConfigSections = []
+
+
+def MarkErr(section):
+	global ErroredConfigSections
+	ErroredConfigSections.append(section)
+
 
 # next several lines stolen from https://stackoverflow.com/questions/39198961/pygame-init-fails-when-run-with-systemd
 # this handles some weird random SIGHUP when initializing pygame, it's really a hack to work around it
@@ -283,7 +290,11 @@ def inputfileparam(param, reldir, defdir):
 		return param
 
 
-def ExpandTextwitVars(txt):
+lastscreenname = '**'
+
+
+def ExpandTextwitVars(txt, screenname='**'):
+	global lastscreenname
 	temptxt = [txt] if not isinstance(txt, list) else txt
 	newtext = []
 	for ln in temptxt:
@@ -294,7 +305,15 @@ def ExpandTextwitVars(txt):
 			l1 = lnreduced.split(':')
 			partialline = l1[0]
 			for i, x in enumerate(tokens):
-				val = valuestore.GetVal(x)
+				val = valuestore.GetVal(x, failok=True)
+				if val is None:
+					if screenname != lastscreenname:
+						logsupport.Logs.Log('Substitution var does not exist on screen {}: {}'.format(screenname, x),
+											severity=ConsoleWarning)
+					val = ''
+					lastscreenname = screenname
+				else:
+					lastscreenname = '**'
 				if isinstance(val, list):
 					newtext.append(partialline + str(val[0]).rstrip('\n'))
 					# print('A:{}'.format(partialline))
@@ -310,8 +329,6 @@ def ExpandTextwitVars(txt):
 			newtext.append(partialline)
 		else:
 			newtext.append(ln)
-
 	return newtext
-
 
 mqttregistered = False
