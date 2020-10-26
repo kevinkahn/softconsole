@@ -271,6 +271,7 @@ def ParseAlertParams(nm, spec):
 			fixscreen = True
 		else:
 			logsupport.Logs.Log('No such action name for alert: ' + nm, severity=ConsoleWarning)
+			utilities.MarkErr(spec)
 			return None
 
 	triggertype = getvalid(spec, 'Type', AlertType)
@@ -346,9 +347,12 @@ def ParseAlertParams(nm, spec):
 		# parse the filename
 		tmp = spec.get('File', None)
 		if tmp is None:
-			logsupport.Logs.Log("Alert: ", nm, " Must supply file name", severity=ConsoleWarning)
+			logsupport.Logs.Log("Alert: {} Must supply file name".format(nm), severity=ConsoleWarning)
 			return None
 		trig = FileWatchTrigger(utilities.inputfileparam(tmp, config.sysStore.configdir, 'news.txt'))
+		if param not in ('SingleItem', 'Settings'):
+			logsupport.Logs.Log("Alert: {} Paramter must be Settings or SingleItem".format(nm), severity=ConsoleWarning)
+			param = 'SingleItem'
 		A = Alert(nm, triggertype, trig, action, actionname, param)
 
 	else:

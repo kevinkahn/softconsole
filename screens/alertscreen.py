@@ -123,7 +123,7 @@ class AlertsScreenDesc(screen.ScreenDesc):
 		l = []
 
 		# todo process dynamics for message
-		Message = utilities.ExpandTextwitVars(self.Message)
+		Message = utilities.ExpandTextwitVars(self.Message, screenname=self.name)
 
 		for i, ln in enumerate(Message):
 			l.append(
