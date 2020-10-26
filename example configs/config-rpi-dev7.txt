@@ -18,7 +18,7 @@ DimLevel = 10
 DimTO = 5
 PersistTO = 3
 #DimIdleListNames = Portland, PDXTTbig, MyClock, LQTTbig, Pumpkin
-DimIdleListNames = MyClock, Pic, PDXTTbig, LQTTbig, LQTTbigdks, Pumpkin
+DimIdleListNames = PDXTTbig, Pic, MyClock, LQTTbig, LQTTbigdks, Pumpkin
 
 DimIdleListTimes =	5, 20, 5, 5
 
@@ -65,6 +65,8 @@ CharColor = white
 
 [Pic]
 type = Picture
+picturedir = pics
+NavKeyAlpha = 100
 #singlepic = 'spcpic.jpg'
 
 [Alerts]
@@ -87,6 +89,20 @@ type = Picture
 	Value = 0
 	Invoke = AssignVar.Assign
 	Parameter = System:DimLevel = 100
+
+	[[xwatch]]
+	Type = FileWatch
+	File = x.txt
+	# example of the contents of x.txt for testing at bottom of this file (put in Console directory)
+	Parameter = Settings
+	Invoke = DynAlertScreenx
+
+	[[ywatch]]
+	Type = FileWatch
+	File = y.txt
+	# example of the contents of y.txt for testing at bottom of this file
+	Parameter = SingleItem
+	Invoke = DynAlertScreeny
 
 
 #	[[Sanity]]
@@ -144,10 +160,36 @@ Invoke = GarageDoor
 	Interval = 30 seconds
 	Invoke = AssignVar.Assign
 	Parameter = ISY:State:PipeTemp = MQTT:PipeTemp
-#	[[Test]]
+#	[[Testproc]]
 #	Type = Periodic
 #	Interval = 13 seconds
 #	Invoke = testalerts.AlertProc2
+#	[[Testscreen]]
+#	Type = Periodic
+#	Interval = 13 seconds
+#	Invoke = NodeTest2
+
+[DynAlertScreenx]
+type = Alert
+BackgroundColor = cyan
+MessageBack = red
+CharColor = black
+Message = Line1, line2 xwatch:Test1 line2x, line3 xwatch:Test2 end
+DeferTime = 10 seconds
+BlinkTime = 4
+KeyColor = maroon
+
+[DynAlertScreeny]
+type = Alert
+BackgroundColor = cyan
+MessageBack = red
+CharColor = black
+Message = ywatch:file
+DeferTime = 10 seconds
+BlinkTime = 5,1
+KeyColor = maroon
+CenterMessage = False
+
 
 [GarageDoor]
 type = Alert
@@ -195,20 +237,20 @@ label = Garage, Door
 #		NodeName = Office Ceiling
 #		label = Clear, Test Condition
 
-#[NodeTest2]
-#	type = Alert
-#	BackgroundColor = pink
-#	MessageBack = aqua
-#	CharColor = navyblue
-#	Message = Test, Node, Ceiling, On2
-#	CharSize = 30,
-#	DeferTime = 10
-#	BlinkTime = 1
-#	KeyColor = maroon
-#	[[Action]]
-#		type = ONOFF
-#		NodeName = Office Ceiling
-#		label = Clear, Test Condition
+[NodeTest2]
+	type = Alert
+	BackgroundColor = pink
+	MessageBack = aqua
+	CharColor = navyblue
+	Message = Test, Node, Ceiling, On2
+	CharSize = 30,
+	DeferTime = 10
+	BlinkTime = 4
+	KeyColor = maroon
+	[[Action]]
+		type = ONOFF
+		NodeName = Office Ceiling
+		label = Clear, Test Condition
 		
 
 #[TestAlert]
@@ -313,6 +355,14 @@ ScreenName = LR1
 #	VarType = Int
 #	type = SETVARVALUE
 
-
+#---------- the test file x.txt for the watchx example is (removing the hash marks):
+#Test1 = 104
+#Test2 = 102
+#---------- the test file y.txt for the watchx example is (removing the hash marks):
+#Breaking news - aliens landed!
+#Elon Musk wins lottery
+#
+#Weird stuff
+#----------- End example files:  touch them to trigger a change in mod date and the alert
 
 
