@@ -59,22 +59,22 @@ class MyScreens(object):
 
 		# Validate screen lists and log them
 
-		logsupport.Logs.Log("Main Screen List:")
+		logsupport.Logs.Log("Main Screen List:", severity=ConsoleDetail)
 		tmpchain = config.sysStore.MainChain[:]  # copy MainChain (not pointer to) because of possiblity of deletions
 		for scr in tmpchain:
 			if not scr in screens.MainDict:
-				logsupport.Logs.Log("-- Undefined Screen:", scr, severity=ConsoleWarning)
+				logsupport.Logs.Log("--- Undefined Main List Screen:", scr, severity=ConsoleWarning)
 				config.sysStore.MainChain.remove(scr)
 			else:
-				logsupport.Logs.Log("---" + scr)
-		logsupport.Logs.Log("Secondary Screen List:")
+				logsupport.Logs.Log("---" + scr, severity=ConsoleDetail)
+		logsupport.Logs.Log("Secondary Screen List:", severity=ConsoleDetail)
 		tmpchain = config.sysStore.SecondaryChain[:]
 		for scr in tmpchain:
 			if not scr in screens.SecondaryDict:
-				logsupport.Logs.Log("-- Undefined Screen:", scr, severity=ConsoleWarning)
+				logsupport.Logs.Log("--- Undefined Secondary List Screen:", scr, severity=ConsoleWarning)
 				config.sysStore.SecondaryChain.remove(scr)
 			else:
-				logsupport.Logs.Log("---" + scr)
+				logsupport.Logs.Log("---" + scr, severity=ConsoleDetail)
 
 		# Make sure we have screens defined
 		if not config.sysStore.MainChain:

@@ -179,12 +179,13 @@ Section.get = CO_get
 
 
 def LogBadParams(section, name):
-	for thisnm, s in section.items():
-		if isinstance(s, Section):
-			LogBadParams(s, thisnm)
-		else:
-			logsupport.Logs.Log(u"Bad (unused) parameter name in: ", name, u" (", thisnm, u"=", str(s), u")",
-								severity=ConsoleWarning)
+	if section not in utilities.ErroredConfigSections:
+		for thisnm, s in section.items():
+			if isinstance(s, Section):
+				LogBadParams(s, thisnm)
+			else:
+				logsupport.Logs.Log("Bad (unused) parameter name in: {} ({}={})".format(name, thisnm, str(s)),
+									severity=ConsoleWarning)
 
 
 if os.getegid() != 0:

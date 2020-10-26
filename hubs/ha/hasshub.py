@@ -638,6 +638,8 @@ class HA(object):
 						self.dyndomains[splitname[0]] = importlib.import_module('hubs.ha.domains.' + splitname[0])
 					else:
 						if version == 0:
+							logsupport.Logs.Log('Using old version of HA climate support - are you sure?',
+												severity=ConsoleWarning)
 							self.dyndomains['thermostat'] = importlib.import_module('hubs.ha.domains.__oldthermostat')
 						else:
 							self.dyndomains['thermostat'] = importlib.import_module('hubs.ha.domains.thermostat')
@@ -733,9 +735,10 @@ class HA(object):
 						tsensor = self.DomainEntityReg['sensor']['sensor.' + tname + '_thermostat_hvac_state']
 						# noinspection PyProtectedMember
 						T._connectsensors(tsensor)
-					except:
-						logsupport.Logs.Log('Exception from {} connecting sensor {}'.format(self.name, n),
-											severity=ConsoleWarning)
+					except Exception as E:
+						logsupport.Logs.Log(
+							'Exception from {} connecting sensor {} ({}) probably ISY Tstat'.format(self.name, n, E),
+							severity=ConsoleDetail)
 			except Exception as E:
 				logsupport.Logs.Log('Exception looking at climate devices: {} ({})'.format(n, E),
 									severity=ConsoleWarning)
