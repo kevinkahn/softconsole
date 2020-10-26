@@ -78,13 +78,15 @@ class MQTTBroker(valuestore.ValueStore):
 		def on_message(client, userdata, msg):
 			try:
 				self.rcvd.Op()
+				topic = msg.topic
 				# command to force get: mosquitto_pub -t consoles/all/cmd -m getstable;  mosquitto_pub -t consoles/all/cmd -m restart
 				loopstart = time.time()
 				var = []
 				for t, item in userdata.topicindex.items():
-					if t == msg.topic:
+					if t == topic:
 						var.extend(item)
-				topic = msg.topic
+
+				topicsplit = topic.split('/')
 				if topic in ('consoles/all/cmd', 'consoles/' + hw.hostname + '/cmd'):
 					payld = msg.payload.decode('ascii').split('|')
 
@@ -92,7 +94,7 @@ class MQTTBroker(valuestore.ValueStore):
 					fromnd = 'unknown' if len(payld) < 2 else payld[1]
 					seq = 'unknown' if len(payld) < 3 else payld[2]
 					logsupport.Logs.Log(
-						'{}: Remote command received on {} from {}-{}: {}'.format(self.name, msg.topic, fromnd, seq,
+						'{}: Remote command received on {} from {}-{}: {}'.format(self.name, topic, fromnd, seq,
 																				  cmd))
 					issuecommands.IssueCommand(self.name, cmd, seq, fromnd)
 					# if fromnd != 'unknown':
@@ -116,21 +118,20 @@ class MQTTBroker(valuestore.ValueStore):
 							WeathProvs[provider][0].MQTTWeatherUpdate(msg.payload.decode('ascii'))
 						except Exception as E:
 							logsupport.Logs.Log(
-								'Unkown weather provider MQTT update for {} {} {} ({})'.format(provider, msg.topic,
+								'Unkown weather provider MQTT update for {} {} {} ({})'.format(provider, topic,
 																							   msg.payload, E),
 								severity=ConsoleWarning)
 					return
-				else:
+				elif topicsplit[2] in ('nodes', 'status', 'resp'):
 					# see if it is node specific message
-					topic = topic.split('/')
-					msgdcd = json.loads(CheckPayload(msg.payload.decode('ascii'), topic, 'mqtt-nodespec'))
-					if topic[2] == 'nodes':
-						consolestatus.UpdateNodeStatus(topic[-1], msgdcd)
+					msgdcd = json.loads(CheckPayload(msg.payload.decode('ascii'), topicsplit, 'mqtt-nodespec'))
+					if topicsplit[2] == 'nodes':
+						consolestatus.UpdateNodeStatus(topicsplit[-1], msgdcd)
 						return
-					elif topic[2] == 'status':
-						consolestatus.UpdateNodeStatus(topic[1], msgdcd)
+					elif topicsplit[2] == 'status':
+						consolestatus.UpdateNodeStatus(topicsplit[1], msgdcd)
 						return
-					elif topic[2] == 'resp':
+					elif topicsplit[2] == 'resp':
 						if self.name in screens.DS.AS.HubInterestList:
 							if msgdcd['cmd'] in screens.DS.AS.HubInterestList[self.name]:
 								usevalue = msgdcd['value'] if 'value' in msgdcd else ''
@@ -150,8 +151,9 @@ class MQTTBroker(valuestore.ValueStore):
 						return
 
 				# noinspection PySimplifyBooleanCheck
+				# not a command/status message
 				if var == []:
-					logsupport.Logs.Log('Unknown topic ', msg.topic, ' from broker ', self.name,
+					logsupport.Logs.Log('Unknown topic ', topic, ' from broker ', self.name,
 										severity=ConsoleWarning)
 				else:
 					for v in var:
@@ -180,7 +182,7 @@ class MQTTBroker(valuestore.ValueStore):
 				self.HB.Entry('Processing time: {} Done: {}'.format(loopend - loopstart, repr(msg)))
 				time.sleep(.1)  # force thread to give up processor to allow response to time events
 			except Exception as E:
-				logsupport.Logs.Log('MQTT Error: {} topic: {} msg: {}'.format(repr(E), msg.topic, msg.payload))
+				logsupport.Logs.Log('MQTT Error: {} topic: {} msg: {}'.format(repr(E), topic, msg.payload))
 
 		# self.HB.Entry('Gave up control for: {}'.format(time.time() - loopend))
 
