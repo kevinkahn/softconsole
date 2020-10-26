@@ -34,7 +34,7 @@ class PictureScreenDesc(screen.ScreenDesc):
 		self.piccache = {}
 		# self._reset_cache() not needed because initial modtime value forces it on first pass
 
-		screen.AddUndefaultedParams(self, screensection, picturedir="", picturetime=5, singlepic='')
+		screen.AddUndefaultedParams(self, screensection, picturedir="", picturetime=5, singlepic='', NavKeyAlpha=-1)
 		self.singlepicmode = self.singlepic != ''
 		if self.singlepicmode:
 			self.singlepic = utilities.inputfileparam(self.singlepic, config.sysStore.configdir, '/pic.jpg')
@@ -45,6 +45,7 @@ class PictureScreenDesc(screen.ScreenDesc):
 			if '*' in self.picturedir: self.picturedir = self.picturedir.replace('*', config.sysStore.hostname)
 			logsupport.Logs.Log('Picture screen {} in directory mode for {}'.format(self.name, self.picturedir))
 
+		if self.NavKeyAlpha == -1: self.NavKeyAlpha = None
 		self.holdtime = 0
 		self.blankpic = (pygame.Surface((1, 1)), 1, 1)
 		self.picshowing = self.blankpic[0]
@@ -136,7 +137,9 @@ class PictureScreenDesc(screen.ScreenDesc):
 			self.picqueue.put((picture, picdescr), block=True)
 
 	def InitDisplay(self, nav):
-		self.shownav = (nav is not None)
+		if not nav is None:
+			self.shownav = True
+			for n, k in nav.items(): k.SetOnAlpha(self.NavKeyAlpha)
 		if not self.singlepicmode: self.holdtime = 0
 		super().InitDisplay(nav)
 

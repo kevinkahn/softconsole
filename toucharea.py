@@ -284,6 +284,9 @@ class ManualKeyDesc(TouchPoint):
 		fontchoice = self.FindFontSize(offLabel, firstfont, shrink)
 		self.AddTitle(self.KeyOffImage, offLabel, fontchoice, self.KeyCharColorOff)
 
+	def SetOnAlpha(self, alpha):
+		self.KeyOnImage.set_alpha(alpha)
+
 	def InitDisplay(self):
 		# called for each key on a screen when it first displays - allows setting initial state for key display
 		debug.debugPrint("Screen", "Base Key.InitDisplay ", self.Screen.name, self.name)
