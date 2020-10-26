@@ -13,7 +13,7 @@ class ISYVars(valuestore.ValueStore):
 		self.attrs = {}
 		self.attrnames = {}
 
-	def GetVal(self, name, forceactual=True):
+	def GetVal(self, name, forceactual=True, failok=False):
 		V = super(ISYVars, self).GetVal(name)
 		if not forceactual:
 			return V

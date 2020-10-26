@@ -44,14 +44,14 @@ def PrettyVarName(store, name):
 	return p
 
 
-def GetVal(name):
+def GetVal(name, failok=False):
 	n = _normalizename(name)
 	if not n[0] in ValueStores:
 		callloc = inspect.stack()[1].filename + ':' + str(inspect.stack()[1].lineno)
 		logsupport.Logs.Log("(Generic GetVal) No store named: ", n[0], ' at: ', callloc, severity=ConsoleError,
 							tb=False)
 		return None
-	return ValueStores[n[0]].GetVal(n[1:])
+	return ValueStores[n[0]].GetVal(n[1:], failok=failok)
 
 
 def SetVal(name, val, modifier=None):
