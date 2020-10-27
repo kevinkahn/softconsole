@@ -106,7 +106,7 @@ class WeatherVals(valuestore.ValueStore):
 				logsupport.Logs.Log(
 					'Failed fetch for {} number {} using old weather'.format(self.name, self.failedfetchcount))
 
-	def BlockRefresh(self):  # return True if refresh happened
+	def GetWeatherIfNeeded(self):  # return True if refresh happened
 
 		# if self.fetchtime + self.refreshinterval > time.time():
 		now = time.time()

@@ -77,13 +77,6 @@ class ISYVars(valuestore.ValueStore):
 		for notify in storeitem.Alerts:
 			notify[0](storeitem, oldval, val, notify[1], modifier)
 
-	def BlockRefresh(self):
-		logsupport.Logs.Log('Checking ISY BRefresh Internal Error', severity=ConsoleError)
-
-		for v in self.items():
-			self.GetVal(v)
-		return True
-
 	def CheckValsUpToDate(self, reload=False):
 		goodcheck = True
 		for v in self.items():

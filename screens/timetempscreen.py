@@ -90,7 +90,7 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 		renderedtime = []
 		renderedtimelabel = []
 
-		self.store.BlockRefresh()
+		self.store.GetWeatherIfNeeded()
 
 		tw = 0
 		for i in range(len(self.TimeFormat)):

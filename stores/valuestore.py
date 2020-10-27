@@ -184,10 +184,7 @@ class ValueStore(object):
 	def __init__(self, name, itemtyp=StoreItem):
 		object.__setattr__(self, 'name', name)
 		object.__setattr__(self, 'vars', {})
-		# self.name = name
 		self.itemtyp = itemtyp
-		self.fetchtime = 0  # time of last block refresh if handled as such
-		#self.vars = {}
 		self.locked = False
 		self.children = None
 
@@ -196,6 +193,7 @@ class ValueStore(object):
 
 	@staticmethod
 	def _normalizename(name):
+		# Name can be a list, tuple, or ":' delimited string -> return a list of the elements
 		if isinstance(name, list):
 			return name[:]
 		elif isinstance(name, tuple):
