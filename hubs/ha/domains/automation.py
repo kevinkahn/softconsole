@@ -9,7 +9,7 @@ class Automation(HAnode):
 		self.Hub.RegisterEntity('automation', self.entity_id, self)
 
 	def RunProgram(self):
-		ha.call_service(self.Hub.api, 'automation', 'trigger', {'entity_id': '{}'.format(self.entity_id)})
+		ha.call_service(self.Hub.api, 'automation', 'trigger', {'entity_id': '{}'.format(self.object_id)})
 		debug.debugPrint('HASSgeneral', "Automation trigger sent to: ", self.entity_id)
 
 
