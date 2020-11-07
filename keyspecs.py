@@ -135,7 +135,12 @@ class VarKey(ManualKeyDesc):
 		debug.debugPrint('Screen', "              New Var Key ", keyname)
 		# todo suppress Verify
 		ManualKeyDesc.__init__(self, thisscreen, keysection, keyname)
-		screen.AddUndefaultedParams(self, keysection, Var='', Appearance=[], ValueSeq=[])
+		screen.AddUndefaultedParams(self, keysection, Var='', Appearance=[], ValueSeq=[], ProgramName='', Parameter='')
+		if self.ValueSeq != [] and self.ProgramName != '':
+			logsupport.Logs.Log('VarKey {} cannot specify both ValueSeq and ProgramName'.format(self.name),
+								severity=ConsoleWarning)
+			self.ProgramName = ''
+		self.Program = _SetUpProgram(self.ProgramName, thisscreen, keyname)  # if none set this is dummy
 		valuestore.AddAlert(self.Var, (KeyWithVarChanged, (keyname, self.Var)))
 		if self.ValueSeq:
 			self.Proc = self.VarKeyPressed
@@ -180,11 +185,14 @@ class VarKey(ManualKeyDesc):
 
 	# noinspection PyUnusedLocal
 	def VarKeyPressed(self):
-		try:
-			i = self.ValueSeq.index(valuestore.GetVal(self.Var))
-		except ValueError:
-			i = len(self.ValueSeq) - 1
-		valuestore.SetVal(self.Var, self.ValueSeq[(i + 1) % len(self.ValueSeq)])
+		if self.ValueSeq != []:
+			try:
+				i = self.ValueSeq.index(valuestore.GetVal(self.Var))
+			except ValueError:
+				i = len(self.ValueSeq) - 1
+			valuestore.SetVal(self.Var, self.ValueSeq[(i + 1) % len(self.ValueSeq)])
+		else:
+			self.Program.RunProgram(param=self.Parameter)
 
 
 class SetVarKey(ManualKeyDesc):
@@ -225,13 +233,29 @@ class SetVarKey(ManualKeyDesc):
 		self.ScheduleBlinkKey(self.Blink)
 
 
+def _SetUpProgram(ProgramName, Parameter, thisscreen, kn):
+	pn, hub = _resolvekeyname(ProgramName, thisscreen.DefaultHubObj)
+	Prog = hub.GetProgram(pn)
+	if Prog is None:
+		Prog = DummyProgram(keyname, hub.name, ProgramName)
+		logsupport.Logs.Log(
+			"Missing Prog binding Key: {} on screen {} Hub: {} Program: {}".format(kn, thisscreen.name, hub.name,
+																				   ProgramName),
+			severity=ConsoleWarning)
+	if ':' in Parameter:
+		t = Parameter.split(':')
+		Parameter = {t[0]: t[1]}
+	else:
+		Parameter = {'Parameter': self.Parameter}
+	return Prog, Parameter
+
 class DummyProgram(object):
 	def __init__(self, kn, hn, pn):
 		self.keyname = kn
 		self.hubname = hn
 		self.programname = pn
 
-	def RunProgram(self):
+	def RunProgram(self, param=None):
 		logsupport.Logs.Log(
 			"Pressed unbound program key: " + self.keyname + " for hub: " + self.hubname + " program: " + self.programname)
 
@@ -239,15 +263,22 @@ class RunProgram(ManualKeyDesc):
 	def __init__(self, thisscreen, keysection, keyname):
 		debug.debugPrint('Screen', "             New RunProgram Key ", keyname)
 		ManualKeyDesc.__init__(self, thisscreen, keysection, keyname)
-		screen.AddUndefaultedParams(self, keysection, ProgramName='')
+		screen.AddUndefaultedParams(self, keysection, ProgramName='',
+									Parameter='')  # todo Parameter is only string for now should it be more?
+		# if ':' in self.Parameter:
+		#	t = self.Parameter.split(':')
+		#	self.Parameter = {t[0]:t[1]}
+		# else:
+		#	self.Parameter = {'Parameter':self.Parameter}
 		self.State = False
-		pn, self.Hub = _resolvekeyname(self.ProgramName, thisscreen.DefaultHubObj)
-		self.Program = self.Hub.GetProgram(pn)
-		if self.Program is None:
-			self.Program = DummyProgram(keyname, self.Hub.name, self.ProgramName)
-			logsupport.Logs.Log(
-				"Missing Prog binding Key: {} on screen {} Hub: {} Program: {}".format(keyname, thisscreen.name, self.Hub.name, self.ProgramName),
-				severity=ConsoleWarning)
+		# pn, self.Hub = _resolvekeyname(self.ProgramName, thisscreen.DefaultHubObj)
+		# self.Program = self.Hub.GetProgram(pn)
+		# if self.Program is None:
+		#	self.Program = DummyProgram(keyname, self.Hub.name, self.ProgramName)
+		#	logsupport.Logs.Log(
+		#		"Missing Prog binding Key: {} on screen {} Hub: {} Program: {}".format(keyname, thisscreen.name, self.Hub.name, self.ProgramName),
+		#		severity=ConsoleWarning) todo does self.Hub get used anywhere?
+		self.Program, self.Parameter = _SetUpProgram(self.ProgramName, self.Parameter, thisscreen, keyname)
 		if self.Verify:
 			self.VerifyScreen = supportscreens.VerifyScreen(self, self.GoMsg, self.NoGoMsg, self.RunKeyPressed,
 															thisscreen, self.KeyColorOff,
@@ -261,7 +292,7 @@ class RunProgram(ManualKeyDesc):
 
 	def RunKeyPressed(self):
 		if self.FastPress: return
-		self.Program.RunProgram()
+		self.Program.RunProgram(param=self.Parameter)
 		self.ScheduleBlinkKey(self.Blink)
 
 	def RunKeyDblPressed(self):
