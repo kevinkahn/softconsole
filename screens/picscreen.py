@@ -20,7 +20,7 @@ import threadmanager
 class PictureScreenDesc(screen.ScreenDesc):
 	def _reset_cache(self):
 		self.piccache = {}
-		self.cachedir = config.sysStore.configdir + '/.pics/'
+		self.cachedir = config.sysStore.configdir + '/.pics-{}/'.format(self.name)
 		shutil.rmtree(self.cachedir, ignore_errors=True)
 		os.mkdir(self.cachedir)
 
