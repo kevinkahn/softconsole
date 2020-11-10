@@ -148,7 +148,7 @@ class VarKey(ManualKeyDesc):
 			for n in self.ValueSeq: t.append(int(n))
 			self.ValueSeq = t
 		self.displayoptions = []
-		self.oldval = None
+		self.oldval = '*******'  # forces a display compute first time through
 		self.State = False
 		for item in self.Appearance:
 			desc = shlex.split(item)
@@ -161,7 +161,7 @@ class VarKey(ManualKeyDesc):
 	def PaintKey(self, ForceDisplay=False, DisplayState=True):
 		# create the images here dynamically then let lower methods do display, blink etc.
 		val = valuestore.GetVal(self.Var)
-		if self.oldval != val:
+		if self.oldval != val:  # todo what is oldval used for? Need to handle val=None case by using KeyColorOff
 			self.oldval = val
 			oncolor = wc(self.KeyColorOn)
 			offcolor = wc(self.KeyColorOff)
@@ -175,13 +175,15 @@ class VarKey(ManualKeyDesc):
 					break
 			if not lab: lab = self.KeyLabelOn[:]
 			lab2 = []
+			dval = '--' if val is None else str(val)
 			for line in lab:
-				if val is None: val = '--'
-				lab2.append(line.replace('$', str(val)))
+				# if val is None: val = '--'
+				lab2.append(line.replace('$', dval))
 			self.BuildKey(oncolor, offcolor)
 			self.SetKeyImages(lab2, lab2, 0, True)
-			self.ScheduleBlinkKey(self.Blink)
-		super(VarKey, self).PaintKey(ForceDisplay, DisplayState)
+			self.ScheduleBlinkKey(
+				self.Blink)  # todo is this correct with clocked stuff?  Comes before PaintKey parent call
+		super().PaintKey(ForceDisplay, val is not None)
 
 	# noinspection PyUnusedLocal
 	def VarKeyPressed(self):

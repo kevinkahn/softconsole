@@ -11,10 +11,10 @@ class BinarySensor(HAnode):
 		if self.state not in ('on', 'off', 'unavailable'):
 			logsupport.Logs.Log("Odd Binary sensor initial value: ", self.entity_id, ':', self.state,
 								severity=ConsoleWarning)
-		self.Hub.sensorstore.SetVal(self.entity_id, self.state == 'on')
+		self.Hub.attrstore.SetVal(self.entity_id, self.state == 'on')
 
 	def _SetSensorAlert(self, p):
-		self.Hub.sensorstore.AddAlert(self.entity_id, p)
+		self.Hub.attrstore.AddAlert(self.entity_id, p)
 
 	def Update(self, **ns):
 		# super(Sensor,self).Update(**ns)
@@ -30,7 +30,7 @@ class BinarySensor(HAnode):
 				st = None
 				logsupport.Logs.Log("Bad Binary sensor value: ", self.entity_id, ':', ns['state'],
 									severity=ConsoleWarning)
-			self.Hub.sensorstore.SetVal(self.entity_id, st)
+			self.Hub.attrstore.SetVal(self.entity_id, st)
 
 #	def Source(self, roomname, sourcename):   todo delete after test
 #		ha.call_service(self.Hub.api, 'media_player', 'select_source', {'entity_id': '{}'.format(roomname),

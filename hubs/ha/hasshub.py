@@ -17,7 +17,7 @@ import logsupport
 import threadmanager
 from controlevents import CEvent, PostEvent, ConsoleEvent
 from logsupport import ConsoleWarning, ConsoleError, ConsoleDetail
-from stores import valuestore
+from stores import valuestore, haattraccess
 from utilities import CheckPayload
 
 AddIgnoredDomain = None  # gets filled in by ignore to avoid import loop
@@ -261,7 +261,7 @@ class HA(object):
 		# noinspection PyBroadException
 		try:
 			for n, s in self.DomainEntityReg['sensor'].items():
-				cacheval = self.sensorstore.GetVal(s.entity_id)
+				cacheval = self.attrstore.GetVal(s.entity_id)
 				e = ha.get_state(self.api, s.entity_id)
 				if e is None:
 					actualval = '*unknown*'
@@ -271,8 +271,9 @@ class HA(object):
 					logsupport.Logs.Log(
 						'Sensor value anomoly(' + self.name + '): Cached: ' + str(cacheval) + ' Actual: ' + str(
 							actualval), severity=ConsoleWarning, hb=True)
-					logsupport.DevPrint('Check anomoly for {}: cache: {} actual: {}'.format(self.name,cacheval,actualval))
-					self.sensorstore.SetVal(s.entity_id, actualval)
+					logsupport.DevPrint(
+						'Check anomoly for {}: cache: {} actual: {}'.format(self.name, cacheval, actualval))
+					self.attrstore.SetVal(s.entity_id, actualval)
 		except Exception as E:
 			logsupport.Logs.Log('Sensor value check did not complete: {}'.format(repr(E)), severity=ConsoleWarning)
 
@@ -649,7 +650,8 @@ class HA(object):
 
 		self.addibledomains = {}  # {'media_player': MediaPlayer} todo resolve how to add things
 
-		self.sensorstore = valuestore.NewValueStore(valuestore.ValueStore(hubname, itemtyp=valuestore.StoreItem))
+		self.attrstore = valuestore.NewValueStore(haattraccess.HAattributes(hubname))
+
 		self.name = hubname
 		# with open('/home/pi/Console/msglog{}'.format(self.name), 'w') as f:
 		#	f.write('----------START Log\n')
