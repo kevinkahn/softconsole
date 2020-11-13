@@ -90,8 +90,6 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 		renderedtime = []
 		renderedtimelabel = []
 
-		self.store.GetWeatherIfNeeded()
-
 		tw = 0
 		for i in range(len(self.TimeFormat)):
 			renderedtime.append(fonts.fonts.Font(self.ClockSize, self.Font).render(
