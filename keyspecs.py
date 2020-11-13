@@ -239,16 +239,18 @@ def _SetUpProgram(ProgramName, Parameter, thisscreen, kn):
 	pn, hub = _resolvekeyname(ProgramName, thisscreen.DefaultHubObj)
 	Prog = hub.GetProgram(pn)
 	if Prog is None:
-		Prog = DummyProgram(keyname, hub.name, ProgramName)
+		Prog = DummyProgram(kn, hub.name, ProgramName)
 		logsupport.Logs.Log(
 			"Missing Prog binding Key: {} on screen {} Hub: {} Program: {}".format(kn, thisscreen.name, hub.name,
 																				   ProgramName),
 			severity=ConsoleWarning)
-	if ':' in Parameter:
+	if Parameter == '':
+		Parameter = None
+	elif ':' in Parameter:
 		t = Parameter.split(':')
 		Parameter = {t[0]: t[1]}
 	else:
-		Parameter = {'Parameter': self.Parameter}
+		Parameter = {'Parameter': Parameter}
 	return Prog, Parameter
 
 class DummyProgram(object):
