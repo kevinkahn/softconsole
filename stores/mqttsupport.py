@@ -5,6 +5,7 @@ import paho.mqtt.client as mqtt
 import paho.mqtt.publish as publish
 # noinspection PyProtectedMember
 from configobj import Section
+from .genericweatherstore import MQTTWeatherUpdate
 
 import config
 import historybuffer
@@ -60,7 +61,7 @@ class MQTTBroker(valuestore.ValueStore):
 								  ('consoles/' + hw.hostname + '/set', 1),
 								  ('consoles/all/set', 1)])
 				client.subscribe('consoles/all/nodes/#')
-				client.subscribe('consoles/all/weather/#')
+				client.subscribe('consoles/all/weather2/#')
 				client.subscribe('consoles/+/status')
 				client.subscribe('consoles/+/resp')
 			self.loopexited = False
@@ -108,20 +109,18 @@ class MQTTBroker(valuestore.ValueStore):
 					except Exception as E:
 						logsupport.Logs.Log('Bad set via MQTT: {} Exc: {}'.format(repr(d), E), severity=ConsoleWarning)
 					return
-				elif topic.startswith('consoles/all/weather'):
-					provider = topic.split('/')[3]
+				elif topic.startswith('consoles/all/weather2'):
+					logsupport.Logs.Log('weather2 {}'.format(topic))
+					provider = topicsplit[3]
+					locname = topicsplit[4]
 					if msg.payload is None or msg.payload == '':
 						logsupport.Logs.Log(
-							'MQTT Entry clear for {}'.format(topic))  # todo shouldn't this actually do a clear?qqqqq
+							'MQTT Entry clear for {}'.format(topic))  # ignore null entries
 					else:
-						try:
-							WeathProvs[provider][0].MQTTWeatherUpdate(msg.payload.decode('ascii'))
-						except Exception as E:
-							logsupport.Logs.Log(
-								'Unkown weather provider MQTT update for {} {} {} ({})'.format(provider, topic,
-																							   msg.payload, E),
-								severity=ConsoleWarning)
+						wpayload = json.loads(CheckPayload(msg.payload.decode('ascii'), 'weathup', 'weathup'))
+						MQTTWeatherUpdate(provider, locname, wpayload)
 					return
+
 				elif topicsplit[2] in ('nodes', 'status', 'resp'):
 					# see if it is node specific message
 					msgdcd = json.loads(CheckPayload(msg.payload.decode('ascii'), topicsplit, 'mqtt-nodespec'))
