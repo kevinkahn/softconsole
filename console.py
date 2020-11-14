@@ -399,6 +399,7 @@ for p, f in zip(pfiles, cfiles):
 		logsupport.Logs.Log("  ", p, " No Such File", severity=ConsoleWarning)
 	else:
 		logsupport.Logs.Log("  ", p, time.strftime(' %c', time.localtime(configfilelist[f])))
+logsupport.Logs.CopyEarly()
 debug.LogDebugFlags()
 
 logsupport.LogLevel = int(ParsedConfigFile.get('LogLevel', logsupport.LogLevel))

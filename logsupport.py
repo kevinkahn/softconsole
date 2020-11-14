@@ -20,6 +20,7 @@ wc = webcolors.name_to_rgb  # can't use the safe version from utilities due to i
 # known color names
 
 ReportStatus = None
+EarlyLog = []
 
 
 class TempLogger(object):
@@ -29,9 +30,11 @@ class TempLogger(object):
 	# noinspection PyUnusedLocal
 	@staticmethod
 	def Log(*args, **kwargs):
+		global EarlyLog
 		# entry = "".join([unicode(i) for i in args])
 		entry = "".join([str(i) for i in args])
 		if not isinstance(entry, str): entry = entry.encode('UTF-8', errors='backslashreplace')
+		EarlyLog.append((time.strftime('%m-%d-%y %H:%M:%S'), entry))
 		print(time.strftime('%m-%d-%y %H:%M:%S') + " " + entry)
 
 
@@ -332,6 +335,11 @@ class Logger(object):
 					LoggerQueue.put(
 						(Command.LogString, '-----------------' + fname + ':' + str(lineno) + ' ' + fn + ' ' + text))
 
+	def CopyEarly(self):
+		LoggerQueue.put((Command.LogEntry, 3, '-----Copy of PreLog Entries-----', '-----------------'))
+		for ent in EarlyLog:
+			LoggerQueue.put((Command.LogEntry, 3, ent[1], ent[0]))
+		LoggerQueue.put((Command.LogEntry, 3, '-----End of PreLog Entries------', '-----------------'))
 
 	def Log(self, *args, **kwargs):
 		"""
