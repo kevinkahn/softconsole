@@ -56,8 +56,8 @@ def TryShorten(term):
 		newterm = newterm.replace(noise, '')
 	newterm = ' '.join(newterm.split())
 
-	if newterm in TermShortener:
-		return TermShortener[newterm]
+	if term in TermShortener:
+		return TermShortener[term]
 	elif len(newterm) > maxlength and newterm[0:4] != 'http':
 		phrase = newterm.split(' ')
 		chg = False
