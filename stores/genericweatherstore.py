@@ -63,7 +63,7 @@ def MQTTWeatherUpdate(provider, locname, wpayload):
 	if not provider in WeatherCache: WeatherCache[provider] = {}
 
 	winfo = wpayload['weatherinfo']
-	print('MQTTcall {} {} {}'.format(provider, locname))
+	print('MQTTcall {} {}'.format(provider, locname))
 	if isinstance(winfo, str):
 		if winfo == 'CACHEPURGE':
 			logsupport.Logs.Log(
