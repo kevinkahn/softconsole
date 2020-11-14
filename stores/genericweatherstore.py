@@ -30,8 +30,7 @@ FcstFields = (('Day', str), ('High', float), ('Low', float), ('Sky', str), ('Win
 CommonFields = (('FcstDays', int), ('FcstEpoch', int), ('FcstDate', str))
 
 CacheUser = {}  # index by provider to dict that indexes by location that points to instance
-FetchTiming = {}  # entry per location, points to instance - ref refreshinterval, ValidWeatherTime in instance
-WeatherFetcher = None  # thread that does the fetching
+WeatherFetcherNotInit = True  # thread that does the fetching
 MQTTqueue = queue.Queue()
 MINWAITBETWEENTRIES = 300  # 5 minutes
 
@@ -49,17 +48,8 @@ WeatherCache = {}
 
 
 def RegisterFetcher(provider, locname, instance):
-	# todo need to resolve issue of what cache is indexed on storename or location, and how does provider name factor in
-	# cache should represent provider/phys location which can be shorthanded to the store name - so do it once?
-	# when MQTT arrives call provider to get storename for location - if it returns useful use it, if not not on node and pitch it
-	# that should work because for any given node the storename are unique - just don't want to trust them cross node.  So
-	# should the actual mqtt message include the phyloc as part of the tag vs in payload?
-	# instance is the actual location instance: must supply FetchWeather which returns winfo; LoadWeather which takes a winfo, weathertime
-	# attribute refreshinterval, ValidWeatherTime
-	# loc is the storename for this instance
 	if provider not in CacheUser: CacheUser[provider] = {}
 	CacheUser[provider][locname] = instance
-
 
 def LocationOnNode(prov, locname):
 	return prov in CacheUser and locname in CacheUser[prov]
@@ -67,17 +57,18 @@ def LocationOnNode(prov, locname):
 
 def MQTTWeatherUpdate(provider, locname, wpayload):
 	if not LocationOnNode(provider, locname):
+		print('Unused location {} {}'.format(provider, locname))
 		return  # broadcast for location this node doesn't use
 
 	if not provider in WeatherCache: WeatherCache[provider] = {}
 
 	winfo = wpayload['weatherinfo']
-	print('MQTTcall {} {} {}'.format(provider, locname, CacheUser))
+	print('MQTTcall {} {} {}'.format(provider, locname))
 	if isinstance(winfo, str):
 		if winfo == 'CACHEPURGE':
 			logsupport.Logs.Log(
 				'Purge weatherbit cache for {}:{} issued by {}'.format(provider, locname, wpayload['fetchingnode']))
-			if locname in WeatherCache:
+			if locname in WeatherCache[provider]:
 				del WeatherCache[provider][locname]
 				logsupport.Logs.Log('Removed entry for {}'.format(locname))
 	elif (locname not in WeatherCache[provider]) or (
@@ -88,11 +79,14 @@ def MQTTWeatherUpdate(provider, locname, wpayload):
 													 wpayload['fetchtime'], wpayload['fetchcount'], winfo)
 		MQTTqueue.put((provider, locname))
 	else:
-		print('Dupe MQTT update for {} times {}'.format(locname, WeatherCache[locname][locname].fetchtime))
+		print('Dupe MQTT update for {} times {}'.format(locname, WeatherCache[provider][locname].fetchtime))
 
 
 def HandleMQTTinputs(timeout):
-	if timeout > 10800:
+	if timeout <= 0:
+		print('Weather loop neg timeout {}'.format(timeout))
+		timeout = .1
+	elif timeout > 10800:
 		print('Weather loop timeout too long {}'.format(timeout))
 		timeout = 10800
 	try:
@@ -118,9 +112,6 @@ def DoWeatherFetches():
 				store = inst.thisStore
 				now = time.time()
 				if (now - store.ValidWeatherTime < store.refreshinterval) or (now - store.failedfetchtime < 120):
-					print('Skiping fetch for {} age {} until next ({})'.format(instnm, now - store.ValidWeatherTime,
-																			   store.refreshinterval - (
-																						   now - store.ValidWeatherTime)))
 					# have recent data or a recent failure
 					continue
 				logsupport.Logs.Log(
@@ -135,14 +126,6 @@ def DoWeatherFetches():
 				winfo = inst.FetchWeather()
 				weathertime = time.time()
 				print('Fetch for {} at {}'.format(store.name, weathertime))
-				if winfo is not None:
-					bcst = {'weatherinfo': winfo, 'location': inst.thisStoreName,
-							'fetchtime': weathertime,
-							'fetchcount': inst.actualfetch.Values()[0],
-							'fetchingnode': config.sysStore.hostname}  # todo fetchcount reachin annoying
-					if config.mqttavailable:
-						config.MQTTBroker.Publish('Weatherbit/{}'.format(inst.thisStoreName), node='all/weather2',
-												  payload=json.dumps(bcst), retain=True)
 
 				if store.CurFetchGood:
 					store.failedfetchcount = 0
@@ -170,12 +153,25 @@ def DoWeatherFetches():
 				if not inst.LoadWeather(winfo, weathertime, fn='self'):
 					print('Load for {} time {}'.format(store.name, weathertime))
 					if config.mqttavailable:  # force bad fetch out of the cache
-						config.MQTTBroker.Publish('Weatherbit/{}'.format(inst.thisStoreName), node='all/weather2',
+						config.MQTTBroker.Publish('{}/{}'.format(provnm, inst.thisStoreName), node='all/weather2',
 												  payload=json.dumps({'winfo': 'CACHEPURGE', 'location': inst.location,
 																	  'fetchingnode': config.sysStore.hostname}))
-						config.MQTTBroker.Publish('Weatherbit/{}'.format(inst.thisStoreName), node='all/weather2',
+						config.MQTTBroker.Publish('{}/{}'.format(provnm, inst.thisStoreName), node='all/weather2',
 												  payload=None, retain=True)
 						logsupport.Logs.Log('Force cache clear for {}({})'.format(inst.location, inst.thisStoreName))
+				else:
+					if not provnm in WeatherCache: WeatherCache[provnm] = {}
+					WeatherCache[provnm][inst.thisStoreName] = CacheEntry(inst.location, 'self',
+																		  weathertime, inst.actualfetch.Values()[0],
+																		  winfo)
+					if winfo is not None:
+						bcst = {'weatherinfo': winfo, 'location': inst.thisStoreName,
+								'fetchtime': weathertime,
+								'fetchcount': inst.actualfetch.Values()[0],
+								'fetchingnode': config.sysStore.hostname}  # todo fetchcount reachin annoying
+						if config.mqttavailable:
+							config.MQTTBroker.Publish('{}/{}'.format(provnm, inst.thisStoreName), node='all/weather2',
+													  payload=json.dumps(bcst), retain=True)
 
 		nextfetch = now + 60 * 60 * 24  # 1 day - just need a big starting value to compute next fetch time
 		now = 0
@@ -200,9 +196,11 @@ class WeatherItem(valuestore.StoreItem):
 class WeatherVals(valuestore.ValueStore):
 
 	def __init__(self, location, weathersource, refresh):
-		if WeatherFetcher is None:
+		global WeatherFetcherNotInit
+		if WeatherFetcherNotInit:
 			# create the fetcher thread
 			threadmanager.SetUpHelperThread('WeatherFetcher', DoWeatherFetches)
+			WeatherFetcherNotInit = False
 
 		self.sourcespecset = []
 		self.failedfetchcount = 0
