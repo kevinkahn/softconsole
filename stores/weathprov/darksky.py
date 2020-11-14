@@ -116,7 +116,7 @@ class DarkSkyWeatherSource(object):
 		self.location = location
 		self.actualfetch = stats.CntStat(name=storename, title=storename, keeplaps=True, PartOf=LocalFetches, inc=2,
 										 init=0)
-		self.lf = stats.CntStat(name=storename, title=storename, keeplaps=True, PartOf=DSstats)
+		# self.lf = stats.CntStat(name=storename, title=storename, keeplaps=True, PartOf=DSstats)
 		try:
 			locationstr = location.split(',')
 			if len(locationstr) != 2:
@@ -127,6 +127,8 @@ class DarkSkyWeatherSource(object):
 			self.lat, self.lon = (0.0, 0.0)
 		# self.DarkSky = DarkSky(self.apikey)
 		RegisterFetcher('DarkSky', storename, self)
+		self.actualfetch = stats.CntStat(name=storename, title=storename, keeplaps=True, PartOf=LocalFetches, inc=2,
+										 init=0)
 		self.request_manager = RequestManger(True)
 		self.url = 'https://api.darksky.net/forecast/{}/{},{}'.format(self.apikey, self.lat, self.lon)
 		logsupport.Logs.Log(
@@ -154,7 +156,7 @@ class DarkSkyWeatherSource(object):
 				forecast = self.request_manager.make_request(url=self.url, extend=None, lang=languages.ENGLISH,
 															 units=units.AUTO, exclude='minutely,hourly,flags')
 				historybuffer.HBNet.Entry('Weather fetch done')
-				self.lf.Op()
+				self.actualfetch.Op()
 				self.thisStore.CurFetchGood = True
 				return forecast
 			except Exception as E:
