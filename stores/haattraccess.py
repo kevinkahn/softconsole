@@ -12,8 +12,10 @@ to handle this way.  Only the alerts are an open question.  (Alerts only on stat
 
 
 class HAattributes(valuestore.ValueStore):
-	def __init__(self, hub):
-		self.name = hub.name
+	def __init__(self, hubnm, hub):
+		# self.name = hubnm todo del
+		super().__init__(hubnm)
+		self.hub = hub
 
 	def _notallowed(self, procname):
 		logsupport.Logs.Log('HA Attribute store {} does not permit {}'.format(self.name, procname))
@@ -27,7 +29,7 @@ class HAattributes(valuestore.ValueStore):
 		# now try for a state or attribute
 		n = self._normalizename(name)
 		try:
-			obj = self.hub.Entites[n[0]]
+			obj = self.hub.Entities[n[0]]
 		except:
 			# no such entity - return error
 			logsupport.Logs.Log('{} reference: Entity {} not defined in {}'.format(name, n[0], self.hub.name),

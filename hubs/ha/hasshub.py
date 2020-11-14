@@ -650,7 +650,7 @@ class HA(object):
 
 		self.addibledomains = {}  # {'media_player': MediaPlayer} todo resolve how to add things
 
-		self.attrstore = valuestore.NewValueStore(haattraccess.HAattributes(hubname))
+		self.attrstore = valuestore.NewValueStore(haattraccess.HAattributes(hubname, self))
 
 		self.name = hubname
 		# with open('/home/pi/Console/msglog{}'.format(self.name), 'w') as f:
