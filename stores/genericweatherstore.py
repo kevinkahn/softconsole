@@ -1,11 +1,12 @@
 import time
 from collections import OrderedDict
+from dataclasses import dataclass
 from random import random
 
 import pygame
-
-import threading
-
+import json
+import queue
+import threadmanager
 import config
 import logsupport
 from logsupport import ConsoleWarning, ConsoleDetail
@@ -28,6 +29,167 @@ FcstFields = (('Day', str), ('High', float), ('Low', float), ('Sky', str), ('Win
 			  ('Icon', pygame.Surface))
 CommonFields = (('FcstDays', int), ('FcstEpoch', int), ('FcstDate', str))
 
+CacheUser = {}  # index by provider to dict that indexes by location that points to instance
+FetchTiming = {}  # entry per location, points to instance - ref refreshinterval, ValidWeatherTime in instance
+WeatherFetcher = None  # thread that does the fetching
+MQTTqueue = queue.Queue()
+MINWAITBETWEENTRIES = 300  # 5 minutes
+
+
+@dataclass
+class CacheEntry:
+	location: str
+	fetchingnode: str
+	fetchtime: float
+	fetchcount: int
+	weatherinfo: dict
+
+
+WeatherCache = {}
+
+
+def RegisterFetcher(provider, locname, instance):
+	# todo need to resolve issue of what cache is indexed on storename or location, and how does provider name factor in
+	# cache should represent provider/phys location which can be shorthanded to the store name - so do it once?
+	# when MQTT arrives call provider to get storename for location - if it returns useful use it, if not not on node and pitch it
+	# that should work because for any given node the storename are unique - just don't want to trust them cross node.  So
+	# should the actual mqtt message include the phyloc as part of the tag vs in payload?
+	# instance is the actual location instance: must supply FetchWeather which returns winfo; LoadWeather which takes a winfo, weathertime
+	# attribute refreshinterval, ValidWeatherTime
+	# loc is the storename for this instance
+	if provider not in CacheUser: CacheUser[provider] = {}
+	CacheUser[provider][locname] = instance
+
+
+def LocationOnNode(prov, locname):
+	return prov in CacheUser and locname in CacheUser[prov]
+
+
+def MQTTWeatherUpdate(provider, locname, wpayload):
+	if not LocationOnNode(provider, locname):
+		return  # broadcast for location this node doesn't use
+
+	if not provider in WeatherCache: WeatherCache[provider] = {}
+
+	winfo = wpayload['weatherinfo']
+	print('MQTTcall {} {} {}'.format(provider, locname, CacheUser))
+	if isinstance(winfo, str):
+		if winfo == 'CACHEPURGE':
+			logsupport.Logs.Log(
+				'Purge weatherbit cache for {}:{} issued by {}'.format(provider, locname, wpayload['fetchingnode']))
+			if locname in WeatherCache:
+				del WeatherCache[provider][locname]
+				logsupport.Logs.Log('Removed entry for {}'.format(locname))
+	elif (locname not in WeatherCache[provider]) or (
+			WeatherCache[provider][locname].fetchtime != wpayload['fetchtime']):
+		curtime = WeatherCache[provider][locname].fetchtime if locname in WeatherCache[provider] else 0
+		print('Actual MQTT update for {} current {} incoming {}'.format(locname, curtime, wpayload['fetchtime']))
+		WeatherCache[provider][locname] = CacheEntry(wpayload['location'], wpayload['fetchingnode'],
+													 wpayload['fetchtime'], wpayload['fetchcount'], winfo)
+		MQTTqueue.put((provider, locname))
+	else:
+		print('Dupe MQTT update for {} times {}'.format(locname, WeatherCache[locname][locname].fetchtime))
+
+
+def HandleMQTTinputs(timeout):
+	if timeout > 10800:
+		print('Weather loop timeout too long {}'.format(timeout))
+		timeout = 10800
+	try:
+		prov, locname = MQTTqueue.get(timeout=timeout)
+		CacheUser[prov][locname].LoadWeather(WeatherCache[prov][locname].weatherinfo,
+											 WeatherCache[prov][locname].fetchtime,
+											 fn=WeatherCache[prov][locname].fetchingnode)
+		while True:
+			prov, locname = MQTTqueue.get(block=False)
+			CacheUser[prov][locname].LoadWeather(WeatherCache[prov][locname].weatherinfo,
+												 WeatherCache[prov][locname].fetchtime,
+												 fn=WeatherCache[prov][locname].fetchingnode)
+	except queue.Empty:
+		return
+
+
+def DoWeatherFetches():
+	time.sleep(1)
+	HandleMQTTinputs(1)  # delay at startup to allow MQTT cache fills to happen
+	while True:
+		for provnm, prov in CacheUser.items():
+			for instnm, inst in prov.items():
+				store = inst.thisStore
+				now = time.time()
+				if (now - store.ValidWeatherTime < store.refreshinterval) or (now - store.failedfetchtime < 120):
+					print('Skiping fetch for {} age {} until next ({})'.format(instnm, now - store.ValidWeatherTime,
+																			   store.refreshinterval - (
+																						   now - store.ValidWeatherTime)))
+					# have recent data or a recent failure
+					continue
+				logsupport.Logs.Log(
+					'Try weather refresh: {} age: {} {} {} {} {}'.format(store.name, (now - store.ValidWeatherTime),
+																		 store.ValidWeatherTime, store.refreshinterval,
+																		 store.failedfetchtime, now),
+					severity=ConsoleDetail)
+
+				store.CurFetchGood = False
+				store.Status = ("Fetching",)
+				store.startedfetch = time.time()
+				winfo = inst.FetchWeather()
+				weathertime = time.time()
+				print('Fetch for {} at {}'.format(store.name, weathertime))
+				if winfo is not None:
+					bcst = {'weatherinfo': winfo, 'location': inst.thisStoreName,
+							'fetchtime': weathertime,
+							'fetchcount': inst.actualfetch.Values()[0],
+							'fetchingnode': config.sysStore.hostname}  # todo fetchcount reachin annoying
+					if config.mqttavailable:
+						config.MQTTBroker.Publish('Weatherbit/{}'.format(inst.thisStoreName), node='all/weather2',
+												  payload=json.dumps(bcst), retain=True)
+
+				if store.CurFetchGood:
+					store.failedfetchcount = 0
+					store.fetchcount += 1
+					store.Status = ("Weather available",)
+				else:
+					store.failedfetchcount += 1
+					if time.time() > store.ValidWeatherTime + 3 * store.refreshinterval:  # use old weather for up to 3 intervals
+						# really have stale data
+						store.ValidWeather = False
+						if store.StatusDetail is None:
+							store.Status = ("Weather not available", "(failed fetch)")
+							logsupport.Logs.Log(
+								'{} weather fetch failures for: {} No weather for {} seconds'.format(
+									store.failedfetchcount,
+									store.name, time.time() - store.ValidWeatherTime), severity=ConsoleWarning)
+						else:
+							store.Status = ("Weather not available", store.StatusDetail)
+						store.failedfetchtime = time.time()
+					else:
+						logsupport.Logs.Log(
+							'Failed fetch for {} number {} using old weather'.format(store.name,
+																					 store.failedfetchcount))
+
+				if not inst.LoadWeather(winfo, weathertime, fn='self'):
+					print('Load for {} time {}'.format(store.name, weathertime))
+					if config.mqttavailable:  # force bad fetch out of the cache
+						config.MQTTBroker.Publish('Weatherbit/{}'.format(inst.thisStoreName), node='all/weather2',
+												  payload=json.dumps({'winfo': 'CACHEPURGE', 'location': inst.location,
+																	  'fetchingnode': config.sysStore.hostname}))
+						config.MQTTBroker.Publish('Weatherbit/{}'.format(inst.thisStoreName), node='all/weather2',
+												  payload=None, retain=True)
+						logsupport.Logs.Log('Force cache clear for {}({})'.format(inst.location, inst.thisStoreName))
+
+		nextfetch = now + 60 * 60 * 24  # 1 day - just need a big starting value to compute next fetch time
+		now = 0
+		for provnm, prov in CacheUser.items():
+			for instnm, inst in prov.items():
+				store = inst.thisStore
+				now = time.time()
+				nextfetchforloc = max(store.ValidWeatherTime + store.refreshinterval,
+									  store.failedfetchtime + MINWAITBETWEENTRIES)
+				nextfetch = min(nextfetchforloc, nextfetch)
+				print('Next fetch needed for {} in {}'.format(instnm, nextfetchforloc - now))
+		print('Weather fetch sleep for {} until next due fetch'.format(nextfetch - now))
+		HandleMQTTinputs(nextfetch - now)
+
 
 class WeatherItem(valuestore.StoreItem):
 	def __init__(self, name, Store, vt=None):
@@ -38,6 +200,10 @@ class WeatherItem(valuestore.StoreItem):
 class WeatherVals(valuestore.ValueStore):
 
 	def __init__(self, location, weathersource, refresh):
+		if WeatherFetcher is None:
+			# create the fetcher thread
+			threadmanager.SetUpHelperThread('WeatherFetcher', DoWeatherFetches)
+
 		self.sourcespecset = []
 		self.failedfetchcount = 0
 		self.failedfetchtime = 0
@@ -72,7 +238,7 @@ class WeatherVals(valuestore.ValueStore):
 			fcst.Value = valuestore.StoreList(fcst)
 
 	def InitSourceSpecificFields(self, fcst):
-		if self.sourcespecset != []: return self.sourcespecset  # only do once
+		if self.sourcespecset: return self.sourcespecset  # only do once
 		for fld, val in fcst.items():
 			if not isinstance(val, dict):
 				nm = ('Fcst', fld)
@@ -80,86 +246,3 @@ class WeatherVals(valuestore.ValueStore):
 				self.vars['Fcst'][fld].Value = valuestore.StoreList(self.vars['Fcst'][fld])
 				self.sourcespecset.append(fld)
 		return self.sourcespecset
-
-	def FetchComplete(self):
-		self.DoingFetch = None
-		if self.CurFetchGood:
-			self.failedfetchcount = 0
-			self.fetchcount += 1
-			self.Status = ("Weather available",)
-		else:
-			self.failedfetchcount += 1
-			if time.time() > self.ValidWeatherTime + 3 * self.refreshinterval:  # use old weather for up to 3 intervals
-				# really have stale data
-				self.ValidWeather = False
-				if self.StatusDetail is None:
-					self.Status = ("Weather not available", "(failed fetch)")
-					logsupport.Logs.Log(
-						'{} weather fetch failures for: {} No weather for {} seconds'.format(self.failedfetchcount,
-																							 self.name,
-																							 time.time() - self.ValidWeatherTime),
-						severity=ConsoleWarning)
-				else:
-					self.Status = ("Weather not available", self.StatusDetail)
-				self.failedfetchtime = time.time()
-			else:
-				logsupport.Logs.Log(
-					'Failed fetch for {} number {} using old weather'.format(self.name, self.failedfetchcount))
-
-	def GetWeatherIfNeeded(self):  # return True if refresh happened
-
-		# if self.fetchtime + self.refreshinterval > time.time():
-		now = time.time()
-		if (now - self.ValidWeatherTime < self.refreshinterval) or (now - self.failedfetchtime < 120):
-			# have recent data or a recent failure
-			return False
-
-		logsupport.Logs.Log(
-			'Try weather refresh: {} age: {} {} {} {} {}'.format(self.name, (now - self.ValidWeatherTime),
-																 self.ValidWeatherTime, self.refreshinterval,
-																 self.failedfetchtime, now),
-			severity=ConsoleDetail)
-
-		if self.DoingFetch is None:
-			logsupport.Logs.Log(
-				'Do weather refresh: {} age: {} {} {} {} {}'.format(self.name, (now - self.ValidWeatherTime),
-																	self.ValidWeatherTime, self.refreshinterval,
-																	self.failedfetchtime, now),
-				severity=ConsoleDetail)
-			self.CurFetchGood = False
-			self.DoingFetch = threading.Thread(target=self.ws.FetchWeather, name='WFetch-{}'.format(self.name),
-											   daemon=True)
-			self.DoingFetch.start()
-			self.Status = ("Fetching",)
-			self.startedfetch = time.time()
-		# no thread doing a fetch at this point - start one
-
-		elif self.DoingFetch.is_alive():
-			# fetch in progress
-			logsupport.Logs.Log(
-				'Weather refresh already in progress: {} age: {} {} {} {} {}'.format(self.name,
-																					 (now - self.ValidWeatherTime),
-																					 self.ValidWeatherTime,
-																					 self.refreshinterval,
-																					 self.failedfetchtime, now),
-				severity=ConsoleDetail)
-			if self.startedfetch + self.refreshinterval < time.time():
-				# fetch ongoing too long - don't use stale data any longer
-				self.Status = ('Weather not available', '(trying to fetch)')
-				logsupport.Logs.Log('Weather fetch taking long time for: {}'.format(self.name),
-									severity=ConsoleWarning)
-		else:
-			# fetch completed todo not needed once Weatherbit is only provider since moved to FetchComplete in provider - this then should get replaced by anomoly error
-			logsupport.Logs.Log('Weather refresh completed: {} age: {} {} {} {} {}'.format(self.name,
-																						   (
-																								   now - self.ValidWeatherTime),
-																						   self.ValidWeatherTime,
-																						   self.refreshinterval,
-																						   self.failedfetchtime, now),
-								severity=ConsoleDetail)
-
-			self.FetchComplete()
-
-		return True
-
-

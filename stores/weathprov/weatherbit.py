@@ -14,15 +14,14 @@ from logsupport import ConsoleWarning, ConsoleDetail
 
 from ._weatherbit.api import Api
 from ._weatherbit.utils import LocalizeDateTime
+from ..genericweatherstore import RegisterFetcher
 
 from stores.weathprov.providerutils import TryShorten, WeathProvs, MissingIcon
 from utilfuncs import interval_str
 from ._weatherbit.utils import _get_date_from_timestamp
-from utilities import CheckPayload
 
 WeatherIconCache = {'n/a': MissingIcon}
 
-WeatherCache = {}  # entries are location:(time, current, forecast)
 WeatherMsgStoreName = {}  # entries loc:storename
 
 WeatherFetchNodeInfo = {}  # entries are node: last seen count todo should we track last seen count on MQTT messages
@@ -56,8 +55,9 @@ def TreeDict(d, args):
 		else:
 			return TreeDict(getattr(d,args[0]),args[1:])
 
+
 def geticon(nm):
-	try:  #todo fix for n/d suffix
+	try:
 		code = IconMap[nm[0:3]]
 		daynight = 'day' if nm[3] == 'd' else 'night'
 		iconnm = daynight + '/' + str(code) + '.png'
@@ -71,7 +71,7 @@ def geticon(nm):
 			WeatherIconCache[iconpath] = icon_scr
 		return icon_scr
 	except Exception as E:
-		logsupport.Logs.Log('No Weatherbit icon for {}'.format(nm))
+		logsupport.Logs.Log('No Weatherbit icon for {} ({})'.format(nm, E))
 		return WeatherIconCache['n/a']
 
 
@@ -209,6 +209,7 @@ class WeatherbitWeatherSource(object):
 		self.dailyreset = 0
 		self.resettime = '(unset)'
 		WeatherMsgStoreName[location] = storename
+		RegisterFetcher('Weatherbit', storename, self)
 		self.actualfetch = stats.CntStat(name=storename, title=storename, keeplaps=True, PartOf=LocalFetches, inc=2,
 										 init=0)
 		try:  # t try to convert to lat/lon
@@ -220,41 +221,17 @@ class WeatherbitWeatherSource(object):
 			self.get_current = functools.partial(self.api.get_current, lat=self.lat, lon=self.lon, units=self.units)
 			logsupport.Logs.Log(
 				'Powered by Weatherbit: Created weather for ({},{}) as {}'.format(self.lat, self.lon, storename))
-		except Exception as E:  # assume city, state form
+		except Exception:  # assume city, state form
 			self.get_forecast = functools.partial(self.api.get_forecast, city=self.location, units=self.units)
 			self.get_current = functools.partial(self.api.get_current, city=self.location, units=self.units)
 			logsupport.Logs.Log(
 				'Powered by Weatherbit: Created weather for {} as {}'.format(self.location, storename))
 
-	@staticmethod
-	def MQTTWeatherUpdate(payload):
-		weatherinfo = json.loads(CheckPayload(payload, 'wbupdate', 'wbupdate'))
-		loc = weatherinfo['location']
-		storename = WeatherMsgStoreName[loc] if loc in WeatherMsgStoreName else '(Not on Node)'
-		if weatherinfo['current'] == 'CACHEPURGE':
-			logsupport.Logs.Log(
-				'Purge weatherbit cache for {}({}) issued by {}'.format(loc, storename, weatherinfo['fetchingnode']))
-			if loc in WeatherCache:
-				del WeatherCache[loc]
-				logsupport.Logs.Log('Removed entry for {}'.format(loc))
-			return
-		logsupport.Logs.Log(
-			'Cache update: {} ({}) {} {} {}'.format(storename, loc, weatherinfo['fetchtime'], time.time(),
-													weatherinfo['fetchingnode']), severity=ConsoleDetail)
-		c = weatherinfo['current']
-		# f = Forecast(weatherinfo['forecast'], 'viaMQTT', weatherinfo['fetchingnode'])
-		f = weatherinfo['forecast']
-		WeatherCache[loc] = (weatherinfo['fetchtime'], c, f, weatherinfo['fetchingnode'])
+	'''
+	Where do these get moved to?
 
-		if ByNodeStatGp.Exists(weatherinfo['fetchingnode']):
-			ByNodeStatGp.Op(name=weatherinfo['fetchingnode'])
-		else:
-			stats.CntStat(name=weatherinfo['fetchingnode'], PartOf=ByNodeStatGp, inc=2, init=2)
-		if ByLocStatGp.Exists(loc):
-			ByLocStatGp.Op(name=loc)
-		else:
-			stats.CntStat(name=loc, title=WeatherMsgStoreName[loc] if loc in WeatherMsgStoreName else loc,
-						  PartOf=ByLocStatGp, inc=2, init=2)
+
+	'''
 
 	def ConnectStore(self, store):
 		self.thisStore = store
@@ -273,43 +250,30 @@ class WeatherbitWeatherSource(object):
 
 	def FetchWeather(self):
 		Esave = None
+		print('WBFetch {}'.format(self.thisStoreName))
 		try:
-			# check for a cached set of readings newer that CurrentFetchTime
-			if self.location in WeatherCache and \
-					WeatherCache[self.location][0] > self.thisStore.ValidWeatherTime:
-				# Newer weather has been broadcast so use that for now
-				current = WeatherCache[self.location][1]['data'][0]
-				forecast = WeatherCache[self.location][2]['data']
-				fetcher = WeatherCache[self.location][3]
-				weathertime = WeatherCache[self.location][0]
-				logsupport.Logs.Log(
-					'Using cache weather: {} ({}) {} {} {}'.format(self.thisStoreName, self.location, weathertime,
-																   time.time(), fetcher), severity=ConsoleDetail)
-			elif time.time() < self.dailyreset:
+			if time.time() < self.dailyreset:
 				logsupport.Logs.Log(
 					"Skip Weatherbit fetch for {}, over limit until {}".format(self.thisStoreName, self.resettime))
 				return
 			else:
-				r = None
 				try:
 					historybuffer.HBNet.Entry('Weatherbit weather fetch{}'.format(self.thisStoreName))
-					c = self.get_current()
-					current = c['data'][0]  # single point for current reading
-					f = self.get_forecast()
-					forecast = f['data']  # f.points  # list of 16 points for forecast point 0 is today
+					winfo = {'current': self.get_current()['data'][0], 'forecast': self.get_forecast()['data']}
 					self.actualfetch.Op()  # cound actual local fetches
-					bcst = {'current': c, 'forecast': f, 'location': self.location,
-							'fetchtime': time.time(),
-							'fetchcount': self.actualfetch.Values()[0], 'fetchingnode': config.sysStore.hostname}
-					if config.mqttavailable:
-						config.MQTTBroker.Publish('Weatherbit/{}'.format(self.thisStoreName), node='all/weather',
-												  payload=json.dumps(bcst), retain=True)
 					historybuffer.HBNet.Entry('Weather fetch done')
-					weathertime = time.time()
-					fetcher = 'local'
 					logsupport.Logs.Log(
 						'Fetched weather for {} ({}) locally'.format(self.thisStoreName, self.location),
 						severity=ConsoleDetail)
+
+					if ByLocStatGp.Exists(self.thisStoreName):
+						ByLocStatGp.Op(name=self.thisStoreName)
+					else:
+						stats.CntStat(name=self.thisStoreName, title=WeatherMsgStoreName[
+							self.thisStoreName] if self.thisStoreName in WeatherMsgStoreName else self.thisStoreName,
+									  PartOf=ByLocStatGp, inc=2, init=2)
+					self.thisStore.CurFetchGood = True
+					return winfo
 
 				except Exception as E:
 					Esave = E
@@ -333,18 +297,25 @@ class WeatherbitWeatherSource(object):
 							severity=ConsoleWarning, hb=True)
 						self.thisStore.StatusDetail = None
 					historybuffer.HBNet.Entry('Weather fetch exception: {}'.format(repr(E)))
-					return
+					return None
 
-			# noinspection PyUnboundLocalVariable
+		# noinspection PyUnboundLocalVariable
 
 		except Exception as E:
 			logsupport.Logs.Log('Unhandled exception in Weatherbit fetch: {} PrevExc: {}'.format(E, Esave),
 								severity=ConsoleWarning)
-			return
+			return None
 
-		# Now normalize weatherinfo into store
-
+	def LoadWeather(self, winfo, weathertime, fn='unknown'):
+		# load weather from the cache (however it got there) into the store
+		print('WBLoad {} {} {}'.format(self.thisStoreName, fn, weathertime))
 		try:
+			current = winfo['current']
+			forecast = winfo['forecast']
+			if ByNodeStatGp.Exists(fn):
+				ByNodeStatGp.Op(name=fn)
+			else:
+				stats.CntStat(name=fn, PartOf=ByNodeStatGp, inc=2, init=2)
 			self.thisStore.ValidWeather = False  # show as invalid for the short duration of the update - still possible to race but very unlikely.
 			specfields = self.thisStore.InitSourceSpecificFields(forecast[0])
 			tempfcstinfo = {}
@@ -385,30 +356,24 @@ class WeatherbitWeatherSource(object):
 			self.thisStore.SetVal('FcstEpoch', int(forecast[0]['ts']))
 			self.thisStore.SetVal('FcstDate', forecast[0]['valid_date'])
 
-			self.thisStore.CurFetchGood = True
 			self.thisStore.ValidWeather = True
 			self.thisStore.StatusDetail = None
 			self.thisStore.ValidWeatherTime = weathertime
-			logsupport.Logs.Log('Loaded new weather for {} via {}'.format(self.thisStoreName, fetcher),
-								severity=ConsoleDetail)
+			logsupport.Logs.Log('Loaded new weather for {}'.format(self.thisStoreName),
+								severity=ConsoleDetail)  # move up a level?
 			controlevents.PostEvent(controlevents.ConsoleEvent(controlevents.CEvent.GeneralRepaint))
-			self.thisStore.FetchComplete()  # clear the thread since work is done
+			return True
 		except Exception as E:
 			logsupport.DevPrint(
-				'Exception {} in Weatherrbit report processing: {} (via: {})'.format(E, forecast, fetcher))
-			if config.mqttavailable:  # force bad fetch out of the cache
-				config.MQTTBroker.Publish('Weatherbit/{}'.format(self.thisStoreName), node='all/weather',
-										  payload=json.dumps({'current': 'CACHEPURGE', 'location': self.location,
-															  'fetchingnode': config.sysStore.hostname}))
-				config.MQTTBroker.Publish('Weatherbit/{}'.format(self.thisStoreName), node='all/weather',
-										  payload=None, retain=True)
-				logsupport.Logs.Log('Force cache clear for {}({})'.format(self.location, self.thisStoreName))
-			self.thisStore.CurFetchGood = False
+				'Exception {} in Weatherrbit report processing: {}'.format(E,
+																		   forecast))  # todo should I record where came from? or handle as exc at caller
+
 			self.thisStore.StatusDetail = "(Failed Decode)"
 			logsupport.Logs.Log(
-				'Decode failure on return data from weather fetch of {} via {} Exc: {}'.format(self.thisStoreName,
-																							   fetcher, E),
+				'Decode failure on return data from weather fetch of {} Exc: {} Winfo: {}'.format(self.thisStoreName,
+																								  E, winfo),
 				severity=ConsoleWarning)
+			return False
 
 
 WeathProvs['Weatherbit'] = [WeatherbitWeatherSource, '']  # api key gets filled in from config file

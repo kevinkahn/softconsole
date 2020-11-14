@@ -110,7 +110,6 @@ class MQTTBroker(valuestore.ValueStore):
 						logsupport.Logs.Log('Bad set via MQTT: {} Exc: {}'.format(repr(d), E), severity=ConsoleWarning)
 					return
 				elif topic.startswith('consoles/all/weather2'):
-					logsupport.Logs.Log('weather2 {}'.format(topic))
 					provider = topicsplit[3]
 					locname = topicsplit[4]
 					if msg.payload is None or msg.payload == '':

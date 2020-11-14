@@ -1,6 +1,6 @@
 import functools
 import time
-from datetime import datetime, timezone
+from datetime import datetime
 
 import pygame
 import controlevents
@@ -10,8 +10,9 @@ import historybuffer
 import logsupport
 import stats
 
-from darksky.types import languages, units, weather
+from darksky.types import languages, units
 from darksky.request_manager import RequestManger
+from ..genericweatherstore import RegisterFetcher
 
 from stores.weathprov.providerutils import TryShorten, WeathProvs, MissingIcon
 from utilfuncs import interval_str, TreeDict
@@ -21,6 +22,8 @@ WeatherIconCache = {'n/a': MissingIcon}
 DSstats = stats.StatReportGroup(name='DarkSkyFetches', title='DarkSky Statistics', reporttime=stats.LOCAL(0),
 								rpt=stats.daily,
 								totals='Total Fetches')
+LocalFetches = stats.StatSubGroup(name='LocalWeatherbitFetches', PartOf=DSstats, title='Actual Local Fetches',
+								  totals='Total Local Fetches', rpt=stats.daily)
 
 def geticon(nm):
 	try:
@@ -36,7 +39,7 @@ def geticon(nm):
 			icon_scr.set_colorkey(icon_gif.get_colorkey())
 			WeatherIconCache[iconpath] = icon_scr
 		return icon_scr
-	except Exception as E:
+	except Exception:
 		logsupport.Logs.Log('No DarkSky icon for {}'.format(nm))
 		return WeatherIconCache['n/a']
 
@@ -111,6 +114,8 @@ class DarkSkyWeatherSource(object):
 		self.thisStoreName = storename
 		self.thisStore = None
 		self.location = location
+		self.actualfetch = stats.CntStat(name=storename, title=storename, keeplaps=True, PartOf=LocalFetches, inc=2,
+										 init=0)
 		self.lf = stats.CntStat(name=storename, title=storename, keeplaps=True, PartOf=DSstats)
 		try:
 			locationstr = location.split(',')
@@ -121,9 +126,11 @@ class DarkSkyWeatherSource(object):
 			logsupport.Logs.Log('Improper location lat/lon: {} Exc: {}'.format(location, E))
 			self.lat, self.lon = (0.0, 0.0)
 		# self.DarkSky = DarkSky(self.apikey)
+		RegisterFetcher('DarkSky', storename, self)
 		self.request_manager = RequestManger(True)
 		self.url = 'https://api.darksky.net/forecast/{}/{},{}'.format(self.apikey, self.lat, self.lon)
-		logsupport.Logs.Log('Powered by DarkSky: Created weather for ({},{}) as {}'.format(self.lat, self.lon, storename))
+		logsupport.Logs.Log(
+			'Powered by DarkSky: Created weather for ({},{}) as {}'.format(self.lat, self.lon, storename))
 
 	def ConnectStore(self, store):
 		self.thisStore = store
@@ -136,72 +143,71 @@ class DarkSkyWeatherSource(object):
 			return item
 
 	def FetchWeather(self):
-		for trydecode in range(2):  # if a decode fails try another actual fetch
-			r = None
-			fetchworked = False
-			trycnt = 4
-			lastE = None
-			while not fetchworked and trycnt > 0:
-				trycnt -= 1
-				# logsupport.Logs.Log('Actual weather fetch attempt: {}'.format(self.location))
-				try:
-					historybuffer.HBNet.Entry('DarkSky weather fetch{}: {}'.format(trycnt, self.thisStoreName))
-					forecast = self.request_manager.make_request(url=self.url, extend=None, lang=languages.ENGLISH,
-																 units=units.AUTO, exclude='minutely,hourly,flags')
-					historybuffer.HBNet.Entry('Weather fetch done')
-					self.lf.Op()
-					fetchworked = True
-				except Exception as E:
-					fetchworked = False
-					lastE = E
-					historybuffer.HBNet.Entry('Weather fetch exception: {}'.format(repr(E)))
-					time.sleep(2)
-			if not fetchworked:
-				logsupport.Logs.Log(
-					"Failed multiple tries to get weather for {} last Exc: {}".format(self.location, lastE),
-					severity=logsupport.ConsoleWarning, hb=True)
-				self.thisStore.ValidWeather = False
-				return
+		print('DSFetch {}'.format(self.thisStoreName))
+		trycnt = 4
+		lastE = None
+		while trycnt > 0:
+			trycnt -= 1
+			# logsupport.Logs.Log('Actual weather fetch attempt: {}'.format(self.location))
 			try:
-				self.thisStore.ValidWeather = False  # show as invalid for the short duration of the update - still possible to race but very unlikely.
-				tempfcstinfo = {}
-				for fn, entry in FcstFieldMap.items():
-					tempfcstinfo[fn] = []
-				# self.thisStore.GetVal(('Fcst', fn)).emptylist()
-				self.thisStore.SetVal(('Cond', 'Location'), self.thisStoreName)
-				for fn, entry in CondFieldMap.items():
-					val = self.MapItem(forecast, entry)
-					self.thisStore.SetVal(('Cond', fn), val)
-				fcstdays = len(forecast['daily']['data'])
-				for i in range(fcstdays):
-					try:
-						dbgtmp = {}
-						fcst = forecast['daily']['data'][i]
-						for fn, entry in FcstFieldMap.items():
-							val = self.MapItem(fcst, entry)
-							tempfcstinfo[fn].append(val)
-							# self.thisStore.GetVal(('Fcst', fn)).append(val)
-							dbgtmp[fn] = val
-					# logsupport.Logs.Log('Weatherfcst({}): {}'.format(self.location, dbgtmp))
-					except Exception as E:
-						logsupport.DevPrint(
-							'Exception (try{}) in DarkSky forecast processing day {}: {}'.format(trydecode, i, repr(E)))
-						raise
-				for fn, entry in FcstFieldMap.items():
-					self.thisStore.GetVal(('Fcst', fn)).replacelist(tempfcstinfo[fn])
-				for fn, entry in CommonFieldMap.items():
-					val = self.MapItem(forecast, entry)
-					self.thisStore.SetVal(fn, val)
-
+				historybuffer.HBNet.Entry('DarkSky weather fetch{}: {}'.format(trycnt, self.thisStoreName))
+				forecast = self.request_manager.make_request(url=self.url, extend=None, lang=languages.ENGLISH,
+															 units=units.AUTO, exclude='minutely,hourly,flags')
+				historybuffer.HBNet.Entry('Weather fetch done')
+				self.lf.Op()
 				self.thisStore.CurFetchGood = True
-				self.thisStore.ValidWeather = True
-				self.thisStore.ValidWeatherTime = time.time()
-				controlevents.PostEvent(controlevents.ConsoleEvent(controlevents.CEvent.GeneralRepaint))
-				return  # success
+				return forecast
 			except Exception as E:
-				logsupport.DevPrint('Exception {} in apixu report processing: {}'.format(E, forecast))
-				self.thisStore.CurFetchGood = False
-		logsupport.Logs.Log('Multiple decode failures on return data from weather fetch of {}'.format(self.location))
+				lastE = E
+				historybuffer.HBNet.Entry('Weather fetch exception: {}'.format(repr(E)))
+				time.sleep(2)
+
+		logsupport.Logs.Log(
+			"Failed multiple tries to get weather for {} last Exc: {}".format(self.location, lastE),
+			severity=logsupport.ConsoleWarning, hb=True)
+		self.thisStore.ValidWeather = False
+		return None
+
+	def LoadWeather(self, forecast, weathertime, fn='unknown'):
+		print('DSLoad {} {} {}'.format(self.thisStoreName, fn, weathertime))
+		try:
+			self.thisStore.ValidWeather = False  # show as invalid for the short duration of the update - still possible to race but very unlikely.
+			tempfcstinfo = {}
+			for fn, entry in FcstFieldMap.items():
+				tempfcstinfo[fn] = []
+			# self.thisStore.GetVal(('Fcst', fn)).emptylist()
+			self.thisStore.SetVal(('Cond', 'Location'), self.thisStoreName)
+			for fn, entry in CondFieldMap.items():
+				val = self.MapItem(forecast, entry)
+				self.thisStore.SetVal(('Cond', fn), val)
+			fcstdays = len(forecast['daily']['data'])
+			for i in range(fcstdays):
+				try:
+					dbgtmp = {}
+					fcst = forecast['daily']['data'][i]
+					for fn, entry in FcstFieldMap.items():
+						val = self.MapItem(fcst, entry)
+						tempfcstinfo[fn].append(val)
+						# self.thisStore.GetVal(('Fcst', fn)).append(val)
+						dbgtmp[fn] = val
+				# logsupport.Logs.Log('Weatherfcst({}): {}'.format(self.location, dbgtmp))
+				except Exception as E:
+					logsupport.DevPrint(
+						'Exception in DarkSky forecast processing day {}: {}'.format(i, repr(E)))
+					return False
+			for fn, entry in FcstFieldMap.items():
+				self.thisStore.GetVal(('Fcst', fn)).replacelist(tempfcstinfo[fn])
+			for fn, entry in CommonFieldMap.items():
+				val = self.MapItem(forecast, entry)
+				self.thisStore.SetVal(fn, val)
+
+			self.thisStore.ValidWeather = True
+			self.thisStore.ValidWeatherTime = weathertime
+			controlevents.PostEvent(controlevents.ConsoleEvent(controlevents.CEvent.GeneralRepaint))
+			return True  # success
+		except Exception as E:
+			logsupport.DevPrint('Exception {} in DarkSky report processing: {}'.format(E, forecast))
+			return False
 
 
 WeathProvs['DarkSky'] = [DarkSkyWeatherSource, '']  # api key gets filled in from config file
