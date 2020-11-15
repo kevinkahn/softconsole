@@ -21,9 +21,6 @@ import config
 alertprocs = {}  # set by modules from alerts directory
 monitoredvars = []
 
-AlertItems = None
-
-
 Tests = ('EQ', 'NE')
 AlertType = (
 	'NodeChange', 'VarChange', 'StateVarChange', 'IntVarChange', 'LocalVarChange', 'Periodic', 'TOD', 'External',
@@ -377,6 +374,7 @@ class Alerts(object):
 					if alert is not None:
 						self.AlertsList[id(alert)] = alert
 
+AlertItems: Alerts
 
 def DumpAlerts():
 	with open('/home/pi/Console/AlertsDump.txt', mode='w') as f:
