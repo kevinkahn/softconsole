@@ -57,13 +57,13 @@ def LocationOnNode(prov, locname):
 
 def MQTTWeatherUpdate(provider, locname, wpayload):
 	if not LocationOnNode(provider, locname):
-		print('Unused location {} {}'.format(provider, locname))
+		# print('Unused location {} {}'.format(provider, locname))
 		return  # broadcast for location this node doesn't use
 
 	if not provider in WeatherCache: WeatherCache[provider] = {}
 
 	winfo = wpayload['weatherinfo']
-	print('MQTTcall {} {}'.format(provider, locname))
+	# print('MQTTcall {} {}'.format(provider, locname))
 	if isinstance(winfo, str):
 		if winfo == 'CACHEPURGE':
 			logsupport.Logs.Log(
@@ -73,21 +73,22 @@ def MQTTWeatherUpdate(provider, locname, wpayload):
 				logsupport.Logs.Log('Removed entry for {}'.format(locname))
 	elif (locname not in WeatherCache[provider]) or (
 			WeatherCache[provider][locname].fetchtime != wpayload['fetchtime']):
-		curtime = WeatherCache[provider][locname].fetchtime if locname in WeatherCache[provider] else 0
-		print('Actual MQTT update for {} current {} incoming {}'.format(locname, curtime, wpayload['fetchtime']))
+		# curtime = WeatherCache[provider][locname].fetchtime if locname in WeatherCache[provider] else 0
+		# print('Actual MQTT update for {} current {} incoming {}'.format(locname, curtime, wpayload['fetchtime']))
 		WeatherCache[provider][locname] = CacheEntry(wpayload['location'], wpayload['fetchingnode'],
 													 wpayload['fetchtime'], wpayload['fetchcount'], winfo)
 		MQTTqueue.put((provider, locname))
 	else:
-		print('Dupe MQTT update for {} times {}'.format(locname, WeatherCache[provider][locname].fetchtime))
+		pass
+	#print('Dupe MQTT update for {} times {}'.format(locname, WeatherCache[provider][locname].fetchtime))
 
 
 def HandleMQTTinputs(timeout):
 	if timeout <= 0:
-		print('Weather loop neg timeout {}'.format(timeout))
+		# print('Weather loop neg timeout {}'.format(timeout))
 		timeout = .1
 	elif timeout > 10800:
-		print('Weather loop timeout too long {}'.format(timeout))
+		# print('Weather loop timeout too long {}'.format(timeout))
 		timeout = 10800
 	try:
 		prov, locname = MQTTqueue.get(timeout=timeout)
@@ -125,7 +126,7 @@ def DoWeatherFetches():
 				store.startedfetch = time.time()
 				winfo = inst.FetchWeather()
 				weathertime = time.time()
-				print('Fetch for {} at {}'.format(store.name, weathertime))
+				# print('Fetch for {} at {}'.format(store.name, weathertime))
 
 				if store.CurFetchGood:
 					store.failedfetchcount = 0
@@ -151,7 +152,7 @@ def DoWeatherFetches():
 																					 store.failedfetchcount))
 
 				if not inst.LoadWeather(winfo, weathertime, fn='self'):
-					print('Load for {} time {}'.format(store.name, weathertime))
+					# print('Load for {} time {}'.format(store.name, weathertime))
 					if config.mqttavailable:  # force bad fetch out of the cache
 						config.MQTTBroker.Publish('{}/{}'.format(provnm, inst.thisStoreName), node='all/weather2',
 												  payload=json.dumps({'winfo': 'CACHEPURGE', 'location': inst.location,
@@ -173,8 +174,8 @@ def DoWeatherFetches():
 							config.MQTTBroker.Publish('{}/{}'.format(provnm, inst.thisStoreName), node='all/weather2',
 													  payload=json.dumps(bcst), retain=True)
 
+		now = time.time()
 		nextfetch = now + 60 * 60 * 24  # 1 day - just need a big starting value to compute next fetch time
-		now = 0
 		for provnm, prov in CacheUser.items():
 			for instnm, inst in prov.items():
 				store = inst.thisStore
@@ -182,8 +183,8 @@ def DoWeatherFetches():
 				nextfetchforloc = max(store.ValidWeatherTime + store.refreshinterval,
 									  store.failedfetchtime + MINWAITBETWEENTRIES)
 				nextfetch = min(nextfetchforloc, nextfetch)
-				print('Next fetch needed for {} in {}'.format(instnm, nextfetchforloc - now))
-		print('Weather fetch sleep for {} until next due fetch'.format(nextfetch - now))
+		# print('Next fetch needed for {} in {}'.format(instnm, nextfetchforloc - now))
+		# print('Weather fetch sleep for {} until next due fetch'.format(nextfetch - now))
 		HandleMQTTinputs(nextfetch - now)
 
 
