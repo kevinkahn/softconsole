@@ -38,6 +38,7 @@ GenericShortener = {
 	'starting': '',
 	'again': '',
 	'clouds': 'clds',
+	'cloudy': 'cldy',
 	'broken': 'bkn',
 	'overcast': 'ovcst',
 	'scattered': 'scttrd'
