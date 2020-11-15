@@ -145,7 +145,7 @@ class DarkSkyWeatherSource(object):
 			return item
 
 	def FetchWeather(self):
-		print('DSFetch {}'.format(self.thisStoreName))
+		# print('DSFetch {}'.format(self.thisStoreName))
 		trycnt = 4
 		lastE = None
 		while trycnt > 0:
@@ -171,7 +171,7 @@ class DarkSkyWeatherSource(object):
 		return None
 
 	def LoadWeather(self, forecast, weathertime, fn='unknown'):
-		print('DSLoad {} {} {}'.format(self.thisStoreName, fn, weathertime))
+		# print('DSLoad {} {} {}'.format(self.thisStoreName, fn, weathertime))
 		try:
 			self.thisStore.ValidWeather = False  # show as invalid for the short duration of the update - still possible to race but very unlikely.
 			tempfcstinfo = {}

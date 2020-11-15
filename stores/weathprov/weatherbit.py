@@ -250,7 +250,7 @@ class WeatherbitWeatherSource(object):
 
 	def FetchWeather(self):
 		Esave = None
-		print('WBFetch {}'.format(self.thisStoreName))
+		# print('WBFetch {}'.format(self.thisStoreName))
 		try:
 			if time.time() < self.dailyreset:
 				logsupport.Logs.Log(
@@ -308,7 +308,7 @@ class WeatherbitWeatherSource(object):
 
 	def LoadWeather(self, winfo, weathertime, fn='unknown'):
 		# load weather from the cache (however it got there) into the store
-		print('WBLoad {} {} {}'.format(self.thisStoreName, fn, weathertime))
+		# print('WBLoad {} {} {}'.format(self.thisStoreName, fn, weathertime))
 		try:
 			current = winfo['current']
 			forecast = winfo['forecast']
