@@ -14,9 +14,10 @@ import screens.__screens as screens
 import timers
 import toucharea
 import utilities
-from logsupport import ConsoleDetail, ConsoleWarning
+from logsupport import ConsoleDetail
 from utilfuncs import wc
 from configobj import ConfigObj
+from typing import Union
 
 alertscreens = {}
 
@@ -30,9 +31,13 @@ class AlertsScreenDesc(screen.ScreenDesc):
 		debug.debugPrint('Screen', "Build Alerts Screen")
 		self.NavKeysShowing = False
 		self.DefaultNavKeysShowing = False
+		self.BlinkState: bool = True
+		self.NextBlink: int = 0
+		self.BlinkTime: Union[int, list]
 		screen.IncorporateParams(self, screenname, {'KeyColor', 'KeyCharColorOn', 'KeyCharColorOff'}, screensection)
 		screen.AddUndefaultedParams(self, screensection, CharSize=[20], Font=fonts.monofont, MessageBack='',
-									Message=[], CenterMessage=True, DeferTime="2 minutes", BlinkTime=[])
+									Message=[], CenterMessage=True, DeferTime="2 minutes", BlinkTime=[],
+									AutoClear='')
 		if self.MessageBack == '':
 			self.MessageBack = self.BackgroundColor
 		self.DimTO = 0  # alert screens don't dim or yield voluntarily
@@ -56,6 +61,8 @@ class AlertsScreenDesc(screen.ScreenDesc):
 		self.upperleft = (self.HorizBorder, self.TopBorder)
 
 		self.Defer = utilities.get_timedelta(self.DeferTime)
+		self.AutoClearSecs = utilities.get_timedelta(self.AutoClear) if self.AutoClear != '' else None
+		self.timetoclear = 0
 
 		self.Keys = {'defer': toucharea.ManualKeyDesc(self, 'defer', ['Defer'], self.KeyColor, self.KeyCharColorOn,
 													  self.KeyCharColorOff,
@@ -65,8 +72,8 @@ class AlertsScreenDesc(screen.ScreenDesc):
 														  hw.screenwidth - 2 * self.HorizBorder, alertbutheight),
 													  proc=self.DeferAction)}
 
-		def CallClear(screen):
-			screen.Alert.trigger.ClearTrigger()
+		def CallClear(screentoclear):
+			screentoclear.Alert.trigger.ClearTrigger()
 			screens.DS.SwitchScreen(screens.HomeScreen, 'Bright', 'Manual defer an alert', newstate='Home')
 
 		if 'Action' in screensection:
@@ -105,12 +112,19 @@ class AlertsScreenDesc(screen.ScreenDesc):
 		screens.DS.SwitchScreen(screens.HomeScreen, 'Bright', 'Manual defer an alert', newstate='Home')
 
 	def InitDisplay(self, nav):  # todo fix for specific repaint
+		self.timetoclear = self.AutoClearSecs
 		self.BlinkState = True
 		if self.BlinkTime != 0:
 			self.NextBlink = self.BlinkTime[not self.BlinkState]
 		super().InitDisplay(nav)
 
 	def ReInitDisplay(self):
+		if self.timetoclear is not None:
+			self.timetoclear -= 1
+			if self.timetoclear == 0:
+				self.Alert.trigger.ClearTrigger()
+				screens.DS.SwitchScreen(screens.HomeScreen, 'Bright', 'Auto cleared alert', newstate='Home')
+
 		if self.BlinkTime != 0:
 			self.NextBlink -= 1
 			if self.NextBlink <= 0:
@@ -131,8 +145,8 @@ class AlertsScreenDesc(screen.ScreenDesc):
 			h = h + l[i].get_height()
 		s = (self.messageareaheight - h) / (len(l))
 
-		self.messageimage = pygame.Surface((hw.screenwidth - 2 * self.HorizBorder, self.messageareaheight))
-		self.messageimage.fill(wc(self.MessageBack))
+		messageimage = pygame.Surface((hw.screenwidth - 2 * self.HorizBorder, self.messageareaheight))
+		messageimage.fill(wc(self.MessageBack))
 
 		vert_off = s / 2
 		for i in range(len(l)):
@@ -140,10 +154,10 @@ class AlertsScreenDesc(screen.ScreenDesc):
 				horiz_off = (hw.screenwidth - l[i].get_width()) / 2 - self.HorizBorder
 			else:
 				horiz_off = self.HorizBorder
-			self.messageimage.blit(l[i], (horiz_off, vert_off))
+			messageimage.blit(l[i], (horiz_off, vert_off))
 			vert_off = vert_off + s + l[i].get_height()
 		if self.BlinkState:
-			hw.screen.blit(self.messageimage, self.upperleft)
+			hw.screen.blit(messageimage, self.upperleft)
 		else:
 			hw.screen.blit(self.messageblank, self.upperleft)
 

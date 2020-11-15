@@ -54,7 +54,7 @@ except AttributeError:
 
 def CheckPayload(payload, topic, tag):
 	if payload is '':
-		logsupport('Empty payload string at {} for topic {}'.format(tag, topic), severity=ConsoleWarning)
+		logsupport.Logs.Log('Empty payload string at {} for topic {}'.format(tag, topic), severity=ConsoleWarning)
 		return '{}'
 	else:
 		return payload
@@ -262,6 +262,7 @@ from datetime import timedelta
 def get_timedelta(line):
 	if line is None:
 		return 0
+	if line == '': return 0
 	if line.isdigit():
 		line += ' seconds'
 	timespaces = {"days": 0}
