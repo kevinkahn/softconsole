@@ -9,7 +9,8 @@ class Script(HAnode):
 		self.Hub.RegisterEntity('script', self.entity_id, self)
 
 	def RunProgram(self, param=None):
-		ha.call_service_async(self.Hub.api, 'script', self.name)  # , service_data=param)
+		scrname = self.entity_id.split('.')[1]
+		ha.call_service_async(self.Hub.api, 'script', scrname, service_data=param)
 		debug.debugPrint('HASSgeneral', "Script execute sent to: script.", self.object_id)
 
 

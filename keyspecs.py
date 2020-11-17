@@ -15,6 +15,7 @@ from toucharea import ManualKeyDesc
 from utilfuncs import *
 from configobjects import GoToTargetList
 import config
+from enum import Enum, auto
 
 # noinspection PyUnusedLocal
 def KeyWithVarChanged(storeitem, old, new, param, modifier):
@@ -123,61 +124,107 @@ class SetVarValueKey(ManualKeyDesc):
 
 # Future create a screen to allow changing the value if parameter is maleable
 
+class ChooseType(Enum):
+	intval = auto()
+	rangeval = auto()
+	enumval = auto()
+	Noneval = auto()
+	strval = auto()
 
 class VarKey(ManualKeyDesc):
 	class DistOpt(object):
-		def __init__(self, chooser, color, label):
-			self.Chooser = chooser
-			self.Color = color
-			self.Label = label.split(';')
+		# todo add a state to display opt?
+		def __init__(self, item, deflabel):
+			desc = shlex.split(item)
+			if ':' in desc[0]:
+				self.ChooserType = ChooseType.rangeval
+				rng = desc[0].split(':')
+				self.Chooser = (int(rng[0]), int(rng[1]))
+			elif '|' in desc[0]:
+				self.ChooserType = ChooseType.enumval
+				rng = desc[0].split('|')
+				self.Chooser = (int(x) for x in rng)
+			elif RepresentsInt(desc[0]):
+				self.ChooserType = ChooseType.intval
+				self.Chooser = int(desc[0])
+			elif desc[0] == 'None':
+				self.ChooserType = ChooseType.Noneval
+				self.Chooser = None
+			else:
+				self.ChooserType = ChooseType.strval
+				self.Chooser = desc[0]
+			self.Color = desc[1]
+			self.Label = deflabel if len(desc) < 3 else desc[2].split(';')
+
+		def Matches(self, val):
+			if self.ChooserType == ChooseType.Noneval:
+				return val is None
+			elif self.ChooserType == ChooseType.intval:
+				return isinstance(val, int) and self.Chooser == val
+			elif self.ChooserType == ChooseType.rangeval:
+				return isinstance(val, int) and self.Chooser[0] <= val <= self.Chooser[1]
+			elif self.ChooserType == ChooseType.strval:
+				return self.Chooser == val
+			elif self.ChooserType == ChooseType.enumval:
+				return val in self.Chooser
+			return False
 
 	def __init__(self, thisscreen, keysection, keyname):
 		debug.debugPrint('Screen', "              New Var Key ", keyname)
 		# todo suppress Verify
 		ManualKeyDesc.__init__(self, thisscreen, keysection, keyname)
-		screen.AddUndefaultedParams(self, keysection, Var='', Appearance=[], ValueSeq=[], ProgramName='', Parameter='')
-		if self.ValueSeq != [] and self.ProgramName != '':
+		screen.AddUndefaultedParams(self, keysection, Var='', Appearance=[], ValueSeq=[], ProgramName='', Parameter='',
+									DefaultAppearance='')
+		if self.ValueSeq != [] and self.Program != '':
 			logsupport.Logs.Log('VarKey {} cannot specify both ValueSeq and ProgramName'.format(self.name),
 								severity=ConsoleWarning)
 			self.ProgramName = ''
-		self.Program = _SetUpProgram(self.ProgramName, thisscreen, keyname)  # if none set this is dummy
-		valuestore.AddAlert(self.Var, (KeyWithVarChanged, (keyname, self.Var)))
+		if self.ProgramName != '':
+			self.Proc = self.VarKeyPressed
+			self.Program, self.Parameter = _SetUpProgram(self.ProgramName, self.Parameter, thisscreen,
+														 keyname)  # if none set this is dummy todo
+		# valuestore.AddAlert(self.Var, (KeyWithVarChanged, (keyname, self.Var))) todo this doesn't work for HA vars why do we need the alert?
 		if self.ValueSeq:
 			self.Proc = self.VarKeyPressed
 			t = []
 			for n in self.ValueSeq: t.append(int(n))
 			self.ValueSeq = t
+		if self.DefaultAppearance == '':
+			self.defoption = self.DistOpt('None {} {}'.format(self.KeyColorOn, self.KeyLabelOn[:]), '')
+		else:
+			self.defoption = self.DistOpt(self.DefaultAppearance, self.label)
 		self.displayoptions = []
 		self.oldval = '*******'  # forces a display compute first time through
 		self.State = False
 		for item in self.Appearance:
-			desc = shlex.split(item)
-			rng = desc[0].split(':')
-			chooser = (int(rng[0]), int(rng[0])) if len(rng) == 1 else (int(rng[0]), int(rng[1]))
-			clr = desc[1]
-			lab = self.label if len(desc) < 3 else desc[2]
-			self.displayoptions.append(self.DistOpt(chooser, clr, lab))
+			self.displayoptions.append(self.DistOpt(item, self.label))
 
 	def PaintKey(self, ForceDisplay=False, DisplayState=True):
 		# create the images here dynamically then let lower methods do display, blink etc.
 		val = valuestore.GetVal(self.Var)
-		if self.oldval != val:  # todo what is oldval used for? Need to handle val=None case by using KeyColorOff
+		if self.oldval != val:  # rebuild the key for a value change
 			self.oldval = val
-			oncolor = wc(self.KeyColorOn)
-			offcolor = wc(self.KeyColorOff)
-			lab = []
+			# oncolor = wc(self.KeyColorOn)
+			# offcolor = wc(self.KeyColorOff)
+			# lab = []
+			founddisp = False
 			for i in self.displayoptions:
-				if i.Chooser[0] <= val <= i.Chooser[1]:
+				if i.Matches(val):
 					lab = i.Label[:]
-
 					oncolor = tint(i.Color)
 					offcolor = wc(i.Color)
+					founddisp = True
 					break
-			if not lab: lab = self.KeyLabelOn[:]
+			if not founddisp:
+				logsupport.Logs.Log('No match in VARKEY {} for displaying {}'.format(self.name, val))
+				lab = self.defoption.Label[:]
+				oncolor = tint(self.defoption.Color)
+				offcolor = wc(self.defoption.Color)
+
 			lab2 = []
-			dval = '--' if val is None else str(val)
+			dval = '--' if val is None else str(
+				val)  # todo could move to the DistOp class and have it return processed label
 			for line in lab:
-				# if val is None: val = '--'
 				lab2.append(line.replace('$', dval))
 			self.BuildKey(oncolor, offcolor)
 			self.SetKeyImages(lab2, lab2, 0, True)
@@ -188,6 +235,7 @@ class VarKey(ManualKeyDesc):
 	# noinspection PyUnusedLocal
 	def VarKeyPressed(self):
 		if self.ValueSeq != []:
+			print('DoValSeq')  # todo del
 			try:
 				i = self.ValueSeq.index(valuestore.GetVal(self.Var))
 			except ValueError:
@@ -246,7 +294,7 @@ def _SetUpProgram(ProgramName, Parameter, thisscreen, kn):
 			severity=ConsoleWarning)
 	if Parameter == '':
 		Parameter = None
-	elif ':' in Parameter:
+	elif ':' in Parameter:  # todo allow multiple params
 		t = Parameter.split(':')
 		Parameter = {t[0]: t[1]}
 	else:
@@ -481,7 +529,6 @@ class RemoteProcKey(InternalProcKey):
 				self.FlashNo(5)
 		else:
 			pass
-	# print('Gathering responses {}'.format(self.ExpectedNumResponses))
 
 class RemoteComplexProcKey(InternalProcKey):
 	def __init__(self, thisscreen, keysection, keyname):
