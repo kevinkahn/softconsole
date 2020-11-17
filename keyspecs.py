@@ -216,7 +216,6 @@ class VarKey(ManualKeyDesc):
 					founddisp = True
 					break
 			if not founddisp:
-				logsupport.Logs.Log('No match in VARKEY {} for displaying {}'.format(self.name, val))
 				lab = self.defoption.Label[:]
 				oncolor = tint(self.defoption.Color)
 				offcolor = wc(self.defoption.Color)

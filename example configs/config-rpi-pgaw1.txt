@@ -11,13 +11,14 @@ LogLevel = 3
 
 
 cfglib = "/home/pi/Console/cfglib"
-include = /home/pi/Console/local/authpga.cfg, pgawmqtt.cfg, pgawBRmain.cfg, pgaTstat.cfg, timetempLQ.cfg, timetempPDX.cfg, myclock2.cfg,weathPDX.cfg,weathPump.cfg,weathersources.cfg, pgaalerts.cfg, pgaBath.cfg, pgaOther.cfg
+include = /home/pi/Console/local/authpga.cfg, pgawmqtt.cfg, pgawBRmain.cfg, pgaTstat.cfg, timetempLQ.cfg, timetempPDX.cfg, myclock2.cfg,weathPDX.cfg,weathPump.cfg,weathersources.cfg, pgaalerts.cfg, pgaBath.cfg, pgaOther.cfg#, testvarkey.cfg
 HomeScreenName = pgawBR
 DimLevel = 25
 DimTO = 25
 DimIdleListNames = MyClock, Portland, LQTT, TimeTemp
 DimIdleListTimes =	20, 20, 20
 
+#MainChain = pgawBR, Varkeytest, LQTT, climate.master_bedroom, climate.living_room, pgawBath, pgawOther
 MainChain = pgawBR, LQTT, climate.master_bedroom, climate.living_room, pgawBath, pgawOther
 SecondaryChain = Portland, Pumpkin
 
