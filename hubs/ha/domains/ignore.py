@@ -42,9 +42,9 @@ def AddIgnoredDomain(dom):
 
 hasshub.AddIgnoredDomain = AddIgnoredDomain
 
-logsupport.Logs.Log('Note: following HA domains are ignored by the console:')
+# logsupport.Logs.Log('Note: following HA domains are ignored by the console:')
 for d in IgnoreThese:
-	logsupport.Logs.Log('     {}'.format(d))
+	#	logsupport.Logs.Log('     {}'.format(d))
 	reg = partial(IgnoredDomain, d)
 	IngoredEntities[d] = {}
 	RegisterDomain(d, reg, IgnoreDomainSpecificEvent)

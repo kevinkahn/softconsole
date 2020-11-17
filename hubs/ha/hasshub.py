@@ -22,12 +22,12 @@ from utilities import CheckPayload
 
 AddIgnoredDomain = None  # gets filled in by ignore to avoid import loop
 
-ignoredeventtypes = (
+ignoredeventtypes = [
 	'system_log_event', 'call_service', 'service_executed', 'logbook_entry', 'timer_out_of_sync', 'result',
 	'persistent_notifications_updated', 'automation_triggered', 'script_started', 'service_removed', 'hacs/status',
 	'hacs/repository', 'hacs/config', 'entity_registry_updated', 'component_loaded', 'device_registry_updated',
 	'entity_registry_updated', 'lovelace_updated', 'isy994_control', 'core_config_updated', 'homeassistant_start',
-	'config_entry_discovered', 'automation_reloaded', 'hacs/stage', 'hacs/reload')
+	'config_entry_discovered', 'automation_reloaded', 'hacs/stage', 'hacs/reload']
 
 def stringtonumeric(v):
 	if not isinstance(v, str):
@@ -522,7 +522,8 @@ class HA(object):
 					#	f.write('DO REFRESH FOR STARTED')
 					self.GetAllCurrentState()
 				else:
-					logsupport.Logs.Log('{} Unknown event: {}'.format(self.name, message))
+					logsupport.Logs.Log('{} Unknown event: {}'.format(self.name, message), severity=ConsoleWarning)
+					ignoredeventtypes.append(m['event_type'])  # only log once
 					debug.debugPrint('HASSgeneral', "Unknown event: " + str(m))
 			except Exception as E:
 				logsupport.Logs.Log("Exception handling HA message: ", repr(E), repr(message), severity=ConsoleWarning,

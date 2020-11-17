@@ -89,7 +89,12 @@ def safeprint(*args, **kwargs):
 	except Exception:
 		pass
 
-
+def RepresentsInt(s):
+	try:
+		int(s)
+		return True
+	except ValueError:
+		return False
 '''
 class WFormatter(string.Formatter):
 	def format_field(self, value, format_spec):

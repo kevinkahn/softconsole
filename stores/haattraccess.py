@@ -2,14 +2,6 @@ from stores import valuestore
 import logsupport
 from logsupport import ConsoleError
 
-'''
-Needs to also be the sensor store.  Sensors need alerts.  So do I allow alerts generally - store would have 2 different types of
-content.  Pure attributes and alerted things.  The latter have to be preloaded whereas the latter are just checked when asked for.
-If the HI allows for actions on a value change then change to an alert type?  Also note that a ref to a sensor node should return the
-state info - does this generalize to others also?  I.e., switch.foo returns state switch.foo:xxx returns xxx attribute.  Probably the cleanest
-to handle this way.  Only the alerts are an open question.  (Alerts only on state change?)
-'''
-
 
 class HAattributes(valuestore.ValueStore):
 	def __init__(self, hubnm, hub):
