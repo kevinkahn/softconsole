@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="SshConfigs">
+    <configs>
+      <sshConfig authType="PASSWORD" host="rpi-pgaw1.pgawhome" id="c21eb27e-3182-459f-9a47-e7e3fdf86686" port="8623" nameFormat="DESCRIPTIVE" username="pi" />
+    </configs>
+  </component>
+</project>
