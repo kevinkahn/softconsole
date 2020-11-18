@@ -202,7 +202,7 @@ class Program(ProgramFolder):
 		# not using enabled, runAtStartup,running
 		utilities.register_example("Program", self)
 
-	def RunProgram(self):  # for ISY this does a runThen
+	def RunProgram(self, param=None):  # for ISY this does a runThen
 		debug.debugPrint('ISYdbg', "runThen sent to ", self.name)
 		url = self.Hub.ISYprefix + 'programs/' + self.address + '/runThen'
 		self.Hub.HBDirect.Entry('Runprog: ' + url)

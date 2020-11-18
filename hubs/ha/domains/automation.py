@@ -8,7 +8,7 @@ class Automation(HAnode):
 		super(Automation, self).__init__(HAitem, **d)
 		self.Hub.RegisterEntity('automation', self.entity_id, self)
 
-	def RunProgram(self):
+	def RunProgram(self, param=None):
 		ha.call_service(self.Hub.api, 'automation', 'trigger', {'entity_id': '{}'.format(self.object_id)})
 		debug.debugPrint('HASSgeneral', "Automation trigger sent to: ", self.entity_id)
 
