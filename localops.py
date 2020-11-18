@@ -3,6 +3,7 @@ import shutil
 import config
 import logsupport
 import subprocess
+import time
 
 PreOpScripts = []
 NewCfgs = set()
@@ -19,7 +20,8 @@ def PreOp():
 	global DeletedCfgs, CopiedConfig, NewCfgs, PreOpFailure
 	if not os.path.exists(config.sysStore.HomeDir + '/homesystem'):
 		return
-
+	subprocess.run(
+		["mount", "-a"])  # this shouldn't be needed for automount but for photos it seems automount isn't working
 	confserver = '/home/pi/.exconfs/'
 	conflocal = config.sysStore.configdir + '/cfglib/'
 	cfgdirserver = confserver + 'cfglib/'

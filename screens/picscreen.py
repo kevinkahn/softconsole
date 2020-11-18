@@ -10,6 +10,7 @@ import config
 from threading import Event
 from queue import Queue, Empty
 import os
+import subprocess
 import shutil
 import PIL.Image
 import logsupport
@@ -32,6 +33,7 @@ class PictureScreenDesc(screen.ScreenDesc):
 		self.shownav = False
 		utilities.register_example("PictureScreen", self)
 		self.piccache = {}
+		self.missingpicdir = False
 		# self._reset_cache() not needed because initial modtime value forces it on first pass
 
 		screen.AddUndefaultedParams(self, screensection, picturedir="", picturetime=5, singlepic='', NavKeyAlpha=-1)
@@ -44,6 +46,14 @@ class PictureScreenDesc(screen.ScreenDesc):
 			self.picturedir = utilities.inputfileparam(self.picturedir, config.sysStore.configdir, '/pics')
 			if '*' in self.picturedir: self.picturedir = self.picturedir.replace('*', config.sysStore.hostname)
 			logsupport.Logs.Log('Picture screen {} in directory mode for {}'.format(self.name, self.picturedir))
+			if not os.path.exists(self.picturedir):
+				logsupport.Logs.Log(
+					"Can't find picture directory {}; try mount".format(self.picturedir, severity=ConsoleWarning))
+				mntres = subprocess.run(['mount', '-a'])
+				logsupport.Logs.Log("Mount result: {}".mntres)
+				if not os.path.exists(self.picturedir):
+					logsupport.Logs.Log("Still no picture directory - disabling screen", severity=ConsoleWarning)
+					self.missingpicdir = True
 
 		if self.NavKeyAlpha == -1: self.NavKeyAlpha = None
 		self.holdtime = 0
@@ -56,9 +66,11 @@ class PictureScreenDesc(screen.ScreenDesc):
 		self.picqueue = Queue(maxsize=1)
 		self.DoSinglePic = Event()
 		self.DoSinglePic.set()
-		threadmanager.SetUpHelperThread(self.name + '-picqueue',
-										[self.QueuePics, self.QueueSinglePic][self.singlepicmode], prestart=None,
-										poststart=None, prerestart=None, postrestart=None, checkok=None, rpterr=True)
+		if not self.missingpicdir: threadmanager.SetUpHelperThread(self.name + '-picqueue',
+																   [self.QueuePics, self.QueueSinglePic][
+																	   self.singlepicmode], prestart=None,
+																   poststart=None, prerestart=None, postrestart=None,
+																   checkok=None, rpterr=True)
 
 	def QueueSinglePic(self):
 		while True:
