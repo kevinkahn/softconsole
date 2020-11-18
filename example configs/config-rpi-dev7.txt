@@ -176,6 +176,7 @@ MessageBack = red
 CharColor = black
 Message = Line1, line2 xwatch:Test1 line2x, line3 xwatch:Test2 end
 DeferTime = 10 seconds
+AutoClear = 30 seconds
 BlinkTime = 4
 KeyColor = maroon
 
