@@ -175,7 +175,7 @@ class VarKey(ManualKeyDesc):
 		ManualKeyDesc.__init__(self, thisscreen, keysection, keyname)
 		screen.AddUndefaultedParams(self, keysection, Var='', Appearance=[], ValueSeq=[], ProgramName='', Parameter='',
 									DefaultAppearance='')
-		if self.ValueSeq != [] and self.Program != '':
+		if self.ValueSeq != [] and self.ProgramName != '':
 			logsupport.Logs.Log('VarKey {} cannot specify both ValueSeq and ProgramName'.format(self.name),
 								severity=ConsoleWarning)
 			self.ProgramName = ''
