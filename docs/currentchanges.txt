@@ -80,4 +80,14 @@ This release adds a new screen type "Picture" to the console that allows the con
 
 The release also adds support for username/password for MQTT which was previously missing.  It adds an advanced network node command to the maintenance screens to clear retained knowlege of a dead node from the MQTT broker.  It also will handle MQTT server down situations more gracefully.  Finally, it adds a small developer oriented feature to enable personalized operations to be done on every console boot.  See the Developers Notes section of the useage notes for more information.
 
-FileWatch alerts, filewatch info to alert screens, semi transparency of nav keys on pic screens, allow varkey to have Program param. HAattr store for sensors and attributes, weather fetch independent of screens, HA attr access, autoclear for filewatch,
+V3.9
+This release has quite a few changes/enhancements:
+FileWatch alerts and screens: It is now possible to set an alert that watches the modified timestamp on a file and triggers an alert when it changes.  This is most useful in conjunction with an improved capability for alert screens.  The message on an alert screen will now interpolate a store variable.  The FileWatch alert will reflect the file contents into a store variable in one of two ways: either as a single store value that holds the entire file or as a set of variables within the FileWatch store that will contain the values set in the file.  A simple example of use would be to generate an alert screen that displays the file contents when it changes.  It is possible to clear such an alert automatically after a given time interval.
+
+VARKEYs have been enhanced to be of more use in interacting with hubs.  They now provide an option to invoke a program on the hub when pressed, and for HA hubs which allow parameters, pass a parameter.  Their display options have also been enhanced.  The net effect is that it is possible to construct a multibutton set of keys on a screen to do things like control a fan with speeds.
+
+Related to the above, access to attributes of entities in HA can now be made via the store associated with the hub, e.g., HASS:light.ceiling:brightness would evaluate to the brightness setting of the light.ceiling entity in the HASS hub.
+
+Weather fetching has been changed to operate autonomously for all defined locations.  Previously, fetches were initiated when a screen needed them and there was not recent weather.  Because it is now reasonable to use weather information in places other than weather screens, the console now simple updates weather whenever it expires, using the cache mechanism if multiple consoles are in use.
+
+A minor addition is to allow semi transparent navigation keys if a picture screen is used as a regular screen rather than as an idle screen which improves appearance.
