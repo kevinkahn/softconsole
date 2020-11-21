@@ -16,7 +16,9 @@ from controlevents import CEvent, PostEvent, ConsoleEvent
 from logsupport import ConsoleWarning, ConsoleDetail, ConsoleError
 from screens import alertscreen
 from stores import valuestore
+import guicore.switcher as switcher
 import config
+from alertsystem import filewatcher
 
 alertprocs = {}  # set by modules from alerts directory
 monitoredvars = []
@@ -57,7 +59,7 @@ class Alert(object):
 		elif isinstance(self.actiontarget, screens.screentypes["Alert"]):
 			self.state = 'Active'
 			# if system is in a stack empty it.  End of alert will go back to home and not the stack
-			screens.DS.SwitchScreen(self.actiontarget, 'Bright', 'Go to alert screen', newstate='Alert', clear=True)
+			switcher.SwitchScreen(self.actiontarget, 'Bright', 'Go to alert screen', newstate='Alert', clear=True)
 		else:
 			self.state = 'Active'
 			self.actiontarget(self)  # target is the proc
@@ -212,6 +214,32 @@ class Periodictrigger(object):
 			return 'Every ' + str(self.interval) + ' seconds'
 		else:
 			return 'At ' + str(self.timeslist) + ' seconds past midnight'
+
+
+def ArmAlerts():
+	for a in AlertItems.AlertsList.values():
+		a.state = 'Armed'
+		logsupport.Logs.Log("Arming " + a.type + " alert " + a.name)
+		logsupport.Logs.Log("->" + str(a), severity=ConsoleDetail)
+
+		if a.type == 'Periodic':
+			SchedulePeriodicEvent(a)
+		elif a.type == 'NodeChange':
+			a.trigger.node.Hub.SetAlertWatch(a.trigger.node, a)
+			if a.trigger.IsTrue():
+				# noinspection PyArgumentList
+				PostEvent(ConsoleEvent(CEvent.ISYAlert, hub='DS-NodeChange', alert=a))
+		elif a.type == 'VarChange':
+			a.state = 'Init'
+			# Note: VarChange alerts don't need setup because the store has an alert proc
+			pass
+		elif a.type == 'Init':
+			a.Invoke()
+		elif a.type == 'FileWatch':
+			filewatcher.SetUpForFile(a)
+		else:
+			logsupport.Logs.Log("Internal error - unknown alert type: ", a.type, ' for ', a.name,
+								severity=ConsoleError, tb=False)
 
 
 def getvalid(spec, item, choices, default=None):
