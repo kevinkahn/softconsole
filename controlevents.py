@@ -1,6 +1,8 @@
 import queue
 import time
 from enum import Enum
+
+import debug
 import timers
 
 import psutil
@@ -9,8 +11,8 @@ import historybuffer
 import config
 import logsupport
 
-
 # noinspection PyArgumentList
+
 CEvent = Enum('ConsoleEvent',
 			  'FailSafePing ACTIVITYTIMER HubNodeChange ISYAlert ISYVar GeneralRepaint RunProc SchedEvent MouseDown MouseUp MouseMotion')
 
@@ -124,3 +126,16 @@ class ConsoleEvent(object):
 
 	def addtoevent(self, **kwargs):
 		self.__dict__.update(**kwargs)
+
+
+def PostIfInterested(Hub, node, value):
+	if config.AS is not None:
+		if Hub.name in config.AS.HubInterestList:
+			if node in config.AS.HubInterestList[Hub.name]:
+				debug.debugPrint('DaemonCtl', time.time() - config.sysStore.ConsoleStartTime,
+								 "{} reports node change(screqen): ".format(Hub.name),
+								 "Key: ", node)
+
+				# noinspection PyArgumentList
+				PostEvent(ConsoleEvent(CEvent.HubNodeChange, hub=Hub.name, node=node,
+									   value=value))

@@ -1,13 +1,9 @@
-import time
 import logsupport
 from logsupport import ConsoleDetail
-import debug
 import config
 from hubs.ha import haremote as ha
 from hubs.ha.hasshub import HAnode, RegisterDomain
-import screens.__screens as screens
-from guicore.screenmgt import AS
-from controlevents import CEvent, PostEvent, ConsoleEvent
+from controlevents import PostIfInterested
 
 
 class MediaPlayer(HAnode):
@@ -64,16 +60,7 @@ class MediaPlayer(HAnode):
 				self.artist = self.attributes['media_artist'] if 'media_artist' in self.attributes else ''
 				self.album = self.attributes['media_album_name'] if 'media_album_name' in self.attributes else ''
 
-			if AS is not None:
-				if self.Hub.name in AS.HubInterestList:
-					if self.entity_id in AS.HubInterestList[self.Hub.name]:
-						debug.debugPrint('DaemonCtl', time.time() - config.sysStore.ConsoleStartTime,
-										 "HA reports node change(screen): ",
-										 "Key: ", self.Hub.Entities[self.entity_id].name)
-
-						# noinspection PyArgumentList
-						PostEvent(ConsoleEvent(CEvent.HubNodeChange, hub=self.Hub.name, node=self.entity_id,
-											   value=self.internalstate))
+			PostIfInterested(self.Hub, self.entity_id, self.internalstate)
 
 	def Join(self, master, roomname):
 		# print('Join {} {}'.format(master, roomname))

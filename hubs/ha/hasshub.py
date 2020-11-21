@@ -4,19 +4,17 @@ import time
 import os
 import importlib
 from ..hubs import HubInitError
-from guicore.screenmgt import AS
 
 import websocket
 
 import config
 import debug
-import screens.__screens as screens
 from . import haremote as ha
 import historybuffer
 import hw
 import logsupport
 import threadmanager
-from controlevents import CEvent, PostEvent, ConsoleEvent
+from controlevents import CEvent, PostEvent, ConsoleEvent, PostIfInterested
 from logsupport import ConsoleWarning, ConsoleError, ConsoleDetail
 from stores import valuestore, haattraccess
 from utilities import CheckPayload
@@ -84,14 +82,7 @@ class HAnode(object):
 			logsupport.Logs.Log(
 				"Node {} ({}) became available ({})".format(self.name, self.entity_id, str(self.internalstate)),
 				severity=ConsoleDetail)
-		if AS is not None:
-			if self.Hub.name in AS.HubInterestList:
-				if self.entity_id in AS.HubInterestList[self.Hub.name]:
-					debug.debugPrint('DaemonCtl', time.time() - config.sysStore.ConsoleStartTime,
-									 "HA reports node change(screen): ",
-									 "Key: ", self.Hub.Entities[self.entity_id].name)
-					PostEvent(ConsoleEvent(CEvent.HubNodeChange, hub=self.Hub.name, node=self.entity_id,
-										   value=self.internalstate))
+		PostIfInterested(self.Hub, self.entity_id, self.internalstate)
 
 	def _NormalizeState(self, state, brightness=None): # may be overridden for domains with special state settings
 		if isinstance(state, str):

@@ -244,7 +244,7 @@ class DisplayScreen(object):
 					self.HBEvents.Entry('MouseDown' + str(event.pos))
 					debug.debugPrint('Touch', 'MouseDown' + str(event.pos) + repr(event))
 					# screen touch events; this includes touches to non-sensitive area of screen
-					screenmgt.SetActivityTimer(screenmgt.AS.DimTO, 'Screen touch')
+					screenmgt.SetActivityTimer(config.AS.DimTO, 'Screen touch')
 					# refresh non-dimming in all cases including non=sensitive areas
 					# this refresh is redundant in some cases where the touch causes other activities
 
@@ -309,12 +309,12 @@ class DisplayScreen(object):
 											severity=ConsoleWarning, hb=True)
 						continue
 
-					if screenmgt.AS.Keys is not None:
-						for K in screenmgt.AS.Keys.values():
+					if config.AS.Keys is not None:
+						for K in config.AS.Keys.values():
 							if K.touched(pos):
 								K.Pressed(tapcount)
 
-					for K in screenmgt.AS.NavKeys.values():
+					for K in config.AS.NavKeys.values():
 						if K.touched(pos):
 							K.Proc()  # todo make a goto key
 
@@ -331,7 +331,7 @@ class DisplayScreen(object):
 						self.HBEvents.Entry('ActivityTimer(Bright) state: {}'.format(screenmgt.screenstate))
 						config.sysStore.consolestatus = 'idle'
 						screenmgt.Dim()
-						screenmgt.SetActivityTimer(screenmgt.AS.PersistTO, 'Go dim and wait persist')
+						screenmgt.SetActivityTimer(config.AS.PersistTO, 'Go dim and wait persist')
 					else:
 						self.HBEvents.Entry('ActivityTimer(non-Bright) state: {}'.format(screenmgt.screenstate))
 						if screenmgt.screenstate == 'NonHome':
@@ -363,7 +363,7 @@ class DisplayScreen(object):
 				elif event.type == CEvent.GeneralRepaint:
 					self.HBEvents.Entry('General Repaint: {}'.format(repr(event)))
 					debug.debugPrint('Dispatch', 'General Repaint Event', event)
-					screenmgt.AS.ReInitDisplay()
+					config.AS.ReInitDisplay()
 
 				elif event.type == CEvent.HubNodeChange:
 					self.HBEvents.Entry('Hub Change: {}'.format(repr(event)))
@@ -373,9 +373,9 @@ class DisplayScreen(object):
 							print('Event with both var and node {}'.format(event))
 							logsupport.Logs.Log('Event with both var and node {}'.format(event),
 												severity=ConsoleWarning)
-						screenmgt.AS.NodeEvent(event)
+						config.AS.NodeEvent(event)
 					elif hasattr(event, 'varinfo'):
-						screenmgt.AS.VarEvent(event)
+						config.AS.VarEvent(event)
 					else:
 						debug.debugPrint('Dispatch', 'Bad Node Change Event: ', event)
 						logsupport.Logs.Log('Node Change Event missing node and varinfo: {} '.format(event),

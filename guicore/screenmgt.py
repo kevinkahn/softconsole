@@ -23,7 +23,6 @@ def DimState():
 	return dim
 
 
-AS = None  # Current Active Screen
 ScreenStack = []
 screenstate = 'Home'
 HBScreens = historybuffer.HistoryBuffer(20, 'Screens')  # history buffer for screen activities

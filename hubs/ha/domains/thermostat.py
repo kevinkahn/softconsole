@@ -1,12 +1,7 @@
 from hubs.ha import haremote as ha
 from hubs.ha.hasshub import HAnode, RegisterDomain
-from controlevents import CEvent, PostEvent, ConsoleEvent
-import screens.__screens as screens
-from guicore.screenmgt import AS
-import debug
-import time
+from controlevents import CEvent, PostEvent, ConsoleEvent, PostIfInterested
 import timers
-import config
 import functools
 import logsupport
 
@@ -63,16 +58,7 @@ class Thermostat(HAnode):  # not stateful since has much state info
 		self.hvac_action = self._SafeUpdate('hvac_action', self.hvac_action)
 		self.mode = self.internalstate  # self.attributes['hvac_action']
 		self.fan = self.attributes['fan_mode']
-		if AS is not None:
-			if self.Hub.name in AS.HubInterestList:
-				if self.entity_id in AS.HubInterestList[self.Hub.name]:
-					debug.debugPrint('DaemonCtl', time.time() - config.sysStore.ConsoleStartTime,
-									 "HA reports node change(screen): ",
-									 "Key: ", self.Hub.Entities[self.entity_id].name)
-
-					# noinspection PyArgumentList
-					PostEvent(ConsoleEvent(CEvent.HubNodeChange, hub=self.Hub.name, node=self.entity_id,
-										   value=self.internalstate))
+		PostIfInterested(self.Hub, self.entity_id, self.internalstate)
 
 	def PushSetpoints(self, t_low, t_high):
 		ha.call_service_async(self.Hub.api, 'climate', 'set_temperature',
@@ -93,15 +79,7 @@ class Thermostat(HAnode):  # not stateful since has much state info
 	# noinspection PyUnusedLocal,PyUnusedLocal,PyUnusedLocal
 	def _HVACstatechange(self, storeitem, old, new, param, chgsource):
 		self.HVAC_state = new
-		if AS is not None:
-			if self.Hub.name in AS.HubInterestList:
-				if self.entity_id in AS.HubInterestList[self.Hub.name]:
-					debug.debugPrint('DaemonCtl', time.time() - config.sysStore.ConsoleStartTime,
-									 "HA Tstat reports node change(screen): ",
-									 "Key: ", self.Hub.Entities[self.entity_id].name)
-
-					# noinspection PyArgumentList
-					PostEvent(ConsoleEvent(CEvent.HubNodeChange, hub=self.Hub.name, node=self.entity_id, value=new))
+		PostIfInterested(self.Hub, self.entity_id, new)
 
 	def _connectsensors(self, HVACsensor):
 		self.HVAC_state = HVACsensor.state

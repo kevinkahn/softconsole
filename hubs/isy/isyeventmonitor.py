@@ -14,9 +14,7 @@ import debug
 import exitutils
 import hubs.isy.isycodes as isycodes
 import logsupport
-import screens.__screens as screens
-from guicore.screenmgt import AS
-from controlevents import CEvent, PostEvent, ConsoleEvent
+from controlevents import CEvent, PostEvent, ConsoleEvent, PostIfInterested
 from hubs.isy.isycodes import EVENT_CTRL, formatwsitem
 from logsupport import ConsoleWarning, ConsoleError, ConsoleDetail, ConsoleDetailHigh
 from threadmanager import ThreadStartException
@@ -326,15 +324,9 @@ class ISYEventMonitor(object):
 
 						# logsupport.Logs.Log('reportable event '+str(ecode)+' for '+str(enode)+' action '+str(eaction))
 
-						if AS is not None:
-							if self.isy.name in AS.HubInterestList:
-								if enode in AS.HubInterestList[self.isy.name]:
-									debug.debugPrint('DaemonCtl', time.time() - config.sysStore.ConsoleStartTime,
-													 "ISY reports node change(screen): ",
-													 "Key: ", self.isy.NodesByAddr[enode].name)
-									# noinspection PyArgumentList
-									PostEvent(ConsoleEvent(CEvent.HubNodeChange, hub=self.isy.name, node=enode,
-														   value=isycodes._NormalizeState(eaction)))
+						if enode in ('22.18.A3 1', '22.18.A3 3'): print(
+							'Thermmsg: {} {}'.format(enode, isycodes._NormalizeState(eaction)))
+						PostIfInterested(self.isy, enode, isycodes._NormalizeState(eaction))
 
 					elif (prcode == 'Trigger') and (eaction == '6'):
 						vinfo = eInfo['var']

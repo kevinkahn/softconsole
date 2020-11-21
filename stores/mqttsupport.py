@@ -131,8 +131,8 @@ class MQTTBroker(valuestore.ValueStore):
 						consolestatus.UpdateNodeStatus(topicsplit[1], msgdcd)
 						return
 					elif topicsplit[2] == 'resp':
-						if self.name in screenmgt.AS.HubInterestList:
-							if msgdcd['cmd'] in screenmgt.AS.HubInterestList[self.name]:
+						if self.name in config.AS.HubInterestList:
+							if msgdcd['cmd'] in config.AS.HubInterestList[self.name]:
 								usevalue = msgdcd['value'] if 'value' in msgdcd else ''
 								respnode = msgdcd['respfrom'] if 'respfrom' in msgdcd else '*oldsys*'
 								try:
