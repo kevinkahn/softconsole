@@ -17,12 +17,13 @@ from logsupport import ConsoleDetail
 import toucharea
 from utilfuncs import wc
 import timers
+from guicore.switcher import SwitchScreen
 
 class VerifyScreen(screen.BaseKeyScreenDesc):
 
 	def __init__(self, key, gomsg, nogomsg, procyes, callingscreen, bcolor, keycoloroff, charcolor, state,
-				 interestlist, SingleUse=False, Clocked=0):
-		super().__init__({}, key.name + '-Verify', parentscreen=key, SingleUse=SingleUse, Clocked=Clocked)
+				 interestlist, SingleUse=False):
+		super().__init__({}, key.name + '-Verify', parentscreen=key, SingleUse=SingleUse)
 		debug.debugPrint('Screen', "Build Verify Screen")
 		self.callingkey = key
 		self.yesproc = procyes
@@ -51,22 +52,14 @@ class VerifyScreen(screen.BaseKeyScreenDesc):
 			self.yesproc()
 		screen.PopScreen('Verified')
 
-
 	def Invoke(self):
-		# screens.DS.SwitchScreen(self, 'Bright', 'Do Verify ' + self.name, push=True)
-
 		screen.PushToScreen(self, msg='Do Verify' + self.name)
-
-	def ShowScreen(self):
-		self.ReInitDisplay()
-		self.PaintKeys()
-		displayupdate.updatedisplay()
 
 	def InitDisplay(self, nav):
 		# debugPrint('Main', "Enter to screen: ", self.name)
 		logsupport.Logs.Log('Entering Verify Screen: ' + self.name, severity=ConsoleDetail)
 		super(VerifyScreen, self).InitDisplay({})
-		self.ShowScreen()
+# self.ShowScreen()
 
 class ValueChangeScreen(screen.ScreenDesc):  # todo may need to call super class
 	# need to set no nav keys
@@ -84,9 +77,8 @@ class ValueChangeScreen(screen.ScreenDesc):  # todo may need to call super class
 		pass
 
 	# noinspection PyMissingConstructor
-	def __init__(self, BackgroundColor, Outline, CharColor, label, initvalue, changevals, setvalueproc, returnscreen,
-				 Clocked=0):
-		super().__init__({}, label + ' -ValChange', Clocked=Clocked)
+	def __init__(self, BackgroundColor, Outline, CharColor, label, initvalue, changevals, setvalueproc, returnscreen):
+		super().__init__({}, label + ' -ValChange')
 		self.BackgroundColor = BackgroundColor
 		self.Outline = Outline
 		self.CharColor = CharColor
@@ -194,7 +186,7 @@ def TriangleCorners(c, hgt, invert):
 
 
 class ListChooserSubScreen(screen.ScreenDesc):
-	def __init__(self, masterscreen, choosername, slots, screenhgt, voffset, proc, Clocked=0):
+	def __init__(self, masterscreen, choosername, slots, screenhgt, voffset, proc):
 		"""
 		Create subscreen(s) that allow choosing from a list
 		:param masterscreen: the real screen for which this operates
@@ -204,7 +196,7 @@ class ListChooserSubScreen(screen.ScreenDesc):
 		:param proc: function called with resultant selection index or -1 if cancelled
 		"""
 		super().__init__({}, masterscreen.name + '-' + choosername + '-Chooser',
-						 parentscreen=masterscreen, Clocked=Clocked)
+						 parentscreen=masterscreen)
 		self.Result = proc
 		self.masterscreen = masterscreen
 		self.selection = -1
@@ -271,7 +263,7 @@ class ListChooserSubScreen(screen.ScreenDesc):
 			self.Result(self.selection)
 		else:
 			self.Result(-1)
-		screens.DS.SwitchScreen(screen.BACKTOKEN, 'Bright', 'Back from Item Pick')
+		SwitchScreen(screen.BACKTOKEN, 'Bright', 'Back from Item Pick')
 
 	# noinspection PyUnusedLocal
 	def PrevNext(self, nxt):
@@ -312,8 +304,10 @@ class ListChooserSubScreen(screen.ScreenDesc):
 
 
 class PagedDisplay(screen.BaseKeyScreenDesc):
-	def __init__(self, nm, StartPosChooser, LineRenderer, GetPageHeader, fontsize, color, Clocked=0):
-		super().__init__(None, nm, Clocked=Clocked)
+	def __init__(self, nm, StartPosChooser, LineRenderer, GetPageHeader, fontsize,
+				 color):  # todo = blanks until reinit repaints
+		super().__init__(None, nm)
+		self.ResetClock(.25)
 		self.BackgroundColor = 'maroon'
 		self.StartChooser = StartPosChooser
 		self.LineRenderer = LineRenderer
@@ -340,11 +334,10 @@ class PagedDisplay(screen.BaseKeyScreenDesc):
 		if self.item >= 0:
 			self.pageno += 1
 			self.startpage = self.item
-			screens.DS.SwitchScreen(screen.SELFTOKEN, 'Bright', 'Scroll Next', newstate='Maint')
 		else:
 			if self.state != 'scroll':
 				self.state = 'init'
-				screens.DS.SwitchScreen(screen.BACKTOKEN, 'Bright', 'Done (next) showing log', newstate='Maint')
+				SwitchScreen(screen.BACKTOKEN, 'Bright', 'Done (next) showing log', newstate='Maint')
 			else:
 				self.state = 'manual'
 
@@ -353,39 +346,35 @@ class PagedDisplay(screen.BaseKeyScreenDesc):
 		if self.pageno > 0:
 			self.pageno -= 1
 			self.startpage = self.PageStartItem[self.pageno]
-			screens.DS.SwitchScreen(screen.SELFTOKEN, 'Bright', 'Scroll Prev', newstate='Maint')
 		else:
 			self.state = 'init'
-			screens.DS.SwitchScreen(screen.BACKTOKEN, 'Bright', 'Done (prev) showing log', newstate='Maint')
+			SwitchScreen(screen.BACKTOKEN, 'Bright', 'Done (prev) showing log', newstate='Maint')
 
-	def InitDisplay(self, nav):  # todo interate with super call below
-		self.BackgroundColor = 'maroon'
-		if self.state == 'init':
-			debug.debugPrint('Main', "Enter to screen: ", self.name)
-			super().InitDisplay(nav)
-			self.startat = 0
-			self.startpage = 0
-			self.item = 0
-			self.pageno = 0
-			self.PageStartItem = [0]
-			self.startat = self.StartChooser()
-			self.state = 'scroll' if self.startat != 0 else 'manual'
-			self.item = 0
-			self.PageStartItem = [0]
+	def ScreenContentRepaint(self):
+		self.item = self.RenderPage(self.BackgroundColor, start=self.startpage, pageno=self.pageno)
+		if self.pageno + 1 == len(self.PageStartItem):  # if first time we saw this page remember its start pos
+			self.PageStartItem.append(self.item)
 		if self.state == 'scroll':
 			if (self.item < self.startat) and (
 					self.item != -1):  # if first error not yet up and not last page go to next page
-				timers.OnceTimer(.25, start=True, name='LogPage{}'.format(self.item), proc=self.PageSwitch)
+				self.NextPage()
 			else:
 				self.state = 'manual'
 		else:
 			pass
-		self.item = self.RenderPage(self.BackgroundColor, start=self.startpage, pageno=self.pageno)
-		if self.pageno + 1 == len(self.PageStartItem):  # if first time we saw this page remember its start pos
-			self.PageStartItem.append(self.item)
 
-	def PageSwitch(self, event):
-		self.NextPage()
+	def ReInitDisplay(self):
+		super().ReInitDisplay()
+
+	def InitDisplay(self, nav):  # todo interate with super call below
+		self.pageshowing = -1
+		self.startat = self.StartChooser()
+		self.startpage = 0
+		self.item = 0
+		self.pageno = 0
+		self.PageStartItem = [0]
+		self.state = 'scroll' if self.startat != 0 else 'manual'
+		super().InitDisplay(nav)
 
 	def RenderPage(self, backcolor, start=0, pageno=-1):
 		moretorender = True
@@ -397,11 +386,9 @@ class PagedDisplay(screen.BaseKeyScreenDesc):
 			l = self.pagefont.render(hdr, False, wc(self.color))
 			hw.screen.blit(l, (10, pos))
 			pos = pos + self.pagefont.get_linesize()
-			displayupdate.updatedisplay()
 		while moretorender:
 			l, moretorender = self.LineRenderer(itemnumber, self.pagefont)
 			hw.screen.blit(l, (10, pos))  # todo this can cause long lines to render off the screen
-			displayupdate.updatedisplay()
 			pos = pos + l.get_height()
 			itemnumber += 1
 			if pos > hw.screenheight - screens.screenStore.BotBorder:
@@ -409,5 +396,4 @@ class PagedDisplay(screen.BaseKeyScreenDesc):
 
 		l = self.pagefont.render('***** End *****', False, wc(self.color))
 		hw.screen.blit(l, ((hw.screenwidth - l.get_width()) / 2, pos + l.get_height()))
-		displayupdate.updatedisplay()
 		return -1

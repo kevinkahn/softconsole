@@ -2,7 +2,7 @@ import traceback
 
 import logsupport
 import mypprint
-from alerttasks import DumpAlerts
+from alertsystem.alerttasks import DumpAlerts
 from logsupport import ConsoleDebug, ConsoleError, ConsoleWarning
 from stores import valuestore
 

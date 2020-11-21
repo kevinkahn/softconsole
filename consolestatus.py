@@ -1,4 +1,4 @@
-from collections import OrderedDict, namedtuple
+from collections import OrderedDict
 import time
 from datetime import datetime
 import functools
@@ -6,12 +6,10 @@ import configobj
 
 import displayupdate
 import issuecommands
+from keys.keyutils import internalprocs
 import supportscreens
 import json
 import copy
-
-import pygame
-import utilities
 
 import hw
 import screen
@@ -22,7 +20,7 @@ from screens import __screens as screens
 from utilfuncs import wc
 from maintscreenbase import MaintScreenDesc
 import logsupport
-import keyspecs
+from keys import keyspecs
 import config
 import stats
 
@@ -74,7 +72,7 @@ def SetUpConsoleStatus():
 													  functools.partial(screen.PushToScreen, ShowHW, 'Maint'))),
 											  ('versions', ('Console Versions',
 															functools.partial(screen.PushToScreen, ShowVers, 'Maint'))),
-											  ('cmds', ('Issue Network Commands', GenGoNodeCmdScreen))]), Clocked=1)
+											  ('cmds', ('Issue Network Commands', GenGoNodeCmdScreen))]))
 		StatusDisp.userstore.ReParent(Status)
 		ShowVers.userstore.ReParent(Status)
 		ShowHW.userstore.ReParent(Status)
@@ -133,10 +131,10 @@ def status_interval_str(sec_elapsed):
 
 
 class ShowVersScreen(screen.BaseKeyScreenDesc):
-	def __init__(self, showhw, Clocked=0):
+	def __init__(self, showhw):
 		self.showhw = showhw
 		nm = 'HW Status' if showhw else 'SW Versions'
-		super().__init__(None, nm, Clocked=Clocked)
+		super().__init__(None, nm)
 		self.NavKeysShowing = False
 		self.DefaultNavKeysShowing = False
 		self.Keys = {'return': toucharea.TouchPoint('back', (hw.screenwidth // 2, hw.screenheight // 2),
@@ -171,26 +169,14 @@ class ShowVersScreen(screen.BaseKeyScreenDesc):
 
 
 class StatusDisplayScreen(screen.BaseKeyScreenDesc):
-	def __init__(self, Clocked=0):
-		super().__init__(None, 'ConsolesStatus', Clocked=Clocked)
+	def __init__(self):
+		super().__init__(None, 'ConsolesStatus')
 		self.NavKeysShowing = False
 		self.DefaultNavKeysShowing = False
 		self.Keys = {'return': toucharea.TouchPoint('back', (hw.screenwidth // 2, hw.screenheight // 2),
 													(hw.screenwidth, hw.screenheight), proc=screen.PopScreen)}
-		self.T = None
 
-	def ExitScreen(self, viaPush):
-		super().ExitScreen(viaPush)
-		self.T.cancel()
-
-	def InitDisplay(self, nav): # todo fix for specific repaint
-		super(StatusDisplayScreen, self).InitDisplay(nav)
-		self.T = timers.RepeatingPost(1, False, True, 'StatusDisplay', proc=self.ShowStatus)
-		self.ShowStatus('none')
-
-	def ShowStatus(self, ign):  # todo  portrait, no MQTT case
-		if self.T.finished.is_set():
-			return
+	def ScreenContentRepaint(self):  # todo  portrait, no MQTT case
 		hw.screen.fill(wc(self.BackgroundColor))
 		fontsz = 10 if displayupdate.portrait else 17
 		tm, ht, wd = screenutil.CreateTextBlock('{}'.format(time.strftime('%c')), fontsz, 'white', False,
@@ -251,8 +237,8 @@ class StatusDisplayScreen(screen.BaseKeyScreenDesc):
 
 
 class CommandScreen(screen.BaseKeyScreenDesc):
-	def __init__(self, Clocked=0):
-		super().__init__(None, 'NodeCommandScreen', SingleUse=True, Clocked=Clocked)
+	def __init__(self):
+		super().__init__(None, 'NodeCommandScreen', SingleUse=True)
 		self.RespProcs = {'getlog': LogDisplay, 'geterrors': LogDisplay}
 		screen.AddUndefaultedParams(self, None, TitleFontSize=40, SubFontSize=25)
 		self.NavKeysShowing = True
@@ -301,24 +287,23 @@ class CommandScreen(screen.BaseKeyScreenDesc):
 			DN = action.DisplayName.split(' ')
 			if issuecommands.Where.RemoteMenu in action.where or issuecommands.Where.RemoteMenuAdv in action.where:
 				whichscreen = 'Regular' if issuecommands.Where.RemoteMenu in action.where else "Advanced"
-				keyspecs.internalprocs['Command' + cmd] = functools.partial(self.IssueSimpleCmd, cmd)
+				internalprocs['Command' + cmd] = functools.partial(self.IssueSimpleCmd, cmd)
 				if action.simple:
 					CmdSet[whichscreen][cmd] = {"type": "REMOTEPROC", "ProcName": 'Command' + cmd, "label": DN,
 												"Verify": action.Verify}
 				else:
 					CmdSet[whichscreen][cmd] = {"type": "REMOTECPLXPROC", "ProcName": 'Command' + cmd, "label": DN,
 												"Verify": action.Verify, "EventProcName": 'Commandresp' + cmd}
-					keyspecs.internalprocs['Commandresp' + cmd] = self.RespProcs[cmd]
+					internalprocs['Commandresp' + cmd] = self.RespProcs[cmd]
 			elif issuecommands.Where.RemoteMenuDead in action.where:
-				keyspecs.internalprocs['Command' + cmd] = functools.partial(self.IssueDeadCmd, cmd)
+				internalprocs['Command' + cmd] = functools.partial(self.IssueDeadCmd, cmd)
 				CmdSet['Dead'][cmd] = {"type": "REMOTEPROC", "ProcName": 'Command' + cmd, "label": DN,
 									   "Verify": action.Verify}
 		self.entered = ''
 		self.CmdListScreens = {}
 		for t, s in CmdSet.items():
-			self.CmdListScreens[t] = screens.screentypes["Keypad"](s, 'CmdListScreen' + t, parentscreen=self, Clocked=1)
+			self.CmdListScreens[t] = screens.screentypes["Keypad"](s, 'CmdListScreen' + t, parentscreen=self)
 
-	# self.CmdListScreens[t].SetScreenTitle(t + ' Commands', self.TitleFontSize, 'white', force=True)
 
 	def IssueSimpleCmd(self, cmd, Key=None):
 		global MsgSeq
@@ -368,16 +353,13 @@ class CommandScreen(screen.BaseKeyScreenDesc):
 		ErrorsRcvd = False
 		logsupport.primaryBroker.Publish('cmd', node=nd, payload='geterrors')
 
-	def InitDisplay(self, nav): # todo fix for specific repaint
-		super(CommandScreen, self).InitDisplay(nav)
+	def ScreenContentRepaint(self):
 		landfont = 15
 		if displayupdate.portrait:
 			pass
 		else:
 			header, ht, wd = screenutil.CreateTextBlock(
 				'  Node       ', landfont, 'white', False)
-		displayupdate.updatedisplay()
-
 
 def PickStartingSpot():
 	return 0
@@ -385,9 +367,10 @@ def PickStartingSpot():
 
 def PageTitle(pageno, itemnumber, node='', loginfo=None):
 	if len(loginfo) > itemnumber:
-		return "{} Log from {}           Page: {}".format(node, loginfo[itemnumber][2], pageno), True
+		return "{} Log from {}           Page: {}      {}".format(node, loginfo[itemnumber][2], pageno,
+																  time.strftime('%c')), True
 	else:
-		return "{} No more entries        Page: {}".format(node, pageno), False
+		return "{} No more entries        Page: {}      {}".format(node, pageno, time.strftime('%c')), False
 
 
 def LogDisplay(evnt):

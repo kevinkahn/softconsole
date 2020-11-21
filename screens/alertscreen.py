@@ -1,13 +1,15 @@
+from keys.keyutils import internalprocs
+
 ScreenType = 'Alert'
 
 import pygame
 import functools
 
-import alerttasks
+from alertsystem import alerttasks
 import debug
 import fonts
 import hw
-import keyspecs
+from keys import keyspecs
 import logsupport
 import screen
 import screens.__screens as screens
@@ -18,6 +20,7 @@ from logsupport import ConsoleDetail
 from utilfuncs import wc
 from configobj import ConfigObj
 from typing import Union
+from guicore.switcher import SwitchScreen
 
 alertscreens = {}
 
@@ -25,9 +28,9 @@ alertscreens = {}
 class AlertsScreenDesc(screen.ScreenDesc):
 	global alertscreens
 
-	def __init__(self, screensection, screenname, Clocked=0):
+	def __init__(self, screensection, screenname):
 		global alertscreens
-		super().__init__(screensection, screenname, Clocked=1, Type=ScreenType)
+		super().__init__(screensection, screenname, Type=ScreenType)
 		debug.debugPrint('Screen', "Build Alerts Screen")
 		self.NavKeysShowing = False
 		self.DefaultNavKeysShowing = False
@@ -74,13 +77,13 @@ class AlertsScreenDesc(screen.ScreenDesc):
 
 		def CallClear(screentoclear):
 			screentoclear.Alert.trigger.ClearTrigger()
-			screens.DS.SwitchScreen(screens.HomeScreen, 'Bright', 'Manual defer an alert', newstate='Home')
+			SwitchScreen(screens.HomeScreen, 'Bright', 'Manual defer an alert', newstate='Home')
 
 		if 'Action' in screensection:
 			action = screensection['Action']
 			self.Keys['action'] = keyspecs.CreateKey(self, action, '*Action*')
 		else:
-			keyspecs.internalprocs[self.name + '-ACK'] = functools.partial(CallClear, self)
+			internalprocs[self.name + '-ACK'] = functools.partial(CallClear, self)
 			temp = ConfigObj()
 			temp['action'] = {'type': 'PROC', 'ProcName': self.name + '-ACK', 'label': 'Clear'}
 			self.Keys['action'] = keyspecs.CreateKey(self, temp['action'], '*Action*')
@@ -109,7 +112,7 @@ class AlertsScreenDesc(screen.ScreenDesc):
 		debug.debugPrint('Screen', 'Alertscreen manual defer: ' + self.name)
 		self.Alert.state = 'Deferred'
 		# Deferral timer will get set in Exit Screen
-		screens.DS.SwitchScreen(screens.HomeScreen, 'Bright', 'Manual defer an alert', newstate='Home')
+		SwitchScreen(screens.HomeScreen, 'Bright', 'Manual defer an alert', newstate='Home')
 
 	def InitDisplay(self, nav):  # todo fix for specific repaint
 		self.timetoclear = self.AutoClearSecs
@@ -123,7 +126,7 @@ class AlertsScreenDesc(screen.ScreenDesc):
 			self.timetoclear -= 1
 			if self.timetoclear == 0:
 				self.Alert.trigger.ClearTrigger()
-				screens.DS.SwitchScreen(screens.HomeScreen, 'Bright', 'Auto cleared alert', newstate='Home')
+				SwitchScreen(screens.HomeScreen, 'Bright', 'Auto cleared alert', newstate='Home')
 
 		if self.BlinkTime != 0:
 			self.NextBlink -= 1

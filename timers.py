@@ -70,14 +70,13 @@ def AddToTimerList(name, timer):
 
 
 def KillMe():
-	time.sleep(5)
+	time.sleep(10)
 	if not timersshut:
 		TimerHB.Entry("Timer Shutdown Failsafe hit")
 		logsupport.DevPrint("Timer Shutdown Failsafe hit")
-		#time.sleep(30)
-		logsupport.Logs.log("Timer Shutdown Failsafe hit")
+		logsupport.Logs.Log("Timer Shutdown Failsafe hit")
 		time.sleep(1)
-		x=threading.enumerate()
+		x = threading.enumerate()
 		for t in x: logsupport.DevPrint(t.name)
 		os.kill(config.sysStore.Console_pid, signal.SIGKILL)
 	else:
@@ -95,6 +94,7 @@ def ShutTimers(loc):
 		if t.is_alive():
 			logsupport.Logs.Log('Shutting down timer: {}'.format(n))
 			t.cancel()
+	print('Logs done')
 	logsupport.Logs.Log('All timers shut down ({})'.format(loc))
 	timersshut = True
 
@@ -138,6 +138,9 @@ class RepeatingPost(Thread):
 				return
 		TimerHB.Entry("Canceled repeater: {}".format(self.name))
 
+	def resetinterval(self, interval):
+		self.interval = interval
+
 	def resume(self):
 		TimerHB.Entry('Resume repeater: {}'.format(self.name))
 		self.running.set()
@@ -169,6 +172,7 @@ class RepeatingPost(Thread):
 				loopend = time.time()
 				TimerHB.Entry(
 					'Next target: {} {} {} {}'.format(self.name, loopend, targettime, self.interval))
+
 		del TimerList[self.name]
 		TimerHB.Entry('Exit repeater: {}'.format(self.name))
 

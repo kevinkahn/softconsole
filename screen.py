@@ -2,7 +2,7 @@ import collections
 
 import pygame
 import functools
-
+from guicore.switcher import SwitchScreen
 import config
 import displayupdate
 import fonts
@@ -66,15 +66,15 @@ def InitScreenParams(parseconfig):
 
 
 def GoToScreen(NS, newstate='NonHome'):
-	screens.DS.SwitchScreen(NS, 'Bright', 'Go to Screen', newstate=newstate)
+	SwitchScreen(NS, 'Bright', 'Go to Screen', newstate=newstate)
 
 
 def PushToScreen(NS, newstate='NonHome', msg='Push to Screen'):
-	screens.DS.SwitchScreen(NS, 'Bright', msg, newstate=newstate, push=True)
+	SwitchScreen(NS, 'Bright', msg, newstate=newstate, push=True)
 
 
 def PopScreen(msg='PopScreen', newstate='Maint'):
-	screens.DS.SwitchScreen(BACKTOKEN, 'Bright', msg, newstate=newstate)
+	SwitchScreen(BACKTOKEN, 'Bright', msg, newstate=newstate)
 
 
 def IncorporateParams(this, clsnm, theseparams, screensection):
@@ -145,7 +145,7 @@ class ScreenDesc(object):
 	def __getattr__(self, key):
 		return self.userstore.GetVal(key)
 
-	def __init__(self, screensection, screenname, parentscreen=None, SingleUse=False, Clocked=0, Type='unset'):
+	def __init__(self, screensection, screenname, parentscreen=None, SingleUse=False, Type='unset'):
 		self.userstore = paramstore.ParamStore('Screen-' + screenname,
 											   dp=screenStore if parentscreen is None else parentscreen.userstore,
 											   locname=screenname)
@@ -153,17 +153,15 @@ class ScreenDesc(object):
 
 		self.ScreenType = Type
 		self.markradius = int(min(hw.screenwidth, hw.screenheight) * .025)
-		# print("{}: clocked :{}".format(screenname, Clocked))
-
 		self.name = screenname
 		self.singleuse = SingleUse
 		self.used = False
 		self.Active = False  # true if actually on screen
-		self.ScreenTimers = []  # (Timer, Cancel Proc or None)
-		self.ScreenClock = None
+
 		self.DefaultNavKeysShowing = True
 		self.NavKeysShowing = True
 		self.NavKeys = collections.OrderedDict()
+
 		self.Keys = collections.OrderedDict()
 		self.WithNav = True
 		self.useablevertspace = hw.screenheight - self.TopBorder - self.BotBorder
@@ -177,10 +175,6 @@ class ScreenDesc(object):
 		self.prevkey = None
 		self.nextkey = None
 		self.NavKeyWidth = (hw.screenwidth - 2 * self.HorizBorder) // 2
-		if Clocked != 0:
-			self.ScreenClock = timers.RepeatingPost(Clocked, paused=True, name='ScreenClock-' + self.name,
-													proc=self._ClockTick, eventvalid=self._ClockTickValid)
-			self.ScreenClock.start()
 
 		cvertcenter = hw.screenheight - self.BotBorder / 2
 
@@ -188,14 +182,14 @@ class ScreenDesc(object):
 											   self.CmdKeyCol, self.CmdCharCol, self.CmdCharCol,
 											   proc=functools.partial(GoToScreen, HOMETOKEN),
 											   center=(
-												   self.starthorizspace + .5 * (self.NavKeyWidth),
+												   self.starthorizspace + .5 * self.NavKeyWidth,
 												   cvertcenter),
 											   size=(self.NavKeyWidth, self.NavKeyHeight), gaps=True)
 		self.backkey = toucharea.ManualKeyDesc(self, 'Nav>' + 'Back', ('Back',),
 											   self.CmdKeyCol, self.CmdCharCol, self.CmdCharCol,
 											   proc=functools.partial(GoToScreen, BACKTOKEN),
 											   center=(
-												   self.starthorizspace + 1.5 * (self.NavKeyWidth),
+												   self.starthorizspace + 1.5 * self.NavKeyWidth,
 												   cvertcenter),
 											   size=(self.NavKeyWidth, self.NavKeyHeight), gaps=True)
 
@@ -228,6 +222,11 @@ class ScreenDesc(object):
 
 			self.ScreenTitleBlk = tempblk
 
+		self.ScreenClock = timers.RepeatingPost(1, paused=True, name='ScreenClock-' + self.name,
+												proc=self._ClockTick, eventvalid=self._ClockTickValid)
+		self.ScreenClock.start()
+		self.ScreenTimers = [(self.ScreenClock, None)]  # (Timer, Cancel Proc or None)
+
 		utilities.register_example('ScreenDesc', self)
 
 	def _GenerateTitleBlk(self, title, fields, color):
@@ -236,7 +235,6 @@ class ScreenDesc(object):
 		blk = fonts.fonts.Font(self.ScreenTitleSize, bold=True).render(formattedTitle, 0, wc(color))
 		w = blk.get_width()
 		return blk, w
-
 
 	def _ClockTickValid(self):
 		return self.Active
@@ -247,6 +245,9 @@ class ScreenDesc(object):
 
 	def ClockTick(self):  # this is meant to be overridden if screen want more complex operation
 		self.ReInitDisplay()
+
+	def ResetClock(self, interval):
+		self.ScreenClock.resetinterval(interval)
 
 	def CreateNavKeys(self, prevk, nextk):
 		cvertcenter = hw.screenheight - self.BotBorder / 2
@@ -288,7 +289,6 @@ class ScreenDesc(object):
 		self.ScreenTitle = name
 		self.ScreenTitleBlk = fonts.fonts.Font(fontsz).render(name, 0, wc(color))
 		h = self.ScreenTitleBlk.get_height()
-		w = self.ScreenTitleBlk.get_width()
 		titlegap = h // 10  # todo is this the best way to space? if fix - fix clear also
 		self.startvertspace = self.startvertspace + h + titlegap
 		self.useablevertspace = self.useablevertspace - h - titlegap
@@ -412,10 +412,9 @@ class ScreenDesc(object):
 			pygame.draw.line(hw.screen, lineclr, (self.markradius, 0), (self.markradius, 2 * self.markradius), 3)
 
 
-
 class BaseKeyScreenDesc(ScreenDesc):
-	def __init__(self, screensection, screenname, parentscreen=None, SingleUse=False, Clocked=0):
-		super().__init__(screensection, screenname, parentscreen=parentscreen, SingleUse=SingleUse, Clocked=Clocked)
+	def __init__(self, screensection, screenname, parentscreen=None, SingleUse=False):
+		super().__init__(screensection, screenname, parentscreen=parentscreen, SingleUse=SingleUse)
 
 		AddUndefaultedParams(self, screensection, KeysPerColumn=0, KeysPerRow=0)
 		self.buttonsperrow = -1

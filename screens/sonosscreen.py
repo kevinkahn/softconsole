@@ -129,11 +129,12 @@ class SonosScreenDesc(screen.BaseKeyScreenDesc):
 
 		self.Keys = self.KeysSum
 
-	def __init__(self, screensection, screenname, Clocked=0):
+	def __init__(self, screensection, screenname):
 		config.SonosScreen = self  # todo hack to handle late appearing players
 		debug.debugPrint('Screen', "New SonosScreenDesc ", screenname)
-		super().__init__(screensection, screenname, Clocked=Clocked)
+		super().__init__(screensection, screenname)
 		screen.IncorporateParams(self, 'SonosScreen', {'KeyColor'}, screensection)
+		self.ResetClock(.25)
 		self.DullKeyColor = wc(self.KeyColor, .5, self.BackgroundColor)
 		self.HA = self.DefaultHubObj
 		self.Subscreen = -1
@@ -202,9 +203,10 @@ class SonosScreenDesc(screen.BaseKeyScreenDesc):
 		# Watched node reported change event is ("Node", addr, value, seq)
 		# print('event')  todo should check that event is for a Sonos node?
 		stable = self.UpdateGroups()
-		if stable:
-			# print('stable')
-			if self.Active: self.ShowScreen()  # handle any race with another screen just having come up
+
+	# if stable:
+	#	# print('stable')
+	#	if self.Active: self.ShowScreen()  # handle any race with another screen just having come up
 
 	def VolChange(self, slotnum, chg):
 		# print(slotnum, chg)
@@ -219,20 +221,23 @@ class SonosScreenDesc(screen.BaseKeyScreenDesc):
 
 	def GpCtlOK(self):
 		self.Subscreen = -1
-		self.ShowScreen()
+
+	# self.ShowScreen()
 
 	def SetSource(self):
 		self.Subscreen = self.Subscreen + 200
 		self.SourceSelection = ''
 		self.SourceSet = self.SonosNodes[self.SlotToGp[self.Subscreen - 200]].source_list[:]
 		self.SourceItem = 0
-		self.ShowScreen()
+
+	# self.ShowScreen()
 
 	def PickSource(self, slotnum):
 		# print(slotnum)
 		# change the source
 		self.SourceSelection = self.SourceSlot[slotnum]
-		self.ShowScreen()
+
+	# self.ShowScreen()
 
 	def PickSourceOK(self, doit):
 		if doit:
@@ -240,7 +245,8 @@ class SonosScreenDesc(screen.BaseKeyScreenDesc):
 																		self.SourceSelection)
 		self.Subscreen = self.Subscreen - 200
 		self.SourceSelection = ''
-		self.ShowScreen()
+
+	# self.ShowScreen()
 
 	def PrevNext(self, nxt):
 		if nxt:
@@ -248,19 +254,23 @@ class SonosScreenDesc(screen.BaseKeyScreenDesc):
 				self.SourceItem += self.sourceslots
 		elif self.SourceItem - self.sourceslots >= 0:
 			self.SourceItem -= self.sourceslots
-		self.ShowScreen()
+
+	# self.ShowScreen()
 
 	def RoomSelect(self, slotnum):
 		self.Subscreen = slotnum
-		self.ShowScreen()
+
+	# self.ShowScreen()
 
 	def RoomSelectDbl(self, slotnum):
 		self.Subscreen = 100 + slotnum
-		self.ShowScreen()
+
+	# self.ShowScreen()
 
 	def GroupMemberOK(self):
 		self.Subscreen = -1
-		self.ShowScreen()
+
+	# self.ShowScreen()
 
 	def GroupMemberToggle(self, slotnum):
 		if self.gpingrms[slotnum][1]:
@@ -270,8 +280,9 @@ class SonosScreenDesc(screen.BaseKeyScreenDesc):
 			# join to this master
 			self.gpingrms[0][0].Join(self.gpingrms[0][0].entity_id, self.gpingrms[slotnum][0].entity_id)
 			pass
-		# self.Subscreen = -1
-		self.ShowScreen()
+
+	# self.Subscreen = -1
+	# self.ShowScreen()
 
 	def UpdateGroups(self):
 		assigned = 0
@@ -288,21 +299,21 @@ class SonosScreenDesc(screen.BaseKeyScreenDesc):
 		self.numgroups = len(self.SonosGroups)
 		return assigned == self.numplayers
 
-	def InitDisplay(self, nav): # todo fix for specific repaint
-		self._check_for_new()
-		super().InitDisplay(nav)
+	def InitDisplay(self, nav):  # todo fix for specific repaint
 		self.Subscreen = -1
-		self.ShowScreen()
+		super().InitDisplay(nav)
+
+
 
 	def SummaryScreen(self):
 		if self.numplayers == 0:
 			errmsg, _, _ = screenutil.CreateTextBlock([' ', 'No Players', 'Found', 'Check', 'Configuration', ' '], 30,
 													  'white', True)
 			hw.screen.blit(errmsg, (self.HorizBorder + 15, 40))
-			displayupdate.updatedisplay()
+			# displayupdate.updatedisplay()
 			return
 		self.Keys = self.KeysSum
-		self.ReInitDisplay()
+		# self.ReInitDisplay()
 		slot = 0
 		pygame.draw.line(hw.screen, wc(self.CharColor), (self.HorizBorder, self.NodeVPos[0]),
 						 (hw.screenwidth - self.HorizBorder, self.NodeVPos[0]), 3)
@@ -355,7 +366,7 @@ class SonosScreenDesc(screen.BaseKeyScreenDesc):
 
 		self.nms = []
 		self.Keys = self.KeysGpCtl
-		self.ReInitDisplay()
+		# self.ReInitDisplay()
 		i = 0
 		for p in self.SonosGroups[gpentity]:
 			self.nms.append(self.SonosNodes[p])
@@ -376,12 +387,13 @@ class SonosScreenDesc(screen.BaseKeyScreenDesc):
 			spkr, diagbar = self._Speaker(self.ButLocSize[i]['Mute'][0], self.ButLocSize[i]['Mute'][1][0])
 			pygame.draw.polygon(hw.screen, wc(self.CharColor), spkr, 2)
 			if self.nms[-1].muted:
+				print('Muted')
 				pygame.draw.line(hw.screen, wc(self.CharColor), diagbar[0], diagbar[1], 4)
 			i += 1
 
 	def ChangeGroupingScreen(self, gpentity):
 		self.Keys = self.KeysGC
-		self.ReInitDisplay()
+		# self.ReInitDisplay()
 		self.gpingrms = [[self.SonosNodes[gpentity], True]]
 		for n, r in self.SonosNodes.items():
 			if n != gpentity:
@@ -398,7 +410,7 @@ class SonosScreenDesc(screen.BaseKeyScreenDesc):
 		# show a list of sources starting with startsource item last item is either next or return
 		# compute sources per screen as usable vertical height div item pixel height
 		self.Keys = self.KeysSrc
-		self.ReInitDisplay()
+		# self.ReInitDisplay()
 		for i in range(self.SourceItem, min(len(self.SourceSet), self.SourceItem + self.sourceslots)):
 			slot = i - self.SourceItem
 			clr = self.DullKeyColor if self.SourceSet[i] == self.SourceSelection else self.CharColor
@@ -412,9 +424,10 @@ class SonosScreenDesc(screen.BaseKeyScreenDesc):
 		pygame.draw.polygon(hw.screen, wc(self.CharColor),
 							supportscreens.TriangleCorners(self.SrcNext, self.sourceheight, True), 3)
 
-	def ShowScreen(self):
+	def ScreenContentRepaint(self):
 		_ = self.UpdateGroups()
 		# self.ReInitDisplay()
+		# print('Show {} {}'.format(self.numplayers, self.Subscreen))
 		if self.numplayers == 0:
 			pass  # no players - probably startup sequencing error
 		elif self.Subscreen == -1:
@@ -426,7 +439,7 @@ class SonosScreenDesc(screen.BaseKeyScreenDesc):
 		else:
 			self.GroupScreen(self.SlotToGp[self.Subscreen])
 
-		displayupdate.updatedisplay()
+	#displayupdate.updatedisplay()
 
 
 screens.screentypes["Sonos"] = SonosScreenDesc

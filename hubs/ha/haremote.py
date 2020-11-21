@@ -122,9 +122,9 @@ class HAState(object):
 	def __eq__(self, other):
 		"""Return the comparison of the state."""
 		return (self.__class__ == other.__class__ and
-                self.entity_id == other.entity_id and
-                self.state == other.state and
-                self.attributes == other.attributes)
+				self.entity_id == other.entity_id and
+				self.state == other.state and
+				self.attributes == other.attributes)
 
 	def __repr__(self):
 		"""Return the representation of the states."""
@@ -328,20 +328,25 @@ def safe_call_service(api: API, domain: str, service: str,
 					  timeout: int = 5) -> None:
 	try:
 		call_service(api, domain, service, service_data, timeout)
-	except:
-		pass
+	except Exception as E:
+		print('Exc: {}'.format(E))
 
 def call_service(api: API, domain: str, service: str,
 				 service_data: Dict = None,
 				 timeout: int = 5) -> None:
 	"""Call a service at the remote API."""
+	# print('Call svc {} {} {}'.format(domain,service,service_data))
 	try:
 		req = api(METH_POST,
 				  URL_API_SERVICES_SERVICE.format(domain, service),
 				  service_data, timeout=timeout)
 
 		if req.status_code != 200:
-			logsupport.Logs.Log("HA Error calling service {} - {} Request: domain: {} service: {} data: {}".format(req.status_code, req.text,domain,service,service_data))
+			logsupport.Logs.Log(
+				"HA Error calling service {} - {} Request: domain: {} service: {} data: {}".format(req.status_code,
+																								   req.text, domain,
+																								   service,
+																								   service_data))
 
 	except HomeAssistantError as e:
 		logsupport.Logs.Log("HA service call failed", repr(e), severity=logsupport.ConsoleWarning)

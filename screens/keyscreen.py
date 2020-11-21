@@ -1,10 +1,9 @@
 # noinspection PyProtectedMember
-import pygame
 from configobj import Section
 
 import debug
 import displayupdate
-import keyspecs
+from keys import keyspecs
 import logsupport
 import screen
 import screens.__screens as screens
@@ -13,8 +12,8 @@ from logsupport import ConsoleWarning
 
 
 class KeyScreenDesc(screen.BaseKeyScreenDesc):
-	def __init__(self, screensection, screenname, parentscreen=None, Clocked=0):
-		super().__init__(screensection, screenname, parentscreen=parentscreen, Clocked=Clocked)
+	def __init__(self, screensection, screenname, parentscreen=None):
+		super().__init__(screensection, screenname, parentscreen=parentscreen)
 		debug.debugPrint('Screen', "New KeyScreenDesc ", screenname)
 
 		# Build the Key objects
@@ -36,9 +35,6 @@ class KeyScreenDesc(screen.BaseKeyScreenDesc):
 				debug.debugPrint('Screen', m1 + m2)
 
 		utilities.register_example("KeyScreenDesc", self)
-
-	def __repr__(self):
-		return screen.ScreenDesc.__repr__(self) + "\r\n     KeyScreenDesc:" + ":<" + str(self.Keys) + ">"
 
 	def InitDisplay(self, nav):
 		debug.debugPrint("Screen", "Keyscreen InitDisplay: ", self.name)

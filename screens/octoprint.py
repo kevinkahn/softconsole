@@ -1,7 +1,6 @@
 import functools
 
 import displayupdate
-import utilities
 import requests
 import threading
 import controlevents
@@ -13,18 +12,17 @@ import screen
 import screens.__screens as screens
 import screenutil
 import supportscreens
-import timers
-import time
+from guicore.switcher import SwitchScreen
 import toucharea
 from logsupport import ConsoleWarning
-from keyspecs import _resolvekeyname
+from keys.keyutils import _resolvekeyname
 
 
 # noinspection PyUnusedLocal
 class OctoPrintScreenDesc(screen.BaseKeyScreenDesc):
 	# todo switch to screen title
-	def __init__(self, screensection, screenname, Clocked=0):
-		super().__init__(screensection, screenname, Clocked=1)
+	def __init__(self, screensection, screenname):
+		super().__init__(screensection, screenname)
 		debug.debugPrint('Screen', "New OctoPrintScreenDesc ", screenname)
 		self.JobKeys = {}
 		self.files = []
@@ -196,7 +194,7 @@ class OctoPrintScreenDesc(screen.BaseKeyScreenDesc):
 			self.files.append(f['name'])
 			self.filepaths.append(f['path'])
 		self.FileSubscreen.Initialize(self.files)
-		screens.DS.SwitchScreen(self.FileSubscreen, 'Bright', 'Direct go to OctoPrint fileselect', push=True)
+		SwitchScreen(self.FileSubscreen, 'Bright', 'Direct go to OctoPrint fileselect', push=True)
 
 	def PreDoCancel(self):
 		self.VerifyScreenCancel.Invoke()
@@ -209,16 +207,16 @@ class OctoPrintScreenDesc(screen.BaseKeyScreenDesc):
 			self.DoResume()
 
 	def NoVerify(self):
-		screens.DS.SwitchScreen(self, 'Bright', 'Verify Run ' + self.name)
+		SwitchScreen(self, 'Bright', 'Verify Run ' + self.name)
 
 	def DoCancel(self):
 		self.OctoPost('job', senddata={'command': 'cancel'})
-		screens.DS.SwitchScreen(self, 'Bright', 'Verify Run ' + self.name)
+		SwitchScreen(self, 'Bright', 'Verify Run ' + self.name)
 
 	def DoPause(self):  # todo add indication that it is paused
 		self.OctoPost('job', senddata={'command': 'pause', 'action': 'pause'})
 		self.paused = True
-		screens.DS.SwitchScreen(self, 'Bright', 'Verify Run ' + self.name)
+		SwitchScreen(self, 'Bright', 'Verify Run ' + self.name)
 
 	def DoResume(self):
 		self.OctoPost('job', senddata={'command': 'pause', 'action': 'resume'})

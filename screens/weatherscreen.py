@@ -19,9 +19,9 @@ fsizes = ((20, False, False), (30, True, False), (45, True, True))
 
 
 class WeatherScreenDesc(screen.ScreenDesc):
-	def __init__(self, screensection, screenname, Clocked=0):
+	def __init__(self, screensection, screenname):
 		debug.debugPrint('Screen', "New WeatherScreenDesc ", screenname)
-		super().__init__(screensection, screenname, Clocked=Clocked)
+		super().__init__(screensection, screenname)
 
 		butsize = self.ButSize(1, 1, 0)
 		self.Keys = OrderedDict({'condorfcst': toucharea.TouchPoint('condorfcst', (
@@ -54,9 +54,6 @@ class WeatherScreenDesc(screen.ScreenDesc):
 								severity=logsupport.ConsoleWarning)
 			raise ValueError
 		utilities.register_example("WeatherScreenDesc", self)
-
-	def __repr__(self):
-		return screen.ScreenDesc.__repr__(self) + "\r\n     WeatherScreenDesc:" + str(self.CharColor)
 
 	# noinspection PyUnusedLocal
 	def CondOrFcst(self):

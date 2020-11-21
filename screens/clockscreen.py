@@ -15,8 +15,8 @@ from weatherfromatting import CreateWeathBlock
 
 
 class ClockScreenDesc(screen.ScreenDesc):
-	def __init__(self, screensection, screenname, Clocked=1):
-		super().__init__(screensection, screenname, Clocked=1)
+	def __init__(self, screensection, screenname):
+		super().__init__(screensection, screenname)
 		debug.debugPrint('Screen', "Build Clock Screen")
 		screen.AddUndefaultedParams(self, screensection, CharSize=[20], Font=fonts.monofont, OutFormat=[],
 									ExtraFields=[],

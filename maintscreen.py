@@ -1,11 +1,9 @@
 import functools
 from collections import OrderedDict
 
-import pygame
 
 import displayupdate
-import utilities
-
+from guicore.switcher import SwitchScreen
 import config
 import debug
 import hw
@@ -37,7 +35,7 @@ def SetUpMaintScreens():
 	for cmd, action in issuecommands.cmdcalls.items():
 		if issuecommands.Where.LocalMenuExits in action.where:
 			ExitMenu[cmd] = (action.DisplayName, action.Proc, None, action.Verify)
-	Exits = MaintScreenDesc('System Exit/Restart', ExitMenu, Clocked=1)
+	Exits = MaintScreenDesc('System Exit/Restart', ExitMenu)
 	screenset.append(Exits)
 
 	VersMenu = OrderedDict()
@@ -48,7 +46,7 @@ def SetUpMaintScreens():
 			VersMenuAdv[cmd] = (action.DisplayName, action.Proc)
 		elif issuecommands.Where.LocalMenuVersionsAdv in action.where:
 			VersMenuAdv[cmd] = (action.DisplayName, action.Proc)
-	Versions = MaintScreenDesc('Version Control', VersMenu, Clocked=1)
+	Versions = MaintScreenDesc('Version Control', VersMenu)
 	VersionsAdv = MaintScreenDesc('Advanced Version Control', VersMenuAdv)
 	screenset.append(Versions)
 	screenset.append(VersionsAdv)
@@ -101,10 +99,10 @@ def SetUpMaintScreens():
 							('flags', ('Set Flags', functools.partial(screen.PushToScreen, FlagsScreens[0], 'Maint')))])
 
 	if Status is not None: TopLevel['status'] = (
-	'Network Consoles', functools.partial(screen.PushToScreen, Status, 'Maint'))
+		'Network Consoles', functools.partial(screen.PushToScreen, Status, 'Maint'))
 	TopLevel['exit'] = ('Exit/Restart', functools.partial(screen.PushToScreen, Exits, 'Maint'))
 
-	MaintScreen = MaintScreenDesc('Console Maintenance', TopLevel, Clocked=1)
+	MaintScreen = MaintScreenDesc('Console Maintenance', TopLevel)
 
 	for s in screenset:
 		s.userstore.ReParent(MaintScreen)
@@ -147,7 +145,7 @@ def adjloglevel(K):
 
 # noinspection PyUnusedLocal
 def goto(newscreen):
-	screens.DS.SwitchScreen(newscreen, 'Bright', 'Maint goto' + newscreen.name, newstate='Maint')
+	SwitchScreen(newscreen, 'Bright', 'Maint goto' + newscreen.name, newstate='Maint')
 
 def PickStartingSpot():
 	if config.sysStore.ErrorNotice != -1:

@@ -25,8 +25,8 @@ class PictureScreenDesc(screen.ScreenDesc):
 		shutil.rmtree(self.cachedir, ignore_errors=True)
 		os.mkdir(self.cachedir)
 
-	def __init__(self, screensection, screenname, Clocked=0):
-		super().__init__(screensection, screenname, Clocked=1, Type=ScreenType)
+	def __init__(self, screensection, screenname):
+		super().__init__(screensection, screenname, Type=ScreenType)
 		debug.debugPrint('Screen', "Build Picture Screen")
 
 		self.KeyList = None
@@ -50,7 +50,7 @@ class PictureScreenDesc(screen.ScreenDesc):
 				logsupport.Logs.Log(
 					"Can't find picture directory {}; try mount".format(self.picturedir, severity=ConsoleWarning))
 				mntres = subprocess.run(['mount', '-a'])
-				logsupport.Logs.Log("Mount result: {}".mntres)
+				logsupport.Logs.Log("Mount result: {}".format(mntres))
 				if not os.path.exists(self.picturedir):
 					logsupport.Logs.Log("Still no picture directory - disabling screen", severity=ConsoleWarning)
 					self.missingpicdir = True

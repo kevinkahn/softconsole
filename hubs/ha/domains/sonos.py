@@ -6,6 +6,7 @@ import config
 from hubs.ha import haremote as ha
 from hubs.ha.hasshub import HAnode, RegisterDomain
 import screens.__screens as screens
+from guicore.screenmgt import AS
 from controlevents import CEvent, PostEvent, ConsoleEvent
 
 
@@ -39,6 +40,7 @@ class MediaPlayer(HAnode):
 
 	def Update(self, **ns):
 		oldst = self.state
+		# print('Gotupdt {} {}'.format(self.state, ns))
 		if 'attributes' in ns: self.attributes = ns['attributes']
 		self.state = ns['state']
 		newst = self._NormalizeState(self.state)
@@ -62,9 +64,9 @@ class MediaPlayer(HAnode):
 				self.artist = self.attributes['media_artist'] if 'media_artist' in self.attributes else ''
 				self.album = self.attributes['media_album_name'] if 'media_album_name' in self.attributes else ''
 
-			if screens.DS.AS is not None:
-				if self.Hub.name in screens.DS.AS.HubInterestList:
-					if self.entity_id in screens.DS.AS.HubInterestList[self.Hub.name]:
+			if AS is not None:
+				if self.Hub.name in AS.HubInterestList:
+					if self.entity_id in AS.HubInterestList[self.Hub.name]:
 						debug.debugPrint('DaemonCtl', time.time() - config.sysStore.ConsoleStartTime,
 										 "HA reports node change(screen): ",
 										 "Key: ", self.Hub.Entities[self.entity_id].name)
@@ -74,18 +76,22 @@ class MediaPlayer(HAnode):
 											   value=self.internalstate))
 
 	def Join(self, master, roomname):
+		# print('Join {} {}'.format(master, roomname))
 		ha.safe_call_service(self.Hub.api, 'sonos', 'join', {'master': '{}'.format(master),
 															 'entity_id': '{}'.format(roomname)})
 
 	def UnJoin(self, roomname):
+		# print('Unjoin {}'.format(roomname))
 		ha.safe_call_service(self.Hub.api, 'sonos', 'unjoin', {'entity_id': '{}'.format(roomname)})
 
 	def VolumeUpDown(self, roomname, up):
+		# print('VolUD {} {}'.format(roomname,up))
 		updown = 'volume_up' if up >= 1 else 'volume_down'
 		ha.safe_call_service(self.Hub.api, 'media_player', updown, {'entity_id': '{}'.format(roomname)})
 		ha.call_service(self.Hub.api, 'media_player', 'media_play', {'entity_id': '{}'.format(roomname)})
 
 	def Mute(self, roomname, domute):
+		# print('Mute {} {}'.format(roomname,domute))
 		ha.safe_call_service(self.Hub.api, 'media_player', 'volume_mute', {'entity_id': '{}'.format(roomname),
 																		   'is_volume_muted': domute})
 		if not domute:  # implicitly start playing if unmuting in case source was stopped
@@ -95,6 +101,7 @@ class MediaPlayer(HAnode):
 		ha.safe_call_service(self.Hub.api, 'media_player', 'stop', {'entity_id': '{}'.format(roomname)})
 
 	def Source(self, roomname, sourcename):
+		# print('Source {} {}'.format(roomname,sourcename))
 		ha.safe_call_service(self.Hub.api, 'media_player', 'select_source', {'entity_id': '{}'.format(roomname),
 																			 'source': '{}'.format(sourcename)})
 

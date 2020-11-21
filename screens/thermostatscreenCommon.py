@@ -27,9 +27,9 @@ def trifromtop(h, v, n, size, c, invert):
 
 
 class ThermostatScreenDesc(screen.BaseKeyScreenDesc):
-	def __init__(self, screensection, screenname, Clocked=0):
+	def __init__(self, screensection, screenname):
 		debug.debugPrint('Screen', "New ThermostatScreenDesc ", screenname)
-		super().__init__(screensection, screenname, Clocked=Clocked)
+		super().__init__(screensection, screenname)
 		screen.IncorporateParams(self, 'ThermostatScreen', {'KeyColor', 'KeyOffOutlineColor', 'KeyOnOutlineColor'},
 								 screensection)
 		nominalfontsz = (30, 50, 80, 160)
