@@ -46,7 +46,7 @@ config.sysStore.SetVal('ConsoleStartTime', time.time())
 import configobjects
 import atexit
 
-import displayscreen
+from guicore import displayscreen
 import exitutils
 import hw
 import hubs.isy.isy as isy
@@ -56,7 +56,7 @@ import maintscreen
 import utilities
 from logsupport import ConsoleWarning, ConsoleError
 
-import alerttasks
+from alertsystem import alerttasks
 from stores.weathprov.providerutils import SetUpTermShortener, WeathProvs
 import screen
 import historybuffer

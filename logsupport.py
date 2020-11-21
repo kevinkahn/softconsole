@@ -430,9 +430,10 @@ class Logger(object):
 
 	def PageTitle(self, pageno, itemnumber):
 		if len(self.log) > itemnumber:
-			return "Local Log from {}           Page: {}".format(self.log[itemnumber][2], pageno), True
+			return "Local Log from {}           Page: {}       {}".format(self.log[itemnumber][2], pageno,
+																		  time.strftime('%c')), True
 		else:
-			return "Local Log No more entries        Page: {}".format(pageno), False
+			return "Local Log No more entries        Page: {}      {}".format(pageno, time.strftime('%c')), False
 
 
 def LineRenderer(itemnumber, font, uselog):

@@ -4,6 +4,7 @@ import time
 import os
 import importlib
 from ..hubs import HubInitError
+from guicore.screenmgt import AS
 
 import websocket
 
@@ -76,14 +77,18 @@ class HAnode(object):
 		oldstate = self.internalstate
 		self.internalstate = self._NormalizeState(self.state)
 		if self.internalstate == -1:
-			logsupport.Logs.Log("Node {} ({}) set unavailable (was {})".format(self.name, self.entity_id, str(oldstate)), severity=ConsoleDetail)
+			logsupport.Logs.Log(
+				"Node {} ({}) set unavailable (was {})".format(self.name, self.entity_id, str(oldstate)),
+				severity=ConsoleDetail)
 		if oldstate == -1 and self.internalstate != -1:
-			logsupport.Logs.Log("Node {} ({}) became available ({})".format(self.name, self.entity_id, str(self.internalstate)),
-								severity=ConsoleDetail)
-		if screens.DS.AS is not None:
-			if self.Hub.name in screens.DS.AS.HubInterestList:
-				if self.entity_id in screens.DS.AS.HubInterestList[self.Hub.name]:
-					debug.debugPrint('DaemonCtl', time.time() - config.sysStore.ConsoleStartTime, "HA reports node change(screen): ",
+			logsupport.Logs.Log(
+				"Node {} ({}) became available ({})".format(self.name, self.entity_id, str(self.internalstate)),
+				severity=ConsoleDetail)
+		if AS is not None:
+			if self.Hub.name in AS.HubInterestList:
+				if self.entity_id in AS.HubInterestList[self.Hub.name]:
+					debug.debugPrint('DaemonCtl', time.time() - config.sysStore.ConsoleStartTime,
+									 "HA reports node change(screen): ",
 									 "Key: ", self.Hub.Entities[self.entity_id].name)
 					PostEvent(ConsoleEvent(CEvent.HubNodeChange, hub=self.Hub.name, node=self.entity_id,
 										   value=self.internalstate))

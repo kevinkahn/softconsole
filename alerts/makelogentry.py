@@ -1,4 +1,4 @@
-import alerttasks
+from alertsystem import alerttasks
 import logsupport
 
 

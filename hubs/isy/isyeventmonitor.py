@@ -15,6 +15,7 @@ import exitutils
 import hubs.isy.isycodes as isycodes
 import logsupport
 import screens.__screens as screens
+from guicore.screenmgt import AS
 from controlevents import CEvent, PostEvent, ConsoleEvent
 from hubs.isy.isycodes import EVENT_CTRL, formatwsitem
 from logsupport import ConsoleWarning, ConsoleError, ConsoleDetail, ConsoleDetailHigh
@@ -318,15 +319,16 @@ class ISYEventMonitor(object):
 
 					if ecode in self.reportablecodes:
 						# Node change report
-						debug.debugPrint('DaemonStream', time.time() - config.sysStore.ConsoleStartTime, "Status update in stream: ",
+						debug.debugPrint('DaemonStream', time.time() - config.sysStore.ConsoleStartTime,
+										 "Status update in stream: ",
 										 eseq, ":",
 										 prcode, " : ", enode, " : ", eInfo, " : ", eaction)
 
 						# logsupport.Logs.Log('reportable event '+str(ecode)+' for '+str(enode)+' action '+str(eaction))
 
-						if screens.DS.AS is not None:
-							if self.isy.name in screens.DS.AS.HubInterestList:
-								if enode in screens.DS.AS.HubInterestList[self.isy.name]:
+						if AS is not None:
+							if self.isy.name in AS.HubInterestList:
+								if enode in AS.HubInterestList[self.isy.name]:
 									debug.debugPrint('DaemonCtl', time.time() - config.sysStore.ConsoleStartTime,
 													 "ISY reports node change(screen): ",
 													 "Key: ", self.isy.NodesByAddr[enode].name)
