@@ -257,9 +257,14 @@ logsupport.Logs.Log("Alert Proc types imported")
 # load weather providers
 for wp in os.listdir(os.getcwd() + '/stores/weathprov'):
 	if '__' not in wp:
-		splitname = os.path.splitext(wp)
-		if splitname[1] == '.py':
-			importlib.import_module('stores.weathprov.' + splitname[0])
+		try:
+			splitname = os.path.splitext(wp)
+			if splitname[1] == '.py':
+				importlib.import_module('stores.weathprov.' + splitname[0])
+		except Exception as E:
+			logsupport.Logs.Log('Failed to import weather provider: {} ({})'.format(splitname[0], E),
+								severity=ConsoleWarning)
+
 logsupport.Logs.Log("Weather providers imported")
 
 for n in alerttasks.alertprocs:
