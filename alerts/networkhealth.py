@@ -1,6 +1,6 @@
 import subprocess
 
-import alerttasks
+from alertsystem import alerttasks
 import logsupport
 from stores import valuestore
 import time

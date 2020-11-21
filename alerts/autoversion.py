@@ -1,6 +1,6 @@
 import sys
 
-import alerttasks
+from alertsystem import alerttasks
 import config
 import exitutils
 import githubutil

@@ -1,7 +1,6 @@
 import threading
 
-import alerttasks
-import config
+from alertsystem import alerttasks
 import hubs.hubs
 import logsupport
 from stores import valuestore
