@@ -123,6 +123,10 @@ class Touchscreen(object):
 	EVENT_FORMAT = str('llHHi')
 	EVENT_SIZE = struct.calcsize(EVENT_FORMAT)
 
+	def DumpTouchParams(self):
+		return (self._capscreen, self._shiftx, self._shifty, self._flipx, self._flipy, self._scalex, self._scaley,
+				self._swapaxes)
+
 	def __init__(self, configdir, touchmod):
 		self.touchdefs = {}
 		self.touchmod = touchmod

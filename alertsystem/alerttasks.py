@@ -23,7 +23,7 @@ from alertsystem import filewatcher
 alertprocs = {}  # set by modules from alerts directory
 monitoredvars = []
 
-Tests = ('EQ', 'NE')
+Tests = ('EQ', 'NE', 'GT')
 AlertType = (
 	'NodeChange', 'VarChange', 'StateVarChange', 'IntVarChange', 'LocalVarChange', 'Periodic', 'TOD', 'External',
 	'Init', 'FileWatch')
@@ -125,6 +125,8 @@ class NodeChgtrigger(object):
 			return int(val) == int(self.value)
 		elif self.test == 'NE':
 			return int(val) != int(self.value)
+		elif self.test == 'GT':
+			return int(val) > int(self.value)
 		else:
 			exitutils.FatalError('VarChgtriggerIsTrue')
 
@@ -157,6 +159,8 @@ class VarChangeTrigger(object):
 				return int(val) == int(self.value)
 			elif self.test == 'NE':
 				return int(val) != int(self.value)
+			elif self.test == 'GT':
+				return int(val) > int(self.value)
 			else:
 				logsupport.Logs.Log('Bad test in IsTrue', self.test, severity=ConsoleError)
 				return False  # shouldn't happen

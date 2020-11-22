@@ -66,11 +66,12 @@ class HAnode(object):
 			"New entity since startup seen from {}: {} (Domain: {}) New: {}".format(
 				self.Hub.name, self.entity_id, self.domname, repr(newstate)))
 
-	#def Update(self, **ns):
+	# def Update(self, **ns):
 	#	# just updates last triggered etc.
 	#	self.__dict__.update(ns)
 
-	def Update(self, **ns):
+	def Update(self,
+			   **ns):  # todo this is where it should look at attributes that are flagged for alerts - interaction woth haattrstore
 		self.__dict__.update(ns)
 		oldstate = self.internalstate
 		self.internalstate = self._NormalizeState(self.state)

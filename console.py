@@ -54,7 +54,7 @@ import hubs.ha.hasshub as hasshub
 import logsupport
 import maintscreen
 import utilities
-from logsupport import ConsoleWarning, ConsoleError
+from logsupport import ConsoleWarning, ConsoleError, ConsoleDetail
 
 from alertsystem import alerttasks
 from stores.weathprov.providerutils import SetUpTermShortener, WeathProvs
@@ -142,8 +142,8 @@ try:
 
 	del sys.path[0]  # don't leave junk in search path
 	localops.PreOp()
-except:
-	pass
+except Exception as E:
+	logsupport.Logs.Log('No local ops module ({})'.format(E), severity=ConsoleDetail)
 
 sectionget = Section.get
 
@@ -162,6 +162,7 @@ def CO_get(self, key, default, delkey=True):
 				if isinstance(rtn, str):  # want list of <type> got single str so coerce to type and listify it
 					rtn = [type(default[0])(rtn)]
 				else:
+					# noinspection PyTypeChecker
 					rtn = [type(default[0])(x) for x in rtn]
 		elif default is not None:
 			rtn = type(default)(rtn)
@@ -255,6 +256,7 @@ for alertproctype in os.listdir(os.getcwd() + '/alerts'):
 logsupport.Logs.Log("Alert Proc types imported")
 
 # load weather providers
+splitname = ['--', '--']
 for wp in os.listdir(os.getcwd() + '/stores/weathprov'):
 	if '__' not in wp:
 		try:
@@ -372,14 +374,7 @@ logsupport.Logs.Log(
 logsupport.Logs.Log("Touch controller: {}".format(utilities.ts.controller))
 logsupport.Logs.Log(
 	"(Capacitive: {} Shifts: x: {} y: {} Flips: x: {} y: {} Scale: x: {} y: {} swapaxes: {})".format(
-		utilities.ts._capscreen,
-		utilities.ts._shiftx,
-		utilities.ts._shifty,
-		utilities.ts._flipx,
-		utilities.ts._flipy,
-		utilities.ts._scalex,
-		utilities.ts._scaley,
-		utilities.ts._swapaxes))
+		*utilities.ts.DumpTouchParams()))
 logsupport.Logs.Log("Screen Orientation: ", ("Landscape", "Portrait")[displayupdate.portrait])
 if config.sysStore.PersonalSystem:
 	logsupport.Logs.Log("Personal System")
@@ -392,7 +387,7 @@ if utilities.lastup > 0:
 						str(datetime.timedelta(seconds=(config.sysStore.ConsoleStartTime - utilities.lastup))))
 try:
 	localops.LogUp()
-except:
+except AttributeError:
 	pass
 
 logsupport.Logs.Log("Main config file: ", config.sysStore.configfile,
@@ -410,7 +405,9 @@ debug.LogDebugFlags()
 logsupport.LogLevel = int(ParsedConfigFile.get('LogLevel', logsupport.LogLevel))
 logsupport.Logs.Log("Log level: ", logsupport.LogLevel)
 
-screens.DS = displayscreen.DisplayScreen()  # create the actual device screen and touch manager
+logsupport.Logs.Log("Screensize: " + str(hw.screenwidth) + " x " + str(hw.screenheight))
+logsupport.Logs.Log(
+	"Scaling ratio: " + "{0:.2f} W ".format(hw.dispratioW) + "{0:.2f} H".format(hw.dispratioH))
 
 utilities.LogParams()
 for n, param in config.sysvals.items():
@@ -582,7 +579,7 @@ Run the main console loop
 	"""
 for n in alerttasks.monitoredvars:  # make sure vars used in alerts are updated to starting values
 	valuestore.GetVal(n)
-gui = threading.Thread(name='GUI', target=screens.DS.MainControlLoop, args=(screens.HomeScreen,))
+gui = threading.Thread(name='GUI', target=displayscreen.MainControlLoop)
 config.ecode = 99
 gui.start()
 

@@ -1,5 +1,4 @@
 from hw import scaleH, scaleW
-import hw
 import collections
 
 HomeScreen = None
@@ -11,7 +10,6 @@ SecondaryDict = {}
 ExtraDict = {}
 ExtraChain = []
 screenslist = collections.ChainMap(MainDict, SecondaryDict, ExtraDict)
-DS = None  # Display Screen handles running the button presses and touch recognition
 
 screenStore = None  # filled in by screen to avoid import circularity
 

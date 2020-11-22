@@ -104,6 +104,14 @@ NavKeyAlpha = 50
 	Parameter = SingleItem
 	Invoke = DynAlertScreeny
 
+	[[testHA]]  # test node value for HA
+	Type = NodeChange
+    Node = HASS:light.toilet
+    Test = GT
+    Value = 190
+    Invoke = GarageDoor
+
+
 
 #	[[Sanity]]
 #	Type = Periodic
