@@ -156,10 +156,9 @@ class ManualKeyDesc(TouchPoint):
 		screen.AddUndefaultedParams(self, {}, FastPress=False, Verify=Verify, Blink=Blink, label=label)
 		self.Proc = proc
 
-	def InsertVerify(self, scrn):
+	def InsertVerify(self, scrn):  # todo del
 		self.VerifyScreen = scrn
 		self.Proc = self.VerifyScreen.Invoke
-
 
 	def dosectioninit(self, thisscreen, keysection, keyname):
 		self.userstore = paramstore.ParamStore('Screen-' + thisscreen.name + '-' + keyname, dp=thisscreen.userstore,

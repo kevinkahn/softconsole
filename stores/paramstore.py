@@ -48,7 +48,7 @@ class ParamStore(valuestore.ValueStore):
 		self.defaultparent = newparent.userstore
 
 	def DropStore(self):
-		del self.defaultparent.children[self.localname]
+		if self.localname in self.defaultparent.children: del self.defaultparent.children[self.localname]
 
 	def __setattr__(self, key,
 					value):  # todo this doesn't work as is - causes a recursion when GetVal is called via getattr

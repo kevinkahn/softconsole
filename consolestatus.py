@@ -86,6 +86,7 @@ def GenGoNodeCmdScreen():
 	IssueCmds = CommandScreen()
 	IssueCmds.userstore.ReParent(Status)
 	screen.PushToScreen(IssueCmds, 'Maint')
+	IssueCmds.DeleteScreen()
 
 
 def UpdateNodeStatus(nd, stat):

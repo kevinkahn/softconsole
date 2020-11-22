@@ -34,7 +34,7 @@ class OnOffKey(ManualKeyDesc):
 															thisscreen, self.KeyColorOff,
 															thisscreen.BackgroundColor, thisscreen.CharColor,
 															self.State, thisscreen.HubInterestList)
-			self.Proc = self.VerifyScreen.Invoke  # todo make this a goto key; make verify screen always do a pop and get rid of the switch screens below
+			self.Proc = self.VerifyScreen.Invoke
 		else:
 			self.Proc = self.KeyPressAction
 			self.ProcDblTap = self.KeyPressActionDbl  # todo need testing/completion

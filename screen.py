@@ -157,6 +157,7 @@ class ScreenDesc(object):
 		self.singleuse = SingleUse
 		self.used = False
 		self.Active = False  # true if actually on screen
+		self.ChildScreens = {}  # used to do cascaded deleted if this screen is deleted. Only list one-off dependents
 
 		self.DefaultNavKeysShowing = True
 		self.NavKeysShowing = True
@@ -225,7 +226,7 @@ class ScreenDesc(object):
 		self.ScreenClock = timers.RepeatingPost(1, paused=True, name='ScreenClock-' + self.name,
 												proc=self._ClockTick, eventvalid=self._ClockTickValid)
 		self.ScreenClock.start()
-		self.ScreenTimers = [(self.ScreenClock, None)]  # (Timer, Cancel Proc or None)
+		self.ScreenTimers = []  # (Timer, Cancel Proc or None)  Don't put ScreenCLock in the list or it gets canceled
 
 		utilities.register_example('ScreenDesc', self)
 
@@ -385,6 +386,8 @@ class ScreenDesc(object):
 			if timer[0].is_alive():
 				timer[0].cancel()
 				if timer[1] is not None: timer[1]()
+		for n, s in self.ChildScreens.items():
+			s.DeleteScreen()
 
 	def PopOver(self):
 		try:

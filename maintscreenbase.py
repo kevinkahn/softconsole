@@ -40,7 +40,8 @@ class MaintScreenDesc(screen.BaseKeyScreenDesc):
 														   self, self.Keys[k].KeyColorOff, self.Keys[k].BackgroundColor,
 														   self.Keys[k].CharColor,
 														   True, self.HubInterestList)
-				self.Keys[k].InsertVerify(VerifyScreen)
+				# self.Keys[k].InsertVerify(VerifyScreen)
+				self.Keys[k].Proc = VerifyScreen.Invoke
 
 		topoff = self.SubFontSize
 		self.LayoutKeys(topoff, self.useablevertspace - topoff)

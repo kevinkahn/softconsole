@@ -23,7 +23,7 @@ class VerifyScreen(screen.BaseKeyScreenDesc):
 
 	def __init__(self, key, gomsg, nogomsg, procyes, callingscreen, bcolor, keycoloroff, charcolor, state,
 				 interestlist, SingleUse=False):
-		super().__init__({}, key.name + '-Verify', parentscreen=key, SingleUse=SingleUse)
+		super().__init__({}, key.Screen.name + '-' + key.name + '-Verify', parentscreen=key, SingleUse=SingleUse)
 		debug.debugPrint('Screen', "Build Verify Screen")
 		self.callingkey = key
 		self.yesproc = procyes
@@ -43,6 +43,7 @@ class VerifyScreen(screen.BaseKeyScreenDesc):
 		self.Keys['no'].Proc = functools.partial(screen.PopScreen, 'Verify denied')
 
 		self.LayoutKeys(self.startvertspace, self.useablevertspace)
+		key.Screen.ChildScreens[key.name + '-Verify'] = self
 		utilities.register_example("VerifyScreen", self)
 
 	def Verified(self):

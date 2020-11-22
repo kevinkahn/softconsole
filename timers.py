@@ -75,6 +75,9 @@ def KillMe():
 		TimerHB.Entry("Timer Shutdown Failsafe hit")
 		logsupport.DevPrint("Timer Shutdown Failsafe hit")
 		logsupport.Logs.Log("Timer Shutdown Failsafe hit")
+		for n, t in TimerList:
+			if t.is_alive():
+				logsupport("Timer {} didn't shutdown".format(n))
 		time.sleep(1)
 		x = threading.enumerate()
 		for t in x: logsupport.DevPrint(t.name)
@@ -90,12 +93,14 @@ def ShutTimers(loc):
 	failsafe.daemon = True
 	failsafe.start()
 	tList = dict(TimerList)
+	cnt = 0
 	for n, t in tList.items():
 		if t.is_alive():
-			logsupport.Logs.Log('Shutting down timer: {}'.format(n))
+			logsupport.Logs.Log('Shutting down timer: {}'.format(n), severity=logsupport.ConsoleDetail)
+			cnt += 1
 			t.cancel()
 	print('Logs done')
-	logsupport.Logs.Log('All timers shut down ({})'.format(loc))
+	logsupport.Logs.Log('All {} timers shut down ({})'.format(cnt, loc))
 	timersshut = True
 
 
