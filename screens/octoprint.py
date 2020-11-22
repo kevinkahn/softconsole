@@ -1,6 +1,5 @@
 import functools
 
-import displayupdate
 import requests
 import threading
 import controlevents
@@ -223,22 +222,21 @@ class OctoPrintScreenDesc(screen.BaseKeyScreenDesc):
 		self.paused = False
 
 	def ReInitDisplay(self):  # todo fix for specific repaint
-		super(OctoPrintScreenDesc, self).ReInitDisplay()
-		self.ShowScreen()
+		super().ReInitDisplay()
 
 	def InitDisplay(self, nav):  # todo fix for specific repaint
-		super(OctoPrintScreenDesc, self).InitDisplay(nav)
+		super().InitDisplay(nav)
 		if not self.StatusUpdater.is_alive():
 			logsupport.Logs.Log('Octoprint status updater died - restarting', severity=ConsoleWarning)
 			self.StatusUpdater = threading.Thread(target=self.AsyncUpdate, daemon=True,
 												  name='OctoprintUpdater-' + self.name)
 			self.StatusUpdater.start()
 		self.StatusGo.set()
-		# self.AsyncRefreshOctoStatus()
-		#self.PollTimer.resume()
-		self.ShowScreen()
 
-	def ShowScreen(self, param=None):
+	# self.AsyncRefreshOctoStatus()
+	# self.PollTimer.resume()
+
+	def ScreenContentRepaint(self):
 		if not self.Active:    return  # handle race where poll refresh gets posted just as Maint screen comes up
 		try:
 			self.ShowControlScreen()
@@ -246,7 +244,6 @@ class OctoPrintScreenDesc(screen.BaseKeyScreenDesc):
 		except ValueError:
 			hw.screen.blit(self.errornotice, ((hw.screenwidth - self.errwid) / 2, 30))
 		hw.screen.blit(self.title, ((hw.screenwidth - self.tw) / 2, 0))
-		displayupdate.updatedisplay()
 
 	# def AsyncRefreshOctoStatus(self):
 	#	T = threading.Thread(target=self.RefreshOctoStatus, daemon=True, name='OctoTrigRefresh')
