@@ -34,7 +34,7 @@ class MyScreens(object):
 				if tempscreentype in screens.screentypes:
 					try:
 						NewScreen = screens.screentypes[tempscreentype](thisScreen, screenitem)
-						# if clockedscreen != 0: NewScreen.ResetClock(clockedscreen)
+						if clockedscreen != 0: NewScreen.SetScreenClock(clockedscreen)
 						logsupport.Logs.Log(tempscreentype + " screen " + screenitem, severity=ConsoleDetail)
 					except Exception as E:
 						NewScreen = None

@@ -134,7 +134,7 @@ class SonosScreenDesc(screen.BaseKeyScreenDesc):
 		debug.debugPrint('Screen', "New SonosScreenDesc ", screenname)
 		super().__init__(screensection, screenname)
 		screen.IncorporateParams(self, 'SonosScreen', {'KeyColor'}, screensection)
-		self.ResetClock(.25)
+		self.SetScreenClock(.25)
 		self.DullKeyColor = wc(self.KeyColor, .5, self.BackgroundColor)
 		self.HA = self.DefaultHubObj
 		self.Subscreen = -1

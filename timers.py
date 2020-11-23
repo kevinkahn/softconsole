@@ -74,10 +74,12 @@ def KillMe():
 	if not timersshut:
 		TimerHB.Entry("Timer Shutdown Failsafe hit")
 		logsupport.DevPrint("Timer Shutdown Failsafe hit")
-		logsupport.Logs.Log("Timer Shutdown Failsafe hit")
+		logsupport.Logs.Log("Timer Shutdown Failsafe hit: ({})".format(TimerList))
 		for n, t in TimerList:
 			if t.is_alive():
-				logsupport("Timer {} didn't shutdown".format(n))
+				logsupport.Logs.Log("Timer {} didn't shutdown".format(n))
+			else:
+				logsupport.Logs.Log("Timer {} already dead".format(n))
 		time.sleep(1)
 		x = threading.enumerate()
 		for t in x: logsupport.DevPrint(t.name)
@@ -96,8 +98,8 @@ def ShutTimers(loc):
 	cnt = 0
 	for n, t in tList.items():
 		if t.is_alive():
-			logsupport.Logs.Log('Shutting down timer: {}'.format(n), severity=logsupport.ConsoleDetail)
 			cnt += 1
+			logsupport.Logs.Log('Shutting down timer: {} ({})'.format(n, cnt))  # , severity=logsupport.ConsoleDetail
 			t.cancel()
 	print('Logs done')
 	logsupport.Logs.Log('All {} timers shut down ({})'.format(cnt, loc))
@@ -129,7 +131,6 @@ class RepeatingPost(Thread):
 		"""Stop the timer if it hasn't finished yet."""
 		self.finished.set()
 		self.running.set()
-
 		temp = 10
 		while self.is_alive():
 			TimerHB.Entry("Cancelling repeater: {}".format(self.name))

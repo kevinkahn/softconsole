@@ -308,7 +308,7 @@ class PagedDisplay(screen.BaseKeyScreenDesc):
 	def __init__(self, nm, StartPosChooser, LineRenderer, GetPageHeader, fontsize,
 				 color):  # todo = blanks until reinit repaints
 		super().__init__(None, nm)
-		self.ResetClock(.25)
+		self.SetScreenClock(.25)
 		self.BackgroundColor = 'maroon'
 		self.StartChooser = StartPosChooser
 		self.LineRenderer = LineRenderer
