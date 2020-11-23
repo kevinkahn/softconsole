@@ -4,7 +4,7 @@ import screen
 from configobjects import GoToTargetList
 from guicore.switcher import SwitchScreen
 from logsupport import ConsoleWarning
-from toucharea import ManualKeyDesc
+from keyspecs.toucharea import ManualKeyDesc
 from keys.keyspecs import KeyTypes
 
 
@@ -13,7 +13,9 @@ class GoToKey(ManualKeyDesc):
 	# this is actually a Push Screen key in that it makes a stack entry
 	def __init__(self, thisscreen, keysection, keyname):
 		debug.debugPrint('Screen', "             New GoTo Key ", keyname)
-		# todo remove any Verify from the keysection
+		if 'Verify' in keysection:
+			logsupport.Logs.Log('Verify not allowed for GoTo Key {} on {}'.format(keyname,thisscreen.name))
+			del keysection['Verify']
 		ManualKeyDesc.__init__(self, thisscreen, keysection, keyname)
 		screen.AddUndefaultedParams(self, keysection, ScreenName='**unspecified**')
 		self.targetscreen = None

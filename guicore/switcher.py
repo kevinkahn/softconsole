@@ -29,7 +29,7 @@ def SwitchScreen(NS, newdim, reason, *, newstate=None, AsCover=False, push=False
 		else:
 			logsupport.Logs.Log('Screen BACK with empty stack', severity=ConsoleWarning, tb=True)
 			NS = screens.HomeScreen
-	elif NS == screen.HOMETOKEN:  # todo add PoppedOver for the stack items
+	elif NS == screen.HOMETOKEN:
 		if screenmgt.ScreenStack:
 			if len(screenmgt.ScreenStack) == 1:  # Home and Back would be the same so go to chain home
 				NS = screens.HomeScreen
@@ -47,7 +47,6 @@ def SwitchScreen(NS, newdim, reason, *, newstate=None, AsCover=False, push=False
 	elif NS == screen.SELFTOKEN:
 		NS = config.AS
 	else:
-		# simple switch - if there is an existing stack should it be cleared? Probably not unless in stack traverses are prohibited todo
 		if clear:
 			for S in screenmgt.ScreenStack:
 				S.PopOver()
@@ -71,8 +70,7 @@ def SwitchScreen(NS, newdim, reason, *, newstate=None, AsCover=False, push=False
 		debug.debugPrint('Dispatch', "Switch from: ", config.AS.name, " to ", NS.name, "Nav=", NavKeys, ' State=',
 						 oldstate + '/' + newstate + ':' + olddim + '/' + newdim, ' ', reason)
 		config.AS.Active = False
-		config.AS.ExitScreen(
-			push)  # todo should we call exit even on same screen recall? add via push and add PoppedOver
+		config.AS.ExitScreen(push)
 	config.AS = NS
 	config.AS.Active = True
 	if newdim == 'Dim':
@@ -112,4 +110,4 @@ def SwitchScreen(NS, newdim, reason, *, newstate=None, AsCover=False, push=False
 	except Exception as e:
 		logsupport.Logs.Log('Screen display error: ', config.AS.name, ' ', repr(e), severity=ConsoleError)
 		traceback.print_exc()
-# todo should this be just logged and return to home?
+

@@ -3,7 +3,7 @@ import screen
 import supportscreens
 from keys.keyspecs import KeyTypes
 from keys.keyutils import internalprocs
-from toucharea import ManualKeyDesc
+from keyspecs.toucharea import ManualKeyDesc
 import config
 import logsupport
 from logsupport import ConsoleWarning
@@ -15,7 +15,7 @@ class InternalProcKey(ManualKeyDesc):
 		self.thisscreen = thisscreen
 		screen.AddUndefaultedParams(self, keysection, ProcName='')
 		self.Proc = internalprocs[self.ProcName]
-		if self.Verify:  # todo make verified a single global proc??
+		if self.Verify:
 			self.VerifyScreen = supportscreens.VerifyScreen(self, self.GoMsg, self.NoGoMsg, self.Proc,
 															thisscreen, self.KeyColorOff,
 															thisscreen.BackgroundColor, thisscreen.CharColor,

@@ -70,8 +70,8 @@ class HAnode(object):
 	#	# just updates last triggered etc.
 	#	self.__dict__.update(ns)
 
-	def Update(self,
-			   **ns):  # todo this is where it should look at attributes that are flagged for alerts - interaction woth haattrstore
+	def Update(self, **ns):
+		# todo this is where it should look at attributes that are flagged for alerts - interaction woth haattrstore
 		self.__dict__.update(ns)
 		oldstate = self.internalstate
 		self.internalstate = self._NormalizeState(self.state)

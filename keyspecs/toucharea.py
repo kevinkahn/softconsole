@@ -97,6 +97,7 @@ class ManualKeyDesc(TouchPoint):
 		self.BlinkState = 0  # 0: not blinking 1: blink on 2: blink off
 		self.autocolordull = True
 		self.usekeygaps = True
+		self.VerifyScreen = None  # set later by caller if needed
 
 		# alternate creation signatures
 		self.ButtonFontSizes = (31, 28, 25, 22, 20, 18, 16)
@@ -144,7 +145,6 @@ class ManualKeyDesc(TouchPoint):
 		self.Screen = thisscreen
 		self.State = State
 		self.Screen = thisscreen
-		self.VerifyScreen = None  # set later by caller if needed
 		screen.IncorporateParams(self, 'TouchArea',
 								 {'KeyColor': bcolor,
 								  'KeyOffOutlineColor': KOff,
@@ -155,10 +155,6 @@ class ManualKeyDesc(TouchPoint):
 
 		screen.AddUndefaultedParams(self, {}, FastPress=False, Verify=Verify, Blink=Blink, label=label)
 		self.Proc = proc
-
-	def InsertVerify(self, scrn):  # todo del
-		self.VerifyScreen = scrn
-		self.Proc = self.VerifyScreen.Invoke
 
 	def dosectioninit(self, thisscreen, keysection, keyname):
 		self.userstore = paramstore.ParamStore('Screen-' + thisscreen.name + '-' + keyname, dp=thisscreen.userstore,
@@ -291,7 +287,15 @@ class ManualKeyDesc(TouchPoint):
 		debug.debugPrint("Screen", "Base Key.InitDisplay ", self.Screen.name, self.name)
 		self.BlinkState = 0
 
-	def BuildKey(self, coloron, coloroff):
+
+	def _BuildKeyImage(self, color, buttonsmaller, outlineclr):
+		temp = pygame.Surface(self.GappedSize)
+		pygame.draw.rect(temp, color, ((0, 0), self.Size), 0)
+		bord = self.KeyOutlineOffset
+		pygame.draw.rect(temp, wc(outlineclr), ((scaleW(bord), scaleH(bord)), buttonsmaller), bord)
+		return temp
+
+	def BuildKey(self, coloron, coloroff, ):
 		if self.usekeygaps:
 			self.GappedSize = (self.Size[0] - self.Screen.HorizButGap, self.Size[1] - self.Screen.VertButGap)
 		else:
@@ -301,23 +305,14 @@ class ManualKeyDesc(TouchPoint):
 
 
 		# create image of ON key
-		self.KeyOnImageBase = pygame.Surface(self.GappedSize)
-		pygame.draw.rect(self.KeyOnImageBase, coloron, ((0, 0), self.Size), 0)
-		bord = self.KeyOutlineOffset
-		pygame.draw.rect(self.KeyOnImageBase, wc(self.KeyOnOutlineColor), ((scaleW(bord), scaleH(bord)), buttonsmaller),
-						 bord)
-
+		self.KeyOnImageBase = self._BuildKeyImage(coloron, buttonsmaller, self.KeyOnOutlineColor)
 		# create image of OFF key
-		self.KeyOffImageBase = pygame.Surface(self.GappedSize)
-		pygame.draw.rect(self.KeyOffImageBase, coloroff, ((0, 0), self.Size), 0)
-		bord = self.KeyOutlineOffset
-		pygame.draw.rect(self.KeyOffImageBase, wc(self.KeyOffOutlineColor),
-						 ((scaleW(bord), scaleH(bord)), buttonsmaller), bord)
+		self.KeyOffImageBase  = self._BuildKeyImage(coloroff, buttonsmaller,self.KeyOffOutlineColor)
 
 		self.KeyUnknownOverlay = pygame.Surface(self.GappedSize)
-		pygame.draw.line(self.KeyUnknownOverlay, wc(self.KeyCharColorOn), (0, 0), self.GappedSize, bord)
+		pygame.draw.line(self.KeyUnknownOverlay, wc(self.KeyCharColorOn), (0, 0), self.GappedSize, self.KeyOutlineOffset)
 		pygame.draw.line(self.KeyUnknownOverlay, wc(self.KeyCharColorOn), (0, self.GappedSize[1]),
-						 (self.GappedSize[0], 0), bord)
+						 (self.GappedSize[0], 0), self.KeyOutlineOffset)
 		self.KeyUnknownOverlay.set_alpha(128)
 
 	# noinspection PyAttributeOutsideInit

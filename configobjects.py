@@ -1,15 +1,11 @@
 # noinspection PyProtectedMember
-import functools
 
 from configobj import Section
 import config
 import debug
 import exitutils
-import hw
 import logsupport
-import screen
 import screens.__screens as screens
-import toucharea
 from logsupport import ConsoleWarning, ConsoleError, ConsoleDetail
 
 GoToTargetList = {}

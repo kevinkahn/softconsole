@@ -14,7 +14,7 @@ import logsupport
 import screen
 import screens.__screens as screens
 import timers
-import toucharea
+from keyspecs import toucharea
 import utilities
 from logsupport import ConsoleDetail
 from utilfuncs import wc
@@ -114,7 +114,7 @@ class AlertsScreenDesc(screen.ScreenDesc):
 		# Deferral timer will get set in Exit Screen
 		SwitchScreen(screens.HomeScreen, 'Bright', 'Manual defer an alert', newstate='Home')
 
-	def InitDisplay(self, nav):  # todo fix for specific repaint
+	def InitDisplay(self, nav):
 		self.timetoclear = self.AutoClearSecs
 		self.BlinkState = True
 		if self.BlinkTime != 0:

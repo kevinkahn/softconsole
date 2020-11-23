@@ -5,12 +5,11 @@ from logsupport import ConsoleError
 
 class HAattributes(valuestore.ValueStore):
 	def __init__(self, hubnm, hub):
-		# self.name = hubnm todo del
 		super().__init__(hubnm)
 		self.hub = hub
 
 	def _notallowed(self, procname):
-		logsupport.Logs.Log('HA Attribute store {} does not permit {}'.format(self.name, procname))
+		logsupport.Logs.Log('HA Attribute store {} does not permit {}'.format(self.hub.name, procname))
 		raise AttributeError
 
 	def GetVal(self, name, failok=False):
@@ -22,9 +21,9 @@ class HAattributes(valuestore.ValueStore):
 		n = self._normalizename(name)
 		try:
 			obj = self.hub.Entities[n[0]]
-		except:
+		except Exception as E:
 			# no such entity - return error
-			logsupport.Logs.Log('{} reference: Entity {} not defined in {}'.format(name, n[0], self.hub.name),
+			logsupport.Logs.Log('{} reference: Entity {} not defined in {} ({})'.format(name, n[0], self.hub.name, E),
 								severity=ConsoleError)
 			return None
 
@@ -39,6 +38,7 @@ class HAattributes(valuestore.ValueStore):
 					attr = attr[i]
 				return attr
 			except Exception as E:
+				print('which exception: {}'.format(E))
 				# This is a normal case since attributes like brightness go undefined when state is off
 				return None
 

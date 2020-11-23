@@ -7,7 +7,7 @@ import utilities
 from keys.keyspecs import KeyTypes
 from keys.keyutils import _resolvekeyname
 from logsupport import ConsoleWarning
-from toucharea import ManualKeyDesc
+from keyspecs.toucharea import ManualKeyDesc
 import functools
 
 

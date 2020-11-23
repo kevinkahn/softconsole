@@ -1,13 +1,11 @@
 import time
 
-import pygame
-
 import config
 import debug
 import fonts
 import hw
 import screen
-import toucharea
+from keyspecs import toucharea
 import utilities
 import supportscreens
 from utilfuncs import wc, interval_str

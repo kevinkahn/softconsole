@@ -1,7 +1,6 @@
 import functools
 
 import pygame
-import xmltodict
 from pygame import gfxdraw
 
 import debug
@@ -12,10 +11,10 @@ import logsupport
 import screen
 import screens.__screens as screens
 import timers
-import toucharea
+from keyspecs import toucharea
 import utilities
 from hw import scaleW, scaleH
-from logsupport import ConsoleWarning, ConsoleError
+from logsupport import ConsoleWarning
 from utilfuncs import wc
 
 

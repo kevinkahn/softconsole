@@ -34,7 +34,7 @@ def _SetUpProgram(ProgramName, Parameter, thisscreen, kn):
 			severity=ConsoleWarning)
 	if Parameter == '':
 		Parameter = None
-	elif ':' in Parameter:  # todo allow multiple params
+	elif ':' in Parameter:  # todo allow multiple params - do by allowing sequence of strings in caller a:b, c:d
 		t = Parameter.split(':')
 		Parameter = {t[0]: t[1]}
 	else:

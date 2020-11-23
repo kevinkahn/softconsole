@@ -12,7 +12,7 @@ import screens.__screens as screens
 import screenutil
 import supportscreens
 from guicore.switcher import SwitchScreen
-import toucharea
+from keyspecs import toucharea
 from logsupport import ConsoleWarning
 from keys.keyutils import _resolvekeyname
 

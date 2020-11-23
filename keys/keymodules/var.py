@@ -8,7 +8,7 @@ from keys.keyspecs import KeyTypes
 from keys.keyutils import _SetUpProgram, ChooseType
 from logsupport import ConsoleWarning
 from stores import valuestore
-from toucharea import ManualKeyDesc
+from keyspecs.toucharea import ManualKeyDesc
 from utilfuncs import RepresentsInt, tint, wc
 
 

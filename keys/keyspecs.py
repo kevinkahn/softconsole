@@ -5,7 +5,7 @@ from controlevents import CEvent, PostEvent, ConsoleEvent
 from keys.keyutils import ErrorKey
 
 from logsupport import ConsoleWarning, ConsoleDetail
-from toucharea import ManualKeyDesc
+from keyspecs.toucharea import ManualKeyDesc
 import os
 import importlib
 

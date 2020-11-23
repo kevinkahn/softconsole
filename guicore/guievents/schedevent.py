@@ -14,7 +14,6 @@ def SchedEvent(event):
 	eventnow = time.time()
 	diff = eventnow - event.TargetTime
 	if abs(diff) > controlevents.latencynotification:
-		# todo 5 tap can cause this - really would like to check if event for active screen first
 		guiutils.HBEvents.Entry(
 			'Event late by {} target: {} now: {}'.format(diff, event.TargetTime, eventnow))
 		logsupport.Logs.Log('Timer late by {} seconds. Event: {}'.format(diff, repr(event)),

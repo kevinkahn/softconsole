@@ -12,7 +12,7 @@ import logsupport
 import screens.__screens as screens
 import stores.paramstore as paramstore
 import stores.valuestore as valuestore
-import toucharea
+from keyspecs import toucharea
 import utilities
 from logsupport import ConsoleError, ConsoleWarning, ConsoleDetail
 from utilfuncs import wc, tint, fmt

@@ -14,9 +14,8 @@ import screens.__screens as screens
 import screenutil
 import utilities
 from logsupport import ConsoleDetail
-import toucharea
+from keyspecs import toucharea
 from utilfuncs import wc
-import timers
 from guicore.switcher import SwitchScreen
 
 class VerifyScreen(screen.BaseKeyScreenDesc):

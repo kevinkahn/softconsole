@@ -2,7 +2,7 @@ import debug
 import screen
 import utilities
 from stores import valuestore
-from toucharea import ManualKeyDesc
+from keyspecs.toucharea import ManualKeyDesc
 from keys.keyspecs import KeyTypes
 
 

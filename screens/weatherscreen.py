@@ -1,15 +1,12 @@
 from collections import OrderedDict
 
-import pygame
-
-import functools
 import debug
 import fonts
 import hw
 import logsupport
 import screen
 import screens.__screens as screens
-import toucharea
+from keyspecs import toucharea
 import utilities
 from stores import valuestore
 from utilfuncs import wc, fmt

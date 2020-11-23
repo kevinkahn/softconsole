@@ -1,4 +1,3 @@
-from hubs.ha import haremote as ha
 from hubs.ha.hasshub import HAnode, RegisterDomain
 import logsupport
 from logsupport import ConsoleWarning
@@ -31,10 +30,6 @@ class BinarySensor(HAnode):
 				logsupport.Logs.Log("Bad Binary sensor value: ", self.entity_id, ':', ns['state'],
 									severity=ConsoleWarning)
 			self.Hub.attrstore.SetVal(self.entity_id, st)
-
-#	def Source(self, roomname, sourcename):   todo delete after test
-#		ha.call_service(self.Hub.api, 'media_player', 'select_source', {'entity_id': '{}'.format(roomname),
-#																		'source': '{}'.format(sourcename)})
 
 
 RegisterDomain('binary_sensor', BinarySensor)

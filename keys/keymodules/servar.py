@@ -7,7 +7,7 @@ from keys.keyspecs import KeyTypes
 from keys.keyutils import ErrorKey
 from logsupport import ConsoleWarning
 from stores import valuestore
-from toucharea import ManualKeyDesc
+from keyspecs.toucharea import ManualKeyDesc
 
 
 class SetVarKey(ManualKeyDesc):

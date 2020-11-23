@@ -26,13 +26,10 @@ class Light(HAnode):
 			debug.debugPrint('HASSgeneral', "Light OnOff sent: ", selcmd[settoon], ' to ', self.entity_id)
 			PostEvent(ConsoleEvent(CEvent.HubNodeChange, hub=self.Hub.name, node=self.entity_id,
 								   value=(0, 255)[
-									   settoon]))  # this is a hack to provide immediate faked feedback on zwave lights that take a while to report back todo fix
+									   settoon]))  # hack to provide immediate faked feedback on zwave lights that take a while to report back todo fix
 		except ha.HomeAssistantError:
 			logsupport.Logs.Log(
 				"{} didn't respond to light on/off for {} - probably restarting".format(self.Hub.name, self.name),
 				severity=logsupport.ConsoleWarning)
-
-	# todo add fast version that forces full?
-
 
 RegisterDomain('light', Light)

@@ -55,11 +55,6 @@ def AlertEvents(event):
 			logsupport.DevPrint('Clear with no timer?? {}'.format(repr(alert)))
 		debug.debugPrint('Dispatch', 'Delayed event cleared before invoke', alert.name)
 		alert.state = 'Armed'
-	# todo - verify this is correct.  Issue is that the alert might have gotten here from a delay or from the
-	# alert screen deferring.  The screen uses it's own id for this alert to might be either.  Probably should
-	# distinguish based on if delay or defer but doing both should be same id(alert.actiontarget))  originally this was id-alert for some
-	# reason I changed it to id-actiontarget don't know why but it was done while adding HASS this screwed up clearing deferred alerts
-	# so switched it back in hopes to remember why the change todo
 	else:
 		logsupport.Logs.Log("Anomolous change situation  State: ", alert.state, " Alert: ", repr(alert),
 							" Trigger IsTue: ",

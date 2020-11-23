@@ -14,13 +14,11 @@ import copy
 import hw
 import screen
 import screenutil
-import timers
-import toucharea
+from keyspecs import toucharea
 from screens import __screens as screens
 from utilfuncs import wc
 from maintscreenbase import MaintScreenDesc
 import logsupport
-from keys import keyspecs
 import config
 import stats
 

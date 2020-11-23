@@ -67,7 +67,7 @@ def CycleStats():
 
 		for r in rpt: loglist(r)
 
-	if time.time() - ckperf > 30:  # todo 900:
+	if time.time() - ckperf > 900:  # every 15 minutes
 		ckperf = time.time()
 		p = psutil.Process(config.sysStore.Console_pid)
 		realmem = p.memory_info().rss / (2 ** 10)

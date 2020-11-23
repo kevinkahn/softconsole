@@ -4,7 +4,6 @@ import pygame
 
 import config
 import debug
-import displayupdate
 import hubs.ha.hasshub as hasshub  # only to test that the hub for this is an HA hub
 import hw
 import logsupport
@@ -12,7 +11,7 @@ import screen
 import screens.__screens as screens
 import screenutil
 import supportscreens
-import toucharea
+from keyspecs import toucharea
 import utilities
 from logsupport import ConsoleError, ConsoleWarning
 from utilfuncs import wc

@@ -10,8 +10,8 @@ IngoredEntities = {}
 
 
 class IgnoredDomain(HAnode):
-	def __init__(self, dom, HAitem, d):
-		super(IgnoredDomain, self).__init__(HAitem, **d)
+	def __init__(self, dom, HAitem, args):
+		super(IgnoredDomain, self).__init__(HAitem, **args)
 		self.domname = dom
 		self.Hub.RegisterEntity(self.domname, self.entity_id, self)
 		IngoredEntities[dom][self.name] = self
@@ -21,7 +21,7 @@ class IgnoredDomain(HAnode):
 		return
 
 	def LogNewEntity(self, newstate):
-		logsupport.Logs.Log(  # tempdel
+		logsupport.Logs.Log(
 			"New entity in ignored domain since startup seen from {}: {} (Domain: {}) New: {}".format(
 				self.Hub.name, self.entity_id, self.domname, repr(newstate)), severity=logsupport.ConsoleDetail)
 
@@ -34,9 +34,9 @@ def IgnoreDomainSpecificEvent(e, message):
 
 def AddIgnoredDomain(dom):
 	global IngoredEntities
-	reg = partial(IgnoredDomain, dom)
+	register = partial(IgnoredDomain, dom)
 	IngoredEntities[dom] = {}
-	RegisterDomain(dom, reg, IgnoreDomainSpecificEvent)
+	RegisterDomain(dom, register, IgnoreDomainSpecificEvent)
 	logsupport.Logs.Log('Adding ignored HA domain: {}'.format(dom))
 
 
