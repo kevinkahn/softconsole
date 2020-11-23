@@ -8,7 +8,7 @@ import guicore.screenmgt as screenmgt
 import guicore.switcher as switcher
 import config
 import screens.__screens as screens
-import pygame
+import time
 import screen
 import maintscreen
 
@@ -33,7 +33,7 @@ def MouseDown(event):
 	# Screen was not Dim so the touch was meaningful
 	pos = event.pos
 	tapcount = 1
-	pygame.time.delay(config.sysStore.MultiTapTime)
+	time.sleep(config.sysStore.MultiTapTime / 1000)
 	while True:
 		eventx = GetEventNoWait()
 		if eventx is None:
@@ -42,7 +42,7 @@ def MouseDown(event):
 			guiutils.HBEvents.Entry('Follow MouseDown: {}'.format(repr(eventx)))
 			debug.debugPrint('Touch', 'Follow MouseDown' + str(event.pos) + repr(event))
 			tapcount += 1
-			pygame.time.delay(config.sysStore.MultiTapTime)  # todo make general time call?
+			time.sleep(config.sysStore.MultiTapTime / 1000)
 		else:
 			if eventx.type in (CEvent.MouseUp, CEvent.MouseMotion):
 				debug.debugPrint('Touch', 'Other event: {}'.format(repr(eventx)))
@@ -89,7 +89,7 @@ def MouseDown(event):
 
 	for K in config.AS.NavKeys.values():
 		if K.touched(pos):
-			K.Proc()  # todo make a goto key
+			K.Proc()
 
 
 EventDispatch[CEvent.MouseDown] = MouseDown
