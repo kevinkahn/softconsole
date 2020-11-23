@@ -314,7 +314,7 @@ print(" AND THE SPEED OF YOUR SD CARD!", flush=True)
 print(" After that it will install the softconsole using your input", flush=True)
 print("****************************************************************", flush=True)
 print("****************************************************************", flush=True)
-# todo automate a fix?
+
 if screentype == '28c':
 	print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
 	print(" NOTE!!! NOTE!!! NOTE!!!")

@@ -5,8 +5,6 @@ import socket
 import pygame
 import wiringpi
 
-import displayupdate
-
 disklogging = True
 
 IsDim = False
@@ -94,10 +92,10 @@ def initOS(scrntyp, configdir):
 		if 'DISPLAY' in os.environ: del os.environ['DISPLAY']
 	screendev = screendefs[screentype][0]
 	if screentype[-1] == 'B':  # Buster system
-		if screendev[-1] == '0':  # check if there is an fb1 and use that if available todo Buster hack
+		if screendev[-1] == '0':  # check if there is an fb1 and use that if available
 			try:
-				with open('/dev/fb1') as f:
-					screendev = '/dev/fb1'
+				open('/dev/fb1')
+				screendev = '/dev/fb1'
 			except:
 				pass
 

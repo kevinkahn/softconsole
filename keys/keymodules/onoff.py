@@ -21,7 +21,7 @@ class OnOffKey(ManualKeyDesc):
 		ManualKeyDesc.__init__(self, thisscreen, keysection, keyname)
 		screen.AddUndefaultedParams(self, keysection, SceneProxy='', NodeName='')
 
-		if keyname == '*Action*': keyname = self.NodeName  # special case for alert screen action keys that always have same name todo - can nodename ever be explicitly set otherwise?
+		if keyname == '*Action*': keyname = self.NodeName  # special case for alert screen action keys that always have same name
 		self.ControlObj, self.DisplayObj = self.Hub.GetNode(keyname, self.SceneProxy)
 
 		if self.ControlObjUndefined():
@@ -37,7 +37,7 @@ class OnOffKey(ManualKeyDesc):
 			self.Proc = self.VerifyScreen.Invoke
 		else:
 			self.Proc = self.KeyPressAction
-			self.ProcDblTap = self.KeyPressActionDbl  # todo need testing/completion
+			self.ProcDblTap = self.KeyPressActionDbl
 
 		if keytype == 'ONOFF':
 			self.KeyAction = 'OnOff'
@@ -94,7 +94,7 @@ class OnOffKey(ManualKeyDesc):
 			self.ControlObj.SendOnOffCommand(self.State)
 			self.ScheduleBlinkKey(self.Blink)
 		else:
-			logsupport.Logs.Log("Screen: " + self.name + " press unbound key: " + self.name,  # todo fix screen name
+			logsupport.Logs.Log("Screen: " + self.Screen.name + " press unbound key: " + self.name,
 								severity=ConsoleWarning)
 			self.ScheduleBlinkKey(20)
 

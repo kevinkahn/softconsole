@@ -12,7 +12,7 @@ from controlevents import CEvent, PostEvent, ConsoleEvent
 TimerList = {}
 TimerHB = historybuffer.HistoryBuffer(100, 'Timers')
 LongOpInProgress = False
-LongOpStart = {'maintenance': 0}
+LongOpStart = {'maintenance': 0.0}
 timersshut = False
 
 
@@ -208,7 +208,6 @@ class ResettableTimer(Thread):
 	def cancel(self):
 		"""Stop the timer if it hasn't finished yet."""
 		self.newdelta = .01 # force out of loop in run in case waiting an event to appear
-		# todo - should it also set self.newevent?
 		self.finished.set()
 		self.changingevent.set()
 

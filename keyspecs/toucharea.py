@@ -12,6 +12,7 @@ import timers
 import utilities
 from hw import scaleW, scaleH
 from utilfuncs import wc
+import typing
 
 class TouchPoint(object):
 	"""
@@ -32,6 +33,7 @@ class TouchPoint(object):
 
 	def ControlObjUndefined(self):
 		if self.ControlObj is None: return True
+		# noinspection PyBroadException
 		try:
 			return self.ControlObj.Undefined
 		except:
@@ -87,11 +89,11 @@ class ManualKeyDesc(TouchPoint):
 	def __init__(self, *args, **kwargs):
 		self.State = True
 		self.UnknownState = False
-		self.KeyOnImage = None  # type: pygame.Surface
-		self.KeyOffImage = None  # type: pygame.Surface
-		self.KeyOnImageBase = None  # type: pygame.Surface
-		self.KeyOffImageBase = None  # type: pygame.Surface
-		self.KeyUnknownOverlay = None  # type: pygame.Surface
+		self.KeyOnImage = None  # type: typing.Union[pygame.Surface, None]
+		self.KeyOffImage = None  # type: typing.Union[pygame.Surface, None]
+		self.KeyOnImageBase = None  # type: typing.Union[pygame.Surface, None]
+		self.KeyOffImageBase = None  # type: typing.Union[pygame.Surface, None]
+		self.KeyUnknownOverlay = None  # type: typing.Union[pygame.Surface, None]
 		self.userstore = None
 		self.BlinkTimer = None
 		self.BlinkState = 0  # 0: not blinking 1: blink on 2: blink off
@@ -121,7 +123,8 @@ class ManualKeyDesc(TouchPoint):
 		utilities.register_example("ManualKeyDesc", self)
 
 	# noinspection PyUnusedLocal
-	def KeyParameters(self, label='', bcolor='black', charcoloron='white', charcoloroff='red', center=(0, 0),
+	@staticmethod
+	def KeyParameters(label='', bcolor='black', charcoloron='white', charcoloroff='red', center=(0, 0),
 					  size=(0, 0),
 					  KOn=None, KOff=None, proc=None, procdbl=None, KCon='', KCoff='', KLon=('',), KLoff=('',),
 					  State=True, Blink=0, Verify=False):

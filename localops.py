@@ -3,7 +3,6 @@ import shutil
 import config
 import logsupport
 import subprocess
-import time
 
 PreOpScripts = []
 NewCfgs = set()
@@ -27,10 +26,12 @@ def PreOp():
 	cfgdirserver = confserver + 'cfglib/'
 	newerlocal = config.sysStore.configdir + '/newer/'
 	oldlocal = config.sysStore.configdir + '/old/'
+	# noinspection PyBroadException
 	try:
 		os.mkdir(newerlocal)
 	except Exception:
 		pass
+	# noinspection PyBroadException
 	try:
 		os.mkdir(oldlocal)
 	except Exception:
@@ -55,6 +56,7 @@ def PreOp():
 
 	try:
 		if os.path.exists(confserver + "runonce.sh"):
+			# noinspection PyBroadException
 			try:
 				rtime = os.path.getmtime(config.sysStore.configdir + '/runonce.sh.done')
 			except Exception:
@@ -64,6 +66,7 @@ def PreOp():
 				PreOpScripts.append('Run once already run')
 			else:
 				PreOpScripts.append('Do a run once')
+				# noinspection PyBroadException
 				try:
 					os.remove(config.sysStore.configdir + '/runonce.sh.done')
 				except:
@@ -96,6 +99,7 @@ def PreOp():
 	try:
 		for f in cfglibserver:
 			mt = os.path.getmtime(cfgdirserver + f)
+			# noinspection PyBroadException
 			try:
 				mtloc = os.path.getmtime(conflocal + f)
 			except:
@@ -108,8 +112,7 @@ def PreOp():
 					shutil.copy2(conflocal + f, newerlocal)
 					shutil.copy2(cfgdirserver + f, conflocal + f)
 					PreOpFailure.append('Newer cfglib file on local system: {}'.format(f))
-				else:
-					print('Not saving "newer" file from version installation {}'.format(f))  # todo del
+
 		DeletedCfgs = cfgliblocal - cfglibserver
 		for f in DeletedCfgs:
 			shutil.move(conflocal + f, oldlocal)
@@ -126,9 +129,10 @@ def PreOp():
 			shutil.copy2(cfgfilesrv, cfgfileloc)
 			CopiedConfig = cfgfileloc
 		elif mt < mtloc:
-			shutil.copy2(cfgfileloc, newerlocal)
-			shutil.copy2(cfgfilesrv, cfgfileloc)
-			PreOpFailure.append('Newer main config file on local system')
+			if mtloc != reftime:
+				shutil.copy2(cfgfileloc, newerlocal)
+				shutil.copy2(cfgfilesrv, cfgfileloc)
+				PreOpFailure.append('Newer main config file on local system')
 	except Exception as E:
 		PreOpFailure.append("Copying main config file ({})".format(E))
 
