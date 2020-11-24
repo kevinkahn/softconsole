@@ -87,13 +87,15 @@ class PictureScreenDesc(screen.ScreenDesc):
 		reportedpics = []
 		pictureset = []
 		select = 0
+		emptypicdir = False
 		while True:
 			dirtime = os.path.getmtime(self.picturedir)
-			if dirtime != self.modtime:
+			if (dirtime != self.modtime) or emptypicdir:  # second option is to handle net disconnect
 				self.modtime = dirtime
 				reportedpics = []
 				self._reset_cache()
 				pictureset = os.listdir(self.picturedir)
+				emptypicdir = False  # assume it ok now
 				picsettrimmed = pictureset.copy()
 				for n in pictureset:
 					if not n.endswith(('.jpg', '.JPG')):
@@ -107,6 +109,7 @@ class PictureScreenDesc(screen.ScreenDesc):
 			except IndexError:
 				if len(pictureset) == 0:
 					picture = '*Empty*'
+					emptypicdir = True
 					if issueerror:
 						logsupport.Logs.Log("Empty picture directory for screen {}".format(self.name),
 											severity=ConsoleWarning)
@@ -158,7 +161,9 @@ class PictureScreenDesc(screen.ScreenDesc):
 	@staticmethod
 	def _preppic(pic):
 		rawp = pygame.image.load(pic)
+		# noinspection PyBroadException
 		try:
+			# noinspection PyProtectedMember
 			exif = PIL.Image.open(pic)._getexif()[274]
 		except Exception:
 			exif = 1
