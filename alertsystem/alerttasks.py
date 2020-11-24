@@ -1,32 +1,24 @@
-from datetime import datetime
-
-from dateutil.parser import parse
-
 import debug
-import exitutils
 import historybuffer
-import hubs.hubs
 import logsupport
-import screen
 import screens.__screens as screens
-import timers
 import utilities
 from configobjects import Section
-from controlevents import CEvent, PostEvent, ConsoleEvent
 from logsupport import ConsoleWarning, ConsoleDetail, ConsoleError
 from screens import alertscreen
-from stores import valuestore
 import guicore.switcher as switcher
-import config
-from alertsystem import filewatcher
+import alertsystem.alertutils as alertutils
+import os
+import importlib
 
 alertprocs = {}  # set by modules from alerts directory
 monitoredvars = []
 
-Tests = ('EQ', 'NE', 'GT')
-AlertType = (
-	'NodeChange', 'VarChange', 'StateVarChange', 'IntVarChange', 'LocalVarChange', 'Periodic', 'TOD', 'External',
-	'Init', 'FileWatch')
+for trigtype in os.listdir(os.getcwd() + '/alertsystem/triggers'):
+	if '__' not in trigtype:
+		splitname = os.path.splitext(trigtype)
+		if splitname[1] == '.py':
+			importlib.import_module('alertsystem.triggers.' + splitname[0])
 
 AlertsHB = historybuffer.HistoryBuffer(100, 'Alerts')
 
@@ -65,14 +57,14 @@ class Alert(object):
 			self.actiontarget(self)  # target is the proc
 			# noinspection PyAttributeOutsideInit
 			self.state = "Armed"
-		if isinstance(self.trigger,
-					  Periodictrigger):  # todo move inside the "proc"? perhaps have a reset proc for all triggers and blindly call that here
-			SchedulePeriodicEvent(self)
+		if hasattr(self.trigger, 'ReArm'):
+			self.trigger.ReArm(self)
 
 	def __repr__(self):
 		if self.actiontarget is None:
 			targtype = 'No Action'
-		elif isinstance(self.actiontarget, screen.ScreenDesc):
+		elif isinstance(self.actiontarget, tuple(
+				screens.screentypes.values())):  # really should check for screen.ScreenDescriptor but that loops
 			targtype = 'Screen'
 		else:
 			targtype = 'Proc'
@@ -91,184 +83,21 @@ class Alert(object):
 																										   tname)
 
 
-class FileWatchTrigger(object):
-	def __init__(self, filename):
-		self.filename = filename
-		self.trigstate = False
-
-	def IsTrue(self):
-		return self.trigstate
-
-	def ClearTrigger(self):
-		self.trigstate = False
-
-	def SetTrigger(self):
-		self.trigstate = True
-
-	def __repr__(self):
-		return 'Filename = {}'.format(self.filename)
-
-
-class NodeChgtrigger(object):
-	def __init__(self, node, test, value, delay):
-		self.node = node
-		self.test = test
-		self.value = value
-		self.delay = delay
-
-	def IsTrue(self):
-		val = self.node.Hub.GetCurrentStatus(self.node)
-		if val is None:
-			logsupport.Logs.Log("No state available in alert for: " + self.node.name)
-			val = -1
-		if self.test == 'EQ':
-			return int(val) == int(self.value)
-		elif self.test == 'NE':
-			return int(val) != int(self.value)
-		elif self.test == 'GT':
-			return int(val) > int(self.value)
-		else:
-			exitutils.FatalError('VarChgtriggerIsTrue')
-
-	def __repr__(self):
-		naddr = "*NONE*" if self.node is None else self.node.address
-		return 'Node ' + naddr + ' status ' + self.test + ' ' + str(self.value) + ' delayed ' + str(
-			self.delay) + ' seconds' + ' IsTrue: ' + str(self.IsTrue())
-
-
-# noinspection PyUnusedLocal
-def VarChanged(storeitem, old, new, param, modifier):
-	debug.debugPrint('DaemonCtl', 'Var changed ', storeitem.name, ' from ', old, ' to ', new)
-	# noinspection PyArgumentList
-	if old != new:
-		PostEvent(ConsoleEvent(CEvent.ISYVar, hub='AlertTasksVarChange', alert=param))
-
-
-class VarChangeTrigger(object):
-	def __init__(self, var, params):
-		self.var = var
-		self.test = params[0]
-		self.value = params[1]
-		self.delay = params[2]
-
-	def IsTrue(self):
-		val = -99999
-		try:
-			val = valuestore.GetVal(self.var)
-			if self.test == 'EQ':
-				return int(val) == int(self.value)
-			elif self.test == 'NE':
-				return int(val) != int(self.value)
-			elif self.test == 'GT':
-				return int(val) > int(self.value)
-			else:
-				logsupport.Logs.Log('Bad test in IsTrue', self.test, severity=ConsoleError)
-				return False  # shouldn't happen
-		except Exception as E:
-			logsupport.Logs.Log(
-				'Exception in IsTrue: {} Test: {} Val: {} Compare Val: {}'.format(repr(E), self.test, val, self.value),
-				severity=ConsoleError)
-			return False
-
-	def __repr__(self):
-		return ' Variable ' + valuestore.ExternalizeVarName(self.var) + ' ' + self.test + ' ' + str(
-			self.value) + ' delayed ' + str(self.delay) + ' seconds' + ' IsTrue: ' + str(self.IsTrue())
-
-
-class InitTrigger(object):
-	def __init__(self):
-		pass
-
-
-AlertUnique = 0
-
-
-def SchedulePeriodicEvent(alert):
-	global AlertUnique
-	AlertUnique += 1
-	t = timers.OnceTimer(alert.trigger.NextInterval(), name=alert.name + '-Periodic-' + str(AlertUnique), alert=alert,
-						 type='Periodic', proc=alert.Invoke)
-	t.start()
-
-
-class Periodictrigger(object):
-	def __init__(self, periodic, interval, timeslist):
-		self.periodic = periodic
-		self.interval = interval
-		self.timeslist = timeslist
-
-	def NextInterval(self):
-		if self.periodic:
-			return self.interval
-		else:
-			now = datetime.now()
-			seconds_since_midnight = (now - now.replace(hour=0, minute=0, second=0, microsecond=0)).total_seconds()
-			for schedtime in self.timeslist:
-				if seconds_since_midnight < schedtime - 2:  # 2 seconds of slop to avoid rescheduling for immediate execution
-					return schedtime - seconds_since_midnight
-			# no times left for today
-			return 24 * 3600 - seconds_since_midnight + self.timeslist[0]
-
-	@staticmethod
-	def IsTrue():  # If trigger comes to execute it is because timer went off so always return condition True
-		return True
-
-	def __repr__(self):
-		if self.periodic:
-			return 'Every ' + str(self.interval) + ' seconds'
-		else:
-			return 'At ' + str(self.timeslist) + ' seconds past midnight'
-
-
 def ArmAlerts():
-	for a in AlertItems.AlertsList.values():
+	for a in AlertsList.values():
 		a.state = 'Armed'
 		logsupport.Logs.Log("Arming " + a.type + " alert " + a.name)
 		logsupport.Logs.Log("->" + str(a), severity=ConsoleDetail)
 
-		if a.type == 'Periodic':
-			SchedulePeriodicEvent(a)
-		elif a.type == 'NodeChange':
-			a.trigger.node.Hub.SetAlertWatch(a.trigger.node, a)
-			if a.trigger.IsTrue():
-				# noinspection PyArgumentList
-				PostEvent(ConsoleEvent(CEvent.ISYAlert, hub='DS-NodeChange', alert=a))
-		elif a.type == 'VarChange':
-			a.state = 'Init'
-			# Note: VarChange alerts don't need setup because the store has an alert proc
-			pass
-		elif a.type == 'Init':
-			a.Invoke()
-		elif a.type == 'FileWatch':
-			filewatcher.SetUpForFile(a)
+		if a.type in alertutils.TriggerTypes:
+			alertutils.TriggerTypes[a.type].Arm(a)
 		else:
 			logsupport.Logs.Log("Internal error - unknown alert type: ", a.type, ' for ', a.name,
 								severity=ConsoleError, tb=False)
 
-
-def getvalid(spec, item, choices, default=None):
-	i = spec.get(item, default)
-	if i is not None:
-		if i in choices:
-			return i
-		else:
-			logsupport.Logs.Log('Choice error: ' + item + " not in " + str(choices), severity=logsupport.ConsoleWarning)
-			exitutils.errorexit(exitutils.ERRORDIE)
-	else:
-		logsupport.Logs.Log('Missing required alert parameter: ' + item, severity=ConsoleWarning)
-		exitutils.errorexit(exitutils.ERRORDIE)
-
-
 def ParseAlertParams(nm, spec):
 	global alertprocs, monitoredvars
 
-	def comparams(cspec):
-		ctest = getvalid(cspec, 'Test', Tests)
-		cvalue = cspec.get('Value', None)
-		cdelay = utilities.get_timedelta(cspec.get('Delay', None))
-		return ctest, cvalue, cdelay
-
-	VarsTypes = {'StateVarChange': ('ISY', 'State'), 'IntVarChange': ('ISY', 'Int'), 'LocalVarChange': ('LocalVars',)}
 	t = spec.get('Invoke', None)
 	param = spec.get('Parameter', None)
 	if t is None:
@@ -303,89 +132,12 @@ def ParseAlertParams(nm, spec):
 			utilities.MarkErr(spec)
 			return None
 
-	triggertype = getvalid(spec, 'Type', AlertType)
-	if triggertype == 'Periodic':
-		# parse time specs
-		interval = utilities.get_timedelta(spec.get('Interval', None))
-		secfrommid = []
-		at = spec.get('At', '*unspec*')
-		periodic = False
-		if interval == 0 and at == '*unspec*':
-			logsupport.Logs.Log("Periodic trigger must specify interval or time(s): ", nm, severity=ConsoleWarning)
-			return None
-		if interval != 0:
-			periodic = True
-		if at != '*unspec*':
-			if periodic:
-				logsupport.Logs.Log("Periodic trigger cannot specify both interval and time(s): ", nm,
-									severity=ConsoleWarning)
-				return None
-			if isinstance(at, str): at = [at]
-			for t in at:
-				tm = parse(t, ignoretz=True)
-				secfrommid.append(tm.hour * 3600 + tm.minute * 60 + tm.second)
-			secfrommid.sort()
-		A = Alert(nm, triggertype, Periodictrigger(periodic, interval, secfrommid), action, actionname, param)
-
-	elif triggertype == 'NodeChange':  # needs node, test, status, delay
-		n = spec.get('Node', '').split(':')
-		if len(n) == 1:
-			nd = n[0]  # unqualified node - use default hub
-			hub = hubs.hubs.defaulthub
-		else:
-			nd = n[1]
-			hub = hubs.hubs.Hubs[n[0]]
-		Node = hub.GetNode(nd, nd)[1]  # use MonitorObj (1)
-		test, value, delay = comparams(spec)
-		if Node is None:
-			logsupport.Logs.Log("Bad Node Spec on NodeChange alert in " + nm, severity=ConsoleWarning)
-			return None
-		trig = NodeChgtrigger(Node, test, value, delay)
-		A = Alert(nm, triggertype, trig, action, actionname, param)
-	elif triggertype in ('StateVarChange', 'IntVarChange', 'LocalVarChange'):
-		n = VarsTypes[triggertype] + (spec.get('Var', ''),)
-		logsupport.Logs.Log("Deprecated alert trigger ", triggertype, ' used - change to use VarChange ',
-							valuestore.ExternalizeVarName(n),
-							severity=ConsoleWarning)
-		if n is None:
-			logsupport.Logs.Log("Alert: ", nm, " var name doesn't exist", severity=ConsoleWarning)
-			return None
-		monitoredvars.append(n)
-		trig = VarChangeTrigger(n, comparams(spec))
-		A = Alert(nm, 'VarChange', trig, action, actionname, param)
-		valuestore.AddAlert(n, (VarChanged, A))
-
-	elif triggertype == 'VarChange':
-		tmp = spec.get('Var', None)
-		if tmp is None:
-			logsupport.Logs.Log("Alert: ", nm, " var name doesn't exist", severity=ConsoleWarning)
-			return None
-		n = tmp.split(':')
-		monitoredvars.append(n)
-		trig = VarChangeTrigger(n, comparams(spec))
-		A = Alert(nm, triggertype, trig, action, actionname, param)
-		valuestore.AddAlert(n, (VarChanged, A))
-
-	elif triggertype == 'External':
-		pass
-		return None
-	elif triggertype == 'Init':  # Trigger once at start up passing in the configobj spec
-		trig = InitTrigger()
-		A = Alert(nm, triggertype, trig, action, actionname, param)
-	elif triggertype == 'FileWatch':
-		# parse the filename
-		tmp = spec.get('File', None)
-		if tmp is None:
-			logsupport.Logs.Log("Alert: {} Must supply file name".format(nm), severity=ConsoleWarning)
-			return None
-		trig = FileWatchTrigger(utilities.inputfileparam(tmp, config.sysStore.configdir, 'news.txt'))
-		if param not in ('SingleItem', 'Settings'):
-			logsupport.Logs.Log("Alert: {} Paramter must be Settings or SingleItem".format(nm), severity=ConsoleWarning)
-			param = 'SingleItem'
-		A = Alert(nm, triggertype, trig, action, actionname, param)
+	triggertype = alertutils.getvalid(spec, 'Type', alertutils.TriggerTypes.keys())
+	if triggertype in alertutils.TriggerTypes:
+		A = alertutils.TriggerTypes[triggertype].Parse(nm, spec, action, actionname, param)
 
 	else:
-		logsupport.Logs.Log("Internal triggertype error", severity=ConsoleError)
+		logsupport.Logs.Log("No such triggertype: {}".format(triggertype), severity=ConsoleError)
 		A = None
 
 	logsupport.Logs.Log("Created alert: " + nm)
@@ -396,21 +148,33 @@ def ParseAlertParams(nm, spec):
 	return A
 
 
-class Alerts(object):
-	def __init__(self, alertsspec):
-		self.AlertsList = {}  # hash:AlertItem
-		if alertsspec is not None:
-			for nm, spec in alertsspec.items():
-				if isinstance(spec, Section):
-					alert = ParseAlertParams(nm, spec)
-					if alert is not None:
-						self.AlertsList[id(alert)] = alert
+# class Alerts(object):
+#	def __init__(self, alertsspec):
+#		self.AlertsList = {}  # hash:AlertItem
+#		if alertsspec is not None:
+#			for nm, spec in alertsspec.items():
+#				if isinstance(spec, Section):
+#					alert = ParseAlertParams(nm, spec)
+#					if alert is not None:
+#						self.AlertsList[id(alert)] = alert
 
-AlertItems: Alerts
+def ParseAlerts(alertspec):
+	if alertspec is not None:
+		for nm, spec in alertspec.items():
+			if isinstance(spec, Section):
+				alert = ParseAlertParams(nm, spec)
+				if alert is not None:
+					AlertsList[id(alert)] = alert
+
+
+AlertsList = {}
+
+
+# AlertItems: Alerts
 
 def DumpAlerts():
 	with open('/home/pi/Console/AlertsDump.txt', mode='w') as f:
-		for _, a in AlertItems.AlertsList.items():
+		for _, a in AlertsList.items():
 			f.write(repr(a) + '\n')
 
 
@@ -423,11 +187,4 @@ def HandleDeferredAlert(param):
 	if alert.trigger.IsTrue():
 		alert.Invoke()  # defered or delayed or scheduled alert firing or any periodic
 	else:
-		if isinstance(alert.trigger, NodeChgtrigger):
-			# why not cleared before getting here?
-			logsupport.Logs.Log('NodeChgTrigger cleared while deferred: ', repr(alert),
-								severity=ConsoleDetail, hb=True)
-		elif isinstance(alert.trigger, VarChangeTrigger):
-			logsupport.Logs.Log('VarChangeTrigger cleared while deferred: ', repr(alert),
-								severity=ConsoleDetail, hb=True)
 		alert.state = 'Armed'

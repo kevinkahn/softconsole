@@ -391,7 +391,7 @@ class Logger(object):
 		except Exception as E:
 			self.RecordMessage(ConsoleError, 'Exception while local logging: {}'.format(repr(E)),
 							   defentrytime, False, True)
-			tbinfo = traceback.format_exception().splitlines()
+			tbinfo = traceback.format_exc().splitlines()
 			for l in tbinfo:  # todo doesn't seem to work?
 				print('---{}'.format(l))
 				self.RecordMessage(ConsoleError, ({}).format(l),

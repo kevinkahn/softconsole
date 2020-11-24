@@ -553,8 +553,9 @@ try:
 	"""
 	Build the alerts structures
 	"""
-	alerttasks.AlertItems = alerttasks.Alerts(alertspec)
-	logsupport.Logs.Log("Alerts established")
+	alerttasks.ParseAlerts(alertspec)
+	#	alerttasks.AlertItems = alerttasks.Alerts(alertspec)
+	#	logsupport.Logs.Log("Alerts established")
 
 	"""
 	Set up the Maintenance Screen

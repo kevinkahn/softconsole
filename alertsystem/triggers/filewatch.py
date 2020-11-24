@@ -1,20 +1,58 @@
-import threadmanager
-import config
-import time
-from stores import valuestore
 import os
+
+import alertsystem.alertutils as alertutils
+import alertsystem.alerttasks as alerttasks
 import logsupport
-from logsupport import ConsoleWarning
+import utilities
+import config
+from stores import valuestore
+import threadmanager
+import time
 from controlevents import CEvent, PostEvent, ConsoleEvent
 
-FileWatchInfo = None  # entry modtime: 0.0, params: str
+triggername = 'FileWatch'
+
+
+class FileWatchTrigger(object):
+	def __init__(self, filename):
+		self.filename = filename
+		self.trigstate = False
+
+	def IsTrue(self):
+		return self.trigstate
+
+	def ClearTrigger(self):
+		self.trigstate = False
+
+	def SetTrigger(self):
+		self.trigstate = True
+
+	def __repr__(self):
+		return 'Filename = {}'.format(self.filename)
+
+
+def Parse(nm, spec, action, actionname, param):
+	# parse the filename
+	tmp = spec.get('File', None)
+	if tmp is None:
+		logsupport.Logs.Log("Alert: {} Must supply file name".format(nm), severity=logsupport.ConsoleWarning)
+		return None
+	trig = FileWatchTrigger(utilities.inputfileparam(tmp, config.sysStore.configdir, 'news.txt'))
+	if param not in ('SingleItem', 'Settings'):
+		logsupport.Logs.Log("Alert: {} Paramter must be Settings or SingleItem".format(nm),
+							severity=logsupport.ConsoleWarning)
+		param = 'SingleItem'
+	return alerttasks.Alert(nm, triggername, trig, action, actionname, param)
+
+
+FileWatchInfo = {}  # entry modtime: 0.0, params: str
 
 
 def SetUpForFile(a):
 	global FileWatchInfo
 	entry = {'modtime': 0.0, 'invoke': a.actiontarget, 'param': a.param, 'alert': a,
 			 'store': valuestore.NewValueStore(valuestore.ValueStore(a.name))}
-	if FileWatchInfo is None:
+	if FileWatchInfo == {}:
 		FileWatchInfo = {a.trigger.filename: entry}
 		threadmanager.SetUpHelperThread('fileWatch', FileWatcher)
 	else:
@@ -32,7 +70,7 @@ def FileWatcher():
 			FileWatchInfo[f]['modtime'] = os.path.getmtime(f)
 			ParseFile(info['store'], f, info['param'])
 		except Exception as E:
-			logsupport.Logs.Log("Error accessing watched file {} ({})".format(f, E), severity=ConsoleWarning)
+			logsupport.Logs.Log("Error accessing watched file {} ({})".format(f, E), severity=logsupport.ConsoleWarning)
 			BadFiles.append(f)
 	while True:
 		time.sleep(1)
@@ -42,7 +80,7 @@ def FileWatcher():
 			except Exception as E:
 				if not f in BadFiles:
 					logsupport.Logs.Log("Watched file {} became inaccessible ({})".format(f, E),
-										severity=ConsoleWarning)
+										severity=logsupport.ConsoleWarning)
 					BadFiles.append(f)
 				continue
 			if f in BadFiles:
@@ -71,6 +109,9 @@ def ParseFile(store, fn, param):
 				try:
 					t = l.split('=', 1)
 					store.SetVal(t[0].strip(), t[1].strip())
-				except:
-					logsupport.Logs.Log('Malformed settings ({}) for watched file {}'.format(t, fn),
+				except Exception as E:
+					logsupport.Logs.Log('Malformed settings ({}) for watched file {} ({})'.format(t, fn, E),
 										severity=logsupport.ConsoleWarning)
+
+
+alertutils.TriggerTypes[triggername] = alertutils.TriggerRecord(Parse, SetUpForFile, FileWatchTrigger)
