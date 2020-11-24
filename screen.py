@@ -399,6 +399,7 @@ class ScreenDesc(object):
 				for nm, k in self.NavKeys.items():
 					if hasattr(k, 'userstore'): k.userstore.DropStore()
 				self.used = True
+				if self.ScreenClock is not None: self.ScreenClock.cancel()
 
 	def DeleteScreen(self):
 		# explicit screen destroy
