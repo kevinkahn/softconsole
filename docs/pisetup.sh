@@ -127,9 +127,6 @@ else
   systemctl enable vncserverpi
 fi
 
-# Save initial rc.local to restore after helper scripts run
-cp /etc/rc.local /etc/rc.local.hold # helper script below screws up rc.local
-
 cd /home/pi
 
 if [ $Buster == 'N' ]; then
@@ -139,33 +136,6 @@ fi
 LogBanner "Run screen specific install code"
 source installscreencode
 LogBanner "Completed screen specific install code"
-
-#case $ScreenType in
-#  wave35)
-#    LogBanner "Install Waveshare screen"
-#    echo "Following link as of 8//30/18"
-#    wget https://www.waveshare.com/w/upload/3/34/LCD-show-180331.tar.gz
-#    tar xvf LCD-show-*.tar.gz
-#    cd LCD-show 90
-#    chmod +x LCD35-show
-#    sed -i 's/sudo reboot/echo skip sudo reboot/' "LCD35-show"
-#    ./LCD35-show 90
-#    cd ..
-#
-#    echo "Update pointercal"
-#    cat > /etc/pointercal <<EOF
-#5729 138 -1857350 78 8574 -2707152 65536
-#EOF
-
-# 5672 -28 -1130318 -203 8466 -1835732 65536
-
-#    echo "Finished waveshare install"
-#    ;;
-#  *)
-#    LogBanner "User installed screen"
-#    echo Screen type: $ScreenType
-#    ;;
-#esac
 
 # set Console to start automatically at boot
 if [ "$AutoConsole" == "Y" ]; then
@@ -184,11 +154,6 @@ mv installscreencode .consoleinstallleftovers
 mv *.log .consoleinstallleftovers
 rm -r __pycache__
 
-#mv --backup=numbered /etc/rc.local.hold /etc/rc.local
-#chmod +x /etc/rc.local
-
-#LogBanner "Reboot now finishinstall.sh will autorun as root unless aborted"
-
 if [ "$Reboot" == "Y" ]; then
 
   LogBanner "Rebooting in 10 seconds"
@@ -203,29 +168,3 @@ if [ "$Reboot" == "Y" ]; then
 fi
 
 LogBanner "Chose to manually reboot, reboot system to clean up install"
-#  cd /home/pi
-#  mv .bashrc .bashrc.real
-#  cat >.bashrc <<EOF
-#cd /home/pi
-#source .bashrc.real
-#cp .bashrc .bashrc.sav
-#mv -f .bashrc.real .bashrc
-#touch /home/pi/CONSOLEINSTALLRUNNING
-#sleep 15 # delay to allow X system to startup for next command (is this long enough in a Pi0)
-#DISPLAY=:0.0 x-terminal-emulator -t "Console Install" --geometry=40x17 -e sudo bash /home/pi/doinstall.sh 2>> /home/pi/di.log
-#sudo bash /home/pi/doinstall.sh 2>> /home/pi/di.log
-#EOF
-#  cat >doinstall.sh <<EOF
-#echo Autorunning console install in 10 second - ctl-c to stop
-#for i in 10 9 8 7 6 5 4 3 2 1
-#    do
-#      echo finishinstall.sh start in \$i
-#      sleep 1
-#    done
-#sudo bash -c "echo 1 > /proc/sys/vm/drop_caches"  # trying to avoid the kswap issue
-#sudo bash ./finishinstall.sh
-#EOF
-#  reboot now
-#fi
-#sleep 15
-#LogBanner "Chose to manually reboot and run finishinstall.sh"

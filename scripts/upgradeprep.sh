@@ -12,14 +12,15 @@ pip install --upgrade paho-mqtt
 pip install --upgrade python-dateutil
 pip install darksky_weather
 
-if [ -e setupsystemd.py ]
-then
-    echo Initial install
-    python setupsystemd.py
+if [ -e setupsystemd.py ]; then
+  echo Initial install
+  python setupsystemd.py
 else
-    echo Upgrade process
-    python ../setupsystemd.py
-    # this runs in previous version so the new python code is up a level
+  echo Upgrade process
+  python ../setupsystemd.py
+  # this runs in previous version so the new python code is up a level
 fi
 cd alerts
 wget https://github.com/ScrewLooseDan/softconsole_sensor_alert/raw/master/lightsensor.py
+mv lightsensor.py lightsensor.pyold
+sed "/import alerttasks/s/alerttasks/alertsystem.alerttasks as alerttasks/" lightsensor.pyold >lightsensor.py
