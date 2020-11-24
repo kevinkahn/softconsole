@@ -22,5 +22,5 @@ else
 fi
 cd alerts
 wget https://github.com/ScrewLooseDan/softconsole_sensor_alert/raw/master/lightsensor.py
-mv lightsensor.py lightsensor.pyold
-sed "/import alerttasks/s/alerttasks/alertsystem.alerttasks as alerttasks/" lightsensor.pyold >lightsensor.py
+#mv lightsensor.py lightsensor.pyold
+#sed "/import alerttasks/s/alerttasks/alertsystem.alerttasks as alerttasks/" lightsensor.pyold >lightsensor.py
