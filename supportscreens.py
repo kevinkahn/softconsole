@@ -319,6 +319,7 @@ class PagedDisplay(screen.BaseKeyScreenDesc):
 		self.startpage = 0
 		self.item = 0
 		self.pageno = -1
+		self.oknext = True
 		self.PageStartItem = [0]
 		self.Keys = {'nextpage': toucharea.TouchPoint('nextpage', (hw.screenwidth / 2, 3 * hw.screenheight / 4),
 													  (hw.screenwidth, hw.screenheight / 2), proc=self.NextPage),
@@ -331,9 +332,11 @@ class PagedDisplay(screen.BaseKeyScreenDesc):
 
 	# noinspection PyUnusedLocal
 	def NextPage(self):
+		if not self.oknext: return  # need to render previous call first
 		if self.item >= 0:
 			self.pageno += 1
 			self.startpage = self.item
+			self.oknext = False
 		else:
 			if self.state != 'scroll':
 				self.state = 'init'
@@ -343,8 +346,10 @@ class PagedDisplay(screen.BaseKeyScreenDesc):
 
 	# noinspection PyUnusedLocal
 	def PrevPage(self):
+		if not self.oknext: return
 		if self.pageno > 0:
 			self.pageno -= 1
+			self.oknext = False
 			self.startpage = self.PageStartItem[self.pageno]
 		else:
 			self.state = 'init'
@@ -354,6 +359,7 @@ class PagedDisplay(screen.BaseKeyScreenDesc):
 		self.item = self.RenderPage(self.BackgroundColor, start=self.startpage, pageno=self.pageno)
 		if self.pageno + 1 == len(self.PageStartItem):  # if first time we saw this page remember its start pos
 			self.PageStartItem.append(self.item)
+		self.oknext = True
 		if self.state == 'scroll':
 			if (self.item < self.startat) and (
 					self.item != -1):  # if first error not yet up and not last page go to next page

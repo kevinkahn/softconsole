@@ -139,8 +139,7 @@ class ShowVersScreen(screen.BaseKeyScreenDesc):
 		self.Keys = {'return': toucharea.TouchPoint('back', (hw.screenwidth // 2, hw.screenheight // 2),
 													(hw.screenwidth, hw.screenheight), proc=screen.PopScreen)}
 
-	def InitDisplay(self, nav):  # todo fix for specific repaint
-		super(ShowVersScreen, self).InitDisplay(nav)
+	def ScreenContentRepaint(self):
 		hw.screen.fill(wc(self.BackgroundColor))
 		fontsz = 10 if displayupdate.portrait else 17
 		header, ht, wd = screenutil.CreateTextBlock('  Node       ', fontsz, 'white', False, FitLine=False)
@@ -164,8 +163,6 @@ class ShowVersScreen(screen.BaseKeyScreenDesc):
 				ln, ht, _ = screenutil.CreateTextBlock([ndln + ln1, '             ' + ln2], fontsz, 'white', False)
 			hw.screen.blit(ln, (10, linestart))
 			linestart += ht + fontsz // 2
-		displayupdate.updatedisplay()
-
 
 class StatusDisplayScreen(screen.BaseKeyScreenDesc):
 	def __init__(self):
