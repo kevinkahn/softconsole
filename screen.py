@@ -263,7 +263,7 @@ class ScreenDesc(object):
 	def SetScreenClock(self, interval):
 		# for screens with a non standard clocking rate
 		if interval != 1:
-			self.ScreenClock = timers.RepeatingPost(1, paused=True, start=True, name='ScreenClock-' + self.name,
+			self.ScreenClock = timers.RepeatingPost(interval, paused=True, start=True, name='ScreenClock-' + self.name,
 													proc=self._ClockTick, eventvalid=self._ClockTickValid)
 
 	def CreateNavKeys(self, prevk, nextk):

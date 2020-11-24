@@ -372,7 +372,7 @@ class PagedDisplay(screen.BaseKeyScreenDesc):
 	def ReInitDisplay(self):
 		super().ReInitDisplay()
 
-	def InitDisplay(self, nav):  # todo interate with super call below
+	def InitDisplay(self, nav):
 		self.pageshowing = -1
 		self.startat = self.StartChooser()
 		self.startpage = 0
