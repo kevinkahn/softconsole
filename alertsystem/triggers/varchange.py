@@ -18,15 +18,18 @@ class VarChangeTrigger(object):
 		self.delay = params[2]
 
 	def IsTrue(self):
-		val = -99999
 		try:
 			val = valuestore.GetVal(self.var)
+			if val is None:  # only true condition is ISNONE
+				return self.test == 'ISNONE'
 			if self.test == 'EQ':
 				return int(val) == int(self.value)
 			elif self.test == 'NE':
 				return int(val) != int(self.value)
 			elif self.test == 'GT':
 				return int(val) > int(self.value)
+			elif self.test == 'ISNONE':
+				pass
 			else:
 				logsupport.Logs.Log('Bad test in IsTrue', self.test, severity=ConsoleError)
 				return False  # shouldn't happen

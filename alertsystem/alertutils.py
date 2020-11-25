@@ -28,7 +28,7 @@ def getvalid(spec, item, choices, default=None):
 		exitutils.errorexit(exitutils.ERRORDIE)
 
 
-Tests = ('EQ', 'NE', 'GT')
+Tests = ('EQ', 'NE', 'GT', 'ISNONE')
 
 
 def comparams(cspec):

@@ -12,10 +12,18 @@ class HAattributes(valuestore.ValueStore):
 		logsupport.Logs.Log('HA Attribute store {} does not permit {}'.format(self.hub.name, procname))
 		raise AttributeError
 
+	def AddAlert(self, name, a):
+		if not self.Contains(name):
+			self.SetVal(name, None)
+			tn = self._normalizename(name)
+			self.hub.MonitoredAttributes[tn[0]] = tn[1:]
+		super().AddAlert(name, a)
+
 	def GetVal(self, name, failok=False):
 		# first try for an explicitly stored value (sensors)
-		val = super().GetVal(name, failok=True)
-		if val is not None: return val
+		if self.Contains(name):
+			val = super().GetVal(name, failok=True)
+			return val
 
 		# now try for a state or attribute
 		n = self._normalizename(name)
@@ -38,7 +46,6 @@ class HAattributes(valuestore.ValueStore):
 					attr = attr[i]
 				return attr
 			except Exception as E:
-				print('which exception: {}'.format(E))
 				# This is a normal case since attributes like brightness go undefined when state is off
 				return None
 

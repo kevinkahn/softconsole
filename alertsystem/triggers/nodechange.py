@@ -7,7 +7,6 @@ from controlevents import PostEvent, ConsoleEvent, CEvent
 
 triggername = 'NodeChange'
 
-
 class NodeChgtrigger(object):
 	def __init__(self, node, test, value, delay):
 		self.node = node
@@ -15,11 +14,11 @@ class NodeChgtrigger(object):
 		self.value = value
 		self.delay = delay
 
-	def IsTrue(self):
+	def IsTrue(self):  # todo unify with VARCHANGE handling
 		val = self.node.Hub.GetCurrentStatus(self.node)
 		if val is None:
 			logsupport.Logs.Log("No state available in alert for: " + self.node.name)
-			val = -1
+			return self.test == 'ISNONE'
 		if self.test == 'EQ':
 			return int(val) == int(self.value)
 		elif self.test == 'NE':
@@ -33,7 +32,6 @@ class NodeChgtrigger(object):
 		naddr = "*NONE*" if self.node is None else self.node.address
 		return 'Node ' + naddr + ' status ' + self.test + ' ' + str(self.value) + ' delayed ' + str(
 			self.delay) + ' seconds' + ' IsTrue: ' + str(self.IsTrue())
-
 
 def Parse(nm, spec, action, actionname, param):
 	n = spec.get('Node', '').split(':')
@@ -50,7 +48,6 @@ def Parse(nm, spec, action, actionname, param):
 		return None
 	trig = NodeChgtrigger(Node, test, value, delay)
 	return alerttasks.Alert(nm, triggername, trig, action, actionname, param)
-
 
 def Arm(a):
 	a.trigger.node.Hub.SetAlertWatch(a.trigger.node, a)

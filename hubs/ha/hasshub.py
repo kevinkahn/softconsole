@@ -71,7 +71,15 @@ class HAnode(object):
 	#	self.__dict__.update(ns)
 
 	def Update(self, **ns):
-		# todo this is where it should look at attributes that are flagged for alerts - interaction woth haattrstore
+		if self.entity_id in self.Hub.MonitoredAttributes:
+			val = ns['attributes']
+			try:
+				for attr in self.Hub.MonitoredAttributes[self.entity_id]:
+					val = val[attr]
+			except KeyError:
+				val = None
+			self.Hub.attrstore.SetVal([self.entity_id] + self.Hub.MonitoredAttributes[self.entity_id], val)
+
 		self.__dict__.update(ns)
 		oldstate = self.internalstate
 		self.internalstate = self._NormalizeState(self.state)
@@ -622,11 +630,13 @@ class HA(object):
 		self.StatusCheckerThread = None
 		self.DomainEntityReg = {}
 		self.knownservices = []
+		self.MonitoredAttributes = {}  # holds tuples with the name of attribute that is used in an alert
 		self.HB = historybuffer.HistoryBuffer(40, hubname)
 		if version not in (0, 1):
-			logsupport.Logs.Log("Fatal error - no HA hub version {}".format(version), severity = ConsoleError)
+			logsupport.Logs.Log("Fatal error - no HA hub version {}".format(version), severity=ConsoleError)
 			raise ValueError
-		logsupport.Logs.Log("{}: Creating structure for Home Assistant hub version {} at {}".format(hubname, version, addr))
+		logsupport.Logs.Log(
+			"{}: Creating structure for Home Assistant hub version {} at {}".format(hubname, version, addr))
 
 		self.dyndomains = {}
 		for domainimpl in os.listdir(os.getcwd() + '/hubs/ha/domains'):

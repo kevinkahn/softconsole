@@ -543,7 +543,6 @@ if 'Variables' in ParsedConfigFile:
 	del ParsedConfigFile['Variables']
 
 try:
-
 	"""
 	Build the Hub(s) object structure and connect the configured screens to it
 	"""
@@ -554,8 +553,6 @@ try:
 	Build the alerts structures
 	"""
 	alerttasks.ParseAlerts(alertspec)
-	#	alerttasks.AlertItems = alerttasks.Alerts(alertspec)
-	#	logsupport.Logs.Log("Alerts established")
 
 	"""
 	Set up the Maintenance Screen

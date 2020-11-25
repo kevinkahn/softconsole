@@ -235,6 +235,7 @@ class ValueStore(object):
 			else:
 				return None
 
+
 	def AddAlert(self, name, a):
 		# alert is proc to be called with signature (storeitem, old, new, param, chgsource)
 		# a is passed in here as either just the proc or a 2-tuple (proc, param)
@@ -369,18 +370,16 @@ class ValueStore(object):
 			raise StopIteration
 
 	def Contains(self, name):
-		n2 = self._normalizename(name)
+		n = self._normalizename(name)
 		t = self.vars
-		# noinspection PyBroadException
-		try:
-			while len(n2) > 1:
-				t = t[n2[0]]
-				n2.pop(0)
-			if isinstance(n2[0], int):
-				# final is array
-				return True if n2[0] < len(t.Value) else False
+		while len(n) > 1:
+			if n[0] in t:
+				t = t[n[0]]
+				n.pop(0)
+				continue
 			else:
-				return True if n2[0] in t else False
-		except:
-			return False
-
+				return False
+		if isinstance(n[0], int):  # final item int means array
+			return n[0] < len(t.Value)
+		else:
+			return n[0] in t

@@ -104,11 +104,18 @@ NavKeyAlpha = 50
 	Parameter = SingleItem
 	Invoke = DynAlertScreeny
 
-	[[testHA]]  # test node value for HA
-	Type = NodeChange
-    Node = HASS:light.toilet
-    Test = GT
-    Value = 190
+	#[[testHA]]  # test node value for HA
+	#Type = NodeChange
+    #Node = HASS:light.toilet
+    #Test = GT
+    #Value = 190
+    #Invoke = GarageDoor
+
+    [[testHA2]] #test node attributes
+    Type = VarChange
+    Var = HASS:light.toilet:brightness
+    Test = EQ
+    Value = 133
     Invoke = GarageDoor
 
 
