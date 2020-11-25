@@ -1,7 +1,6 @@
 import debug
 import logsupport
 from controlevents import PostEvent, ConsoleEvent, CEvent
-from logsupport import ConsoleError
 from stores import valuestore
 import alertsystem.alertutils as alertutils
 import alertsystem.alerttasks as alerttasks
@@ -18,26 +17,7 @@ class VarChangeTrigger(object):
 		self.delay = params[2]
 
 	def IsTrue(self):
-		try:
-			val = valuestore.GetVal(self.var)
-			if val is None:  # only true condition is ISNONE
-				return self.test == 'ISNONE'
-			if self.test == 'EQ':
-				return int(val) == int(self.value)
-			elif self.test == 'NE':
-				return int(val) != int(self.value)
-			elif self.test == 'GT':
-				return int(val) > int(self.value)
-			elif self.test == 'ISNONE':
-				pass
-			else:
-				logsupport.Logs.Log('Bad test in IsTrue', self.test, severity=ConsoleError)
-				return False  # shouldn't happen
-		except Exception as E:
-			logsupport.Logs.Log(
-				'Exception in IsTrue: {} Test: {} Val: {} Compare Val: {}'.format(repr(E), self.test, val, self.value),
-				severity=ConsoleError)
-			return False
+		return alertutils.TestCondition(valuestore.GetVal(self.var), self.value, self.test)
 
 	def __repr__(self):
 		return ' Variable ' + valuestore.ExternalizeVarName(self.var) + ' ' + self.test + ' ' + str(
@@ -46,6 +26,8 @@ class VarChangeTrigger(object):
 
 def Arm(a):
 	a.state = 'Init'
+	if a.trigger.IsTrue():
+		PostEvent(ConsoleEvent(CEvent.ISYVar, hub='AlertTasksVarChange', alert=a))
 
 
 # Note: VarChange alerts don't need setup because the store has an alert proc

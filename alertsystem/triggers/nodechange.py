@@ -14,19 +14,8 @@ class NodeChgtrigger(object):
 		self.value = value
 		self.delay = delay
 
-	def IsTrue(self):  # todo unify with VARCHANGE handling
-		val = self.node.Hub.GetCurrentStatus(self.node)
-		if val is None:
-			logsupport.Logs.Log("No state available in alert for: " + self.node.name)
-			return self.test == 'ISNONE'
-		if self.test == 'EQ':
-			return int(val) == int(self.value)
-		elif self.test == 'NE':
-			return int(val) != int(self.value)
-		elif self.test == 'GT':
-			return int(val) > int(self.value)
-		else:
-			exitutils.FatalError('VarChgtriggerIsTrue')
+	def IsTrue(self):
+		return alertutils.TestCondition(self.node.Hub.GetCurrentStatus(self.node), self.value, self.test)
 
 	def __repr__(self):
 		naddr = "*NONE*" if self.node is None else self.node.address

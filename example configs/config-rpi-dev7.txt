@@ -114,7 +114,7 @@ NavKeyAlpha = 50
     [[testHA2]] #test node attributes
     Type = VarChange
     Var = HASS:light.toilet:brightness
-    Test = EQ
+    Test = GT
     Value = 133
     Invoke = GarageDoor
 

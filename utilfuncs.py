@@ -93,7 +93,7 @@ def RepresentsInt(s):
 	try:
 		int(s)
 		return True
-	except ValueError:
+	except (ValueError, TypeError):
 		return False
 '''
 class WFormatter(string.Formatter):
