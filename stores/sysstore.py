@@ -1,6 +1,6 @@
 import config
 from stores import valuestore
-import time, hw
+import time
 
 
 class SystemStore(valuestore.ValueStore):

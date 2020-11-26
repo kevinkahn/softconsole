@@ -1,6 +1,6 @@
 import debug
 import logsupport
-import screen
+from screens import screen
 from configobjects import GoToTargetList
 from guicore.switcher import SwitchScreen
 from logsupport import ConsoleWarning

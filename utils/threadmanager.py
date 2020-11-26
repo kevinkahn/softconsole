@@ -2,7 +2,7 @@ import threading
 import time
 
 import logsupport
-from exitutils import FatalError
+from utils.exitutils import FatalError
 from logsupport import ConsoleWarning
 
 HelperThreads = {}

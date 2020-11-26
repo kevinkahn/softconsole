@@ -3,15 +3,14 @@ import time
 import pygame
 
 import debug
-import fonts
-import hw
+from utils import fonts, hw
 import logsupport
-import screen
+from screens import screen
 import screens.__screens as screens
 from logsupport import ConsoleWarning
 from stores import valuestore
-from utilfuncs import wc, fmt
-from weatherfromatting import CreateWeathBlock
+from utils.utilfuncs import wc, fmt
+from utils.weatherfromatting import CreateWeathBlock
 
 
 def extref(listitem, indexitem):

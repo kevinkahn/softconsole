@@ -7,17 +7,14 @@ import functools
 
 from alertsystem import alerttasks
 import debug
-import fonts
-import hw
 from keys import keyspecs
 import logsupport
-import screen
+from screens import screen
 import screens.__screens as screens
-import timers
+from utils import timers, utilities, fonts, hw
 from keyspecs import toucharea
-import utilities
 from logsupport import ConsoleDetail
-from utilfuncs import wc
+from utils.utilfuncs import wc
 from configobj import ConfigObj
 from typing import Union
 from guicore.switcher import SwitchScreen

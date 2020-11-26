@@ -1,4 +1,3 @@
-import exitutils
 import logsupport
 import alertsystem.alerttasks as alerttasks
 import alertsystem.alertutils as alertutils

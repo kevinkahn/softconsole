@@ -1,18 +1,15 @@
 import pygame
 import inspect
 
-import displayupdate
 import logsupport
 import debug
-import fonts
-import hw
-import screen
+from screens import screen
 import stores.paramstore as paramstore
-import timers
-import utilities
-from hw import scaleW, scaleH
-from utilfuncs import wc
+from utils import timers, utilities, fonts, displayupdate, hw
+from utils.hw import scaleW, scaleH
+from utils.utilfuncs import wc
 import typing
+
 
 class TouchPoint(object):
 	"""

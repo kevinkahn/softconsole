@@ -1,10 +1,8 @@
 from dataclasses import dataclass
 
-import utilities
-import utilfuncs
+from utils import utilfuncs, utilities, exitutils
 import logsupport
 from logsupport import ConsoleWarning, ConsoleError
-import exitutils
 
 TriggerTypes = {}
 

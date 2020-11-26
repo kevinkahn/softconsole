@@ -9,8 +9,7 @@ import guicore.switcher as switcher
 import config
 import screens.__screens as screens
 import time
-import screen
-import maintscreen
+from screens import screen, maintscreen
 
 
 def MouseDown(event):

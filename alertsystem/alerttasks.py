@@ -2,10 +2,10 @@ import debug
 import historybuffer
 import logsupport
 import screens.__screens as screens
-import utilities
+from utils import utilities
 from configobjects import Section
 from logsupport import ConsoleWarning, ConsoleDetail, ConsoleError
-from screens import alertscreen
+from screens.specificscreens import alertscreen
 import guicore.switcher as switcher
 import alertsystem.alertutils as alertutils
 import os

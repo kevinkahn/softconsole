@@ -1,6 +1,7 @@
 import os
 import platform
 import socket
+import config
 
 import pygame
 import wiringpi
@@ -69,7 +70,7 @@ def initOS(scrntyp, configdir):
 		hwinfo = f.read()
 
 	screendefs = {}
-	with open('screendefinitions') as f:
+	with open(config.sysStore.ExecDir + '/screendefinitions') as f:
 		defs = f.read().splitlines()
 		for l in defs:
 			screenitem = l.split('|')

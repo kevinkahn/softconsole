@@ -2,13 +2,11 @@ import time
 
 import config
 import debug
-import fonts
-import hw
-import screen
+from screens import screen
 from keyspecs import toucharea
-import utilities
-import supportscreens
-from utilfuncs import wc, interval_str
+from utils import utilities, fonts, hw
+import screens.supportscreens as supportscreens
+from utils.utilfuncs import wc, interval_str
 import configobj
 
 fixedoverrides = {'CharColor': 'white', 'BackgroundColor': 'royalblue', 'label': ['Maintenance'], 'DimTO': 60,

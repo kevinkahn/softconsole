@@ -1,16 +1,14 @@
 from collections import OrderedDict
 
 import debug
-import fonts
-import hw
 import logsupport
-import screen
+from screens import screen
 import screens.__screens as screens
 from keyspecs import toucharea
-import utilities
+from utils import utilities, fonts, hw
 from stores import valuestore
-from utilfuncs import wc, fmt
-from weatherfromatting import CreateWeathBlock
+from utils.utilfuncs import wc, fmt
+from utils.weatherfromatting import CreateWeathBlock
 
 fsizes = ((20, False, False), (30, True, False), (45, True, True))
 

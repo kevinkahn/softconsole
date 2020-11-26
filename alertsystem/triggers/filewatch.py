@@ -3,10 +3,9 @@ import os
 import alertsystem.alertutils as alertutils
 import alertsystem.alerttasks as alerttasks
 import logsupport
-import utilities
+from utils import utilities, threadmanager
 import config
 from stores import valuestore
-import threadmanager
 import time
 from controlevents import CEvent, PostEvent, ConsoleEvent
 

@@ -1,12 +1,10 @@
-import string
-
 import pygame
 
-import fonts
+from utils import fonts
 import logsupport
 from logsupport import ConsoleWarning, ConsoleDetailHigh
 from stores import valuestore
-from utilfuncs import wc, fmt
+from utils.utilfuncs import wc, fmt
 from stores.weathprov.providerutils import MissingIcon
 
 ICONSPACE = 10

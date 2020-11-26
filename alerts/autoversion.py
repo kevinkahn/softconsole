@@ -2,11 +2,12 @@ import sys
 
 from alertsystem import alerttasks
 import config
-import exitutils
+from utils import exitutils
 import githubutil
 import historybuffer
 import logsupport
 import threading
+import time
 from logsupport import ConsoleWarning, ConsoleDetail
 from consolestatus import ReportStatus
 import controlevents
@@ -46,6 +47,9 @@ def DoFetchRestart():
 		logsupport.Logs.Log("Staged version installed in ", config.sysStore.ExecDir)
 		logsupport.Logs.Log('Restart for new version')
 		ReportStatus('auto restart', hold=2)
+		varsnote = config.sysStore.configdir + '/.autovers'
+		with open(varsnote, 'w'):
+			print(time.strftime('%c'))
 		controlevents.PostEvent(
 			controlevents.ConsoleEvent(controlevents.CEvent.RunProc, proc=ForceRestart, name='ForceRestart'))
 		fetcher = None

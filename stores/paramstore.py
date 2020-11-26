@@ -3,7 +3,7 @@ import collections
 from stores import valuestore
 import logsupport
 import random
-import exitutils
+from utils import exitutils
 
 
 class ParamStore(valuestore.ValueStore):

@@ -1,17 +1,13 @@
 import time
 
-import pygame
-
 import debug
-import fonts
-import hw
 import logsupport
-import screen
+from screens import screen
 import screens.__screens as screens
-import utilities
+from utils import utilities, fonts, hw
 from logsupport import ConsoleWarning
-from utilfuncs import wc
-from weatherfromatting import CreateWeathBlock
+from utils.utilfuncs import wc
+from utils.weatherfromatting import CreateWeathBlock
 
 
 class ClockScreenDesc(screen.ScreenDesc):

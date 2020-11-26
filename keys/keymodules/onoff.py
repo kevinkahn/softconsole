@@ -1,9 +1,8 @@
 import debug
-import displayupdate
 import logsupport
-import screen
-import supportscreens
-import utilities
+from screens import screen
+import screens.supportscreens as supportscreens
+from utils import utilities, displayupdate
 from keys.keyspecs import KeyTypes
 from keys.keyutils import _resolvekeyname
 from logsupport import ConsoleWarning

@@ -1,6 +1,6 @@
 import config
 import logsupport
-import screen
+from screens import screen
 from keys.keyspecs import KeyTypes
 from keys.keyutils import internalprocs
 from keys.keymodules.internalproc import InternalProcKey

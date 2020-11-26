@@ -9,12 +9,10 @@ import xmltodict
 import debug
 import config
 import historybuffer
-import hw
 import hubs.isy.isycodes as isycodes
 import hubs.isy.isyeventmonitor as isyeventmonitor
 import logsupport
-import threadmanager
-import utilities
+from utils import utilities, threadmanager, hw
 from logsupport import ConsoleWarning, ConsoleError, ConsoleDetailHigh, ConsoleDetail
 from stores import valuestore, isyvarssupport
 from ..hubs import HubInitError

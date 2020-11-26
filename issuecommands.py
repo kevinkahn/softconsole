@@ -14,7 +14,8 @@ import config
 from collections import OrderedDict
 from typing import NamedTuple, Callable
 from enum import Enum
-from exitutils import MAINTEXIT, Exit_Screen_Message, MAINTRESTART, MAINTPISHUT, MAINTPIREBOOT, Exit, REMOTERESTART, \
+from utils.exitutils import MAINTEXIT, Exit_Screen_Message, MAINTRESTART, MAINTPISHUT, MAINTPIREBOOT, Exit, \
+	REMOTERESTART, \
 	REMOTEEXIT, REMOTEPISHUT, REMOTEPIREBOOT
 
 fetcher = None

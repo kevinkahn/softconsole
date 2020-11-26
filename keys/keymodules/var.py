@@ -3,13 +3,13 @@ import shlex
 import debug
 import keys.keymodules.runprogram
 import logsupport
-import screen
+from screens import screen
 from keys.keyspecs import KeyTypes
 from keys.keyutils import _SetUpProgram, ChooseType
 from logsupport import ConsoleWarning
 from stores import valuestore
 from keyspecs.toucharea import ManualKeyDesc
-from utilfuncs import RepresentsInt, tint, wc
+from utils.utilfuncs import RepresentsInt, tint, wc
 
 
 class VarKey(ManualKeyDesc):

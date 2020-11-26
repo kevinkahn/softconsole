@@ -4,7 +4,7 @@ from controlevents import CEvent
 import debug
 import logsupport
 from logsupport import ConsoleDetail, ConsoleWarning
-import timers
+from utils import timers
 import alertsystem.alerttasks as alerttasks
 import guicore.switcher as switcher
 import screens.__screens as screens

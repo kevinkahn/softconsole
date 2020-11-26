@@ -1,6 +1,6 @@
 import debug
-import screen
-import utilities
+from screens import screen
+from utils import utilities
 from stores import valuestore
 from keyspecs.toucharea import ManualKeyDesc
 from keys.keyspecs import KeyTypes

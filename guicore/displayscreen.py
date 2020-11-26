@@ -10,10 +10,8 @@ import guicore.switcher as switcher
 from alertsystem import alerttasks
 import config
 import debug
-import exitutils
 import logsupport
-import threadmanager
-import timers
+from utils import timers, threadmanager, exitutils
 from controlevents import CEvent, GetEvent
 from logsupport import ConsoleWarning, ConsoleError
 from consolestatus import ReportStatus

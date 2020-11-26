@@ -3,7 +3,7 @@ from logsupport import ConsoleWarning, ConsoleError
 import debug
 import screens.__screens as screens
 import config
-import screen
+from screens import screen
 import traceback
 import guicore.screenmgt as screenmgt
 

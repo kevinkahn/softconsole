@@ -5,17 +5,13 @@ from pygame import draw
 import inspect
 
 import debug
-import displayupdate
-import fonts
-import hw
 import logsupport
-import screen
+from screens import screen, screenutil
 import screens.__screens as screens
-import screenutil
-import utilities
+from utils import utilities, fonts, displayupdate, hw
 from logsupport import ConsoleDetail
 from keyspecs import toucharea
-from utilfuncs import wc
+from utils.utilfuncs import wc
 from guicore.switcher import SwitchScreen
 
 class VerifyScreen(screen.BaseKeyScreenDesc):
@@ -136,7 +132,7 @@ class ValueChangeScreen(screen.ScreenDesc):  # todo may need to call super class
 
 		cancelcenter = (screencenter[0], screencenter[1] + int(1.75 * vertzonesize))
 		cancelsize = (
-		hw.screenwidth / 2, int(vertzonepct * hw.screenheight * .125))  # todo switch to use useable vert hgt
+			hw.screenwidth / 2, int(vertzonepct * hw.screenheight * .125))  # todo switch to use useable vert hgt
 
 		self.Keys['cancel'] = toucharea.ManualKeyDesc(self, 'cancel', ['Cancel', ], BackgroundColor, CharColor,
 													  CharColor,

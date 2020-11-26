@@ -1,4 +1,4 @@
-from hw import scaleH, scaleW
+from utils.hw import scaleH, scaleW
 import collections
 
 HomeScreen = None

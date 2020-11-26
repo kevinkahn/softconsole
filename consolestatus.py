@@ -4,20 +4,17 @@ from datetime import datetime
 import functools
 import configobj
 
-import displayupdate
+from utils import displayupdate, hw
 import issuecommands
 from keys.keyutils import internalprocs
-import supportscreens
+import screens.supportscreens as supportscreens
 import json
 import copy
 
-import hw
-import screen
-import screenutil
 from keyspecs import toucharea
-from screens import __screens as screens
-from utilfuncs import wc
-from maintscreenbase import MaintScreenDesc
+from screens import __screens as screens, screen, screenutil
+from utils.utilfuncs import wc
+from screens.maintscreenbase import MaintScreenDesc
 import logsupport
 import config
 import stats

@@ -1,6 +1,6 @@
 import debug
 import logsupport
-import utilities
+from utils import utilities
 from controlevents import CEvent, PostEvent, ConsoleEvent
 from keys.keyutils import ErrorKey
 

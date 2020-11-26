@@ -3,7 +3,7 @@
 from configobj import Section
 import config
 import debug
-import exitutils
+from utils import exitutils
 import logsupport
 import screens.__screens as screens
 from logsupport import ConsoleWarning, ConsoleError, ConsoleDetail

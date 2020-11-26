@@ -15,7 +15,7 @@ from darksky.request_manager import RequestManger
 from ..genericweatherstore import RegisterFetcher
 
 from stores.weathprov.providerutils import TryShorten, WeathProvs, MissingIcon
-from utilfuncs import interval_str, TreeDict
+from utils.utilfuncs import interval_str, TreeDict
 
 WeatherIconCache = {'n/a': MissingIcon}
 

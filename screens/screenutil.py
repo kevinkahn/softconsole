@@ -1,7 +1,7 @@
 import pygame
 
-import fonts
-from utilfuncs import wc
+from utils import fonts
+from utils.utilfuncs import wc
 
 
 def fitFont(font, s, FitLine):

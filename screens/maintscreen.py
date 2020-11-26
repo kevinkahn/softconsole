@@ -1,20 +1,17 @@
 import functools
 from collections import OrderedDict
 
-
-import displayupdate
+from utils import displayupdate, hw
 from guicore.switcher import SwitchScreen
 import config
 import debug
-import hw
 import logsupport
-import screen
-import screens.__screens as screens
+from screens import screen
 import issuecommands
 from logsupport import ConsoleWarning
-from maintscreenbase import MaintScreenDesc, fixedoverrides
+from screens.maintscreenbase import MaintScreenDesc, fixedoverrides
 import consolestatus
-import supportscreens
+import screens.supportscreens as supportscreens
 
 MaintScreen = None
 

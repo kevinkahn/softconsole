@@ -5,12 +5,11 @@ import threading
 import controlevents
 import debug
 import historybuffer
-import hw
+from utils import hw
 import logsupport
-import screen
+from screens import screen, screenutil
 import screens.__screens as screens
-import screenutil
-import supportscreens
+import screens.supportscreens as supportscreens
 from guicore.switcher import SwitchScreen
 from keyspecs import toucharea
 from logsupport import ConsoleWarning

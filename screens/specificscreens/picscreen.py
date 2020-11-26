@@ -1,11 +1,10 @@
 ScreenType = 'Picture'
-import screen
+from screens import screen
 import screens.__screens as screens
 import pygame
 import debug
-import utilities
+from utils import utilities, threadmanager, hw
 import time
-import hw
 import config
 from threading import Event
 from queue import Queue, Empty
@@ -15,7 +14,6 @@ import shutil
 import PIL.Image
 import logsupport
 from logsupport import ConsoleWarning, ConsoleDetail
-import threadmanager
 
 
 class PictureScreenDesc(screen.ScreenDesc):

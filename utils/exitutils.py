@@ -5,16 +5,12 @@ import time
 
 import pygame
 
-import displayupdate
-
 import config
-import fonts
 import historybuffer
-import hw
 import logsupport
-import timers
+from utils import timers, fonts, displayupdate, hw
 from logsupport import ConsoleError
-from utilfuncs import *
+from utils.utilfuncs import *
 
 
 # Exit Codes:

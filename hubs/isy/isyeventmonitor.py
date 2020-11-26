@@ -11,13 +11,13 @@ import xmltodict
 
 import config
 import debug
-import exitutils
+from utils import exitutils
 import hubs.isy.isycodes as isycodes
 import logsupport
 from controlevents import CEvent, PostEvent, ConsoleEvent, PostIfInterested
 from hubs.isy.isycodes import EVENT_CTRL, formatwsitem
 from logsupport import ConsoleWarning, ConsoleError, ConsoleDetail, ConsoleDetailHigh
-from threadmanager import ThreadStartException
+from utils.threadmanager import ThreadStartException
 
 
 class ISYEMInternalError(Exception):

@@ -1,5 +1,5 @@
 from alertsystem import alerttasks
-import exitutils
+from utils import exitutils
 import logsupport
 
 

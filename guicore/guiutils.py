@@ -5,8 +5,7 @@ import logsupport
 from logsupport import ConsoleError
 import psutil
 import historybuffer
-import exitutils
-import threadmanager
+from utils import threadmanager, exitutils
 import multiprocessing
 import threading
 import failsafe

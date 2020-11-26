@@ -1,6 +1,6 @@
 import pygame
 
-import hw
+from utils import hw
 
 rotationangle = (0, 270, 180, 90, 0)
 touchmodifier = ('', 'cc90', 'flip', 'cc270', '')

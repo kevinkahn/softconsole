@@ -3,13 +3,11 @@ import os
 import signal
 
 import pygame
-import displayupdate
 
 import config
 import debug
-import hw
 import logsupport
-import threadmanager  # should not depend on in project files - move somewhere else
+from utils import threadmanager, displayupdate, hw
 from controlevents import CEvent, PostEvent, ConsoleEvent
 from logsupport import ConsoleDetail, ConsoleWarning
 from stores import valuestore
@@ -196,8 +194,8 @@ def InitializeEnvironment():
 
 
 def DumpDocumentation():
-	docfile = open('docs/params.txt', 'w')
-	os.chmod('docs/params.txt', 0o555)
+	docfile = open('../docs/params.txt', 'w')
+	os.chmod('../docs/params.txt', 0o555)
 	docfile.write('Global Parameters:\n')
 	for p in sorted(globdoc):
 		docfile.write(
@@ -212,10 +210,10 @@ def DumpDocumentation():
 		for q in sorted(moddoc[p]['ovrd']):
 			docfile.write('            ' + q + '\n')
 	docfile.close()
-	docfile = open('docs/classstruct.txt', 'w')
+	docfile = open('../docs/classstruct.txt', 'w')
 	docfile.write('Class/Attribute Structure:\n')
 	docfile.write('\n')
-	mdfile = open('docs/classstruct.md', 'w')
+	mdfile = open('../docs/classstruct.md', 'w')
 	mdfile.write('# Class/Attribute Structure:\n')
 	mdfile.write('\n')
 

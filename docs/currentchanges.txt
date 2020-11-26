@@ -91,3 +91,14 @@ Related to the above, access to attributes of entities in HA can now be made via
 Weather fetching has been changed to operate autonomously for all defined locations.  Previously, fetches were initiated when a screen needed them and there was not recent weather.  Because it is now reasonable to use weather information in places other than weather screens, the console now simple updates weather whenever it expires, using the cache mechanism if multiple consoles are in use.
 
 A minor addition is to allow semi transparent navigation keys if a picture screen is used as a regular screen rather than as an idle screen which improves appearance.
+
+
+Factored keys, gui
+All screens clocked
+Graceful load of weather providers
+Factor main loop
+Reduce number of screen timers
+Refactor triggers/alerts
+Pic screen bug on network directories and disconnect
+Alert capability for HA atributes
+Improved alert tests

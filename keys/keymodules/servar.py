@@ -1,8 +1,8 @@
 import debug
 import hubs.hubs
 import logsupport
-import screen
-import utilities
+from screens import screen
+from utils import utilities
 from keys.keyspecs import KeyTypes
 from keys.keyutils import ErrorKey
 from logsupport import ConsoleWarning

@@ -11,13 +11,12 @@ import config
 import debug
 from . import haremote as ha
 import historybuffer
-import hw
 import logsupport
-import threadmanager
+from utils import threadmanager, hw
 from controlevents import CEvent, PostEvent, ConsoleEvent, PostIfInterested
 from logsupport import ConsoleWarning, ConsoleError, ConsoleDetail
 from stores import valuestore, haattraccess
-from utilities import CheckPayload
+from utils.utilities import CheckPayload
 
 AddIgnoredDomain = None  # gets filled in by ignore to avoid import loop
 

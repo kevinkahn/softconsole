@@ -1,8 +1,7 @@
-import hw
 import config
 from controlevents import CEvent, ConsoleEvent
 import historybuffer
-import timers
+from utils import timers, hw
 
 dim = 'Bright'
 

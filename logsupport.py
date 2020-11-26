@@ -7,12 +7,10 @@ from threading import Lock
 
 import pygame
 
-import displayupdate
 import webcolors
 
-import fonts
+from utils import fonts, displayupdate, hw
 import historybuffer
-import hw
 import screens.__screens as screens
 
 wc = webcolors.name_to_rgb  # can't use the safe version from utilities due to import loop but this is only used with
@@ -44,7 +42,7 @@ import config
 import time
 import os
 import re
-from hw import disklogging
+from utils.hw import disklogging
 from enum import Enum
 
 LogLevels = ('Debug', 'DetailHigh', 'Detail', 'Info', 'Warning', 'Error')

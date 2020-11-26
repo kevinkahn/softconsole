@@ -1,6 +1,6 @@
 import paho.mqtt.client as mqtt
 import json, time
-from utilities import CheckPayload
+from utils.utilities import CheckPayload
 
 NodeTally = {}
 LocationTally = {}

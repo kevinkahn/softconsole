@@ -1,6 +1,6 @@
 import debug
-import screen
-import supportscreens
+from screens import screen
+import screens.supportscreens as supportscreens
 from keys.keyutils import _SetUpProgram
 from keys.keyspecs import KeyTypes
 from keyspecs.toucharea import ManualKeyDesc

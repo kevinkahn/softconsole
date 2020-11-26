@@ -36,9 +36,8 @@ import config
 import debug
 import hubs.hubs
 import screens.__screens as screens
-import timers
+from utils import timers, utilities, displayupdate, hw, exitutils
 from stores import mqttsupport, valuestore, localvarsupport, sysstore
-import displayupdate
 
 config.sysStore = valuestore.NewValueStore(sysstore.SystemStore('System'))
 config.sysStore.SetVal('ConsoleStartTime', time.time())
@@ -47,18 +46,14 @@ import configobjects
 import atexit
 
 from guicore import displayscreen
-import exitutils
-import hw
 import hubs.isy.isy as isy
 import hubs.ha.hasshub as hasshub
 import logsupport
-import maintscreen
-import utilities
 from logsupport import ConsoleWarning, ConsoleError, ConsoleDetail
 
 from alertsystem import alerttasks
 from stores.weathprov.providerutils import SetUpTermShortener, WeathProvs
-import screen
+from screens import screen, maintscreen
 import historybuffer
 import controlevents
 
@@ -239,11 +234,11 @@ logsupport.Logs.Log(
 Dynamically load class definitions for all defined screen types, slert types, hubtypes, weather provider types
 and link them to how configuration happens
 """
-for screentype in os.listdir(os.getcwd() + '/screens'):
+for screentype in os.listdir(os.getcwd() + '/screens/specificscreens'):
 	if '__' not in screentype:
 		splitname = os.path.splitext(screentype)
 		if splitname[1] == '.py':
-			importlib.import_module('screens.' + splitname[0])
+			importlib.import_module('screens.specificscreens.' + splitname[0])
 
 logsupport.Logs.Log("Screen types imported")
 
@@ -506,7 +501,8 @@ else:
 		hubs.hubs.defaulthub = hubs.hubs.Hubs[nm]
 		logsupport.Logs.Log("Default hub is: ", nm)
 	except KeyError:
-		logsupport.Logs.Log("Specified default Hub {} doesn't exist; hubs are: {}".format(screen.screenStore.GetVal('DefaultHub'), list(hubs.hubs.Hubs.keys())), severity=ConsoleWarning)
+		logsupport.Logs.Log("Specified default Hub {} doesn't exist; hubs are: {}".format(
+			screen.screenStore.GetVal('DefaultHub'), list(hubs.hubs.Hubs.keys())), severity=ConsoleWarning)
 		hubs.hubs.defaulthub = None
 
 """

@@ -4,18 +4,14 @@ import pygame
 from pygame import gfxdraw
 
 import debug
-import displayupdate
-import fonts
-import hw
 import logsupport
-import screen
+from screens import screen
 import screens.__screens as screens
-import timers
+from utils import timers, utilities, fonts, displayupdate, hw
 from keyspecs import toucharea
-import utilities
-from hw import scaleW, scaleH
+from utils.hw import scaleW, scaleH
 from logsupport import ConsoleWarning
-from utilfuncs import wc
+from utils.utilfuncs import wc
 
 
 def trifromtop(h, v, n, size, c, invert):

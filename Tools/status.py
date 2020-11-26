@@ -6,7 +6,7 @@ import time
 from itertools import zip_longest
 from datetime import datetime
 import statusinput
-from utilities import CheckPayload
+from utils.utilities import CheckPayload
 
 import paho.mqtt.client as mqtt
 

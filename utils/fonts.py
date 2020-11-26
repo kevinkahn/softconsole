@@ -1,7 +1,7 @@
 import pygame
 
 import debug
-import hw
+from utils import hw
 
 monofont = "notomono"  # gets reset to "droidsansmono" if noto not present to support pre Stretch
 

@@ -5,16 +5,14 @@ import pygame
 import config
 import debug
 import hubs.ha.hasshub as hasshub  # only to test that the hub for this is an HA hub
-import hw
 import logsupport
-import screen
+from screens import screen, screenutil
 import screens.__screens as screens
-import screenutil
-import supportscreens
+import screens.supportscreens as supportscreens
 from keyspecs import toucharea
-import utilities
+from utils import utilities, hw
 from logsupport import ConsoleError, ConsoleWarning
-from utilfuncs import wc
+from utils.utilfuncs import wc
 
 
 # noinspection PyUnusedLocal

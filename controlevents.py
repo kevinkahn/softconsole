@@ -3,7 +3,7 @@ import time
 from enum import Enum
 
 import debug
-import timers
+from utils import timers
 
 import psutil
 import historybuffer

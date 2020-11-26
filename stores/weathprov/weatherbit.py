@@ -17,7 +17,7 @@ from ._weatherbit.utils import LocalizeDateTime
 from ..genericweatherstore import RegisterFetcher
 
 from stores.weathprov.providerutils import TryShorten, WeathProvs, MissingIcon
-from utilfuncs import interval_str
+from utils.utilfuncs import interval_str
 from ._weatherbit.utils import _get_date_from_timestamp
 
 WeatherIconCache = {'n/a': MissingIcon}

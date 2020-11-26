@@ -2,12 +2,11 @@
 from configobj import Section
 
 import debug
-import displayupdate
 from keys import keyspecs
 import logsupport
-import screen
+from screens import screen
 import screens.__screens as screens
-import utilities
+from utils import utilities, displayupdate
 from logsupport import ConsoleWarning
 
 

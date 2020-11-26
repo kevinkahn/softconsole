@@ -6,7 +6,7 @@ from random import random
 import pygame
 import json
 import queue
-import threadmanager
+from utils import threadmanager
 import config
 import logsupport
 from logsupport import ConsoleWarning, ConsoleDetail

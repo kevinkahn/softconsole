@@ -4,20 +4,15 @@ import pygame
 import functools
 from guicore.switcher import SwitchScreen
 import config
-import displayupdate
-import fonts
 import hubs.hubs
-import hw
 import logsupport
 import screens.__screens as screens
 import stores.paramstore as paramstore
 import stores.valuestore as valuestore
 from keyspecs import toucharea
-import utilities
 from logsupport import ConsoleError, ConsoleWarning, ConsoleDetail
-from utilfuncs import wc, tint, fmt
-import timers
-
+from utils.utilfuncs import wc, tint, fmt
+from utils import timers, utilities, fonts, displayupdate, hw
 
 ScreenParams = {'DimTO': 99,
 				'CharColor': "white",

@@ -2,8 +2,7 @@ from datetime import datetime
 from dateutil.parser import parse
 
 import logsupport
-import timers
-import utilities
+from utils import timers, utilities
 import alertsystem.alertutils as alertutils
 import alertsystem.alerttasks as alerttasks
 
