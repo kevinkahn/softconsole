@@ -53,8 +53,6 @@ def GetEvent():
 	cpu = psutil.Process(config.sysStore.Console_pid).cpu_times()
 	HBControl.Entry("Get: {} queuesize: {}".format(evnt, qs))
 
-	now = time.time()
-
 	qt = time.time() - evnt.QTime
 	'''
 	if qs >= consolestatus.queuedepthmax:

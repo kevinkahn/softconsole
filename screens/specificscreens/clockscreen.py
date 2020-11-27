@@ -53,6 +53,7 @@ class ClockScreenDesc(screen.ScreenDesc):
 			hw.screen.blit(l[i], (horiz_off, vert_off))
 			vert_off = vert_off + s + l[i].get_height()
 		if self.ExtraSize[0] != 0:
+			# noinspection PyUnboundLocalVariable
 			horiz_off = (hw.screenwidth - cb.get_width()) // 2
 			hw.screen.blit(cb, (horiz_off, vert_off))
 

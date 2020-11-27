@@ -1,6 +1,5 @@
 from guicore.displayscreen import EventDispatch
 from controlevents import CEvent
-import guicore.guiutils as guiutils
 import debug
 
 

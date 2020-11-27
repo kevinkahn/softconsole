@@ -17,6 +17,8 @@ def on_connect(client, userdata, flags, rc):
 
 def on_message(client, userdata, msg):
 	global statdump, NodeTally, LocationTally, LocLastFetch, LocNames
+	topic = '**unset**'
+	payload = '**unset**'
 	try:
 		topic = msg.topic.split('/')[4]
 		payload = msg.payload.decode('ascii')
@@ -49,7 +51,7 @@ def on_message(client, userdata, msg):
 			with open('watchw', 'a') as f:
 				f.write('------\n')
 
-		print(topic, fn, loc, p['fetchcount'], time.strftime('%H:%M:%S', time.localtime(ft)), gap)
+		# print(topic, fn, loc, p['fetchcount'], time.strftime('%H:%M:%S', time.localtime(ft)), gap)
 		with open('watchw', 'a') as f:
 			f.write('{}, {}, {}, {}, {}, {}\n'.format(topic, fn, gap, loc, ft, p['fetchcount']))
 	except Exception as E:

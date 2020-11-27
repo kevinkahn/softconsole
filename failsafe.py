@@ -27,17 +27,17 @@ def TempThreadList():
 	'''
 	time.sleep(10)
 	while True:
-		L = multiprocessing.active_children()  # clean any zombie failsafe
+		multiprocessing.active_children()  # clean any zombie failsafe
 		# for x in L:
 		#	DevPrint('Process {}: alive: {} pid: {} daemon: {}'.format(x.name, x.is_alive(), x.pid, x.daemon))
 		threadlist = threading.enumerate()
 		for thd in threadlist:
-			#DevPrint('Threadlist: {} alive: {} ident: {} daemon: {} \n'.format(thd.name, thd.is_alive(), thd.ident, thd.daemon))
+			# DevPrint('Threadlist: {} alive: {} ident: {} daemon: {} \n'.format(thd.name, thd.is_alive(), thd.ident, thd.daemon))
 			if thd.name == 'MainThread' and not thd.is_alive():
 				DevPrint('Main Thread died')
-				os.kill(os.getpid(),signal.SIGINT)  # kill myself
+				os.kill(os.getpid(), signal.SIGINT)  # kill myself
 
-		#DevPrint('=================End')
+		# DevPrint('=================End')
 		time.sleep(30)
 
 def NoEventInjector():
@@ -52,14 +52,17 @@ def NoEventInjector():
 		except Exception as E:
 			time.sleep(FailsafeInterval / 2)
 			DevPrint('Inject Exception {}'.format(repr(E)))
-			# spurious exceptions during shutdown
+		# spurious exceptions during shutdown
 	DevPrint('Injector exiting')
 
+
+# noinspection PyProtectedMember
 def EndWatchDog(signum, frame):
 	DevPrint('Watchdog ending on shutdown {}'.format(signum))
 	os._exit(0)
 
 
+# noinspection PyProtectedMember
 def WatchdogDying(signum, frame):
 	try:
 		if signum == signal.SIGTERM:
@@ -69,11 +72,13 @@ def WatchdogDying(signum, frame):
 			os._exit(0)
 		else:
 			DevPrint('Watchdog dying signum: {} frame: {}'.format(signum, frame))
+			# noinspection PyBroadException
 			try:
 				os.kill(config.sysStore.Console_pid, signal.SIGUSR1)
 			except:
 				pass  # probably main console already gone
 			time.sleep(3)
+			# noinspection PyBroadException
 			try:
 				os.kill(config.sysStore.Console_pid, signal.SIGKILL)  # with predjudice
 			except:

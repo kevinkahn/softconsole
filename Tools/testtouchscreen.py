@@ -9,7 +9,6 @@ import struct
 import time
 from collections import namedtuple
 import pygame
-import subprocess
 
 import select
 

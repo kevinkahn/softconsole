@@ -21,6 +21,14 @@
         <list>
           <option value="isy.OnOffItem.name" />
           <option value="isy.OnOffItem.address" />
+          <option value="stores.valuestore.ValueStore.name" />
+          <option value="stores.mqttsupport.MQTTBroker.name" />
+          <option value="controlevents.ConsoleEvent.QTime" />
+          <option value="controlevents.ConsoleEvent.*" />
+          <option value="_importlib_modulespec.ModuleType.IgnoredDomain" />
+          <option value="os._exit" />
+          <option value="stores.isyvarssupport.ISYVars.name" />
+          <option value="Exception.response" />
         </list>
       </option>
     </inspection_tool>

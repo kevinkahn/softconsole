@@ -3,7 +3,6 @@ import threading
 import subprocess
 import functools
 
-
 import githubutil as U
 import logsupport
 import historybuffer
@@ -12,15 +11,18 @@ from logsupport import ConsoleWarning, ConsoleError, ConsoleInfo
 from controlevents import PostEvent, ConsoleEvent, CEvent
 import config
 from collections import OrderedDict
-from typing import NamedTuple, Callable
+from typing import NamedTuple, Callable, Union
 from enum import Enum
 from utils.exitutils import MAINTEXIT, Exit_Screen_Message, MAINTRESTART, MAINTPISHUT, MAINTPIREBOOT, Exit, \
 	REMOTERESTART, \
 	REMOTEEXIT, REMOTEPISHUT, REMOTEPIREBOOT
 
-fetcher = None
+fetcher = None  # type: Union[None, threading.Thread]
 
-ReportStatus = None  # filled in by consolestatus to avoid dependency loop
+ReportStatus = None  # type: Union[Callable, None]
+
+
+# filled in by consolestatus to avoid dependency loop
 
 def TempCheckSanity(Key, params):
 	if Key is None and params is None:
@@ -31,7 +33,9 @@ def FetchInProgress():
 	global fetcher
 	return fetcher is not None and fetcher.is_alive()
 
+
 # todo further compress below to unify messagint
+# noinspection PyUnusedLocal
 def RestartConsole(params=None, Key=None, AutoVer=False):  # todo sort out autovers
 	TempCheckSanity(Key, params)
 	if not FetchInProgress():

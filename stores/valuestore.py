@@ -268,6 +268,7 @@ class ValueStore(object):
 		except:
 			logsupport.Logs.Log("Type setting error", self.name, " new type: ", vtype)
 
+	# noinspection PyAttributeOutsideInit
 	def SimpleInit(self, nmlist, init):
 		if self.itemtyp != StoreItem:
 			logsupport.Logs.Log("Can't SimpleInit non-simple store: ", self.name, severity=ConsoleError)
@@ -349,7 +350,7 @@ class ValueStore(object):
 					for b in self.items(parents=np, d=i):
 						yield b
 				else:
-					yield (parents + (n,))
+					yield parents + (n,)
 		except Exception as e:
 			raise e
 

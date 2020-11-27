@@ -74,9 +74,9 @@ class MQTTBroker(valuestore.ValueStore):
 
 		# noinspection PyUnusedLocal
 		def on_message(client, userdata, msg):
+			topic = msg.topic
 			try:
 				self.rcvd.Op()
-				topic = msg.topic
 				# command to force get: mosquitto_pub -t consoles/all/cmd -m getstable;  mosquitto_pub -t consoles/all/cmd -m restart
 				loopstart = time.time()
 				var = []
@@ -316,7 +316,7 @@ class MQTTBroker(valuestore.ValueStore):
 				self.MQTTclient.publish(fulltopic, payload, qos=qos, retain=retain)
 			except Exception as E:
 				self.MQTTCommFailed = True
-				logsupport.Logs.Log('MQTT Publish error ({}).format(repr(E)', severity=ConsoleError, localonly=True)
+				logsupport.Logs.Log('MQTT Publish error ({})'.format(repr(E)), severity=ConsoleError, localonly=True)
 		else:
 			if viasvr:
 				logsupport.Logs.Log("{}: Publish attempt with server not running ({})".format(self.name, repr(payload)),

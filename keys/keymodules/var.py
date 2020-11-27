@@ -1,7 +1,6 @@
 import shlex
 
 import debug
-import keys.keymodules.runprogram
 import logsupport
 from screens import screen
 from keys.keyspecs import KeyTypes
@@ -116,7 +115,7 @@ class VarKey(ManualKeyDesc):
 				i = len(self.ValueSeq) - 1
 			valuestore.SetVal(self.Var, self.ValueSeq[(i + 1) % len(self.ValueSeq)])
 		else:
-			keys.keymodules.runprogram.RunProgram(param=self.Parameter)
+			self.Program.RunProgram(param=self.Parameter)
 
 
 KeyTypes['VARKEY'] = VarKey

@@ -25,6 +25,7 @@ class Api(object):
         base_url = self._get_forecast_url(kwargs['granularity'])
 
         # Build root geo-lookup.
+        arg_url_str = '**unset**'
         if 'lat' in kwargs and 'lon' in kwargs:
             arg_url_str = "&lat=%(lat)s&lon=%(lon)s"
         elif 'city' in kwargs:
@@ -49,6 +50,7 @@ class Api(object):
         base_url = self._get_current_url()
 
         # Build root geo-lookup.
+        arg_url_str = '**unset**'
         if 'lat' in kwargs and 'lon' in kwargs:
             arg_url_str = "&lat=%(lat)s&lon=%(lon)s"
         elif 'city' in kwargs:
@@ -78,7 +80,7 @@ class Api(object):
         weatherbitio_reponse = requests.get(url)
         weatherbitio_reponse.raise_for_status()
         json = weatherbitio_reponse.json()
-        headers = weatherbitio_reponse.headers
+        # headers = weatherbitio_reponse.headers
         return json
 
     def get_current(self, **kwargs):
@@ -90,5 +92,5 @@ class Api(object):
         weatherbitio_reponse = requests.get(url)
         weatherbitio_reponse.raise_for_status()
         json = weatherbitio_reponse.json()
-        headers = weatherbitio_reponse.headers
+        #headers = weatherbitio_reponse.headers
         return json

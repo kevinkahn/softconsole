@@ -16,6 +16,7 @@ screenStore = None  # filled in by screen to avoid import circularity
 screentypes = {}  # set by each module for screens of the type that module creates (see last line in any XxxScreen module
 
 
+# noinspection PyUnresolvedReferences
 def ScaleScreensInfo():
 	# Compute all values in base screen size case
 	screenStore.SetVal('BotBorder', scaleH(screenStore.BotBorderWONav + screenStore.NavKeyHeight))

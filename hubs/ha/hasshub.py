@@ -6,6 +6,7 @@ import importlib
 from ..hubs import HubInitError
 
 import websocket
+from typing import Callable, Union
 
 import config
 import debug
@@ -18,7 +19,8 @@ from logsupport import ConsoleWarning, ConsoleError, ConsoleDetail
 from stores import valuestore, haattraccess
 from utils.utilities import CheckPayload
 
-AddIgnoredDomain = None  # gets filled in by ignore to avoid import loop
+AddIgnoredDomain: Union[Callable, None] = None  # type Union[Callable, None]
+# gets filled in by ignore to avoid import loop
 
 ignoredeventtypes = [
 	'system_log_event', 'call_service', 'service_executed', 'logbook_entry', 'timer_out_of_sync', 'result',
@@ -26,6 +28,7 @@ ignoredeventtypes = [
 	'hacs/repository', 'hacs/config', 'entity_registry_updated', 'component_loaded', 'device_registry_updated',
 	'entity_registry_updated', 'lovelace_updated', 'isy994_control', 'core_config_updated', 'homeassistant_start',
 	'config_entry_discovered', 'automation_reloaded', 'hacs/stage', 'hacs/reload']
+
 
 def stringtonumeric(v):
 	if not isinstance(v, str):
@@ -50,6 +53,7 @@ from ast import literal_eval
 class HAnode(object):
 	def __init__(self, HAitem, **entries):
 		self.entity_id = ''
+		self.object_id = ''
 		self.name = ''
 		self.attributes = {}
 		self.state = 0
@@ -242,12 +246,15 @@ class HA(object):
 				self.StartStatusChecker()
 
 	def DeleteFromUnknowns(self, node):
+		# noinspection DuplicatedCode
 		try:
 			del self.UnknownList[node.name]
-			logsupport.Logs.Log('{}: Deleted {} from unknowns list {}'.format(self.name, node.name, self.UnknownList), severity = ConsoleWarning)
+			logsupport.Logs.Log('{}: Deleted {} from unknowns list {}'.format(self.name, node.name, self.UnknownList),
+								severity=ConsoleWarning)
 		except Exception as E:
 			logsupport.Logs.Log(
-				'{}: Failed attempt to delete {} from unknowns list {}'.format(self.name, node.name, self.UnknownList),
+				'{}: Failed attempt to delete {} from unknowns list {} ({})'.format(self.name, node.name,
+																					self.UnknownList, E),
 				severity=ConsoleWarning)
 
 	def GetActualState(self, ent):
@@ -465,10 +472,10 @@ class HA(object):
 								del self.Indirectors[ent]
 								logsupport.Logs.Log('Indirector in {} for {} not for a supported domain {}'.format(self.name,ent,dom))
 						else:
-							if old != None:
+							if old is not None:
 								logsupport.Logs.Log(
 									"New entity seen with 'old' state from {}: {} (Domain: {}) (Old: {}  New: {})".format(
-									self.name, ent, dom, repr(old), repr(new)))
+										self.name, ent, dom, repr(old), repr(new)))
 							p2 = dict(new, **{'domain': dom, 'name': nm, 'object_id': ent})
 							if dom not in hadomains:
 								AddIgnoredDomain(dom)
@@ -517,9 +524,9 @@ class HA(object):
 					pass
 				elif '.' in m['event_type']:
 					# domain specific event
-					d, e = m['event_type'].split('.')
+					d, ev = m['event_type'].split('.')
 					if d in domainspecificevents:
-						domainspecificevents[d](e, message)
+						domainspecificevents[d](ev, message)
 				elif m['event_type'] == 'homeassistant_started':
 					# HA just finished initializing everything so we may have been quicker - refresh all state
 					# with open('/home/pi/Console/msglog{}'.format(self.name), 'a') as f:
@@ -606,6 +613,7 @@ class HA(object):
 		websocket.setdefaulttimeout(30)
 		try:
 			# websocket.enableTrace(True)
+			# noinspection PyProtectedMember
 			self.ws = websocket.WebSocketApp(self.wsurl, on_message=on_message,
 											 on_error=on_error,
 											 on_close=on_close, on_open=on_open, header=self.api._headers)

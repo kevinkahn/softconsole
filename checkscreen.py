@@ -9,7 +9,6 @@ import struct
 import time
 from collections import namedtuple
 import pygame
-import subprocess
 
 import select
 
@@ -323,6 +322,7 @@ if __name__ == "__main__":
 
 	print(scrntp)
 
+	fb = '**unset**'
 	if scrntp in screendefs:
 		fb = screendefs[scrntp][0].split('/')[-1]
 		print(fb)

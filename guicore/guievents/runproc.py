@@ -1,5 +1,5 @@
 from guicore.displayscreen import EventDispatch
-from controlevents import CEvent, GetEventNoWait
+from controlevents import CEvent
 import guicore.guiutils as guiutils
 
 

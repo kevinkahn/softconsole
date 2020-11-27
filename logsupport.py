@@ -9,6 +9,7 @@ import pygame
 
 import webcolors
 
+from typing import Callable, Union
 from utils import fonts, displayupdate, hw
 import historybuffer
 import screens.__screens as screens
@@ -17,7 +18,7 @@ wc = webcolors.name_to_rgb  # can't use the safe version from utilities due to i
 
 # known color names
 
-ReportStatus = None
+ReportStatus: Union[Callable, None] = None
 EarlyLog = []
 
 
@@ -91,11 +92,11 @@ def LogProcess(q):
 	def ExitLog(signum, frame):
 		nonlocal exiting
 		exiting = time.time()
-		with open('/home/pi/Console/.HistoryBuffer/hlog', 'a') as f:
-			f.write(
+		with open('/home/pi/Console/.HistoryBuffer/hlog', 'a') as fh:
+			fh.write(
 				'{}({}): Logger process exiting for signal {} exiting: {}\n'.format(os.getpid(), time.time(), signum,
 																					exiting))
-			f.flush()
+			fh.flush()
 		signal.signal(signal.SIGHUP, signal.SIG_IGN)
 
 	def IgnoreHUP(signum, frame):
@@ -392,7 +393,7 @@ class Logger(object):
 			tbinfo = traceback.format_exc().splitlines()
 			for l in tbinfo:  # todo doesn't seem to work?
 				print('---{}'.format(l))
-				self.RecordMessage(ConsoleError, ({}).format(l),
+				self.RecordMessage(ConsoleError, '{}'.format(l),
 								   defentrytime, False, True)
 
 

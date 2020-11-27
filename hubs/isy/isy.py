@@ -96,6 +96,7 @@ class Node(Folder, OnOffItem):
 			props = [props]  # make it a list so below always works
 		for item in props:
 			if item['@id'] == 'ST':
+				# noinspection PyProtectedMember
 				self.devState = isycodes._NormalizeState(item['@value'])
 				if item['@value'] != ' ':
 					self.hasstatus = True
@@ -216,6 +217,7 @@ class ISY(object):
 	and useful directories to its nodes/programs.  Provides a debug method to dump the constructed graph.
 	"""
 
+	# noinspection PyUnusedLocal
 	def __init__(self, name, isyaddr, user, pwd, version):
 
 		if isyaddr == '' or user == '':
@@ -558,7 +560,10 @@ class ISY(object):
 			del self.UnknownList[node.name]
 			logsupport.Logs.Log('{}: Deleted {} from unknowns list {}'.format(self.name, node.name, self.UnknownList), severity = ConsoleWarning)
 		except Exception as E:
-			logsupport.Logs.Log('{}: Failed attempt to delete {} from unknowns list {}'.format(self.name, node.name, self.UnknownList), severity = ConsoleWarning)
+			logsupport.Logs.Log(
+				'{}: Failed attempt to delete {} from unknowns list {} ({})'.format(self.name, node.name,
+																					self.UnknownList, E),
+				severity=ConsoleWarning)
 
 	def GetActualState(self, ent):
 		logsupport.Logs.Log('{}: Call to GetActualState for {}'.format(self.name, ent), severity=ConsoleWarning)
@@ -690,6 +695,7 @@ class ISY(object):
 			devstate = 0
 			for item in props:
 				if item['@id'] == "ST":
+					# noinspection PyProtectedMember
 					devstate = isycodes._NormalizeState(item['@value'])
 					break
 		else:
@@ -703,6 +709,7 @@ class ISY(object):
 
 	@staticmethod
 	def _LinkChildrenParents(nodelist, listbyname, looklist1, looklist2):
+		node = None
 		try:
 			for node in nodelist.values():
 				listbyname[node.name] = node
@@ -716,7 +723,7 @@ class ISY(object):
 				if node.parent != node:  # avoid root
 					node.parent.children.append(node)
 		except Exception as E:
-			logsupport.Logs.Log('Error linking parents for {}'.format(repr(node)))
+			logsupport.Logs.Log('Error linking parents for {} ({})'.format(repr(node), E))
 
 	def GetNode(self, name, proxy=''):
 		# return (Control Obj, Monitor Obj)

@@ -11,7 +11,7 @@ def DummyAsyncFileWrite(fn, writestr, access='a'):
 AsyncFileWrite = DummyAsyncFileWrite  # set from log support to avoid circular imports
 DevPrint = None
 
-import topper
+# import topper
 
 WatchGC = False  # set True to see garbage collection info
 Buffers = {}
