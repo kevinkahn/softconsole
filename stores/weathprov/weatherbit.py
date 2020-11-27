@@ -18,6 +18,7 @@ from ..genericweatherstore import RegisterFetcher
 
 from stores.weathprov.providerutils import TryShorten, WeathProvs, MissingIcon
 from utils.utilfuncs import interval_str
+# noinspection PyProtectedMember
 from ._weatherbit.utils import _get_date_from_timestamp
 
 WeatherIconCache = {'n/a': MissingIcon}
@@ -212,6 +213,7 @@ class WeatherbitWeatherSource(object):
 		RegisterFetcher('Weatherbit', storename, self)
 		self.actualfetch = stats.CntStat(name=storename, title=storename, keeplaps=True, PartOf=LocalFetches, inc=2,
 										 init=0)
+		# noinspection PyBroadException
 		try:  # t try to convert to lat/lon
 			locationstr = location.split(',')
 			if len(locationstr) != 2:
@@ -241,7 +243,8 @@ class WeatherbitWeatherSource(object):
 	def MapItem(self, src, item):
 		try:
 			if isinstance(item, tuple):
-				return item[0](TreeDict(src, item[1]))
+				t = TreeDict(src, item[1])
+				return None if t is None else item[0](t)
 			else:
 				return item
 		except Exception as E:
@@ -278,6 +281,7 @@ class WeatherbitWeatherSource(object):
 				except Exception as E:
 					Esave = E
 					if E.response.status_code == 429:
+						# noinspection PyBroadException
 						try:
 							resetin = float(
 								json.loads(E.response.text)['status_message'].split("after ", 1)[1].split(' ')[0])
@@ -309,6 +313,7 @@ class WeatherbitWeatherSource(object):
 	def LoadWeather(self, winfo, weathertime, fn='unknown'):
 		# load weather from the cache (however it got there) into the store
 		# print('WBLoad {} {} {}'.format(self.thisStoreName, fn, weathertime))
+		forecast = '**unset**'
 		try:
 			current = winfo['current']
 			forecast = winfo['forecast']
