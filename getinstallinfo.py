@@ -13,45 +13,46 @@ def GetScripts(vers, save=''):
 	if save != '':
 		for s in installscripts:
 			os.rename(s, '.consoleinstallleftovers/' + s + '.' + save)
-	for n, loc in installscripts.items():
-		wget.download(gitprefix + gitselector[vers] + '/' + loc + n, n, bar=None)
+	for nm, floc in installscripts.items():
+		wget.download(gitprefix + gitselector[vers] + '/' + floc + nm, nm, bar=None)
 	shutil.chown('lxterminal.conf', user='pi', group='pi')
 
 
 def GetYN(prompt, Allownum=False):
 	while True:
-		ans = input(prompt + ' ')
-		if ans in ('Y', 'y'):
+		answer = input(prompt + ' ')
+		if answer in ('Y', 'y'):
 			return True
-		elif ans in ('N', 'n'):
+		elif answer in ('N', 'n'):
 			return False
 		elif Allownum:
-			return ans
+			return answer
 		else:
 			print('Answer Y or N')
 
 
 def GetVal(prompt, allowed=None):
 	while True:
-		ans = input(prompt + ' ')
+		answer = input(prompt + ' ')
 		if allowed is None:
-			return ans
+			return answer
 		else:
-			if ans in allowed:
-				return ans
+			if answer in allowed:
+				return answer
 			else:
 				print('Choices are {}'.format(allowed))
 
 
+# noinspection PyBroadException
 def GetInt(prompt, allowed=None):
 	while True:
 		try:
-			ans = int(input(prompt + ' '))
+			answer = int(input(prompt + ' '))
 			if allowed is None:
-				return ans
+				return answer
 			else:
-				if ans in allowed:
-					return ans
+				if answer in allowed:
+					return answer
 				else:
 					print('Choices are {}'.format(allowed))
 		except:
@@ -64,25 +65,26 @@ scriptvars = []
 def AddToScript(varset, value):
 	global scriptvars
 	if isinstance(value, bool):
-		set = ('N', 'Y')[value]
+		setting = ('N', 'Y')[value]
 	elif isinstance(value, str):
-		set = value
+		setting = value
 	else:
-		set = str(value)
-	scriptvars.append(varset + '=' + set + '\n')
+		setting = str(value)
+	scriptvars.append(varset + '=' + setting + '\n')
 
 
-def adafruit(scr, rot):
+def adafruit(scr, rotation):
 	fin = open('/home/pi/adafruit-pitft.sh')
 	displays = []
 	while not displays:
-		l = fin.readline()
-		if l.startswith('PITFT_TYPES='):
-			displays = l[l.index('(') + 1: l.index(')')].replace('"', '').split(' ')
+		line = fin.readline()
+		if line.startswith('PITFT_TYPES='):
+			displays = line[line.index('(') + 1: line.index(')')].replace('"', '').split(' ')
 		else:
 			pass
 	fin.close()
 
+	# noinspection PyBroadException
 	try:
 		dnum = displays.index(scr) + 1
 	except:
@@ -90,7 +92,7 @@ def adafruit(scr, rot):
 		sys.exit(1)
 	fout = open('adafinput', 'w')
 	fout.write(str(dnum) + '\n')
-	fout.write(str(rot) + '\n')
+	fout.write(str(rotation) + '\n')
 	fout.write('Y\n')  # pi console to pitft
 	fout.write('N\n')  # don't reboot
 	fout.close()
@@ -99,6 +101,7 @@ def adafruit(scr, rot):
 			"raspi-config nonint do_boot_behaviour B4 # set boot to desktop already logged in\n"]
 
 
+# noinspection PyUnusedLocal
 def doflip(scr):
 	global baseorientation
 	print("If you are not using a Pi4 you can use hardware to flip the base orientation")
@@ -123,6 +126,7 @@ shutil.rmtree('.consoleinstallleftovers', ignore_errors=True)
 os.mkdir('.consoleinstallleftovers')
 
 for n, loc in neededfiles.items():
+	# noinspection PyBroadException
 	try:
 		os.remove(n)
 	except Exception:

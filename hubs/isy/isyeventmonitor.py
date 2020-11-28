@@ -163,10 +163,10 @@ class ISYEventMonitor(object):
 		def on_error(qws, error):
 			self.isy.HBWS.Entry(repr(error))
 			self.lasterror = "ISYUnknown"
-			sev = ConsoleWarning if config.sysStore.ErrLogReconnects else logsupport.ConsoleInfo
+			reconsev = ConsoleWarning if config.sysStore.ErrLogReconnects else logsupport.ConsoleInfo
 			if isinstance(error, websocket.WebSocketConnectionClosedException):
 				logsupport.Logs.Log(self.hubname + " WS connection closed - attempt to recontact ISY",
-									severity=sev)
+									severity=reconsev)
 				self.lasterror = 'ISYClose'
 			elif isinstance(error, websocket.WebSocketTimeoutException):
 				logsupport.Logs.Log(self.hubname + " WS connection timed out", severity=ConsoleWarning)
@@ -195,9 +195,9 @@ class ISYEventMonitor(object):
 		# noinspection PyUnusedLocal
 		def on_close(qws, code, reason):
 			self.isy.HBWS.Entry("Close")
-			sev = ConsoleWarning if config.sysStore.ErrLogReconnects else logsupport.ConsoleInfo
+			reconsev = ConsoleWarning if config.sysStore.ErrLogReconnects else logsupport.ConsoleInfo
 			logsupport.Logs.Log("{} WS stream {} closed: {}:{}".format(self.hubname, self.QHnum, code, reason),
-								severity=sev, hb=True)
+								severity=reconsev, hb=True)
 			debug.debugPrint('DaemonCtl', "ISY Websocket stream closed", str(code), str(reason))
 
 		def on_open(qws):
@@ -267,10 +267,10 @@ class ISYEventMonitor(object):
 					if ecode == 'ST':  # update cached state first before posting alerts or race
 
 						if isinstance(N, isycodes.ThermType):
-							N.cur = isycodes._NormalizeState(eaction)
+							N.cur = isycodes.NormalizeState(eaction)
 						elif N is not None:  # todo v5 has other things in stream without a node or with Node not in NodesByAddr?
 							oldstate = N.devState
-							N.devState = isycodes._NormalizeState(eaction)
+							N.devState = isycodes.NormalizeState(eaction)
 							debug.debugPrint('ISYchg', 'ISY Node: ', N.name, ' state change from: ', oldstate,
 											 ' to: ', N.devState)
 							if (oldstate == N.devState) and self.THstate == 'running':
@@ -300,19 +300,19 @@ class ISYEventMonitor(object):
 															severity=ConsoleDetail)
 										# noinspection PyArgumentList
 										PostEvent(ConsoleEvent(CEvent.ISYAlert, hub=self.isy.name, node=enode,
-															   value=isycodes._NormalizeState(eaction), alert=a))
+															   value=isycodes.NormalizeState(eaction), alert=a))
 					elif ecode == 'CLIHCS' and isinstance(N, isycodes.ThermType):
-						N.statecode = isycodes._NormalizeState(eaction)
+						N.statecode = isycodes.NormalizeState(eaction)
 					elif ecode == 'CLIFS' and isinstance(N, isycodes.ThermType):
-						N.fancode = isycodes._NormalizeState(eaction)
+						N.fancode = isycodes.NormalizeState(eaction)
 					elif ecode == 'CLIMD' and isinstance(N, isycodes.ThermType):
-						N.modecode = isycodes._NormalizeState(eaction)
+						N.modecode = isycodes.NormalizeState(eaction)
 					elif ecode == 'CLIHUM' and isinstance(N, isycodes.ThermType):
-						N.hum = isycodes._NormalizeState(eaction)
+						N.hum = isycodes.NormalizeState(eaction)
 					elif ecode == 'CLISPH' and isinstance(N, isycodes.ThermType):
-						N.setlow = isycodes._NormalizeState(eaction)
+						N.setlow = isycodes.NormalizeState(eaction)
 					elif ecode == 'CLISPC' and isinstance(N, isycodes.ThermType):
-						N.sethigh = isycodes._NormalizeState(eaction)
+						N.sethigh = isycodes.NormalizeState(eaction)
 
 
 					if ecode in self.reportablecodes:
@@ -325,8 +325,8 @@ class ISYEventMonitor(object):
 						# logsupport.Logs.Log('reportable event '+str(ecode)+' for '+str(enode)+' action '+str(eaction))
 
 						if enode in ('22.18.A3 1', '22.18.A3 3'): print(
-							'Thermmsg: {} {}'.format(enode, isycodes._NormalizeState(eaction)))
-						PostIfInterested(self.isy, enode, isycodes._NormalizeState(eaction))
+							'Thermmsg: {} {}'.format(enode, isycodes.NormalizeState(eaction)))
+						PostIfInterested(self.isy, enode, isycodes.NormalizeState(eaction))
 
 					elif (prcode == 'Trigger') and (eaction == '6'):
 						vinfo = eInfo['var']

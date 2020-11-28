@@ -219,6 +219,7 @@ class HA(object):
 		while worktodo:
 			templist = dict(self.UnknownList)
 			for node in templist:
+				# noinspection PyUnusedLocal
 				e = self.GetActualState(node.name)
 			# ** should post e as a node state change
 			time.sleep(10)
@@ -245,8 +246,8 @@ class HA(object):
 			elif not self.StatusCheckerThread.is_alive():
 				self.StartStatusChecker()
 
+	# noinspection DuplicatedCode
 	def DeleteFromUnknowns(self, node):
-		# noinspection DuplicatedCode
 		try:
 			del self.UnknownList[node.name]
 			logsupport.Logs.Log('{}: Deleted {} from unknowns list {}'.format(self.name, node.name, self.UnknownList),

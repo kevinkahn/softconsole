@@ -9,11 +9,11 @@ def LocalizeDateTime(t):
 	return t.replace(year=now.year, month=now.month, day=now.day, tzinfo=timezone.utc).astimezone(tzlocal())
 
 
-def _get_date_from_timestamp(datestamp, minsec=False):
+def _get_date_from_timestamp(datestamp):
 	for fmt in ('%Y-%m-%d:%H:%M', '%Y-%m-%d:%H', '%Y-%m-%d %H:%M', '%Y-%m-%d', "%H:%M"):
 		try:
 			t = datetime.datetime.strptime(datestamp, fmt)
-			#print('Matched {} with {} as {}'.format(fmt, datestamp, t))
+			# print('Matched {} with {} as {}'.format(fmt, datestamp, t))
 			return t
 		except ValueError:
 			pass

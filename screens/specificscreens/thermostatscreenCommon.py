@@ -137,11 +137,12 @@ class ThermostatScreenDesc(screen.BaseKeyScreenDesc):
 														wc(self.CharColor, factor=self.LocalOnly[1]))
 			hw.screen.blit(rH, (self.SPHPosR - self.SPWdt // 2, self.SPVPos))
 			displayupdate.updatedisplay()
-		#pygame.display.update(pygame.Rect(self.SPHPosR - self.SPWdt // 2, self.SPVPos, self.SPWdt, self.SPHgt))
+		# pygame.display.update(pygame.Rect(self.SPHPosR - self.SPWdt // 2, self.SPVPos, self.SPWdt, self.SPHgt))
 		self.TimerName += 1
 		self.TimeBumpSP = timers.OnceTimer(2.0, name='ThermostatSP' + str(self.TimerName), proc=self.PushTemp)
 		self.TimeBumpSP.start()
 
+	# noinspection PyUnusedLocal
 	def PushTemp(self, param):
 		# called on callback timeout
 		self.ThermNode.PushSetpoints(self.t_low, self.t_high)

@@ -97,7 +97,7 @@ class Node(Folder, OnOffItem):
 		for item in props:
 			if item['@id'] == 'ST':
 				# noinspection PyProtectedMember
-				self.devState = isycodes._NormalizeState(item['@value'])
+				self.devState = isycodes.NormalizeState(item['@value'])
 				if item['@value'] != ' ':
 					self.hasstatus = True
 		# no use for nodetype now
@@ -201,6 +201,7 @@ class Program(ProgramFolder):
 		# not using enabled, runAtStartup,running
 		utilities.register_example("Program", self)
 
+	# noinspection PyUnusedLocal
 	def RunProgram(self, param=None):  # for ISY this does a runThen
 		debug.debugPrint('ISYdbg', "runThen sent to ", self.name)
 		url = self.Hub.ISYprefix + 'programs/' + self.address + '/runThen'
@@ -551,14 +552,17 @@ class ISY(object):
 			else:
 				logsupport.Logs.Log("Attempt to set ISY var to None: ", storeitem.name)
 
-	def AddToUnknowns(self,node):
+	def AddToUnknowns(self, node):
 		self.UnknownList[node.name] = node
-		logsupport.Logs.Log('{}: Adding {} to unknowns list {}'.format(self.name,node.name,self.UnknownList), severity = ConsoleWarning)
+		logsupport.Logs.Log('{}: Adding {} to unknowns list {}'.format(self.name, node.name, self.UnknownList),
+							severity=ConsoleWarning)
 
+	# noinspection DuplicatedCode
 	def DeleteFromUnknowns(self, node):
 		try:
 			del self.UnknownList[node.name]
-			logsupport.Logs.Log('{}: Deleted {} from unknowns list {}'.format(self.name, node.name, self.UnknownList), severity = ConsoleWarning)
+			logsupport.Logs.Log('{}: Deleted {} from unknowns list {}'.format(self.name, node.name, self.UnknownList),
+								severity=ConsoleWarning)
 		except Exception as E:
 			logsupport.Logs.Log(
 				'{}: Failed attempt to delete {} from unknowns list {} ({})'.format(self.name, node.name,
@@ -696,7 +700,7 @@ class ISY(object):
 			for item in props:
 				if item['@id'] == "ST":
 					# noinspection PyProtectedMember
-					devstate = isycodes._NormalizeState(item['@value'])
+					devstate = isycodes.NormalizeState(item['@value'])
 					break
 		else:
 			devstate = -99999

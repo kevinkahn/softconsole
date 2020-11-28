@@ -10,6 +10,7 @@ import logsupport
 from logsupport import ConsoleWarning
 
 
+# noinspection PyUnusedLocal
 def ACTIVITYTIMER(event):
 	debug.debugPrint('Dispatch', 'Activity timer fired State=', screenmgt.screenstate, '/',
 					 screenmgt.DimState())

@@ -41,11 +41,12 @@ class HAattributes(valuestore.ValueStore):
 		else:
 			# return attribute
 			attr = obj.attributes
+			# noinspection PyBroadException
 			try:
 				for i in n[1:]:
 					attr = attr[i]
 				return attr
-			except Exception as E:
+			except Exception:
 				# This is a normal case since attributes like brightness go undefined when state is off
 				return None
 

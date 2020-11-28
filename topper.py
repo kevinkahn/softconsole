@@ -15,18 +15,21 @@ TopP = None
 
 def inittop():
 	global topdir, TopP
-	topdir = historybuffer.HBdir+'Tops'
+	topdir = historybuffer.HBdir + 'Tops'
 	os.mkdir(topdir)
-	os.mkdir(topdir+'/Current')
+	os.mkdir(topdir + '/Current')
 	TopP = multiprocessing.Process(target=dotops, name='Topper')
 	TopP.daemon = True
 	TopP.start()
-	#os.system('echo WLAN > /home/pi/Console/wlan')
-	config.sysStore.SetVal('Topper_pid',TopP.pid)
+	# os.system('echo WLAN > /home/pi/Console/wlan')
+	config.sysStore.SetVal('Topper_pid', TopP.pid)
 	logsupport.Logs.Log('Started top check process: {}'.format(TopP.pid))
 
+
+# noinspection PyUnusedLocal
 def IgnoreHUP(signum, frame):
 	logsupport.DevPrint('Topper got HUP - ignoring')
+
 
 def dotops():
 	global topseq
@@ -39,8 +42,9 @@ def dotops():
 			#os.system('iwconfig wlan0 >> /home/pi/Console/wlan')
 			os.system('top -bn1 > '+topdir+'/Current/{:08d}'.format(topseq))
 			if topseq - 30 >= 0:
+				# noinspection PyBroadException
 				try:
-					os.remove(topdir+'/Current/{:08d}'.format(topseq-30))
+					os.remove(topdir + '/Current/{:08d}'.format(topseq - 30))
 				except:
 					pass
 			topseq +=1

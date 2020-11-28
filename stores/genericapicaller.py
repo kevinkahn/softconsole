@@ -1,4 +1,4 @@
-'''
+"""
 # creation info apikey, baseurl, urlparams (how to structure), frequency of refresh (allow on demand?)
 # perhaps a formatting string of some sort?
 //a.com/xyz?key={},lat={}
@@ -39,4 +39,4 @@ when the file changes, otherwise the watching thread just processes the var chan
 
 
 Add a general blank screen
-'''
+"""

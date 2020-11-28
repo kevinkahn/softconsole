@@ -56,9 +56,11 @@ SELFTOKEN = None
 
 
 def CommonClockTick(params):
+	# noinspection PyProtectedMember
 	config.AS._ClockTick(params)
 
 
+# noinspection PyProtectedMember
 def CommonClockTickValid():
 	return config.AS._ClockTickValid()
 
@@ -181,6 +183,7 @@ class ScreenDesc(object):
 		self.HubInterestList = {}  # one entry per hub, each entry is a dict mapping addr to Node
 
 		self.ScreenTitleBlk = None
+		self.ScreenTitle = ''
 		self.prevkey = None
 		self.nextkey = None
 		self.NavKeyWidth = (hw.screenwidth - 2 * self.HorizBorder) // 2
@@ -239,7 +242,7 @@ class ScreenDesc(object):
 		utilities.register_example('ScreenDesc', self)
 
 	def _GenerateTitleBlk(self, title, fields, color):
-		vals = ['--' if v is None else v for v in [valuestore.GetVal(f)  for f in fields]]
+		vals = ['--' if v is None else v for v in [valuestore.GetVal(f) for f in fields]]
 		formattedTitle = fmt.format(title, *vals)
 		blk = fonts.fonts.Font(self.ScreenTitleSize, bold=True).render(formattedTitle, 0, wc(color))
 		w = blk.get_width()
@@ -248,6 +251,7 @@ class ScreenDesc(object):
 	def _ClockTickValid(self):
 		return self.Active
 
+	# noinspection PyUnusedLocal
 	def _ClockTick(self, params):
 		if not self.Active: return  # avoid race with timer and screen exit
 		self.ClockTick()

@@ -8,10 +8,12 @@ def PreOp():
 	if not os.path.exists(config.sysStore.HomeDir + '/homesystem'):
 		print('Not home system')
 		return
+	# noinspection PyBroadException
 	try:
 		os.mkdir(config.sysStore.HomeDir + '/photos')
 	except:
 		pass
+	# noinspection PyBroadException
 	try:
 		os.mkdir(config.sysStore.HomeDir + '/.exconfs')
 	except:

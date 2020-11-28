@@ -75,20 +75,25 @@ def SpawnAsyncLogger():
 	AsyncLogger.start()
 	config.sysStore.SetVal('AsyncLogger_pid', AsyncLogger.pid)
 
+
 def InitLogs(screen, dirnm):
 	return Logger(screen, dirnm)
 
-def AsyncFileWrite(fn,writestr,access='a'):
+
+def AsyncFileWrite(fn, writestr, access='a'):
 	LoggerQueue.put((Command.FileWrite, fn, access, writestr))
 
 
 historybuffer.AsyncFileWrite = AsyncFileWrite  # to avoid circular imports
 
+
+# noinspection PyBroadException
 def LogProcess(q):
 	global Logs
 	item = (99, 'init')
 	exiting = 0
 
+	# noinspection PyUnusedLocal
 	def ExitLog(signum, frame):
 		nonlocal exiting
 		exiting = time.time()
@@ -99,11 +104,11 @@ def LogProcess(q):
 			fh.flush()
 		signal.signal(signal.SIGHUP, signal.SIG_IGN)
 
+	# noinspection PyUnusedLocal
 	def IgnoreHUP(signum, frame):
-		with open('/home/pi/Console/.HistoryBuffer/hlog', 'a') as f:
-			f.write('{}({}): Logger process SIGHUP ignored\n'.format(os.getpid(),time.time()))
-			f.flush()
-
+		with open('/home/pi/Console/.HistoryBuffer/hlog', 'a') as fhlog:
+			fhlog.write('{}({}): Logger process SIGHUP ignored\n'.format(os.getpid(), time.time()))
+			fhlog.flush()
 
 	signal.signal(signal.SIGTERM, ExitLog)  # don't want the sig handlers from the main console
 	signal.signal(signal.SIGINT, ExitLog)
@@ -416,8 +421,9 @@ class Logger(object):
 		text = re.sub('\s\s+', ' ', itext.rstrip())
 		ltext = re.split('([ :,])', text)
 		ltext.append('')
-		ptext = []
 		logfont = fonts.fonts.Font(config.sysStore.LogFontSize, face=fonts.monofont)
+
+		ptext = []
 		while len(ltext) > 1:
 			ptext.append(ltext[0])
 			del ltext[0]
@@ -447,7 +453,7 @@ class Logger(object):
 			return "Local Log No more entries        Page: {}      {}".format(pageno, time.strftime('%c')), False
 
 
-def LineRenderer(itemnumber, font, uselog):
+def LineRenderer(itemnumber, logfont, uselog):
 	if not (len(uselog) > itemnumber):
 		return ' ', False
 	itext = uselog[itemnumber][1]
@@ -457,6 +463,7 @@ def LineRenderer(itemnumber, font, uselog):
 	text = re.sub('\s\s+', ' ', itext.rstrip())
 	ltext = re.split('([ :,])', text)
 	ltext.append('')
+
 	ptext = []
 	while len(ltext) > 1:
 		ptext.append(ltext[0])
@@ -464,13 +471,13 @@ def LineRenderer(itemnumber, font, uselog):
 		while 1:
 			if len(ltext) == 0:
 				break
-			t = font.size(''.join(ptext) + ltext[0])[0]
+			t = logfont.size(''.join(ptext) + ltext[0])[0]
 			if t > hw.screenwidth - 10:
 				break
 			else:
 				ptext.append(ltext[0])
 				del ltext[0]
-		rl.append(font.render(''.join(ptext), False, wc(color)))
+		rl.append(logfont.render(''.join(ptext), False, wc(color)))
 		h += rl[-1].get_height()
 		ptext = ["    "]
 	blk = pygame.Surface((hw.screenwidth, h))

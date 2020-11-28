@@ -13,7 +13,7 @@ import copy
 
 from keyspecs import toucharea
 from screens import __screens as screens, screen, screenutil
-from utils.utilfuncs import wc
+from utils.utilfuncs import wc, interval_str
 from screens.maintscreenbase import MaintScreenDesc
 import logsupport
 import config
@@ -111,21 +111,6 @@ def UpdateNodeStatus(nd, stat):
 		logsupport.Logs.Log('UpdtStat {}'.format(repr(E)))
 
 
-def GotResp(nd, errs):
-	global ErrorBuffer, ErrorNode, RespRcvd
-	ErrorBuffer = errs
-	ErrorNode = nd
-	RespRcvd = True
-
-
-def status_interval_str(sec_elapsed):
-	d = int(sec_elapsed / (60 * 60 * 24))
-	h = int((sec_elapsed % (60 * 60 * 24)) / 3600)
-	m = int((sec_elapsed % (60 * 60)) / 60)
-	s = int(sec_elapsed % 60)
-	return "{} dys {:>02d}:{:>02d}:{:>02d}".format(d, h, m, s)
-
-
 class ShowVersScreen(screen.BaseKeyScreenDesc):
 	def __init__(self, showhw):
 		self.showhw = showhw
@@ -192,7 +177,7 @@ class StatusDisplayScreen(screen.BaseKeyScreenDesc):
 					qmax = '     '
 				else:
 					estat = ' ' if ndinfo['error'] == -1 else '?' if ndinfo['error'] == -1 else '*'
-					cstat = " {:>15.15s}".format(status_interval_str(ndinfo['uptime']))
+					cstat = " {:>15.15s}".format(interval_str(ndinfo['uptime'], shrt=True))
 
 					statinfo = Nodes[nd]['stats']['System']
 					if statinfo['maincyclecnt'] == 'unknown*':
@@ -209,7 +194,7 @@ class StatusDisplayScreen(screen.BaseKeyScreenDesc):
 					bt = "{:^19.19}".format('unknown')
 				else:
 					bt = "{:%Y-%m-%d %H:%M:%S}".format(datetime.fromtimestamp(ndinfo['boottime']))
-				age = time.time() - ndinfo['rpttime'] if ndinfo['rpttime'] != 0 else 0
+				# age = time.time() - ndinfo['rpttime'] if ndinfo['rpttime'] != 0 else 0
 
 				if displayupdate.portrait:
 					ln, ht, wd = screenutil.CreateTextBlock(
@@ -315,6 +300,7 @@ class CommandScreen(screen.BaseKeyScreenDesc):
 			config.MQTTBroker.Publish('cmd', cmdsend, self.FocusNode)
 		self.CmdListScreens[self.entered].AddToHubInterestList(config.MQTTBroker, cmd, Key)
 
+	# noinspection PyUnusedLocal
 	def IssueDeadCmd(self, cmd, Key=None):
 		# local processing only for a command regarding a dead node
 		if cmd == 'deletehistory':
@@ -346,18 +332,15 @@ class CommandScreen(screen.BaseKeyScreenDesc):
 		for n, s in self.CmdListScreens.items():
 			s.DeleteScreen()
 
-	def RequestErrors(self, nd):
-		global ErrorBuffer, ErrorNode, ErrorsRcvd
-		ErrorsRcvd = False
-		logsupport.primaryBroker.Publish('cmd', node=nd, payload='geterrors')
-
-	def ScreenContentRepaint(self):
+	'''
+	def ScreenContentRepaint(self):  # todo ???
 		landfont = 15
 		if displayupdate.portrait:
 			pass
 		else:
 			header, ht, wd = screenutil.CreateTextBlock(
 				'  Node       ', landfont, 'white', False)
+	'''
 
 def PickStartingSpot():
 	return 0
@@ -376,7 +359,7 @@ def LogDisplay(evnt):
 									functools.partial(logsupport.LineRenderer, uselog=evnt.value),
 									functools.partial(PageTitle, node=evnt.respfrom, loginfo=evnt.value),
 									config.sysStore.LogFontSize, 'white')
-	if evnt.value != []:
+	if evnt.value:
 		issuecommands.lastseenlogmessage = (evnt.value[0][0], evnt.value[0][1])
 	p.singleuse = True
 	screen.PushToScreen(p)

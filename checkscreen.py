@@ -125,10 +125,10 @@ class Touchscreen(object):
 
 	def __init__(self):
 		self.touchdefs = {}
-		with open('touchdefinitions') as f:
-			defs = f.read().splitlines()
-			for l in defs:
-				touchitem = l.split('|')
+		with open('touchdefinitions') as fn:
+			defitems = fn.read().splitlines()
+			for ln in defitems:
+				touchitem = ln.split('|')
 				self.touchdefs[touchitem[0]] = touchitem[1:]
 		print(self.touchdefs)
 		self._use_multitouch = True
@@ -281,8 +281,8 @@ class Touchscreen(object):
 		# return '/dev/input/touchscreen'
 		for evdev in glob.glob("/sys/class/input/event*"):
 			try:
-				with io.open(os.path.join(evdev, 'device', 'name'), 'r') as f:
-					dev = f.read().strip()
+				with io.open(os.path.join(evdev, 'device', 'name'), 'r') as fn:
+					dev = fn.read().strip()
 					if dev in self.touchdefs:
 						self.controller = dev
 						vals = self.touchdefs[dev]
@@ -342,6 +342,7 @@ if __name__ == "__main__":
 	screendev = screendefs[scrntp][0]
 	if scrntp[-1] == 'B':  # Buster system
 		if screendev[-1] == '0':  # check if there is an fb1 and use that if available Buster hack
+			# noinspection PyBroadException
 			try:
 				with open('/dev/fb1') as f:
 					screendev = '/dev/fb1'

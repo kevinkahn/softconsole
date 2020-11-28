@@ -37,7 +37,7 @@ def GetNextReportTime(at=None):
 	h = daysec // 3600
 	m = (daysec - h * 3600) // 60
 	reporttimesleft = list(filter(lambda x: x[0] > daysec, ReportTimes))
-	if reporttimesleft != []:
+	if reporttimesleft:
 		lastreporttime = reporttimesleft[0][0]
 		return [(x[0] + midnight, x[1]) for x in filter(lambda x: x[0] == reporttimesleft[0][0], reporttimesleft)]
 	else:
@@ -158,7 +158,7 @@ class Stat(object):
 		self.value = val
 		return self.value
 
-	def Report(self, all=True):
+	def Report(self, allitems=True):
 		pass
 # print value
 
@@ -193,21 +193,21 @@ class CntStat(Stat):
 				   '{} (since start): {}'.format(self.title, self.value))
 			self.lastrpt = self.value
 		else:
-			rtn = (('{}: {}'.format(self.title, self.value),))
+			rtn = ('{}: {}'.format(self.title, self.value),)
 			self.value = 0
 		return val, rtn
 
 
 class LimitStat(Stat):
-	def __init__(self, max=True, keeplaps=False, **kwargs):
+	def __init__(self, maxval=True, keeplaps=False, **kwargs):
 		super().__init__(**kwargs)
 		self.keeplaps = keeplaps
-		self.maxvalue = 0 if max else 999999999999999
+		self.maxvalue = 0 if maxval else 999999999999999
 		self.maxtime = 0
-		self.overallmaxvalue = 0 if max else 999999999999999
+		self.overallmaxvalue = 0 if maxval else 999999999999999
 		self.overallmaxtime = 0
-		self.max = max
-		self.operator = gt if max else lt
+		self.max = maxval
+		self.operator = gt if maxval else lt
 
 	def Op(self, val=None):
 		if val is None:
@@ -220,8 +220,8 @@ class LimitStat(Stat):
 			self.overallmaxtime = time.time()
 		return self.maxvalue
 
-	def Set(self, max, overallmax):  # debug function
-		self.maxvalue = max
+	def Set(self, maxval, overallmax):  # debug function
+		self.maxvalue = maxval
 		self.maxtime = time.time()
 		self.overallmaxvalue = overallmax
 		self.overallmaxtime = time.time() + 100
@@ -236,7 +236,7 @@ class LimitStat(Stat):
 		return self.maxvalue, self.overallmaxvalue, self.maxtime, self.overallmaxtime
 
 	def Report(self, clear=True):
-		max = self.maxvalue
+		maxval = self.maxvalue
 		rtn = ('{}: {} at {}'.format(self.title, self.maxvalue,
 									 datetime.datetime.fromtimestamp(self.maxtime).strftime('%H:%M:%S')),)
 		if self.keeplaps:
@@ -246,17 +246,17 @@ class LimitStat(Stat):
 		if clear:
 			self.maxvalue = 0 if self.max else 999999999999999
 			self.maxtime = time.time()
-		return max, rtn
+		return maxval, rtn
 
 
 class MaxStat(LimitStat):
 	def __init__(self, **kwargs):
-		super().__init__(max=True, **kwargs)
+		super().__init__(maxval=True, **kwargs)
 
 
 class MinStat(LimitStat):
 	def __init__(self, **kwargs):
-		super().__init__(max=False, **kwargs)
+		super().__init__(maxval=False, **kwargs)
 
 
 def _NetRpr(st):

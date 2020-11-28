@@ -21,13 +21,13 @@ class NetworkHealth(object):
 		for i in range(7):
 			# logsupport.LoggerQueue.put((logsupport.Command.FileWrite, '/home/pi/Console/.HistoryBuffer/hlog', 'a', 'Ping:\n'))
 			try:
-				pingresult = subprocess.check_output(cmd, shell=True, universal_newlines=True, stderr=subprocess.STDOUT).splitlines()
+				subprocess.check_output(cmd, shell=True, universal_newlines=True, stderr=subprocess.STDOUT).splitlines()
 				ok = True
-				#for l in pingresult:
+				# for l in pingresult:
 				#	logsupport.LoggerQueue.put((logsupport.Command.FileWrite,'/home/pi/Console/.HistoryBuffer/hlog', 'a', 'Good ping: {}\n'.format(l)))
-				#wlanq = subprocess.check_output('iwconfig wlan0', shell=True, universal_newlines=True,
+				# wlanq = subprocess.check_output('iwconfig wlan0', shell=True, universal_newlines=True,
 				#								stderr=subprocess.STDOUT).splitlines()
-				#for l in wlanq:
+				# for l in wlanq:
 				#	logsupport.LoggerQueue.put((logsupport.Command.FileWrite,'/home/pi/Console/.HistoryBuffer/hlog', 'a', 'WLAN     : {}\n'.format(l)))
 				break
 			except subprocess.CalledProcessError as Res:
@@ -55,7 +55,7 @@ class NetworkHealth(object):
 	def Do_Ping(self, alert):
 		# expects parameter = ipaddr,variable name (local)
 		# set variable name to 0 if ipaddr was accessible and now is not
-		var = valuestore.InternalizeVarName(alert.param[1])
+		# var = valuestore.InternalizeVarName(alert.param[1])
 		if alert.param[0] not in self.LastState:
 			self.LastState[alert.param[0]] = True  # assume up to start
 		FinishPing = functools.partial(self.Set_Ping_Result, alert.param[0], alert.param[1])

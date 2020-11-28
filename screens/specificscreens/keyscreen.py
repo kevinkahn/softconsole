@@ -10,7 +10,9 @@ from utils import utilities, displayupdate
 from logsupport import ConsoleWarning
 
 
+# noinspection PyBroadException
 class KeyScreenDesc(screen.BaseKeyScreenDesc):
+	# noinspection PyBroadException
 	def __init__(self, screensection, screenname, parentscreen=None):
 		super().__init__(screensection, screenname, parentscreen=parentscreen)
 		debug.debugPrint('Screen', "New KeyScreenDesc ", screenname)

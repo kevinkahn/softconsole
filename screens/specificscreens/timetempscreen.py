@@ -112,6 +112,7 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 			spaces += 1
 		sizeindex += 1
 
+		renderedlines = []
 		if not self.store.ValidWeather:
 			maxh = hw.screenwidth + 10
 			fontsize = 30

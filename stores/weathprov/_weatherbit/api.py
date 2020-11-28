@@ -21,9 +21,8 @@ class Api(object):
     def _get_current_url(self):
         return self._get_base_url() + "current/" + "?key=" + self.key
 
-    def get_forecast_url(self, **kwargs):
-        base_url = self._get_forecast_url(kwargs['granularity'])
-
+    @staticmethod
+    def _create_url(**kwargs):
         # Build root geo-lookup.
         arg_url_str = '**unset**'
         if 'lat' in kwargs and 'lon' in kwargs:
@@ -43,32 +42,15 @@ class Api(object):
         if 'units' in kwargs:
             arg_url_str = arg_url_str + "&units=%(units)s"
 
-        return base_url + (arg_url_str % kwargs)
+        return arg_url_str % kwargs
 
+    def get_forecast_url(self, **kwargs):
+        base_url = self._get_forecast_url(kwargs['granularity'])
+        return base_url + self._create_url(**kwargs)
 
     def get_current_url(self, **kwargs):
         base_url = self._get_current_url()
-
-        # Build root geo-lookup.
-        arg_url_str = '**unset**'
-        if 'lat' in kwargs and 'lon' in kwargs:
-            arg_url_str = "&lat=%(lat)s&lon=%(lon)s"
-        elif 'city' in kwargs:
-            arg_url_str = "&city=%(city)s"
-        elif 'city_id' in kwargs:
-            arg_url_str = "&city_id=%(city_id)s"
-
-        # Add on additional parameters.
-        if 'state' in kwargs:
-            arg_url_str = arg_url_str + "&state=%(state)s"
-        if 'country' in kwargs:
-            arg_url_str = arg_url_str + "&country=%(country)s"
-        if 'units' in kwargs:
-            arg_url_str = arg_url_str + "&units=%(units)s"
-
-        return base_url + (arg_url_str % kwargs)
-
-
+        return base_url + self._create_url(**kwargs)
 
     def get_forecast(self, **kwargs):
 

@@ -1,6 +1,7 @@
 import inspect
 import time
 from collections import OrderedDict
+from typing import Any
 
 import debug
 import logsupport
@@ -152,7 +153,7 @@ class StoreItem(object):
 		print("deleter of x called")
 		del self._Value
 
-	def UpdateVal(self, val):
+	def UpdateVal(self, val: Any):
 		if val is None:
 			self.Value = None
 		elif type(val) == self.Type:

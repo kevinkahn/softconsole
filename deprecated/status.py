@@ -7,6 +7,7 @@ from itertools import zip_longest
 from datetime import datetime
 import statusinput
 from utils.utilities import CheckPayload
+from utils.utilfuncs import interval_str
 
 import paho.mqtt.client as mqtt
 
@@ -49,7 +50,7 @@ def paint():
 			print("{:20.20s}".format(' '), end='')
 		else:
 			print(' ' if info.error == -1 else '?' if info.error == -1 else '*', end='')
-			print(" {:>14.14s}  ".format(interval_str(info.uptime)), end='')
+			print(" {:>14.14s}  ".format(interval_str(info.uptime, shrt=True)), end='')
 		if info.boottime == 0:
 			print("{:^17.17}".format('unknown'))
 		else:
@@ -79,14 +80,6 @@ def swinfo():
 		offline = ' (offline)' if info.status in ('dead', 'unknown') else ''
 		print("{:12.12s} ({}) of {} {}".format(n, info.versionname, info.versioncommit, offline))
 		print('             Downloaded: {}'.format(info.versiondnld))
-
-def interval_str(sec_elapsed):
-	d = int(sec_elapsed / (60 * 60 * 24))
-	h = int((sec_elapsed % (60 * 60 * 24)) / 3600)
-	m = int((sec_elapsed % (60 * 60)) / 60)
-	s = int(sec_elapsed % 60)
-	return "{} dys {:>02d}:{:>02d}:{:>02d}".format(d, h, m, s)
-
 
 # noinspection PyUnusedLocal
 def on_connect(mqclient, ud, flags, rc):
@@ -132,7 +125,6 @@ def on_message(mqclient, ud, msg):
 			screen = 'system'
 
 	if True:  # time.time() - tm > 1:
-		tm = time.time()
 		if screen == 'status':
 			paint()
 		elif screen == 'os':

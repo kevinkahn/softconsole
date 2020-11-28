@@ -52,7 +52,7 @@ ThermType = None
 AlertNodes = {}
 
 
-def _NormalizeState(stateval):
+def NormalizeState(stateval):
 	t = stateval
 	if isinstance(t, str):
 		return int(t) if t.isdigit() else 0

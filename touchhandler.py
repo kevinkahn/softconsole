@@ -135,6 +135,7 @@ class Touchscreen(object):
 			for l in defs:
 				touchitem = l.split('|')
 				self.touchdefs[touchitem[0]] = touchitem[1:]
+		# noinspection PyBroadException
 		try:
 			with open(configdir + '/touchdefinitions') as f:
 				defs = f.read().splitlines()

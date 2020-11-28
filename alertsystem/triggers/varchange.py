@@ -32,6 +32,7 @@ def Arm(a):
 
 # Note: VarChange alerts don't need setup because the store has an alert proc
 
+# noinspection PyUnusedLocal
 def VarChanged(storeitem, old, new, param, modifier):
 	debug.debugPrint('DaemonCtl', 'Var changed ', storeitem.name, ' from ', old, ' to ', new)
 	# noinspection PyArgumentList

@@ -394,7 +394,7 @@ def get_config(api: API) -> Dict:
 
 	except (HomeAssistantError, ValueError) as E:
 		# ValueError if req.json() can't parse the JSON
-		# logsupport.Logs.Log("Got unexpected configuration results from HA:{}".format(repr(E)),
-		#					severity=logsupport.ConsoleWarning, hb=True)
-		# logsupport.Logs.Log("Result: " + repr(req))
+		logsupport.Logs.Log("Got unexpected configuration results from HA:{}".format(repr(E)),
+							severity=logsupport.ConsoleWarning, hb=True)
+		logsupport.Logs.Log("Result: " + repr(req))
 		return {}

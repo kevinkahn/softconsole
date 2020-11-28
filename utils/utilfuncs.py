@@ -19,13 +19,16 @@ def wc(clr, factor=0.0, layercolor=(255, 255, 255)):
 	return v[0] + (lc[0] - v[0]) * factor, v[1] + (lc[1] - v[1]) * factor, v[2] + (lc[2] - v[2]) * factor
 
 
-def interval_str(sec_elapsed):
+def interval_str(sec_elapsed, shrt=False):
 	d = int(sec_elapsed / (60 * 60 * 24))
 	h = int((sec_elapsed % (60 * 60 * 24)) / 3600)
 	m = int((sec_elapsed % (60 * 60)) / 60)
 	s = int(sec_elapsed % 60)
 	if d != 0:
-		return "{} days {:>02d}hrs {:>02d}mn {:>02d}sec".format(d, h, m, s)
+		if shrt:
+			return "{} dys {:>02d}:{:>02d}:{:>02d}".format(d, h, m, s)
+		else:
+			return "{} days {:>02d}hrs {:>02d}mn {:>02d}sec".format(d, h, m, s)
 	elif h != 0:
 		return "{:>02d}hrs {:>02d}mn {:>02d}sec".format(h, m, s)
 	else:
@@ -83,6 +86,7 @@ class PartialFormatter(string.Formatter):
 fmt = PartialFormatter()
 
 
+# noinspection PyBroadException
 def safeprint(*args, **kwargs):
 	try:
 		print(*args, **kwargs)

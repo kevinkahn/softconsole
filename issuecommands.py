@@ -13,7 +13,7 @@ from logsupport import ConsoleWarning, ConsoleError, ConsoleInfo
 from controlevents import PostEvent, ConsoleEvent, CEvent
 import config
 from collections import OrderedDict
-from typing import NamedTuple, Callable, Union
+from typing import Callable, Union
 from enum import Enum
 from utils.exitutils import MAINTEXIT, Exit_Screen_Message, MAINTRESTART, MAINTPISHUT, MAINTPIREBOOT, Exit, \
 	REMOTERESTART, \

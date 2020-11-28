@@ -25,7 +25,10 @@ DSstats = stats.StatReportGroup(name='DarkSkyFetches', title='DarkSky Statistics
 LocalFetches = stats.StatSubGroup(name='LocalWeatherbitFetches', PartOf=DSstats, title='Actual Local Fetches',
 								  totals='Total Local Fetches', rpt=stats.daily)
 
+
+# noinspection DuplicatedCode
 def geticon(nm):
+	# noinspection PyBroadException
 	try:
 		code = IconMap[nm]
 		daynight = 'day' if code < 1000 else 'night'
@@ -108,8 +111,9 @@ CommonFieldMap = {'FcstDays': (fcstlength, ('daily', 'data')),
 icondir = config.sysStore.ExecDir + '/auxinfo/apixuicons/'
 
 
+# noinspection PyUnusedLocal
 class DarkSkyWeatherSource(object):
-	def __init__(self, storename, location, api, units='I'):
+	def __init__(self, storename, location, api, unitstouse='I'):
 		self.apikey = api
 		self.thisStoreName = storename
 		self.thisStore = None
@@ -170,6 +174,7 @@ class DarkSkyWeatherSource(object):
 		self.thisStore.ValidWeather = False
 		return None
 
+	# noinspection PyUnusedLocal
 	def LoadWeather(self, forecast, weathertime, fn='unknown'):
 		# print('DSLoad {} {} {}'.format(self.thisStoreName, fn, weathertime))
 		try:

@@ -34,13 +34,13 @@ def CreateKey(thisscreen, screensection, keyname):
 		screensection['Blink'] = 7
 		screensection['ProgramName'] = screensection.get('KeyRunThenName', '')
 
-	keytype = screensection.get('type', 'ONOFF')
+	thiskeytype = screensection.get('type', 'ONOFF')
 	logsupport.Logs.Log("-Key:" + keyname, severity=ConsoleDetail)
-	if keytype in KeyTypes:
-		NewKey = KeyTypes[keytype](thisscreen, screensection, keyname)
+	if thiskeytype in KeyTypes:
+		NewKey = KeyTypes[thiskeytype](thisscreen, screensection, keyname)
 	else:  # unknown type
 		NewKey = BlankKey(thisscreen, screensection, keyname)
-		logsupport.Logs.Log('Undefined key type ' + keytype + ' for: ' + keyname, severity=ConsoleWarning)
+		logsupport.Logs.Log('Undefined key type ' + thiskeytype + ' for: ' + keyname, severity=ConsoleWarning)
 	return NewKey
 
 

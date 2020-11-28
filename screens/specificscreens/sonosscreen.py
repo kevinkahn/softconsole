@@ -21,7 +21,6 @@ class SonosScreenDesc(screen.BaseKeyScreenDesc):
 	# noinspection PyAttributeOutsideInit
 	def SetScreenContents(self):
 		self.numplayers = 0  # if 0 then Sonos didn't get set up correctly
-		self.numgroups = 0
 		self.nms = []
 		self.gpingrms = []
 		self.PlayerInputs = []
@@ -132,6 +131,14 @@ class SonosScreenDesc(screen.BaseKeyScreenDesc):
 		super().__init__(screensection, screenname)
 		screen.IncorporateParams(self, 'SonosScreen', {'KeyColor'}, screensection)
 		self.SetScreenClock(.25)
+
+		# to avoid warnings from not in init
+		self.SourceSelection = ''
+		self.SourceSet = []
+		self.SourceItem = 0
+		self.nms = []
+		self.gpingrms = []
+
 		self.DullKeyColor = wc(self.KeyColor, .5, self.BackgroundColor)
 		self.HA = self.DefaultHubObj
 		self.Subscreen = -1
@@ -293,7 +300,6 @@ class SonosScreenDesc(screen.BaseKeyScreenDesc):
 				assigned += len(self.SonosGroups[n])
 			else:
 				if n in self.SonosGroups: del self.SonosGroups[n]
-		self.numgroups = len(self.SonosGroups)
 		return assigned == self.numplayers
 
 	def InitDisplay(self, nav):  # todo fix for specific repaint

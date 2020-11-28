@@ -13,6 +13,7 @@ def Arm(a):
 	a.Invoke()
 
 
+# noinspection PyUnusedLocal
 def Parse(nm, spec, action, actionname, param):
 	trig = InitTrigger()
 	return alerttasks.Alert(nm, triggername, trig, action, actionname, param)

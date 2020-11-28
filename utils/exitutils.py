@@ -123,6 +123,7 @@ def Exit(ecode, immediate=False):
 		config.running = False
 		pygame.display.quit()
 		pygame.quit()
+		# noinspection PyProtectedMember
 		os._exit(ecode)  # use this vs sys.exit to avoid atexit interception
 	else:
 		config.ecode = ecode

@@ -19,12 +19,12 @@ def DevPrint(msg):
 		f.flush()
 
 def TempThreadList():
-	'''
+	"""
 	This routine is just for working cleanly with PyCharm IDE.  If you leave a system running that was launched from
 	PyCharm, if the PC controlling it goes to sleep it kills the console.  Unfortunately it only partially kills it and
 	so leaves zombies and threads running.  This code makes sure everything gets killed so as to not leave connections
 	to the ISY which will eventually force it to its limit without manual intervention.
-	'''
+	"""
 	time.sleep(10)
 	while True:
 		multiprocessing.active_children()  # clean any zombie failsafe
@@ -56,7 +56,7 @@ def NoEventInjector():
 	DevPrint('Injector exiting')
 
 
-# noinspection PyProtectedMember
+# noinspection PyProtectedMember,PyUnusedLocal
 def EndWatchDog(signum, frame):
 	DevPrint('Watchdog ending on shutdown {}'.format(signum))
 	os._exit(0)
@@ -89,15 +89,19 @@ def WatchdogDying(signum, frame):
 		time.sleep(1)
 		os._exit(0)
 
+
 def failsafedeath():
 	DevPrint('Failsafe exit hook')
 	DevPrint('failsafedeath {} watching {} at {}'.format(os.getpid(), config.sysStore.Console_pid, time.time()))
 	os.kill(config.sysStore.Console_pid, signal.SIGUSR1)
 	time.sleep(3)
-	os.kill(config.sysStore.Console_pid, signal.SIGKILL) # with predjudice
+	os.kill(config.sysStore.Console_pid, signal.SIGKILL)  # with predjudice
 
+
+# noinspection PyUnusedLocal
 def IgnoreHUP(signum, frame):
 	DevPrint('Watchdog got HUP - ignoring')
+
 
 def MasterWatchDog():
 	signal.signal(signal.SIGTERM, WatchdogDying)  # don't want the sig handlers from the main console
@@ -105,7 +109,7 @@ def MasterWatchDog():
 	signal.signal(signal.SIGUSR1, EndWatchDog)
 	signal.signal(signal.SIGHUP, IgnoreHUP)
 
-	#failsafehooks.hook()
+	# failsafehooks.hook()
 	atexit.register(failsafedeath)
 
 	DevPrint('Master Watchdog Started {} for console pid: {}'.format(os.getpid(), config.sysStore.Console_pid))

@@ -369,7 +369,6 @@ class PagedDisplay(screen.BaseKeyScreenDesc):
 		super().ReInitDisplay()
 
 	def InitDisplay(self, nav):
-		self.pageshowing = -1
 		self.startat = self.StartChooser()
 		self.startpage = 0
 		self.item = 0

@@ -20,6 +20,7 @@ import os
 
 # Windows
 if os.name == 'nt':
+	# noinspection PyUnresolvedReferences
 	import msvcrt
 
 # Posix (Linux, OS X)

@@ -118,18 +118,20 @@ class Touches(list):
 		return [tch for tch in self if tch.valid]
 
 
+# noinspection DuplicatedCode
 class Touchscreen(object):
 	EVENT_FORMAT = str('llHHi')
 	EVENT_SIZE = struct.calcsize(EVENT_FORMAT)
 
-	def __init__(self, configdir, touchmod):
+	def __init__(self, configdir, touchmodin):
 		self.touchdefs = {}
-		self.touchmod = touchmod
+		self.touchmod = touchmodin
 		with open('touchdefinitions') as f:
 			defs = f.read().splitlines()
 			for l in defs:
 				touchitem = l.split('|')
 				self.touchdefs[touchitem[0]] = touchitem[1:]
+		# noinspection PyBroadException
 		try:
 			with open(configdir + '/touchdefinitions') as f:
 				defs = f.read().splitlines()

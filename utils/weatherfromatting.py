@@ -51,7 +51,7 @@ def CreateWeathBlock(Format, Fields, WeathFont, FontSize, WeathColor, icon, cent
 
 	iconsize = 0
 	try:
-		for f in Format:
+		for _ in Format:
 			iconsize += tusefont.render('W', 0, wc(WeathColor)).get_height()
 			if tFS:
 				tfsize = int(tFS.pop(0))

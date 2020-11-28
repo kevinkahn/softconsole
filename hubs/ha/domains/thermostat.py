@@ -60,6 +60,7 @@ class Thermostat(HAnode):  # not stateful since has much state info
 		self.fan = self.attributes['fan_mode']
 		PostIfInterested(self.Hub, self.entity_id, self.internalstate)
 
+	# noinspection DuplicatedCode
 	def PushSetpoints(self, t_low, t_high):
 		ha.call_service_async(self.Hub.api, 'climate', 'set_temperature',
 							  {'entity_id': '{}'.format(self.entity_id), 'target_temp_high': str(t_high),

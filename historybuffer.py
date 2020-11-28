@@ -1,11 +1,14 @@
+from __future__ import annotations
 import os
 import shutil
 import time
 import gc
 import threading
+from typing import Optional
+
 
 def DummyAsyncFileWrite(fn, writestr, access='a'):
-	print('Called  HB file write before init')
+	print('Called  HB file write before init {} {} {}'.format(fn, writestr, access))
 
 
 AsyncFileWrite = DummyAsyncFileWrite  # set from log support to avoid circular imports
@@ -16,7 +19,7 @@ DevPrint = None
 WatchGC = False  # set True to see garbage collection info
 Buffers = {}
 HBdir = ''
-GCBuf = None
+GCBuf: Optional[HistoryBuffer] = None
 bufdumpseq = 0
 HBNet = None
 
@@ -142,6 +145,6 @@ class HistoryBuffer(object):
 		for i in range(self.size):
 			j = (i + curind) % self.size
 			if cur[j].timeofentry != 0:
-				#DevPrint('Item from {}: {}/{}/{}/{}'.format(self.name, i, j, cur[j].timeofentry, cur[j].entry))
-				yield (j, cur[j].timeofentry, cur[j].entry, cur[j].thread)
+				# DevPrint('Item from {}: {}/{}/{}/{}'.format(self.name, i, j, cur[j].timeofentry, cur[j].entry))
+				yield j, cur[j].timeofentry, cur[j].entry, cur[j].thread
 	#DevPrint('Content exit: {}/{}'.format(self.name, j))

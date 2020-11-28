@@ -10,11 +10,13 @@ LocAve = {}
 statdump = time.time() - 3700
 
 
+# noinspection PyUnusedLocal
 def on_connect(client, userdata, flags, rc):
 	print('Connected')
 	client.subscribe('consoles/all/weather/#')
 
 
+# noinspection PyUnusedLocal
 def on_message(client, userdata, msg):
 	global statdump, NodeTally, LocationTally, LocLastFetch, LocNames
 	topic = '**unset**'
@@ -66,8 +68,8 @@ MQTTclient.on_message = on_message
 print('Starting')
 MQTTclient.connect('mqtt')
 print('Connecting')
-with open('tally', 'w') as f:
-	f.write('-------------\n')
-with open('watchw', 'w') as f:
-	f.write('-------------\n')
+with open('tally', 'w') as frpt:
+	frpt.write('-------------\n')
+with open('watchw', 'w') as frpt:
+	frpt.write('-------------\n')
 MQTTclient.loop_forever()
