@@ -172,9 +172,12 @@ def ClearIndicator(params=None, Key=None):
 
 
 def SendErrMatch(params=None, Key=None):
+	logsupport.Logs.Log('Match: {}'.format(params))
+	print('************SENDERRMATCH', flush=True)
 	TempCheckSanity(Key, params)
-	print(params)
-	lev, msg = literal_eval(params)
+	print(params, flush=True)
+	lev, msg = literal_eval(params[3])
+	logsupport.Logs.Log('Match2: {} {}'.format(lev, msg))
 	if logsupport.Logs.MatchLastErr(lev, msg):
 		config.sysStore.ErrorNotice = -1  # clear indicator
 		CommandResp(Key, 'ok', params, None)

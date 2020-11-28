@@ -320,15 +320,18 @@ class Logger(object):
 			return rtnval
 
 	def MatchLastErr(self, lev, msg):
-		print("Test {} {}".format(lev, msg))
+		print("Test {} {}".format(lev, msg), flush=True)
 		firstunseen = config.sysStore.ErrorNotice
 		for i in range(len(self.log) - 1, firstunseen, -1):
+			print(i, self.log[i][0], self.log[i][1], flush=True)
 			if self.log[i][0] == lev and self.log[i][1] == msg:
 				return True
 			elif self.log[i][0] >= lev:
 				# equal or worse error after match target
+				print('Mismatch', flush=True)
 				return False
 		# else continue
+		print('Unmatch false', flush=True)
 		return False  # didn't match
 
 	def RecordMessage(self, severity, entry, entrytime, debugitem, tb):
