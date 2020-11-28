@@ -256,8 +256,6 @@ class Stream_to_Logger(object):
 	def flush():
 		time.sleep(1)
 
-	# print('Got a flush')
-
 	@staticmethod
 	def write(buf):
 		print(buf)  # also put on stdout
@@ -322,16 +320,12 @@ class Logger(object):
 	def MatchLastErr(self, lev, msg, reptlev):
 		firstunseen = config.sysStore.ErrorNotice
 		for i in range(len(self.log) - 1, firstunseen - 1, -1):
-			print(i, self.log[i][0], self.log[i][1], flush=True)
 			if self.log[i][0] == lev and self.log[i][1] == msg:
-				print('Matched {} {}'.format(lev, msg), flush=True)
 				return True
 			elif self.log[i][0] >= reptlev:
 				# equal or worse error after match target
-				print('Mismatch {} {} {}'.format(lev, msg, reptlev), flush=True)
 				return False
 		# else continue
-		print('Unmatch false {} {}'.format(lev, msg), flush=True)
 		return False  # didn't match
 
 	def RecordMessage(self, severity, entry, entrytime, debugitem, tb):
