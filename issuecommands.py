@@ -149,7 +149,6 @@ def EchoStat(params=None, Key=None):
 
 def LogItem(sev, params=None, Key=None):
 	TempCheckSanity(Key, params)
-	print('Log {}'.format(params))
 	logsupport.Logs.Log('Remotely forced test message ({})'.format(sev), severity=sev, tb=False, hb=False)
 	CommandResp(Key, 'ok', params, None)
 
@@ -173,20 +172,17 @@ def ClearIndicator(params=None, Key=None):
 
 def SendErrMatch(params=None, Key=None):
 	logsupport.Logs.Log('Match: {}'.format(params))
-	print('************SENDERRMATCH', flush=True)
 	TempCheckSanity(Key, params)
-	print(params, flush=True)
 	lev, msg = literal_eval(params[3])
-	logsupport.Logs.Log('Match2: {} {}'.format(lev, msg))
-	if logsupport.Logs.MatchLastErr(lev, msg):
+	if logsupport.Logs.MatchLastErr(lev, msg, logsupport.ConsoleWarning):
 		config.sysStore.ErrorNotice = -1  # clear indicator
+		ReportStatus('cleared indicator')
 		CommandResp(Key, 'ok', params, None)
 	else:
 		CommandResp(Key, 'nomatch', params, None)
 
 
 def IncludeErrToMatch():
-	print('Include {}'.format(lastseenlogmessage))
 	return lastseenlogmessage
 
 
