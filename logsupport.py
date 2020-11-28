@@ -4,6 +4,7 @@ import multiprocessing
 import signal
 from queue import Empty as QEmpty
 from threading import Lock
+from ast import literal_eval
 
 import pygame
 
@@ -252,12 +253,14 @@ class Stream_to_Logger(object):
 	def __init__(self):
 		pass
 
-	def flush(self):
+	@staticmethod
+	def flush():
 		time.sleep(1)
 
 	# print('Got a flush')
 
-	def write(self, buf):
+	@staticmethod
+	def write(buf):
 		print(buf)  # also put on stdout
 		if len(buf) > 1:
 			LoggerQueue.put((Command.LogString, '-------------Captured Python Exception-------------'))
@@ -317,6 +320,19 @@ class Logger(object):
 				logitem -= 1
 			return rtnval
 
+	def MatchLastErr(self, params):
+		lev, msg = literal_eval(params)
+		logitem = len(self.log) - 1
+		firstunseen = config.sysStore.ErrorNotice
+		for i in range(len(self.log) - 1, firstunseen, -1):
+			if self.log[i][0] == lev and self.log[i][1] == msg:
+				return True
+			elif self.log[i][0] >= lev:
+				# equal or worse error after match target
+				return False
+		# else continue
+		return False  # didn't match
+
 	def RecordMessage(self, severity, entry, entrytime, debugitem, tb):
 		if not debugitem:
 			self.log.append((severity, entry, entrytime))
@@ -334,7 +350,8 @@ class Logger(object):
 					LoggerQueue.put(
 						(Command.LogString, '-----------------' + fname + ':' + str(lineno) + ' ' + fn + ' ' + text))
 
-	def CopyEarly(self):
+	@staticmethod
+	def CopyEarly():
 		LoggerQueue.put((Command.LogEntry, 3, '-----Copy of PreLog Entries-----', '-----------------'))
 		for ent in EarlyLog:
 			LoggerQueue.put((Command.LogEntry, 3, ent[1], ent[0]))

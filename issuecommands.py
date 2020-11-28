@@ -2,6 +2,7 @@ import os
 import threading
 import subprocess
 import functools
+from dataclasses import dataclass
 
 import githubutil as U
 import logsupport
@@ -21,6 +22,7 @@ fetcher = None  # type: Union[None, threading.Thread]
 
 ReportStatus = None  # type: Union[Callable, None]
 
+lastseenlogmessage = ''
 
 # filled in by consolestatus to avoid dependency loop
 
@@ -155,6 +157,7 @@ def GetErrors(params=None):  # remote only
 	errs = logsupport.Logs.ReturnRecent(logsupport.ConsoleWarning, 10)
 	CommandResp(None, 'ok', params, errs)
 
+
 def GetLog(params=None):  # remote only
 	log = logsupport.Logs.ReturnRecent(-1, 0)
 	CommandResp(None, 'ok', params, log)
@@ -166,8 +169,24 @@ def ClearIndicator(params=None, Key=None):
 	ReportStatus('cleared indicator')
 	CommandResp(Key, 'ok', params, None)
 
+
+def SendErrMatch(params=None, Key=None):
+	TempCheckSanity(Key, params)
+	if logsupport.Logs.MatchLastErr(params):
+		config.sysStore.ErrorNotice = -1  # clear indicator
+		CommandResp(Key, 'ok', params, None)
+	else:
+		CommandResp(Key, 'nomatch', params, None)
+
+
+def IncludeErrToMatch():
+	print('Include {}'.format(lastseenlogmessage))
+	return lastseenlogmessage
+
+
 def DelHistory(params=None, Key=None):
 	CommandResp(Key, 'ok', params, None)
+
 
 Where = Enum('Where',
 			 'LocalMenuExits LocalMenuVersions LocalMenuVersionsAdv RemoteMenu RemoteMenuAdv MQTTCmds RemoteMenuDead')
@@ -178,20 +197,26 @@ RemoteOnly = (Where.RemoteMenu, Where.MQTTCmds)
 RemoteOnlyAdv = (Where.RemoteMenuAdv, Where.MQTTCmds)
 RemoteOnlyDead = (Where.RemoteMenuDead,)
 
+'''
 CommandRecord = NamedTuple('CommandRecord',
 						   [('Proc', Callable), ('simple', bool), ('DisplayName', str), ('Verify', str),
-							('where', tuple), ('notgroup', bool)])
+							('where', tuple), ('notgroup', bool), ('cmdparam', Callable)])
+CommandRecord.__new__.__defaults__ = (None)
 '''
-Better Python 3.7 syntax
-class CommandRecord(NamedTuple):
-	def __init__(self,Proc,simple,DisplayName,Verify,where):
-		self.Proc = Proc  - called locally or at remote site
-		self.simple = simple or None - handle remote response simply or call a special proc (name mapping in consolestatus
-		self.DisplayName = DisplayName - button label when on a screen
-		self.Verify = Verify - whether to do a verify when on a screen
-		self.where = where - which places to use this record
-		self.notgroup - True if only works for targeted node
-'''
+
+
+# Better Python 3.7 syntax
+@dataclass
+class CommandRecord:
+	Proc: callable  # called locally or at remote site
+	simple: bool  # simple or None - handle remote response simply or call a special proc (name mapping in consolestatus
+	DisplayName: str  # button label when on a screen
+	Verify: str  # whether to do a verify when on a screen
+	where: tuple  # which places to use this record
+	notgroup: bool  # true if only works for targeted node
+	cmdparam: Union[Callable, None] = None  # - optional proc that provides a parameter to send with the command
+
+
 cmdcalls = OrderedDict({
 	'restart': CommandRecord(RestartConsole, True, "Restart Console", 'True', MaintExits, False),
 	'shut': CommandRecord(ShutConsole, True, "Shutdown Console", 'True', MaintExits, False),
@@ -208,6 +233,8 @@ cmdcalls = OrderedDict({
 	'getlog': CommandRecord(GetLog, False, "Get Remote Log", "False", RemoteOnly, True),
 	'geterrors': CommandRecord(GetErrors, False, "Get Recent Errors", 'False', RemoteOnly, True),
 	'clearerrindicator': CommandRecord(ClearIndicator, True, "Clear Error Indicator", 'False', RemoteOnly, False),
+	'clearerrindicatormatch': CommandRecord(SendErrMatch, True, 'Clear Matching Error', 'False', RemoteOnly, False,
+											IncludeErrToMatch),
 	'issueerror': CommandRecord(functools.partial(LogItem, ConsoleError), True, "Issue Error", 'False',
 								RemoteOnlyAdv, False),
 	'issuewarning': CommandRecord(functools.partial(LogItem, ConsoleWarning), True, "Issue Warning", 'False',
@@ -217,7 +244,7 @@ cmdcalls = OrderedDict({
 	'deletehistory': CommandRecord(DelHistory, True, 'Clear History', 'True', RemoteOnlyDead, True)})
 
 
-def IssueCommand(source, cmd, seq, fromnd):
+def IssueCommand(source, cmd, seq, fromnd, param=None):
 	if cmd.lower() in cmdcalls:
 		try:
 			PostEvent(

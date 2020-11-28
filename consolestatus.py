@@ -280,7 +280,8 @@ class CommandScreen(screen.BaseKeyScreenDesc):
 			DN = action.DisplayName.split(' ')
 			if issuecommands.Where.RemoteMenu in action.where or issuecommands.Where.RemoteMenuAdv in action.where:
 				whichscreen = 'Regular' if issuecommands.Where.RemoteMenu in action.where else "Advanced"
-				internalprocs['Command' + cmd] = functools.partial(self.IssueSimpleCmd, cmd)
+				internalprocs['Command' + cmd] = functools.partial(self.IssueSimpleCmd, cmd,
+																   paramsetter=action.cmdparam)
 				if action.simple:
 					CmdSet[whichscreen][cmd] = {"type": "REMOTEPROC", "ProcName": 'Command' + cmd, "label": DN,
 												"Verify": action.Verify}
@@ -297,17 +298,21 @@ class CommandScreen(screen.BaseKeyScreenDesc):
 		for t, s in CmdSet.items():
 			self.CmdListScreens[t] = screens.screentypes["Keypad"](s, 'CmdListScreen' + t, parentscreen=self)
 
-
-	def IssueSimpleCmd(self, cmd, Key=None):
+	def IssueSimpleCmd(self, cmd, Key=None, paramsetter=None):
 		global MsgSeq
 		MsgSeq += 1
 		Key.Seq = MsgSeq
+		if paramsetter is None:
+			cmdsend = '{}|{}|{}'.format(cmd, hw.hostname, MsgSeq)
+		else:
+			cmdsend = '{}|{}|{}|{}'.format(cmd, hw.hostname, MsgSeq, paramsetter())
+
 		if self.FocusNode == '*':
 			Key.ExpectedNumResponses = self.NumNodes
-			config.MQTTBroker.Publish('cmd', '{}|{}|{}'.format(cmd, hw.hostname, MsgSeq), 'all')
+			config.MQTTBroker.Publish('cmd', cmdsend, 'all')
 		else:
 			Key.ExpectedNumResponses = 1
-			config.MQTTBroker.Publish('cmd', '{}|{}|{}'.format(cmd, hw.hostname, MsgSeq), self.FocusNode)
+			config.MQTTBroker.Publish('cmd', cmdsend, self.FocusNode)
 		self.CmdListScreens[self.entered].AddToHubInterestList(config.MQTTBroker, cmd, Key)
 
 	def IssueDeadCmd(self, cmd, Key=None):
@@ -371,6 +376,8 @@ def LogDisplay(evnt):
 									functools.partial(logsupport.LineRenderer, uselog=evnt.value),
 									functools.partial(PageTitle, node=evnt.respfrom, loginfo=evnt.value),
 									config.sysStore.LogFontSize, 'white')
+	if evnt.value != []:
+		issuecommands.lastseenlogmessage = (evnt.value[0][0], evnt.value[0][1])
 	p.singleuse = True
 	screen.PushToScreen(p)
 
