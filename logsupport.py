@@ -4,7 +4,6 @@ import multiprocessing
 import signal
 from queue import Empty as QEmpty
 from threading import Lock
-from ast import literal_eval
 
 import pygame
 
@@ -320,9 +319,8 @@ class Logger(object):
 				logitem -= 1
 			return rtnval
 
-	def MatchLastErr(self, params):
-		lev, msg = literal_eval(params)
-		logitem = len(self.log) - 1
+	def MatchLastErr(self, lev, msg):
+		print("Test {} {}".format(lev, msg))
 		firstunseen = config.sysStore.ErrorNotice
 		for i in range(len(self.log) - 1, firstunseen, -1):
 			if self.log[i][0] == lev and self.log[i][1] == msg:

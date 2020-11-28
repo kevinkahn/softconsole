@@ -93,8 +93,8 @@ class MQTTBroker(valuestore.ValueStore):
 					seq = 'unknown' if len(payld) < 3 else payld[2]
 					cmdparam = None if len(payld) < 4 else payld[3]
 					logsupport.Logs.Log(
-						'{}: Remote command received on {} from {}-{}: {}'.format(self.name, topic, fromnd, seq,
-																				  cmd))
+						'{}: Remote command received on {} from {}-{}: {} {}'.format(self.name, topic, fromnd, seq,
+																					 cmd, cmdparam))
 					issuecommands.IssueCommand(self.name, cmd, seq, fromnd, param=cmdparam)
 					# if fromnd != 'unknown':
 					#	self.Publish('resp', '{}|ok|{}'.format(cmd, seq), fromnd)

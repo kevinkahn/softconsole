@@ -3,6 +3,7 @@ import threading
 import subprocess
 import functools
 from dataclasses import dataclass
+from ast import literal_eval
 
 import githubutil as U
 import logsupport
@@ -172,7 +173,9 @@ def ClearIndicator(params=None, Key=None):
 
 def SendErrMatch(params=None, Key=None):
 	TempCheckSanity(Key, params)
-	if logsupport.Logs.MatchLastErr(params):
+	print(params)
+	lev, msg = literal_eval(params)
+	if logsupport.Logs.MatchLastErr(lev, msg):
 		config.sysStore.ErrorNotice = -1  # clear indicator
 		CommandResp(Key, 'ok', params, None)
 	else:
@@ -248,7 +251,8 @@ def IssueCommand(source, cmd, seq, fromnd, param=None):
 	if cmd.lower() in cmdcalls:
 		try:
 			PostEvent(
-				ConsoleEvent(CEvent.RunProc, name=cmd, proc=cmdcalls[cmd.lower()].Proc, params=(cmd, seq, fromnd)))
+				ConsoleEvent(CEvent.RunProc, name=cmd, proc=cmdcalls[cmd.lower()].Proc,
+							 params=(cmd, seq, fromnd, param)))
 		except Exception as E:
 			logsupport.Logs.Log('Exc: {}'.format(repr(E)))
 	else:
