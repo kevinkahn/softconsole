@@ -4,7 +4,7 @@ HomeScreenName = BR
 DimLevel = 50
 DimTO = 25
 DimIdleListNames = MyClock, LQTT, TimeTemp
-DimIdleListTimes = 20,20,20
+DimIdleListTimes = 8,8,8
 
 
 MainChain = BR, Pumpkin, Local, Thermostat - Main, MyClock, Prusa

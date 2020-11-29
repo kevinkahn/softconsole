@@ -5,7 +5,7 @@ HomeScreenName = Garage
 DimLevel = 5
 DimTO = 25
 DimIdleListNames = TimeTemp, LQTT
-DimIdleListTimes = 20,20
+DimIdleListTimes = 8,8
 
 MainChain = Garage, Prusa, TimeTemp, Sonos
 SecondaryChain = Thermostat - Main, Local, Portland, La Quinta

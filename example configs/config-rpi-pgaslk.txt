@@ -4,7 +4,7 @@ HomeScreenName = pgawBR
 DimLevel = 25
 DimTO = 25
 DimIdleListNames = MyClock, Portland, LQTT
-DimIdleListTimes =	20, 20, 20
+DimIdleListTimes =	8, 8, 8
 
 MainChain = pgawBR, LQTT, pgawBath, climate.master_bedroom, climate.living_room
 SecondaryChain = pgawOther, Portland, Pumpkin
