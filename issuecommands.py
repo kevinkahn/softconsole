@@ -173,7 +173,12 @@ def ClearIndicator(params=None, Key=None):
 def SendErrMatch(params=None, Key=None):
 	logsupport.Logs.Log('Match: {}'.format(params))
 	TempCheckSanity(Key, params)
-	lev, msg = literal_eval(params[3])
+	try:
+		lev, msg = literal_eval(params[3])
+	except (SyntaxError, ValueError, TypeError, MemoryError):
+		logsupport.Logs.Log('Bad last error received in clear match cmd: {}'.format(params))
+		CommandResp(Key, 'nomatch', params, None)
+		return
 	if logsupport.Logs.MatchLastErr(lev, msg, logsupport.ConsoleWarning):
 		config.sysStore.ErrorNotice = -1  # clear indicator
 		ReportStatus('cleared indicator')
