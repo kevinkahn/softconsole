@@ -155,8 +155,9 @@ def DoWeatherFetches():
 					# print('Load for {} time {}'.format(store.name, weathertime))
 					if config.mqttavailable:  # force bad fetch out of the cache
 						config.MQTTBroker.Publish('{}/{}'.format(provnm, inst.thisStoreName), node='all/weather2',
-												  payload=json.dumps({'winfo': 'CACHEPURGE', 'location': inst.location,
-																	  'fetchingnode': config.sysStore.hostname}))
+												  payload=json.dumps(
+													  {'weatherinfo': 'CACHEPURGE', 'location': inst.location,
+													   'fetchingnode': config.sysStore.hostname}))
 						config.MQTTBroker.Publish('{}/{}'.format(provnm, inst.thisStoreName), node='all/weather2',
 												  payload=None, retain=True)
 						logsupport.Logs.Log('Force cache clear for {}({})'.format(inst.location, inst.thisStoreName))
