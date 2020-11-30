@@ -150,6 +150,7 @@ def DoWeatherFetches():
 						logsupport.Logs.Log(
 							'Failed fetch for {} number {} using old weather'.format(store.name,
 																					 store.failedfetchcount))
+					continue  # don't try to load bad weather
 
 				if not inst.LoadWeather(winfo, weathertime, fn='self'):
 					# print('Load for {} time {}'.format(store.name, weathertime))
