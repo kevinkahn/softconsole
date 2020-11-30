@@ -1,5 +1,5 @@
 cfglib = cfglib
-include = /home/pi/Console/local/auth.cfg, pdxalerts.cfg,tstat.cfg,weathPump.cfg,weathCC.cfg,weathPDX.cfg,myclock.cfg,BR-kck.cfg,upperlev.cfg, bathroom.cfg,LR.cfg,othermain.cfg,downstairs.cfg,timetempLQ.cfg,timetempPDX.cfg, pdxmqtt.cfg, pdxtempalerts.cfg, octoprint.cfg, weathersources.cfg
+include = /home/pi/Console/local/auth.cfg, pdxalerts.cfg,tstat.cfg,weathPump.cfg,weathCC.cfg,weathPDX.cfg,myclock.cfg,BR-kck.cfg,upperlev.cfg, bathroom.cfg,LR.cfg,othermain.cfg,downstairs.cfg,timetempLQ.cfg,timetempPDX.cfg, mqtt.cfg, pdxtempalerts.cfg, octoprint.cfg, weathersources.cfg
 HomeScreenName = BR
 DimLevel = 50
 DimTO = 25

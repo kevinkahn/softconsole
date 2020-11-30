@@ -3,7 +3,7 @@ LogLevel = 3
 # switch to authall with HASSpga avail
 
 cfglib = cfglib
-include = /home/pi/Console/local/authall.cfg, pgawmqtt.cfg,picscreen.cfg, weathersources.cfg, pgalr.cfg, timetempLQ.cfg,  myclock.cfg,tstat.cfg,weathPDX.cfg,timetempLQ7.cfg, timetempPDX7.cfg, pgaTstat.cfg, pgawBRmain.cfg, pgaOther.cfg, pgaBath.cfg,pgaalerts.cfg
+include = /home/pi/Console/local/authall.cfg, mqtt.cfg,picscreen.cfg, weathersources.cfg, pgalr.cfg, timetempLQ.cfg,  myclock.cfg,tstat.cfg,weathPDX.cfg,timetempLQ7.cfg, timetempPDX7.cfg, pgaTstat.cfg, pgawBRmain.cfg, pgaOther.cfg, pgaBath.cfg,pgaalerts.cfg
 
 HomeScreenName = 'PGALR'
 DimLevel = 10
