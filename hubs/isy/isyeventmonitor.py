@@ -116,9 +116,8 @@ class ISYEventMonitor(object):
 			if hungcount < 0: raise ThreadStartException
 		if self.THstate == 'running':
 			self.isy._HubOnline = True
-			logsupport.Logs.Log(self.hubname + ": Initial status streamed ", self.seq, " items")
 			self.isy.Vars.CheckValsUpToDate(reload=True)
-			logsupport.Logs.Log(self.hubname + ": Vars updated")
+			logsupport.Logs.Log(self.hubname + ": Initial status streamed ", self.seq, " items and vars updated")
 		elif self.THstate == 'failed':
 			logsupport.Logs.Log(self.hubname + " Failed Thread Restart", severity=ConsoleWarning)
 		else:
@@ -447,7 +446,7 @@ class ISYEventMonitor(object):
 			time.sleep(.001)  # force thread to give up processor to allow response to time events
 
 		self.THstate = 'delaying'
-		logsupport.Logs.Log("{}: WS stream thread {} setup".format(self.hubname, self.QHnum))
+		logsupport.Logs.Log("{}: WS stream thread {} setup".format(self.hubname, self.QHnum), severity=ConsoleDetail)
 		if self.delayedstart != 0:
 			logsupport.Logs.Log(self.hubname + " Delaying Hub restart for probable network reset: ",
 								str(self.delayedstart), ' seconds')

@@ -84,16 +84,19 @@ class Alert(object):
 
 
 def ArmAlerts():
+	cnt = 0
 	for a in AlertsList.values():
 		a.state = 'Armed'
-		logsupport.Logs.Log("Arming " + a.type + " alert " + a.name)
+		logsupport.Logs.Log("Arming " + a.type + " alert " + a.name, severity=ConsoleDetail)
 		logsupport.Logs.Log("->" + str(a), severity=ConsoleDetail)
 
 		if a.type in alertutils.TriggerTypes:
 			alertutils.TriggerTypes[a.type].Arm(a)
+			cnt += 1
 		else:
 			logsupport.Logs.Log("Internal error - unknown alert type: ", a.type, ' for ', a.name,
 								severity=ConsoleError, tb=False)
+	logsupport.Logs.Log("Armed {} alerts".format(cnt))
 
 def ParseAlertParams(nm, spec):
 	global alertprocs, monitoredvars

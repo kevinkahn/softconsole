@@ -105,11 +105,13 @@ class MyScreens(object):
 			logsupport.Logs.Log("No secondary screen chain")  # just point secondary at main
 
 		# noinspection PyBroadException
+		idlescreens = []
 		try:
 			for sn, st in zip(config.sysStore.DimIdleListNames, config.sysStore.DimIdleListTimes):
 				screens.DimIdleList.append(screens.screenslist[sn])
 				screens.DimIdleTimes.append(int(st))
-				logsupport.Logs.Log('Cover Screen: {}/{}'.format(sn, st))
+				idlescreens.append("{}/{}".format(sn, st))
+			logsupport.Logs.Log('Idle Screens: ' + ', '.join(idlescreens))
 		except Exception as E:
 			logsupport.Logs.Log("Error specifying idle screens - check config({})".format(repr(E)),
 								severity=ConsoleWarning)
