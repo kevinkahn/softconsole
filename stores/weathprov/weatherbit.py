@@ -260,14 +260,15 @@ class WeatherbitWeatherSource(object):
 					"Skip Weatherbit fetch for {}, over limit until {}".format(self.thisStoreName, self.resettime))
 				return
 			else:
+				cur = None
 				try:
-					cur = None
 					historybuffer.HBNet.Entry('Weatherbit weather fetch{}'.format(self.thisStoreName))
 					cur = self.get_current()['data'][0]
 					fcst = self.get_forecast()['data']
 					winfo = {'current': cur, 'forecast': fcst}
 					self.actualfetch.Op()  # cound actual local fetches
-					pld = {'fetchingnode': config.sysStore.hostname, 'time': time.time(), 'success': 'both'}
+					pld = {'fetchingnode': config.sysStore.hostname, 'time': time.time(),
+						   'location': self.thisStoreName, 'success': 'both'}
 					config.MQTTBroker.Publish('Weatherbit/speccmd', node='all/weather2',
 											  payload=json.dumps(pld), retain=True)
 					historybuffer.HBNet.Entry('Weather fetch done')
@@ -306,6 +307,7 @@ class WeatherbitWeatherSource(object):
 						logsupport.Logs.Log('Weatherbit rate limit on {}} for {}'.format(item, self.thisStoreName),
 											severity=ConsoleWarning)
 						pld = {'fetchingnode': config.sysStore.hostname, 'time': time.time(),
+							   'location': self.thisStoreName,
 							   'success': 'neither' if cur is None else 'current'}
 						config.MQTTBroker.Publish('Weatherbit/speccmd', node='all/weather2',
 												  payload=json.dumps(pld), retain=True)
