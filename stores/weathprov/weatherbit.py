@@ -261,8 +261,11 @@ class WeatherbitWeatherSource(object):
 				return
 			else:
 				try:
+					cur = None
 					historybuffer.HBNet.Entry('Weatherbit weather fetch{}'.format(self.thisStoreName))
-					winfo = {'current': self.get_current()['data'][0], 'forecast': self.get_forecast()['data']}
+					cur = self.get_current()['data'][0]
+					fcst = self.get_forecast()['data']
+					winfo = {'current': cur, 'forecast': fcst}
 					self.actualfetch.Op()  # cound actual local fetches
 					historybuffer.HBNet.Entry('Weather fetch done')
 					logsupport.Logs.Log(
@@ -295,6 +298,10 @@ class WeatherbitWeatherSource(object):
 							severity=ConsoleWarning)
 						self.dailyreset = time.time() + 60 * resetin
 						self.thisStore.StatusDetail = "(Over Limit until {})".format(self.resettime)
+					elif E.response.status_code == 503:
+						item = 'current' if cur is None else 'forecast'
+						logsupport.Logs.Log('Weatherbit rate limit on {}} for {}'.format(item, self.thisStoreName),
+											severity=ConsoleWarning)
 					else:
 						logsupport.Logs.Log(
 							"Weatherbit failed to get weather for {} last Exc: {}".format(self.thisStoreName, E),

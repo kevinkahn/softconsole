@@ -117,7 +117,7 @@ def doflip(scr):
 
 
 def noscreen(scr):
-	return ('echo User setup screen with type: {}\n'.format(scr),)
+	return ['echo User setup screen with type: {}\n'.format(scr), ]
 
 
 # Start of script
@@ -173,11 +173,10 @@ baseorientation = {'28c': 'power on left',
 doscreen = GetYN("Do you want to install a known screen (Alternative is to install any screen drivers yourself)?")
 if doscreen:
 	screentype = GetVal("What type screen ({})?".format(supportedscreens), supportedscreens)
+	installsrc = screeninstallcode[screentype]()
 else:
 	screentype = GetVal("Enter name of screen for console reference:")
-	screeninstallcode[screentype] = p(noscreen, screentype)
-
-installsrc = screeninstallcode[screentype]()
+	installscr = screeninstallcode['noscreen']()
 
 rot = 0
 if screentype in baseorientation:
