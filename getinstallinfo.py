@@ -176,7 +176,6 @@ if doscreen:
 	installsrc = screeninstallcode[screentype]()
 else:
 	screentype = GetVal("Enter name of screen for console reference:")
-	installscr = screeninstallcode['--']()
 
 rot = 0
 if screentype in baseorientation:

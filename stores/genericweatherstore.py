@@ -56,6 +56,9 @@ def LocationOnNode(prov, locname):
 
 
 def MQTTWeatherUpdate(provider, locname, wpayload):
+	if locname == 'speccmd':
+		MQTTqueue.put((provider, locname, wpayload))
+		return
 	if not LocationOnNode(provider, locname):
 		# print('Unused location {} {}'.format(provider, locname))
 		return  # broadcast for location this node doesn't use
@@ -82,6 +85,15 @@ def MQTTWeatherUpdate(provider, locname, wpayload):
 		pass
 	#print('Dupe MQTT update for {} times {}'.format(locname, WeatherCache[provider][locname].fetchtime))
 
+def HandleMQTTItem(item):
+	if len(item) == 2:  # normal cache update
+		prov, locname = item
+		CacheUser[prov][locname].LoadWeather(WeatherCache[prov][locname].weatherinfo,
+											 WeatherCache[prov][locname].fetchtime,
+											 fn=WeatherCache[prov][locname].fetchingnode)
+	else:
+		print(item)
+		pass  # speccmd item
 
 def HandleMQTTinputs(timeout):
 	if timeout <= 0:
@@ -91,15 +103,12 @@ def HandleMQTTinputs(timeout):
 		# print('Weather loop timeout too long {}'.format(timeout))
 		timeout = 10800
 	try:
-		prov, locname = MQTTqueue.get(timeout=timeout)
-		CacheUser[prov][locname].LoadWeather(WeatherCache[prov][locname].weatherinfo,
-											 WeatherCache[prov][locname].fetchtime,
-											 fn=WeatherCache[prov][locname].fetchingnode)
+		mqttitem = MQTTqueue.get(timeout=timeout)
+		HandleMQTTItem(mqttitem)
 		while True:
-			prov, locname = MQTTqueue.get(block=False)
-			CacheUser[prov][locname].LoadWeather(WeatherCache[prov][locname].weatherinfo,
-												 WeatherCache[prov][locname].fetchtime,
-												 fn=WeatherCache[prov][locname].fetchingnode)
+			mqttitem = MQTTqueue.get(timeout=timeout)
+			HandleMQTTItem(mqttitem)
+
 	except queue.Empty:
 		return
 

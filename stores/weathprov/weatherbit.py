@@ -267,6 +267,9 @@ class WeatherbitWeatherSource(object):
 					fcst = self.get_forecast()['data']
 					winfo = {'current': cur, 'forecast': fcst}
 					self.actualfetch.Op()  # cound actual local fetches
+					pld = {'fetchingnode': config.sysStore.hostname, 'time': time.time(), 'success': 'both'}
+					config.MQTTBroker.Publish('Weatherbit/speccmd', node='all/weather2',
+											  payload=json.dumps(pld), retain=True)
 					historybuffer.HBNet.Entry('Weather fetch done')
 					logsupport.Logs.Log(
 						'Fetched weather for {} ({}) locally'.format(self.thisStoreName, self.location),
@@ -302,6 +305,10 @@ class WeatherbitWeatherSource(object):
 						item = 'current' if cur is None else 'forecast'
 						logsupport.Logs.Log('Weatherbit rate limit on {}} for {}'.format(item, self.thisStoreName),
 											severity=ConsoleWarning)
+						pld = {'fetchingnode': config.sysStore.hostname, 'time': time.time(),
+							   'success': 'neither' if cur is None else 'current'}
+						config.MQTTBroker.Publish('Weatherbit/speccmd', node='all/weather2',
+												  payload=json.dumps(pld), retain=True)
 					else:
 						logsupport.Logs.Log(
 							"Weatherbit failed to get weather for {} last Exc: {}".format(self.thisStoreName, E),
