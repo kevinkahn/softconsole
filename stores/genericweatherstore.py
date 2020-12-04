@@ -62,7 +62,13 @@ def MQTTWeatherUpdate(provider, locname, wpayload):
 		MQTTqueue.put((provider, locname, wpayload))
 		return
 	elif locname == 'readytofetch':
-		Provs[provider].readytofetch.add(wpayload[2]['fetchingnode'])
+		age = time.time() - wpayload['time']
+		if age > 5:
+			config.ptf('Old readytofetchmessage {}'.format(age))
+			return
+		config.ptf('Ready msg from {} {}'.format(wpayload['fetchingnode'], Provs[provider].readytofetch))
+		Provs[provider].readytofetch.add(wpayload['fetchingnode'])
+		return
 	if not LocationOnNode(provider, locname):
 		# print('Unused location {} {}'.format(provider, locname))
 		return  # broadcast for location this node doesn't use
@@ -131,7 +137,8 @@ def DoWeatherFetches():
 				now = time.time()
 				if (now - store.ValidWeatherTime < store.refreshinterval) or (now - store.failedfetchtime < 120):
 					# have recent data or a recent failure
-					config.ptf('Not yet time for {}'.format(instnm))
+					config.ptf(
+						'Not yet time for {} ({})'.format(instnm, time.strftime('%H:%M', time.localtime(time.time()))))
 					continue
 				config.ptf('Prep local fetch for {}'.format(instnm))
 				Provs[provnm].readytofetch.add(config.sysStore.hostname)
