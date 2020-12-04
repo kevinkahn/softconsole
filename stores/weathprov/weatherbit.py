@@ -310,7 +310,7 @@ class WeatherbitWeatherSource(object):
 						self.thisStore.StatusDetail = "(Over Limit until {})".format(self.resettime)
 					elif E.response.status_code == 503:
 						item = 'current' if cur is None else 'forecast'
-						logsupport.Logs.Log('Weatherbit rate limit on {}} for {}'.format(item, self.thisStoreName),
+						logsupport.Logs.Log('Weatherbit rate limit on {} for {}'.format(item, self.thisStoreName),
 											severity=ConsoleWarning)
 						pld = {'fetchingnode': config.sysStore.hostname, 'time': time.time(),
 							   'location': self.thisStoreName,

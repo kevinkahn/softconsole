@@ -66,7 +66,8 @@ def MQTTWeatherUpdate(provider, locname, wpayload):
 		if age > 5:
 			config.ptf('Old readytofetchmessage {}'.format(age))
 			return
-		config.ptf('Ready msg from {} {}'.format(wpayload['fetchingnode'], Provs[provider].readytofetch))
+		config.ptf('Ready msg from {} for {} {}'.format(wpayload['fetchingnode'], wpayload['location'],
+														Provs[provider].readytofetch))
 		Provs[provider].readytofetch.add(wpayload['fetchingnode'])
 		return
 	if not LocationOnNode(provider, locname):
@@ -137,8 +138,9 @@ def DoWeatherFetches():
 				now = time.time()
 				if (now - store.ValidWeatherTime < store.refreshinterval) or (now - store.failedfetchtime < 120):
 					# have recent data or a recent failure
+					tmp = store.ValidWeatherTime + store.refreshinterval
 					config.ptf(
-						'Not yet time for {} ({})'.format(instnm, time.strftime('%H:%M', time.localtime(time.time()))))
+						'Not yet time for {} ({})'.format(instnm, time.strftime('%H:%M', time.localtime(tmp))))
 					continue
 				config.ptf('Prep local fetch for {}'.format(instnm))
 				Provs[provnm].readytofetch.add(config.sysStore.hostname)
@@ -151,15 +153,16 @@ def DoWeatherFetches():
 																		 store.ValidWeatherTime, store.refreshinterval,
 																		 store.failedfetchtime, now),
 					severity=ConsoleDetail)
-				time.sleep(5)
-				config.ptf(Provs[provnm].readytofetch)
+				config.ptf('Presleep set for {}: {}'.format(store.name, Provs[provnm].readytofetch))
+				time.sleep(10)
+				config.ptf('Fetch set for {}: {}'.format(store.name, Provs[provnm].readytofetch))
 				forcedelay = 0
 				if len(Provs[provnm].readytofetch) > 1:
 					selectee = sorted(Provs[provnm].readytofetch)[0]
 					Provs[provnm].readytofetch = set()
-					config.ptf('Selected {}'.format(selectee))
+					config.ptf('Selected {} to fetch {}'.format(selectee, store.name))
 					if selectee != config.sysStore.hostname:
-						forcedelay = 60
+						forcedelay = 120
 						break
 				config.ptf('Do local fetch for {}'.format(instnm))
 
@@ -221,7 +224,7 @@ def DoWeatherFetches():
 
 		now = time.time()
 		nextfetch = now + 60 * 60 * 24  # 1 day - just need a big starting value to compute next fetch time
-		config.ptf('Compute next fetch {}'.format(forcedelay))
+		config.ptf('Compute next fetch {} at {}'.format(forcedelay, time.strftime('%H:%M', time.localtime(nextfetch))))
 		if forcedelay == 0:
 			for provnm, prov in CacheUser.items():
 				for instnm, inst in prov.items():

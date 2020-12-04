@@ -1,4 +1,7 @@
+import time
+
 from utils import hw
+import os
 
 hooks = None
 
@@ -63,8 +66,9 @@ sysvals = {
 #  hostname
 
 def ptf(str):
-	with open('/home/pi/Console/weathtrace', 'a') as f:
-		print(str, file=f, flush=True)
+	if sysStore.versionname in ('homerelease', 'development'):
+		with open('/home/pi/Console/weathtrace', 'a') as f:
+			print('{}:{}'.format(time.strftime('%H:%M:%S', time.localtime(time.time())), str), file=f, flush=True)
 
 
-ptf("------------------------")
+os.replace('/home/pi/Console/weathtrace', '/home/pi/Console/weathtrace.prev')
