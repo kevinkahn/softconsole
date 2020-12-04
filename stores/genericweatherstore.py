@@ -58,18 +58,36 @@ def LocationOnNode(prov, locname):
 
 
 def MQTTWeatherUpdate(provider, locname, wpayload):
-	if locname == 'speccmd':  # todo needs not to go to thread else with thread waiting won't see
-		MQTTqueue.put((provider, locname, wpayload))
+	if locname == 'speccmd' or locname == 'fetched':
+		age = time.time() - wpayload['time']
+		if age > 5:
+			config.ptf('Old fetched message {}'.format(age))
+			return
+		# MQTTqueue.put((provider, locname, wpayload))
+		config.ptf('Fetched at: {}: {}'.format(time.strftime('%H:%M', time.localtime(wpayload['time'])), wpayload))
+		config.ptf2('{} tried fetch at {} got {} ({})'.format(wpayload['fetchingnode'],
+															  time.strftime('%H:%M', time.localtime(wpayload['time'])),
+															  wpayload['success'], wpayload))
 		return
 	elif locname == 'readytofetch':
 		age = time.time() - wpayload['time']
 		if age > 5:
-			config.ptf('Old readytofetchmessage {}'.format(age))
+			config.ptf('Old readytofetch message {}'.format(age))
 			return
 		config.ptf('Ready msg from {} for {} {}'.format(wpayload['fetchingnode'], wpayload['location'],
 														Provs[provider].readytofetch))
 		Provs[provider].readytofetch.add(wpayload['fetchingnode'])
 		return
+	elif locname == 'fetching':
+		age = time.time() - wpayload['time']
+		if age > 5:
+			config.ptf('Old fetching message {}'.format(age))
+			return
+		config.ptf('Fetching msg from {} for {} {}'.format(wpayload['fetchingnode'], wpayload['location'],
+														   Provs[provider].readytofetch))
+		Provs[provider].readytofetch.discard(config.sysStore.hostname)  # someone beat me too it
+		return
+
 	if not LocationOnNode(provider, locname):
 		# print('Unused location {} {}'.format(provider, locname))
 		return  # broadcast for location this node doesn't use
@@ -103,11 +121,7 @@ def HandleMQTTItem(item):
 											 WeatherCache[prov][locname].fetchtime,
 											 fn=WeatherCache[prov][locname].fetchingnode)
 	else:
-		config.ptf('Fetched: {}: {}'.format(time.strftime('%H:%M', time.localtime(item[2]['time'])), item))
-		try:
-			CacheUser[item[0]].HandleSpecial(item)
-		except AttributeError:
-			pass  # speccmd item
+		config.ptf('Should not get this!!! {}'.format(item))
 
 def HandleMQTTinputs(timeout):
 	if timeout <= 0:
@@ -146,8 +160,9 @@ def DoWeatherFetches():
 				Provs[provnm].readytofetch.add(config.sysStore.hostname)
 				pld = {'fetchingnode': config.sysStore.hostname, 'time': time.time(),
 					   'location': instnm}
-				config.MQTTBroker.Publish('Weatherbit/readytofetch', node='all/weather2',
-										  payload=json.dumps(pld), retain=True)
+				if config.mqttavailable:
+					config.MQTTBroker.Publish('Weatherbit/readytofetch', node='all/weather2',
+											  payload=json.dumps(pld))
 				logsupport.Logs.Log(
 					'Try weather refresh: {} age: {} {} {} {} {}'.format(store.name, (now - store.ValidWeatherTime),
 																		 store.ValidWeatherTime, store.refreshinterval,
@@ -157,13 +172,22 @@ def DoWeatherFetches():
 				time.sleep(10)
 				config.ptf('Fetch set for {}: {}'.format(store.name, Provs[provnm].readytofetch))
 				forcedelay = 0
-				if len(Provs[provnm].readytofetch) > 1:
+				if config.sysStore.hostname not in Provs[provnm].readytofetch:
+					# some other node already started a fetch
+					config.ptf('Another node started fetch {} ({})'.format(store.name, Provs[provnm].readytofetch))
+					break
+				elif len(Provs[provnm].readytofetch) > 1:
 					selectee = sorted(Provs[provnm].readytofetch)[0]
 					Provs[provnm].readytofetch = set()
 					config.ptf('Selected {} to fetch {}'.format(selectee, store.name))
 					if selectee != config.sysStore.hostname:
 						forcedelay = 120
 						break
+				pld = {'fetchingnode': config.sysStore.hostname, 'time': time.time(),
+					   'location': instnm}
+				if config.mqttavailable:
+					config.MQTTBroker.Publish('Weatherbit/fetching', node='all/weather2',
+											  payload=json.dumps(pld))
 				config.ptf('Do local fetch for {}'.format(instnm))
 
 				store.CurFetchGood = False

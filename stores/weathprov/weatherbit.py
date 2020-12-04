@@ -253,8 +253,6 @@ class WeatherbitWeatherSource(object):
 			logsupport.Logs.Log('Exception {} mapping weather item {} {}'.format(E, src, item), severity=ConsoleWarning)
 			return None
 
-	def HandleSpecial(self, payload):
-		pass
 
 	def FetchWeather(self):
 		Esave = None
@@ -267,7 +265,6 @@ class WeatherbitWeatherSource(object):
 			else:
 				cur = None
 				try:
-					# todo post fetch soon; wait 1 sec; if no other fetch soon for loc goahead
 					historybuffer.HBNet.Entry('Weatherbit weather fetch{}'.format(self.thisStoreName))
 					cur = self.get_current()['data'][0]
 					fcst = self.get_forecast()['data']
@@ -275,8 +272,9 @@ class WeatherbitWeatherSource(object):
 					self.actualfetch.Op()  # cound actual local fetches
 					pld = {'fetchingnode': config.sysStore.hostname, 'time': time.time(),
 						   'location': self.thisStoreName, 'success': 'both'}
-					config.MQTTBroker.Publish('Weatherbit/speccmd', node='all/weather2',
-											  payload=json.dumps(pld), retain=True)
+					if config.mqttavailable:
+						config.MQTTBroker.Publish('Weatherbit/fetched', node='all/weather2',
+												  payload=json.dumps(pld))
 					historybuffer.HBNet.Entry('Weather fetch done')
 					logsupport.Logs.Log(
 						'Fetched weather for {} ({}) locally'.format(self.thisStoreName, self.location),
@@ -308,6 +306,12 @@ class WeatherbitWeatherSource(object):
 							severity=ConsoleWarning)
 						self.dailyreset = time.time() + 60 * resetin
 						self.thisStore.StatusDetail = "(Over Limit until {})".format(self.resettime)
+						pld = {'fetchingnode': config.sysStore.hostname, 'time': time.time(),
+							   'location': self.thisStoreName,
+							   'success': 'dailylimit'}
+						if config.mqttavailable:
+							config.MQTTBroker.Publish('Weatherbit/fetched', node='all/weather2',
+													  payload=json.dumps(pld))
 					elif E.response.status_code == 503:
 						item = 'current' if cur is None else 'forecast'
 						logsupport.Logs.Log('Weatherbit rate limit on {} for {}'.format(item, self.thisStoreName),
@@ -315,13 +319,20 @@ class WeatherbitWeatherSource(object):
 						pld = {'fetchingnode': config.sysStore.hostname, 'time': time.time(),
 							   'location': self.thisStoreName,
 							   'success': 'neither' if cur is None else 'current'}
-						config.MQTTBroker.Publish('Weatherbit/speccmd', node='all/weather2',
-												  payload=json.dumps(pld), retain=True)
+						if config.mqttavailable:
+							config.MQTTBroker.Publish('Weatherbit/fetched', node='all/weather2',
+													  payload=json.dumps(pld))
 					else:
 						logsupport.Logs.Log(
 							"Weatherbit failed to get weather for {} last Exc: {}".format(self.thisStoreName, E),
 							severity=ConsoleWarning, hb=True)
 						self.thisStore.StatusDetail = None
+						pld = {'fetchingnode': config.sysStore.hostname, 'time': time.time(),
+							   'location': self.thisStoreName,
+							   'success': 'otherfailure'}
+						if config.mqttavailable:
+							config.MQTTBroker.Publish('Weatherbit/fetched', node='all/weather2',
+													  payload=json.dumps(pld))
 					historybuffer.HBNet.Entry('Weather fetch exception: {}'.format(repr(E)))
 					return None
 

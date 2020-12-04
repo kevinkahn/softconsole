@@ -65,10 +65,25 @@ sysvals = {
 #  configdir
 #  hostname
 
-def ptf(str):
+def ptf(pstr):
 	if sysStore.versionname in ('homerelease', 'development'):
 		with open('/home/pi/Console/weathtrace', 'a') as f:
-			print('{}:{}'.format(time.strftime('%H:%M:%S', time.localtime(time.time())), str), file=f, flush=True)
+			print('{}:{}'.format(time.strftime('%H:%M:%S', time.localtime(time.time())), pstr), file=f, flush=True)
 
 
-os.replace('/home/pi/Console/weathtrace', '/home/pi/Console/weathtrace.prev')
+def ptf2(pstr):
+	if sysStore.versionname in ('homerelease', 'development'):
+		with open('/home/pi/Console/weathhist', 'a') as f:
+			print('{}:{}'.format(time.strftime('%H:%M:%S', time.localtime(time.time())), pstr), file=f, flush=True)
+
+
+# noinspection PyBroadException
+try:
+	os.replace('/home/pi/Console/weathtrace', '/home/pi/Console/weathtrace.prev')
+except:
+	pass
+# noinspection PyBroadException
+try:
+	os.replace('/home/pi/Console/weathhist', '/home/pi/Console/weathhist.prev')
+except:
+	pass
