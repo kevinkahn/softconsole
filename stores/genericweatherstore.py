@@ -30,6 +30,7 @@ FcstFields = (('Day', str), ('High', float), ('Low', float), ('Sky', str), ('Win
 CommonFields = (('FcstDays', int), ('FcstEpoch', int), ('FcstDate', str))
 
 CacheUser = {}  # index by provider to dict that indexes by location that points to instance
+Provs = {}
 WeatherFetcherNotInit = True  # thread that does the fetching
 MQTTqueue = queue.Queue()
 MINWAITBETWEENTRIES = 300  # 5 minutes
@@ -47,18 +48,21 @@ class CacheEntry:
 WeatherCache = {}
 
 
-def RegisterFetcher(provider, locname, instance):
+def RegisterFetcher(provider, locname, instance, provmod):
 	if provider not in CacheUser: CacheUser[provider] = {}
 	CacheUser[provider][locname] = instance
+	Provs[provider] = provmod
 
 def LocationOnNode(prov, locname):
 	return prov in CacheUser and locname in CacheUser[prov]
 
 
 def MQTTWeatherUpdate(provider, locname, wpayload):
-	if locname == 'speccmd':
+	if locname == 'speccmd':  # todo needs not to go to thread else with thread waiting won't see
 		MQTTqueue.put((provider, locname, wpayload))
 		return
+	elif locname == 'readytofetch':
+		Provs[provider].readytofetch.add(wpayload[2]['fetchingnode'])
 	if not LocationOnNode(provider, locname):
 		# print('Unused location {} {}'.format(provider, locname))
 		return  # broadcast for location this node doesn't use
@@ -92,8 +96,11 @@ def HandleMQTTItem(item):
 											 WeatherCache[prov][locname].fetchtime,
 											 fn=WeatherCache[prov][locname].fetchingnode)
 	else:
-		print(item)
-		pass  # speccmd item
+		config.ptf('Fetched: {}: {}'.format(time.strftime('%H:%M', time.localtime(item[2]['time'])), item))
+		try:
+			CacheUser[item[0]].HandleSpecial(item)
+		except AttributeError:
+			pass  # speccmd item
 
 def HandleMQTTinputs(timeout):
 	if timeout <= 0:
@@ -106,7 +113,7 @@ def HandleMQTTinputs(timeout):
 		mqttitem = MQTTqueue.get(timeout=timeout)
 		HandleMQTTItem(mqttitem)
 		while True:
-			mqttitem = MQTTqueue.get(timeout=timeout)
+			mqttitem = MQTTqueue.get(block=False)
 			HandleMQTTItem(mqttitem)
 
 	except queue.Empty:
@@ -115,6 +122,7 @@ def HandleMQTTinputs(timeout):
 
 def DoWeatherFetches():
 	time.sleep(1)
+	forcedelay = 0
 	HandleMQTTinputs(1)  # delay at startup to allow MQTT cache fills to happen
 	while True:
 		for provnm, prov in CacheUser.items():
@@ -123,12 +131,30 @@ def DoWeatherFetches():
 				now = time.time()
 				if (now - store.ValidWeatherTime < store.refreshinterval) or (now - store.failedfetchtime < 120):
 					# have recent data or a recent failure
+					config.ptf('Not yet time for {}'.format(instnm))
 					continue
+				config.ptf('Prep local fetch for {}'.format(instnm))
+				Provs[provnm].readytofetch.add(config.sysStore.hostname)
+				pld = {'fetchingnode': config.sysStore.hostname, 'time': time.time(),
+					   'location': instnm}
+				config.MQTTBroker.Publish('Weatherbit/readytofetch', node='all/weather2',
+										  payload=json.dumps(pld), retain=True)
 				logsupport.Logs.Log(
 					'Try weather refresh: {} age: {} {} {} {} {}'.format(store.name, (now - store.ValidWeatherTime),
 																		 store.ValidWeatherTime, store.refreshinterval,
 																		 store.failedfetchtime, now),
 					severity=ConsoleDetail)
+				time.sleep(5)
+				config.ptf(Provs[provnm].readytofetch)
+				forcedelay = 0
+				if len(Provs[provnm].readytofetch) > 1:
+					selectee = sorted(Provs[provnm].readytofetch)[0]
+					Provs[provnm].readytofetch = set()
+					config.ptf('Selected {}'.format(selectee))
+					if selectee != config.sysStore.hostname:
+						forcedelay = 60
+						break
+				config.ptf('Do local fetch for {}'.format(instnm))
 
 				store.CurFetchGood = False
 				store.Status = ("Fetching",)
@@ -159,7 +185,7 @@ def DoWeatherFetches():
 						logsupport.Logs.Log(
 							'Failed fetch for {} number {} using old weather'.format(store.name,
 																					 store.failedfetchcount))
-					continue  # don't try to load bad weather
+					break  # don't try to load bad weather
 
 				if not inst.LoadWeather(winfo, weathertime, fn='self'):
 					# print('Load for {} time {}'.format(store.name, weathertime))
@@ -184,19 +210,31 @@ def DoWeatherFetches():
 						if config.mqttavailable:
 							config.MQTTBroker.Publish('{}/{}'.format(provnm, inst.thisStoreName), node='all/weather2',
 													  payload=json.dumps(bcst), retain=True)
+				break
 
 		now = time.time()
 		nextfetch = now + 60 * 60 * 24  # 1 day - just need a big starting value to compute next fetch time
-		for provnm, prov in CacheUser.items():
-			for instnm, inst in prov.items():
-				store = inst.thisStore
-				now = time.time()
-				nextfetchforloc = max(store.ValidWeatherTime + store.refreshinterval,
-									  store.failedfetchtime + MINWAITBETWEENTRIES)
-				nextfetch = min(nextfetchforloc, nextfetch)
-		# print('Next fetch needed for {} in {}'.format(instnm, nextfetchforloc - now))
-		# print('Weather fetch sleep for {} until next due fetch'.format(nextfetch - now))
-		HandleMQTTinputs(nextfetch - now)
+		config.ptf('Compute next fetch {}'.format(forcedelay))
+		if forcedelay == 0:
+			for provnm, prov in CacheUser.items():
+				for instnm, inst in prov.items():
+					store = inst.thisStore
+					now = time.time()
+					nextfetchforloc = max(store.ValidWeatherTime + store.refreshinterval,
+										  store.failedfetchtime + MINWAITBETWEENTRIES)
+					nextfetch = min(nextfetchforloc, nextfetch)
+					config.ptf('Next {} in {} Val {} Intrvl {} Next {}'.format(instnm, int(nextfetchforloc - now),
+																			   time.strftime('%H:%M', time.localtime(
+																				   store.ValidWeatherTime)),
+																			   store.refreshinterval,
+																			   time.strftime('%H:%M', time.localtime(
+																				   nextfetchforloc))))
+			# print('Weather fetch sleep for {} until next due fetch'.format(nextfetch - now))
+			config.ptf('Next fetch at {}'.format(time.strftime('%c', time.localtime(nextfetch))))
+			HandleMQTTinputs(nextfetch - now)
+		else:
+			HandleMQTTinputs(forcedelay)
+		config.ptf('Back from HandleInput at {}'.format(time.strftime('%c', time.localtime(time.time()))))
 
 
 class WeatherItem(valuestore.StoreItem):

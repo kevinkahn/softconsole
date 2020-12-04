@@ -121,18 +121,20 @@ def noscreen(scr):
 
 
 # Start of script
+piinstall = len(sys.argv) == 1
 
 shutil.rmtree('.consoleinstallleftovers', ignore_errors=True)
 os.mkdir('.consoleinstallleftovers')
 
-for n, loc in neededfiles.items():
-	# noinspection PyBroadException
-	try:
-		os.remove(n)
-	except Exception:
-		pass
-	wget.download(loc + n, n, bar=None)
-	os.chmod(n, stat.S_IXUSR)
+if piinstall:
+	for n, loc in neededfiles.items():
+		# noinspection PyBroadException
+		try:
+			os.remove(n)
+		except Exception:
+			pass
+		wget.download(loc + n, n, bar=None)
+		os.chmod(n, stat.S_IXUSR)
 
 print("**************************************************************", flush=True)
 print("**************************************************************", flush=True)
@@ -146,8 +148,9 @@ with open('/etc/issue') as f:
 	if "Linux 10" in sysver:
 		Buster = True
 AddToScript('Buster', 'Y' if Buster else 'N')
-AddToScript('NodeName', GetVal("What name for this system?"))
-AddToScript('VNCstdPort', GetYN("Install VNC on standard port (Y/N/alt port number)?", Allownum=True))
+if piinstall:
+	AddToScript('NodeName', GetVal("What name for this system?"))
+	AddToScript('VNCstdPort', GetYN("Install VNC on standard port (Y/N/alt port number)?", Allownum=True))
 personal = GetYN("Is this the developer personal system (Y/N) (bit risky to say Y if it not)?")
 if personal:
 	with open('homesystem', 'w') as f:
@@ -168,14 +171,23 @@ screeninstallcode = {'28r': p(adafruit, '28r', 4), '28c': p(adafruit, '28c', 2),
 					 'pi7': p(doflip, 'pi7'), '--': p(noscreen, '--')}
 baseorientation = {'28c': 'power on left',
 				   '35r': 'power on left',
-				   'pi7': 'power at bottom'}
+				   'pi7': 'power at bottom',
+				   '--': 'is unknown'}
 
-doscreen = GetYN("Do you want to install a known screen (Alternative is to install any screen drivers yourself)?")
-if doscreen:
-	screentype = GetVal("What type screen ({})?".format(supportedscreens), supportedscreens)
-	installsrc = screeninstallcode[screentype]()
+if piinstall:
+	doscreen = GetYN("Do you want to install a known screen (Alternative is to install any screen drivers yourself)?")
+	if doscreen:
+		screentype = GetVal("What type screen ({})?".format(supportedscreens), supportedscreens)
+		installsrc = screeninstallcode[screentype]()
+	else:
+		screentype = GetVal("Enter name of screen for console reference:")
+		installsrc = screeninstallcode['--']()
 else:
-	screentype = GetVal("Enter name of screen for console reference:")
+	installsrc = []
+	if GetYN('Are you using a standard screen? ({})'.format(supportedscreens)):
+		screentype = GetVal('What type screen are you using ({})?'.format(supportedscreens), supportedscreens)
+	else:
+		screentype = GetVal("Enter name of screen for console reference:")
 
 rot = 0
 if screentype in baseorientation:
@@ -307,23 +319,23 @@ if os.path.exists('/boot/auth'):
 	shutil.move('/boot/auth', 'Console/local')
 
 subprocess.call("cp -r /home/pi/consolestable/'example configs'/* /home/pi/Console", shell=True)
+if piinstall:
+	print("****************************************************************", flush=True)
+	print("****************************************************************", flush=True)
+	print(" System will now update/upgrade Raspbian", flush=True)
+	print(" THIS COULD TAKE 10-15 MINUTES DEPENDING ON OUTSTANDING UPDATES", flush=True)
+	print(" AND THE SPEED OF YOUR SD CARD!", flush=True)
+	print(" After that it will install the softconsole using your input", flush=True)
+	print("****************************************************************", flush=True)
+	print("****************************************************************", flush=True)
 
-print("****************************************************************", flush=True)
-print("****************************************************************", flush=True)
-print(" System will now update/upgrade Raspbian", flush=True)
-print(" THIS COULD TAKE 10-15 MINUTES DEPENDING ON OUTSTANDING UPDATES", flush=True)
-print(" AND THE SPEED OF YOUR SD CARD!", flush=True)
-print(" After that it will install the softconsole using your input", flush=True)
-print("****************************************************************", flush=True)
-print("****************************************************************", flush=True)
-
-if screentype == '28c':
-	print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-	print(" NOTE!!! NOTE!!! NOTE!!!")
-	print(" If you are using the 28c screen, the settings from Adafruit that")
-	print(" sets up are likely wrong.  Look at /boot/config.txt")
-	print(" Next to last line should be: dtoverlay=pitft28-capacitive,rotate=180")
-	print(" It may well show as rotate=90 after install due to bugs in their scripts")
-	print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-	time.sleep(10)
+	if screentype == '28c':
+		print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+		print(" NOTE!!! NOTE!!! NOTE!!!")
+		print(" If you are using the 28c screen, the settings from Adafruit that")
+		print(" sets up are likely wrong.  Look at /boot/config.txt")
+		print(" Next to last line should be: dtoverlay=pitft28-capacitive,rotate=180")
+		print(" It may well show as rotate=90 after install due to bugs in their scripts")
+		print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+		time.sleep(10)
 time.sleep(3)

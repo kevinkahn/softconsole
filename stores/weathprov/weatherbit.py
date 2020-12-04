@@ -1,5 +1,6 @@
 import functools
 import time
+import sys
 from datetime import datetime
 
 import pygame
@@ -34,6 +35,7 @@ ByNodeStatGp = stats.StatSubGroup(name='ByNode', PartOf=WBstats, title='Fetches 
 LocalFetches = stats.StatSubGroup(name='LocalWeatherbitFetches', PartOf=WBstats, title='Actual Local Fetches',
 								  totals='Total Local Fetches', rpt=stats.daily)
 
+readytofetch = set()
 
 def TreeDict(d, args):
 	# Allow a nest of dictionaries to be accessed by a tuple of keys for easier code
@@ -210,7 +212,7 @@ class WeatherbitWeatherSource(object):
 		self.dailyreset = 0
 		self.resettime = '(unset)'
 		WeatherMsgStoreName[location] = storename
-		RegisterFetcher('Weatherbit', storename, self)
+		RegisterFetcher('Weatherbit', storename, self, sys.modules[__name__])
 		self.actualfetch = stats.CntStat(name=storename, title=storename, keeplaps=True, PartOf=LocalFetches, inc=2,
 										 init=0)
 		# noinspection PyBroadException
@@ -251,6 +253,9 @@ class WeatherbitWeatherSource(object):
 			logsupport.Logs.Log('Exception {} mapping weather item {} {}'.format(E, src, item), severity=ConsoleWarning)
 			return None
 
+	def HandleSpecial(self, payload):
+		pass
+
 	def FetchWeather(self):
 		Esave = None
 		# print('WBFetch {}'.format(self.thisStoreName))
@@ -262,6 +267,7 @@ class WeatherbitWeatherSource(object):
 			else:
 				cur = None
 				try:
+					# todo post fetch soon; wait 1 sec; if no other fetch soon for loc goahead
 					historybuffer.HBNet.Entry('Weatherbit weather fetch{}'.format(self.thisStoreName))
 					cur = self.get_current()['data'][0]
 					fcst = self.get_forecast()['data']

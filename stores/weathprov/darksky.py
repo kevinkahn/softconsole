@@ -1,4 +1,5 @@
 import functools
+import sys
 import time
 from datetime import datetime
 
@@ -16,6 +17,8 @@ from ..genericweatherstore import RegisterFetcher
 
 from stores.weathprov.providerutils import TryShorten, WeathProvs, MissingIcon
 from utils.utilfuncs import interval_str, TreeDict
+
+readytofetch = set()
 
 WeatherIconCache = {'n/a': MissingIcon}
 
@@ -130,7 +133,7 @@ class DarkSkyWeatherSource(object):
 			logsupport.Logs.Log('Improper location lat/lon: {} Exc: {}'.format(location, E))
 			self.lat, self.lon = (0.0, 0.0)
 		# self.DarkSky = DarkSky(self.apikey)
-		RegisterFetcher('DarkSky', storename, self)
+		RegisterFetcher('DarkSky', storename, self, sys.modules[__name__])
 		self.actualfetch = stats.CntStat(name=storename, title=storename, keeplaps=True, PartOf=LocalFetches, inc=2,
 										 init=0)
 		self.request_manager = RequestManger(True)

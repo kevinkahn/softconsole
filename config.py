@@ -61,3 +61,10 @@ sysvals = {
 #  configfile
 #  configdir
 #  hostname
+
+def ptf(str):
+	with open('/home/pi/Console/weathtrace', 'a') as f:
+		print(str, file=f, flush=True)
+
+
+ptf("------------------------")
