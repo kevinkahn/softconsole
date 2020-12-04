@@ -58,16 +58,21 @@ def LocationOnNode(prov, locname):
 
 
 def MQTTWeatherUpdate(provider, locname, wpayload):
-	if locname == 'speccmd' or locname == 'fetched':
+	if locname == 'fetched':
 		age = time.time() - wpayload['time']
 		if age > 5:
 			config.ptf('Old fetched message {}'.format(age))
 			return
 		# MQTTqueue.put((provider, locname, wpayload))
 		config.ptf('Fetched at: {}: {}'.format(time.strftime('%H:%M', time.localtime(wpayload['time'])), wpayload))
-		config.ptf2('{} tried fetch at {} got {} ({})'.format(wpayload['fetchingnode'],
-															  time.strftime('%H:%M', time.localtime(wpayload['time'])),
-															  wpayload['success'], wpayload))
+		if wpayload['success'] == 'both':
+			config.ptf2('Fetch by {} of {} at {}'.format(wpayload['fetchingnode'], wpayload['location'],
+														 time.strftime('%H:%M', time.localtime(wpayload['time']))))
+		else:
+			config.ptf2('Fail by {} of {} at {} because {}'.format(wpayload['fetchingnode'], wpayload['location'],
+																   time.strftime('%H:%M',
+																				 time.localtime(wpayload['time'])),
+																   wpayload['success']))
 		return
 	elif locname == 'readytofetch':
 		age = time.time() - wpayload['time']
