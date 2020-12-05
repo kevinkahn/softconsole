@@ -191,6 +191,14 @@ def DoWeatherFetches():
 						Provs[
 							provnm].lastfetch = time.time()  # wait at least this ammount expect actual fetch message to reset
 						break
+					elif Provs[provnm].lastfetch + MinimalFetchGap > time.time():
+						config.ptf("Race to fetch {} lastfetch: {} Stand down".format(store.name,
+																					  time.strftime('%H:%M',
+																									time.localtime(
+																										Provs[
+																											provnm].lastfetch))))
+						break
+
 				pld = {'fetchingnode': config.sysStore.hostname, 'time': time.time(),
 					   'location': instnm}
 				if config.mqttavailable:
