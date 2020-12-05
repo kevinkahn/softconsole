@@ -19,6 +19,7 @@ from stores.weathprov.providerutils import TryShorten, WeathProvs, MissingIcon
 from utils.utilfuncs import interval_str, TreeDict
 
 readytofetch = set()
+lastfetch = 0
 
 WeatherIconCache = {'n/a': MissingIcon}
 

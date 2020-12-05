@@ -36,6 +36,7 @@ LocalFetches = stats.StatSubGroup(name='LocalWeatherbitFetches', PartOf=WBstats,
 								  totals='Total Local Fetches', rpt=stats.daily)
 
 readytofetch = set()
+lastfetch = 0
 
 def TreeDict(d, args):
 	# Allow a nest of dictionaries to be accessed by a tuple of keys for easier code

@@ -34,7 +34,7 @@ Provs = {}
 WeatherFetcherNotInit = True  # thread that does the fetching
 MQTTqueue = queue.Queue()
 MINWAITBETWEENTRIES = 300  # 5 minutes
-
+MinimalFetchGap = 180
 
 @dataclass
 class CacheEntry:
@@ -63,6 +63,7 @@ def MQTTWeatherUpdate(provider, locname, wpayload):
 		if age > 5:
 			config.ptf('Old fetched message {}'.format(age))
 			return
+		Provs[provider].lastfetch = wpayload['time']
 		# MQTTqueue.put((provider, locname, wpayload))
 		config.ptf('Fetched at: {}: {}'.format(time.strftime('%H:%M', time.localtime(wpayload['time'])), wpayload))
 		if wpayload['success'] == 'both':
@@ -148,13 +149,15 @@ def HandleMQTTinputs(timeout):
 
 def DoWeatherFetches():
 	time.sleep(1)
-	forcedelay = 0
 	HandleMQTTinputs(1)  # delay at startup to allow MQTT cache fills to happen
 	while True:
 		for provnm, prov in CacheUser.items():
 			for instnm, inst in prov.items():
 				store = inst.thisStore
 				now = time.time()
+				if time.time() - Provs[provnm].lastfetch < MinimalFetchGap:  # minimal interval between fetches
+					config.ptf('Too recent fetch {}'.format(time.time() - Provs[provnm].lastfetch))
+					break
 				if (now - store.ValidWeatherTime < store.refreshinterval) or (now - store.failedfetchtime < 120):
 					# have recent data or a recent failure
 					tmp = store.ValidWeatherTime + store.refreshinterval
@@ -176,7 +179,6 @@ def DoWeatherFetches():
 				config.ptf('Presleep set for {}: {}'.format(store.name, Provs[provnm].readytofetch))
 				time.sleep(10)
 				config.ptf('Fetch set for {}: {}'.format(store.name, Provs[provnm].readytofetch))
-				forcedelay = 0
 				if config.sysStore.hostname not in Provs[provnm].readytofetch:
 					# some other node already started a fetch
 					config.ptf('Another node started fetch {} ({})'.format(store.name, Provs[provnm].readytofetch))
@@ -186,7 +188,8 @@ def DoWeatherFetches():
 					Provs[provnm].readytofetch = set()
 					config.ptf('Selected {} to fetch {}'.format(selectee, store.name))
 					if selectee != config.sysStore.hostname:
-						forcedelay = 120
+						Provs[
+							provnm].lastfetch = time.time()  # wait at least this ammount expect actual fetch message to reset
 						break
 				pld = {'fetchingnode': config.sysStore.hostname, 'time': time.time(),
 					   'location': instnm}
@@ -254,28 +257,33 @@ def DoWeatherFetches():
 		now = time.time()
 		nextfetch = now + 60 * 60 * 24  # 1 day - just need a big starting value to compute next fetch time
 		config.ptf(
-			'Compute next fetch {} at {} ({})'.format(forcedelay, time.strftime('%H:%M', time.localtime(nextfetch)),
-													  Provs['Weatherbit'].readytofetch))
-		if forcedelay == 0:
-			for provnm, prov in CacheUser.items():
-				for instnm, inst in prov.items():
-					store = inst.thisStore
-					now = time.time()
-					nextfetchforloc = max(store.ValidWeatherTime + store.refreshinterval,
-										  store.failedfetchtime + MINWAITBETWEENTRIES)
-					nextfetch = min(nextfetchforloc, nextfetch)
-					config.ptf('Next {} in {} Val {} Intrvl {} Next {}'.format(instnm, int(nextfetchforloc - now),
-																			   time.strftime('%H:%M', time.localtime(
-																				   store.ValidWeatherTime)),
-																			   store.refreshinterval,
-																			   time.strftime('%H:%M', time.localtime(
-																				   nextfetchforloc))))
-			# print('Weather fetch sleep for {} until next due fetch'.format(nextfetch - now))
-			config.ptf('Next fetch at {}'.format(time.strftime('%c', time.localtime(nextfetch))))
-			HandleMQTTinputs(nextfetch - now)
-		else:
-			HandleMQTTinputs(forcedelay)
-			forcedelay = 0
+			'Compute next fetch at {} ({})'.format(time.strftime('%H:%M', time.localtime(nextfetch)),
+												   Provs['Weatherbit'].readytofetch))
+
+		for provnm, prov in CacheUser.items():
+			mindelay = time.time() - Provs[provnm].lastfetch if time.time() - Provs[
+				provnm].lastfetch < MinimalFetchGap else 0
+			for instnm, inst in prov.items():
+				store = inst.thisStore
+				now = time.time()
+				nextfetchforloc = max(store.ValidWeatherTime + store.refreshinterval,
+									  store.failedfetchtime + MINWAITBETWEENTRIES)
+				nextfetch = min(nextfetchforloc, nextfetch)
+				config.ptf('Next {} in {} Val {} Intrvl {} Next {}'.format(instnm, int(nextfetchforloc - now),
+																		   time.strftime('%H:%M', time.localtime(
+																			   store.ValidWeatherTime)),
+																		   store.refreshinterval,
+																		   time.strftime('%H:%M', time.localtime(
+																			   nextfetchforloc))))
+			now = time.time()
+			if mindelay + now > nextfetch:
+				config.ptf('Override next fetch timing for gapping was: {} now: {}'.format(
+					time.strftime('%c', time.localtime(nextfetch)),
+					time.strftime('%c', time.localtime(mindelay + now))))
+				nextfetch = mindelay + now
+		# print('Weather fetch sleep for {} until next due fetch'.format(nextfetch - now))
+		config.ptf('Next fetch at {}'.format(time.strftime('%c', time.localtime(nextfetch))))
+		HandleMQTTinputs(nextfetch - now)
 		config.ptf('Back from HandleInput at {}'.format(time.strftime('%c', time.localtime(time.time()))))
 
 
