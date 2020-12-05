@@ -70,11 +70,18 @@ def ptf(pstr):
 		with open('/home/pi/Console/weathtrace', 'a') as f:
 			print('{}:{}'.format(time.strftime('%H:%M:%S', time.localtime(time.time())), pstr), file=f, flush=True)
 
+lastfetch = 0
+
 
 def ptf2(pstr):
+	global lastfetch
+	flag = '***' if time.time() - lastfetch < 150 else '   '
+	lastfetch = time.time()
+
 	if sysStore.versionname in ('homerelease', 'development'):
 		with open('/home/pi/Console/weathhist', 'a') as f:
-			print('{}:{}'.format(time.strftime('%H:%M:%S', time.localtime(time.time())), pstr), file=f, flush=True)
+			print('{}{}:{}'.format(flag, time.strftime('%H:%M:%S', time.localtime(time.time())), pstr), file=f,
+				  flush=True)
 
 
 # noinspection PyBroadException
