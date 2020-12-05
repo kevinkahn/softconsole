@@ -275,6 +275,7 @@ def DoWeatherFetches():
 			HandleMQTTinputs(nextfetch - now)
 		else:
 			HandleMQTTinputs(forcedelay)
+			forcedelay = 0
 		config.ptf('Back from HandleInput at {}'.format(time.strftime('%c', time.localtime(time.time()))))
 
 
