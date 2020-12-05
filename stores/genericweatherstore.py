@@ -90,7 +90,7 @@ def MQTTWeatherUpdate(provider, locname, wpayload):
 			return
 		config.ptf('Fetching msg from {} for {} {}'.format(wpayload['fetchingnode'], wpayload['location'],
 														   Provs[provider].readytofetch))
-		Provs[provider].readytofetch.discard(config.sysStore.hostname)  # someone beat me too it
+		Provs[provider].readytofetch = set()  # someone beat me too it
 		return
 
 	if not LocationOnNode(provider, locname):
@@ -181,7 +181,7 @@ def DoWeatherFetches():
 					# some other node already started a fetch
 					config.ptf('Another node started fetch {} ({})'.format(store.name, Provs[provnm].readytofetch))
 					break
-				elif len(Provs[provnm].readytofetch) > 1:
+				else:
 					selectee = sorted(Provs[provnm].readytofetch)[0]
 					Provs[provnm].readytofetch = set()
 					config.ptf('Selected {} to fetch {}'.format(selectee, store.name))
@@ -253,7 +253,9 @@ def DoWeatherFetches():
 
 		now = time.time()
 		nextfetch = now + 60 * 60 * 24  # 1 day - just need a big starting value to compute next fetch time
-		config.ptf('Compute next fetch {} at {}'.format(forcedelay, time.strftime('%H:%M', time.localtime(nextfetch))))
+		config.ptf(
+			'Compute next fetch {} at {} ({})'.format(forcedelay, time.strftime('%H:%M', time.localtime(nextfetch)),
+													  Provs['Weatherbit'].readytofetch))
 		if forcedelay == 0:
 			for provnm, prov in CacheUser.items():
 				for instnm, inst in prov.items():
