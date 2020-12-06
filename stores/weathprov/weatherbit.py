@@ -34,9 +34,14 @@ ByLocStatGp = stats.StatSubGroup(name='ByLocation', PartOf=WBstats, title='Fetch
 ByNodeStatGp = stats.StatSubGroup(name='ByNode', PartOf=WBstats, title='Fetches by Node', totals='Total Fetches')
 LocalFetches = stats.StatSubGroup(name='LocalWeatherbitFetches', PartOf=WBstats, title='Actual Local Fetches',
 								  totals='Total Local Fetches', rpt=stats.daily)
+RateLimited = stats.StatSubGroup(name='Weatherbitratelimithit', PartOf=WBstats, title='Rate limited', rpt=stats.daily)
 
 readytofetch = set()
 lastfetch = 0
+
+
+def RLHit():
+	RateLimited.Op()
 
 def TreeDict(d, args):
 	# Allow a nest of dictionaries to be accessed by a tuple of keys for easier code
@@ -315,8 +320,7 @@ class WeatherbitWeatherSource(object):
 													  payload=json.dumps(pld))
 					elif E.response.status_code == 503:
 						item = 'current' if cur is None else 'forecast'
-						logsupport.Logs.Log('Weatherbit rate limit on {} for {}'.format(item, self.thisStoreName),
-											severity=ConsoleWarning)
+						logsupport.Logs.Log('Weatherbit rate limit on {} for {}'.format(item, self.thisStoreName))
 						pld = {'fetchingnode': config.sysStore.hostname, 'time': time.time(),
 							   'location': self.thisStoreName,
 							   'success': 'neither' if cur is None else 'current'}

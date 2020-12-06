@@ -1,5 +1,5 @@
 cfglib = "/home/pi/Console/cfglib"
-include = /home/pi/Console/local/authpga.cfg, mqtt.cfg, pgawBRmain.cfg, pgaBath.cfg, pgaTstat.cfg, pgaOther.cfg, timetempLQ.cfg, myclock2.cfg,weathPDX.cfg,weathPump.cfg,weathersources.cfg,pgawmqtt.cfg, pgaalerts.cfg
+include = /home/pi/Console/local/authpga.cfg, mqtt.cfg, pgawBRmain.cfg, pgaBath.cfg, pgaTstat.cfg, pgaOther.cfg, timetempLQ.cfg, myclock2.cfg,weathPDX.cfg,weathPump.cfg,weathersources.cfg, pgaalerts.cfg
 HomeScreenName = pgawBR
 DimLevel = 25
 DimTO = 25

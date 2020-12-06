@@ -1,6 +1,7 @@
 import functools
 import sys
 import time
+import json
 from datetime import datetime
 
 import pygame
@@ -20,6 +21,10 @@ from utils.utilfuncs import interval_str, TreeDict
 
 readytofetch = set()
 lastfetch = 0
+
+
+def RLHit():
+	pass
 
 WeatherIconCache = {'n/a': MissingIcon}
 
@@ -165,6 +170,11 @@ class DarkSkyWeatherSource(object):
 															 units=units.AUTO, exclude='minutely,hourly,flags')
 				historybuffer.HBNet.Entry('Weather fetch done')
 				self.actualfetch.Op()
+				pld = {'fetchingnode': config.sysStore.hostname, 'time': time.time(),
+					   'location': self.thisStoreName, 'success': 'both'}
+				if config.mqttavailable:
+					config.MQTTBroker.Publish('Weatherbit/fetched', node='all/weather2',
+											  payload=json.dumps(pld))
 				self.thisStore.CurFetchGood = True
 				return forecast
 			except Exception as E:

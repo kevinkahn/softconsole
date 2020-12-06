@@ -33,8 +33,9 @@ CacheUser = {}  # index by provider to dict that indexes by location that points
 Provs = {}
 WeatherFetcherNotInit = True  # thread that does the fetching
 MQTTqueue = queue.Queue()
-MINWAITBETWEENTRIES = 300  # 5 minutes
-MinimalFetchGap = 180
+MINWAITBETWEENTRIES = 180  # 5 minutes
+NetMinimalFetchGap = 240
+
 
 @dataclass
 class CacheEntry:
@@ -150,6 +151,8 @@ def HandleMQTTinputs(timeout):
 def DoWeatherFetches():
 	time.sleep(1)
 	HandleMQTTinputs(1)  # delay at startup to allow MQTT cache fills to happen
+	MinimalFetchGap = NetMinimalFetchGap if config.mqttavailable else 0
+	fetchcnt = sum(len(v) for v in CacheUser.values())
 	while True:
 		for provnm, prov in CacheUser.items():
 			for instnm, inst in prov.items():
@@ -177,7 +180,7 @@ def DoWeatherFetches():
 																		 store.failedfetchtime, now),
 					severity=ConsoleDetail)
 				config.ptf('Presleep set for {}: {}'.format(store.name, Provs[provnm].readytofetch))
-				time.sleep(10)
+				if config.mqttavailable: time.sleep(10)  # if net fetching in use wait to see if others doing work
 				config.ptf('Fetch set for {}: {}'.format(store.name, Provs[provnm].readytofetch))
 				if config.sysStore.hostname not in Provs[provnm].readytofetch:
 					# some other node already started a fetch
@@ -204,6 +207,10 @@ def DoWeatherFetches():
 				if config.mqttavailable:
 					config.MQTTBroker.Publish('Weatherbit/fetching', node='all/weather2',
 											  payload=json.dumps(pld))
+				else:
+					fetchcnt -= 1
+					if fetchcnt <= 0: MinimalFetchGap = NetMinimalFetchGap
+
 				config.ptf('Do local fetch for {}'.format(instnm))
 
 				store.CurFetchGood = False
@@ -211,7 +218,6 @@ def DoWeatherFetches():
 				store.startedfetch = time.time()
 				winfo = inst.FetchWeather()
 				weathertime = time.time()
-				# print('Fetch for {} at {}'.format(store.name, weathertime))
 
 				if store.CurFetchGood:
 					store.failedfetchcount = 0
@@ -256,7 +262,7 @@ def DoWeatherFetches():
 						bcst = {'weatherinfo': winfo, 'location': inst.thisStoreName,
 								'fetchtime': weathertime,
 								'fetchcount': inst.actualfetch.Values()[0],
-								'fetchingnode': config.sysStore.hostname}  # todo fetchcount reachin annoying
+								'fetchingnode': config.sysStore.hostname}
 						if config.mqttavailable:
 							config.MQTTBroker.Publish('{}/{}'.format(provnm, inst.thisStoreName), node='all/weather2',
 													  payload=json.dumps(bcst), retain=True)
@@ -289,7 +295,6 @@ def DoWeatherFetches():
 					time.strftime('%c', time.localtime(nextfetch)),
 					time.strftime('%c', time.localtime(mindelay + now))))
 				nextfetch = mindelay + now
-		# print('Weather fetch sleep for {} until next due fetch'.format(nextfetch - now))
 		config.ptf('Next fetch at {}'.format(time.strftime('%c', time.localtime(nextfetch))))
 		HandleMQTTinputs(nextfetch - now)
 		config.ptf('Back from HandleInput at {}'.format(time.strftime('%c', time.localtime(time.time()))))
