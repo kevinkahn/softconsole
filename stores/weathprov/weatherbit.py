@@ -34,7 +34,7 @@ ByLocStatGp = stats.StatSubGroup(name='ByLocation', PartOf=WBstats, title='Fetch
 ByNodeStatGp = stats.StatSubGroup(name='ByNode', PartOf=WBstats, title='Fetches by Node', totals='Total Fetches')
 LocalFetches = stats.StatSubGroup(name='LocalWeatherbitFetches', PartOf=WBstats, title='Actual Local Fetches',
 								  totals='Total Local Fetches', rpt=stats.daily)
-RateLimited = stats.StatSubGroup(name='Weatherbitratelimithit', PartOf=WBstats, title='Rate limited', rpt=stats.daily)
+RateLimited = stats.CntStat(name='RateLimited', PartOf=WBstats, inc=1, init=0)
 
 readytofetch = set()
 lastfetch = 0
@@ -42,6 +42,7 @@ lastfetch = 0
 
 def RLHit():
 	RateLimited.Op()
+
 
 def TreeDict(d, args):
 	# Allow a nest of dictionaries to be accessed by a tuple of keys for easier code
