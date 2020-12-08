@@ -180,7 +180,7 @@ class StatusDisplayScreen(screen.BaseKeyScreenDesc):
 					cstat = " {:>15.15s}".format(interval_str(ndinfo['uptime'], shrt=True))
 
 					statinfo = Nodes[nd]['stats']['System']
-					if statinfo['maincyclecnt'] == 'unknown*':
+					if 'maincyclecnt' not in statinfo or statinfo['maincyclecnt'] == 'unknown*':
 						stat = ndinfo['status']
 						qmax = '     '
 					else:
