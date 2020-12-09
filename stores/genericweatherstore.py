@@ -75,6 +75,7 @@ def MQTTWeatherUpdate(provider, locname, wpayload):
 																   time.strftime('%H:%M',
 																				 time.localtime(wpayload['time'])),
 																   wpayload['success']))
+			Provs[provider].RLHit()
 		return
 	elif locname == 'readytofetch':
 		age = time.time() - wpayload['time']
