@@ -92,13 +92,5 @@ Weather fetching has been changed to operate autonomously for all defined locati
 
 A minor addition is to allow semi transparent navigation keys if a picture screen is used as a regular screen rather than as an idle screen which improves appearance.
 
-
-Factored keys, gui
-All screens clocked
-Graceful load of weather providers
-Factor main loop
-Reduce number of screen timers
-Refactor triggers/alerts
-Pic screen bug on network directories and disconnect
-Alert capability for HA atributes
-Improved alert tests
+V3.9.1
+Minor release with some bug fixes.  Also a lot of internal restructuring for code maintenance purposes.  AS of this release all screens are now clocked.  The Clocked parameter is still honored to set a clock rate for the screen other than 1/sec (fractions of a second are supported).  This release also supports alerts based on HA attributes and completes the set of comparison operations available for alert tests.  Finally, it reworks the timing of Weatherbit weather fetches to reduce the occurence of "service unavailable" messages.  It turns out the WB uses some interal, undocumented algorithm to rate limit weather calls even if you are below your daily cap.  This version attempts to spread fetches being made, even across multiple nodes on a network, so as to at least reduce to probability of hitting this limit.
