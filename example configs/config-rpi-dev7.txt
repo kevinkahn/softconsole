@@ -14,8 +14,8 @@ cfglib = "/home/pi/consolerem/example configs/cfglib"
 include = /home/pi/Console/local/authall.cfg, weathersources.cfg, weathPump.cfg, timetempLQ.cfg,  myclock.cfg,bathroom.cfg,upperlev.cfg,BR-kck.cfg,tstat.cfg,weathPDX.cfg,timetempLQ7.cfg, mqtt.cfg, octoprint.cfg, weathCC.cfg, timetempPDX7.cfg, pgaTstat.cfg, pgawBRmain.cfg, pgaOther.cfg, pgaBath.cfg,timetempLQ7dks.cfg
 #pgaalerts.cfg,
 HomeScreenName = 'Prusa'
-DimLevel = 10
-DimTO = 5
+DimLevel = 20
+DimTO = 10
 PersistTO = 3
 #DimIdleListNames = Portland, PDXTTbig, MyClock, LQTTbig, Pumpkin
 DimIdleListNames = PDXTTbig, Pic, MyClock, LQTTbig, LQTTbigdks, Pumpkin
@@ -65,7 +65,7 @@ CharColor = white
 
 [Pic]
 type = Picture
-picturedir = pics
+picturedir = /home/pi/photos/rpi-pgalr
 NavKeyAlpha = 50
 #singlepic = 'spcpic.jpg'
 

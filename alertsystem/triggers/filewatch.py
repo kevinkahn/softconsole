@@ -84,7 +84,6 @@ def FileWatcher():
 				continue
 			if f in BadFiles:
 				BadFiles.remove(f)
-				print("Became ok")
 			if t != info['modtime']:
 				info['alert'].trigger.SetTrigger()
 				info['modtime'] = t
