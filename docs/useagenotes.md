@@ -1,12 +1,23 @@
 # Installation
-* The system has currently been tested on Raspberry Pi Zero, Pi Zero W, 2, and 3 using an Adafruit 3.5" resistive PiTFT, Official Raspberry Pi 7" Capacitive Touchscreen, and Adafruit 2.8" capacitive PiTFT.  It is also known to run on a Pimoroni Hyperpixel4.  The current install scripts change the system  to run under Python 3 as distributed with Raspbian.  The code is no longer comatible with Python 2 due to requirements on the libraries it uses.  The system runs on (at least) Stretch and Buster releases of Raspbian.
+* The system has currently been tested on Raspberry Pi Zero, Pi Zero W, 2, and 3 using an Adafruit 3.5" resistive PiTFT,
+  Official Raspberry Pi 7" Capacitive Touchscreen, and Adafruit 2.8" capacitive PiTFT. It is also known to run on a
+  Pimoroni Hyperpixel4. The system runs using Python 3.7 or later. The current install scripts change the system to run
+  under Python 3 as distributed with Raspbian. The code is no longer comatible with Python 2 due to requirements on the
+  libraries it uses. The system runs on (at least) Stretch and Buster releases of Raspbian.
 
-    * **Note**: Some subreleases of Buster seem to do different things with setting up the Pi screen framebuffer.  The install scripts and console try to accomodate what is going on, namely, that sometimes the buffer is /dev/fb0 and sometimes it is /dev/fb1.  However, if you seem to have installed things correctly and still see no output on your screen you might try adding a local screendefinitions file (see below) that forces your system to the correct framebuffer in your case.  If you have more than one /dev/fb? try each in turn.
+    * **Note**: Some subreleases of Buster seem to do different things with setting up the Pi screen framebuffer. The
+      install scripts and console try to accomodate what is going on, namely, that sometimes the buffer is /dev/fb0 and
+      sometimes it is /dev/fb1. However, if you seem to have installed things correctly and still see no output on your
+      screen you might try adding a local screendefinitions file (see below) that forces your system to the correct
+      framebuffer in your case. If you have more than one /dev/fb? try each in turn.
 
   To set up a system use one of the following methods:
 
-    * Easiest:  Build your Pi using the a recent Raspbian image from the Foundation.  The system has been tested and run on Jessie, Stretch, and Buster versions.  Add the **pisetup.sh** script to the /boot partition on the SD card while you have the card in whatever system you use to write the image. After booting the Pi with this image you may want to configure WiFi from the console if you need that.  Then run as root `bash /boot/pisetup.sh`.  
-        * Note 1: The easiest and safest way to get the pisetup file from GitHub is to use the command: 
+    * Easiest:  Build your Pi using the a recent Raspbian image from the Foundation. The system has been tested and run
+      on Jessie, Stretch, and Buster versions. Add the **pisetup.sh** script to the /boot partition on the SD card while
+      you have the card in whatever system you use to write the image. After booting the Pi with this image you may want
+      to configure WiFi from the console if you need that. Then run as root `bash /boot/pisetup.sh`.
+        * Note 1: The easiest and safest way to get the pisetup file from GitHub is to use the command:
         ```
         curl -L -O https://raw.githubusercontent.com/kevinkahn/softconsole/master/docs/pisetup.sh
         ```
@@ -109,7 +120,18 @@ First I admit in advance that the syntax and parsing of the config files is both
 * Some responses from weather providers are fairly long phrases that don't display nicely on the weather screens.  There is a file termshortenlist in the Console directory which is a json representation of a Python dictionary that maps phrases to shorter ones for display.  It is self explanatory if you look at the examples that are prepopulated.  You can edit this as you wish to add or change phrases to be shortened.  If the console comes across a phrase that appears too long as it is running it will add create a termshortenlist.new file and add it to it.  This provides an easy way to create a new version of the termshortenlist file by editing the new one.
 
 # Hubs
-As of Version 3 the console can support multiple hubs.  Currently it can handle ISY controllers and HomeAssistant controllers.  It can support, in principle, any number of hubs concurrently although testing at this point has only been for a single ISY together with multiple HA hubs, where individual screens have had keys that operated devices from each type of hub appearing together.  HA hubs currently support on/off operation for light and switch domains.  They also make available all sensor entities in a store named with the HA Hub name.  Finally, they support a thermostat screen that uses the standard HA climate domain but has only been tested using Nest thermostats.  The old form syntax for specifying the ISY hub via config file elements ISYaddr=, ISYuser=, ISYpasswd= are still supported.  However, the new preferred specification for a hub is to have a section in the config file named for the hub (e.g.,[[MyISY]]) with elements in that section type=, address=, user=, and password=.  An ISY Hub specification might look like:
+
+As of Version 3 the console can support multiple hubs. Currently it can handle ISY controllers and HomeAssistant
+controllers. It can support, in principle, any number of hubs concurrently although testing at this point has only been
+for a single ISY together with multiple HA hubs, where individual screens have had keys that operated devices from each
+type of hub appearing together. HA hubs currently support on/off operation for light and switch domains. They also make
+available all sensor entities in a store named with the HA Hub name. They support HA scenes. Note that scenes in HA can
+only be turned on. Scene keys should either define a proxy switch/light to use to choose whether to display the console
+key as on/off or use blink to provide some feedback that the scene was activated. Finally, they support a thermostat
+screen that uses the standard HA climate domain but has only been tested using Nest thermostats. The old form syntax for
+specifying the ISY hub via config file elements ISYaddr=, ISYuser=, ISYpasswd= are still supported. However, the new
+preferred specification for a hub is to have a section in the config file named for the hub (e.g.,[[MyISY]]) with
+elements in that section type=, address=, user=, and password=. An ISY Hub specification might look like:
  
 ```
         [[MyISY]
@@ -302,13 +324,25 @@ If you set a non empty title for a screen that doesn't otherwise have one, the r
         This describes a key that will be green and say "All good" if the variable is 0; be yellow and say "Probably good" and show the value on 3 lines if the value is 1 or 2; and be red and say "Not so hot" and the value on a single line for values of 3 to 99.  For any other values the key will display "Error in Value" and the value.  Sequential presses of the key when the value is 0 will set the variable to 1, then 3, then 6, then 0.  If something else has set the variable to, e.g.,4, then pressing it will make the variable 0.
         
     * Note the key types PROC, REMOTEPROC, and REMOTECPLXPROC are reserved for internal use by the console.
-       
-    * Modifier Parameters: The ONOFF, RUNPROG, VARKEY, and SETVAR keytypes support certain parameters that modify the key behavior:
-        * Verify = 1: displays a confirmation screen before running the program.  The messages on the confirmation screen can be customized with the GoMsg and/or NoGoMsg parameters.
-        * Blink = n: provide visual feedback when when the runthen is issued by blinking the key n times.  (For VARKEY the key will blink if you have not yet seen it with its current value, even if that value had been previously set while another screen was showing on the console.)
-        * FastPress = 1: requires a quick double tap to activate the key. (Note not applicable to the ONOFF keys since there a double press corresponds to issuing a fast on or off to the device).
-     
-    * Note: for scenes ONOFF will choose a device to use as a proxy for the state of the scene for purposes of the appearance of the button.  Generally this will turn out to be some other switch or KPL button that is a controller for the scene.  This can be overridden by supplying a specific device address or name to use as the proxy.
+
+  * Modifier Parameters: The ONOFF, RUNPROG, VARKEY, and SETVAR keytypes support certain parameters that modify the key
+    behavior:
+      * Verify = 1: displays a confirmation screen before running the program. The messages on the confirmation screen
+        can be customized with the GoMsg and/or NoGoMsg parameters.
+      * Blink = n: provide visual feedback when when the runthen is issued by blinking the key n times.  (For VARKEY the
+        key will blink if you have not yet seen it with its current value, even if that value had been previously set
+        while another screen was showing on the console.)
+      * FastPress = 1: requires a quick double tap to activate the key. (Note not applicable to the ONOFF keys since
+        there a double press corresponds to issuing a fast on or off to the device).
+
+  * Note: Scenes in general have no state to use for choosing the appearance of a button as on or off. ISY and HA handle
+    scenes somewhat differently. For ISY a scene can be turned off while for HA scenes can only be turned on. To provide
+    user visible feedback when a key corresponding to a scene is touched there are choices. The modifier parameter
+    SceneProxy can be used to designate a device whose state should be used to pick the display appearance for the key.
+    This is particularly useful for ISY scenes that simply model 3-way control of a light. For ISY scenes, the console
+    will attempt to automatically choose a device to use as the scene proxy if none is selected (and will usually choose
+    well). For HA automatic proxy choice is not done, so an explicit proxy would need to be specified if desired.
+    Alternately, the user my opt to blink the key to provide feedback that the scene was turned on.
     
 ### Clock
 * Clock: displays a clock formatted according to the OutFormat parameter using any of the underlying OS time formatting codes.  The character size for each line can be set individually.  If there are more lines in the format than character sizes the last size is repeated. Python standard formatting is at https://docs.python.org/2/library/time.html.  Linux (RPi) supports a somewhat richer set of codes e.g. http://linux.die.net/man/3/strftime
