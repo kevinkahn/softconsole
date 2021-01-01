@@ -4,8 +4,8 @@ import hubs.ha.hasshub as hasshub
 import logsupport
 
 IgnoreThese = ('sun', 'person', 'notifications', 'persistent_notification', 'zwave', 'zone', 'history_graph', 'updater',
-			   'configurator', 'weather', 'zwave_mqtt', 'scene', 'counter', 'camera', 'lock', 'alarm_control_panel',
-			   'device_tracker')
+			   'configurator', 'weather', 'zwave_mqtt', 'counter', 'camera', 'lock', 'alarm_control_panel',
+			   'device_tracker', 'vacuum')
 IngoredEntities = {}
 
 

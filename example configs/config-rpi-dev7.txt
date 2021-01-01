@@ -304,10 +304,13 @@ label = Garage, Door
 	Verify = 1
 	Blink = 5
 
-    [[LR Dual Spots]]
-        label = Dual, Spots
-    [[LR Pict Spot]]
-        label = Art Spot,
+    [[HASSpga:scene.pool_lights_on]]
+        label = Light, Pool
+        type = ON
+        SceneProxy = HASSpga:switch.pool_light
+    [[HASSpga:scene.pool_lights_off]]
+        label = Pool,Light,Off
+        type = ON
  #   [[Up Lights]]
  #       Blink = 5
     [[TestSeq]]

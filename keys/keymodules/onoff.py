@@ -85,12 +85,13 @@ class OnOffKey(ManualKeyDesc):
 		if self.KeyAction == "OnOff":
 			self.State = not self.State
 		elif self.KeyAction == "On":
-			self.State = True
+			self.State = True  # todo fix to allow override by object
 		elif self.KeyAction == "Off":
 			self.State = False
 
 		if not self.ControlObjUndefined():
-			self.ControlObj.SendOnOffCommand(self.State)
+			poststate = self.ControlObj.SendOnOffCommand(self.State)
+			if poststate is not None: self.State = poststate
 			self.ScheduleBlinkKey(self.Blink)
 		else:
 			logsupport.Logs.Log("Screen: " + self.Screen.name + " press unbound key: " + self.name,

@@ -105,13 +105,16 @@ class HAnode(object):
 					return 255
 			elif state == 'off':
 				return 0
+			elif state == 'scening':  # scenes really have no state but using -1 would cause X display
+				return 0
 			elif state in ['unavailable', 'unknown']:
 				return -1
 			else:
 				try:
 					val = literal_eval(state)
 				except ValueError:
-					logsupport.Logs.Log('{} reports unknown state: {}'.format(self.Hub.name, state), severity=ConsoleError, tb=False)
+					logsupport.Logs.Log('{} reports unknown state: {}'.format(self.Hub.name, state),
+										severity=ConsoleError, tb=False)
 					return -1
 		else:
 			val = state
@@ -180,16 +183,32 @@ class HA(object):
 	class HAClose(Exception):
 		pass
 
-	# noinspection PyUnusedLocal
 	def GetNode(self, name, proxy=''):
-		# noinspection PyBroadException
+		if proxy == '':
+			pn = name
+		elif ':' in proxy:
+			t = proxy.split(':')
+			if t[0] == self.name:
+				pn = t[1]
+			else:
+				logsupport.Logs.Log("{}: Proxy must be in same hub as button {}".format(self.name, proxy))
+				pn = name
+		else:
+			pn = proxy
 		try:
-			return self.Entities[name], self.Entities[name]
-		except:
-			logsupport.Logs.Log("Attempting to access unknown object: " + name + " in HA Hub: " + self.name,
-								severity=ConsoleWarning)
+			return self.Entities[name], self.Entities[pn]
+		except KeyError:
+			if pn not in self.Entities:
+				logsupport.Logs.Log("{}: Attempting to use unknown Proxy {}".format(self.name, pn),
+									severity=ConsoleWarning)
+			if name not in self.Entities:
+				logsupport.Logs.Log("{}: Attempting to access unknown object: {}".format(self.name, name),
+									severity=ConsoleWarning)
 			I = Indirector(self, name)
 			return I, I
+		except Exception as E:
+			logsupport.Logs.Log("{}: Exception in GetNode: {}".format(self.name, E), severity=ConsoleWarning)
+			return None, None
 
 	def GetProgram(self, name):
 		try:
