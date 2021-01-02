@@ -171,7 +171,6 @@ def ClearIndicator(params=None, Key=None):
 
 
 def SendErrMatch(params=None, Key=None):
-	logsupport.Logs.Log('Match: {}'.format(params))  # todo del
 	TempCheckSanity(Key, params)
 	try:
 		lev, msg = literal_eval(params[3])

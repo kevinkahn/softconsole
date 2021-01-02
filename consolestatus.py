@@ -292,7 +292,7 @@ class CommandScreen(screen.BaseKeyScreenDesc):
 		else:
 			cmdsend = '{}|{}|{}|{}'.format(cmd, hw.hostname, MsgSeq, paramsetter())
 
-		if self.FocusNode == '*':
+		if self.FocusNode == '*' or cmd == 'clearerrindicatormatch':  # special case match error clear case - goes to all even tho on specific screen
 			Key.ExpectedNumResponses = self.NumNodes
 			config.MQTTBroker.Publish('cmd', cmdsend, 'all')
 		else:
