@@ -7,7 +7,7 @@ import subprocess
 PreOpScripts = []
 NewCfgs = set()
 DeletedCfgs = set()
-CopiedConfig = ''
+CopiedConfig = []
 PreOpFailure = []
 
 
@@ -121,20 +121,22 @@ def PreOp():
 		DeletedCfgs = set()
 
 	try:
-		cfgfilesrv = confserver + 'config-' + config.sysStore.hostname + '.txt'
-		cfgfileloc = config.sysStore.configdir + '/config-' + config.sysStore.hostname + '.txt'
-		mt = os.path.getmtime(cfgfilesrv)
-		mtloc = os.path.getmtime(cfgfileloc)
-		if mt > mtloc:
-			shutil.copy2(cfgfilesrv, cfgfileloc)
-			CopiedConfig = cfgfileloc
-		elif mt < mtloc:
-			if mtloc != reftime:
-				shutil.copy2(cfgfileloc, newerlocal)
-				shutil.copy2(cfgfilesrv, cfgfileloc)
-				PreOpFailure.append('Newer main config file on local system')
+		cfgfilesrv = (confserver + 'config-' + config.sysStore.hostname + '.txt', confserver + 'termshortenlist')
+		cfgfileloc = (config.sysStore.configdir + '/config-' + config.sysStore.hostname + '.txt',
+					  config.sysStore.configdir + '/termshortenlist')
+		for i in (0, 1):
+			mt = os.path.getmtime(cfgfilesrv[i])
+			mtloc = os.path.getmtime(cfgfileloc[i])
+			if mt > mtloc:
+				shutil.copy2(cfgfilesrv[i], cfgfileloc[i])
+				CopiedConfig.append(cfgfileloc[i])
+			elif mt < mtloc:
+				if mtloc != reftime:
+					shutil.copy2(cfgfileloc[i], newerlocal)
+					shutil.copy2(cfgfilesrv[i], cfgfileloc[i])
+					PreOpFailure.append('Newer config file {} on local system'.format(cfgfileloc[i]))
 	except Exception as E:
-		PreOpFailure.append("Copying main config file ({})".format(E))
+		PreOpFailure.append("Copying main config files ({})".format(E))
 
 
 def LogUp():
@@ -144,8 +146,8 @@ def LogUp():
 		logsupport.Logs.Log('PreOp Script: {}'.format(l))
 	for f in NewCfgs:
 		logsupport.Logs.Log("Updated cfg library element: {}".format(f))
-	if CopiedConfig != "":
-		logsupport.Logs.Log("Updated host config file: {}".format(CopiedConfig))
+	if CopiedConfig:
+		logsupport.Logs.Log("Updated host config files: {}".format(CopiedConfig))
 	for f in DeletedCfgs:
 		logsupport.Logs.Log("Local config library file {} no longer exists in archive".format(f))
 	for l in PreOpFailure:

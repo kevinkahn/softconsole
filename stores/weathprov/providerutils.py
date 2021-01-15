@@ -56,7 +56,6 @@ def TryShorten(term):
 	for noise in NoiseItems:
 		newterm = newterm.replace(noise, '')
 	newterm = ' '.join(newterm.split())
-
 	if term in TermShortener:
 		return TermShortener[term]
 	elif len(newterm) > maxlength and newterm[0:4] != 'http':
@@ -96,5 +95,6 @@ def SetUpTermShortener():
 		with open('{}/Console/termshortenlist'.format(config.sysStore.HomeDir), 'r') as f:
 			# noinspection PyBroadException
 			TermShortener = json.load(f)
-	except:
+	except Exception as E:
+		logsupport.Logs.Log('Exception setting up termshortenlist: {}'.format(E), severity=ConsoleWarning)
 		TermShortener = {}

@@ -8,10 +8,12 @@ class MissingHubStore(valuestore.ValueStore):
 		super().__init__(hubnm)
 		self.hub = hub
 		logsupport.Logs.Log('Created dummy store {}'.format(hubnm))
+		self.reportedlist = []
 
 	def GetVal(self, name, failok=False):
 		return None
 
 	def SetVal(self, name, val, modifier=None):
-		logsupport.Logs.Log('Attempt to set a value {} in dummy store {} item {}'.format(val, self.name, name))
-		pass
+		if not name in self.reportedlist:
+			logsupport.Logs.Log('Attempt to set a value {} in dummy store {} item {}'.format(val, self.name, name))
+			self.reportedlist.append(name)

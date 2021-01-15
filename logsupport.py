@@ -326,14 +326,12 @@ class Logger(object):
 	def MatchLastErr(self, lev, msg, reptlev):
 		firstunseen = config.sysStore.ErrorNotice
 		for i in range(len(self.log) - 1, firstunseen - 1, -1):
-			# if self.log[i][0] == lev and self.log[i][1] == msg:
-			print('Error match ratio: {}'.format(difflib.SequenceMatcher(None, self.log[i][1], msg).ratio()))
+			# print('Error match ratio: {}'.format(difflib.SequenceMatcher(None, self.log[i][1], msg).ratio()))
 			if self.log[i][0] == lev and difflib.SequenceMatcher(None, self.log[i][1], msg).ratio() > .9:
 				return True
 			elif self.log[i][0] >= reptlev:
 				# equal or worse error after match target
 				return False
-		# else continue
 		return False  # didn't match
 
 	def RecordMessage(self, severity, entry, entrytime, debugitem, tb):
