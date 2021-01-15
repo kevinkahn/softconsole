@@ -318,10 +318,11 @@ class PagedDisplay(screen.BaseKeyScreenDesc):
 		self.oknext = True
 		self.PageStartItem = [0]
 		self.Keys = {'nextpage': toucharea.TouchPoint('nextpage', (hw.screenwidth / 2, 3 * hw.screenheight / 4),
-													  (hw.screenwidth, hw.screenheight / 2), proc=self.NextPage),
+													  (hw.screenwidth, hw.screenheight / 2), proc=self.NextPage,
+													  procdbl=self.BotPage),
 					 'prevpage': toucharea.TouchPoint('prevpage', (hw.screenwidth / 2, hw.screenheight / 4),
 													  (hw.screenwidth, hw.screenheight / 2),
-													  proc=self.PrevPage)}
+													  proc=self.PrevPage, procdbl=self.TopPage)}
 		self.color = color
 		self.pagefont = fonts.fonts.Font(fontsize, face=fonts.monofont)
 		utilities.register_example("LogDisplayScreen", self)
@@ -350,6 +351,16 @@ class PagedDisplay(screen.BaseKeyScreenDesc):
 		else:
 			self.state = 'init'
 			SwitchScreen(screen.BACKTOKEN, 'Bright', 'Done (prev) showing log', newstate='Maint')
+
+	def TopPage(self):
+		self.pageno = 0
+		self.item = 0
+		self.startpage = self.PageStartItem[0]
+		self.oknext = False
+
+	def BotPage(self):
+		self.state = 'scroll'
+		self.startat = 99999999999
 
 	def ScreenContentRepaint(self):
 		self.item = self.RenderPage(self.BackgroundColor, start=self.startpage, pageno=self.pageno)
