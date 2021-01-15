@@ -48,6 +48,7 @@ import atexit
 from guicore import displayscreen
 import hubs.isy.isy as isy
 import hubs.ha.hasshub as hasshub
+import hubs.missing.missinghub as missinghub
 import logsupport
 from logsupport import ConsoleWarning, ConsoleError, ConsoleDetail
 
@@ -73,8 +74,9 @@ historybuffer.HBNet = historybuffer.HistoryBuffer(80, 'Net')
 
 atexit.register(exitutils.exitlogging)
 
-hubs.hubs.hubtypes['ISY'] = isy.ISY
+hubs.hubs.hubtypes['ISY'] = isy.ISY  # todo make dynamic load
 hubs.hubs.hubtypes['HASS'] = hasshub.HA
+hubs.hubs.hubtypes['*missing*'] = missinghub.Hub
 
 # noinspection PyUnusedLocal
 def handler(signum, frame):
@@ -455,7 +457,8 @@ for i, v in ParsedConfigFile.items():
 					hubs.hubs.Hubs[i] = pkg(i, v.get('address', ''), v.get('user', ''), v.get('password', ''), hubvers)
 				except HubInitError:
 					logsupport.Logs.Log("Hub {} could not initialize".format(i), severity=ConsoleError, tb=False)
-					exitutils.Exit(exitutils.ERRORRESTART, immediate=True)  # retry - hub may be slow initializing
+					hubs.hubs.Hubs[i] = hubs.hubs.hubtypes['*missing*'](i, 'none', 'none', 'none', 0)
+				# exitutils.Exit(exitutils.ERRORRESTART, immediate=True)  # retry - hub may be slow initializing
 				except BaseException as e:
 					logsupport.Logs.Log("Fatal console error - fix config file: ", e, severity=ConsoleError, tb=False)
 					tbinfo = traceback.format_exc().splitlines()

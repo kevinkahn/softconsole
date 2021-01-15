@@ -43,6 +43,7 @@ class ISYEventMonitor(object):
 		self.hbcount = 0
 		self.AlertNodes = {}
 		self.delayedstart = 0
+		self.longdown = 0
 		self.WS = None
 		self.THstate = 'init'
 		self.querycnt = 0
@@ -150,6 +151,11 @@ class ISYEventMonitor(object):
 			elif self.lasterror == 'DirectCommError':
 				logsupport.Logs.Log(self.hubname + ' WS restart because of failed direct communication failure')
 				self.delayedstart = 90  # probably ISY doing query
+			elif self.lasterror == 'ISYNoRoute':
+				logsupport.Logs.Log("{}: Hub probably down (semi) permanently ({})".self.name, self.longdown)
+				self.delayedstart = 3600 + self.longdown * 1800  # spread checks way out
+				self.isy._HubOnline = False
+				self.longdown += 1
 			else:
 				logsupport.Logs.Log(self.hubname + ' Unexpected error on WS stream: ', self.lasterror,
 									severity=ConsoleError, tb=False)
@@ -182,6 +188,7 @@ class ISYEventMonitor(object):
 					self.lasterror = 'ISYNetDown'
 				else:
 					logsupport.Logs.Log(self.hubname + ' WS OS error', repr(error), severity=ConsoleError, tb=False)
+					self.lasterror = 'ISYNoRoute'  # probably semi permanent failure
 			else:
 				logsupport.Logs.Log(self.hubname + " Error in WS stream " + str(self.QHnum) + ': ' + repr(error),
 									severity=ConsoleError,

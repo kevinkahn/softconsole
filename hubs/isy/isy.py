@@ -261,7 +261,7 @@ class ISY(object):
 		"""
 		logsupport.Logs.Log("{}: Create Structure for ISY hub at {} for user {}".format(name, isyaddr, user))
 
-		trycount = 20
+		trycount = 10
 		while True:
 			# noinspection PyBroadException
 			try:
@@ -292,6 +292,10 @@ class ISY(object):
 			raise ValueError
 
 		configdict = xmltodict.parse(r.text)['nodes']
+		# with open('/home/pi/Console/txml.dmp') as f:
+		#	rtxt = f.readline()
+		# configdict = xmltodict.parse(rtxt)['nodes']
+
 		if debug.dbgStore.GetVal('ISYLoad'):
 			with open('/home/pi/Console/xml.dmp', 'r') as f:
 				x1 = f.readline().rstrip('\n')
@@ -308,6 +312,20 @@ class ISY(object):
 			debug.ISYDump("xml.dmp", r.text, pretty=False, new=True)
 			debug.ISYDump("struct.dmp", configdict, new=True)
 			debug.ISYDump("isystream.dmp", "", pretty=False, new=True)
+
+		# Make sure that we have standardized info from ISY even if no or one folder, node, group
+		if not 'folder' in configdict:
+			configdict['folder'] = []
+		elif not isinstance(configdict['folder'], list):
+			configdict['folder'] = [configdict['folder']]
+		if not 'node' in configdict:
+			configdict['node'] = []
+		elif not isinstance(configdict['node'], list):
+			configdict['node'] = [configdict['node']]
+		if not 'group' in configdict:
+			configdict['group'] = []
+		elif not isinstance(configdict['group'], list):
+			configdict['group'] = [configdict['group']]
 
 		for folder in configdict['folder']:
 			addr = folder['address']
@@ -379,12 +397,21 @@ class ISY(object):
 					if isinstance(m1, list):
 						for m in m1:
 							naddr = m['#text']
-							memberlist.append((int(m['@type']), self.NodesByAddr[naddr]))
+							if naddr in self.V3Nodes:
+								logsupport.Logs.Log('{}:Ignoring V3 node {}'.format(self.name, naddr))
+							else:
+								memberlist.append((int(m['@type']), self.NodesByAddr[naddr]))
 					else:
 						naddr = m1['#text']
-						memberlist.append((int(m1['@type']), self.NodesByAddr[naddr]))
-				except:
-					logsupport.Logs.Log("Error adding member to scene: ", str(scene['name']), ' Node address: ', naddr,
+						if naddr in self.V3Nodes:
+							logsupport.Logs.Log('{}:Ignoring V3 node {}'.format(self.name, naddr))
+						else:
+							memberlist.append((int(m1['@type']), self.NodesByAddr[naddr]))
+				except Exception as E:
+					logsupport.Logs.Log("{}: Error adding member to scene: {} Node address: {} ({})".format(self.name,
+																											str(scene[
+																													'name']),
+																											naddr, E),
 										severity=ConsoleWarning)
 					debug.debugPrint('ISYDump', 'Scene: ', m1)
 
@@ -411,7 +438,7 @@ class ISY(object):
 		Build the Program tree
 		"""
 
-		trycount = 20
+		trycount = 10
 		while True:
 			# noinspection PyBroadException
 			try:
@@ -429,7 +456,8 @@ class ISY(object):
 				# Eventually we try rebooting just in case our own network is what is hosed
 				trycount -= 1
 				if trycount > 0:
-					logsupport.Logs.Log('{}:  Hub not responding (programs) at: {}'.format(self.name, self.ISYprefix))
+					logsupport.Logs.Log(
+						'{}:  Hub not responding ({}) (programs) at: {}'.format(self.name, trycount, self.ISYprefix))
 					time.sleep(15)
 				else:
 					logsupport.Logs.Log('No ISY response restart (programs)')
@@ -488,7 +516,7 @@ class ISY(object):
 		self.Vars = valuestore.NewValueStore(isyvarssupport.ISYVars(self))
 		# noinspection PyBroadException
 		try:
-			configdictS = xmltodict.parse(r1.text)['CList']['e']
+			configdictS = xmltodict.parse(r1.text)['CList']['e']  # is a list of vars
 			if debug.dbgStore.GetVal('ISYLoad'):
 				configdictS = xmltodict.parse(x3)['CList']['e']
 			if debug.dbgStore.GetVal('ISYDump'):
