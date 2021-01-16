@@ -489,18 +489,28 @@ class ISY(object):
 		Get the variables
 		"""
 		while True:
+			intgood = True
+			statgood = True
 			# noinspection PyBroadException
 			try:
 				historybuffer.HBNet.Entry('ISY vars get')
+
 				r1 = self.ISYrequestsession.get(self.ISYprefix + 'vars/definitions/2', verify=False, timeout=5)
 				r2 = self.ISYrequestsession.get(self.ISYprefix + 'vars/definitions/1', verify=False, timeout=5)
 				historybuffer.HBNet.Entry('ISY vars get done')
-				# for some reason var reads seem to typically take longer to complete so to at 5 sec
-				if r1.status_code != 200 or r2.status_code != 200:
-					logsupport.Logs.Log("Bad ISY var read" + r1.text + r2.text, severity=ConsoleWarning)
+				# if r1.status_code == 200 and r2.status_code == 200: # good reads for both
+				#	break
+				if r1.status_code != 200 and 'Not Found' in r1.text:  # no state vars
+					statgood = False
+				elif r1.status_code != 200:
+					logsupport.Logs.Log("Bad ISY state var read" + r1.text + r2.text, severity=ConsoleWarning)
 					raise requests.exceptions.ConnectionError  # fake connection error on bad read
-				logsupport.Logs.Log(
-					'{}: Successful variable read: {}/{}'.format(self.name, r1.status_code, r2.status_code))
+
+				if r2.status_code != 200 and 'Not Found' in r2.text:  # no int vars
+					intgood = False
+				elif r2.status_code != 200:
+					logsupport.Logs.Log("Bad ISY int var read" + r1.text + r2.text, severity=ConsoleWarning)
+					raise requests.exceptions.ConnectionError  # fake connection error on bad read
 				break
 			except:
 				# after total power outage ISY is slower to come back than RPi so we wait testing periodically
@@ -513,10 +523,14 @@ class ISY(object):
 					logsupport.Logs.Log('No ISY response restart (vars)')
 					raise HubInitError
 
+		logsupport.Logs.Log(
+			'{}: Successful variable read: {}/{} ({}/{})'.format(self.name, r1.status_code, r2.status_code, statgood,
+																 intgood))
+
 		self.Vars = valuestore.NewValueStore(isyvarssupport.ISYVars(self))
 		# noinspection PyBroadException
 		try:
-			configdictS = xmltodict.parse(r1.text)['CList']['e']  # is a list of vars
+			configdictS = [] if not statgood else xmltodict.parse(r1.text)['CList']['e']  # is a list of vars
 			if debug.dbgStore.GetVal('ISYLoad'):
 				configdictS = xmltodict.parse(x3)['CList']['e']
 			if debug.dbgStore.GetVal('ISYDump'):
@@ -530,7 +544,7 @@ class ISY(object):
 			logsupport.Logs.Log('No state variables defined')
 		# noinspection PyBroadException
 		try:
-			configdictI = xmltodict.parse(r2.text)['CList']['e']
+			configdictI = [] if not intgood else xmltodict.parse(r2.text)['CList']['e']
 			if debug.dbgStore.GetVal('ISYLoad'):
 				configdictI = xmltodict.parse(x4)['CList']['e']
 			if debug.dbgStore.GetVal('ISYDump'):

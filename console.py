@@ -1,6 +1,6 @@
 #!/usr/bin/python -u
 """
-Copyright 2016, 2017, 2018, 2019, 2020 Kevin Kahn
+Copyright 2016, 2017, 2018, 2019, 2020, 2021 Kevin Kahn
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -342,7 +342,7 @@ utilities.Logs = logsupport.Logs
 cgitb.enable(format='text')
 logsupport.Logs.Log(u"Soft ISY Console")
 
-logsupport.Logs.Log(u"  \u00A9 Kevin Kahn 2016, 2017, 2018, 2019, 2020")
+logsupport.Logs.Log(u"  \u00A9 Kevin Kahn 2016, 2017, 2018, 2019, 2020, 2021")
 logsupport.Logs.Log("Software under Apache 2.0 License")
 logsupport.Logs.Log("Version Information:")
 logsupport.Logs.Log(" Running under Python: ", sys.version)
