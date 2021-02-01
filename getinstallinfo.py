@@ -2,7 +2,8 @@ import sys, time, os, wget, stat, shutil, subprocess
 from functools import partial as p
 
 neededfiles = {'adafruit-pitft-touch-cal': 'https://raw.githubusercontent.com/adafruit/Adafruit-PiTFT-Helper/master/',
-			   'adafruit-pitft.sh': 'https://raw.githubusercontent.com/adafruit/Raspberry-Pi-Installer-Scripts/master/'}
+			   'adafruit-pitft.py': 'https://raw.githubusercontent.com/adafruit/Raspberry-Pi-Installer-Scripts/master/'}
+#			   'adafruit-pitft.sh': 'https://raw.githubusercontent.com/adafruit/Raspberry-Pi-Installer-Scripts/master/'}
 
 gitselector = {'stable': 'currentrelease', 'personal': 'homerelease', 'beta': 'currentbeta'}
 gitprefix = 'https://raw.githubusercontent.com/kevinkahn/softconsole/'
@@ -74,30 +75,33 @@ def AddToScript(varset, value):
 
 
 def adafruit(scr, rotation):
-	fin = open('/home/pi/adafruit-pitft.sh')
-	displays = []
-	while not displays:
-		line = fin.readline()
-		if line.startswith('PITFT_TYPES='):
-			displays = line[line.index('(') + 1: line.index(')')].replace('"', '').split(' ')
-		else:
-			pass
-	fin.close()
+	# fin = open('/home/pi/adafruit-pitft.sh')
+	# displays = []
+	# while not displays:
+	#	line = fin.readline()
+	#	if line.startswith('PITFT_TYPES='):
+	#		displays = line[line.index('(') + 1: line.index(')')].replace('"', '').split(' ')
+	#	else:
+	#		pass
+	# fin.close()
 
 	# noinspection PyBroadException
-	try:
-		dnum = displays.index(scr) + 1
-	except:
-		print('Screen name not found in Adafruit scripts - report to developer!')
-		sys.exit(1)
-	fout = open('adafinput', 'w')
-	fout.write(str(dnum) + '\n')
-	fout.write(str(rotation) + '\n')
-	fout.write('Y\n')  # pi console to pitft
-	fout.write('N\n')  # don't reboot
-	fout.close()
+	# try:
+	#	dnum = displays.index(scr) + 1
+	# except:
+	#	print('Screen name not found in Adafruit scripts - report to developer!')
+	#	sys.exit(1)
+	# fout = open('adafinput', 'w')
+	# fout.write(str(dnum) + '\n')
+	# fout.write(str(rotation) + '\n')
+	# fout.write('Y\n')  # pi console to pitft
+	# fout.write('N\n')  # don't reboot
+	# fout.close()
+	# return ["echo Adafruit {} screen\n".format(scr),
+	#		"./adafruit-pitft.sh < adafinput\n",
+	#		"raspi-config nonint do_boot_behaviour B4 # set boot to desktop already logged in\n"]
 	return ["echo Adafruit {} screen\n".format(scr),
-			"./adafruit-pitft.sh < adafinput\n",
+			"./adafruit-pitft.py --display {} --rotation {} --reboot no --install console \n".format(scr, rotation),
 			"raspi-config nonint do_boot_behaviour B4 # set boot to desktop already logged in\n"]
 
 
@@ -133,6 +137,7 @@ if piinstall:
 			os.remove(n)
 		except Exception:
 			pass
+		print(loc + n, n)
 		wget.download(loc + n, n, bar=None)
 		os.chmod(n, stat.S_IXUSR)
 
