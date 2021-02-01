@@ -101,7 +101,10 @@ def adafruit(scr, rotation):
 	#		"./adafruit-pitft.sh < adafinput\n",
 	#		"raspi-config nonint do_boot_behaviour B4 # set boot to desktop already logged in\n"]
 	return ["echo Adafruit {} screen\n".format(scr),
-			"./adafruit-pitft.py --display {} --rotation {} --reboot no --install console \n".format(scr, rotation),
+			"pip3 install Click==7.0\n",
+			"pip3 install adafruit-python-shell\n",
+			"python ./adafruit-pitft.py --display {} --rotation {} --reboot no --install-type console \n".format(scr,
+																												 rotation),
 			"raspi-config nonint do_boot_behaviour B4 # set boot to desktop already logged in\n"]
 
 
