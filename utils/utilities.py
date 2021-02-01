@@ -11,6 +11,7 @@ from utils import threadmanager, displayupdate, hw
 from controlevents import CEvent, PostEvent, ConsoleEvent
 from logsupport import ConsoleDetail, ConsoleWarning
 from stores import valuestore
+import time
 
 # from sets import Set
 
@@ -131,13 +132,13 @@ def InitializeEnvironment():
 		p = (touch.x, touch.y)
 		if event == TS_PRESS:
 			debug.debugPrint('Touch', 'Press pos: {} seq: {}'.format(p, evntcnt))
-			PostEvent(ConsoleEvent(CEvent.MouseDown, pos=p, seq=evntcnt))  # eventfix
+			PostEvent(ConsoleEvent(CEvent.MouseDown, pos=p, seq=evntcnt, mtime=time.time()))  # eventfix
 		elif event == TS_RELEASE:
 			debug.debugPrint('Touch', 'Repease pos: {} seq: {}'.format(p, evntcnt))
-			PostEvent(ConsoleEvent(CEvent.MouseUp, pos=p, seq=evntcnt))
+			PostEvent(ConsoleEvent(CEvent.MouseUp, pos=p, seq=evntcnt, mtime=time.time()))
 		elif event == TS_MOVE:
 			debug.debugPrint('Touch', 'Motion pos: {} seq: {}'.format(p, evntcnt))
-			PostEvent(ConsoleEvent(CEvent.MouseMotion, pos=p, seq=evntcnt))
+			PostEvent(ConsoleEvent(CEvent.MouseMotion, pos=p, seq=evntcnt, mtime=time.time()))
 
 	for touchtyp in ts.touches:
 		touchtyp.on_press = touchhandler

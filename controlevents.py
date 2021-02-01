@@ -32,7 +32,13 @@ def PostEvent(e):
 	cpu = psutil.Process(config.sysStore.Console_pid).cpu_times()
 	e.addtoevent(QTime=time.time(), usercpu=cpu.user, syscpu=cpu.system)
 	ConsoleOpsQueue.put(e)
-	HBControl.Entry('Post {} queuesize: {}'.format(e,ConsoleOpsQueue.qsize()))
+	HBControl.Entry('Post {} queuesize: {}'.format(e, ConsoleOpsQueue.qsize()))
+
+
+def TimedGetEvent(timeout):
+	evnt = ConsoleOpsQueue.get(timeout=timeout)
+	if evnt is None: logsupport.Logs.Log('Got none from timed get', severity=logsupport.ConsoleError, hb=True)
+	return evnt
 
 
 def GetEvent():

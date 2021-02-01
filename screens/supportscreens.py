@@ -55,7 +55,6 @@ class VerifyScreen(screen.BaseKeyScreenDesc):
 		# debugPrint('Main', "Enter to screen: ", self.name)
 		logsupport.Logs.Log('Entering Verify Screen: ' + self.name, severity=ConsoleDetail)
 		super(VerifyScreen, self).InitDisplay({})
-# self.ShowScreen()
 
 class ValueChangeScreen(screen.ScreenDesc):  # todo may need to call super class
 	# need to set no nav keys
@@ -409,3 +408,57 @@ class PagedDisplay(screen.BaseKeyScreenDesc):
 		l = self.pagefont.render('***** End *****', False, wc(self.color))
 		hw.screen.blit(l, ((hw.screenwidth - l.get_width()) / 2, pos + l.get_height()))
 		return -1
+
+class SliderScreen(screen.ScreenDesc):
+	def __init__(self, key, charcolor, bcolor, keycoloroff, initval, rangelow, rangehi, resultsetter):
+		# call result setter as often as desired to show partial changes
+		pass
+		'''
+		Paint background, paint line, paint dot at current value proportional to range
+		Maybe have a parameter that is interval at which to call result setter, also call when up happens
+		Separate OK to end screen, cancel? if so save init and restore with call to resultsetter
+		This is a single use screen, destroy at end, get to it via a push
+		Should slider be horiz or vert or use longer axis?
+		resultsetter a proc that takes a level value when called
+		'''
+		super().__init__({}, key.Screen.name + '-' + key.name + '-Value', parentscreen=key, SingleUse=True)
+		debug.debugPrint('Screen', "Build Verify Screen")
+		self.callingkey = key
+		self.WatchMotion = True
+		self.NavKeysShowing = False
+		self.DefaultNavKeysShowing = False
+		self.HubInterestList = None
+		self.DimTO = 20
+		self.PersistTO = 10
+		self.label = screen.FlatenScreenLabel(key.label)
+		self.ClearScreenTitle()  # don't use parent screen title
+		screen.AddUndefaultedParams(self, None, TitleFontSize=40, SubFontSize=25)
+		self.SetScreenTitle(self.label, 40, charcolor)
+		self.Keys['yes'] = toucharea.ManualKeyDesc(self, 'OK', 'OK', bcolor, keycoloroff, charcolor, State=True)
+		self.Keys['yes'].Proc = self.resultsetter
+		self.Keys['no'] = toucharea.ManualKeyDesc(self, 'Cancel', 'Cancel', bcolor, keycoloroff, charcolor, State=True)
+		self.Keys['no'].Proc = functools.partial(screen.PopScreen, 'Canceled slider')
+
+		self.LayoutKeys(self.startvertspace, self.useablevertspace)
+		key.Screen.ChildScreens[key.name + '-Verify'] = self
+		utilities.register_example("VerifyScreen", self)
+
+	def Invoke(self):
+		screen.PushToScreen(self, msg='Do Verify' + self.name)
+
+	def InitDisplay(self, nav):
+		# debugPrint('Main', "Enter to screen: ", self.name)
+		logsupport.Logs.Log('Entering Verify Screen: ' + self.name, severity=ConsoleDetail)
+		super().InitDisplay({})
+
+	# add a reinit?
+	# real work in ScreenContentRepaint
+
+	def ScreenContentRepaint(self):
+		pass
+
+	def Motion(self, pos):
+		print(pos)
+
+	def KeyUp(self, pos):  # call when key is up to set value
+		print(pos)

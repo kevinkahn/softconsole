@@ -8,5 +8,7 @@ def MouseOther(event):
 	debug.debugPrint('Touch', 'Other mouse event {}'.format(event))
 
 
-EventDispatch[CEvent.MouseUp] = MouseOther
-EventDispatch[CEvent.MouseMotion] = MouseOther
+if CEvent.MouseUp not in EventDispatch:
+	EventDispatch[CEvent.MouseUp] = MouseOther
+if CEvent.MouseMotion not in EventDispatch:
+	EventDispatch[CEvent.MouseMotion] = MouseOther

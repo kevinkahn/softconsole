@@ -19,7 +19,7 @@ import controlevents
 import traceback
 
 EventDispatch = {}
-
+NewMouse = False
 
 def MainControlLoop():
 	# Load Event Handlers
@@ -140,6 +140,7 @@ def MainControlLoop():
 
 			# Dispatch Event
 			if event.type in EventDispatch:
+				# print('Event: {}'.format(event.type))
 				EventDispatch[event.type](event)
 			else:
 				logsupport.Logs.Log("Unknown main event {}".format(repr(event)), severity=ConsoleError, hb=True,

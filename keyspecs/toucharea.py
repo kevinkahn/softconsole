@@ -41,6 +41,7 @@ class TouchPoint(object):
 			   (pos[1] > self.Center[1] - self.Size[1] / 2) and (pos[1] < self.Center[1] + self.Size[1] / 2)
 
 	def Pressed(self, tapcount):
+		# print('Pressed: {}({})'.format(self.name, tapcount))
 		if tapcount == 1:
 			if self.Proc is not None:
 				if 'Key' in inspect.signature(self.Proc).parameters:
@@ -53,6 +54,10 @@ class TouchPoint(object):
 					self.ProcDblTap(Key=self)
 				else:
 					self.ProcDblTap()
+		elif tapcount == -1:
+			# Long tap
+			logsupport.Logs.Log('Key {} got long tap'.format(self.name))
+			pass
 		else:
 			logsupport.Logs.Log('Toucharea got wrong press count {}'.format(tapcount),
 								severity=logsupport.ConsoleWarning)

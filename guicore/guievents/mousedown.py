@@ -91,4 +91,5 @@ def MouseDown(event):
 			K.Proc()
 
 
-EventDispatch[CEvent.MouseDown] = MouseDown
+if CEvent.MouseDown not in EventDispatch:
+	EventDispatch[CEvent.MouseDown] = MouseDown
