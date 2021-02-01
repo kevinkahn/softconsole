@@ -329,7 +329,7 @@ class HA(object):
 
 	def PreRestartHAEvents(self):
 		self.haconnectstate = "Prestart"
-		trycnt = 30
+		trycnt = 60
 		while True:
 			self.config = ha.get_config(self.api)
 			if self.config != {}:
@@ -338,7 +338,7 @@ class HA(object):
 			if trycnt < 0:
 				logsupport.Logs.Log("{}: Waiting for HA to come up - retrying: ".format(self.name),
 									severity=ConsoleWarning)
-				trycnt = 30
+				trycnt = 60
 			time.sleep(1)  # don't flood network
 		self.watchstarttime = time.time()
 		self.HAnum += 1

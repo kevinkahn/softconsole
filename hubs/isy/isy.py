@@ -261,7 +261,7 @@ class ISY(object):
 		"""
 		logsupport.Logs.Log("{}: Create Structure for ISY hub at {} for user {}".format(name, isyaddr, user))
 
-		trycount = 15 if config.sysStore.versionname not in ('none', 'development') else 2
+		trycount = 15 if config.sysStore.versionname not in ('none', 'development') else 1
 		while True:
 			# noinspection PyBroadException
 			try:

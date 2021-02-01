@@ -392,9 +392,14 @@ def get_config(api: API) -> Dict:
 			result['components'] = set(result['components'])
 		return result  # type: ignore
 
-	except (HomeAssistantError, ValueError) as E:
+	except ValueError as E:
 		# ValueError if req.json() can't parse the JSON
 		logsupport.Logs.Log("Got unexpected configuration results from HA:{}".format(repr(E)),
 							severity=logsupport.ConsoleWarning, hb=True)
 		logsupport.Logs.Log("Result: " + repr(req))
+		return {}
+	except HomeAssistantError as E:
+		# probably lost network to hub
+		logsupport.Logs.Log("Got unexpected configuration results from HA:{}".format(repr(E)),
+							severity=logsupport.ConsoleDetail)
 		return {}
