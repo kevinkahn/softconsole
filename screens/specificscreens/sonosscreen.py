@@ -208,10 +208,6 @@ class SonosScreenDesc(screen.BaseKeyScreenDesc):
 		# print('event')  todo should check that event is for a Sonos node?
 		stable = self.UpdateGroups()
 
-	# if stable:
-	#	# print('stable')
-	#	if self.Active: self.ShowScreen()  # handle any race with another screen just having come up
-
 	def VolChange(self, slotnum, chg):
 		# print(slotnum, chg)
 		if slotnum >= len(self.nms): return

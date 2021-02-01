@@ -48,8 +48,6 @@ ScreenParams = {'DimTO': 99,
 
 screenStore = valuestore.NewValueStore(paramstore.ParamStore('ScreenParams'))
 
-screenparamuse = {}
-
 BACKTOKEN = None
 HOMETOKEN = None
 SELFTOKEN = None
@@ -88,29 +86,14 @@ def PopScreen(msg='PopScreen', newstate='Maint'):
 
 
 def IncorporateParams(this, clsnm, theseparams, screensection):
-	paramset = set(theseparams)
-	if type(this) not in screenparamuse:
-		screenparamuse[type(this)] = {clsnm: paramset}
-	else:
-		screenparamuse[type(this)][clsnm] = paramset
 	if screensection is None: screensection = {}
 	for p in theseparams:
 		if isinstance(theseparams, dict):
-			if theseparams[p] is not None: this.userstore.SetVal(p, theseparams[p])
+			if theseparams[p] is not None: this.userstore.SetVal(p, theseparams[p])  # a value was set in config file
 		else:
 			if p in screensection:
-				if p == 'xScreenTitleFields':
-					z2 = type(ScreenParams[p])
-					z1 = screensection.get(p, ScreenParams[p])
-
-					if isinstance(z1, z2):
-						z3 = z1
-					else:
-						z3 = z2(z1)
-					this.userstore.SetVal(p, z3)
-				else:
-					#this.userstore.SetVal(p, type(ScreenParams[p])(screensection.get(p, "")))  # string only safe default
-					this.userstore.SetVal(p, type(ScreenParams[p])(screensection.get(p, ScreenParams[p])))
+				# this.userstore.SetVal(p, type(ScreenParams[p])(screensection.get(p, "")))  # string only safe default
+				this.userstore.SetVal(p, type(ScreenParams[p])(screensection.get(p, ScreenParams[p])))
 
 
 def AddUndefaultedParams(this, screensection, **kwargs):
@@ -166,6 +149,7 @@ class ScreenDesc(object):
 		self.name = screenname
 		self.singleuse = SingleUse
 		self.used = False
+		self.WatchMotion = False
 		self.Active = False  # true if actually on screen
 		self.ChildScreens = {}  # used to do cascaded deleted if this screen is deleted. Only list one-off dependents
 

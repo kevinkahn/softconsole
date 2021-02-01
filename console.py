@@ -96,6 +96,7 @@ def handler(signum, frame):
 		if signum == signal.SIGUSR1:
 			logsupport.DevPrint('Watchdog termination')
 			logsupport.Logs.Log("Console received a watchdog termination signal: {} - Exiting".format(signum), tb=True)
+			if config.sysStore.Watchdog_pid != 0: os.kill(config.sysStore.Watchdog_pid, signal.SIGUSR1)
 		else:
 			logsupport.DevPrint('Signal termination {}'.format(signum))
 			logsupport.Logs.Log("Console received termination signal: {} - Exiting".format(signum))
@@ -564,8 +565,8 @@ try:
 	"""
 	Dump documentation if development version
 	"""
-	# if config.sysStore.versionname == 'development':
-	#	utilities.DumpDocumentation()
+# if config.sysStore.versionname == 'development':
+#	utilities.DumpDocumentation()
 except Exception as E:
 	logsupport.Logs.Log('Fatal Error while starting: {}'.format(E), severity=ConsoleError, hb=True, tb=True)
 	timers.ShutTimers('Initialization failure')
