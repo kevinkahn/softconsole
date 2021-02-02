@@ -39,8 +39,11 @@ dumptime = 0
 
 def DumpEvent(event):
 	global dumptime
-	print('Interval: {} Event: {} State: {}'.format(event.mtime - dumptime, event, mousestate))
-	dumptime = event.mtime
+	try:
+		print('Interval: {} Event: {} State: {}'.format(event.mtime - dumptime, event, mousestate))
+		dumptime = event.mtime
+	except Exception:
+		pass
 
 
 def MouseDown(event):
@@ -94,7 +97,6 @@ def MouseUp(event):
 	elif mousestate == MouseStates.upwait:
 		# set up for next down
 		longtap = time.time() - lastdowneventtime > longtaptime
-		print('Long {}'.format(longtap))
 		mousestate = MouseStates.downwait
 	else:
 		# go back to base condition for new down
@@ -112,14 +114,12 @@ def MouseIdle(event):
 		return
 	else:  # downwait or idle so process the tap/taps
 		if tapcount > 1 or not longtap:
-			print('Got tap {}'.format(tapcount))
 			ProcessTap(tapcount, pos)
 		else:
 			# long tap
-			print('Got long')
 			uppos = event.pos
 			dist = _MoveDist(uppos, pos)
-			print('Dn: {}  Up: {} Dist: {} Diag:{} Pct: {}'.format(pos, uppos, dist, screendiag, dist / screendiag))
+			# print('Dn: {}  Up: {} Dist: {} Diag:{} Pct: {}'.format(pos, uppos, dist, screendiag, dist / screendiag))
 			ProcessTap(-1, pos)
 		mousestate = MouseStates.idle
 		longtap = False
@@ -129,8 +129,8 @@ def MouseIdle(event):
 def CompressMotion(event):
 	global motionpos, lastmovetime, mousemoved
 	if _MoveDist(motionpos, event.pos) > 20 or time.time() - lastmovetime > 1:
-		print('Reportmove: {}, dist {} time: {}'.format(motionpos, _MoveDist(motionpos, event.pos),
-														time.time() - lastmovetime))
+		# print('Reportmove: {}, dist {} time: {}'.format(motionpos, _MoveDist(motionpos, event.pos),
+		#												time.time() - lastmovetime))
 		motionpos = event.pos
 		lastmovetime = time.time()
 		mousemoved = True
@@ -141,9 +141,13 @@ def CompressMotion(event):
 def MouseMotion(event):
 	global mousestate
 	DumpEvent(event)
+	if mousestate == MouseStates.idle:
+		# ignore random move events - appear to come from resistive screens
+		return
 	if mousestate not in (MouseStates.upwait, MouseStates.swallowup):
-		logsupport.Logs.Log('Mouse motion while not in upwait/swallow state {}'.format(mousestate),
+		logsupport.Logs.Log('Mouse motion while in odd state {} ({})'.format(mousestate, event),
 							severity=ConsoleWarning)
+		return
 	CompressMotion(event)
 
 def GoToMaint():
@@ -188,11 +192,10 @@ def ProcessTap(tapcnt, pos):
 
 	if mousemoved:
 		if _MoveDist(pos, (0, 0)) < 80 and _MoveDist(pos, motionpos) / screendiag > .75:
-			print('Maint')
 			GoToMaint()
 			return
 		else:
-			print('Not diag {} {} {} {}'.format(_MoveDist(pos, (0, 0)), _MoveDist(pos, motionpos), pos, motionpos))
+			# print('Not diag {} {} {} {}'.format(_MoveDist(pos, (0, 0)), _MoveDist(pos, motionpos), pos, motionpos))
 			return
 
 	if config.AS.Keys is not None:
