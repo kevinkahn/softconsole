@@ -19,7 +19,7 @@ import controlevents
 import traceback
 
 EventDispatch = {}
-NewMouse = False
+NewMouse = True
 
 def MainControlLoop():
 	# Load Event Handlers

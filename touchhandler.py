@@ -9,6 +9,7 @@ import struct
 import time
 from collections import namedtuple
 import logsupport
+import config
 
 
 import select
@@ -51,6 +52,7 @@ class Touch(object):
 		self.on_move = None
 		self.on_press = None
 		self.on_release = None
+		self.on_idle = None
 
 	@property
 	def position(self):
@@ -163,12 +165,15 @@ class Touchscreen(object):
 		self.touches = Touches([Touch(x, 0, 0) for x in range(10)])
 		self._event_queue = queue.Queue()
 		self._touch_slot = 0
+		self.findidle = None
+		self.lasttouch = 0  # time of last touch
+		self.sentidle = False
 
 	def _run(self):
 		self._running = True
 		while self._running:
 			self.poll()
-			time.sleep(0.00001)
+			time.sleep(0.01)
 
 	def run(self):
 		self._run()
@@ -222,7 +227,10 @@ class Touchscreen(object):
 
 			if event.type == EV_SYN:  # Sync
 				for tch in self.touches:
+					self.findidle = tch
 					tch.handle_events()
+					self.lasttouch = time.time()
+					self.sentidle = False
 				return self.touches
 
 			if event.type == EV_KEY and not self._capscreen:
@@ -278,7 +286,10 @@ class Touchscreen(object):
 
 				if event.code == ABS_Y:
 					self.position.y = event.value
-
+		if time.time() - self.lasttouch > config.sysStore.MultiTapTime / 1000 and not self.sentidle:
+			if self.findidle is not None:
+				self.findidle.on_idle()
+				self.sentidle = True
 		return []
 
 	def _touch_device(self):

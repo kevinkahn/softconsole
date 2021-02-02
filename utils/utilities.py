@@ -140,10 +140,16 @@ def InitializeEnvironment():
 			debug.debugPrint('Touch', 'Motion pos: {} seq: {}'.format(p, evntcnt))
 			PostEvent(ConsoleEvent(CEvent.MouseMotion, pos=p, seq=evntcnt, mtime=time.time()))
 
+	def touchidle():
+		global evntcnt
+		evntcnt += 1
+		PostEvent(ConsoleEvent(CEvent.MouseIdle, pos=(0, 0), seq=evntcnt, mtime=time.time()))
+
 	for touchtyp in ts.touches:
 		touchtyp.on_press = touchhandler
 		touchtyp.on_release = touchhandler
 		touchtyp.on_move = touchhandler
+		touchtyp.on_idle = touchidle
 
 	threadmanager.SetUpHelperThread('TouchHandler', ts.run)
 

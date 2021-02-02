@@ -14,7 +14,7 @@ import logsupport
 # noinspection PyArgumentList
 
 CEvent = Enum('ConsoleEvent',
-			  'FailSafePing ACTIVITYTIMER HubNodeChange ISYAlert ISYVar GeneralRepaint RunProc SchedEvent MouseDown MouseUp MouseMotion')
+			  'FailSafePing ACTIVITYTIMER HubNodeChange ISYAlert ISYVar GeneralRepaint RunProc SchedEvent MouseDown MouseUp MouseMotion MouseIdle')
 
 ConsoleOpsQueue = queue.Queue()  # master sequencer
 

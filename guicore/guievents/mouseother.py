@@ -12,3 +12,5 @@ if CEvent.MouseUp not in EventDispatch:
 	EventDispatch[CEvent.MouseUp] = MouseOther
 if CEvent.MouseMotion not in EventDispatch:
 	EventDispatch[CEvent.MouseMotion] = MouseOther
+if CEvent.MouseIdle not in EventDispatch:
+	EventDispatch[CEvent.MouseIdle] = MouseOther
