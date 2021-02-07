@@ -40,9 +40,10 @@ class OnOffKey(ManualKeyDesc):
 			self.ProcDblTap = self.KeyPressActionDbl
 
 		if self.AllowSlider:
+			screen.AddUndefaultedParams(self, keysection, SlideOrientation=0)
 			self.SliderScreen = supportscreens.SliderScreen(self, self.KeyCharColorOn, self.KeyColor,
 															self.ControlObj.GetBrightness,
-															self.UpdateBrightness)  # todo add orientation override
+															self.UpdateBrightness, orientation=self.SlideOrientation)
 			self.ProcLong = self.SliderScreen.Invoke
 		else:
 			self.ProcLong = self.IgnoreLong

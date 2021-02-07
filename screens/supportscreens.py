@@ -456,7 +456,7 @@ class SliderScreen(screen.BaseKeyScreenDesc):
 
 		self.slidelinestarta = (self.startvertspace + (self.sliderareavert - self.slidelinelen) / 2,
 								(self.useablehorizspace - self.slidelinelen) / 2)[self.HorizBar]
-		self.slidelinestartb = (self.useablehorizspace / 2, self.sliderareavert)[self.HorizBar]
+		self.slidelinestartb = (self.starthorizspace + self.useablehorizspace / 2, self.sliderareavert)[self.HorizBar]
 
 		if self.HorizBar:
 			self.sliderect = pygame.Rect(self.slidelinestarta, self.slidelinestartb - self.slidelinewidth / 2,
