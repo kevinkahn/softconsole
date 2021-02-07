@@ -11,7 +11,7 @@ LogLevel = 3
 # switch to authall with HASSpga avail
 
 cfglib = "/home/pi/consolerem/example configs/cfglib"
-include = /home/pi/Console/local/authall.cfg, weathersources.cfg, weathPump.cfg, timetempLQ.cfg,  myclock.cfg,bathroom.cfg,upperlev.cfg,BR-kck.cfg,tstat.cfg,weathPDX.cfg,timetempLQ7.cfg, mqtt.cfg, octoprint.cfg, weathCC.cfg, timetempPDX7.cfg, pgaTstat.cfg, pgawBRmain.cfg, pgaOther.cfg, pgaBath.cfg,timetempLQ7dks.cfg
+include = /home/pi/Console/local/authall.cfg, weathersources.cfg, weathPump.cfg, timetempLQ.cfg,  myclock.cfg,bathroom.cfg,upperlev.cfg,BR-kck.cfg,tstat.cfg,weathPDX.cfg,timetempLQ7.cfg, mqtt.cfg, octoprint.cfg, weathCC.cfg, timetempPDX7.cfg, pgaTstat.cfg, pgawBRmain.cfg, pgaOther.cfg, pgaBath.cfg,timetempLQ7dks.cfg, pgaBath.cfg
 #pgaalerts.cfg,
 HomeScreenName = 'Prusa'
 DimLevel = 10
@@ -22,7 +22,7 @@ DimIdleListNames = PDXTTbig, Pic, MyClock, LQTTbig, LQTTbigdks, Pumpkin
 
 DimIdleListTimes =	5, 20, 5, 5, 5, 5
 
-MainChain = Prusa, wxHouse, Pic, TreeTest, LR1,Sonos,LR2, Pumpkin, Local, Upper Level, Test #Creator Pro,
+MainChain = Prusa, pgawBath, wxHouse, Pic, TreeTest, LR1,Sonos,LR2, Pumpkin, Local, Upper Level, Test #Creator Pro,
 SecondaryChain = Portland, Bathroom, BR, Thermostat - Main,LQTTbig, climate.master_bedroom, climate.living_room, pgawBR, pgawOther, pgawBath
 
 DefaultHub = ISY
