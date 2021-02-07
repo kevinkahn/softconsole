@@ -5,8 +5,8 @@
 HASSgeneral = True
 
 
-cfglib = "/home/pi/consolerem/example configs/cfglib"
-include = /home/pi/Console/local/auth.cfg, timetempPR.cfg, timetempLQ.cfg, weathCC.cfg, timetempPDX.cfg, myclock.cfg,bathroom.cfg,upperlev.cfg,BR-kck.cfg,tstat.cfg, weathersources.cfg, weathPDX.cfg #, pdxalerts.cfg
+cfglib = cfglib
+include = /home/pi/Console/local/authall.cfg, timetempPR.cfg, timetempLQ.cfg, weathCC.cfg, timetempPDX.cfg, myclock.cfg,bathroom.cfg,upperlev.cfg,BR-kck.cfg,tstat.cfg, weathersources.cfg, weathPDX.cfg #, pdxalerts.cfg
 HomeScreenName = LR1
 DimLevel = 50
 DimTO = 25
