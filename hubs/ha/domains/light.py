@@ -32,4 +32,20 @@ class Light(HAnode):
 				"{} didn't respond to light on/off for {} - probably restarting".format(self.Hub.name, self.name),
 				severity=logsupport.ConsoleWarning)
 
+	def GetBrightness(self):
+		if 'brightness' in self.attributes:
+			return 100 * (self.attributes['brightness'] / 255)
+		else:
+			return 0
+
+	def SendOnPct(self, brightpct):
+		try:
+			ha.call_service(self.Hub.api, 'light', 'turn_on',
+							{'entity_id': '{}'.format(self.entity_id), 'brightness_pct': brightpct})
+		except ha.HomeAssistantError:
+			logsupport.Logs.Log(
+				"{} didn't respond to on percent change for {}".format(self.Hub.name, self.name),
+				severity=logsupport.ConsoleWarning)
+
+
 RegisterDomain('light', Light)

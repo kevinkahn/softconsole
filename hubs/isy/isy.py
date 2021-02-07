@@ -65,6 +65,15 @@ class OnOffItem(ISYNode):
 			self.Hub.isyEM.FakeNodeChange()
 
 
+class Dimmable(ISYNode):  # todo
+
+	def GetBrightness(self):
+		pass
+
+	def SendOnPct(self, brightpct):
+		pass
+
+
 class Folder(TreeItem):
 	"""
 	Represents and ISY node/scene folder.
@@ -360,7 +369,7 @@ class ISY(object):
 				pnd = node['pnode']
 				prop = node['property']
 				devtyp = node['type'].split('.')
-				if devtyp[0] == '5':
+				if devtyp[0] == '5':  # todo dimmers are '1'
 					n = Thermostat(self, flg, nm, addr, ptyp, parentaddr, enabld, prop)
 				else:
 					n = Node(self, flg, nm, addr, ptyp, parentaddr, enabld, prop)

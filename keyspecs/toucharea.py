@@ -16,7 +16,7 @@ class TouchPoint(object):
 	Represents a touchable rectangle on the screen.
 	"""
 
-	def __init__(self, name, Center, Size, proc=None, procdbl=None):
+	def __init__(self, name, Center, Size, proc=None, procdbl=None, proclong=None):
 		self.name = name
 		self.Size = Size
 		self.GappedSize = Size
@@ -25,7 +25,9 @@ class TouchPoint(object):
 		self.ControlObj = None
 		self.Proc = proc  # function that gets called on touch - expects to take a single parameter which is thee type of press
 		self.ProcDblTap = procdbl
+		self.ProcLong = proclong
 		self.Verify = False
+		self.AllowSlider = False
 		utilities.register_example("TouchPoint", self)
 
 	def ControlObjUndefined(self):
@@ -56,8 +58,14 @@ class TouchPoint(object):
 					self.ProcDblTap()
 		elif tapcount == -1:
 			# Long tap
-			logsupport.Logs.Log('Key {} got long tap'.format(self.name))
-			pass
+			# print('Long Tap {}'.format(self.ProcLong))
+			if self.ProcLong is not None:
+				if 'Key' in inspect.signature(self.ProcLong).parameters:
+					self.ProcLong(Key=self)
+				else:
+					self.ProcLong()
+			else:
+				logsupport.Logs.Log('Key {} got long tap'.format(self.name))
 		else:
 			logsupport.Logs.Log('Toucharea got wrong press count {}'.format(tapcount),
 								severity=logsupport.ConsoleWarning)
@@ -168,7 +176,8 @@ class ManualKeyDesc(TouchPoint):
 		screen.IncorporateParams(self, 'TouchArea', {'KeyColor', 'KeyOffOutlineColor', 'KeyOnOutlineColor',
 													 'KeyCharColorOn', 'KeyCharColorOff', 'KeyOutlineOffset',
 													 'KeyColorOn', 'KeyColorOff',
-													 'KeyLabelOn', 'KeyLabelOff'}, keysection)
+													 'KeyLabelOn', 'KeyLabelOff'},
+								 keysection)  # todo add sliderorientation
 		screen.AddUndefaultedParams(self, keysection, FastPress=0, Verify=False, Blink=0, label=[''])
 
 		if self.Verify:

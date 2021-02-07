@@ -27,6 +27,7 @@ class OnOffKey(ManualKeyDesc):
 			debug.debugPrint('Screen', "Screen", keyname, "unbound")
 			logsupport.Logs.Log('Key Binding missing: ' + self.name,
 								severity=ConsoleWarning)  # todo - should this handle the delayed key case of an indirector?
+		if hasattr(self.ControlObj, 'SendOnPct'): self.AllowSlider = True
 
 		if self.Verify:
 			self.VerifyScreen = supportscreens.VerifyScreen(self, self.GoMsg, self.NoGoMsg, self.KeyPressAction,
@@ -37,6 +38,14 @@ class OnOffKey(ManualKeyDesc):
 		else:
 			self.Proc = self.KeyPressAction
 			self.ProcDblTap = self.KeyPressActionDbl
+
+		if self.AllowSlider:
+			self.SliderScreen = supportscreens.SliderScreen(self, self.KeyCharColorOn, self.KeyColor,
+															self.ControlObj.GetBrightness,
+															self.UpdateBrightness)  # todo add orientation override
+			self.ProcLong = self.SliderScreen.Invoke
+		else:
+			self.ProcLong = self.IgnoreLong
 
 		if keytype == 'ONOFF':
 			self.KeyAction = 'OnOff'
@@ -110,9 +119,23 @@ class OnOffKey(ManualKeyDesc):
 			self.ControlObj.SendOnOffFastCommand(self.State)  # todo this codifies fast press even for nonISY hubs?
 			self.ScheduleBlinkKey(self.Blink)
 		else:
-			logsupport.Logs.Log("Screen: " + self.name + " press unbound key: " + self.name,
+			logsupport.Logs.Log("Screen: " + self.Screen.name + " press unbound key: " + self.name,
 								severity=ConsoleWarning)
 			self.ScheduleBlinkKey(20)
+
+	def IgnoreLong(self):
+		logsupport.Logs.Log('Ignore long press for screen {}, key {}'.format(self.Screen.name, self.name))
+		self.ScheduleBlinkKey(5)
+
+	def ProcLong(self):
+		self.State = True
+		self.SliderScreen.Invoke()
+
+	# invoke slider screen todo
+
+	def UpdateBrightness(self, brtpct):  # todo if off need to turn on for HA then set brightness value
+		# print('Update brt {}'.format(brtpct))
+		self.ControlObj.SendOnPct(brtpct)
 
 
 KeyTypes['ONOFF'] = functools.partial(OnOffKey, keytype='ONOFF')

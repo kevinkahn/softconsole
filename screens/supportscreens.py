@@ -37,7 +37,7 @@ class VerifyScreen(screen.BaseKeyScreenDesc):
 		self.Keys['no'] = toucharea.ManualKeyDesc(self, 'no', nogomsg, bcolor, keycoloroff, charcolor, State=state)
 		self.Keys['no'].Proc = functools.partial(screen.PopScreen, 'Verify denied')
 
-		self.LayoutKeys(self.startvertspace, self.useablevertspace)
+		self.LayoutKeys(self.startvertspace, self.useablevertspacesansnav)
 		key.Screen.ChildScreens[key.name + '-Verify'] = self
 		utilities.register_example("VerifyScreen", self)
 
@@ -409,56 +409,109 @@ class PagedDisplay(screen.BaseKeyScreenDesc):
 		hw.screen.blit(l, ((hw.screenwidth - l.get_width()) / 2, pos + l.get_height()))
 		return -1
 
-class SliderScreen(screen.ScreenDesc):
-	def __init__(self, key, charcolor, bcolor, keycoloroff, initval, rangelow, rangehi, resultsetter):
+
+class SliderScreen(screen.BaseKeyScreenDesc):
+	def __init__(self, key, charcolor, bcolor, valuegetter, valuesetter, showpct=True, rangelow=0, rangehi=100,
+				 orientation=0):
 		# call result setter as often as desired to show partial changes
-		pass
-		'''
-		Paint background, paint line, paint dot at current value proportional to range
-		Maybe have a parameter that is interval at which to call result setter, also call when up happens
-		Separate OK to end screen, cancel? if so save init and restore with call to resultsetter
-		This is a single use screen, destroy at end, get to it via a push
-		Should slider be horiz or vert or use longer axis?
-		resultsetter a proc that takes a level value when called
-		'''
-		super().__init__({}, key.Screen.name + '-' + key.name + '-Value', parentscreen=key, SingleUse=True)
+		# assumes range of slider is 0-100%; todo override with rangelow/high to change the displayed value if desired
+		# orientation: 0 use long dimension, 1: force horizontal, 2: force vertical
+
+		super().__init__({}, key.Screen.name + '-' + key.name + '-Value', parentscreen=key)
 		debug.debugPrint('Screen', "Build Verify Screen")
-		self.callingkey = key
+		self.SetScreenClock(.05)
+		self.ValueGetter = valuegetter
+		self.ValueSetter = valuesetter
+		self.RangeLow = rangelow
+		self.RangeHigh = rangehi
+		self.ShowPct = showpct
+		self.HorizBar = (not displayupdate.portrait, True, False)[orientation]
+		# self.HorizBar = False
+		self.initval = 0
+		self.curval = 0
 		self.WatchMotion = True
 		self.NavKeysShowing = False
 		self.DefaultNavKeysShowing = False
-		self.HubInterestList = None
+		self.HubInterestList = {}
 		self.DimTO = 20
 		self.PersistTO = 10
 		self.label = screen.FlatenScreenLabel(key.label)
 		self.ClearScreenTitle()  # don't use parent screen title
 		screen.AddUndefaultedParams(self, None, TitleFontSize=40, SubFontSize=25)
 		self.SetScreenTitle(self.label, 40, charcolor)
-		self.Keys['yes'] = toucharea.ManualKeyDesc(self, 'OK', 'OK', bcolor, keycoloroff, charcolor, State=True)
-		self.Keys['yes'].Proc = self.resultsetter
-		self.Keys['no'] = toucharea.ManualKeyDesc(self, 'Cancel', 'Cancel', bcolor, keycoloroff, charcolor, State=True)
-		self.Keys['no'].Proc = functools.partial(screen.PopScreen, 'Canceled slider')
+		self.Keys['yes'] = toucharea.ManualKeyDesc(self, 'OK', ('OK',), bcolor, charcolor, charcolor, State=True)
+		self.Keys['yes'].Proc = self.SetFinal
+		self.Keys['no'] = toucharea.ManualKeyDesc(self, 'Cancel', ('Cancel',), bcolor, charcolor, charcolor, State=True)
+		self.Keys['no'].Proc = self.Revert
+		self.font = fonts.fonts.Font(60)
 
-		self.LayoutKeys(self.startvertspace, self.useablevertspace)
-		key.Screen.ChildScreens[key.name + '-Verify'] = self
-		utilities.register_example("VerifyScreen", self)
+		keyheight = self.useablevertspacesansnav * .3
+		self.sliderareavert = self.useablevertspacesansnav - keyheight
+
+		self.slidelinelen = ((self.useablevertspacesansnav - keyheight) * .8, self.useablehorizspace * .8)[
+			self.HorizBar]
+		self.slidelinewidth = (self.useablehorizspace * .02, self.useablevertspacesansnav * .02)[self.HorizBar]
+
+		self.slideline = self.sliderareavert
+
+		self.slidelinestarta = (self.startvertspace + (self.sliderareavert - self.slidelinelen) / 2,
+								(self.useablehorizspace - self.slidelinelen) / 2)[self.HorizBar]
+		self.slidelinestartb = (self.useablehorizspace / 2, self.sliderareavert)[self.HorizBar]
+
+		if self.HorizBar:
+			self.sliderect = pygame.Rect(self.slidelinestarta, self.slidelinestartb - self.slidelinewidth / 2,
+										 self.slidelinelen, self.slidelinewidth)
+		else:
+			self.sliderect = pygame.Rect(self.slidelinestartb - self.slidelinewidth / 2, self.slidelinestarta,
+										 self.slidelinewidth, self.slidelinelen)
+		self.slidebuttonrad = self.useablevertspacesansnav * .05
+		self.slidecolor = charcolor
+		self.LayoutKeys(self.sliderareavert, keyheight)
+		key.Screen.ChildScreens[key.name + '-Slider'] = self
+		utilities.register_example("SliderScreen", self)
 
 	def Invoke(self):
-		screen.PushToScreen(self, msg='Do Verify' + self.name)
+		self.initval = self.ValueGetter()
+		self.curval = self.initval
+		print('Invoke {}'.format(self.curval))
+		screen.PushToScreen(self, msg='Do Slider' + self.name)
 
 	def InitDisplay(self, nav):
 		# debugPrint('Main', "Enter to screen: ", self.name)
-		logsupport.Logs.Log('Entering Verify Screen: ' + self.name, severity=ConsoleDetail)
+		print('Init stuff')
+		logsupport.Logs.Log('Entering Slider Screen: ' + self.name, severity=ConsoleDetail)
 		super().InitDisplay({})
 
 	# add a reinit?
 	# real work in ScreenContentRepaint
 
 	def ScreenContentRepaint(self):
-		pass
+		pygame.draw.rect(hw.screen, wc(self.slidecolor), self.sliderect)
+		# print('Vals {} {} {}'.format(self.curval,self.slidelinelen,self.slidelinestart))
+		relpos = self.curval * self.slidelinelen / 100 + self.slidelinestarta
+		fixpos = self.slidelinestartb
+		center = ((int(fixpos), int(relpos)), (int(relpos), int(fixpos)))[self.HorizBar]
+		pygame.draw.circle(hw.screen, wc(self.slidecolor), center, int(self.slidebuttonrad), 0)
+		if self.ShowPct:
+			t = self.font.render(str(int(self.curval)), False, wc(self.slidecolor))
+			hw.screen.blit(t, (self.starthorizspace * 2, self.startvertspace * 2))
 
 	def Motion(self, pos):
-		print(pos)
+		# pos is x,y don't care about y just x; convert x to a position on the slider with it at end if off slider
+		if pos[int(not self.HorizBar)] < self.slidelinestarta:
+			nowpos = 0
+		elif pos[int(not self.HorizBar)] > self.slidelinestarta + self.slidelinelen:
+			nowpos = 100
+		else:
+			nowpos = ((pos[int(not self.HorizBar)] - self.slidelinestarta) / self.slidelinelen) * 100
+		self.curval = nowpos
+		# print('Val {} {} {} {} {} {}'.format(pos, nowpos, self.curval, self.slidelinestarta, self.slidelinestartb, self.slidelinelen))
+		self.ValueSetter(self.curval)
 
-	def KeyUp(self, pos):  # call when key is up to set value
-		print(pos)
+	def SetFinal(self):
+		self.ValueSetter(self.curval)
+		screen.PopScreen('Set slider val')  # todo state param missing?
+
+	def Revert(self):
+		self.ValueSetter(self.initval)
+		screen.PopScreen('Cancel slider val')

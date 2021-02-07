@@ -10,7 +10,6 @@ import guicore.screenmgt as screenmgt
 import guicore.switcher as switcher
 import config
 import screens.__screens as screens
-import time
 from screens import screen, maintscreen
 import math
 import utils.hw as hw
@@ -18,7 +17,7 @@ import utils.hw as hw
 MouseStates = Enum('MouseStates', 'idle downwait upwait swallowup')
 
 mousestate = MouseStates.idle
-longtaptime = 2
+longtaptime = config.sysStore.LongTapTime / 1000
 tapcount = 0
 lastdowneventtime = 0
 lastmovetime = 0
@@ -40,7 +39,7 @@ dumptime = 0
 def DumpEvent(event):
 	global dumptime
 	try:
-		print('Interval: {} Event: {} State: {}'.format(event.mtime - dumptime, event, mousestate))
+		# print('Interval: {} Event: {} State: {} Long: {}'.format(event.mtime - dumptime, event, mousestate, longtap))
 		dumptime = event.mtime
 	except Exception:
 		pass
@@ -74,11 +73,11 @@ def MouseDown(event):
 		longtap = False
 		tapcount = 1
 		mousestate = MouseStates.upwait
-		lastdowneventtime = time.time()
-		lastmovetime = lastdowneventtime
+		lastdowneventtime = event.mtime
+		lastmovetime = event.mtime
 	elif mousestate == MouseStates.downwait:
 		# have seen at least one down then up
-		lastdowneventtime = time.time()
+		lastdowneventtime = event.mtime
 		tapcount += 1
 		mousestate = MouseStates.upwait
 	else:
@@ -96,7 +95,7 @@ def MouseUp(event):
 		longtap = False
 	elif mousestate == MouseStates.upwait:
 		# set up for next down
-		longtap = time.time() - lastdowneventtime > longtaptime
+		longtap = event.mtime - lastdowneventtime > longtaptime
 		mousestate = MouseStates.downwait
 	else:
 		# go back to base condition for new down
@@ -117,8 +116,8 @@ def MouseIdle(event):
 			ProcessTap(tapcount, pos)
 		else:
 			# long tap
-			uppos = event.pos
-			dist = _MoveDist(uppos, pos)
+			# uppos = event.pos
+			# dist = _MoveDist(uppos, pos)
 			# print('Dn: {}  Up: {} Dist: {} Diag:{} Pct: {}'.format(pos, uppos, dist, screendiag, dist / screendiag))
 			ProcessTap(-1, pos)
 		mousestate = MouseStates.idle
@@ -128,14 +127,16 @@ def MouseIdle(event):
 
 def CompressMotion(event):
 	global motionpos, lastmovetime, mousemoved
-	if _MoveDist(motionpos, event.pos) > 20 or time.time() - lastmovetime > 1:
-		# print('Reportmove: {}, dist {} time: {}'.format(motionpos, _MoveDist(motionpos, event.pos),
-		#												time.time() - lastmovetime))
+	if _MoveDist(motionpos, event.pos) > 10 or event.mtime - lastmovetime > 1:
+		# print('Move to {} {} {}'.format(event.pos,_MoveDist(motionpos, event.pos),event.mtime - lastmovetime))
 		motionpos = event.pos
-		lastmovetime = time.time()
+		lastmovetime = event.mtime
 		mousemoved = True
 		if config.AS.WatchMotion:
 			config.AS.Motion(event.pos)
+	else:
+		pass
+	#print('Suppress at {} last {} {}'.format(event.pos, motionpos, _MoveDist(motionpos, event.pos)))
 
 
 def MouseMotion(event):
@@ -186,17 +187,18 @@ def ProcessTap(tapcnt, pos):
 		return
 
 	elif tapcnt >= 8:
+		# print('Multitap {}'.format(tapcnt))
 		logsupport.Logs.Log('Runaway {} taps - likely hardware issue'.format(tapcnt),
 							severity=ConsoleWarning, hb=True)
 		return
 
 	if mousemoved:
-		if _MoveDist(pos, (0, 0)) < 80 and _MoveDist(pos, motionpos) / screendiag > .75:
+		if _MoveDist(pos, (0, 0)) < 80 and _MoveDist(pos, motionpos) / screendiag > .70:
 			GoToMaint()
 			return
 		else:
-			# print('Not diag {} {} {} {}'.format(_MoveDist(pos, (0, 0)), _MoveDist(pos, motionpos), pos, motionpos))
-			return
+			pass
+		# print('Not diag {} {} {} {}'.format(_MoveDist(pos, (0, 0)), _MoveDist(pos, motionpos), pos, motionpos))
 
 	if config.AS.Keys is not None:
 		for K in config.AS.Keys.values():
