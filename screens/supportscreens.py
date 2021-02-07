@@ -37,7 +37,7 @@ class VerifyScreen(screen.BaseKeyScreenDesc):
 		self.Keys['no'] = toucharea.ManualKeyDesc(self, 'no', nogomsg, bcolor, keycoloroff, charcolor, State=state)
 		self.Keys['no'].Proc = functools.partial(screen.PopScreen, 'Verify denied')
 
-		self.LayoutKeys(self.startvertspace, self.useablevertspacesansnav)
+		self.LayoutKeys(0, self.useablevertspacesansnav)  # self.startvertspace
 		key.Screen.ChildScreens[key.name + '-Verify'] = self
 		utilities.register_example("VerifyScreen", self)
 
@@ -473,17 +473,12 @@ class SliderScreen(screen.BaseKeyScreenDesc):
 	def Invoke(self):
 		self.initval = self.ValueGetter()
 		self.curval = self.initval
-		print('Invoke {}'.format(self.curval))
 		screen.PushToScreen(self, msg='Do Slider' + self.name)
 
 	def InitDisplay(self, nav):
 		# debugPrint('Main', "Enter to screen: ", self.name)
-		print('Init stuff')
 		logsupport.Logs.Log('Entering Slider Screen: ' + self.name, severity=ConsoleDetail)
 		super().InitDisplay({})
-
-	# add a reinit?
-	# real work in ScreenContentRepaint
 
 	def ScreenContentRepaint(self):
 		pygame.draw.rect(hw.screen, wc(self.slidecolor), self.sliderect)

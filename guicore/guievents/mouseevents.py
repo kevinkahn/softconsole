@@ -142,7 +142,7 @@ def CompressMotion(event):
 def MouseMotion(event):
 	global mousestate
 	DumpEvent(event)
-	if mousestate == MouseStates.idle:
+	if mousestate in (MouseStates.idle, MouseStates.downwait):
 		# ignore random move events - appear to come from resistive screens
 		return
 	if mousestate not in (MouseStates.upwait, MouseStates.swallowup):
