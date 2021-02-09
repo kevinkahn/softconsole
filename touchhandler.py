@@ -132,6 +132,7 @@ class Touchscreen(object):
 	def __init__(self, configdir, touchmod):
 		self.touchdefs = {}
 		self.touchmod = touchmod
+		# self.touchbuf = []
 		with open('touchdefinitions') as f:
 			defs = f.read().splitlines()
 			for l in defs:
@@ -214,6 +215,7 @@ class Touchscreen(object):
 		for event in self._lazy_read():
 			(tv_sec, tv_usec, ttype, code, value) = struct.unpack(self.EVENT_FORMAT, event)
 			self._event_queue.put(TouchEvent(tv_sec + (tv_usec / 1000000), ttype, code, value))
+		#self.touchbuf.append((time.time(),tv_sec, tv_usec, ttype, code, value))
 
 	def _wait_for_events(self, timeout=2):
 		return self._f_poll.poll(timeout)
@@ -232,7 +234,11 @@ class Touchscreen(object):
 					tch.handle_events()
 					self.lasttouch = time.time()
 					self.sentidle = False
-				#print('Syn')
+				# print('Syn')
+				# for e in self.touchbuf:
+				#	print(e)
+				# print('----')
+				# self.touchbuf=[]
 				return self.touches
 
 			if event.type == EV_KEY and not self._capscreen:
