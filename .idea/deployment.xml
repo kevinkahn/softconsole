@@ -23,6 +23,13 @@
           </mappings>
         </serverdata>
       </paths>
+      <paths name="pi@rpi-dev.pgawhome:8623 (1)">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/home/pi/consolerem" local="$PROJECT_DIR$" />
+          </mappings>
+        </serverdata>
+      </paths>
       <paths name="pi@rpi-dev7.pgawhome:8623">
         <serverdata>
           <mappings>
