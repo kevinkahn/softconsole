@@ -11,6 +11,9 @@ class DummyNode(object):
 		self.address = '*none*'
 		self.relatedstore = valuestore.NewValueStore(missinghubstore.MissingHubStore(hubitem.name, self))
 
+	def SendOnOffCommand(self, st):
+		return
+
 
 class Hub(object):
 	def __init__(self, hubname, addr, user, password, version):
