@@ -2,5 +2,5 @@
 #sed /utf8,ro/s/,ro/,x-systemd.automount,ro/ /etc/fstab >/etc/fstab.new
 #cp /etc/fstab.new /etc/fstab
 #rm /etc/fstab.new
-cd /home/pi/consolestable
-sudo python domanualdownload.py
+#cd /home/pi/consolestable
+#sudo python domanualdownload.py

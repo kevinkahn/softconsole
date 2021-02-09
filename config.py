@@ -4,6 +4,8 @@ from utils import hw
 import os
 
 hooks = None
+resendidle = False
+noisytouch = False
 
 Running = False
 Exiting = False
@@ -45,7 +47,7 @@ sysvals = {
 	'LogStartTime': (int, 0, None, False),
 	'FirstUnseenErrorTime': (int, 0, None, False),
 	'ErrLogReconnects': (bool, True, None, True),
-	'LongTapTime': (int, 1000, None, False)  # time in msec
+	'LongTapTime': (int, 1300, None, False)  # time in msec
 }
 
 # Non user sysfile entries

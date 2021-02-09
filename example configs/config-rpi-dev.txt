@@ -2,28 +2,23 @@
 #Main = True
 #Dispatch = True
 #DaemonCtl = True
-HASSgeneral = True
+#HASSgeneral = True
 
 
 cfglib = cfglib
-include = /home/pi/Console/local/authall.cfg, timetempPR.cfg, timetempLQ.cfg, weathCC.cfg, timetempPDX.cfg, myclock.cfg,bathroom.cfg,upperlev.cfg,BR-kck.cfg,tstat.cfg, weathersources.cfg, weathPDX.cfg #, pdxalerts.cfg
+include = /home/pi/Console/local/authall.cfg, pgaBath.cfg, timetempPR.cfg, timetempLQ.cfg, weathCC.cfg, timetempPDX.cfg, myclock.cfg,bathroom.cfg,upperlev.cfg,BR-kck.cfg,tstat.cfg, weathersources.cfg, weathPDX.cfg, mqtt.cfg #, pdxalerts.cfg
 HomeScreenName = LR1
 DimLevel = 50
 DimTO = 25
-DimIdleListNames = MyClock, Portland, Pumpkin, LaQuinta
+DimIdleListNames = MyClock, Portland, Pumpkin, LQTT
 DimIdleListTimes =	20, 20, 20, 20
 
 DefaultHub = ISY
 
-MainChain = LR1,Sonos,LR2, Pumpkin, Local, Upper Level
-SecondaryChain = Portland, Bathroom, BR, Thermostat - Main
-
+MainChain = LR1,pgawBath
+SecondaryChain = Portland, LQTT
 [Variables]
     InternetUp = 1
-
-[Sonos]
-    type = Sonos
-    DefaultHub = HASS
 
 [Alerts]
 	[[AutoVersion]]
@@ -125,39 +120,8 @@ ScreenTitleSize = 30
         label = Dual, Spots
     [[LR Pict Spot]]
         label = Art Spot,
-[[Count-tmp]]
-     type = VARKEY
-     Var = HASSpga:sensor.tp_link_amps
-     Appearance = 0:9999 green 'Amps $',
- [LR2]
-    type = Keypad
-    label = Living, Room 2   
-    [[Main Hall]]
-    [[Upper Hall]]
-    [[LR Plug Win]]
-        label = Test
-        type = RUNPROG
-        KeyColor = green
-        ProgramName = TestProcXX
-        Verify = 1
-    [[TestProg]]
-        type=RUNPROG
-        ProgramName = HASSpga:mbr_bathroom_off
-        KeyColor = green
-        Verify = 1
-        GoMsg = Yes, Do, It!
-        NoGoMsg = Oops, Never Mind!
-        Blink = 11
-        label = Test, Program, Verify
-#    [[LR Plug Dr]]
-#        label = Reading, Light, Door
 
-# [Test]
-#	type = Keypad
-#	label = Test
-#	[[TestVar]]
-#	VarType = Int
-#	type = SETVARVALUE
+
 
 
 

@@ -166,14 +166,15 @@ class Touchscreen(object):
 		self._event_queue = queue.Queue()
 		self._touch_slot = 0
 		self.findidle = None
-		self.lasttouch = 0  # time of last touch
+		self.lasttouch = time.time()  # time of last touch
 		self.sentidle = False
 
 	def _run(self):
 		self._running = True
 		while self._running:
 			self.poll()
-			time.sleep(0.01)
+
+	# time.sleep(0.01)
 
 	def run(self):
 		self._run()
@@ -231,6 +232,7 @@ class Touchscreen(object):
 					tch.handle_events()
 					self.lasttouch = time.time()
 					self.sentidle = False
+				#print('Syn')
 				return self.touches
 
 			if event.type == EV_KEY and not self._capscreen:
@@ -251,8 +253,12 @@ class Touchscreen(object):
 						self._current_touch.y = self._flipy - self._current_touch.y
 					if event.value == 1:
 						self._current_touch.events.append(TS_PRESS)
+						self.sentidle = False
+					#print('Press')
 					else:
 						self._current_touch.events.append(TS_RELEASE)
+						self.sentidle = False
+					#print('Rel')
 
 			if event.type == EV_ABS:  # Absolute cursor position
 				if event.code == ABS_MT_SLOT:
@@ -260,6 +266,8 @@ class Touchscreen(object):
 
 				if event.code == ABS_MT_TRACKING_ID:
 					self._current_touch.id = event.value
+					self.sentidle = False
+				#print('ID')
 
 				if event.code == ABS_MT_POSITION_X:
 					tmp = event.value + self._shiftx
@@ -286,10 +294,12 @@ class Touchscreen(object):
 
 				if event.code == ABS_Y:
 					self.position.y = event.value
-		if time.time() - self.lasttouch > config.sysStore.MultiTapTime / 1000 and not self.sentidle:
+		if time.time() - self.lasttouch > config.sysStore.MultiTapTime / 1000 and (
+				not self.sentidle or config.resendidle):
+			# print(time.time()-self.lasttouch, self.sentidle, config.resendidle)
+			self.sentidle = True
 			if self.findidle is not None:
 				self.findidle.on_idle()
-				self.sentidle = True
 		return []
 
 	def _touch_device(self):
@@ -322,9 +332,14 @@ class Touchscreen(object):
 							ABS_MT_POSITION_Y = tmp
 
 						self._capscreen = vals[0] in ('True', '1', 'true', 'TRUE')
+
 						if not self._capscreen:
-							with open('/etc/pointercal', 'r') as pc:
-								self.a = list(int(x) for x in next(pc).split())
+							config.noisytouch = True
+							with open('/etc/pointercal', 'r') as pc:  # skip empty lines that Adafruit install may leave
+								l = '\n'
+								while l == '\n':
+									l = next(pc)
+								self.a = list(int(x) for x in l.split())
 
 						return os.path.join('/dev', 'input', os.path.basename(evdev))
 

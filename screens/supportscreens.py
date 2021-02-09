@@ -470,10 +470,14 @@ class SliderScreen(screen.BaseKeyScreenDesc):
 		key.Screen.ChildScreens[key.name + '-Slider'] = self
 		utilities.register_example("SliderScreen", self)
 
+	def InSliderArea(self, pos):
+		return (self.starthorizspace < pos[0] < self.starthorizspace + self.useablehorizspace) and (
+					self.startvertspace < pos[1] < self.startvertspace + self.sliderareavert)
+
 	def Invoke(self):
 		self.initval = self.ValueGetter()
 		self.curval = self.initval
-		screen.PushToScreen(self, msg='Do Slider' + self.name)
+		screen.PushToScreen(self, msg='Do Slider' + self.name, newstate='NonHome')
 
 	def InitDisplay(self, nav):
 		# debugPrint('Main', "Enter to screen: ", self.name)
@@ -493,6 +497,8 @@ class SliderScreen(screen.BaseKeyScreenDesc):
 
 	def Motion(self, pos):
 		# pos is x,y don't care about y just x; convert x to a position on the slider with it at end if off slider
+		if not self.InSliderArea(pos):
+			return
 		if pos[int(not self.HorizBar)] < self.slidelinestarta:
 			nowpos = 0
 		elif pos[int(not self.HorizBar)] > self.slidelinestarta + self.slidelinelen:
@@ -505,8 +511,8 @@ class SliderScreen(screen.BaseKeyScreenDesc):
 
 	def SetFinal(self):
 		self.ValueSetter(self.curval)
-		screen.PopScreen('Set slider val')  # todo state param missing?
+		screen.PopScreen('Set slider val', 'NonHome')
 
 	def Revert(self):
 		self.ValueSetter(self.initval)
-		screen.PopScreen('Cancel slider val')
+		screen.PopScreen('Cancel slider val', 'NonHome')
