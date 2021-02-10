@@ -41,7 +41,7 @@ hw.screenheight * .2, hw.screenwidth * .2))  # Define the upper corner as 20% ci
 
 dumptime = 0
 eventseq = []
-DumpEvents = True
+DumpEvents = False
 
 
 def DumpEvent(event):
