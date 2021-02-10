@@ -49,7 +49,6 @@ def MouseDown(event):
 			else:
 				guiutils.HBEvents.Entry('Defer' + repr(eventx))
 				guiutils.Deferrals.append(eventx)  # defer the event until after the clicks are sorted out
-	# Future add handling for hold here with checking for MOUSE UP etc.
 	if tapcount == 3:
 		if screenmgt.screenstate == 'Maint':
 			# ignore triple taps if in maintenance mode
