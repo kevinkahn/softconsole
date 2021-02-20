@@ -13,17 +13,18 @@
 
   To set up a system use one of the following methods:
 
-    * Easiest:  Build your Pi using the a recent Raspbian image from the Foundation. The system has been tested and run
-      on Jessie, Stretch, and Buster versions. Add the **pisetup.sh** script to the /boot partition on the SD card while
+    * Easiest:  Build your Pi using a recent Raspbian image from the Foundation. The system has been tested and run on
+      Jessie, Stretch, and Buster versions. Add the **pisetup.sh** script to the /boot partition on the SD card while
       you have the card in whatever system you use to write the image. After booting the Pi with this image you may want
-      to configure WiFi from the console if you need that. Then run as root `bash /boot/pisetup.sh`.
+      to configure Wi-Fi from the console if you need that. Then run as root `bash /boot/pisetup.sh`.
         * Note 1: The easiest and safest way to get the pisetup file from GitHub is to use the command:
         ```
         curl -L -O https://raw.githubusercontent.com/kevinkahn/softconsole/master/docs/pisetup.sh
         ```
-        
-        from Windows PowerShell.  Then just drag it to the SD card /boot directory.
-        * Note 2: If Raspbian finds a file called "wpa_supplicant.conf" in the boot directory it will copy that to the right spot to enable WiFi.  This file looks like:
+
+      from Windows PowerShell. Then just drag it to the SD card /boot directory.
+        * Note 2: If Raspbian finds a file called "wpa_supplicant.conf" in the boot directory it will copy that to the
+          right spot to enable Wi-Fi. This file looks like:
           ```
           ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev
           update_config=1
@@ -38,9 +39,19 @@
              
         * Note 3: The installation scripts have to make some assumptions about the way the underlying OS sets things up and about how the Adafruit PiTFT scripts handle install of those screens.  While the installation scripts attempt to be resilent against changes in these dependencies, it is always possible (and has occurred multiple times) that a dependency will change in an unexpected manner.  The scripts at least attempt to report the problem if this happens.  Please report any such issue to me and I'll try to resolve the changes promptly.
 
-        This script will ask questions needed to configure the console hardware and software:
-        * A node name: allows the node to be addressed by name on the network versus only by it's IP address.  Set this and make sure it is unique on your network.  You should be able to address the node later as <nodename>.local.
-        * VNC Standard Port: this allows you to move the VNC server and ssh server to non-standard ports if you wish.  If you answer yes a VNC port will be established on 5900 for the console and on 5901 for a virtual console and ssh will run on 22 (note if you use the headless configuration approach noted above, ssh will run on its normal port until after the pisetup script runs even if you move it via the prompt).  If you supply a port number here then the VNC virtual console will appear on that port, the VNC console will appear on that port minus 1, and ssh will appear on that port minus 100.  Don't use this unless you know why you are - one reason might be if you are planning to open a firewall in your router to allow non-local access to the console (often but not always a bad idea).  To access the node via VNC you will probably want to normally use the virtual VNC since the console VNC will have the size and shape of your Pi screen and will only display an interactive terminal if the pi screen is showing one (i.e., the softconsole is not running).
+      This script will ask questions needed to configure the console hardware and software:
+        * A node name: allows the node to be addressed by name on the network versus only by its IP address. Set this
+          and make sure it is unique on your network. You should be able to address the node later as <nodename>.local.
+        * VNC Standard Port: this allows you to move the VNC server and ssh server to non-standard ports if you wish. If
+          you answer yes a VNC port will be established on 5900 for the console and on 5901 for a virtual console and
+          ssh will run on 22 (note if you use the headless configuration approach noted above, ssh will run on its
+          normal port until after the pisetup script runs even if you move it via the prompt). If you supply a port
+          number here then the VNC virtual console will appear on that port, the VNC console will appear on that port
+          minus 1, and ssh will appear on that port minus 100. Don't use this unless you know why you are - one reason
+          might be if you are planning to open a firewall in your router to allow non-local access to the console (often
+          but not always a bad idea). To access the node via VNC you will probably want to normally use the virtual VNC
+          since the console VNC will have the size and shape of your Pi screen and will only display an interactive
+          terminal if the pi screen is showing one (i.e., the softconsole is not running).
         * Personal: You probably want to answer N to this.  I often run "next-release" stable versions of the softconsole at my house to try out things and get some actual useage before I generally release versions.  Setting this to yes will access such versions which may mean you get something that isn't tested for your situation.
         * Beta install: Normally you should answer N to this.  It is there so that it is possible for a new installation to directly install the current beta version in order to test a previously unsupported configuration.
         * Autostart: Normally you'll answer y to this as it sets things up to automatically run the softconsole on the pi screen at boot rather than leaving your pi at an X-window session.
@@ -59,10 +70,43 @@
 For a history of changes per release see the notes in the GitHub repository.  Note that all the source code for the console is available on github under kevinkahn/softconsole and you are free to examine and/or modify as you like.
 
 # Console Directory and Files
-The installation creates a number of diretories and installs many files, all based in the /home/pi directory.  First there are directories that hold the actual program and its documentation.  The directory **consolestable** holds the current released code.  If you later update the release via the maintenance screen or via an automatic update procedure the files in this directory get updated.  If the system has been updated the previous version of the console code will be in the **previousversion** subdirectory and can be restored manually by moving it back to be the actual consolestable directory.  The directory **consolebeta** holds the current beta release.  Normally you won't care about or run this version since it is test code.  You can select to run this version from the console maintenance screen but I don't suggest you do that unless you are doing because I asked you to.  The directory **consolerem** is empty and is an artifact of my debugging and test environment.  The directory **consoledev** is also empty but could  be populated to run the current absolute most-recent live version of the code from github.  Don't do this unless you are really a masochist or want to do some development work.  
-The directory **Console** is the only directory that you should normally have reason to manually change or use.  It holds, by default, the configuration files and the operational log files for the console.  Other files left from the install process are in a directory called **consoleinstallleftovers** which may be deleted under normal situations.  Files earlyprep.log and prep.log document the install and may be useful for diagnosing issues if a problem occurs during system installation.  The python script adafruit-pitft-touch-cal is used during installation to set up the screen calibration.  It is left behind in case any issues arise with that. Finally the file log.txt simply records console code installs and restarts.  The contents of the 2 source directories is simply a clone of the relevant versions of the GitHub repository, although once the console has run python also leaves compiled files here.
 
-The **Console** directory holds the log files from each run of the console.  Most recent is Console.log, previous is Console.log.1, etc.  The number of logs kept is a console parameter.  The console installation script asks whether to set up a minimal test system.  If you answer 'n' then the Console directory is left empty and you should proceed to create your configuration information manually.  If you are just starting, you should probably answer 'y'.  In this case, a set of example configuration files will be copied from the example directory in consolestable to Console.  By default the console looks for ~/Console/config.txt as its starting configuration file.  I have for neatness used the subdirectory cfglib as a place to place additional configuration files that may be included via directives in config.txt and have conventionally use the cfg extension for these.  Note, there is no difference between the config.txt format and the cfg file formats and were I to do this again I'd probably have made them all names *.cfg.  In my use, I have found that I often what to use the same screen on a number of my consoles and this allows me to create those screen configurations once and copy them to each system.  Se the next section for a suggested way to get started via the minimal configuration file that is in the examples.  Within the Console directory are directories with names including **.HistoryBuffer**.  You should normally have no reason to look at these but if you are reporting a bug to me that has caused a Warning or Error log entry there may be a log file in the corresponding directory that will assist in debugging.  The console program is heavily multithreaded and these history files can give some detailed information about the actual order of operations the resulted in an error.
+The installation creates a number of diretories and installs many files, all based in the /home/pi directory. First
+there are directories that hold the actual program and its documentation. The directory **consolestable** holds the
+current released code. If you later update the release via the maintenance screen or via an automatic update procedure
+the files in this directory get updated. If the system has been updated the previous version of the console code will be
+in the **previousversion** subdirectory and can be restored manually by moving it back to be the actual consolestable
+directory. The directory **consolebeta** holds the current beta release. Normally you won't care about or run this
+version since it is test code. You can select to run this version from the console maintenance screen but I don't
+suggest you do that unless you are doing because I asked you to. The directory **consolerem** is empty and is an
+artifact of my debugging and test environment. The directory **consoledev** is also empty but could be populated to run
+the current absolute most-recent live version of the code from github. Don't do this unless you are really a masochist
+or want to do some development work.  
+The directory **Console** is the only directory that you should normally have reason to manually change or use. It
+holds, by default, the configuration files and the operational log files for the console. Other files left from the
+install process are in a directory called **consoleinstallleftovers** which may be deleted under normal situations.
+Files earlyprep.log and prep.log document the install and may be useful for diagnosing issues if a problem occurs during
+system installation. The python script adafruit-pitft-touch-cal is used during installation to set up the screen
+calibration. It is left behind in case any issues arise with that. Finally, the file log.txt simply records console code
+installs and restarts. The contents of the 2 source directories is simply a clone of the relevant versions of the GitHub
+repository, although once the console has run python also leaves compiled files here.
+
+The **Console** directory holds the log files from each run of the console. Most recent is Console.log, previous is
+Console.log.1, etc. The number of logs kept is a console parameter. The console installation script asks whether to set
+up a minimal test system. If you answer 'n' then the Console directory is left empty and you should proceed to create
+your configuration information manually. If you are just starting, you should probably answer 'y'. In this case, a set
+of example configuration files will be copied from the example directory in consolestable to Console. By default, the
+console looks for ~/Console/config.txt as its starting configuration file. I have for neatness used the subdirectory
+cfglib as a place to place additional configuration files that may be included via directives in config.txt and have
+conventionally used the cfg extension for these. Note, there is no difference between the config.txt format and the cfg
+file formats and were I to do this again I'd probably have made them all names *.cfg. In my use, I have found that I
+often what to use the same screen on a number of my consoles and this allows me to create those screen configurations
+once and copy them to each system. Se the next section for a suggested way to get started via the minimal configuration
+file that is in the examples. Within the Console directory are directories with names including **.HistoryBuffer**. You
+should normally have no reason to look at these but if you are reporting a bug to me that has caused a Warning or Error
+log entry there may be a log file in the corresponding directory that will assist in debugging. The console program is
+heavily multithreaded and these history files can give some detailed information about the actual order of operations
+the resulted in an error.
 
 # Starting the Console
 The Console uses systemd service support for starting.  (Much older version used the rc.local mechanism but this is now fully deprecated and all running systems should be using systemd.  If you have a very old installation that still uses rc.local you should update to systemd (updates have already done most of the work for you - they just couldn't edit the rc.local files) because the older mechanism will stop working entirely in the near future.
@@ -70,9 +114,19 @@ The Console uses systemd service support for starting.  (Much older version used
   If you do a clean install of this version or beyond a service description has been placed in /usr/lib/systemd/system.  To have the console start at boot do "sudo systemctl enable softconsole" and beginning with the next boot it will start automatically.  If you selected this option during install this has already been done for you.  To stop the console from starting automatically use "sudo systemctl disable softconsole".  At any time the console can be started with "sudo systemctl start softconsole" or stopped with "sudo systemctl stop softconsole".  All other interactions via the systemd mechanism are also available and limited console log messages will appear in syslog.  See systemd man pages for more info about service control.
 
 # Quick Setup of Minimal Test
-To insure that the basic setup of the Console is ok and that you understand the pieces, there is a minimal test configuration that you might want to run.  If you answer 'y' to the question above about creating a minimal ISY test configuration, setup will continue by asking for the IP address of your ISY, your ISY username, and your ISY password.  It will create the file Console/cfglib/auth.cfg using this information.  It will also ask for the ISY name of a single switch that you want to use for the test.  It will use this information to create a single screen with a single button that should turn that switch on and off.  It will also define a clock screen that should appear when the console is idle.  The minimal test configuration is not currently supported for a HA hub.
 
-Now start the console as root by going to the consolestable directory and running python -u console.py.  This should bring up a very simple 1 screen instance of the console that can turn on/off the switch you picked.  If you leave the screen untouched for 15 seconds it should dim and then after another 30 seconds it will switch to display a cover screen - here the clock.  
+To ensure that the basic setup of the Console is ok and that you understand the pieces, there is a minimal test
+configuration that you might want to run. If you answer 'y' to the question above about creating a minimal ISY test
+configuration, setup will continue by asking for the IP address of your ISY, your ISY username, and your ISY password.
+It will create the file Console/cfglib/auth.cfg using this information. It will also ask for the ISY name of a single
+switch that you want to use for the test. It will use this information to create a single screen with a single button
+that should turn that switch on and off. It will also define a clock screen that should appear when the console is idle.
+The minimal test configuration is not currently supported for a HA hub.
+
+Now start the console as root by going to the consolestable directory and running python -u console.py. This should
+bring up a very simple 1 screen instance of the console that can turn on/off the switch you picked. If you leave the
+screen untouched for 15 seconds it should dim and then after another 30 seconds it will switch to display a cover screen
+- here the clock.
 
 You can also touch a nav key at the bottom of the screen to move to the next or previous screen in the chain (here there is only one - the clock screen) to get the clock displayed.  As this is a live screen and not a cover screen it will have nav keys.  Now if you don't touch the screen it will dim after 15 seconds, persist as a dim clock for 30 seconds and then change to a dim home screen (here the test screen), persist for 30 seconds as a dim home screen, then switch to a cover screen (here the clock also but with no nav keys).  At any point where the screen is dim touching it will brighten it, and if it is on a cover screen return you to the home screen.
 
@@ -107,7 +161,11 @@ The touchdefinition file aids in mapping a touch controller to the screen.  Don'
 4. Add any shift to the value to adjust misaligned touch systems
 5. Multiply by the appropriate scale value 
 ```
-   If you install a new screen type there is program in the Tools directory of the installation that may help you figure out how to set these parameters.  Run it from the main installation directory and touch the screen corners and you should get the screen resolution coordinates of those location.  If you do not, then adjust the setting in the touchdefinitions file get them correst.
+
+If you install a new screen type there is program in the Tools directory of the installation that may help you figure
+out how to set these parameters. Run it from the main installation directory and touch the screen corners and you should
+get the screen resolution coordinates of those locations. If you do not, then adjust the setting in the touchdefinitions
+file get them correst.
 
 # Setting up and Running Softconsole
 First I admit in advance that the syntax and parsing of the config files is both a bit arcane and somewhat error prone.  This is larglely due to the configuration parser I use and perhaps someday I can improve this.  You've been warned!  Given an understanding for the minimal test above you can then create real configuration files as you wish:
@@ -115,13 +173,23 @@ First I admit in advance that the syntax and parsing of the config files is both
   * While error checking is limited for the config information, the program will log to the Console.log file any parameters that appear in your configuration that are not actually consumed by the console as meaningful.  This helps locate possible typos in the config file.
   * One note of importance: labels are lists of strings and should always be notated as "str1","str2".  A label with a single string should automatically be parsed as a list of one string but if you have a case of a normal label appearing a single character vertical stack of characters as a trailing comma to that string to force it to be correctly parsed.
 * The parameter MainChain provides the names in order of the screens accessible normally.  The parameter SecondaryChain provides a list of screens that are accessible indirectly (see below).  Any number of screens can be defined.
-* Whenever a color needs to be specified you can use any color name from the W3C list at http://www.w3.org/TR/SVG11/types.html#ColorKeywords
-* The config file supports an "include = filename" parameter to allow breaking it up conveniently.  This cam be useful if multiple consoles use some of the same screens and you want to have only one version of the description for those shared screens.  It also supports a "cfglib = dirname" as a default place to look for included config files.  Personally I have lots of small config files that I keep in a directory and specialize a single top level config file for each of my consoles.  See the directory "example configs" on github for lots of examples.
-* Some responses from weather providers are fairly long phrases that don't display nicely on the weather screens.  There is a file termshortenlist in the Console directory which is a json representation of a Python dictionary that maps phrases to shorter ones for display.  It is self explanatory if you look at the examples that are prepopulated.  You can edit this as you wish to add or change phrases to be shortened.  If the console comes across a phrase that appears too long as it is running it will add create a termshortenlist.new file and add it to it.  This provides an easy way to create a new version of the termshortenlist file by editing the new one.
+* Whenever a color needs to be specified you can use any color name from the W3C list
+  at http://www.w3.org/TR/SVG11/types.html#ColorKeywords
+* The config file supports an "include = filename" parameter to allow breaking it up conveniently. This can be useful if
+  multiple consoles use some of the same screens and you want to have only one version of the description for those
+  shared screens. It also supports a "cfglib = dirname" as a default place to look for included config files. Personally
+  I have lots of small config files that I keep in a directory and specialize a single top level config file for each of
+  my consoles. See the directory "example configs" on github for lots of examples.
+* Some responses from weather providers are fairly long phrases that don't display nicely on the weather screens. There
+  is a file termshortenlist in the Console directory which is a json representation of a Python dictionary that maps
+  phrases to shorter ones for display. It is self explanatory if you look at the examples that are prepopulated. You can
+  edit this as you wish to add or change phrases to be shortened. If the console comes across a phrase that appears too
+  long as it is running it will add create a termshortenlist.new file and add it to it. This provides an easy way to
+  create a new version of the termshortenlist file by editing the new one.
 
 # Hubs
 
-As of Version 3 the console can support multiple hubs. Currently it can handle ISY controllers and HomeAssistant
+As of Version 3 the console can support multiple hubs. Currently, it can handle ISY controllers and HomeAssistant
 controllers. It can support, in principle, any number of hubs concurrently although testing at this point has only been
 for a single ISY together with multiple HA hubs, where individual screens have had keys that operated devices from each
 type of hub appearing together. HA hubs currently support on/off operation for light and switch domains. They also make
@@ -145,7 +213,12 @@ Current types are ISY and HASS.  Note that Home Assistant Hubs do not expect a u
 A default hub can be set for the configuration with DefaultHub= specifying the name of the default.  Any screen can also provide a DefaultHub= element to override the default hub for that screen.  Finally, key section names can specify explicitly the hub by which their device is controlled via the syntax hubname:nodename.
 
 # Stores and Values
-The console has a general notion of stored values that some of the screens and alerts can use.  Stored values are referenced by their store name and value name within the store and can be any single value or an array of values.  For example, each weather station that is referenced from Weather Underground has its recent data stored in a store named by the station name.  As an example for the weather station KPDX one can access the current temperature at Portland Airports as KPDX:Cond:Temp or the forecast low temperature for the day 2 days out as KPDX:Fcst:Low:2.
+
+The console has a general notion of stored values that some screens and alerts can use. Stored values are referenced by
+their store name and value name within the store and can be any single value or an array of values. For example, each
+weather station that is referenced from Weather Underground has its recent data stored in a store named by the station
+name. As an example for the weather station KPDX one can access the current temperature at Portland Airports as KPDX:
+Cond:Temp or the forecast low temperature for the day 2 days out as KPDX:Fcst:Low:2.
 
 ## ISY
 Stores are created for ISY variables (ISY:State:<varname> and ISY:Int:<varname>), local variables (LocalVar:<varname>), the weather stations, any MQTT brokers (<brokername>:<varname>), and console debug flags (Debug:<flagname>).  There is also a System store (e.g., entries of the form System:DimLevel) that holds some global system parameters that may be displayed or changed at runtime (currently mainly the DimLevel and BrightLevel values).
@@ -163,16 +236,29 @@ Stores are created for ISY variables (ISY:State:<varname> and ISY:Int:<varname>)
 Stores are also used to store all major system and screen parameters.  System parameters are in the **System** store, while screen parameters are in a store named with the name of the screen.  Note that parameter values that are not explicitly set in a Key (or internally in a "subscreen") will inherit the value of the parameter from the enclosing screen or from an outermost **ScreenParams** store.  Use the maintenance screen, set flags, dump stores to create a StoresDump file in the Console directory if you want to see all the stores and field names.  In addition to the alert and screen references described above there is a general ability to set a store value while the console is running via MQTT.  This is definitely not for the faint of heart - feel free to contact me directly if you need to use this and the discussion below isn't adequate.
 
 # Weather Providers
-Screens that display weather need to have a store populated with the current information.  You define a weather provider like you do a hub.  Currently there is support for APIXU (now deprecated because the provider is no longer available), DarkSky (provider will go away 12/2021), and Weatherbit.  Define a provider and its key in the config file or an included subfile as:
+
+Screens that display weather need to have a store populated with the current information. You define a weather provider
+like you do a hub. Currently, there is support for DarkSky (provider will go away 12/2021), and Weatherbit. Define a
+provider and its key in the config file or an included subfile as:
 ```
     [DarkSky]
     type = WeatherProvider
     apikey = <key>
 
 ```
-The **Weatherbit** provider supports an optional additional parameter units which can be set to 'I' or 'M' to indicate respectively Imperial or Metric readings.  The default is Imperial.  Weatherbit supports either a Lat/Log pair or a City, State pair for location.  Weatherbit free service permits up to 500 API calls per day but it takes 2 calls to get current and forecast conditions for a location.  Thus with multiple consoles and a few locations that refresh once an hour you can overrun the free allotment.  To avoid this issue, the consoles will share location data if they are connected to MQTT on a network (see below).  Basically, each console has a cache of recently seen weather readings that gets updated via MQTT messages.  If there is already a valid, recent reading in the cache the console uses that rather than fetching its own readings.  With this in place, any location refreshing once per hour will only use 48 API calls per day no matter how many consoles are running.
 
-The section names designate the provider and one or both can be used.  Locations for which to get weather are defined like (the actual contents of the Location field will depend upon what the particular weather provider requires):
+The **Weatherbit** provider supports an optional additional parameter units which can be set to 'I' or 'M' to indicate
+respectively Imperial or Metric readings. The default is Imperial. Weatherbit supports either a Lat/Log pair or a City,
+State pair for location. Weatherbit free service permits up to 500 API calls per day but it takes 2 calls to get current
+and forecast conditions for a location. Thus, with multiple consoles and a few locations that refresh once an hour you
+can overrun the free allotment. To avoid this issue, the consoles will share location data if they are connected to MQTT
+on a network (see below). Basically, each console has a cache of recently seen weather readings that gets updated via
+MQTT messages. If there is already a valid, recent reading in the cache the console uses that rather than fetching its
+own readings. With this in place, any location refreshing once per hour will only use 48 API calls per day no matter how
+many consoles are running.
+
+The section names designate the provider and one or both can be used. Locations for which to get weather are defined
+like (the actual contents of the Location field will depend upon what the particular weather provider requires):
 ```
 [PortlandW]
 type = APIXU
@@ -259,9 +345,15 @@ Finally, the consoles will accept commands from MQTT.  A console listens on the 
 * status: issue a status message to MQTT
 * issueError, issueWarning, issueInfo,hbdump: diagnostic/debug commands
 
-These commands can be issued from the maintenance screens by going to "Network Concoles", "Issue Network Commands" and then choosing a node to issue commands to by a single tap (standard commands) or a double tap (advanced commands).  Nodes not currently up show as greyed out and cannot be commanded (but see the next note).
+These commands can be issued from the maintenance screens by going to "Network Concoles", "Issue Network Commands", and
+then choosing a node to issue commands to by a single tap (standard commands) or a double tap (advanced commands). Nodes
+not currently up show as greyed out and cannot be commanded (but see the next note).
 
-**Note**: Once a node has ever been on your network and registered with MQTT it will appear in the list of nodes and show as dead if it no longer exists or is actually just down.  If you no longer want the node to even appear (e.g., you renamed it or simply removed it) you need to clear its last will message from your MQTT broker.  You can do this through the console by double tapping (advanced) on the dead node name on the issue command screen.  This will access an advanced command that will clear the history for that dead node.
+**Note**: Once a node has ever been on your network and registered with MQTT it will appear in the list of nodes and
+show as dead if it no longer exists or is actually just down. If you no longer want the node to even appear (e.g., you
+renamed it or simply removed it) you need to clear its last will message from your MQTT broker. You can do this through
+the console by double tapping (advanced) on the dead node name on the issue command screen. This will access an advanced
+command that will clear the history for that dead node.
 
 (For a full list of commands you can look at the file issuecommand.py or look at the commands you can issue from the Maintenance screens.)
 
@@ -304,8 +396,13 @@ If you set a non empty title for a screen that doesn't otherwise have one, the r
 
 ### Keypad
 * Keypad: mimics the KPL.  Can support any number of buttons from 1 to 25 and will autoplace/autosize buttons in this range.  Parmetrs KeysPerColumn and KeysPerRow may be used to override the auto placement of the keys.  Keys may be colored as desired.  Key types are:
-    * ONOFF: linked to a device or scene and supports On, Off, FastOn, FastOff behaviors
-    * RUNPROG: linked to a program to run.  It issues a RunThen on the designated program for ISY hubs. It issues a automation.trigger for the automation for HA hubs.
+    * ONOFF: linked to a device or scene and supports On, Off, FastOn, FastOff behaviors. If an ONOFF key is held down
+      for a prolonged period of time and the underlying device is a dimmer, then a slider screen is displayed that
+      allows the brightness to be set. For Insteon/ISY hubs, dimming also applies to scenes via the scene proxy
+      mechanism. This allows convient dimming for common 3-way switch setups where multiple dimmers are combined in a
+      scene to control a single load (or set of loads).
+    * RUNPROG: linked to a program to run. It issues a RunThen on the designated program for ISY hubs. It issues a
+      automation.trigger for the automation for HA hubs.
     * (Deprecated-use RUNPROG with modifiers) ONBLINKRUNTHEN: linked to a program.  Will blink to provide user feedback and will issue RunThen on program
     * ON: will always send an "on" command to the linked device.  This is useful for things like garage doors that use on toggles.
     * OFF: will always send an "off" command to the linked device.
@@ -329,9 +426,9 @@ If you set a non empty title for a screen that doesn't otherwise have one, the r
     behavior:
       * Verify = 1: displays a confirmation screen before running the program. The messages on the confirmation screen
         can be customized with the GoMsg and/or NoGoMsg parameters.
-      * Blink = n: provide visual feedback when when the runthen is issued by blinking the key n times.  (For VARKEY the
-        key will blink if you have not yet seen it with its current value, even if that value had been previously set
-        while another screen was showing on the console.)
+      * Blink = n: provide visual feedback when the runthen is issued by blinking the key n times.  (For VARKEY the key
+        will blink if you have not yet seen it with its current value, even if that value had been previously set while
+        another screen was showing on the console.)
       * FastPress = 1: requires a quick double tap to activate the key. (Note not applicable to the ONOFF keys since
         there a double press corresponds to issuing a fast on or off to the device).
 
@@ -349,8 +446,15 @@ If you set a non empty title for a screen that doesn't otherwise have one, the r
 ### Weather
 * Weather: uses a weather provider to display current conditions and forecast.  The location parameter is a location code defined as above.
 ### Thermostat    
-* Thermostat: mimics the front panel of the typical thermostat and provides full function equivalency.  Has been tested with Insteon thermostat via ISY and Nest Thermostat via HA but should work with any device those hubs support.
-This screen uses an improved update approach for the setpoints.  Touching the setpoint buttons only adjusts the values locally on the console and greys the values to indicate this.  If no additional touch is seen for 2 seconds then the resultant setpoint is pushed to HA and thus the thermostat.  The displayed values remain greyed until an update from the thermostat indicates it has set them or an addition time period passes after which the actual current setpoints are retrieved and displayed normally.  Thus if an error occurs updating the setpoints on the actual thermostat you may see the old setpoint reappear indicating something went wrong.  This makes changing setpoints not have to wait for the latency to the hub and back for each degree of change.
+* Thermostat: mimics the front panel of the typical thermostat and provides full function equivalency. Has been tested
+  with Insteon thermostat via ISY and Nest Thermostat via HA but should work with any device those hubs support. This
+  screen uses an improved update approach for the setpoints. Touching the setpoint buttons only adjusts the values
+  locally on the console and greys the values to indicate this. If no additional touch is seen for 2 seconds then the
+  resultant setpoint is pushed to HA and thus the thermostat. The displayed values remain greyed until an update from
+  the thermostat indicates it has set them or an addition time period passes after which the actual current setpoints
+  are retrieved and displayed normally. Thus, if an error occurs updating the setpoints on the actual thermostat you may
+  see the old setpoint reappear indicating something went wrong. This makes changing setpoints not have to wait for the
+  latency to the hub and back for each degree of change.
 ### Time/Temp
 * Time/Temp: combined screen, nice as a sleep screen that gives current time and the weather.  Format of the screen is largely controlled by the config.txt file.  The location is displayed unless you set the character size for that line to 0.  An icon can be displayed as part of the current conditions by setting CondIcon = True.  An icon canbe displayed as part of each forecast day by setting FcstIcon = True.  There are a variety of options for the display of the forecast days that can be selected by setting FcstLayout in the config file.  They are:
     * Block: forecast items are left aligned in a block that is centered based on the longest item (1 column) 
@@ -365,11 +469,33 @@ This screen uses an improved update approach for the setpoints.  Touching the se
 ### Picture
 The Picture screen (type=Picture) is used to allow the console to function as a photo frame if desired.  It can function in one of 2 modes: directory mode and single mode.
 
-In its default mode (directory) it will rotate through pictures (which must be jpg files) in a given directory.  The directory is designated by the parameter picturedir.  If no picturedir parameter is provided the directory pics in the config directory (normally Console) is used.  If a picturedir parameter is provided, if it starts with a "/" it is used as an absolute path to the picture directory.  If it does not start with a "/" then it is interpretted as a path starting with the config directory.  A parameter picturetime sets the hold time in seconds for each photo on the screen and defaults to 5 seconds.  Pictures are oriented on the screen based on orientation information in the jpg exif if that exists, so for most digital photos they will display correctly automatically. In operation the picture screen remembers where in the photo it is so that if used as one screen in a set of idle screens it will pick up displaying photos where it left off when it was last active.  The directory is monitored for changes and the stream of photos will dynamically reflect those changes.  Since there is some pipelining involved, the changed photos may take 2-3 multiples of picturetime to be visible.  Also of note, the pictures are cached by the console, locally in a process format to improve efficiency.  If the source of the directory is a network drive this means that the photos will only use network bandwidth when they are first being displayed which, given the size of typcial modern jpgs is a significant efficiency.
+In its default mode (directory) it will rotate through pictures (which must be jpg files) in a given directory. The
+directory is designated by the parameter picturedir. If no picturedir parameter is provided the directory pics in the
+config directory (normally Console) is used. If a picturedir parameter is provided, if it starts with a "/" it is used
+as an absolute path to the picture directory. If it does not start with a "/" then it is interpretted as a path starting
+with the config directory. A parameter picturetime sets the hold time in seconds for each photo on the screen and
+defaults to 5 seconds. Pictures are oriented on the screen based on orientation information in the jpg exif if that
+exists, so for most digital photos they will display correctly automatically. In operation the picture screen remembers
+where in the photo it is so that if used as one screen in a set of idle screens it will pick up displaying photos where
+it left off when it was last active. The directory is monitored for changes and the stream of photos will dynamically
+reflect those changes. Since there is some pipelining involved, the changed photos may take 2-3 multiples of picturetime
+to be visible. Also of note, the pictures are cached by the console, locally in a process format to improve efficiency.
+If the source of the directory is a network drive this means that the photos will only use network bandwidth when they
+are first being displayed which, given the size of typcial modern jpgs is a significant efficiency.
 
-To use the screen in single mode provide a parameter "singlepic" which provides an absolute path to a jpg file (if it starts with "/") or a path relative to the config directory to a jpg file.  Parameter picturetime is not used in this mode.  The designated file is monitored for changes every second and will be reloaded if it changes.  Thus for single mode the screen will reflect changes typically within a few seconds of making the change.  This is helpful if the jpg is actually a screen shot that is being updated or some other such dynamic information.  Since the file is only reloaded when it changes no caching is done for single mode.
+To use the screen in single mode provide a parameter "singlepic" which provides an absolute path to a jpg file (if it
+starts with "/") or a path relative to the config directory to a jpg file. Parameter picturetime is not used in this
+mode. The designated file is monitored for changes every second and will be reloaded if it changes. Thus, for single
+mode the screen will reflect changes typically within a few seconds of making the change. This is helpful if the jpg is
+actually a screen shot that is being updated or some other such dynamic information. Since the file is only reloaded
+when it changes no caching is done for single mode.
 ### Alert
-Alert: used to display an alarm condition.  This screen type is tightly connected to Alerts which are described next. Creating Alert screens is a two part process.   First, you define the conditions that trigger the alert, this definition includes the action to take with the triffer is fired, which is defined via Invoke= parameter naming an alert screen.  (The Invoke may also name an Alert procedure which is a different case.)  An example of defining an Alert screen might look like:
+
+Alert: used to display an alarm condition. This screen type is tightly connected to Alerts which are described next.
+Creating Alert screens is a two part process. First, you define the conditions that trigger the alert, this definition
+includes the action to take with the triffer is fired, which is defined via Invoke= parameter naming an alert screen.  (
+The 'Invoke' command may also name an Alert procedure which is a different case.)  An example of defining an Alert
+screen might look like:
 ```
     # Alert Screen:
     # this is a Screen definition just like any other, though with some specific parameters
@@ -388,7 +514,12 @@ Alert: used to display an alarm condition.  This screen type is tightly connecte
 Most of the parameters should be self explanatory.  BlinkTime may be a single integer that specifies the on and off timing for the screen blinking, or it may be a pair in which case the first value is the on time and the second is the off time.  There are various possibilities for Message.  In general, it is a comma separated sequence of lines to be displayed.  However, it may contain references to store items in their usual ':' separated format.  It may also contain references to a file watcher.  In this case, there are two possible value cases.  If the watcher was created with Parameter SingleItem then a reference as in the example above as WATCHNAME:file causes the entire contents of the referenced file to be interpolated into the message at that point.  If the watcher was created with the Parameter Settings, then the lines in the watched file are expected to be of the form varname=value and each of the values of WATCHNAME:varname can be interpolated at the point in the message that it appears.  The screen will display until the alert condition is cleared via the screen button or via a state change in the cause.  For the case of a file watch only, the alert condition may also be cleared automatically after a time interval using the AutoClear parameter.
 
 # Alerts
-Alerts are defined in an "\[Alerts\]" section of the config files.  See cfglib/pdxalerts for some examples.  Currently alerts can be triggered periodically, based on a node state chance, or based on a variable state change.  The effect of the alert can be delayed by some time to avoid alerts for routine events that should clear within some typical window.  Alerts can either invoke an alert screen (see the away and garage alerts in the sample file) or an alert procedure (see the update alert).
+
+Alerts are defined in an "\[Alerts\]" section of the config files. See cfglib/pdxalerts for some examples. Currently,
+alerts can be triggered periodically, based on a node state chance, or based on a variable state change. The effect of
+the alert can be delayed by some time to avoid alerts for routine events that should clear within some typical window.
+Alerts can either invoke an alert screen (see the away and garage alerts in the sample file) or an alert procedure (see
+the update alert).
 ## Triggers
 The condition that causes an alert is defined within the config section that defines the alert.  It has a **Type** which is currently Periodic, VarChange, NodeChange, or FileWatch.  For the VarChange trigger Var specifies a store element (see stores above), and Test and Value are used to describe how to test it.  Valid tests are as expected: **EQ**, **NE**, **GT**, **LT**, **GE**, **LE**, and **ISNONE**. For the *node* trigger Node, Test, and Value describe the trigger.  For *periodic* provides two options. You can provide parameter **Interval** which describes a repetition period either as an integer seconds or as an integer followed by "minutes" or "hours".  Alternatively, you can specify a parameter **At** which specifies either a single time of day or comma seperated list of times using standard time format (24 hour or explicit am/pm).
  
@@ -399,17 +530,33 @@ Triggers cause either an alert screen to be shown or an alert proc to be run.  I
 ## Local Variables
 It is possible to define variables local to the console by creating a **\[\[Variables]]** section in the config file and defining one or more **varname = \<value\>** within it.  These may be used like any other store element by being referenced as LocalVars:\<name\>  At the moment they have limited but some use.
 ## Alert Procedures
-Currently the following alerts are available:
-* **autoversion:** trigger this either at init time or periodically to check github for a new release.  If a new *currentrelease* is found it is downloaded, installed, and the console rebooted with the new version.  The old version is moved to a directory under the consolestable called *previousversion*.
-* **networkhealth** when triggered (typically periodically)check for network connectivity to a specified IP address.  E.g., checking for 8.8.8.8 (the google name servers) will allow creation of an alert if Internet access is lost.  Typically this trigger will be used to invoke an alert screen to display the alarm.  Define the trigger to have Parameter = IPaddress,localvarname and localvarname will be set to 1 if the address is pingable and 0 otherwise.  If the variable changes it triggers any alert based on a "varchange" which can be used to display the alarm.
-* **assignvar** When triggered (as *AssignVar.Assign*) it executes the assignments listed in it Parameter option.  The Parameter is of the form var-ref = val where var-ref is a store idenitifier and val is either a number or a store identifier.  E.g., Paramter = ISY:State:tEST = KPDX:Cond:Temp, ISY:Int:TestVar= 5 would assign the current KPDX Temperature to the ISY State variable tEST and assign the value 5 to the ISY Int variable TestVar each time it is fired.  (This replaces the temporary hack alert tempstoisy.)  As an example use, an assign of a value to the variable System:DimLevel using a periodic alert with a specific time parameter might be used to adjust the dim level of a console for late night versus daytime behavior.
+
+Currently, the following alerts are available:
+
+* **autoversion:** trigger this either at init time or periodically to check github for a new release. If a new *
+  currentrelease* is found it is downloaded, installed, and the console rebooted with the new version. The old version
+  is moved to a directory under the consolestable called *previousversion*.
+* **networkhealth** when triggered (typically periodically)check for network connectivity to a specified IP address.
+  E.g., checking for 8.8.8.8 (the Google name servers) will allow creation of an alert if Internet access is lost.
+  Typically, this trigger will be used to invoke an alert screen to display the alarm. Define the trigger to have
+  Parameter = IPaddress,localvarname and localvarname will be set to 1 if the address is pingable and 0 otherwise. If
+  the variable changes it triggers any alert based on a "varchange" which can be used to display the alarm.
+* **assignvar** When triggered (as *AssignVar.Assign*) it executes the assignments listed in it Parameter option. The
+  Parameter is of the form var-ref = val where var-ref is a store idenitifier and val is either a number or a store
+  identifier. E.g., Paramter = ISY:State:tEST = KPDX:Cond:Temp, ISY:Int:TestVar= 5 would assign the current KPDX
+  Temperature to the ISY State variable tEST and assign the value 5 to the ISY Int variable TestVar each time it is
+  fired.  (This replaces the temporary hack alert tempstoisy.)  As an example use, an assign of a value to the variable
+  System:DimLevel using a periodic alert with a specific time parameter might be used to adjust the dim level of a
+  console for late night versus daytime behavior.
 
 ## Alert Screens
 These are screens (described above) that are triggered to appear based on a node or variable state, perhaps with a delay from the time of the state change.  E.g., display alert screen 5 minutes after garage door is opened if it is still open.  They provide a single button that can be linked to resolve the alert condition.  They are triggered by a test in the alert section of the config file defined above. An Alert screen can be deferred for a predefined time after which they will reappear. If the condition causing the alert clears they will disappear.
 # Connecting Console Names with ISY Names
 * Some names in the config file are used to link console objects to ISY nodes/scenes.  Specifically the section name of a thermostat sceen is used to connect that screen to an ISY thermostat and the subsection names of ONOFF keys are used to link those keys to an ISY device or scene.
-* Simple names are looked up as the names of leaf nodes in the ISY node tree.  You can also reference an ISY node via its full name using conventional "/" notation to describe the path from the root by starting the name with a "/".
-* When a name is looked up in the ISY for linking preference it always given to finding the name as a scene first.  Thus if a device and a scene have the same name the console will link to the scene.
+* Simple names are looked up as the names of leaf nodes in the ISY node tree. You can also reference an ISY node via its
+  full name using conventional "/" notation to describe the path from the root by starting the name with a "/".
+* When a name is looked up in the ISY for linking preference it always given to finding the name as a scene first. Thus,
+  if a device and a scene have the same name the console will link to the scene.
 
 # Operating Softconsole
 * Single tap on an On/Off key to actuate it
@@ -421,13 +568,27 @@ These are screens (described above) that are triggered to appear based on a node
 * After the designated time screen will automatically return to the home screen (except from the maintenance screen)
 * From the home screen after the dim time out the screen will go to a "sleep" screen if designated - any tap will awaken it
     * The original version had only a single idle screen named by the DimHomeScreenCoverName parameter.  This parameter is deprecated but will still work if you don't opt for the new multi-idle screen ability.  You can designate a sequence of idle screens with DimIdleListNames and corresponding linger times per screen with DimIdleListTimes.  Once the console is idle it will cycle through these screens until tapped.  This got added to make a wall unit a nicer info display when not otherwise being used.
-* On the maintenance/log screens single tap the lower part of the screen to see the next page or the upper part to see the previous page.
-* On all normal display screens you may see a dim indicator displayed in the upper left hand corner of the screen.  This indicates that some console has had a Warning or Error level log message.  If the indicator is a cross, the node you are looking at has had such an error.  If the indicator is a circle, at least one other node on the network has had an error.  The local node indicator is cleared once the log has been viewed.  Remote node indicators are cleared when remote node itself clears its indicator either by network command or by viewing the log on that remote node.
+* On the maintenance/log screens single tap the lower part of the screen to see the next page or the upper part to see
+  the previous page.
+* On all normal display screens you may see a dim indicator displayed in the upper left-hand corner of the screen. This
+  indicates that some console has had a Warning or Error level log message. If the indicator is a cross, the node you
+  are looking at has had such an error. If the indicator is a circle, at least one other node on the network has had an
+  error. The local node indicator is cleared once the log has been viewed. Remote node indicators are cleared when
+  remote node itself clears its indicator either by network command or by viewing the log on that remote node.
 
 # Maintenance Mode
-Tapping on the screen 5 time puts the console in maintenance mode and changes to a maintenance screen.  There are buttons there to view the local log (and by doing so clear any error indicator), select and/or download a version of the console (double tapping this accesses development versions), set various debug flags, and exit or restart the console or shutdown or reboot the pi itself.
 
-If the console is connected to an MQTT broker then an additional capability will appear for Network concoles.  From here you can display the current status of all consoles on your network, their hardware/OS and console versions, and issue commands to them.  If you choose to issue commands you will get a screen that lets you choose the console to interact with.  Selecting a console will let you see its log (or a reverse ordered recent list of errors it has encountered from that log), command it to download versions, restart, reboot, etc.  Note that double tapping on the node name accesses some advanced commands meant mostly for debugging.
+Tapping on the screen 5 times or gesturing by swiping a finger from the upper left to the lower right of the screen puts
+the console in maintenance mode and changes to a maintenance screen. There are buttons there to view the local log (and
+by doing so clear any error indicator), select and/or download a version of the console (double tapping this accesses
+development versions), set various debug flags, and exit or restart the console or shutdown or reboot the pi itself.
+
+If the console is connected to an MQTT broker then an additional capability will appear for Network concoles. From here
+you can display the current status of all consoles on your network, their hardware/OS and console versions, and issue
+commands to them. If you choose to issue commands you will get a screen that lets you choose the console to interact
+with. Selecting a console will let you see its log (or a reverse ordered recent list of errors it has encountered from
+that log), command it to download versions, restart, reboot, etc. Note that double tapping on the node name accesses
+some advanced commands meant mostly for debugging.
 
 # Developers Notes
 ## Local Operations
@@ -436,9 +597,12 @@ During console start up it will attempt at a very early stage (before the config
 ## Defining New Screens by Coding a Module (updated for version 2)
 New screens can be developed/deployed by subclassing screen.ScreenDesc and placing the code in the screens directory.  Screens modules have a single line of code at the module level of the form "config.screentypes[*name*] = *classname*" where *name* is the string to be used in config files to as the type value to create instances and *classname* is the name of the class defined in the module.  A screen class defines the following methods (ScreenDesc provide base level implementations that should be called if overridden):
 
-* __init__: Create a screen object based on an entry in the config file with a type equal to the type string registered in the definition of the screen.
-* InitDisplay(nav): code to display the screen.  nav are the navigation keys or None and should be passed through the the underlying InitDisplay of ScreenDesc
-* ReInitDisplay: code to redisplay the screen if it has been removed temporarily and assumes nav keys are already set.  Generally not overridden.
+* __init__: Create a screen object based on an entry in the config file with a type equal to the type string registered
+  in the definition of the screen.
+* InitDisplay(nav): code to display the screen. nav are the navigation keys or None and should be passed through the
+  underlying InitDisplay of ScreenDesc
+* ReInitDisplay: code to redisplay the screen if it has been removed temporarily and assumes nav keys are already set.
+  Generally not overridden.
 * ISYEvent(node,value): A watched ISY *node* has changed to the new *value*
 * ExitScreen: code that is called as the screen is being taken off the display
 
