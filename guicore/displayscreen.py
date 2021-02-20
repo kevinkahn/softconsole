@@ -21,6 +21,9 @@ import traceback
 EventDispatch = {}
 NewMouse = True
 
+if os.path.exists('/home/pi/.forceoldtouch'): NewMouse = False
+
+
 def MainControlLoop():
 	# Load Event Handlers
 	for eventtype in os.listdir(os.getcwd() + '/guicore/guievents'):

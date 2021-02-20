@@ -406,6 +406,10 @@ logsupport.Logs.Log("Log level: ", logsupport.LogLevel)
 logsupport.Logs.Log("Screensize: " + str(hw.screenwidth) + " x " + str(hw.screenheight))
 logsupport.Logs.Log(
 	"Scaling ratio: " + "{0:.2f} W ".format(hw.dispratioW) + "{0:.2f} H".format(hw.dispratioH))
+if displayscreen.NewMouse:
+	logsupport.Logs.Log('Using new touchscreen code')
+else:
+	logsupport.Logs.Log('Using old touchscreen code')
 
 utilities.LogParams()
 for n, param in config.sysvals.items():
