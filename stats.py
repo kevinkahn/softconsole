@@ -153,6 +153,7 @@ class Stat(object):
 		self.name = name
 		PartOf.elements[name] = self
 		self.rpt = rpt
+		self.value = 0
 
 	def Op(self, val=999999):
 		self.value = val
