@@ -44,6 +44,9 @@ class OnOffKey(ManualKeyDesc):
 			self.SliderScreen = supportscreens.SliderScreen(self, self.KeyCharColorOn, self.KeyColor,
 															self.ControlObj.GetBrightness,
 															self.UpdateBrightness, orientation=self.SlideOrientation)
+			if hasattr(self.ControlObj, 'IdleSend'):
+				self.SliderScreen.RequestIdles(self.ControlObj.IdleSend,
+											   2)  # todo the idle value here in seconds should depend upon the hub responsiveness
 			self.ProcLong = self.SliderScreen.Invoke
 		else:
 			self.ProcLong = self.IgnoreLong
@@ -88,6 +91,7 @@ class OnOffKey(ManualKeyDesc):
 			self.State = False
 		else:
 			self.State = not (state == 0)  # K is off (false) only if state is 0
+			if self.name == 'light.kitchen_counter': print(self.name, state, self.State)
 		self.UnknownState = True if state == -1 else False
 		super().InitDisplay()
 
@@ -134,9 +138,9 @@ class OnOffKey(ManualKeyDesc):
 
 	# invoke slider screen todo
 
-	def UpdateBrightness(self, brtpct):  # todo if off need to turn on for HA then set brightness value
+	def UpdateBrightness(self, brtpct, final=False):  # todo if off need to turn on for HA then set brightness value
 		# print('Update brt {}'.format(brtpct))
-		self.ControlObj.SendOnPct(brtpct)
+		self.ControlObj.SendOnPct(brtpct, final=final)
 
 
 KeyTypes['ONOFF'] = functools.partial(OnOffKey, keytype='ONOFF')

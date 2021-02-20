@@ -64,16 +64,6 @@ class OnOffItem(ISYNode):
 		if r == "":  # error in comm - fake a response to see unavailable key
 			self.Hub.isyEM.FakeNodeChange()
 
-
-class Dimmable(ISYNode):  # todo
-
-	def GetBrightness(self):
-		pass
-
-	def SendOnPct(self, brightpct):
-		pass
-
-
 class Folder(TreeItem):
 	"""
 	Represents and ISY node/scene folder.
@@ -116,6 +106,31 @@ class Node(Folder, OnOffItem):
 
 	def __repr__(self):
 		return 'Node: ' + Folder.__repr__(self) + 'primary: ' + self.pnode.name
+
+
+class DimmableNode(Node):  # todo
+
+	def __init__(self, hub, flag, name, addr, parenttyp, parentaddr, enabled, props):
+		super().__init__(hub, flag, name, addr, parenttyp, parentaddr, enabled, props)
+		self.valueatidle = -1
+		self.lastsendtime = 0
+
+	def GetBrightness(self):
+		# print('Brightness: {}'.format(self.devState))
+		return 100 * self.devState / 255 if self.valueatidle == -1 else 100 * self.valueatidle / 255
+
+	def SendOnPct(self, brightpct, final=False):
+		self.valueatidle = int(brightpct * 255 / 100)
+		now = time.time()
+		if now - self.lastsendtime > 1 or final:
+			# print('send brightness {} {}'.format(self.valueatidle, brightpct))
+			self.Hub.try_ISY_comm('nodes/' + self.address + '/cmd/DON/' + str(self.valueatidle), doasync=True)
+			self.lastsendtime = now
+
+	def IdleSend(self):
+		# print('Idle send to node {} {}'.format(self.name,self.valueatidle))
+		self.Hub.try_ISY_comm('nodes/' + self.address + '/cmd/DON/' + str(self.valueatidle), doasync=True)
+		self.valueatidle = -1
 
 
 class Thermostat(Node):
@@ -179,10 +194,42 @@ class Scene(TreeItem, OnOffItem):
 		self.proxy = ""
 		self.obj = None
 		utilities.register_example("Scene", self)
+		self.valueatidle = -1
+		self.lastsendtime = 0
 
 	def __repr__(self):
 		return "Scene: " + TreeItem.__repr__(self) + ' ' + str(
 			len(self.members)) + ' members: ' + self.members.__repr__()
+
+	def GetBrightness(self):
+		prox = self.Hub.RetrieveSceneProxy(self, self.proxy)
+		# print(prox.name, prox.devState)
+		if prox is None:
+			logsupport.Logs.Log(
+				'{}: Missing proxy for Scene {} brightness slider ({})'.format(self.Hub.name, self.name, self.proxy))
+		# print('Brightness (proxy): {}'.format(prox.devState))
+		return 100 * prox.devState / 255 if self.valueatidle == -1 else 100 * self.valueatidle / 255
+
+	def SendToSceneMembers(self, brtval):
+		for obj in self.members:
+			if isinstance(obj[1], DimmableNode):
+				# print('send brightness {} to {}'.format(brtval, obj[1].name))
+				self.Hub.try_ISY_comm('nodes/' + obj[1].address + '/cmd/DON/' + str(brtval), doasync=True)
+
+	def SendOnPct(self, brightpct, final=False):
+		# loop through members and set each to brtval
+		self.valueatidle = int(brightpct * 255 / 100)
+		now = time.time()
+		if now - self.lastsendtime > 1 or final:
+			self.SendToSceneMembers(self.valueatidle)
+			self.lastsendtime = now
+
+	# print('SendtoScene {} {} {} {}'.format(self.name, brightpct, self.valueatidle,final))
+
+	def IdleSend(self):
+		# print('Idle send to scene {} {}'.format(self.name,self.valueatidle))
+		self.SendToSceneMembers(self.valueatidle)
+		self.valueatidle = -1
 
 
 class ProgramFolder(TreeItem):
@@ -371,10 +418,13 @@ class ISY(object):
 				devtyp = node['type'].split('.')
 				if devtyp[0] == '5':  # todo dimmers are '1'
 					n = Thermostat(self, flg, nm, addr, ptyp, parentaddr, enabld, prop)
+				elif devtyp[0] == '1' and flg == '128':  # dimmer device
+					n = DimmableNode(self, flg, nm, addr, ptyp, parentaddr, enabld, prop)
 				else:
 					n = Node(self, flg, nm, addr, ptyp, parentaddr, enabld, prop)
 				fixlist.append((n, pnd))
 				self.NodesByAddr[n.address] = n
+			#print("Node: {} {} type: {}".format(nm, type(n), node))
 			except Exception as E:
 				if prop == 'unknown':
 					# probably a v3 polyglot node or zwave
@@ -780,38 +830,38 @@ class ISY(object):
 		except Exception as E:
 			logsupport.Logs.Log('Error linking parents for {} ({})'.format(repr(node), E))
 
+	def RetrieveSceneProxy(self, scene, proxnm):  # todo = this needs to find a proxy with dimming if one exists
+		if proxnm != '':
+			if proxnm in self.NodesByAddr:
+				# address given
+				return self.NodesByAddr[proxnm]
+			elif self._NodeExists(proxnm):
+				return self._GetNodeByName(proxnm)
+			else:
+				return None
+		else:
+			MObj = None
+			for i in scene.members:
+				device = i[1]
+				if device.enabled:
+					MObj = device
+					if isinstance(MObj, DimmableNode) and MObj.flag == '128':
+						# print('Pick dimmable proxy for {} as {}'.format(scene.name,MObj.name))
+						break
+				else:
+					logsupport.Logs.Log('Skipping disabled/nonstatus device: ' + device.name,
+										severity=ConsoleWarning)
+			if MObj is None:
+				logsupport.Logs.Log("No proxy for scene: " + scene.name, severity=ConsoleError)
+			debug.debugPrint('Screen', "Scene ", scene.name, " default proxying with ", MObj.name)
+			return MObj
+
 	def GetNode(self, name, proxy=''):
 		# return (Control Obj, Monitor Obj)
 		ISYObj = self._GetSceneByName(name)
 		if ISYObj is not None:
-			MObj = None
-			if proxy != '':
-				# explicit proxy assigned
-				if proxy in self.NodesByAddr:
-					# address given
-					MObj = self.NodesByAddr[proxy]
-					debug.debugPrint('Screen', "Scene ", name, " explicit address proxying with ", MObj.name, '(',
-									 proxy, ')')
-				elif self._NodeExists(proxy):
-					MObj = self._GetNodeByName(proxy)
-					debug.debugPrint('Screen', "Scene ", name, " explicit name proxying with ",
-									 MObj.name, '(', MObj.address, ')')
-				else:
-					logsupport.Logs.Log('Bad explicit scene proxy:' + proxy + ' for ' + name, severity=ConsoleWarning)
-					return None, None
-			else:
-				for i in ISYObj.members:
-					device = i[1]
-					if device.enabled:
-						MObj = device
-						break
-					else:
-						logsupport.Logs.Log('Skipping disabled/nonstatus device: ' + device.name,
-											severity=ConsoleWarning)
-				if MObj is None:
-					logsupport.Logs.Log("No proxy for scene: " + name, severity=ConsoleError)
-				debug.debugPrint('Screen', "Scene ", name, " default proxying with ", MObj.name)
-			return ISYObj, MObj
+			proxyObj = self.RetrieveSceneProxy(ISYObj, proxy)
+			return ISYObj, proxyObj
 		elif self._NodeExists(name):
 			ISYObj = self._GetNodeByName(name)
 			return ISYObj, ISYObj

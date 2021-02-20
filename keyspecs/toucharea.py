@@ -191,11 +191,13 @@ class ManualKeyDesc(TouchPoint):
 		if not ForceDisplay:
 			if self.BlinkState == 1:
 				DisplayState = True
-			elif self.BlinkState == 1:
+			elif self.BlinkState == 2:  # todo this was also 1 which made no sense - fix if blink stops working
 				DisplayState = False
 			else:
 				DisplayState = self.State
 		# ignore Key state and display as "DisplayState"
+		if self.name == 'light.kitchen_counter': print(self.name, self.State, DisplayState, self.BlinkState,
+													   ForceDisplay)
 		if DisplayState:
 			hw.screen.blit(self.KeyOnImage, (x, y))
 		else:

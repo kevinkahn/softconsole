@@ -38,7 +38,7 @@ class Light(HAnode):
 		else:
 			return 0
 
-	def SendOnPct(self, brightpct):
+	def SendOnPct(self, brightpct, final=False):
 		try:
 			ha.call_service(self.Hub.api, 'light', 'turn_on',
 							{'entity_id': '{}'.format(self.entity_id), 'brightness_pct': brightpct})

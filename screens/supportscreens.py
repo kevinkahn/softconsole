@@ -411,17 +411,23 @@ class PagedDisplay(screen.BaseKeyScreenDesc):
 
 
 class SliderScreen(screen.BaseKeyScreenDesc):
+	screenrate = .05
+
 	def __init__(self, key, charcolor, bcolor, valuegetter, valuesetter, showpct=True, rangelow=0, rangehi=100,
 				 orientation=0):
 		# call result setter as often as desired to show partial changes
+		# if idletime not 0 then call idleproc if no motion for idle sec
 		# assumes range of slider is 0-100%; todo override with rangelow/high to change the displayed value if desired
 		# orientation: 0 use long dimension, 1: force horizontal, 2: force vertical
 
 		super().__init__({}, key.Screen.name + '-' + key.name + '-Value', parentscreen=key)
 		debug.debugPrint('Screen', "Build Verify Screen")
-		self.SetScreenClock(.05)
+		self.SetScreenClock(SliderScreen.screenrate)
 		self.ValueGetter = valuegetter
 		self.ValueSetter = valuesetter
+		self.IdleProc = None
+		self.idletime = 0
+		self.lastset = -1
 		self.RangeLow = rangelow
 		self.RangeHigh = rangehi
 		self.ShowPct = showpct
@@ -433,6 +439,7 @@ class SliderScreen(screen.BaseKeyScreenDesc):
 		self.NavKeysShowing = False
 		self.DefaultNavKeysShowing = False
 		self.HubInterestList = {}
+		self.AddToHubInterestList(key.Hub, key.DisplayObj.address, self)
 		self.DimTO = 20
 		self.PersistTO = 10
 		self.label = screen.FlatenScreenLabel(key.label)
@@ -470,9 +477,16 @@ class SliderScreen(screen.BaseKeyScreenDesc):
 		key.Screen.ChildScreens[key.name + '-Slider'] = self
 		utilities.register_example("SliderScreen", self)
 
+	def NodeEvent(self, evnt):
+		self.curval = self.ValueGetter()
+
+	def RequestIdles(self, proc, interval):
+		self.IdleProc = proc
+		self.idletime = int(interval / SliderScreen.screenrate) + 1
+
 	def InSliderArea(self, pos):
 		return (self.starthorizspace < pos[0] < self.starthorizspace + self.useablehorizspace) and (
-					self.startvertspace < pos[1] < self.startvertspace + self.sliderareavert)
+				self.startvertspace < pos[1] < self.startvertspace + self.sliderareavert)
 
 	def Invoke(self):
 		self.initval = self.ValueGetter()
@@ -494,6 +508,11 @@ class SliderScreen(screen.BaseKeyScreenDesc):
 		if self.ShowPct:
 			t = self.font.render(str(int(self.curval)), False, wc(self.slidecolor))
 			hw.screen.blit(t, (self.starthorizspace * 2, self.startvertspace * 2))
+		if self.lastset == 0:
+			if self.IdleProc is not None: self.IdleProc()
+		self.lastset -= 1
+
+	# print('Lastset {}'.format(self.lastset))
 
 	def Motion(self, pos):
 		# pos is x,y don't care about y just x; convert x to a position on the slider with it at end if off slider
@@ -507,12 +526,13 @@ class SliderScreen(screen.BaseKeyScreenDesc):
 			nowpos = ((pos[int(not self.HorizBar)] - self.slidelinestarta) / self.slidelinelen) * 100
 		self.curval = nowpos
 		# print('Val {} {} {} {} {} {}'.format(pos, nowpos, self.curval, self.slidelinestarta, self.slidelinestartb, self.slidelinelen))
+		self.lastset = self.idletime
 		self.ValueSetter(self.curval)
 
 	def SetFinal(self):
-		self.ValueSetter(self.curval)
+		self.ValueSetter(self.curval, final=True)
 		screen.PopScreen('Set slider val', 'NonHome')
 
 	def Revert(self):
-		self.ValueSetter(self.initval)
+		self.ValueSetter(self.initval, final=True)
 		screen.PopScreen('Cancel slider val', 'NonHome')
