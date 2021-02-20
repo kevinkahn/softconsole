@@ -706,7 +706,7 @@ class HA(object):
 		self.watchstarttime = time.time()
 		self.Entities = {}
 		self.Domains = {}
-		self.Indirectors = {} # these hold nodes that the console config thinks exist but HA doesn't have yet - happens at startup of joint HA/Console node
+		self.Indirectors = {}  # these hold nodes that the console config thinks exist but HA doesn't have yet - happens at startup of joint HA/Console node
 		self.Others = {}
 		self.alertspeclist = {}  # if ever want auto alerts like ISY command vars they get put here
 		self.AlertNodes = {}
@@ -715,12 +715,13 @@ class HA(object):
 			self.api = ha.API(self.url, password)
 		else:
 			self.api = ha.API(self.url)
-		for i in range(9):
+		for i in range(9 if config.sysStore.versionname not in ('none', 'development') else 1):
 			hassok = False
 			apistat = ha.validate_api(self.api)
 			if apistat == ha.APIStatus.OK:
-				if i > 2: # this was probably a power fail restart so need to really wait while HA stabilizes
-					logsupport.Logs.Log('{}: Probable power fail restart so delay to allow HA stabilization'.format(self.name))
+				if i > 2:  # this was probably a power fail restart so need to really wait while HA stabilizes
+					logsupport.Logs.Log(
+						'{}: Probable power fail restart so delay to allow HA stabilization'.format(self.name))
 					time.sleep(120)
 				hassok = True
 				break

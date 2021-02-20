@@ -1,6 +1,5 @@
 from stores import valuestore
 import logsupport
-from logsupport import ConsoleError
 
 
 class MissingHubStore(valuestore.ValueStore):

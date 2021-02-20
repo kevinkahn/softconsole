@@ -14,6 +14,7 @@ from guicore.switcher import SwitchScreen
 from keyspecs import toucharea
 from logsupport import ConsoleWarning
 from keys.keyutils import _resolvekeyname
+import config
 
 
 # noinspection PyUnusedLocal
@@ -144,7 +145,7 @@ class OctoPrintScreenDesc(screen.BaseKeyScreenDesc):
 		self.OctoPost('job', senddata={'command': 'start'})
 
 	def OctoGet(self, item):
-		for i in range(5):
+		for i in range(5 if config.sysStore.versionname not in ('none', 'development') else 1):
 			try:
 				historybuffer.HBNet.Entry('Octoprint get: {} from {}'.format(item, self.url))
 				r = requests.get(self.url + '/api/' + item, headers=self.head)
