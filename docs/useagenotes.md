@@ -400,7 +400,10 @@ If you set a non empty title for a screen that doesn't otherwise have one, the r
       for a prolonged period of time and the underlying device is a dimmer, then a slider screen is displayed that
       allows the brightness to be set. For Insteon/ISY hubs, dimming also applies to scenes via the scene proxy
       mechanism. This allows convient dimming for common 3-way switch setups where multiple dimmers are combined in a
-      scene to control a single load (or set of loads).
+      scene to control a single load (or set of loads). By default the slider bar will display in the longer direction
+      of the screen (e.g., horizontally for the 7 inch screen in landscape mode and vertically for the smaller screen in
+      portrait mode). This can be overriden by explicitly specifying a SlideOrientation parameter where 0 is default
+      direction, 1 is force horizontal, and 2 is force vertical).
     * RUNPROG: linked to a program to run. It issues a RunThen on the designated program for ISY hubs. It issues a
       automation.trigger for the automation for HA hubs.
     * (Deprecated-use RUNPROG with modifiers) ONBLINKRUNTHEN: linked to a program.  Will blink to provide user feedback and will issue RunThen on program
