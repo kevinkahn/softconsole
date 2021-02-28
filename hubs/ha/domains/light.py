@@ -1,3 +1,5 @@
+import time
+
 import debug
 from hubs.ha import haremote as ha
 from hubs.ha.hasshub import HAnode, RegisterDomain
@@ -11,6 +13,8 @@ class Light(HAnode):
 		self.Hub.RegisterEntity('light', self.entity_id, self)
 		if 'brightness' in self.attributes:
 			self.internalstate = self._NormalizeState(self.state, int(self.attributes['brightness']))
+		self.pctatidle = -1
+		self.lastsendtime = 0
 
 	def Update(self, **ns):
 		super().Update(**ns)
@@ -34,18 +38,32 @@ class Light(HAnode):
 
 	def GetBrightness(self):
 		if 'brightness' in self.attributes:
-			return 100 * (self.attributes['brightness'] / 255)
+			return 100 * (self.attributes['brightness'] / 255) if self.pctatidle == -1 else self.pctatidle
 		else:
 			return 0
 
 	def SendOnPct(self, brightpct, final=False):
+		self.pctatidle = brightpct
+		now = time.time()
+		if now - self.lastsendtime > 1 or final:
+			self.lastsendtime = now
+			try:
+				ha.call_service(self.Hub.api, 'light', 'turn_on',
+								{'entity_id': '{}'.format(self.entity_id), 'brightness_pct': brightpct})
+			except ha.HomeAssistantError:
+				logsupport.Logs.Log(
+					"{} didn't respond to on percent change for {}".format(self.Hub.name, self.name),
+					severity=logsupport.ConsoleWarning)
+
+	def IdleSend(self):
 		try:
 			ha.call_service(self.Hub.api, 'light', 'turn_on',
-							{'entity_id': '{}'.format(self.entity_id), 'brightness_pct': brightpct})
+							{'entity_id': '{}'.format(self.entity_id), 'brightness_pct': self.pctatidle})
 		except ha.HomeAssistantError:
 			logsupport.Logs.Log(
 				"{} didn't respond to on percent change for {}".format(self.Hub.name, self.name),
 				severity=logsupport.ConsoleWarning)
+		self.pctatidle = -1
 
 
 RegisterDomain('light', Light)
