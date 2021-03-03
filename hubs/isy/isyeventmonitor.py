@@ -147,7 +147,6 @@ class ISYEventMonitor(object):
 			elif self.lasterror == 'ISYClose':
 				logsupport.Logs.Log(self.hubname + ' Recovering closed WS stream')
 				self.delayedstart = 2
-			# todo - bug in websocket that results in attribute error for errno.WSEACONNECTIONREFUSED check ??
 			elif self.lasterror == 'DirectCommError':
 				logsupport.Logs.Log(self.hubname + ' WS restart because of failed direct communication failure')
 				self.delayedstart = 90  # probably ISY doing query
@@ -444,6 +443,7 @@ class ISYEventMonitor(object):
 				else:
 					logsupport.Logs.Log(self.hubname + " Strange item in event stream: " + str(m),
 										severity=ConsoleWarning)
+					print(message)
 			except Exception as E:
 				logsupport.Logs.Log(self.hubname + " Exception in QH on message: ", repr(msav), ' Excp: ', repr(E),
 									severity=ConsoleWarning)

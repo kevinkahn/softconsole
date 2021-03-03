@@ -48,4 +48,4 @@ class Hub(object):
 		pass  # done
 
 	def StatesDump(self):
-		pass  # done todo log the call
+		logsupport.Logs.Log('{}: Call to dump states for a missing hub'.format(self.name))

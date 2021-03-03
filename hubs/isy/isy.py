@@ -108,7 +108,7 @@ class Node(Folder, OnOffItem):
 		return 'Node: ' + Folder.__repr__(self) + 'primary: ' + self.pnode.name
 
 
-class DimmableNode(Node):  # todo
+class DimmableNode(Node):
 
 	def __init__(self, hub, flag, name, addr, parenttyp, parentaddr, enabled, props):
 		super().__init__(hub, flag, name, addr, parenttyp, parentaddr, enabled, props)
@@ -416,7 +416,7 @@ class ISY(object):
 				pnd = node['pnode']
 				prop = node['property']
 				devtyp = node['type'].split('.')
-				if devtyp[0] == '5':  # todo dimmers are '1'
+				if devtyp[0] == '5':
 					n = Thermostat(self, flg, nm, addr, ptyp, parentaddr, enabld, prop)
 				elif devtyp[0] == '1' and flg == '128':  # dimmer device
 					n = DimmableNode(self, flg, nm, addr, ptyp, parentaddr, enabld, prop)
@@ -670,9 +670,9 @@ class ISY(object):
 																					self.UnknownList, E),
 				severity=ConsoleWarning)
 
-	def GetActualState(self, ent):
-		logsupport.Logs.Log('{}: Call to GetActualState for {}'.format(self.name, ent), severity=ConsoleWarning)
-		return 0  # fix this to return or fix?  todo
+	# def GetActualState(self, ent):
+	#	logsupport.Logs.Log('{}: Call to GetActualState for {}'.format(self.name, ent), severity=ConsoleWarning)
+	#	return 0  # fix this to return or fix?  todo
 
 	def CheckStates(self):
 		# sanity check all states in Hub against local cache
@@ -830,7 +830,7 @@ class ISY(object):
 		except Exception as E:
 			logsupport.Logs.Log('Error linking parents for {} ({})'.format(repr(node), E))
 
-	def RetrieveSceneProxy(self, scene, proxnm):  # todo = this needs to find a proxy with dimming if one exists
+	def RetrieveSceneProxy(self, scene, proxnm):
 		if proxnm != '':
 			if proxnm in self.NodesByAddr:
 				# address given
