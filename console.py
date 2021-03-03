@@ -572,8 +572,7 @@ try:
 # if config.sysStore.versionname == 'development':
 #	utilities.DumpDocumentation()
 except Exception as E:
-	logsupport.Logs.Log('Fatal Error while starting: {}'.format(E), severity=ConsoleError, hb=True, tb=True)
-	timers.ShutTimers('Initialization failure')
+	logsupport.Logs.Log('Fatal Error while starting: {}'.format(E), severity=ConsoleError, hb=True, tb=False)
 	exitutils.EarlyAbort('Configuration Error')
 
 	"""

@@ -75,7 +75,8 @@ def EarlyAbort(scrnmsg, screen=True):
 		displayupdate.updatedisplay()
 	safeprint(time.strftime('%m-%d-%y %H:%M:%S'), scrnmsg)
 	time.sleep(10)
-	timers.ShutTimers('earlyabort')
+	logsupport.Logs.livelog = False
+	timers.ShutTimers(scrnmsg)
 	pygame.quit()
 	# noinspection PyProtectedMember
 	sys.exit(EARLYABORT)

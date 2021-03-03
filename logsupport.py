@@ -345,11 +345,14 @@ class Logger(object):
 				for line in traceback.format_stack()[0:-2]:
 					DevPrint(line.strip())
 				DevPrint('End Traceback')
-				frames = traceback.extract_tb(sys.exc_info()[2])
-				for f in frames:
-					fname, lineno, fn, text = f
-					LoggerQueue.put(
-						(Command.LogString, '-----------------' + fname + ':' + str(lineno) + ' ' + fn + ' ' + text))
+				frames = traceback.extract_stack()  # traceback.extract_tb(sys.exc_info()[2])
+				if len(frames) > 0:
+					LoggerQueue.put((Command.LogString, '-------------Start Traceback-------------'))
+					for f in frames[:-2]:
+						fname, lineno, fn, text = f
+						LoggerQueue.put(
+							(Command.LogString, '->' + fname + ':' + str(lineno) + ' ' + fn + ' ' + text))
+					LoggerQueue.put((Command.LogString, '--------------End Traceback--------------'))
 
 	@staticmethod
 	def CopyEarly():
