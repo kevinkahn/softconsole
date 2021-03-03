@@ -91,7 +91,6 @@ class OnOffKey(ManualKeyDesc):
 			self.State = False
 		else:
 			self.State = not (state == 0)  # K is off (false) only if state is 0
-			if self.name == 'light.kitchen_counter': print(self.name, state, self.State)
 		self.UnknownState = True if state == -1 else False
 		super().InitDisplay()
 

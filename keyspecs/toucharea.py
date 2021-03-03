@@ -196,8 +196,6 @@ class ManualKeyDesc(TouchPoint):
 			else:
 				DisplayState = self.State
 		# ignore Key state and display as "DisplayState"
-		if self.name == 'light.kitchen_counter': print(self.name, self.State, DisplayState, self.BlinkState,
-													   ForceDisplay)
 		if DisplayState:
 			hw.screen.blit(self.KeyOnImage, (x, y))
 		else:

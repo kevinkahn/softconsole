@@ -63,8 +63,11 @@ def CommonClockTickValid():
 	return config.AS._ClockTickValid()
 
 
-CommonScreenClock = timers.RepeatingPost(1, paused=True, start=True, name='CommonScreenClock',
-										 proc=CommonClockTick, eventvalid=CommonClockTickValid)
+StdScreenClock = 1
+
+ScreenClocks = {StdScreenClock: timers.RepeatingPost(StdScreenClock, paused=True, start=True, name='StdScreenClock',
+													 proc=CommonClockTick, eventvalid=CommonClockTickValid)}
+RunningScreenClock = ScreenClocks[StdScreenClock]
 
 
 def InitScreenParams(parseconfig):
@@ -218,9 +221,7 @@ class ScreenDesc(object):
 
 			self.ScreenTitleBlk = tempblk
 
-		self.ScreenClock = None  # timers.RepeatingPost(1, paused=True, name='ScreenClock-' + self.name,
-		# proc=self._ClockTick, eventvalid=self._ClockTickValid)
-		# self.ScreenClock.start()
+		self.ScreenClock = ScreenClocks[StdScreenClock]
 		self.ScreenTimers = []  # (Timer, Cancel Proc or None)  Don't put ScreenCLock in the list or it gets canceled
 
 		utilities.register_example('ScreenDesc', self)
@@ -245,9 +246,14 @@ class ScreenDesc(object):
 
 	def SetScreenClock(self, interval):
 		# for screens with a non standard clocking rate
-		if interval != 1:
-			self.ScreenClock = timers.RepeatingPost(interval, paused=True, start=True, name='ScreenClock-' + self.name,
-													proc=self._ClockTick, eventvalid=self._ClockTickValid)
+
+		if interval in ScreenClocks:
+			self.ScreenClock = ScreenClocks[interval]
+		else:
+			self.ScreenClock = timers.RepeatingPost(interval, paused=True, start=True,
+													name='ScreenClock-' + str(interval),
+													proc=CommonClockTick, eventvalid=CommonClockTickValid)
+			ScreenClocks[interval] = self.ScreenClock
 
 	def CreateNavKeys(self, prevk, nextk):
 		cvertcenter = hw.screenheight - self.BotBorder / 2
@@ -324,11 +330,11 @@ class ScreenDesc(object):
 			logsupport.Logs.Log('Attempted reuse (Init: {}) of single use screen {}'.format(init, self.name),
 								severity=ConsoleError)
 		if init:
-			if self.ScreenClock is not None:
-				CommonScreenClock.pause()
+			if self.ScreenClock != RunningScreenClock:
+				RunningScreenClock.pause()
 				self.ScreenClock.resume()
 			else:
-				CommonScreenClock.resume()
+				RunningScreenClock.resume()
 
 		if init: self.NavKeys = nav
 		self.PaintBase()

@@ -421,7 +421,7 @@ class SliderScreen(screen.BaseKeyScreenDesc):
 		# orientation: 0 use long dimension, 1: force horizontal, 2: force vertical
 
 		super().__init__({}, key.Screen.name + '-' + key.name + '-Value', parentscreen=key)
-		debug.debugPrint('Screen', "Build Verify Screen")
+		debug.debugPrint('Screen', "Build Slider Screen")
 		self.SetScreenClock(SliderScreen.screenrate)
 		self.ValueGetter = valuegetter
 		self.ValueSetter = valuesetter
