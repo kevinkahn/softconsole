@@ -246,7 +246,7 @@ class ResettableTimer(Thread):
 				self.changedone.set()
 			while not self.changingevent.wait(self.interval):  # enter while loop if interval ends
 				TimerHB.Entry('Post resettable: {}'.format(self.eventtopost))
-				PostEvent(self.eventtopost)
+				if self.eventtopost is not None: PostEvent(self.eventtopost)
 			#print('loop exit changing event')
 			# get here if changingevent got set - either new values ready or canceling timer
 			if self.finished.is_set():
