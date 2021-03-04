@@ -12,7 +12,7 @@ from utils.utilfuncs import RepresentsInt, tint, wc
 
 
 class VarKey(ManualKeyDesc):
-	class DistOpt(object):
+	class DispOpt(object):
 		# todo add a state to display opt?
 		def __init__(self, item, deflabel):
 			desc = shlex.split(item)
@@ -53,7 +53,7 @@ class VarKey(ManualKeyDesc):
 		debug.debugPrint('Screen', "              New Var Key ", keyname)
 		# todo suppress Verify
 		ManualKeyDesc.__init__(self, thisscreen, keysection, keyname)
-		screen.AddUndefaultedParams(self, keysection, Var='', Appearance=[], ValueSeq=[], ProgramName='', Parameter='',
+		screen.AddUndefaultedParams(self, keysection, Var='', Appearance=[], ValueSeq=[], ProgramName='', Parameter=[],
 									DefaultAppearance='')
 		if self.ValueSeq != [] and self.ProgramName != '':
 			logsupport.Logs.Log('VarKey {} cannot specify both ValueSeq and ProgramName'.format(self.name),
@@ -70,14 +70,15 @@ class VarKey(ManualKeyDesc):
 			for n in self.ValueSeq: t.append(int(n))
 			self.ValueSeq = t
 		if self.DefaultAppearance == '':
-			self.defoption = self.DistOpt('None {} {}'.format(self.KeyColorOn, self.KeyLabelOn[:]), '')
+			self.defoption = self.DispOpt('None {} {}'.format(self.KeyColorOn, self.KeyLabelOn[:]), '')
 		else:
-			self.defoption = self.DistOpt(self.DefaultAppearance, self.label)
+			self.defoption = self.DispOpt(self.DefaultAppearance, self.label)
 		self.displayoptions = []
 		self.oldval = '*******'  # forces a display compute first time through
 		self.State = False
+		self.waspressed = False
 		for item in self.Appearance:
-			self.displayoptions.append(self.DistOpt(item, self.label))
+			self.displayoptions.append(self.DispOpt(item, self.label))
 
 	def PaintKey(self, ForceDisplay=False, DisplayState=True):
 		# create the images here dynamically then let lower methods do display, blink etc.
@@ -95,20 +96,20 @@ class VarKey(ManualKeyDesc):
 					break
 
 			lab2 = []
-			dval = '--' if val is None else str(
-				val)  # todo could move to the DistOp class and have it return processed label
+			dval = '--' if val is None else str(val)
 			for line in lab:
 				lab2.append(line.replace('$', dval))
 			self.BuildKey(oncolor, offcolor)
 			self.SetKeyImages(lab2, lab2, 0, True)
-			self.ScheduleBlinkKey(
-				self.Blink)  # todo is this correct with clocked stuff?  Comes before PaintKey parent call
+		if self.waspressed:
+			self.ScheduleBlinkKey(self.Blink)
+			self.waspressed = False
 		super().PaintKey(ForceDisplay, val is not None)
 
 	# noinspection PyUnusedLocal
 	def VarKeyPressed(self):
+		self.waspressed = True
 		if self.ValueSeq:
-			print('DoValSeq')  # todo del
 			try:
 				i = self.ValueSeq.index(valuestore.GetVal(self.Var))
 			except ValueError:
