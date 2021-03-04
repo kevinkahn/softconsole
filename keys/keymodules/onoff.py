@@ -25,8 +25,7 @@ class OnOffKey(ManualKeyDesc):
 
 		if self.ControlObjUndefined():
 			debug.debugPrint('Screen', "Screen", keyname, "unbound")
-			logsupport.Logs.Log('Key Binding missing: ' + self.name,
-								severity=ConsoleWarning)  # todo - should this handle the delayed key case of an indirector?
+			logsupport.Logs.Log('Key Binding missing: ' + self.name, severity=ConsoleWarning)
 		if hasattr(self.ControlObj, 'SendOnPct'): self.AllowSlider = True
 
 		if self.Verify:
@@ -45,8 +44,7 @@ class OnOffKey(ManualKeyDesc):
 															self.ControlObj.GetBrightness,
 															self.UpdateBrightness, orientation=self.SlideOrientation)
 			if hasattr(self.ControlObj, 'IdleSend'):
-				self.SliderScreen.RequestIdles(self.ControlObj.IdleSend,
-											   2)  # todo the idle value here in seconds should depend upon the hub responsiveness
+				self.SliderScreen.RequestIdles(self.ControlObj.IdleSend, 2)
 			self.ProcLong = self.SliderScreen.Invoke
 		else:
 			self.ProcLong = self.IgnoreLong
@@ -98,7 +96,7 @@ class OnOffKey(ManualKeyDesc):
 		if self.KeyAction == "OnOff":
 			self.State = not self.State
 		elif self.KeyAction == "On":
-			self.State = True  # todo fix to allow override by object
+			self.State = True
 		elif self.KeyAction == "Off":
 			self.State = False
 
@@ -120,7 +118,7 @@ class OnOffKey(ManualKeyDesc):
 			self.State = False
 
 		if not self.ControlObjUndefined():
-			self.ControlObj.SendOnOffFastCommand(self.State)  # todo this codifies fast press even for nonISY hubs?
+			self.ControlObj.SendOnOffFastCommand(self.State)
 			self.ScheduleBlinkKey(self.Blink)
 		else:
 			logsupport.Logs.Log("Screen: " + self.Screen.name + " press unbound key: " + self.name,
@@ -135,9 +133,7 @@ class OnOffKey(ManualKeyDesc):
 		self.State = True
 		self.SliderScreen.Invoke()
 
-	# invoke slider screen todo
-
-	def UpdateBrightness(self, brtpct, final=False):  # todo if off need to turn on for HA then set brightness value
+	def UpdateBrightness(self, brtpct, final=False):
 		# print('Update brt {}'.format(brtpct))
 		self.ControlObj.SendOnPct(brtpct, final=final)
 
