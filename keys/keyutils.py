@@ -32,14 +32,17 @@ def _SetUpProgram(ProgramName, Parameter, thisscreen, kn):
 			"Missing Prog binding Key: {} on screen {} Hub: {} Program: {}".format(kn, thisscreen.name, hub.name,
 																				   ProgramName),
 			severity=ConsoleWarning)
-	if Parameter == '':
-		Parameter = None
-	elif ':' in Parameter:  # todo allow multiple params - do by allowing sequence of strings in caller a:b, c:d
-		t = Parameter.split(':')
-		Parameter = {t[0]: t[1]}
+	if Parameter == []:
+		pdict = None
 	else:
-		Parameter = {'Parameter': Parameter}
-	return Prog, Parameter
+		pdict = {}
+		if len(Parameter) == 1 and not ':' in Parameter[0]:
+			pdict['Parameter'] = Parameter[0]
+		else:
+			for p in Parameter:
+				t = p.split(':')
+				pdict[t[0]] = t[1]
+	return Prog, pdict
 
 
 class ChooseType(Enum):

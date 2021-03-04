@@ -53,4 +53,3 @@ class BlankKey(ManualKeyDesc):
 		self.label = self.label.append('(NoOp)')
 		utilities.register_example("BlankKey", self)
 
-# Future create a screen to allow changing the value if parameter is maleable

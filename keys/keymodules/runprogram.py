@@ -10,7 +10,7 @@ class RunProgram(ManualKeyDesc):
 	def __init__(self, thisscreen, keysection, keyname):
 		debug.debugPrint('Screen', "             New RunProgram Key ", keyname)
 		ManualKeyDesc.__init__(self, thisscreen, keysection, keyname)
-		screen.AddUndefaultedParams(self, keysection, ProgramName='', Parameter='')
+		screen.AddUndefaultedParams(self, keysection, ProgramName='', Parameter=[])
 		self.State = False
 		self.Program, self.Parameter = _SetUpProgram(self.ProgramName, self.Parameter, thisscreen, keyname)
 		if self.Verify:
