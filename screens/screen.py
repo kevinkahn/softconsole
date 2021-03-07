@@ -326,6 +326,7 @@ class ScreenDesc(object):
 			self.HubInterestList[hub.name] = {item: value}
 
 	def _PrepScreen(self, nav=None, init=True):
+		global RunningScreenClock
 		if self.used:
 			logsupport.Logs.Log('Attempted reuse (Init: {}) of single use screen {}'.format(init, self.name),
 								severity=ConsoleError)
@@ -333,6 +334,7 @@ class ScreenDesc(object):
 			if self.ScreenClock != RunningScreenClock:
 				RunningScreenClock.pause()
 				self.ScreenClock.resume()
+				RunningScreenClock = self.ScreenClock
 			else:
 				RunningScreenClock.resume()
 
@@ -388,12 +390,10 @@ class ScreenDesc(object):
 				for nm, k in self.NavKeys.items():
 					if hasattr(k, 'userstore'): k.userstore.DropStore()
 				self.used = True
-				if self.ScreenClock is not None: self.ScreenClock.cancel()
 
 	def DeleteScreen(self):
 		# explicit screen destroy
 		self.userstore.DropStore()
-		if self.ScreenClock is not None: self.ScreenClock.cancel()
 		for timer in self.ScreenTimers:
 			if timer[0].is_alive():
 				timer[0].cancel()
