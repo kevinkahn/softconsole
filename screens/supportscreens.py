@@ -14,6 +14,11 @@ from keyspecs import toucharea
 from utils.utilfuncs import wc
 from guicore.switcher import SwitchScreen
 
+
+def makeeven(x):
+	return round(x / 2) * 2
+
+
 class VerifyScreen(screen.BaseKeyScreenDesc):
 
 	def __init__(self, key, gomsg, nogomsg, procyes, callingscreen, bcolor, keycoloroff, charcolor, state,
@@ -455,22 +460,31 @@ class SliderScreen(screen.BaseKeyScreenDesc):
 		keyheight = self.useablevertspacesansnav * .3
 		self.sliderareavert = self.useablevertspacesansnav - keyheight
 
-		self.slidelinelen = ((self.useablevertspacesansnav - keyheight) * .8, self.useablehorizspace * .8)[
-			self.HorizBar]
-		self.slidelinewidth = (self.useablehorizspace * .02, self.useablevertspacesansnav * .02)[self.HorizBar]
-
 		self.slideline = self.sliderareavert
 
-		self.slidelinestarta = (self.startvertspace + (self.sliderareavert - self.slidelinelen) / 2,
-								(self.useablehorizspace - self.slidelinelen) / 2)[self.HorizBar]
-		self.slidelinestartb = (self.starthorizspace + self.useablehorizspace / 2, self.sliderareavert)[self.HorizBar]
-
 		if self.HorizBar:
-			self.sliderect = pygame.Rect(self.slidelinestarta, self.slidelinestartb - self.slidelinewidth / 2,
-										 self.slidelinelen, self.slidelinewidth)
+			self.slidelinelen = self.useablehorizspace * .8
+			self.slidelinewidth = makeeven(self.useablevertspacesansnav * .02)
+			self.sliderbartopleft = (self.starthorizspace + (self.useablehorizspace - self.slidelinelen) / 2,
+									 self.startvertspace + self.sliderareavert * .6)
+			self.touchrecttopleft = (
+			self.sliderbartopleft[0] - .05 * self.slidelinelen, self.sliderbartopleft[1] - 4 * self.slidelinewidth)
+			self.touchwidth = self.slidelinelen * 1.1
+			self.touchheight = self.slidelinewidth * 9
+			self.sliderect = pygame.Rect(self.sliderbartopleft, (self.slidelinelen, self.slidelinewidth))
+			self.touchrect = pygame.Rect(self.touchrecttopleft, (self.touchwidth, self.touchheight))
 		else:
-			self.sliderect = pygame.Rect(self.slidelinestartb - self.slidelinewidth / 2, self.slidelinestarta,
-										 self.slidelinewidth, self.slidelinelen)
+			self.slidelinelen = self.sliderareavert * .8
+			self.slidelinewidth = makeeven(self.useablehorizspace * .02)
+			print(self.useablehorizspace, self.slidelinewidth)
+			self.touchwidth = self.slidelinewidth * 7
+			self.touchheight = self.slidelinelen * 1.1
+			self.sliderbartopleft = (self.starthorizspace + self.useablehorizspace / 2 - self.slidelinewidth / 2,
+									 self.startvertspace + self.sliderareavert * .1)
+			self.touchrecttopleft = (
+			self.sliderbartopleft[0] - 3 * self.slidelinewidth, self.sliderbartopleft[1] - .05 * self.slidelinelen)
+			self.sliderect = pygame.Rect(self.sliderbartopleft, (self.slidelinewidth, self.slidelinelen))
+			self.touchrect = pygame.Rect(self.touchrecttopleft, (self.touchwidth, self.touchheight))
 		self.slidebuttonrad = self.useablevertspacesansnav * .05
 		self.slidecolor = charcolor
 		self.LayoutKeys(self.sliderareavert, keyheight)
@@ -485,8 +499,8 @@ class SliderScreen(screen.BaseKeyScreenDesc):
 		self.idletime = int(interval / SliderScreen.screenrate) + 1
 
 	def InSliderArea(self, pos):
-		return (self.starthorizspace < pos[0] < self.starthorizspace + self.useablehorizspace) and (
-				self.startvertspace < pos[1] < self.startvertspace + self.sliderareavert)
+		return (self.touchrect[0] < pos[0] < self.touchrect[0] + self.touchwidth) and (
+					self.touchrect[1] < pos[1] < self.touchrect[1] + self.touchheight)
 
 	def Invoke(self):
 		self.initval = self.ValueGetter()
@@ -500,10 +514,14 @@ class SliderScreen(screen.BaseKeyScreenDesc):
 
 	def ScreenContentRepaint(self):
 		pygame.draw.rect(hw.screen, wc(self.slidecolor), self.sliderect)
+		# pygame.draw.rect(hw.screen, wc(self.slidecolor), self.touchrect,2)
 		# print('Vals {} {} {}'.format(self.curval,self.slidelinelen,self.slidelinestart))
-		relpos = self.curval * self.slidelinelen / 100 + self.slidelinestarta
-		fixpos = self.slidelinestartb
-		center = ((int(fixpos), int(relpos)), (int(relpos), int(fixpos)))[self.HorizBar]
+		if self.HorizBar:
+			center = (int(self.curval * self.slidelinelen / 100 + self.sliderbartopleft[0]),
+					  int(self.sliderbartopleft[1] + self.slidelinewidth / 2))
+		else:
+			center = (int(self.sliderbartopleft[0] + self.slidelinewidth / 2),
+					  int(self.curval * self.slidelinelen / 100 + self.sliderbartopleft[1]))
 		pygame.draw.circle(hw.screen, wc(self.slidecolor), center, int(self.slidebuttonrad), 0)
 		if self.ShowPct:
 			t = self.font.render(str(int(self.curval)), False, wc(self.slidecolor))
@@ -518,12 +536,21 @@ class SliderScreen(screen.BaseKeyScreenDesc):
 		# pos is x,y don't care about y just x; convert x to a position on the slider with it at end if off slider
 		if not self.InSliderArea(pos):
 			return
-		if pos[int(not self.HorizBar)] < self.slidelinestarta:
-			nowpos = 0
-		elif pos[int(not self.HorizBar)] > self.slidelinestarta + self.slidelinelen:
-			nowpos = 100
+		if self.HorizBar:
+			if pos[0] < self.sliderbartopleft[0]:
+				nowpos = 0
+			elif pos[0] > self.sliderbartopleft[0] + self.slidelinelen:
+				nowpos = 100
+			else:
+				nowpos = (pos[0] - self.sliderbartopleft[0]) / self.slidelinelen * 100
 		else:
-			nowpos = ((pos[int(not self.HorizBar)] - self.slidelinestarta) / self.slidelinelen) * 100
+			if pos[1] < self.sliderbartopleft[1]:
+				nowpos = 0
+			elif pos[1] > self.sliderbartopleft[1] + self.slidelinelen:
+				nowpos = 100
+			else:
+				nowpos = (pos[1] - self.sliderbartopleft[1]) / self.slidelinelen * 100
+
 		self.curval = nowpos
 		# print('Val {} {} {} {} {} {}'.format(pos, nowpos, self.curval, self.slidelinestarta, self.slidelinestartb, self.slidelinelen))
 		self.lastset = self.idletime
