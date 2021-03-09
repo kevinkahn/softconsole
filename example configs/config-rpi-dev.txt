@@ -120,6 +120,8 @@ ScreenTitleSize = 30
         label = Dual, Spots
     [[LR Pict Spot]]
         label = Art Spot,
+    [[Bed Sconce Win]]
+        type =ONOFF
 
 
 
