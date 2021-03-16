@@ -17,7 +17,16 @@ class Light(HAnode):
 		self.lastsendtime = 0
 
 	def Update(self, **ns):
+		if self.entity_id == 'light.bar_lights' and 'brightness' in self.attributes:
+			oldbright = self.attributes['brightness']
+		else:
+			oldbright = 0
 		super().Update(**ns)
+		if self.entity_id == 'light.bar_lights' and 'brightness' in self.attributes:
+			print('Update {}->{}'.format(oldbright, self.attributes['brightness']))
+			if self.attributes['brightness'] < 25: print(
+				'{} Update {} {} {}->{}'.format(time.strftime('%m-%d-%y %H:%M:%S', time.localtime()), self.name,
+												self.state, oldbright, self.attributes['brightness']))
 		if 'brightness' in self.attributes:
 			self.internalstate = self._NormalizeState(self.state, int(self.attributes['brightness']))
 
@@ -38,6 +47,8 @@ class Light(HAnode):
 
 	def GetBrightness(self):
 		if 'brightness' in self.attributes:
+			t = 100 * (self.attributes['brightness'] / 255) if self.pctatidle == -1 else self.pctatidle
+			if t < 5: print('GetBright: {} {} {}'.format(self.name, t, self.pctatidle))
 			return 100 * (self.attributes['brightness'] / 255) if self.pctatidle == -1 else self.pctatidle
 		else:
 			return 0
@@ -48,8 +59,13 @@ class Light(HAnode):
 		if now - self.lastsendtime > 1 or final:
 			self.lastsendtime = now
 			try:
-				ha.call_service(self.Hub.api, 'light', 'turn_on',
-								{'entity_id': '{}'.format(self.entity_id), 'brightness_pct': brightpct})
+				if brightpct < 5: print('SendOnPct {} {}'.format(self.name, brightpct))
+				if brightpct == 0:
+					print('Send -> Turn Off')
+					ha.call_service(self.Hub.api, 'light', 'turn_off', {'entity_id': '{}'.format(self.entity_id)})
+				else:
+					ha.call_service(self.Hub.api, 'light', 'turn_on',
+									{'entity_id': '{}'.format(self.entity_id), 'brightness_pct': brightpct})
 			except ha.HomeAssistantError:
 				logsupport.Logs.Log(
 					"{} didn't respond to on percent change for {}".format(self.Hub.name, self.name),
@@ -57,8 +73,13 @@ class Light(HAnode):
 
 	def IdleSend(self):
 		try:
-			ha.call_service(self.Hub.api, 'light', 'turn_on',
-							{'entity_id': '{}'.format(self.entity_id), 'brightness_pct': self.pctatidle})
+			if self.pctatidle < 5: print('IdleSend {} {}'.format(self.name, self.pctatidle))
+			if self.pctatidle == 0:
+				print('Send -> Turn Off ({})'.format(self.name))
+				ha.call_service(self.Hub.api, 'light', 'turn_off', {'entity_id': '{}'.format(self.entity_id)})
+			else:
+				ha.call_service(self.Hub.api, 'light', 'turn_on',
+								{'entity_id': '{}'.format(self.entity_id), 'brightness_pct': self.pctatidle})
 		except ha.HomeAssistantError:
 			logsupport.Logs.Log(
 				"{} didn't respond to on percent change for {}".format(self.Hub.name, self.name),

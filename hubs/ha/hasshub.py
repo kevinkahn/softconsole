@@ -27,7 +27,7 @@ ignoredeventtypes = [
 	'persistent_notifications_updated', 'automation_triggered', 'script_started', 'service_removed', 'hacs/status',
 	'hacs/repository', 'hacs/config', 'entity_registry_updated', 'component_loaded', 'device_registry_updated',
 	'entity_registry_updated', 'lovelace_updated', 'isy994_control', 'core_config_updated', 'homeassistant_start',
-	'config_entry_discovered', 'automation_reloaded', 'hacs/stage', 'hacs/reload']
+	'config_entry_discovered', 'automation_reloaded', 'hacs/stage', 'hacs/reload', 'zwave_js_event']
 
 
 def stringtonumeric(v):
@@ -466,6 +466,7 @@ class HA(object):
 					del d['new_state']
 					del d['old_state']
 					del d['entity_id']
+					if ent == 'light.bar_lights': print('{} -> {}'.format(old, new))
 					chgs, dels, adds = findDiff(old, new)
 
 					if not ent in self.Entities:
