@@ -18,7 +18,7 @@ DimLevel = 10
 DimTO = 10
 PersistTO = 3
 #DimIdleListNames = Portland, PDXTTbig, MyClock, LQTTbig, Pumpkin
-DimIdleListNames = PDXTTbig, Pic, MyClock, LQTTbig, LQTTbigdks, Pumpkin
+DimIdleListNames = PDXTTbig, Pic, MyClock, LQTTbig, Pumpkin
 
 DimIdleListTimes =	5, 20, 5, 5, 5, 5
 
@@ -74,21 +74,31 @@ NavKeyAlpha = 50
 	Type = Periodic
 	Interval = 3 hours
 	Invoke = AutoVersion.CheckUpToDate
-	[[DimAway]]
-	Type = VarChange
-	Var = ISY:Int:HA_AwayNonState
-	Test = EQ
-	Value = 1
+	[[AdjustScreenDim]]
+	Type = Periodic
+	At = 11:00pm
 	Invoke = AssignVar.Assign
-	Parameter = System:DimLevel = 5
+	Parameter = System:DimLevel = 10
+	[[AdjustScreenDimUp]]
+	Type = Periodic
+	At = 7:00am
+	Invoke = AssignVar.Assign
+	Parameter = System:DimLevel = 50
+	#[[DimAway]]
+	#Type = VarChange
+	#Var = ISY:Int:HA_AwayNonState
+	#Test = EQ
+	#Value = 1
+	#Invoke = AssignVar.Assign
+	#Parameter = System:DimLevel = 5
 
-    [[DimHome]]
-	Type = VarChange
-	Var = ISY:Int:HA_AwayNonState
-	Test = EQ
-	Value = 0
-	Invoke = AssignVar.Assign
-	Parameter = System:DimLevel = 100
+    #[[DimHome]]
+	#Type = VarChange
+	#Var = ISY:Int:HA_AwayNonState
+	#Test = EQ
+	#Value = 0
+	#Invoke = AssignVar.Assign
+	#Parameter = System:DimLevel = 100
 
 	[[xwatch]]
 	Type = FileWatch
