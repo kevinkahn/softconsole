@@ -3,6 +3,7 @@
 #Dispatch = True
 #DaemonCtl = True
 #HASSgeneral = True
+#LogLevel = 2
 
 
 cfglib = cfglib
@@ -122,6 +123,7 @@ ScreenTitleSize = 30
         label = Art Spot,
     [[Bed Sconce Win]]
         type =ONOFF
+
 
 
 
