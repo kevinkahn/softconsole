@@ -125,10 +125,15 @@ The minimal test configuration is not currently supported for a HA hub.
 
 Now start the console as root by going to the consolestable directory and running python -u console.py. This should
 bring up a very simple 1 screen instance of the console that can turn on/off the switch you picked. If you leave the
-screen untouched for 15 seconds it should dim and then after another 30 seconds it will switch to display a cover screen
-- here the clock.
+screen untouched for 15 seconds it should dim and then after another 30 seconds it will switch to display a cover
+screen, here the clock.
 
-You can also touch a nav key at the bottom of the screen to move to the next or previous screen in the chain (here there is only one - the clock screen) to get the clock displayed.  As this is a live screen and not a cover screen it will have nav keys.  Now if you don't touch the screen it will dim after 15 seconds, persist as a dim clock for 30 seconds and then change to a dim home screen (here the test screen), persist for 30 seconds as a dim home screen, then switch to a cover screen (here the clock also but with no nav keys).  At any point where the screen is dim touching it will brighten it, and if it is on a cover screen return you to the home screen.
+You can also touch a nav key at the bottom of the screen to move to the next or previous screen in the chain (here there
+is only one - the clock screen) to get the clock displayed. As this is a live screen and not a cover screen it will have
+nav keys. Now if you don't touch the screen it will dim after 15 seconds, persist as a dim clock for 30 seconds and then
+change to a dim home screen (here the test screen), persist for 30 seconds as a dim home screen, then switch to a cover
+screen (here the clock also but with no nav keys). At any point where the screen is dim touching it will brighten it,
+and if it is on a cover screen return you to the home screen.
 
 Playing with this test should give a basic idea of the operation when many screens are available.  The times above are all parameters in the config file.  Multiple cover screens can be defined which will then cycle using the times in the idle list times parameter.  When the screen is "bright" touching it 3 times will switch to a Secondary chain of screens (see other example files as not such secondary chain is defined in the  minimal test).  Touching the screen 5 times will get you to the Maintenance screen from which new versions can be downloaded or the console or the Pi restarted or shutdown.
 # Basic Operation/Arrangement of the Console
@@ -136,9 +141,15 @@ The basic command structure of the console is based on screens.  The program all
 
 You can move between the main and secondary chains via 3 quick taps.  The reason for the 2 chains is that I have found that for any console instance it is likely to be convenient for have a few screens that get frequently accessed.  However, you may want to have many more, e.g., to include ones that control all other parts of your house.  It is annoying if these are in the main chain since you then would have to click through them all the time.  One of the screens on the main chain is designated home and this is the screen that the console will return to on its own if left idle for a timeout period.  The console also defines "cover" or idle screens which appear when the console has been idle for a while.  If more than one is defined the console will sequence through these screens based on timers.  Think of these as "covering" the home screen; they allow easy display of things like time or weather (or eventually perhaps other information).  These are passive screens when displayed with no navigation keys.  Touching them simply reverts the console to the home screen.  As a side note 5 taps will take you to a maintenance screen that allows some administrative operations.
 ## Definitions and Orientation for supported screens and touch
-There are two files that provide some ability to configure the console to operate with the various touchscreens that are available.  They are found in the directory from which the console is executing (generally consolestable).  In the event that you need to modify them you may put a file of the same name in the Console directory and it will override or add to those that come with the release.
 
-The first of these files in screendefinitons and defines the name of supported screens (e.g., 35r) and contain define the frame buffer location, driver, and dimming mechanism for the screen.  The screen type can be found in the file ~pi/.Screentype.  The entry in this file is of the form:
+There are two files that provide some ability to configure the console to operate with the various touchscreens that are
+available. They are found in the directory from which the console is executing (generally consolestable). In the event
+that you need to modify them you may put a file of the same name in the Console directory and it will override or add to
+those that come with the release.
+
+The first of these files in screendefintions and defines the name of supported screens (e.g., 35r) and contain define
+the frame buffer location, driver, and dimming mechanism for the screen. The screen type can be found in the file ~
+pi/.Screentype. The entry in this file is of the form:
 ```
 screentype, soft rotation code, touch modifier
 ```
@@ -169,10 +180,31 @@ file get them correst.
 
 # Setting up and Running Softconsole
 First I admit in advance that the syntax and parsing of the config files is both a bit arcane and somewhat error prone.  This is larglely due to the configuration parser I use and perhaps someday I can improve this.  You've been warned!  Given an understanding for the minimal test above you can then create real configuration files as you wish:
-* Create a main config file, see the files in the "example configs" directory within consolestable for help.  The name of the config file defaults first to **config.txt**.  If no config.txt file is found in the Console directory then the console looks for a file with the name **config-\<nodename\>.txt**.  This is convenient if you are running multiple consoles around your home.  You can create a single directory of all your configs and blindly load it onto each system and the system will select the correct configuration based on its name.  The basic structure of the file is a sequence of sections started with \[section name] where the outermost part of the file is implicitly a section.  Subsections which are currently only used to describe keys are started within a section with \[\[subsection]].  Within any section are parameter assignments of the form name = value.  A complete list of current parameters is found in the params.txt file in this directory.  It lists the global parameters with their type and default value if no assignment is supplied.  It also lists for each module the local parameters of that module as well as any global parameters that can be overridden in that module.  Strings may be written without quotes.
-  * While error checking is limited for the config information, the program will log to the Console.log file any parameters that appear in your configuration that are not actually consumed by the console as meaningful.  This helps locate possible typos in the config file.
-  * One note of importance: labels are lists of strings and should always be notated as "str1","str2".  A label with a single string should automatically be parsed as a list of one string but if you have a case of a normal label appearing a single character vertical stack of characters as a trailing comma to that string to force it to be correctly parsed.
-* The parameter MainChain provides the names in order of the screens accessible normally.  The parameter SecondaryChain provides a list of screens that are accessible indirectly (see below).  Any number of screens can be defined.
+
+* Create a main config file, see the files in the "example configs" directory within consolestable for help. The name of
+  the config file defaults first to **config.txt**. If no config.txt file is found in the Console directory then the
+  console looks for a file with the name **config-\<nodename\>.txt**. This is convenient if you are running multiple
+  consoles around your home. You can create a single directory of all your configs and blindly load it onto each system
+  and the system will select the correct configuration based on its name. The basic structure of the file is a sequence
+  of sections started with \[section name] where the outermost part of the file is implicitly a section. Subsections
+  which are currently only used to describe keys are started within a section with \[\[subsection]]. Within any section
+  are parameter assignments of the form name = value. A complete list of current parameters is found in the params.txt
+  file in this directory. It lists the global parameters with their type and default value if no assignment is supplied.
+  It also lists for each module the local parameters of that module as well as any global parameters that can be
+  overridden in that module. Strings may be written without quotes.
+    * One specific example file to look at is authexample.cfg. I tend to put all the password and keys information in
+      that file to make it easy to not share those things. The example shows what you will likely want for your hub(s)
+      and for your weather provider.
+
+    * While error checking is limited for the config information, the program will log to the Console.log file any
+      parameters that appear in your configuration that are not actually consumed by the console as meaningful. This
+      helps locate possible typos in the config file.
+    * One note of importance: labels are lists of strings and should always be notated as "str1","str2". A label with a
+      single string should automatically be parsed as a list of one string but if you have a case of a normal label
+      appearing a single character vertical stack of characters as a trailing comma to that string to force it to be
+      correctly parsed.
+* The parameter MainChain provides the names in order of the screens accessible normally. The parameter SecondaryChain
+  provides a list of screens that are accessible indirectly (see below). Any number of screens can be defined.
 * Whenever a color needs to be specified you can use any color name from the W3C list
   at http://www.w3.org/TR/SVG11/types.html#ColorKeywords
 * The config file supports an "include = filename" parameter to allow breaking it up conveniently. This can be useful if
@@ -246,6 +278,12 @@ provider and its key in the config file or an included subfile as:
     apikey = <key>
 
 ```
+
+The general model here is that there is a single entry to define the weather provider and supply the key it needs to
+demonstrate you are an authorized user. Then you define locations for which you want the weather pulled and any other
+parameters needed to pull the weather, e.g., how often to refresh it. The type of each location is the name of the
+weather provider. This entry results in a populated store under the name of the location that can be used to build
+screens. Look at weathersources.cfg and any of the example weather screens to see how this goes together.
 
 The **Weatherbit** provider supports an optional additional parameter units which can be set to 'I' or 'M' to indicate
 respectively Imperial or Metric readings. The default is Imperial. Weatherbit supports either a Lat/Log pair or a City,
