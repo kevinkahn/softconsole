@@ -108,6 +108,7 @@ class MQTTBroker(valuestore.ValueStore):
 						logsupport.Logs.Log('Bad set via MQTT: {} Exc: {}'.format(repr(d), E), severity=ConsoleWarning)
 					return
 				elif msgtopic.startswith('consoles/all/weather2'):
+					# return  COMMENT TO TEST FETCHING WITHOUT CACHE FOOLING US
 					provider = topicsplit[3]
 					locname = topicsplit[4]
 					if msg.payload is None or msg.payload.decode('ascii') == '':
