@@ -5,7 +5,7 @@ import logsupport
 
 IgnoreThese = ('sun', 'person', 'notifications', 'persistent_notification', 'zwave', 'zone', 'history_graph', 'updater',
 			   'configurator', 'weather', 'zwave_mqtt', 'counter', 'camera', 'lock', 'alarm_control_panel',
-			   'device_tracker', 'vacuum')
+			   'device_tracker', 'vacuum', 'input_number', 'input_text', 'input_select', 'timer', 'alert')
 IngoredEntities = {}
 
 

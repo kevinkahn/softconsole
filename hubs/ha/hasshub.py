@@ -686,21 +686,31 @@ class HA(object):
 
 		self.addibledomains = {}  # {'media_player': MediaPlayer} todo resolve how to add things
 
-		self.attrstore = valuestore.NewValueStore(haattraccess.HAattributes(hubname, self))
-
 		self.name = hubname
 		# with open('/home/pi/Console/msglog{}'.format(self.name), 'w') as f:
 		#	f.write('----------START Log\n')
-		self.addr = addr
-		self.url = addr
+		if addr.startswith('https'):
+			prefix = 'https://'
+			wsprefix = 'wss://'
+		elif addr.startswith('http'):
+			prefix = 'http://'
+			wsprefix = 'ws://'
+		else:
+			prefix = 'http://'
+			wsprefix = 'ws://'
+
+		trimmedaddr = addr.replace(prefix, '', 1)
+
+		if ':' in trimmedaddr:
+			self.addr = trimmedaddr.split(':')[0]
+			self.port = trimmedaddr.split(':')[1]
+		else:
+			self.addr = trimmedaddr
+			self.port = '8123'
+		self.url = prefix + self.addr + ':' + self.port
+		self.wsurl = '{}{}:{}/api/websocket'.format(wsprefix, self.addr, self.port)
 		self.config = None
 		self.password = password
-		if self.addr.startswith('http://'):
-			self.wsurl = 'ws://' + self.addr[7:] + ':8123/api/websocket'
-		elif self.addr.startswith('https://'):
-			self.wsurl = 'wss://' + self.addr[8:] + ':8123/api/websocket'
-		else:
-			self.wsurl = 'ws://' + self.addr + ':8123/api/websocket'
 		self.HAnum = 0
 		self.ws = None  # websocket client instance
 		self.msgcount = 0
@@ -708,14 +718,13 @@ class HA(object):
 		self.Entities = {}
 		self.Domains = {}
 		self.Indirectors = {}  # these hold nodes that the console config thinks exist but HA doesn't have yet - happens at startup of joint HA/Console node
-		self.Others = {}
 		self.alertspeclist = {}  # if ever want auto alerts like ISY command vars they get put here
 		self.AlertNodes = {}
 		self.lasterror = None
 		if password != '':
-			self.api = ha.API(self.url, password)
+			self.api = ha.API(self.addr, prefix, password, port=int(self.port))
 		else:
-			self.api = ha.API(self.url)
+			self.api = ha.API(self.addr, prefix, port=int(self.port))
 		for i in range(9 if config.sysStore.versionname not in ('none', 'development') else 1):
 			hassok = False
 			apistat = ha.validate_api(self.api)
@@ -745,6 +754,8 @@ class HA(object):
 			logsupport.Logs.Log('HA access failed multiple trys for: ' + self.name, severity=ConsoleError, tb=False)
 			raise HubInitError
 
+		self.attrstore = valuestore.NewValueStore(
+			haattraccess.HAattributes(hubname, self))  # don't create until access is ok
 		entities = ha.get_states(self.api)
 		for e in entities:
 			if e.domain not in self.Domains:
@@ -755,8 +766,8 @@ class HA(object):
 				N = hadomains[e.domain](self, p2)
 				self.Entities[e.entity_id] = N
 			else:
-				N = HAnode(self, **p2)
-				self.Others[e.entity_id] = N
+				AddIgnoredDomain(e.domain)
+				N = hadomains[e.domain](self, p2)
 				logsupport.Logs.Log(self.name + ': Uncatagorized HA domain type: ', e.domain, ' for entity: ',
 									e.entity_id)
 				debug.debugPrint('HASSgeneral', "Unhandled node type: ", e.object_id)

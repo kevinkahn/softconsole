@@ -151,23 +151,16 @@ class APIStatus(enum.Enum):
 class API:
 	"""Object to pass around Home Assistant API location and credentials."""
 
-	def __init__(self, host: str, api_password: Optional[str] = None,
+	def __init__(self, host: str, prefix, api_password: Optional[str] = None,
 				 port: Optional[int] = 8123,
 				 use_ssl: bool = False) -> None:
 		"""Init the API."""
 		self.host = host
 		self.port = port
 		self.api_password = api_password
+		self.base_url = prefix + host + ':' + str(port)
 
-		if host.startswith(("http://", "https://")):
-			self.base_url = host
-		elif use_ssl:
-			self.base_url = "https://{}".format(host)
-		else:
-			self.base_url = "http://{}".format(host)
-
-		if port is not None:
-			self.base_url += ':{}'.format(port)
+		#	self.base_url += ':{}'.format(port)
 
 		self.status = None  # type: Optional[APIStatus]
 		self._headers = {CONTENT_TYPE: CONTENT_TYPE_JSON}
