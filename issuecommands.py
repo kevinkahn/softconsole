@@ -1,3 +1,4 @@
+import json
 import os
 import threading
 import subprocess
@@ -15,6 +16,8 @@ import config
 from collections import OrderedDict
 from typing import Callable, Union
 from enum import Enum
+
+from stores import valuestore
 from utils.exitutils import MAINTEXIT, Exit_Screen_Message, MAINTRESTART, MAINTPISHUT, MAINTPIREBOOT, Exit, \
 	REMOTERESTART, \
 	REMOTEEXIT, REMOTEPISHUT, REMOTEPIREBOOT
@@ -170,6 +173,47 @@ def ClearIndicator(params=None, Key=None):
 	CommandResp(Key, 'ok', params, None)
 
 
+def GetVar(params=None, Key=None):
+	print(params, Key)
+	if len(params) < 4:
+		logsupport.Logs.Log('No request to remote GetVar command {}'.format(params), severity=ConsoleWarning)
+		return
+	try:
+		p = json.loads(params[3])
+		assert (type(p) == dict)
+	except:
+		logsupport.Logs.Log('Non-dict paramater to remote GetVar command: {}'.format(params), severity=ConsoleWarning)
+	resp = {}
+	for v, val in p.items():
+		try:
+			val = valuestore.GetVal(v)
+			logsupport.Logs.Log('Remote get of {} to {}'.format(v, val))
+			resp[v] = val
+		except:
+			logsupport.Logs.Log('Bad store attempt in remote SetVar command: {}={}'.format(v, val),
+								severity=ConsoleWarning)
+	CommandResp(Key, 'ok', params, resp)
+
+
+def SetVar(params=None):
+	print(params)
+	if len(params) < 4:
+		logsupport.Logs.Log('No request to remote SetVar command {}'.format(params), severity=ConsoleWarning)
+		return
+	try:
+		p = json.loads(params[3])
+		assert (type(p) == dict)
+	except:
+		logsupport.Logs.Log('Non-dict paramater to remote SetVar command: {}'.format(params), severity=ConsoleWarning)
+	for v, val in p.items():
+		try:
+			valuestore.SetVal(v, val)
+			logsupport.Logs.Log('Remote set of {} to {}'.format(v, val))
+		except:
+			logsupport.Logs.Log('Bad store attempt in remote SetVar command: {}={}'.format(v, val),
+								severity=ConsoleWarning)
+
+
 def SendErrMatch(params=None, Key=None):
 	TempCheckSanity(Key, params)
 	try:
@@ -202,6 +246,7 @@ MaintExits = (Where.LocalMenuExits, Where.RemoteMenu, Where.MQTTCmds)
 RemoteOnly = (Where.RemoteMenu, Where.MQTTCmds)
 RemoteOnlyAdv = (Where.RemoteMenuAdv, Where.MQTTCmds)
 RemoteOnlyDead = (Where.RemoteMenuDead,)
+MQTTOnly = (Where.MQTTCmds,)
 
 '''
 CommandRecord = NamedTuple('CommandRecord',
@@ -247,7 +292,9 @@ cmdcalls = OrderedDict({
 								  RemoteOnlyAdv, False),
 	'issueinfo': CommandRecord(functools.partial(LogItem, ConsoleInfo), True, "Issue Info", 'False',
 							   RemoteOnlyAdv, False),
-	'deletehistory': CommandRecord(DelHistory, True, 'Clear History', 'True', RemoteOnlyDead, True)})
+	'deletehistory': CommandRecord(DelHistory, True, 'Clear History', 'True', RemoteOnlyDead, True),
+	'setvar': CommandRecord(SetVar, True, "Set Variable Value", 'False', MQTTOnly, False),
+	'getvar': CommandRecord(GetVar, False, "Get Variable Value", 'False', MQTTOnly, True)})
 
 
 def IssueCommand(source, cmd, seq, fromnd, param=None):
