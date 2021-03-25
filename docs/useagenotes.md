@@ -442,14 +442,35 @@ If you set a non empty title for a screen that doesn't otherwise have one, the r
       of the screen (e.g., horizontally for the 7 inch screen in landscape mode and vertically for the smaller screen in
       portrait mode). This can be overriden by explicitly specifying a SlideOrientation parameter where 0 is default
       direction, 1 is force horizontal, and 2 is force vertical).
-    * RUNPROG: linked to a program to run. It issues a RunThen on the designated program for ISY hubs. It issues a
-      automation.trigger for the automation for HA hubs.
-    * (Deprecated-use RUNPROG with modifiers) ONBLINKRUNTHEN: linked to a program.  Will blink to provide user feedback and will issue RunThen on program
-    * ON: will always send an "on" command to the linked device.  This is useful for things like garage doors that use on toggles.
+    * RUNPROG: linked to a program to run. The program to run is specified by a **ProgramName** parameter. It issues a
+      RunThen on the designated program for ISY hubs. It issues a automation.trigger or script.<scriptname> for the
+      automation for HA hubs. A **Parameter** parameter may be supplied to provide parameter(s) to an HA script.  (ISY
+      programs do not accept parameters.)  The Parameter may be a single string in which case the json {'Parameter':
+      string} will be passed to HA. It may also be a comma delimited set of strings of the form A:vala,B:valb in which
+      case the json {'A':vala,'B':valb} will be passed.
+    * (Deprecated-use RUNPROG with modifiers) ONBLINKRUNTHEN: linked to a program. Will blink to provide user feedback
+      and will issue RunThen on program
+    * ON: will always send an "on" command to the linked device. This is useful for things like garage doors that use on
+      toggles.
     * OFF: will always send an "off" command to the linked device.
-    * GOTO: Change to a specific screen.  Takes a parameter ScreenName=<name of screen to go to>.  Going to another screen creates a stack of screens.  On the new screen the Nav keys will be "Home" and "Back".  Back returns to the calling screen. Home returns to the top screen of the stack unless that is the screen Back would go to in which case Home goes to the global console home screen.
+    * GOTO: Change to a specific screen. Takes a parameter ScreenName=<name of screen to go to>. Going to another screen
+      creates a stack of screens. On the new screen the Nav keys will be "Home" and "Back". Back returns to the calling
+      screen. Home returns to the top screen of the stack unless that is the screen Back would go to in which case Home
+      goes to the global console home screen.
     * SETVAR: set the value of an ISY variable
-    * VARKEY: this type can be used passively to construct status displays or also allow stepping through a predefined set of variable values.  Its **Var** parameter specifies a store item to operate on.  It has an **Appearance** parameter that specifies the display appearance of the key for various values of the store item.  This parameter has the form of a list of comma delimited descriptor items.  Each descriptor item is of the form "range color label" (without the quotes).  Range is either a single integer that specifies a store item value or a pair n:m which defines a range within which the store item falls for this descriptor to be used.  Color is the color of the key for this value. Label is the label the key should have for this value using semicolons to separate lines within the label and a $ to be substituted for the store item value if desired.  If the label is left out of the descriptor item the normal key label is used (either the key name or an explicit label parameter). if the store value doesn't match any of the ranges the normal key label is used.  A **ValueSeq** parameter optionally specifies values that should be cyclically assigned to the store item if the key is pressed.  If the current value of the store item is not in the ValueSeq then a press sets the value to the first item in the sequence.  Leaving it out makes the key passive. As an example should help clarify:
+    * VARKEY: this type can be used passively to construct status displays or also allow stepping through a predefined
+      set of variable values. Its **Var** parameter specifies a store item to operate on. It has an **Appearance**
+      parameter that specifies the display appearance of the key for various values of the store item. This parameter
+      has the form of a list of comma delimited descriptor items. Each descriptor item is of the form "range color
+      label" (without the quotes). Range is either a single integer that specifies a store item value or a pair n:m
+      which defines a range within which the store item falls for this descriptor to be used. Color is the color of the
+      key for this value. Label is the label the key should have for this value using semicolons to separate lines
+      within the label and a $ to be substituted for the store item value if desired. If the label is left out of the
+      descriptor item the normal key label is used (either the key name or an explicit label parameter). if the store
+      value doesn't match any of the ranges the normal key label is used. A **ValueSeq** parameter optionally specifies
+      values that should be cyclically assigned to the store item if the key is pressed. If the current value of the
+      store item is not in the ValueSeq then a press sets the value to the first item in the sequence. Leaving it out
+      makes the key passive. As an example should help clarify:
        ```
         [[TestKey]]
             type = VARKEY
@@ -459,7 +480,13 @@ If you set a non empty title for a screen that doesn't otherwise have one, the r
             KeyCharColorOn = royalblue
             Appearance = 0 green 'All good',1:2 yellow 'Probably; good; $',3:99 99 red 'Not so hot $'
         ```
-        This describes a key that will be green and say "All good" if the variable is 0; be yellow and say "Probably good" and show the value on 3 lines if the value is 1 or 2; and be red and say "Not so hot" and the value on a single line for values of 3 to 99.  For any other values the key will display "Error in Value" and the value.  Sequential presses of the key when the value is 0 will set the variable to 1, then 3, then 6, then 0.  If something else has set the variable to, e.g.,4, then pressing it will make the variable 0.
+      This describes a key that will be green and say "All good" if the variable is 0; be yellow and say "Probably good"
+      and show the value on 3 lines if the value is 1 or 2; and be red and say "Not so hot" and the value on a single
+      line for values of 3 to 99. For any other values the key will display "Error in Value" and the value. Sequential
+      presses of the key when the value is 0 will set the variable to 1, then 3, then 6, then 0. If something else has
+      set the variable to, e.g.,4, then pressing it will make the variable 0. A **ProgramName** parameter may be
+      optionally specified that will cause that script/program to be run in the hub (exactly as a RUNPROG key). In this
+      case a **Parameter** parameter may also be supplied.
         
     * Note the key types PROC, REMOTEPROC, and REMOTECPLXPROC are reserved for internal use by the console.
 
