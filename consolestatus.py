@@ -190,7 +190,7 @@ class StatusDisplayScreen(screen.BaseKeyScreenDesc):
 
 				active = '*' if ndinfo['status'] == 'active' else ' '
 
-				if ndinfo['boottime'] == 0:
+				if ndinfo['boottime'] == 0 or 'unknown' in ndinfo['boottime']:
 					bt = "{:^19.19}".format('unknown')
 				else:
 					bt = "{:%Y-%m-%d %H:%M:%S}".format(datetime.fromtimestamp(ndinfo['boottime']))

@@ -51,9 +51,10 @@ except AttributeError:
 
 # end SIGHUP hack
 
-def CheckPayload(payload, topic, tag):
+def CheckPayload(payload, topic, tag, emptyok=False):
 	if payload is '':
-		logsupport.Logs.Log('Empty payload string at {} for topic {}'.format(tag, topic), severity=ConsoleWarning)
+		if not emptyok: logsupport.Logs.Log('Empty payload string at {} for topic {}'.format(tag, topic),
+											severity=ConsoleWarning)
 		return '{}'
 	else:
 		return payload

@@ -121,7 +121,8 @@ class MQTTBroker(valuestore.ValueStore):
 
 				elif topicsplit[2] in ('nodes', 'status', 'resp'):
 					# see if it is node specific message
-					msgdcd = json.loads(CheckPayload(msg.payload.decode('ascii'), topicsplit, 'mqtt-nodespec'))
+					msgdcd = json.loads(CheckPayload(msg.payload.decode('ascii'), topicsplit, 'mqtt-nodespec',
+													 emptyok=topicsplit[2] in ('status', 'nodes')))
 					if topicsplit[2] == 'nodes':
 						consolestatus.UpdateNodeStatus(topicsplit[-1], msgdcd)
 						return
