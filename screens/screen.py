@@ -234,6 +234,7 @@ class ScreenDesc(object):
 		return blk, w
 
 	def _ClockTickValid(self):
+		if not self.Active: print('Clock not valid {}'.format(self.name))
 		return self.Active
 
 	# noinspection PyUnusedLocal
