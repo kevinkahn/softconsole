@@ -6,6 +6,7 @@ import configobj
 
 from utils import displayupdate, hw
 import issuecommands
+from issuecommands import Nodes, DeleteNode
 from keys.keyutils import internalprocs
 import screens.supportscreens as supportscreens
 import json
@@ -36,8 +37,6 @@ EmptyNodeRecord = {'hw': 'unknown*', 'osversion': 'unknown*', 'boottime': 'unkno
 				   'registered': 0, "FirstUnseenErrorTime": 0, 'rpttime': 0, 'error': -2, "uptime": 0,
 				   'status': 'unknown', 'stats': {'System': {}}}
 
-
-Nodes = OrderedDict()
 
 heldstatus = ''
 
@@ -109,7 +108,6 @@ def UpdateNodeStatus(nd, stat):
 		config.sysStore.NetErrorIndicator = t
 	except Exception as E:
 		logsupport.Logs.Log('UpdtStat {}'.format(repr(E)))
-
 
 class ShowVersScreen(screen.BaseKeyScreenDesc):
 	def __init__(self, showhw):
@@ -187,10 +185,9 @@ class StatusDisplayScreen(screen.BaseKeyScreenDesc):
 						stat = '{} cyc'.format(statinfo['maincyclecnt']) if ndinfo['status'] in (
 							'idle', 'active') else ndinfo['status']
 						qmax = '{:4.2f} '.format(statinfo['queuetimemax24'])
-
 				active = '*' if ndinfo['status'] == 'active' else ' '
 
-				if ndinfo['boottime'] == 0 or 'unknown' in ndinfo['boottime']:
+				if ndinfo['boottime'] == 0 or ndinfo['boottime'] == 'unknown*':
 					bt = "{:^19.19}".format('unknown')
 				else:
 					bt = "{:%Y-%m-%d %H:%M:%S}".format(datetime.fromtimestamp(ndinfo['boottime']))
@@ -304,10 +301,13 @@ class CommandScreen(screen.BaseKeyScreenDesc):
 	def IssueDeadCmd(self, cmd, Key=None):
 		# local processing only for a command regarding a dead node
 		if cmd == 'deletehistory':
-			del Nodes[self.FocusNode]
+			DeleteNode(self.FocusNode)  # this is actually redundant and should be deleted todo
 			config.MQTTBroker.Publish('status', node=self.FocusNode, retain=True)
 			config.MQTTBroker.Publish(self.FocusNode, node='all/nodes', retain=True)
 			logsupport.Logs.Log("Purging network history of node {}".format(self.FocusNode))
+			target = self.FocusNode
+			self.FocusNode = '*'
+			self.IssueSimpleCmd('deletehistory', Key=Key, paramsetter=lambda: target)
 		else:
 			logsupport.Logs.Log('Internal error on dead node command: {} for {}'.format(cmd, self.FocusNode))
 

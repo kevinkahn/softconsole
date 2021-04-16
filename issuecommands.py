@@ -26,7 +26,16 @@ fetcher = None  # type: Union[None, threading.Thread]
 
 ReportStatus = None  # type: Union[Callable, None]
 
+Nodes = OrderedDict()
+
+
+def DeleteNode(nd):
+	logsupport.Logs.Log('Deleting history of node {}'.format(nd))
+	del Nodes[nd]
+
+
 lastseenlogmessage = ''
+
 
 # filled in by consolestatus to avoid dependency loop
 
@@ -235,6 +244,8 @@ def IncludeErrToMatch():
 
 
 def DelHistory(params=None, Key=None):
+	logsupport.Logs.Log('Got request to delete history for {}'.format(params))
+	DeleteNode(params[3])
 	CommandResp(Key, 'ok', params, None)
 
 
