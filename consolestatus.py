@@ -301,7 +301,7 @@ class CommandScreen(screen.BaseKeyScreenDesc):
 	def IssueDeadCmd(self, cmd, Key=None):
 		# local processing only for a command regarding a dead node
 		if cmd == 'deletehistory':
-			DeleteNode(self.FocusNode)  # this is actually redundant and should be deleted todo
+			# DeleteNode(self.FocusNode)  # this is actually redundant and should be deleted todo
 			config.MQTTBroker.Publish('status', node=self.FocusNode, retain=True)
 			config.MQTTBroker.Publish(self.FocusNode, node='all/nodes', retain=True)
 			logsupport.Logs.Log("Purging network history of node {}".format(self.FocusNode))

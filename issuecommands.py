@@ -244,7 +244,7 @@ def IncludeErrToMatch():
 
 
 def DelHistory(params=None, Key=None):
-	logsupport.Logs.Log('Got request to delete history for {}'.format(params))
+	logsupport.Logs.Log('Got request from {} to delete history for {}'.format(params[2], params[3]))
 	DeleteNode(params[3])
 	CommandResp(Key, 'ok', params, None)
 
