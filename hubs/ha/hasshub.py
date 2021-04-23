@@ -356,11 +356,20 @@ class HA(object):
 									severity=ConsoleError)
 			time.sleep(1)
 			i = 0
-		try:
-			ha.call_service(self.api, 'logbook', 'log',
-							{'name': 'Softconsole', 'message': hw.hostname + ' connected'})
-		except ha.HomeAssistantError:
-			logsupport.Logs.Log(self.name + " not responding to service call after restart", severity=ConsoleWarning)
+		i = 3
+		while i > 0:
+			try:
+				ha.call_service(self.api, 'logbook', 'log',
+								{'name': 'Softconsole', 'message': hw.hostname + ' connected'})
+				return
+			except ha.HomeAssistantError:
+				i -= 1
+				if i == 0:
+					logsupport.Logs.Log(self.name + " not responding to service call after restart",
+										severity=ConsoleWarning)
+					return
+				else:
+					time.sleep(1)
 
 	def RegisterEntity(self, domain, entity, item):
 		if domain in self.DomainEntityReg:
