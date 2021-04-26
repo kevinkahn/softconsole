@@ -8,6 +8,7 @@ import logsupport
 import os
 import signal
 from controlevents import CEvent, PostEvent, ConsoleEvent
+from utils.utilfuncs import safeprint
 
 TimerList = {}
 TimerHB = historybuffer.HistoryBuffer(100, 'Timers')
@@ -101,7 +102,7 @@ def ShutTimers(loc):
 			cnt += 1
 			logsupport.Logs.Log('Shutting down timer: {} ({})'.format(n, cnt))  # , severity=logsupport.ConsoleDetail
 			t.cancel()
-	print('Logs done')
+	safeprint('Logs done')
 	logsupport.Logs.Log('All {} timers shut down ({})'.format(cnt, loc))
 	timersshut = True
 
@@ -247,13 +248,10 @@ class ResettableTimer(Thread):
 			while not self.changingevent.wait(self.interval):  # enter while loop if interval ends
 				TimerHB.Entry('Post resettable: {}'.format(self.eventtopost))
 				if self.eventtopost is not None: PostEvent(self.eventtopost)
-			#print('loop exit changing event')
 			# get here if changingevent got set - either new values ready or canceling timer
 			if self.finished.is_set():
-				#print('finishing')
 				break  # shutting down requires cancel to set first finished then changing to insure this is set here
 			self.eventtopost = self.newevent
-			#print('Newdelta: {}'.format(self.newdelta))
 			self.interval = self.newdelta
 			self.changingevent.clear()
 			self.changedone.set()

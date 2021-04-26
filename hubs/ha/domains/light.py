@@ -5,6 +5,7 @@ from hubs.ha import haremote as ha
 from hubs.ha.hasshub import HAnode, RegisterDomain
 from controlevents import CEvent, PostEvent, ConsoleEvent
 import logsupport
+from utils.utilfuncs import safeprint
 
 
 class Light(HAnode):
@@ -23,7 +24,7 @@ class Light(HAnode):
 			oldbright = 0
 		super().Update(**ns)
 		if self.entity_id == 'light.bar_lights' and 'brightness' in self.attributes:
-			print('Update {}->{}'.format(oldbright, self.attributes['brightness']))
+			safeprint('Update {}->{}'.format(oldbright, self.attributes['brightness']))
 			if self.attributes['brightness'] < 25: print(
 				'{} Update {} {} {}->{}'.format(time.strftime('%m-%d-%y %H:%M:%S', time.localtime()), self.name,
 												self.state, oldbright, self.attributes['brightness']))

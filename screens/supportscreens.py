@@ -57,7 +57,6 @@ class VerifyScreen(screen.BaseKeyScreenDesc):
 		screen.PushToScreen(self, msg='Do Verify' + self.name)
 
 	def InitDisplay(self, nav):
-		# debugPrint('Main', "Enter to screen: ", self.name)
 		logsupport.Logs.Log('Entering Verify Screen: ' + self.name, severity=ConsoleDetail)
 		super(VerifyScreen, self).InitDisplay({})
 
@@ -476,7 +475,6 @@ class SliderScreen(screen.BaseKeyScreenDesc):
 		else:
 			self.slidelinelen = self.sliderareavert * .8
 			self.slidelinewidth = makeeven(self.useablehorizspace * .02)
-			print(self.useablehorizspace, self.slidelinewidth)
 			self.touchwidth = self.slidelinewidth * 7
 			self.touchheight = self.slidelinelen * 1.1
 			self.sliderbartopleft = (self.starthorizspace + self.useablehorizspace / 2 - self.slidelinewidth / 2,
@@ -508,14 +506,11 @@ class SliderScreen(screen.BaseKeyScreenDesc):
 		screen.PushToScreen(self, msg='Do Slider' + self.name, newstate='NonHome')
 
 	def InitDisplay(self, nav):
-		# debugPrint('Main', "Enter to screen: ", self.name)
 		logsupport.Logs.Log('Entering Slider Screen: ' + self.name, severity=ConsoleDetail)
 		super().InitDisplay({})
 
 	def ScreenContentRepaint(self):
 		pygame.draw.rect(hw.screen, wc(self.slidecolor), self.sliderect)
-		# pygame.draw.rect(hw.screen, wc(self.slidecolor), self.touchrect,2)
-		# print('Vals {} {} {}'.format(self.curval,self.slidelinelen,self.slidelinestart))
 		if self.HorizBar:
 			center = (int(self.curval * self.slidelinelen / 100 + self.sliderbartopleft[0]),
 					  int(self.sliderbartopleft[1] + self.slidelinewidth / 2))
@@ -530,7 +525,6 @@ class SliderScreen(screen.BaseKeyScreenDesc):
 			if self.IdleProc is not None: self.IdleProc()
 		self.lastset -= 1
 
-	# print('Lastset {}'.format(self.lastset))
 
 	def Motion(self, pos):
 		# pos is x,y don't care about y just x; convert x to a position on the slider with it at end if off slider
@@ -552,7 +546,6 @@ class SliderScreen(screen.BaseKeyScreenDesc):
 				nowpos = (pos[1] - self.sliderbartopleft[1]) / self.slidelinelen * 100
 
 		self.curval = nowpos
-		# print('Val {} {} {} {} {} {}'.format(pos, nowpos, self.curval, self.slidelinestarta, self.slidelinestartb, self.slidelinelen))
 		self.lastset = self.idletime
 		self.ValueSetter(self.curval)
 

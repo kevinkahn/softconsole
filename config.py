@@ -2,7 +2,7 @@ import time
 
 from utils import hw
 import os
-
+from utils.utilfuncs import safeprint
 hooks = None
 resendidle = False
 noisytouch = False
@@ -71,7 +71,7 @@ sysvals = {
 def ptf(pstr):
 	if sysStore.versionname in ('homerelease', 'development'):
 		with open('/home/pi/Console/weathtrace', 'a') as f:
-			print('{}:{}'.format(time.strftime('%H:%M:%S', time.localtime(time.time())), pstr), file=f, flush=True)
+			safeprint('{}:{}'.format(time.strftime('%H:%M:%S', time.localtime(time.time())), pstr), file=f, flush=True)
 
 lastfetch = 0
 
@@ -83,8 +83,8 @@ def ptf2(pstr):
 
 	if sysStore.versionname in ('homerelease', 'development'):
 		with open('/home/pi/Console/weathhist', 'a') as f:
-			print('{}{}:{}'.format(flag, time.strftime('%H:%M:%S', time.localtime(time.time())), pstr), file=f,
-				  flush=True)
+			safeprint('{}{}:{}'.format(flag, time.strftime('%H:%M:%S', time.localtime(time.time())), pstr), file=f,
+					  flush=True)
 
 
 # noinspection PyBroadException

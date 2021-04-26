@@ -6,6 +6,7 @@ from typing import Any
 import debug
 import logsupport
 from logsupport import ConsoleError
+from utils.utilfuncs import safeprint
 
 ValueStores = OrderedDict()  # General store for named values storename:itemname accessed as ValueStore[storename].GetVal(itemname)
 
@@ -150,7 +151,7 @@ class StoreItem(object):
 
 	@Value.deleter
 	def Value(self):
-		print("deleter of x called")
+		safeprint("deleter of x called")
 		del self._Value
 
 	def UpdateVal(self, val: Any):

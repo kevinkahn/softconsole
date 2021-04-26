@@ -326,7 +326,6 @@ class Logger(object):
 	def MatchLastErr(self, lev, msg, reptlev):
 		firstunseen = config.sysStore.ErrorNotice
 		for i in range(len(self.log) - 1, firstunseen - 1, -1):
-			# print('Error match ratio: {}'.format(difflib.SequenceMatcher(None, self.log[i][1], msg).ratio()))
 			if self.log[i][0] == lev and difflib.SequenceMatcher(None, self.log[i][1], msg).ratio() > .9:
 				return True
 			elif self.log[i][0] >= reptlev:
