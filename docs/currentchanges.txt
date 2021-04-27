@@ -111,5 +111,5 @@ Significant release to add capability of using long presses and gestures on the 
 V3.10.1
 Minor release to allow correct handling of HA hubs that use customized port instead of 8123.  Also adds rate limiting of control traffic for HA dimming similar to that for ISY dimming.  Adds support for multiple parameters for HA runprog key calls.  Also includes various minor bug fixes and internal performance improvements.
 
-setvar/getvar as cmds vs as special
-add fan domain to HA
+V3.10.2
+Minor release.  Adds fan domain to HA since HA now makes Inovelli fan switches fans instead of lights.  Adds MQTT commands for set/get vars for eventual use.  Fixes various minor bugs.
