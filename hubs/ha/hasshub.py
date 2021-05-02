@@ -3,6 +3,8 @@ import json
 import time
 import os
 import importlib
+
+from utils.utilfuncs import safeprint
 from ..hubs import HubInitError
 
 import websocket
@@ -475,7 +477,7 @@ class HA(object):
 					del d['new_state']
 					del d['old_state']
 					del d['entity_id']
-					if ent == 'light.bar_lights': print('{} -> {}'.format(old, new))
+					if ent == 'light.bar_lights': safeprint('{} -> {}'.format(old, new))
 					chgs, dels, adds = findDiff(old, new)
 
 					if not ent in self.Entities:
