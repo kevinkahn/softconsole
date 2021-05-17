@@ -428,6 +428,7 @@ class HA(object):
 
 		# noinspection PyUnusedLocal
 		def on_message(qws, message):
+			prog = 0
 			loopstart = time.time()
 			self.HB.Entry(repr(message))
 			# logsupport.Logs.Log("-->{}".format(repr(message)))
@@ -469,6 +470,7 @@ class HA(object):
 				d = m['data']
 
 				if m['event_type'] == 'state_changed':
+					prog = 1
 					del m['event_type']
 					ent = d['entity_id']
 					dom, nm = ent.split('.')
@@ -478,7 +480,9 @@ class HA(object):
 					del d['old_state']
 					del d['entity_id']
 					if ent == 'light.bar_lights': safeprint('{} -> {}'.format(old, new))
+					prog = 1.5
 					chgs, dels, adds = findDiff(old, new)
+					prog = 2
 
 					if not ent in self.Entities:
 						# not an entitity type that is currently known
@@ -523,6 +527,7 @@ class HA(object):
 							self.Entities[ent] = N  # only report once
 						return
 					elif new is not None:
+						prog = 3
 						self.Entities[ent].Update(**new)
 
 					self.HB.Entry(
@@ -569,8 +574,13 @@ class HA(object):
 					ignoredeventtypes.append(m['event_type'])  # only log once
 					debug.debugPrint('HASSgeneral', "Unknown event: " + str(m))
 			except Exception as E:
-				logsupport.Logs.Log("Exception handling HA message: ", repr(E), repr(message), severity=ConsoleWarning,
+				logsupport.Logs.Log("Exception handling HA message: ({}) {} {}".format(prog, repr(E), repr(message)),
+									severity=ConsoleWarning,
 									tb=True, hb=True)
+				if prog == 1.5:
+					logsupport.Logs.Log("Diff error {}:::{}".format(old, new))
+				elif prog == 2:
+					logsupport.Logs.Log("Post diff: {}:::{}:::{}".format(adds, dels, chgs))
 			loopend = time.time()
 			self.HB.Entry('Processing time: {} Done: {}'.format(loopend - loopstart, repr(message)))
 			time.sleep(.1)  # force thread to give up processor to allow response to time events

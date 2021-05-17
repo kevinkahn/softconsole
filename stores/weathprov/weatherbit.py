@@ -298,7 +298,16 @@ class WeatherbitWeatherSource(object):
 
 				except Exception as E:
 					Esave = E
-					if E.response.status_code == 429:
+					if not hasattr(E, 'status_code'):
+						logsupport.Logs.Log('Weatherbit connection failure: {}'.format(E), severity=ConsoleWarning)
+						self.thisStore.StatusDetail = None
+						pld = {'fetchingnode': config.sysStore.hostname, 'time': time.time(),
+							   'location': self.thisStoreName,
+							   'success': 'otherfailure'}
+						if config.mqttavailable:
+							config.MQTTBroker.Publish('Weatherbit/fetched', node='all/weather2',
+													  payload=json.dumps(pld))
+					elif E.response.status_code == 429:
 						# noinspection PyBroadException
 						try:
 							resetin = float(
