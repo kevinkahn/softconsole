@@ -298,7 +298,7 @@ class WeatherbitWeatherSource(object):
 
 				except Exception as E:
 					Esave = E
-					if not hasattr(E, 'status_code'):
+					if not hasattr(E, 'response') or not hasattr(E.response, 'status_code'):
 						logsupport.Logs.Log('Weatherbit connection failure: {}'.format(E), severity=ConsoleWarning)
 						self.thisStore.StatusDetail = None
 						pld = {'fetchingnode': config.sysStore.hostname, 'time': time.time(),
