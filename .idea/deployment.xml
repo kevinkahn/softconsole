@@ -1,43 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="PublishConfigData" autoUpload="Always" serverName="pi@rpi-dev7.pgawhome:8623" promptOnLocalOverwrite="false" exclude=".svn;.cvs;.idea;.DS_Store;.git;.hg;*.pyc" autoUploadExternalChanges="true">
+  <component name="PublishConfigData" autoUpload="Always" serverName="rpi-dev7" promptOnLocalOverwrite="false" exclude=".svn;.cvs;.idea;.DS_Store;.git;.hg;*.pyc" autoUploadExternalChanges="true">
     <serverData>
-      <paths name="Dev">
+      <paths name="pgaw1">
         <serverdata>
           <mappings>
             <mapping local="$PROJECT_DIR$" web="/" />
           </mappings>
         </serverdata>
       </paths>
-      <paths name="Dev7">
-        <serverdata>
-          <mappings>
-            <mapping local="$PROJECT_DIR$" web="/" />
-          </mappings>
-        </serverdata>
-      </paths>
-      <paths name="pi@rpi-dev.pgawhome:8623">
-        <serverdata>
-          <mappings>
-            <mapping local="$PROJECT_DIR$" web="/" />
-          </mappings>
-        </serverdata>
-      </paths>
-      <paths name="pi@rpi-dev.pgawhome:8623 (1)">
-        <serverdata>
-          <mappings>
-            <mapping deploy="/home/pi/consolerem" local="$PROJECT_DIR$" />
-          </mappings>
-        </serverdata>
-      </paths>
-      <paths name="pi@rpi-dev7.pgawhome:8623">
-        <serverdata>
-          <mappings>
-            <mapping deploy="/home/pi/consolerem" local="$PROJECT_DIR$" />
-          </mappings>
-        </serverdata>
-      </paths>
-      <paths name="pi@rpi-pgaw1.pgawhome:8623">
+      <paths name="rpi-dev">
         <serverdata>
           <mappings>
             <mapping local="$PROJECT_DIR$" web="/" />
@@ -48,20 +20,6 @@
         <serverdata>
           <mappings>
             <mapping deploy="/consolerem" local="$PROJECT_DIR$" web="/" />
-          </mappings>
-        </serverdata>
-      </paths>
-      <paths name="rpi-kck">
-        <serverdata>
-          <mappings>
-            <mapping local="$PROJECT_DIR$" web="/" />
-          </mappings>
-        </serverdata>
-      </paths>
-      <paths name="rpi-pgaw1">
-        <serverdata>
-          <mappings>
-            <mapping local="$PROJECT_DIR$" web="/" />
           </mappings>
         </serverdata>
       </paths>
