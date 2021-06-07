@@ -17,7 +17,7 @@ import historybuffer
 import logsupport
 from utils import threadmanager, hw
 from controlevents import CEvent, PostEvent, ConsoleEvent, PostIfInterested
-from logsupport import ConsoleWarning, ConsoleError, ConsoleDetail
+from logsupport import ConsoleWarning, ConsoleError, ConsoleDetail, ConsoleInfo
 from stores import valuestore, haattraccess
 from utils.utilities import CheckPayload
 
@@ -25,7 +25,7 @@ AddIgnoredDomain: Union[Callable, None] = None  # type Union[Callable, None]
 # gets filled in by ignore to avoid import loop
 
 ignoredeventtypes = [
-	'system_log_event', 'call_service', 'service_executed', 'logbook_entry', 'timer_out_of_sync', 'result',
+	'system_log_event', 'service_executed', 'logbook_entry', 'timer_out_of_sync', 'result',
 	'persistent_notifications_updated', 'automation_triggered', 'script_started', 'service_removed', 'hacs/status',
 	'hacs/repository', 'hacs/config', 'entity_registry_updated', 'component_loaded', 'device_registry_updated',
 	'entity_registry_updated', 'lovelace_updated', 'isy994_control', 'core_config_updated', 'homeassistant_start',
@@ -435,6 +435,11 @@ class HA(object):
 			# logsupport.Logs.Log("-->{}".format(repr(message)))
 			# with open('/home/pi/Console/msglog{}'.format(self.name),'a') as f:
 			#	f.write('{}\n'.format(repr(message)))
+			adds = []
+			chgs = []
+			dels = []
+			new = []
+			old = []
 			try:
 				self.msgcount += 1
 				# if self.msgcount <4: logsupport.Logs.Log(self.name + " Message "+str(self.msgcount)+':'+ repr(message))
@@ -547,6 +552,15 @@ class HA(object):
 							# noinspection PyArgumentList
 							PostEvent(ConsoleEvent(CEvent.ISYAlert, node=ent, hub=self.name,
 												   value=self.Entities[ent].internalstate, alert=a))
+				elif m['event_type'] == 'call_service':
+					d = m['data']
+					if d['domain'] == 'homeassistant' and d['service'] == 'restart':
+						# only pay attention to restarts
+						logsupport.Logs.Log('{}: Restarting, suppress errors until restarted'.format(self.name))
+						self.restarting = True
+						self.restartingtime = time.time()
+					else:
+						logsupport.Logs.Log('Saw {}'.format(d))
 				elif m['event_type'] == 'system_log_event':
 					logsupport.Logs.Log('Hub: ' + self.name + ' logged at level: ' + d['level'] + ' Msg: ' + d[
 						'message'])
@@ -602,7 +616,7 @@ class HA(object):
 				logsupport.Logs.Log("WS lib workaround hit (2)", severity=ConsoleWarning)  # tempdel
 			if isinstance(error, websocket.WebSocketConnectionClosedException):
 				logsupport.Logs.Log(self.name + " closed WS stream " + str(self.HAnum) + "; attempt to reopen",
-									severity=ConsoleWarning)
+									severity=ConsoleWarning if not self.restarting else ConsoleInfo)
 			elif isinstance(error, ConnectionRefusedError):
 				logsupport.Logs.Log(self.name + " WS socket refused connection", severity=ConsoleWarning)
 			elif isinstance(error, TimeoutError):
@@ -635,7 +649,7 @@ class HA(object):
 			self.HB.Entry('Close')
 			logsupport.Logs.Log(
 				self.name + " WS stream " + str(self.HAnum) + " closed: " + str(code) + ' : ' + str(reason),
-				severity=ConsoleWarning, tb=False, hb=True)
+				severity=ConsoleWarning if not self.restarting else ConsoleInfo, tb=False, hb=True)
 			if self.haconnectstate != "Failed": self.haconnectstate = "Closed"
 
 		# noinspection PyUnusedLocal
@@ -669,13 +683,18 @@ class HA(object):
 			self.ws.run_forever(ping_timeout=999)
 		except self.HAClose:
 			logsupport.Logs.Log(self.name + " Event thread got close")
-		sev = ConsoleWarning if config.sysStore.ErrLogReconnects else logsupport.ConsoleInfo
+		sev = ConsoleWarning if self.ReportThisError() else logsupport.ConsoleInfo
 		logsupport.Logs.Log(self.name + " Event Thread " + str(self.HAnum) + " exiting", severity=sev,
 							tb=False)
 		if self.haconnectstate not in ("Failed", "Closed"): self.haconnectstate = "Exited"
 
+	def ReportThisError(self):
+		return config.sysStore.ErrLogReconnects and not self.restarting
+
 	# noinspection PyUnusedLocal
 	def __init__(self, hubname, addr, user, password, version):
+		self.restarting = False
+		self.restartingtime = 0
 		self.UnknownList = {}
 		self.StatusCheckerThread = None
 		self.DomainEntityReg = {}
@@ -869,5 +888,5 @@ class HA(object):
 		threadmanager.SetUpHelperThread(self.name, self.HAevents, prerestart=self.PreRestartHAEvents,
 										poststart=self.PostStartHAEvents, postrestart=self.PostStartHAEvents,
 										prestart=self.PreRestartHAEvents, checkok=self.HACheckThread,
-										rpterr=config.sysStore.ErrLogReconnects)
+										rpterr=self.ReportThisError)
 		logsupport.Logs.Log("{}: Finished creating structure for hub".format(self.name))

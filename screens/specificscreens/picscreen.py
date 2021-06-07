@@ -68,7 +68,7 @@ class PictureScreenDesc(screen.ScreenDesc):
 																   [self.QueuePics, self.QueueSinglePic][
 																	   self.singlepicmode], prestart=None,
 																   poststart=None, prerestart=None, postrestart=None,
-																   checkok=None, rpterr=True)
+																   checkok=None)
 
 	def QueueSinglePic(self):
 		while True:

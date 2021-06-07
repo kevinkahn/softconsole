@@ -62,8 +62,9 @@ def CheckThreads():
 	try:
 		for T in HelperThreads.values():
 			if not T.Thread.is_alive():  # or T.ServiceNotOK this would be an optional procedure to do semantic checking a la heartbeat
-				sev = ConsoleWarning if T.ReportError else logsupport.ConsoleInfo
-				logsupport.Logs.Log("Thread for: " + T.name + " is dead", severity=sev)
+				rpt = T.ReportError if not callable(T.ReportError) else T.ReportError()
+				logsupport.Logs.Log("Thread for: " + T.name + " is dead",
+									severity=ConsoleWarning if rpt else logsupport.ConsoleInfo)
 				if not DoRestart(T):
 					# Fatal Error
 					FatalError("Unrecoverable helper thread error(is_alive): " + T.name)
