@@ -559,8 +559,8 @@ class HA(object):
 						logsupport.Logs.Log('{}: Restarting, suppress errors until restarted'.format(self.name))
 						self.restarting = True
 						self.restartingtime = time.time()
-					else:
-						logsupport.Logs.Log('Saw {}'.format(d))
+				# else:
+				#	logsupport.Logs.Log('Saw {}'.format(d))
 				elif m['event_type'] == 'system_log_event':
 					logsupport.Logs.Log('Hub: ' + self.name + ' logged at level: ' + d['level'] + ' Msg: ' + d[
 						'message'])
@@ -661,10 +661,15 @@ class HA(object):
 			# with open('/home/pi/Console/msglog{}'.format(self.name),'a') as f:
 			#	f.write('----------OPEN\n')
 			self.HB.Entry('Open')
-			logsupport.Logs.Log(self.name + ": WS stream " + str(self.HAnum) + " opened")
+			if self.restarting:
+				logsupport.Logs.Log('{}: WS Stream {} opened (HA restart took: {}ms)'.format(self.name, self.HAnum,
+																							 time.time() - self.restartingtime))
+			else:
+				logsupport.Logs.Log("{}: WS stream {} opened".format(self.name, self.HAnum))
 			# refresh state after the web socket stream is open
 			self.GetAllCurrentState()
 			self.haconnectstate = "Running"
+			self.restarting = False
 
 		self.haconnectstate = "Starting"
 		websocket.setdefaulttimeout(30)
