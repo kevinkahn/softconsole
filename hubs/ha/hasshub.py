@@ -662,8 +662,8 @@ class HA(object):
 			#	f.write('----------OPEN\n')
 			self.HB.Entry('Open')
 			if self.restarting:
-				logsupport.Logs.Log('{}: WS Stream {} opened (HA restart took: {}ms)'.format(self.name, self.HAnum,
-																							 time.time() - self.restartingtime))
+				logsupport.Logs.Log('{}: WS Stream {} opened (HA restart took: {} secs.)'.format(self.name, self.HAnum,
+																								 time.time() - self.restartingtime))
 			else:
 				logsupport.Logs.Log("{}: WS stream {} opened".format(self.name, self.HAnum))
 			# refresh state after the web socket stream is open
