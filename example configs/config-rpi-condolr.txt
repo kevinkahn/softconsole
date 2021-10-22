@@ -4,3 +4,20 @@ DimLevel = 20
 DimTO = 20
 
 include = /home/pi/Console/local/auth.cfg, picscreen.cfg, weathersources.cfg, pdxalerts.cfg, weathPump.cfg, myclock.cfg,weathPDX.cfg,timetempLQ7.cfg, mqtt.cfg, weathLQ.cfg, timetempPDX7.cfg
+
+DimIdleListNames = Portland, MyClock, LQTTbig, PDXTTbig, Pumpkin, Pictures
+
+DimIdleListTimes =	5, 5, 5, 5, 5, 60
+
+MainChain = Condo, Pumpkin, Portland, La Quinta
+
+[Condo]
+Clocked = 1
+ScreenTitle = {}  ({:.1f}°)
+ScreenTitleColor = white
+ScreenTitleFields = 'System:Time:%I*%M*%S %p', MQTT:BR-Balcony
+type = Keypad
+label = Credenza,
+[[switch.credenza]]
+type = ONOFF
+label = Credenza
