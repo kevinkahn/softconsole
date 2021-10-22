@@ -1,5 +1,5 @@
 cfglib = cfglib
-include = /home/pi/Console/local/auth.cfg, picscreen.cfg, pdxalerts.cfg, pdxtempalerts.cfg, weathLQ.cfg, weathCC.cfg, weathPDX.cfg,timetempPDX.cfg,BR-suzi.cfg, tstat.cfg, suzi-misc1.cfg,suzi-misc2.cfg, mqtt.cfg, weathersources.cfg, timetempLQ.cfg
+include = /home/pi/Console/local/auth.cfg, picscreen.cfg, weathLQ.cfg, weathCC.cfg, weathPDX.cfg,timetempPDX.cfg,BR-suzi.cfg, tstat.cfg, suzi-misc1.cfg,suzi-misc2.cfg, mqtt.cfg, weathersources.cfg, timetempLQ.cfg
 
 HomeScreenName = BR
 DimLevel = 5
@@ -31,24 +31,19 @@ SecondaryChain = Thermostat - Main, Local, Portland, La Quinta, Suzi Misc2
 	At = 6:00am
 	Invoke = AssignVar.Assign
 	Parameter = System:DimLevel = 50
-[[DimAway]]
-	Type = VarChange
-	Var = ISY:Int:HA_AwayNonState
-	Test = EQ
-	Value = 1
-	Invoke = AssignVar.Assign
-	Parameter = System:DimLevel = 5
+#[[DimAway]]
+#	Type = VarChange
+#	Var = ISY:Int:HA_AwayNonState
+#	Test = EQ
+#	Value = 1
+#	Invoke = AssignVar.Assign
+#	Parameter = System:DimLevel = 5
 
-[[DimHome]]
-	Type = VarChange
-	Var = ISY:Int:HA_AwayNonState
-	Test = EQ
-	Value = 0
-	Invoke = AssignVar.Assign
-	Parameter = System:DimLevel = 50
-
-
-
-
-
+#[[DimHome]]
+#	Type = VarChange
+#	Var = ISY:Int:HA_AwayNonState
+#	Test = EQ
+#	Value = 0
+#	Invoke = AssignVar.Assign
+#	Parameter = System:DimLevel = 50
 

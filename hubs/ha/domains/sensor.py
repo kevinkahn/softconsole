@@ -6,6 +6,8 @@ class Sensor(HAnode):  # not stateful since it updates directly to store value
 	def __init__(self, HAitem, d):
 		super(Sensor, self).__init__(HAitem, **d)
 		self.Hub.RegisterEntity('sensor', self.entity_id, self)
+		logsupport.Logs.Log(
+			'Initialize attr store for sensor {} as {}'.format(self.entity_id, stringtonumeric(self.state)))
 		self.Hub.attrstore.SetVal(self.entity_id, stringtonumeric(self.state))
 		self.missinglast = self.state == 'unknown'  # if unknown assume really not there (like pool stuff)
 
@@ -26,7 +28,13 @@ class Sensor(HAnode):  # not stateful since it updates directly to store value
 					self.missinglast = True
 					stval = None
 				else:
-					stval = stringtonumeric(ns['state'])
+					# noinspection PyBroadException
+					try:
+						# convert to numeric if a number
+						stval = stringtonumeric(ns['state'])
+					except Exception:
+						# otherwise leave as string
+						stval = ns['state']
 				self.Hub.attrstore.SetVal(self.entity_id, stval)
 		except Exception as E:
 			logsupport.Logs.Log('Sensor update error: State: {}  Exc:{}'.format(repr(ns), repr(E)))

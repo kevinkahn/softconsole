@@ -165,8 +165,9 @@ class StoreItem(object):
 				# noinspection PyAttributeOutsideInit
 				self.Value = val if self.Type is None else self.Type(val)
 			except:
-				logsupport.Logs.Log("Can't coerce type in UpdateVal required: " + repr(self.Type) + " got " + type(val),
-									severity=ConsoleError)
+				logsupport.Logs.Log(
+					"Can't coerce type in UpdateVal required: " + repr(self.Type) + " got " + repr(type(val)),
+					severity=ConsoleError)
 		self.SetTime = time.time()
 
 	def UpdateArrayVal(self, index, val):

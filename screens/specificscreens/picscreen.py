@@ -86,68 +86,73 @@ class PictureScreenDesc(screen.ScreenDesc):
 		pictureset = []
 		select = 0
 		emptypicdir = False
-		while True:
-			dirtime = os.path.getmtime(self.picturedir)
-			if (dirtime != self.modtime) or emptypicdir:  # second option is to handle net disconnect
-				self.modtime = dirtime
-				reportedpics = []
-				self._reset_cache()
-				pictureset = os.listdir(self.picturedir)
-				emptypicdir = False  # assume it ok now
-				picsettrimmed = pictureset.copy()
-				for n in pictureset:
-					if not n.endswith(('.jpg', '.JPG')):
-						picsettrimmed.remove(n)
-				pictureset = picsettrimmed
-				pictureset.sort()
-				logsupport.Logs.Log('Screen {} reset using {} pictures'.format(self.name, len(pictureset)))
-				select = 0
-			try:
-				picture = pictureset[select]
-			except IndexError:
-				if len(pictureset) == 0:
-					picture = '*Empty*'
-					emptypicdir = True
-					if issueerror:
-						logsupport.Logs.Log("Empty picture directory for screen {}".format(self.name),
-											severity=ConsoleWarning)
-						issueerror = False
-					select = -1
-				else:
-					issueerror = True
-					picture = pictureset[0]
+		try:
+			while True:
+				dirtime = os.path.getmtime(self.picturedir)
+				if (dirtime != self.modtime) or emptypicdir:  # second option is to handle net disconnect
+					self.modtime = dirtime
+					reportedpics = []
+					self._reset_cache()
+					pictureset = os.listdir(self.picturedir)
+					emptypicdir = False  # assume it ok now
+					picsettrimmed = pictureset.copy()
+					for n in pictureset:
+						if not n.endswith(('.jpg', '.JPG')):
+							picsettrimmed.remove(n)
+					pictureset = picsettrimmed
+					pictureset.sort()
+					logsupport.Logs.Log('Screen {} reset using {} pictures'.format(self.name, len(pictureset)))
 					select = 0
-
-			if select == -1:
-				picture = '*None*'
-				picdescr = self.blankpic
-			else:
-				pictime = os.path.getmtime(self.picturedir + '/' + picture)
-				savpic = picture.rpartition('.')[0] + ".bmp"
-				if picture in self.piccache and pictime == self.piccache[picture][0]:
-					select += 1
-					try:
-						picdescr = (
-						pygame.image.load(self.cachedir + savpic), self.piccache[picture][1], self.piccache[picture][2])
-					except Exception as E:
-						logsupport.Logs.Log(
-							'{} screen cache consistency error for {} ({})'.format(self.name, picture, E),
-							severity=ConsoleWarning)
-						picdescr = self.blankpic
-						self._reset_cache()
-				else:
-					try:
-						select += 1
-						picdescr = self._preppic(self.picturedir + '/' + picture)
-					except Exception as E:
-						if picture not in reportedpics:
-							logsupport.Logs.Log('Error processing picture {} ({})'.format(picture, E),
+				try:
+					picture = pictureset[select]
+				except IndexError:
+					if len(pictureset) == 0:
+						picture = '*Empty*'
+						emptypicdir = True
+						if issueerror:
+							logsupport.Logs.Log("Empty picture directory for screen {}".format(self.name),
 												severity=ConsoleWarning)
-							reportedpics.append(picture)
-						picdescr = self.blankpic
-					self.piccache[picture] = (pictime, picdescr[1], picdescr[2])
-					pygame.image.save(picdescr[0], self.cachedir + savpic)
-			self.picqueue.put((picture, picdescr), block=True)
+							issueerror = False
+						select = -1
+					else:
+						issueerror = True
+						picture = pictureset[0]
+						select = 0
+
+				if select == -1:
+					picture = '*None*'
+					picdescr = self.blankpic
+				else:
+					pictime = os.path.getmtime(self.picturedir + '/' + picture)
+					savpic = picture.rpartition('.')[0] + ".bmp"
+					if picture in self.piccache and pictime == self.piccache[picture][0]:
+						select += 1
+						try:
+							picdescr = (
+								pygame.image.load(self.cachedir + savpic), self.piccache[picture][1],
+								self.piccache[picture][2])
+						except Exception as E:
+							logsupport.Logs.Log(
+								'{} screen cache consistency error for {} ({})'.format(self.name, picture, E),
+								severity=ConsoleWarning)
+							picdescr = self.blankpic
+							self._reset_cache()
+					else:
+						try:
+							select += 1
+							picdescr = self._preppic(self.picturedir + '/' + picture)
+						except Exception as E:
+							if picture not in reportedpics:
+								logsupport.Logs.Log('Error processing picture {} ({})'.format(picture, E),
+													severity=ConsoleWarning)
+								reportedpics.append(picture)
+							picdescr = self.blankpic
+						self.piccache[picture] = (pictime, picdescr[1], picdescr[2])
+						pygame.image.save(picdescr[0], self.cachedir + savpic)
+				self.picqueue.put((picture, picdescr), block=True)
+		except Exception as E:
+			logsupport.Logs.Log('{} picture handling thread exceptoin: {}'.format(self.name, E),
+								severity=ConsoleWarning)
 
 	def InitDisplay(self, nav):
 		if not nav is None:
