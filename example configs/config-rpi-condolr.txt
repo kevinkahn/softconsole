@@ -3,7 +3,8 @@ cfglib = "/home/pi/Console/cfglib"
 DimLevel = 20
 DimTO = 20
 
-include = /home/pi/Console/local/auth.cfg, picscreen.cfg, weathersources.cfg, pdxalerts.cfg, weathPump.cfg, myclock.cfg,weathPDX.cfg,timetempLQ7.cfg, mqtt.cfg, weathLQ.cfg, timetempPDX7.cfg
+include = /home/pi/Console/local/auth.cfg, picscreen.cfg, weathersources.cfg, weathPump.cfg, myclock.cfg,weathPDX.cfg,timetempLQ7.cfg, mqtt.cfg, weathLQ.cfg, timetempPDX7.cfg
+#, pdxalerts.cfg
 
 DimIdleListNames = Portland, MyClock, LQTTbig, PDXTTbig, Pumpkin, Pictures
 
@@ -15,9 +16,15 @@ MainChain = Condo, Pumpkin, Portland, La Quinta
 Clocked = 1
 ScreenTitle = {}  ({:.1f}°)
 ScreenTitleColor = white
-ScreenTitleFields = 'System:Time:%I*%M*%S %p', MQTT:BR-Balcony
+ScreenTitleFields = 'System:Time:%I*%M*%S %p', HASS:sensor.br_balcony_am2301_temperature
 type = Keypad
 label = Credenza,
+[[switch.bedsideeast]]
+type = ONOFF
+label = Bedside, East
+[[switch.bedsidewest]]
+type = ONOFF
+label = Bedside, West
 [[switch.credenza]]
 type = ONOFF
 label = Credenza
