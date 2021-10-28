@@ -10,6 +10,8 @@ DimIdleListNames = Portland, MyClock, LQTTbig, PDXTTbig, Pumpkin, Pictures
 
 DimIdleListTimes =	5, 5, 5, 5, 5, 60
 
+HomeScreenName = Condo
+
 MainChain = Condo, Pumpkin, Portland, La Quinta
 
 [Condo]
@@ -28,3 +30,6 @@ label = Bedside, West
 [[switch.credenza]]
 type = ONOFF
 label = Credenza
+[[switch.lr_corner_uplight]]
+type = ONOFF
+label = Corner, Uplight

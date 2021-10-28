@@ -7,7 +7,8 @@ class Sensor(HAnode):  # not stateful since it updates directly to store value
 		super(Sensor, self).__init__(HAitem, **d)
 		self.Hub.RegisterEntity('sensor', self.entity_id, self)
 		logsupport.Logs.Log(
-			'Initialize attr store for sensor {} as {}'.format(self.entity_id, stringtonumeric(self.state)))
+			'Initialize attr store for sensor {} as {}'.format(self.entity_id, stringtonumeric(self.state)),
+			severity=logsupport.ConsoleDetail)
 		self.Hub.attrstore.SetVal(self.entity_id, stringtonumeric(self.state))
 		self.missinglast = self.state == 'unknown'  # if unknown assume really not there (like pool stuff)
 
