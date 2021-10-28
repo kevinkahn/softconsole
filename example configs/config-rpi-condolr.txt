@@ -3,8 +3,7 @@ cfglib = "/home/pi/Console/cfglib"
 DimLevel = 20
 DimTO = 20
 
-include = /home/pi/Console/local/auth.cfg, picscreen.cfg, weathersources.cfg, weathPump.cfg, myclock.cfg,weathPDX.cfg,timetempLQ7.cfg, mqtt.cfg, weathLQ.cfg, timetempPDX7.cfg
-#, pdxalerts.cfg
+include = /home/pi/Console/local/auth.cfg, picscreen.cfg, weathersources.cfg, weathPump.cfg, myclock.cfg,weathPDX.cfg,timetempLQ7.cfg, mqtt.cfg, weathLQ.cfg, timetempPDX7.cfg, pdxalerts.cfg
 
 DimIdleListNames = Portland, MyClock, LQTTbig, PDXTTbig, Pumpkin, Pictures
 
