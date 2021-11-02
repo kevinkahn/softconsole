@@ -29,9 +29,6 @@ label = Bedside, West
 [[switch.lr_corner_uplight]]
 type = ONOFF
 label = Corner, Uplight
-[[switch.lr_window_uplight]]
-type = ONOFF
-label = Window, Uplight
 [[switch.credenza]]
 type = ONOFF
 label = Credenza
