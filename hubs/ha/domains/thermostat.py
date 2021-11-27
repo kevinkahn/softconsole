@@ -5,31 +5,91 @@ from utils import timers
 import functools
 import logsupport
 
+featureset = ('TargTemp', 'TargRange', 'TargHum', 'FanModes', 'Presets')
+
+
+def GetFeatures(n):
+	actfeats = []
+	for i in range(len(featureset)):
+		if n % 2 == 1:
+			actfeats.append(featureset[i])
+		n = n // 2
+	return actfeats
+
 
 class Thermostat(HAnode):  # not stateful since has much state info
 	# todo update since state now in pushed stream
+	def GetRange(self):
+		pass
+
+	def GetTarget(self):
+		pass
+
+	def GetPresets(self):
+		pass
+
+	def GetFanModes(self):
+		pass
+
+	def DisplayStuff(self, prefix):
+		d = dict(vars(self))
+		del d['attributes']
+		print(prefix, d)
+
 	def __init__(self, HAitem, d):
-		self.IsThermostat = True
+
 		super().__init__(HAitem, **d)
 		self.Hub.RegisterEntity('climate', self.entity_id, self)
 		self.timerseq = 0
 		# noinspection PyBroadException
+		self.features = GetFeatures(self.attributes['supported_features'])
+		if 'TargRange' in self.features:
+			def GetRange():
+				self.target_low = self.attributes['target_temp_low']
+				self.target_high = self.attributes['target_temp_high']
+
+			self.GetRange = GetRange
+
+		if 'TargTemp' in self.features:
+			def GetTarget():
+				self.temperature = self.attributes['temperature']
+
+			self.GetTarget = GetTarget
+
+		if 'Presets' in self.features:
+			def GetPresets():
+				self.preset_modes = self.attributes['preset_modes']
+				self.preset_mode = self.attributes['preset_mode']
+
+			self.GetPresets = GetPresets
+
+		if 'FanModes' in self.features:
+			def GetFanModes():
+				self.fan = self.attributes['fan_mode']
+				self.fanstates = self.attributes['fan_modes']
+
+			self.GetFanModes = GetFanModes
+
 		try:
-			self.temperature = self.attributes['temperature']
 			self.curtemp = self.attributes['current_temperature']
-			self.target_low = self.attributes['target_temp_low']
-			self.target_high = self.attributes['target_temp_high']
-			self.hvac_action = self.attributes['hvac_action']
+			if 'hvac_action' in self.attributes:
+				self.hvac_action = self.attributes['hvac_action']
+			else:
+				self.hvac_action = None
+
 			self.mode = self.internalstate  # in new climate domain hvac operation mode is the state
-			self.fan = self.attributes['fan_mode']
-			self.fanstates = self.attributes['fan_modes']
+			self.GetFanModes()
+			self.GetTarget()
+			self.GetRange()
+			self.GetPresets()
 			self.modelist = self.attributes['hvac_modes']
 			self.internalstate = self._NormalizeState(self.state)
+			self.DisplayStuff('init')
 		except:
 			# if attributes are missing then don't do updates later - probably a pool
 			logsupport.Logs.Log(
-				'{}: Climate device {} missing attributes - probably a pool/spa'.format(self.Hub.name, self.name))
-			self.IsThermostat = False
+				'{}: Climate device {} missing attributes ({}) - probably a pool/spa'.format(self.Hub.name, self.name,
+																							 self.attributes))
 
 	def _NormalizeState(self, state, brightness=None):  # state is just the operation mode
 		return state
@@ -49,15 +109,15 @@ class Thermostat(HAnode):  # not stateful since has much state info
 	def Update(self, **ns):
 		self.__dict__.update(ns)
 		self.internalstate = self._NormalizeState(self.state)
-		if not self.IsThermostat: return
 		if 'attributes' in ns: self.attributes = ns['attributes']
-		self.temperature = self.attributes['temperature']
+		self.GetTarget()
 		self.curtemp = self.attributes['current_temperature']
-		self.target_low = self.attributes['target_temp_low']
-		self.target_high = self.attributes['target_temp_high']
+		self.GetRange()
 		self.hvac_action = self._SafeUpdate('hvac_action', self.hvac_action)
 		self.mode = self.internalstate  # self.attributes['hvac_action']
-		self.fan = self.attributes['fan_mode']
+		self.GetFanModes()
+		self.GetPresets()
+		self.DisplayStuff('update')
 		PostIfInterested(self.Hub, self.entity_id, self.internalstate)
 
 	# noinspection DuplicatedCode
@@ -69,13 +129,32 @@ class Thermostat(HAnode):  # not stateful since has much state info
 		_ = timers.OnceTimer(5, start=True, name='fakepushsetpoint-{}'.format(self.timerseq),
 							 proc=self.ErrorFakeChange)
 
-	def GetThermInfo(self):
-		if self.target_low is not None:
-			#return self.curtemp, self.target_low, self.target_high, self.HVAC_state, self.mode, self.fan
+	def PushSingleTarget(self, target):
+		ha.call_service_async(self.Hub.api, 'climate', 'set_temperature',
+							  {'entity_id': '{}'.format(self.entity_id), 'temperature': str(target)})
+		self.timerseq += 1
+		_ = timers.OnceTimer(5, start=True, name='fakepushsetpoint-{}'.format(self.timerseq),
+							 proc=self.ErrorFakeChange)
+
+	def GetThermInfo(self):  # only here to support old screen that didn't get range returned
+		if 'TargRange' in self.features:
+			self.DisplayStuff('getR')
+			# return self.curtemp, self.target_low, self.target_high, self.HVAC_state, self.mode, self.fan
 			return self.curtemp, self.target_low, self.target_high, self.hvac_action, self.internalstate, self.fan
 		else:
-			#return self.curtemp, self.temperature, self.temperature, self.HVAC_state, self.mode, self.fan
+			self.DisplayStuff('getNR')
+			# return self.curtemp, self.temperature, self.temperature, self.HVAC_state, self.mode, self.fan
 			return self.curtemp, self.temperature, self.temperature, self.hvac_action, self.internalstate, self.fan
+
+	def GetFullThermInfo(self):
+		if 'TargRange' in self.features:
+			self.DisplayStuff('FgetR')
+			# return self.curtemp, self.target_low, self.target_high, self.HVAC_state, self.mode, self.fan
+			return self.curtemp, self.target_low, self.target_high, self.hvac_action, self.internalstate, self.fan, True
+		else:
+			self.DisplayStuff('FgetNR')
+			# return self.curtemp, self.temperature, self.temperature, self.HVAC_state, self.mode, self.fan
+			return self.curtemp, self.temperature, 0, self.hvac_action, self.internalstate, self.fan, False  # todo fix 0 to None
 
 	# noinspection PyUnusedLocal,PyUnusedLocal,PyUnusedLocal
 	def _HVACstatechange(self, storeitem, old, new, param, chgsource):
