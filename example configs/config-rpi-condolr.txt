@@ -1,4 +1,4 @@
-LogLevel = 3
+#LogLevel = 3
 cfglib = "/home/pi/Console/cfglib"
 DimLevel = 20
 DimTO = 20

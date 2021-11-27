@@ -4,6 +4,8 @@ LogLevel = 3
 #Main = True
 #Dispatch = True
 #DaemonCtl = True
+#ISYDump = True
+#ISYLoad = True
 
 
 # switch to authall with HASSpga avail
@@ -15,11 +17,12 @@ HomeScreenName = 'Prusa'
 DimLevel = 10
 DimTO = 10
 PersistTO = 3
+#DimIdleListNames = Portland, PDXTTbig, MyClock, LQTTbig, Pumpkin
 DimIdleListNames = PDXTTbig, Pic, MyClock, LQTTbig, Pumpkin
 
 DimIdleListTimes =	5, 20, 5, 5, 5, 5
 
-MainChain = Prusa, pgawBath, PGALR, wxHouse, Pic, Pumpkin, Local, climate.air_conditionerbr_hvac,climate.air_conditionerlr_hvac
+MainChain = Prusa, pgawBath, PGALR, wxHouse, Pic, TreeTest, LR1,Sonos,LR2, Pumpkin, Local, Test,climate.air_conditionerbr_hvac,climate.air_conditionerlr_hvac
 SecondaryChain = Portland, LQTTbig, climate.master_bedroom, climate.living_room, pgawBR, pgawOther
 
 DefaultHub = HASS
@@ -55,8 +58,10 @@ CharColor = white
 
 [Variables]
     InternetUp = 1
-    TestVar = 1
 
+#[Sonos]
+#    type = Sonos
+#    DefaultHub = HASS
 
 [Pic]
 type = Picture
@@ -109,30 +114,71 @@ NavKeyAlpha = 50
 	Parameter = SingleItem
 	Invoke = DynAlertScreeny
 
+	#[[testHA]]  # test node value for HA
+	#Type = NodeChange
+    #Node = HASS:light.toilet
+    #Test = GT
+    #Value = 190
+    #Invoke = GarageDoor
+
+    [[testHA2]] #test node attributes
+    Type = VarChange
+    Var = HASS:light.toilet:brightness
+    Test = GT
+    Value = 133
+    Invoke = GarageDoor
+
+
+
 #	[[Sanity]]
 #	Type = Periodic
 #	Interval = 30 seconds
 #	Parameter = HASSpga
 #	Invoke = CheckIntegrity.CheckStatusCaches
+#	[[AltVarTest]]
+#	Type = StateVarChange
+#	Var = tEST
+#	Test = NE
+#	Value = 0
+#	Delay = 5 seconds
+#	Invoke = TestAlert
+#	[[NodeTest]]
+#	Type = NodeChange
+#	Node = Office Ceiling
+#	Test = NE
+#	Value = 0
+#	Delay = 5 seconds
+#	Invoke = NodeTest
+#		[[NodeTest2]]
+#	Type = NodeChange
+#	Node = Office Ceiling
+#	Test = NE
+#	Value = 0
+#	Delay = 2 seconds
+#	Invoke = NodeTest2
+#[[Garage Door]]
+#Type = NodeChange
+#Node = Garage Door Opener-Sensor
+#Test = EQ
+#Value = 0
+#Delay = 20 seconds
+#Invoke = GarageDoor
 
 	[[Internet]]
 	Type = Periodic
 	Interval = 30 seconds
 	Invoke = NetworkHealth.Do_Ping
 	Parameter = '8.8.8.8',LocalVars:InternetUp
-
 	[[InternetAlert]]
 	Type = VarChange
 	Var = LocalVars:InternetUp
 	Test = NE
 	Value = 1
 	Invoke = InternetAlertScreen
-
 #	[[Testproc]]
 #	Type = Periodic
 #	Interval = 13 seconds
 #	Invoke = testalerts.AlertProc2
-
 #	[[Testscreen]]
 #	Type = Periodic
 #	Interval = 13 seconds
@@ -193,7 +239,52 @@ CenterMessage = False
 		Var = LocalVars:InternetUp
 		label = Acknowledge, Outage
 
+#[NodeTest]
+#	type = Alert
+#	BackgroundColor = black
+#	MessageBack = green
+#	CharColor = navyblue
+#	Message = Test, Node, Ceiling, On
+#	CharSize = 30,
+#	DeferTime = 10
+#	BlinkTime = 1
+#	KeyColor = maroon
+#	[[Action]]
+#		type = ONOFF
+#		NodeName = Office Ceiling
+#		label = Clear, Test Condition
 
+#[NodeTest2]
+#	type = Alert
+#	BackgroundColor = pink
+#	MessageBack = aqua
+#	CharColor = navyblue
+#	Message = Test, Node, Ceiling, On2
+##	DeferTime = 10
+#	BlinkTime = 4
+#	KeyColor = maroon
+#	[[Action]]
+#		type = ONOFF
+#		NodeName = Office Ceiling
+#		label = Clear, Test Condition
+		
+
+#[TestAlert]
+#	type = Alert
+#	BackgroundColor = royalblue
+#	MessageBack = red
+#	CharColor = black
+#	Message = "Test", "Variable", "tEST","Set"
+#	CharSize = 30, 30, 40, 30
+#	DeferTime = 10 seconds
+#	BlinkTime = 2
+#	KeyColor = maroon
+#	[[Action]]
+#		type = SETVAR
+#		VarType = State
+#		Var = tEST
+#		KeyColor = Maroon
+#		label = Clear tEST,
 
 #[HouseStat]
 #    type = Status
@@ -207,6 +298,11 @@ CenterMessage = False
     ScreenTitleFields = MQTT:PatioTemp, MQTT:PatioHum, System:Time:%H*%M*%S
     type = Keypad
     label = Living, Room 1
+#    [[Office Ceiling]]
+#    type = ONOFF
+#	label = Office, Ceiling
+#	Verify = 1
+#	Blink = 5
 
     [[HASSpga:scene.pool_lights_on]]
         label = Light, Pool
@@ -215,13 +311,32 @@ CenterMessage = False
     [[HASSpga:scene.pool_lights_off]]
         label = Pool,Light,Off
         type = ON
+ #   [[Up Lights]]
+ #       Blink = 5
     [[TestSeq]]
     type = VARKEY
     label = Error on Value, $
-    Var = LocalVars:TestVar
+    Var = ISY:Int:Temp2
     ValueSeq = 1,2,3
     Appearance = 1 red 'FAN SPEED; LOW',2 red 'FAN SPEED; MED', 3 red 'FAN SPEED; HIGH'
 
+# [LR2]
+#    type = Keypad
+#    label = Living, Room 2
+#    [[Window Sconce]]
+#    [[Bed Sconce Win]]
+#    type =ONOFF
+#    [[Upper Hall]]
+#    [[TestProg]]
+#        type=RUNPROG
+#        ProgramName = TestProc
+#        Parameter = a:b
+#        KeyColor = green
+#        Verify = 1
+#        GoMsg = Yes, Do, It!
+#        NoGoMsg = Oops, Never Mind!
+#        Blink = 11
+#        label = Test, Program, Verify
 
 #[TreeTest]
 #type = Keypad
@@ -241,6 +356,19 @@ CenterMessage = False
 #[[TreeTest2]]
 #type = GOTO
 #ScreenName = TreeTest2
+
+#[TreeTest2]
+#type = Keypad
+#label = More Stuff,
+# [[Office Ceiling]]
+#    type = ONOFF
+#	label = Office, Ceiling3
+#[[LR1]]
+#type = GOTO
+#ScreenName = LR1
+
+#    [[LR Plug Dr]]
+#        label = Reading, Light, Door
 
 # [Test]
 #	type = Keypad
