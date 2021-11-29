@@ -1,10 +1,12 @@
 cfglib = cfglib
-include = /home/pi/Console/local/auth.cfg, pdxalerts.cfg,tstat.cfg,weathPump.cfg,weathCC.cfg,weathPDX.cfg,myclock.cfg,BR-kck.cfg,upperlev.cfg, bathroom.cfg,LR.cfg,othermain.cfg,downstairs.cfg,timetempLQ.cfg,timetempPDX.cfg, mqtt.cfg, pdxtempalerts.cfg, octoprint.cfg, weathersources.cfg
-HomeScreenName = BR
+include = /home/pi/Console/local/authall.cfg, pdxalerts.cfg,condostats.cfg,weathPump.cfg,weathCC.cfg,weathPDX.cfg,myclock.cfg,timetempLQ.cfg,timetempPDX.cfg, mqtt.cfg, pdxtempalerts.cfg, octoprint.cfg, weathersources.cfg
+HomeScreenName = KCKBR
 DimLevel = 50
 DimTO = 25
 DimIdleListNames = MyClock, LQTT, TimeTemp
 DimIdleListTimes = 8,8,8
+DefaultHub = HASS
+
 
 MainChain = BR, Pumpkin, Local, Thermostat - Main, MyClock, Prusa
 SecondaryChain = Sonos, Bathroom, Upper Level, LR, OtherMain, Downstairs, Portland
@@ -36,17 +38,17 @@ SecondaryChain = Sonos, Bathroom, Upper Level, LR, OtherMain, Downstairs, Portla
 	Parameter = System:DimLevel = 50
 	[[DimAway]]
 	Type = VarChange
-	Var = ISY:Int:HA_AwayNonState
+	Var = HASS:input_boolean.home
 	Test = EQ
-	Value = 1
+	Value = off
 	Invoke = AssignVar.Assign
 	Parameter = System:DimLevel = 5
 
     [[DimHome]]
 	Type = VarChange
-	Var = ISY:Int:HA_AwayNonState
+	Var = HASS:input_boolean.home
 	Test = EQ
-	Value = 0
+	Value = on
 	Invoke = AssignVar.Assign
 	Parameter = System:DimLevel = 50
 
@@ -69,10 +71,6 @@ SecondaryChain = Sonos, Bathroom, Upper Level, LR, OtherMain, Downstairs, Portla
 		type = SETVAR
 		Var = LocalVars:InternetUp
 		label = Acknowledge, Outage
-
-[Sonos]
-    type = Sonos
-    DefaultHub = HASS
 
 
 
