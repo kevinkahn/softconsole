@@ -19,7 +19,7 @@ DimIdleListNames = PDXTTbig, Pic, MyClock, LQTTbig, Pumpkin
 
 DimIdleListTimes =	5, 20, 5, 5, 5, 5
 
-MainChain = Prusa, pgawBath, PGALR, wxHouse, Pic, Pumpkin, Local, climate.air_conditionerbr_hvac,climate.air_conditionerlr_hvac
+MainChain = Prusa, pgawBath, PGALR, wxHouse, Pic, Pumpkin, Local, climate.air_conditionerbr_hvac,climate.air_conditionerlr_hvac, LR1
 SecondaryChain = Portland, LQTTbig, climate.master_bedroom, climate.living_room, pgawBR, pgawOther
 
 DefaultHub = HASS
@@ -204,7 +204,7 @@ CenterMessage = False
     Clocked = 2
     ScreenTitle = Living Room {:.1f}° {:.0f}% at {}
     ScreenTitleColor = red
-    ScreenTitleFields = MQTT:PatioTemp, MQTT:PatioHum, System:Time:%H*%M*%S
+    ScreenTitleFields = HASS:input_boolean.home, MQTT:PatioHum, System:Time:%H*%M*%S
     type = Keypad
     label = Living, Room 1
 
