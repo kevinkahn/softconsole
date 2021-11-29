@@ -7,7 +7,6 @@ DimIdleListNames = MyClock, LQTT, TimeTemp
 DimIdleListTimes = 8,8,8
 DefaultHub = HASS
 
-
 MainChain = BR, Pumpkin, Local, Thermostat - Main, MyClock, Prusa
 SecondaryChain = Sonos, Bathroom, Upper Level, LR, OtherMain, Downstairs, Portland
 [Variables]
