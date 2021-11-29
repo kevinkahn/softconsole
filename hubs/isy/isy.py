@@ -137,7 +137,6 @@ class Thermostat(Node):
 
 	def __init__(self, hub, flag, name, addr, parenttyp, parentaddr, enabled, props):
 		super(Thermostat, self).__init__(hub, flag, name, addr, parenttyp, parentaddr, enabled, props)
-		self.IsThermostat = True  # shoud never get touched - here for symetry with HA
 		self.Tmodes = ('Off', 'Heat', 'Cool', 'Auto', 'Fan', 'Prog Auto', 'Prog Heat', 'Prog Cool')
 		self.Tfan = ('On', 'Auto')  # actually indexed 7, 8
 		self.cur = 0

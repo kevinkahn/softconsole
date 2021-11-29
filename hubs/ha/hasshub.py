@@ -825,16 +825,15 @@ class HA(object):
 			# If any other domain ever needs the same mechanism this should just be generalized to a "finish-up" call for
 			# every entity
 			try:
-				if T.IsThermostat:
-					try:
-						tname = n.split('.')[1]
-						tsensor = self.DomainEntityReg['sensor']['sensor.' + tname + '_thermostat_hvac_state']
-						# noinspection PyProtectedMember
-						T._connectsensors(tsensor)
-					except Exception as E:
-						logsupport.Logs.Log(
-							'Exception from {} connecting sensor {} ({}) probably ISY Tstat'.format(self.name, n, E),
-							severity=ConsoleDetail)
+				try:
+					tname = n.split('.')[1]
+					tsensor = self.DomainEntityReg['sensor']['sensor.' + tname + '_thermostat_hvac_state']
+					# noinspection PyProtectedMember
+					T._connectsensors(tsensor)
+				except Exception as E:
+					logsupport.Logs.Log(
+						'Exception from {} connecting sensor {} ({}) probably ISY Tstat'.format(self.name, n, E),
+						severity=ConsoleDetail)
 			except Exception as E:
 				logsupport.Logs.Log('Exception looking at climate devices: {} ({})'.format(n, E),
 									severity=ConsoleWarning)
