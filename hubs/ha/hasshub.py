@@ -67,6 +67,11 @@ class HAnode(object):
 		self.Hub = HAitem
 		self.domname = 'unset'
 
+	def DisplayStuff(self, prefix):
+		d = dict(vars(self))
+		del d['attributes']
+		print(prefix, d)
+
 	def LogNewEntity(self, newstate):
 		logsupport.Logs.Log(
 			"New entity since startup seen from {}: {} (Domain: {}) New: {}".format(

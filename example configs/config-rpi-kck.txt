@@ -1,5 +1,5 @@
 cfglib = cfglib
-include = /home/pi/Console/local/authall.cfg, pdxalerts.cfg,condostats.cfg,weathPump.cfg,weathCC.cfg,weathPDX.cfg,myclock.cfg,timetempLQ.cfg,timetempPDX.cfg, mqtt.cfg, pdxtempalerts.cfg, octoprint.cfg, weathersources.cfg
+include = /home/pi/Console/local/authall.cfg, pdxalerts.cfg,condotstats.cfg,weathPump.cfg,weathCC.cfg,weathPDX.cfg,myclock.cfg,timetempLQ.cfg,timetempPDX.cfg, mqtt.cfg, pdxtempalerts.cfg, weathersources.cfg, #octoprint.cfg
 HomeScreenName = KCKBR
 DimLevel = 50
 DimTO = 25

@@ -227,7 +227,8 @@ class ScreenDesc(object):
 		utilities.register_example('ScreenDesc', self)
 
 	def _GenerateTitleBlk(self, title, fields, color):
-		vals = ['--' if v is None else v for v in [valuestore.GetVal(f) for f in fields]]
+		vals = ['--' if v is None else v for v in
+				[valuestore.GetVal(f) for f in fields]]  # todo - should handle state as def/entity is referenced
 		formattedTitle = fmt.format(title, *vals)
 		blk = fonts.fonts.Font(self.ScreenTitleSize, bold=True).render(formattedTitle, 0, wc(color))
 		w = blk.get_width()

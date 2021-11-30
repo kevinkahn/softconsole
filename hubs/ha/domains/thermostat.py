@@ -31,11 +31,6 @@ class Thermostat(HAnode):  # not stateful since has much state info
 	def GetFanModes(self):
 		pass
 
-	def DisplayStuff(self, prefix):
-		d = dict(vars(self))
-		del d['attributes']
-		print(prefix, d)
-
 	def __init__(self, HAitem, d):
 
 		super().__init__(HAitem, **d)
@@ -84,7 +79,7 @@ class Thermostat(HAnode):  # not stateful since has much state info
 			self.GetPresets()
 			self.modelist = self.attributes['hvac_modes']
 			self.internalstate = self._NormalizeState(self.state)
-			self.DisplayStuff('init')
+		# self.DisplayStuff('init')
 		except:
 			# if attributes are missing then don't do updates later - probably a pool
 			logsupport.Logs.Log(
@@ -98,14 +93,6 @@ class Thermostat(HAnode):  # not stateful since has much state info
 	def ErrorFakeChange(self, param=None):
 		PostEvent(ConsoleEvent(CEvent.HubNodeChange, hub=self.Hub.name, node=self.entity_id, value=self.internalstate))
 
-	def _SafeUpdate(self, attrname, deflt):
-		if attrname in self.attributes:
-			return self.attributes[attrname]
-		else:
-			logsupport.Logs.Log(
-				'{} Missing {} attribute in update for {} using {}'.format(self.Hub.name, attrname, self.name, deflt))
-			return deflt
-
 	def Update(self, **ns):
 		self.__dict__.update(ns)
 		self.internalstate = self._NormalizeState(self.state)
@@ -113,11 +100,12 @@ class Thermostat(HAnode):  # not stateful since has much state info
 		self.GetTarget()
 		self.curtemp = self.attributes['current_temperature']
 		self.GetRange()
-		self.hvac_action = self._SafeUpdate('hvac_action', self.hvac_action)
+		if 'hvac_action' in self.attributes:  # some tstats don't say what they are currently doing
+			self.hvac_action = self.attributes['hvac_action']
 		self.mode = self.internalstate  # self.attributes['hvac_action']
 		self.GetFanModes()
 		self.GetPresets()
-		self.DisplayStuff('update')
+		# self.DisplayStuff('update')
 		PostIfInterested(self.Hub, self.entity_id, self.internalstate)
 
 	# noinspection DuplicatedCode
