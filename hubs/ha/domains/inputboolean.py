@@ -9,10 +9,6 @@ class Input_Boolean(HAnode):  # not stateful since it updates directly to store 
 		super(Input_Boolean, self).__init__(HAitem, **d)
 		self.Hub.RegisterEntity('input_boolean', self.entity_id, self)
 		# self.DisplayStuff('init')
-		logsupport.Logs.Log(
-			'Initialize attr store for input_boolean {} as {}'.format(self.entity_id, stringtonumeric(self.state)))  # ,
-
-	# severity=logsupport.ConsoleDetail)
 
 	def SetValue(self, val):
 		# validate val as 'on/off', 0/1, true/false, or toggle
