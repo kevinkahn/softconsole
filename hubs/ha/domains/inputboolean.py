@@ -8,8 +8,7 @@ class Input_Boolean(HAnode):  # not stateful since it updates directly to store 
 	def __init__(self, HAitem, d):
 		super(Input_Boolean, self).__init__(HAitem, **d)
 		self.Hub.RegisterEntity('input_boolean', self.entity_id, self)
-		self.inputtype = 'boolean'
-		self.DisplayStuff('init')
+		# self.DisplayStuff('init')
 		logsupport.Logs.Log(
 			'Initialize attr store for input_boolean {} as {}'.format(self.entity_id, stringtonumeric(self.state)))  # ,
 
@@ -17,7 +16,7 @@ class Input_Boolean(HAnode):  # not stateful since it updates directly to store 
 
 	def SetValue(self, val):
 		# validate val as 'on/off', 0/1, true/false, or toggle
-		if val == 'toggle':
+		if val.lower == 'toggle':
 			ha.call_service(self.Hub.api, 'input_boolean', 'toggle', {'entity_id': '{}'.format(self.entity_id)})
 		elif val.lower in ('on', '1', 'true'):
 			ha.call_service(self.Hub.api, 'input_boolean', 'turn_on', {'entity_id': '{}'.format(self.entity_id)})
