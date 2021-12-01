@@ -67,9 +67,9 @@ class HAnode(object):
 		self.Hub = HAitem
 		self.domname = 'unset'
 
-	def DisplayStuff(self, prefix):
+	def DisplayStuff(self, prefix, withattr=False):
 		d = dict(vars(self))
-		del d['attributes']
+		if not withattr: del d['attributes']
 		print(prefix, d)
 
 	def LogNewEntity(self, newstate):

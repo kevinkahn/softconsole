@@ -12,11 +12,11 @@ class Input_Boolean(HAnode):  # not stateful since it updates directly to store 
 
 	def SetValue(self, val):
 		# validate val as 'on/off', 0/1, true/false, or toggle
-		if val.lower == 'toggle':
+		if val.lower() == 'toggle':
 			ha.call_service(self.Hub.api, 'input_boolean', 'toggle', {'entity_id': '{}'.format(self.entity_id)})
-		elif val.lower in ('on', '1', 'true'):
+		elif val.lower() in ('on', '1', 'true'):
 			ha.call_service(self.Hub.api, 'input_boolean', 'turn_on', {'entity_id': '{}'.format(self.entity_id)})
-		elif val.lower in ('off', '0', 'false'):
+		elif val.lower() in ('off', '0', 'false'):
 			ha.call_service(self.Hub.api, 'input_boolean', 'turn_off', {'entity_id': '{}'.format(self.entity_id)})
 		else:
 			logsupport.Logs.Log('{}: Illegal value ({}) for input_boolean {}'.format(self.Hub.name, val, self.name),
@@ -29,12 +29,8 @@ class Input_Boolean(HAnode):  # not stateful since it updates directly to store 
 		try:
 			if 'state' in ns:
 				if ns['state'] in ('', 'unknown', 'None', 'unavailable'):
-					if not self.missinglast:  # don't keep reporting same outage
-						logsupport.Logs.Log('Sensor data missing for {} value: {}'.format(ns['entity_id'], ns['state']))
-					else:
-						logsupport.Logs.Log('Sensor data missing for {} value: {}'.format(ns['entity_id'], ns['state']),
-											severity=logsupport.ConsoleDetail)
-					self.missinglast = True
+					logsupport.Logs.Log(
+						'Input boolean data missing for {} value: {}'.format(ns['entity_id'], ns['state']))
 					stval = None
 				else:
 					stval = ns['state']

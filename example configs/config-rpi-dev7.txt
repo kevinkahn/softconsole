@@ -202,15 +202,27 @@ CenterMessage = False
 
 [LR1]
     Clocked = 2
-    ScreenTitle = Living Room {}° {:.0f}% at {}
+    ScreenTitle = Living Room {} {} at {}
     ScreenTitleColor = red
-    ScreenTitleFields = HASS:input_boolean.home, MQTT:PatioHum, System:Time:%H*%M*%S
+    ScreenTitleFields = HASS:input_boolean.home, HASS:input_number.inputnum, System:Time:%H*%M*%S
     type = Keypad
     label = Living, Room 1
     [[TestInput]]
     type = SETINPUT
     Var = HASS:input_boolean.home
     Value = 'toggle'
+    [[TestNumInc]]
+    type = SETINPUT
+    Var = HASS:input_number.inputnum
+    Value = 'inc'
+    [[TestNumDec]]
+    type = SETINPUT
+    Var = HASS:input_number.inputnum
+    Value = 'dec'
+    [[TestNum5]]
+    type = SETINPUT
+    Var = HASS:input_number.inputnum
+    Value = 5
 
     [[HASSpga:scene.pool_lights_on]]
         label = Light, Pool
