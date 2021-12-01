@@ -202,12 +202,12 @@ CenterMessage = False
 
 [LR1]
     Clocked = 2
-    ScreenTitle = Living Room {} {} at {}
+    ScreenTitle = Bool {} Num {} Select {}
     ScreenTitleColor = red
-    ScreenTitleFields = HASS:input_boolean.home, HASS:input_number.inputnum, System:Time:%H*%M*%S
+    ScreenTitleFields = HASS:input_boolean.home, HASS:input_number.inputnum, HASS:input_select.inputselect
     type = Keypad
     label = Living, Room 1
-    [[TestInput]]
+    [[TestBool]]
     type = SETINPUT
     Var = HASS:input_boolean.home
     Value = 'toggle'
@@ -223,6 +223,34 @@ CenterMessage = False
     type = SETINPUT
     Var = HASS:input_number.inputnum
     Value = 5
+    [[TestSelNC]]
+    type = SETINPUT
+    Var = HASS:input_select.inputselect
+    Value = 'nextcycle'
+    [[TestSelPC]]
+    type = SETINPUT
+    Var = HASS:input_select.inputselect
+    Value = 'prevcycle'
+    [[TestSelN]]
+    type = SETINPUT
+    Var = HASS:input_select.inputselect
+    Value = 'next'
+    [[TestSelP]]
+    type = SETINPUT
+    Var = HASS:input_select.inputselect
+    Value = 'prev'
+    [[TestSelT2]]
+    type = SETINPUT
+    Var = HASS:input_select.inputselect
+    Value = 'T2'
+    [[TestSelFirst]]
+    type = SETINPUT
+    Var = HASS:input_select.inputselect
+    Value = 'first'
+    [[TestSelLast]]
+    type = SETINPUT
+    Var = HASS:input_select.inputselect
+    Value = 'last'
 
     [[HASSpga:scene.pool_lights_on]]
         label = Light, Pool

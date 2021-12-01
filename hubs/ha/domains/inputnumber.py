@@ -22,7 +22,7 @@ class Input_Number(HAnode):  # not stateful since it updates directly to store v
 			ha.call_service(self.Hub.api, 'input_number', 'increment', {'entity_id': '{}'.format(self.entity_id)})
 		elif val.lower() == 'dec':
 			ha.call_service(self.Hub.api, 'input_number', 'decrement', {'entity_id': '{}'.format(self.entity_id)})
-		else:  # todo need exception catcher
+		else:
 			try:
 				val = float(val)
 			except ValueError:
