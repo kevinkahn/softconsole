@@ -12,7 +12,7 @@ class BinarySensor(HAnode):
 								severity=ConsoleWarning)
 		self.Hub.attrstore.SetVal(self.entity_id, self.state == 'on')
 
-	def _SetSensorAlert(self, p):
+	def SetSensorAlert(self, p):
 		self.Hub.attrstore.AddAlert(self.entity_id, p)
 
 	def Update(self, **ns):

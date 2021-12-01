@@ -17,6 +17,7 @@ def GetFeatures(n):
 	return actfeats
 
 
+# noinspection PyTypeChecker
 class Thermostat(HAnode):  # not stateful since has much state info
 	# todo update since state now in pushed stream
 	def GetRange(self):
@@ -32,7 +33,11 @@ class Thermostat(HAnode):  # not stateful since has much state info
 		pass
 
 	def __init__(self, HAitem, d):
-
+		self.target_high = 100
+		self.target_low = 0
+		self.temperature = 0
+		self.fanstates = []
+		self.fan = None
 		super().__init__(HAitem, **d)
 		self.Hub.RegisterEntity('climate', self.entity_id, self)
 		self.timerseq = 0
@@ -80,11 +85,11 @@ class Thermostat(HAnode):  # not stateful since has much state info
 			self.modelist = self.attributes['hvac_modes']
 			self.internalstate = self._NormalizeState(self.state)
 		# self.DisplayStuff('init')
-		except:
+		except Exception as E:
 			# if attributes are missing then don't do updates later - probably a pool
 			logsupport.Logs.Log(
-				'{}: Climate device {} missing attributes ({}) - probably a pool/spa'.format(self.Hub.name, self.name,
-																							 self.attributes))
+				'{}: Climate device {} missing attributes ({}) - Exc:({})'.format(self.Hub.name, self.name,
+																				  self.attributes, E))
 
 	def _NormalizeState(self, state, brightness=None):  # state is just the operation mode
 		return state
@@ -136,11 +141,11 @@ class Thermostat(HAnode):  # not stateful since has much state info
 
 	def GetFullThermInfo(self):
 		if 'TargRange' in self.features:
-			self.DisplayStuff('FgetR')
+			# self.DisplayStuff('FgetR')
 			# return self.curtemp, self.target_low, self.target_high, self.HVAC_state, self.mode, self.fan
 			return self.curtemp, self.target_low, self.target_high, self.hvac_action, self.internalstate, self.fan, True
 		else:
-			self.DisplayStuff('FgetNR')
+			# self.DisplayStuff('FgetNR')
 			# return self.curtemp, self.temperature, self.temperature, self.HVAC_state, self.mode, self.fan
 			return self.curtemp, self.temperature, 0, self.hvac_action, self.internalstate, self.fan, False  # todo fix 0 to None
 
@@ -151,7 +156,7 @@ class Thermostat(HAnode):  # not stateful since has much state info
 
 	def _connectsensors(self, HVACsensor):
 		self.HVAC_state = HVACsensor.state
-		HVACsensor._SetSensorAlert(functools.partial(self._HVACstatechange))
+		HVACsensor.SetSensorAlert(functools.partial(self._HVACstatechange))
 
 	def GetModeInfo(self):
 		return self.modelist, self.fanstates

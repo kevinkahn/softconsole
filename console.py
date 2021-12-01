@@ -135,7 +135,7 @@ configdir = os.path.dirname(config.sysStore.configfile)
 config.sysStore.configdir = configdir
 
 try:
-	sys.path.insert(0, '../')  # search for a local ops module first in the home dir then one up
+	sys.path.insert(0, '../')  # search for a localops module first in the home dir then one up
 	import localops
 
 	del sys.path[0]  # don't leave junk in search path
@@ -153,7 +153,7 @@ def CO_get(self, key, default, delkey=True):
 			rtn = rtn in ('True', 'true', 'TRUE', '1')
 		if isinstance(default,
 					  list):  # todo check this change carefuily.   Cases are [] which is list of strings, [val] which should be list of type(val)
-			if len(default) == 0:  # its a string list
+			if len(default) == 0:  # it's a string list
 				if isinstance(rtn, str):
 					rtn = [rtn]
 			else:

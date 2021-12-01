@@ -65,6 +65,7 @@ def CommonClockTickValid():
 
 StdScreenClock = 1
 
+# noinspection PyTypeChecker
 ScreenClocks = {StdScreenClock: timers.RepeatingPost(StdScreenClock, paused=True, start=True, name='StdScreenClock',
 													 proc=CommonClockTick, eventvalid=CommonClockTickValid)}
 RunningScreenClock = ScreenClocks[StdScreenClock]
@@ -88,6 +89,7 @@ def PopScreen(msg='PopScreen', newstate='Maint'):
 	SwitchScreen(BACKTOKEN, 'Bright', msg, newstate=newstate)
 
 
+# noinspection PyUnusedLocal
 def IncorporateParams(this, clsnm, theseparams, screensection):
 	if screensection is None: screensection = {}
 	for p in theseparams:
@@ -222,7 +224,7 @@ class ScreenDesc(object):
 			self.ScreenTitleBlk = tempblk
 
 		self.ScreenClock = ScreenClocks[StdScreenClock]
-		self.ScreenTimers = []  # (Timer, Cancel Proc or None)  Don't put ScreenCLock in the list or it gets canceled
+		self.ScreenTimers = []  # (Timer, Cancel Proc, or None)  Don't put ScreenCLock in the list, or it gets canceled
 
 		utilities.register_example('ScreenDesc', self)
 
@@ -247,11 +249,12 @@ class ScreenDesc(object):
 		self.ReInitDisplay()
 
 	def SetScreenClock(self, interval):
-		# for screens with a non standard clocking rate
+		# for screens with a non-standard clocking rate
 
 		if interval in ScreenClocks:
 			self.ScreenClock = ScreenClocks[interval]
 		else:
+			# noinspection PyTypeChecker
 			self.ScreenClock = timers.RepeatingPost(interval, paused=True, start=True,
 													name='ScreenClock-' + str(interval),
 													proc=CommonClockTick, eventvalid=CommonClockTickValid)

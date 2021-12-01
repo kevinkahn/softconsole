@@ -12,7 +12,7 @@ class Sensor(HAnode):  # not stateful since it updates directly to store value
 		self.Hub.attrstore.SetVal(self.entity_id, stringtonumeric(self.state))
 		self.missinglast = self.state == 'unknown'  # if unknown assume really not there (like pool stuff)
 
-	def _SetSensorAlert(self, p):
+	def SetSensorAlert(self, p):
 		self.Hub.attrstore.AddAlert(self.entity_id, p)
 
 	def Update(self, **ns):
@@ -34,7 +34,7 @@ class Sensor(HAnode):  # not stateful since it updates directly to store value
 						# convert to numeric if a number
 						stval = stringtonumeric(ns['state'])
 					except Exception:
-						# otherwise leave as string
+						# otherwise, leave as string
 						stval = ns['state']
 				self.Hub.attrstore.SetVal(self.entity_id, stval)
 		except Exception as E:

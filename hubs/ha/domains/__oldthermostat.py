@@ -5,6 +5,7 @@ from utils import timers
 import functools
 
 
+# noinspection PyTypeChecker
 class Thermostat(HAnode):  # deprecated version
 	def __init__(self, HAitem, d):
 		super(Thermostat, self).__init__(HAitem, **d)
@@ -60,7 +61,7 @@ class Thermostat(HAnode):  # deprecated version
 	def _connectsensors(self, HVACsensor):
 		self.HVAC_state = HVACsensor.state
 		# noinspection PyProtectedMember
-		HVACsensor._SetSensorAlert(functools.partial(self._HVACstatechange))
+		HVACsensor.SetSensorAlert(functools.partial(self._HVACstatechange))
 
 	def GetModeInfo(self):
 		return self.modelist, self.fanstates

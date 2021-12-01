@@ -6,7 +6,6 @@ from utils import utilities
 from keys.keyspecs import KeyTypes
 from keys.keyutils import ErrorKey
 from logsupport import ConsoleWarning
-from stores import valuestore
 from keyspecs.toucharea import ManualKeyDesc
 
 

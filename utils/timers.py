@@ -135,7 +135,7 @@ class RepeatingPost(Thread):
 		temp = 10
 		while self.is_alive():
 			TimerHB.Entry("Cancelling repeater: {}".format(self.name))
-			time.sleep(.1)  # wait for thread to finish to avoid any late activations causing races
+			time.sleep(.1)  # wait for thread to finish avoiding any late activations causing races
 			temp -= 1
 			if temp < 0:
 				logsupport.Logs.Log(
@@ -215,7 +215,7 @@ class ResettableTimer(Thread):
 		temp = 10
 		while self.is_alive():
 			TimerHB.Entry("Cancelling resettable: {}".format(self.name))
-			time.sleep(.2)  # wait for thread to finish to avoid any late activations causing races
+			time.sleep(.2)  # wait for thread to finish avoiding any late activations causing races
 			temp -= 1
 			self.changingevent.set()
 			if temp < 0:
@@ -240,7 +240,7 @@ class ResettableTimer(Thread):
 		TimerHB.Entry('Start resettable: {}'.format(self.name))
 		while True:
 			while self.interval == 0:
-				self.changingevent.wait()  # there is not event time set
+				self.changingevent.wait()  # there is no event time set
 				self.eventtopost = self.newevent
 				self.interval = self.newdelta
 				self.changingevent.clear()  # new values copied up so assuming non-zero interval should proceed to wait in next statement
@@ -255,7 +255,7 @@ class ResettableTimer(Thread):
 			self.interval = self.newdelta
 			self.changingevent.clear()
 			self.changedone.set()
-		# otherwise back to waiting for a non-zero interval to set
+		# otherwise, back to waiting for a non-zero interval to set
 
 		del TimerList[self.name]
 		TimerHB.Entry('Exit resettable: {}'.format(self.name))

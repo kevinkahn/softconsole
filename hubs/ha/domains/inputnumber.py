@@ -1,4 +1,4 @@
-from hubs.ha.hasshub import HAnode, RegisterDomain, stringtonumeric
+from hubs.ha.hasshub import HAnode, RegisterDomain
 from hubs.ha import haremote as ha
 import logsupport
 from logsupport import ConsoleWarning
@@ -11,6 +11,8 @@ class Input_Number(HAnode):  # not stateful since it updates directly to store v
 
 	def __init__(self, HAitem, d):
 		super(Input_Number, self).__init__(HAitem, **d)
+		self.minval = None
+		self.maxval = None
 		self.Hub.RegisterEntity('input_number', self.entity_id, self)
 		self.SetMinMax()
 

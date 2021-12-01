@@ -241,7 +241,7 @@ class ValueStore(object):
 
 	def AddAlert(self, name, a):
 		# alert is proc to be called with signature (storeitem, old, new, param, chgsource)
-		# a is passed in here as either just the proc or a 2-tuple (proc, param)
+		# "a" is passed in here as either just the proc or a 2-tuple (proc, param)
 		try:
 			if not isinstance(a, tuple):
 				a = (a, None)
@@ -283,7 +283,7 @@ class ValueStore(object):
 
 	def SetVal(self, name, val,
 			   modifier=None):  # modifier can be set by the caller if who caused the Val change is significant to any alerts
-		# currently only isyvarchange uses to avoid looping by changing the value as a result of an ISY message causing a send
+		# currently, only isyvarchange uses to avoid looping by changing the value as a result of an ISY message causing a "send"
 		# of the change back to the ISY
 		n2 = self._normalizename(name)
 		n = n2[:]  # copy the name for filling in new item if needed
@@ -303,7 +303,7 @@ class ValueStore(object):
 		if isinstance(n2[0], int):
 			# name is an array reference
 			if isinstance(t, self.itemtyp):
-				# if have an itemtyp then Value is an array
+				# if it is itemtyp then Value is an array
 				oldval = t.Value[n2[0]]
 				t.UpdateArrayVal(n2[0], val)
 			else:

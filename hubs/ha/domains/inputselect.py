@@ -1,4 +1,4 @@
-from hubs.ha.hasshub import HAnode, RegisterDomain, stringtonumeric
+from hubs.ha.hasshub import HAnode, RegisterDomain
 from hubs.ha import haremote as ha
 import logsupport
 from logsupport import ConsoleWarning
@@ -11,6 +11,7 @@ class Input_Select(HAnode):  # not stateful since it updates directly to store v
 
 	def __init__(self, HAitem, d):
 		super(Input_Select, self).__init__(HAitem, **d)
+		self.options = None
 		self.Hub.RegisterEntity('input_select', self.entity_id, self)
 		self.SetOptions()
 
@@ -47,7 +48,7 @@ class Input_Select(HAnode):  # not stateful since it updates directly to store v
 			if 'state' in ns:
 				if ns['state'] in ('', 'unknown', 'None', 'unavailable'):
 					logsupport.Logs.Log(
-						'Input number data missing for {} value: {}'.format(ns['entity_id'], ns['state']))
+						'Input select data missing for {} value: {}'.format(ns['entity_id'], ns['state']))
 					stval = None
 				else:
 					stval = ns['state']
