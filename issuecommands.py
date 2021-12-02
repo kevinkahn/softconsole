@@ -192,6 +192,7 @@ def GetVar(params=None, Key=None):
 		assert (type(p) == dict)
 	except:
 		logsupport.Logs.Log('Non-dict paramater to remote GetVar command: {}'.format(params), severity=ConsoleWarning)
+		return
 	resp = {}
 	for v, val in p.items():
 		try:

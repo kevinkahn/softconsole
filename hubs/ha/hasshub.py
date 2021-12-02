@@ -253,14 +253,14 @@ class HA(object):
 			worktodo = bool(self.UnknownList)
 
 	def StartStatusChecker(self):
-		# logic here would be to start a thread that runs while List is non empty - need to be careful regarding it changing length
-		# while in the loop.  Also needs to be conservative about stopping and the starter needs to double check the is alive in some way
+		# logic here would be to start a thread that runs while List is non-empty - need to be careful regarding it changing length
+		# while in the loop.  Also needs to be conservative about stopping and the starter needs to double-check the is alive in some way
 		# so as not to get caught with an entry but not running.
 		pass
 
 	def AddToUnknowns(self, node):  # ** flesh out
 		# need to start a thread that checks periodically the status of the node.  When it changes to known value that thread should exit (perhaps post?)
-		# the delete would get triggered the next time the paint is called (or would it? - can the change to real value happen under the covers?)  Maybe don't need to do the delete
+		# the "delete" would get triggered the next time the paint is called (or would it? - can the change to real value happen under the covers?)  Maybe don't need to do the delete
 		# since the thread will be not alive - can just start the thread if not alive and let it die peacefully after doing its job?
 		self.UnknownList[node.name] = node
 		# need a single slot for the node status checker thread per hub instance check is_alive on each entry.  Worst case on the next key repaint this will get
@@ -585,7 +585,7 @@ class HA(object):
 					if d in domainspecificevents:
 						domainspecificevents[d](ev, message)
 				elif m['event_type'] == 'homeassistant_started':
-					# HA just finished initializing everything so we may have been quicker - refresh all state
+					# HA just finished initializing everything, so we may have been quicker - refresh all state
 					# with open('/home/pi/Console/msglog{}'.format(self.name), 'a') as f:
 					#	f.write('DO REFRESH FOR STARTED')
 					self.GetAllCurrentState()

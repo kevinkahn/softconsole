@@ -166,8 +166,10 @@ class StoreItem(object):
 				self.Value = val if self.Type is None else self.Type(val)
 			except:
 				logsupport.Logs.Log(
-					"Can't coerce type in UpdateVal required: " + repr(self.Type) + " got " + repr(type(val)),
+					"Can't coerce type in UpdateVal required: {} got {} Value: {}".format(repr(self.Type),
+																						  repr(type(val)), val),
 					severity=ConsoleError)
+				raise
 		self.SetTime = time.time()
 
 	def UpdateArrayVal(self, index, val):

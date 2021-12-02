@@ -68,6 +68,7 @@
           <option value="os._exit" />
           <option value="stores.isyvarssupport.ISYVars.name" />
           <option value="Exception.response" />
+          <option value="types.ModuleType.IgnoredDomain" />
         </list>
       </option>
     </inspection_tool>

@@ -58,7 +58,7 @@ primaryBroker = None  # for cross system reporting if mqtt is running
 errorlogfudge = 0  # force a new log start time for each use of the log to make sure other nodes see it as a change in value due to the alert only on change
 LoggerQueue = multiprocessing.Queue()
 
-
+# noinspection PyArgumentList
 Command = Enum('Command', 'LogEntry DevPrint FileWrite CloseHlog StartLog Touch LogString DumpRemote')
 
 # logger queue item: (type,str) where type: 0 Logentry, 1 DevPrint, 2 file write (name, access, str), 3 shutdown

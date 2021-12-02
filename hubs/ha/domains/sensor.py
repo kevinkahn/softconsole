@@ -38,7 +38,7 @@ class Sensor(HAnode):  # not stateful since it updates directly to store value
 						stval = ns['state']
 				self.Hub.attrstore.SetVal(self.entity_id, stval)
 		except Exception as E:
-			logsupport.Logs.Log('Sensor update error: State: {}  Exc:{}'.format(repr(ns), repr(E)))
+			logsupport.Logs.Log('Sensor {} update error: State: {}  Exc:{}'.format(self.name, repr(ns), repr(E)))
 			self.Hub.attrstore.SetVal(self.entity_id, None)
 
 

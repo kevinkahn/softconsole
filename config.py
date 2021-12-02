@@ -69,6 +69,7 @@ sysvals = {
 #  hostname
 
 def ptf(pstr):
+	# noinspection PyUnresolvedReferences
 	if sysStore.versionname in ('homerelease', 'development'):
 		with open('/home/pi/Console/weathtrace', 'a') as f:
 			safeprint('{}:{}'.format(time.strftime('%H:%M:%S', time.localtime(time.time())), pstr), file=f, flush=True)
@@ -81,6 +82,7 @@ def ptf2(pstr):
 	flag = '***' if time.time() - lastfetch < 150 else '   '
 	lastfetch = time.time()
 
+	# noinspection PyUnresolvedReferences
 	if sysStore.versionname in ('homerelease', 'development'):
 		with open('/home/pi/Console/weathhist', 'a') as f:
 			safeprint('{}{}:{}'.format(flag, time.strftime('%H:%M:%S', time.localtime(time.time())), pstr), file=f,

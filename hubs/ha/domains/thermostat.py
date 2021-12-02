@@ -19,7 +19,7 @@ def GetFeatures(n):
 
 # noinspection PyTypeChecker
 class Thermostat(HAnode):  # not stateful since has much state info
-	# todo update since state now in pushed stream
+
 	def GetRange(self):
 		pass
 
@@ -45,14 +45,23 @@ class Thermostat(HAnode):  # not stateful since has much state info
 		self.features = GetFeatures(self.attributes['supported_features'])
 		if 'TargRange' in self.features:
 			def GetRange():
-				self.target_low = self.attributes['target_temp_low']
-				self.target_high = self.attributes['target_temp_high']
+				if 'target_temp_low' in self.attributes:
+					self.target_low = self.attributes['target_temp_low']
+				else:
+					logsupport.Logs.Log("Missing target_low update in {} ({})".format(self.name, self.attributes))
+				if 'target_temp_high' in self.attributes:
+					self.target_high = self.attributes['target_temp_high']
+				else:
+					logsupport.Logs.Log("Missing target_high update in {} ({})".format(self.name, self.attributes))
 
 			self.GetRange = GetRange
 
 		if 'TargTemp' in self.features:
 			def GetTarget():
-				self.temperature = self.attributes['temperature']
+				if 'temperature' in self.attributes:
+					self.temperature = self.attributes['temperature']
+				else:
+					logsupport.Logs.Log("Missing temperature update in {} ({})".format(self.name, self.attributes))
 
 			self.GetTarget = GetTarget
 
