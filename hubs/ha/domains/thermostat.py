@@ -20,6 +20,9 @@ def GetFeatures(n):
 # noinspection PyTypeChecker
 class Thermostat(HAnode):  # not stateful since has much state info
 
+	def _SafeUpdate(self, attrnm, curval):
+		return self.attributes[attrnm] if attrnm in self.attributes else curval
+
 	def GetRange(self):
 		pass
 
@@ -45,23 +48,14 @@ class Thermostat(HAnode):  # not stateful since has much state info
 		self.features = GetFeatures(self.attributes['supported_features'])
 		if 'TargRange' in self.features:
 			def GetRange():
-				if 'target_temp_low' in self.attributes:
-					self.target_low = self.attributes['target_temp_low']
-				else:
-					logsupport.Logs.Log("Missing target_low update in {} ({})".format(self.name, self.attributes))
-				if 'target_temp_high' in self.attributes:
-					self.target_high = self.attributes['target_temp_high']
-				else:
-					logsupport.Logs.Log("Missing target_high update in {} ({})".format(self.name, self.attributes))
+				self.target_low = self._SafeUpdate('target_temp_low', self.target_low)
+				self.target_high = self._SafeUpdate('target_temp_high', self.target_high)
 
 			self.GetRange = GetRange
 
 		if 'TargTemp' in self.features:
 			def GetTarget():
-				if 'temperature' in self.attributes:
-					self.temperature = self.attributes['temperature']
-				else:
-					logsupport.Logs.Log("Missing temperature update in {} ({})".format(self.name, self.attributes))
+				self.temperature = self._SafeUpdate('temperature', self.temperature)
 
 			self.GetTarget = GetTarget
 
@@ -112,10 +106,10 @@ class Thermostat(HAnode):  # not stateful since has much state info
 		self.internalstate = self._NormalizeState(self.state)
 		if 'attributes' in ns: self.attributes = ns['attributes']
 		self.GetTarget()
-		self.curtemp = self.attributes['current_temperature']
+		self.curtemp = self._SafeUpdate('current_temperature', self.curtemp)
 		self.GetRange()
-		if 'hvac_action' in self.attributes:  # some tstats don't say what they are currently doing
-			self.hvac_action = self.attributes['hvac_action']
+		self.hvac_action = self._SafeUpdate('hvac_action',
+											self.hvac_action)  # some tstats don't say what they are currently doing
 		self.mode = self.internalstate  # self.attributes['hvac_action']
 		self.GetFanModes()
 		self.GetPresets()
