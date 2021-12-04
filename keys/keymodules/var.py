@@ -1,57 +1,16 @@
-import shlex
-
 import debug
 import logsupport
 from screens import screen
 from keys.keyspecs import KeyTypes
-from keys.keyutils import _SetUpProgram, ChooseType
+from keys.keyutils import _SetUpProgram, DispOpt, AdjustAppearance
 from logsupport import ConsoleWarning
 from stores import valuestore
 from keyspecs.toucharea import ManualKeyDesc
-from utils.utilfuncs import RepresentsInt, tint, wc
-
 
 class VarKey(ManualKeyDesc):
-	class DispOpt(object):
-		# todo add a state to display opt?
-		def __init__(self, item, deflabel):
-			desc = shlex.split(item)
-			if ':' in desc[0]:
-				self.ChooserType = ChooseType.rangeval
-				rng = desc[0].split(':')
-				self.Chooser = (int(rng[0]), int(rng[1]))
-			elif '|' in desc[0]:
-				self.ChooserType = ChooseType.enumval
-				rng = desc[0].split('|')
-				self.Chooser = (int(x) for x in rng)
-			elif RepresentsInt(desc[0]):
-				self.ChooserType = ChooseType.intval
-				self.Chooser = int(desc[0])
-			elif desc[0] == 'None':
-				self.ChooserType = ChooseType.Noneval
-				self.Chooser = None
-			else:
-				self.ChooserType = ChooseType.strval
-				self.Chooser = desc[0]
-			self.Color = desc[1]
-			self.Label = deflabel if len(desc) < 3 else desc[2].split(';')
-
-		def Matches(self, val):
-			if self.ChooserType == ChooseType.Noneval:
-				return val is None
-			elif self.ChooserType == ChooseType.intval:
-				return isinstance(val, int) and self.Chooser == val
-			elif self.ChooserType == ChooseType.rangeval:
-				return isinstance(val, int) and self.Chooser[0] <= val <= self.Chooser[1]
-			elif self.ChooserType == ChooseType.strval:
-				return self.Chooser == val
-			elif self.ChooserType == ChooseType.enumval:
-				return val in self.Chooser
-			return False
 
 	def __init__(self, thisscreen, keysection, keyname):
 		debug.debugPrint('Screen', "              New Var Key ", keyname)
-		# todo suppress Verify
 		ManualKeyDesc.__init__(self, thisscreen, keysection, keyname)
 		screen.AddUndefaultedParams(self, keysection, Var='', Appearance=[], ValueSeq=[], ProgramName='', Parameter=[],
 									DefaultAppearance='')
@@ -62,48 +21,30 @@ class VarKey(ManualKeyDesc):
 		if self.ProgramName != '':
 			self.Proc = self.VarKeyPressed
 			self.Program, self.Parameter = _SetUpProgram(self.ProgramName, self.Parameter, thisscreen,
-														 keyname)  # if none set this is dummy todo
-		# valuestore.AddAlert(self.Var, (KeyWithVarChanged, (keyname, self.Var))) todo this doesn't work for HA vars why do we need the alert?
+														 keyname)
 		if self.ValueSeq:
 			self.Proc = self.VarKeyPressed
 			t = []
 			for n in self.ValueSeq: t.append(int(n))
 			self.ValueSeq = t
 		if self.DefaultAppearance == '':
-			self.defoption = self.DispOpt('None {} {}'.format(self.KeyColorOn, self.KeyLabelOn[:]), '')
+			self.defoption = DispOpt('None {} {}'.format(self.KeyColorOn, self.KeyLabelOn[:]), '')
 		else:
-			self.defoption = self.DispOpt(self.DefaultAppearance, self.label)
+			self.defoption = DispOpt(self.DefaultAppearance, self.label)
 		self.displayoptions = []
 		self.oldval = '*******'  # forces a display compute first time through
 		self.State = False
 		self.waspressed = False
 		for item in self.Appearance:
-			self.displayoptions.append(self.DispOpt(item, self.label))
+			self.displayoptions.append(DispOpt(item, self.label))
 
 	def PaintKey(self, ForceDisplay=False, DisplayState=True):
 		# create the images here dynamically then let lower methods do display, blink etc.
 		val = valuestore.GetVal(self.Var)
-		if self.oldval != val:  # rebuild the key for a value change
-			self.oldval = val
-			lab = self.defoption.Label[:]
-			oncolor = tint(self.defoption.Color)
-			offcolor = wc(self.defoption.Color)
-			for i in self.displayoptions:
-				if i.Matches(val):
-					lab = i.Label[:]
-					oncolor = tint(i.Color)
-					offcolor = wc(i.Color)
-					break
-
-			lab2 = []
-			dval = '--' if val is None else str(val)
-			for line in lab:
-				lab2.append(line.replace('$', dval))
-			self.BuildKey(oncolor, offcolor)
-			self.SetKeyImages(lab2, lab2, 0, True)
-		if self.waspressed:
-			self.ScheduleBlinkKey(self.Blink)
-			self.waspressed = False
+		AdjustAppearance(self, val)
+		#		if self.waspressed:  # todo verify that this is actually needed now Blink scheduling is done in super PaintKey
+		#			self.ScheduleBlinkKey(self.Blink)
+		#			self.waspressed = False
 		super().PaintKey(ForceDisplay, val is not None)
 
 	# noinspection PyUnusedLocal
@@ -111,12 +52,12 @@ class VarKey(ManualKeyDesc):
 		self.waspressed = True
 		if self.ValueSeq:
 			try:
-				i = self.ValueSeq.index(valuestore.GetVal(self.Var))
+				i = self.ValueSeq.index(int(valuestore.GetVal(self.Var)))
 			except ValueError:
 				i = len(self.ValueSeq) - 1
 			valuestore.SetVal(self.Var, self.ValueSeq[(i + 1) % len(self.ValueSeq)])
 		else:
 			self.Program.RunProgram(param=self.Parameter)
-
+		self.ScheduleBlinkKey(self.Blink)
 
 KeyTypes['VARKEY'] = VarKey

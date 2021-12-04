@@ -5,7 +5,7 @@ import shlex
 import hubs.hubs
 import logsupport
 from logsupport import ConsoleWarning
-from utils.utilfuncs import RepresentsInt
+from utils.utilfuncs import RepresentsInt, tint, wc
 
 
 def _resolvekeyname(kn, DefHub):
@@ -91,7 +91,11 @@ class DispOpt(object):
 		if self.ChooserType == ChooseType.Noneval:
 			return val is None
 		elif self.ChooserType == ChooseType.intval:
-			return isinstance(val, int) and self.Chooser == val
+			try:
+				v2 = int(val)
+			except ValueError:
+				return False
+			return self.Chooser == v2
 		elif self.ChooserType == ChooseType.rangeval:
 			try:
 				v = float(val)
@@ -103,6 +107,26 @@ class DispOpt(object):
 		elif self.ChooserType == ChooseType.enumval:
 			return val in self.Chooser
 		return False
+
+
+def AdjustAppearance(key, val):
+	if key.oldval != val:  # rebuild the key for a value change
+		key.oldval = val
+		lab = key.defoption.Label[:]
+		oncolor = tint(key.defoption.Color)
+		offcolor = wc(key.defoption.Color)
+		for i in key.displayoptions:
+			if i.Matches(val):
+				lab = i.Label[:]
+				oncolor = tint(i.Color)
+				offcolor = wc(i.Color)
+				break
+		lab2 = []
+		dval = '--' if val is None else str(val)
+		for line in lab:
+			lab2.append(line.replace('$', dval))
+		key.BuildKey(oncolor, offcolor)
+		key.SetKeyImages(lab2, lab2, 0, True)
 
 
 class DummyProgram(object):
