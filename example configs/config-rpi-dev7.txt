@@ -211,13 +211,16 @@ CenterMessage = False
     type = SETINPUT
     Var = HASS:input_boolean.home
     Value = 'toggle'
+    label = TBool
     [[TestNumInc]]
     type = SETINPUT
     Var = HASS:input_number.inputnum
+    Appearance = 0:99 Green "InputSel:$"
     Value = 'inc'
     [[TestNumDec]]
     type = SETINPUT
     Var = HASS:input_number.inputnum
+    Appearance = 0:5 Pink "InputSel:$", 5:99 Red "InputSel:$"
     Value = 'dec'
     [[TestNum5]]
     type = SETINPUT
@@ -227,6 +230,9 @@ CenterMessage = False
     type = SETINPUT
     Var = HASS:input_select.inputselect
     Value = 'nextcycle'
+    Appearance = T2|T3 Red "InputSel:$"
+    DefaultAppearance = None Blue "WeirdSel:$"
+    Blink = 5
     [[TestSelPC]]
     type = SETINPUT
     Var = HASS:input_select.inputselect
