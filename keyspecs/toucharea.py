@@ -23,7 +23,7 @@ class TouchPoint(object):
 		self.Center = Center
 		self.Screen = None
 		self.ControlObj = None
-		self.Proc = proc  # function that gets called on touch - expects to take a single parameter which is thee type of press
+		self.Proc = proc  # function that gets called on touch - expects to take a single parameter which is the type of press
 		self.ProcDblTap = procdbl
 		self.ProcLong = proclong
 		self.Verify = False
@@ -320,7 +320,7 @@ class ManualKeyDesc(TouchPoint):
 
 		# create image of ON key
 		self.KeyOnImageBase = self._BuildKeyImage(coloron, buttonsmaller, self.KeyOnOutlineColor)
-		# create image of OFF key
+		# create image of "OFF" key
 		self.KeyOffImageBase  = self._BuildKeyImage(coloroff, buttonsmaller,self.KeyOffOutlineColor)
 
 		self.KeyUnknownOverlay = pygame.Surface(self.GappedSize)
@@ -349,7 +349,7 @@ class ManualKeyDesc(TouchPoint):
 
 		self.BuildKey(wc(self.KeyColorOn), wc(self.KeyColorOff))
 
-		# dull the OFF key
+		# dull the OFF-key
 		if self.autocolordull:
 			s = pygame.Surface(self.Size)
 			s.set_alpha(150)

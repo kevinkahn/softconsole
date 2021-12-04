@@ -3,7 +3,7 @@ import guicore.guiutils as guiutils
 from controlevents import CEvent
 import debug
 import logsupport
-from logsupport import ConsoleDetail, ConsoleWarning
+from logsupport import ConsoleDetail
 from utils import timers
 import alertsystem.alerttasks as alerttasks
 import guicore.switcher as switcher
@@ -56,7 +56,7 @@ def AlertEvents(event):
 		debug.debugPrint('Dispatch', 'Delayed event cleared before invoke', alert.name)
 		alert.state = 'Armed'
 	else:  # todo
-		# this is ok until maybe I figure out how to avoid.  The change causes a firing and the the arming causes a second posting
+		# this is ok until maybe I figure out how to avoid.  The change causes a firing and the arming causes a second posting
 		# logsupport.Logs.Log("Anomolous change situation  State: ", alert.state, " Alert: ", repr(alert),
 		#					" Trigger IsTrue: ",
 		#					alert.trigger.IsTrue(), severity=ConsoleWarning, hb=True)

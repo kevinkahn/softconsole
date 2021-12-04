@@ -6,7 +6,7 @@ import configobj
 
 from utils import displayupdate, hw
 import issuecommands
-from issuecommands import Nodes, DeleteNode
+from issuecommands import Nodes
 from keys.keyutils import internalprocs
 import screens.supportscreens as supportscreens
 import json

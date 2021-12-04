@@ -22,7 +22,7 @@ class MyScreens(object):
 			NewScreen = None
 			if isinstance(thisconfig[screenitem], Section):
 				thisScreen = thisconfig[screenitem]
-				# its a screen
+				# it's a screen
 				tempscreentype = thisScreen.get("type", "unspec")
 				clockedscreen = thisScreen.get("Clocked", 0)
 				debug.debugPrint('Screen', "Screen of type ", tempscreentype)

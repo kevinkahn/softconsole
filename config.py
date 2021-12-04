@@ -50,7 +50,7 @@ sysvals = {
 	'LongTapTime': (int, 1300, None, False)  # time in msec
 }
 
-# Non user sysfile entries
+# Non-user sysfile entries
 #  ConsoleStartTime
 #  Console_pid
 #  Watchdog_pid

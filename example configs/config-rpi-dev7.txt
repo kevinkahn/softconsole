@@ -270,7 +270,9 @@ CenterMessage = False
     label = Error on Value, $
     Var = LocalVars:TestVar
     ValueSeq = 1,2,3
-    Appearance = 1 red 'FAN SPEED; LOW',2 red 'FAN SPEED; MED', 3 red 'FAN SPEED; HIGH'
+    Appearance = 1 blue 'FAN SPEED; LOW',2 red 'FAN SPEED; MED', 3 red 'FAN SPEED; HIGH'
+    #DefaultAppearance = None Blue 'Weird Result $'
+    Blink = 5
 
 
 #[TreeTest]

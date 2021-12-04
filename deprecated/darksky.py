@@ -14,7 +14,7 @@ import stats
 
 from darksky.types import languages, units
 from darksky.request_manager import RequestManger
-from ..genericweatherstore import RegisterFetcher
+from stores.genericweatherstore import RegisterFetcher
 
 from stores.weathprov.providerutils import TryShorten, WeathProvs, MissingIcon
 from utils.utilfuncs import interval_str, TreeDict

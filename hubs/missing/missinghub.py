@@ -27,7 +27,7 @@ class Hub(object):
 		logsupport.Logs.Log('{}: Created as a dummy hub'.format(self.name))
 
 	def GetNode(self, name, proxy=''):
-		return (self.DummyNode, self.DummyNode)
+		return self.DummyNode, self.DummyNode
 
 	def GetProgram(self, name):
 		return self.DummyNode

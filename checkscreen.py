@@ -1,4 +1,4 @@
-# adapted from pimoroni evdev support for the 7 inch capacitive screen
+# adapted from pimoroni evdev support for the 7-inch capacitive screen
 # added support for the resistive 3.5 and maybe others that doesn't depend upon SDL 1.2
 import errno
 import glob
@@ -28,8 +28,8 @@ ABS_Y = 1
 EV_KEY = 1
 BTN_TOUCH = 330
 ABS_MT_SLOT = 0x2f  # 47 MT slot being modified
-ABS_MT_POSITION_X = 0x35  # 53 Center X of multi touch position
-ABS_MT_POSITION_Y = 0x36  # 54 Center Y of multi touch position
+ABS_MT_POSITION_X = 0x35  # 53 Center X of multitouch position
+ABS_MT_POSITION_Y = 0x36  # 54 Center Y of multitouch position
 ABS_MT_TRACKING_ID = 0x39  # 57 Unique ID of initiated contact
 
 TS_PRESS = 1
@@ -341,7 +341,7 @@ if __name__ == "__main__":
 
 	screendev = screendefs[scrntp][0]
 	if scrntp[-1] == 'B':  # Buster system
-		if screendev[-1] == '0':  # check if there is an fb1 and use that if available Buster hack
+		if screendev[-1] == '0':  # check if there is a fb1 and use that if available Buster hack
 			# noinspection PyBroadException
 			try:
 				with open('/dev/fb1') as f:

@@ -1,4 +1,4 @@
-from hubs.ha.hasshub import HAnode, RegisterDomain, stringtonumeric
+from hubs.ha.hasshub import HAnode, RegisterDomain
 from hubs.ha import haremote as ha
 import logsupport
 from logsupport import ConsoleWarning
