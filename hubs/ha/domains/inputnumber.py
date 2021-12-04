@@ -18,25 +18,26 @@ class Input_Number(HAnode):  # not stateful since it updates directly to store v
 
 	# self.DisplayStuff('init',True)
 
-	def SetValue(self, val):
+	def SetValue(self, inputop):
 		# validate val between min and max, inc or dec
-		if val.lower() == 'inc':
+		if inputop.lower() == 'inc':
 			ha.call_service(self.Hub.api, 'input_number', 'increment', {'entity_id': '{}'.format(self.entity_id)})
-		elif val.lower() == 'dec':
+		elif inputop.lower() == 'dec':
 			ha.call_service(self.Hub.api, 'input_number', 'decrement', {'entity_id': '{}'.format(self.entity_id)})
 		else:
 			try:
-				val = float(val)
+				inputop = float(inputop)
 			except ValueError:
-				logsupport.Logs.Log('{}: Illegal value ({}) for input_number {}'.format(self.Hub.name, val, self.name),
-									severity=ConsoleWarning)
+				logsupport.Logs.Log(
+					'{}: Illegal value ({}) for input_number {}'.format(self.Hub.name, inputop, self.name),
+					severity=ConsoleWarning)
 				return
-			if self.minval <= val <= self.maxval:
+			if self.minval <= inputop <= self.maxval:
 				ha.call_service(self.Hub.api, 'input_number', 'set_value',
-								{'entity_id': '{}'.format(self.entity_id), 'value': '{}'.format(val)})
+								{'entity_id': '{}'.format(self.entity_id), 'value': '{}'.format(inputop)})
 			else:
 				logsupport.Logs.Log(
-					'{}: Out of range value ({}) for input_number {}'.format(self.Hub.name, val, self.name),
+					'{}: Out of range value ({}) for input_number {}'.format(self.Hub.name, inputop, self.name),
 					severity=ConsoleWarning)
 
 	def Update(self, **ns):

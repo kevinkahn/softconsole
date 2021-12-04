@@ -10,16 +10,16 @@ class Input_Boolean(HAnode):  # not stateful since it updates directly to store 
 		self.Hub.RegisterEntity('input_boolean', self.entity_id, self)
 		# self.DisplayStuff('init')
 
-	def SetValue(self, val):
+	def SetValue(self, inputop):
 		# validate val as 'on/off', 0/1, true/false, or toggle
-		if val.lower() == 'toggle':
+		if inputop.lower() == 'toggle':
 			ha.call_service(self.Hub.api, 'input_boolean', 'toggle', {'entity_id': '{}'.format(self.entity_id)})
-		elif val.lower() in ('on', '1', 'true'):
+		elif inputop.lower() in ('on', '1', 'true'):
 			ha.call_service(self.Hub.api, 'input_boolean', 'turn_on', {'entity_id': '{}'.format(self.entity_id)})
-		elif val.lower() in ('off', '0', 'false'):
+		elif inputop.lower() in ('off', '0', 'false'):
 			ha.call_service(self.Hub.api, 'input_boolean', 'turn_off', {'entity_id': '{}'.format(self.entity_id)})
 		else:
-			logsupport.Logs.Log('{}: Illegal value ({}) for input_boolean {}'.format(self.Hub.name, val, self.name),
+			logsupport.Logs.Log('{}: Illegal value ({}) for input_boolean {}'.format(self.Hub.name, inputop, self.name),
 								severity=ConsoleWarning)
 
 	def Update(self, **ns):

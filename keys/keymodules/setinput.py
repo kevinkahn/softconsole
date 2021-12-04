@@ -7,13 +7,13 @@ from keys.keyspecs import KeyTypes
 from keys.keyutils import ErrorKey
 from logsupport import ConsoleWarning
 from keyspecs.toucharea import ManualKeyDesc
-from keys.keyutils import ChooseType
-from utils.utilfuncs import RepresentsInt, tint, wc
-import shlex
+from keys.keyutils import DispOpt
+from utils.utilfuncs import tint, wc
 
 
 # key to provide HA style input values
 class SetInputKey(ManualKeyDesc):
+	'''
 	class DispOpt(object):
 		# todo add a state to display opt?
 		def __init__(self, item, deflabel):
@@ -61,6 +61,7 @@ class SetInputKey(ManualKeyDesc):
 			elif self.ChooserType == ChooseType.enumval:
 				return val in self.Chooser
 			return False
+	'''
 
 	def __init__(self, thisscreen, keysection, keyname):
 		debug.debugPrint('Screen', "             New SetVar Key Desc ", keyname)
@@ -69,12 +70,11 @@ class SetInputKey(ManualKeyDesc):
 		screen.AddUndefaultedParams(self, keysection, VarType='undef', Var='', Appearance=[], DefaultAppearance='',
 									Value='')  # value should be checked later
 		if self.DefaultAppearance == '':
-			self.defoption = self.DispOpt('None {} {}'.format(self.KeyColorOn, self.name), '')
+			self.defoption = DispOpt('None {} {}'.format(self.KeyColorOn, self.name), '')
 		else:
-			self.defoption = self.DispOpt(self.DefaultAppearance, self.label)
+			self.defoption = DispOpt(self.DefaultAppearance, self.label)
 		self.displayoptions = []
 		self.oldval = '*******'  # forces a display compute first time through
-		self.waspressed = False
 		# determine type of input from store
 		try:
 			self.Proc = self.SetInputKeyPressed
@@ -91,15 +91,13 @@ class SetInputKey(ManualKeyDesc):
 			self.label = [self.entity.name]
 
 		for item in self.Appearance:
-			self.displayoptions.append(self.DispOpt(item, self.label))
+			self.displayoptions.append(DispOpt(item, self.label))
 
-		utilities.register_example("SetVarKey", self)
+		utilities.register_example("SetInputKey", self)
 
 	# noinspection PyUnusedLocal
 	def SetInputKeyPressed(self):
-		# valuestore.SetVal(self.VarName, self.Value)
-		self.waspressed = True
-		self.entity.SetValue(self.Value)
+		self.entity.SetValue(self.Value)  # Value is actually the type of input operation set in the config entry
 		self.ScheduleBlinkKey(self.Blink)
 
 	def PaintKey(self, ForceDisplay=False, DisplayState=True):
@@ -122,9 +120,7 @@ class SetInputKey(ManualKeyDesc):
 				lab2.append(line.replace('$', dval))
 			self.BuildKey(oncolor, offcolor)
 			self.SetKeyImages(lab2, lab2, 0, True)
-		if self.waspressed:
-			self.ScheduleBlinkKey(self.Blink)
-			self.waspressed = False
+
 		super().PaintKey(ForceDisplay, val is not None)
 
 

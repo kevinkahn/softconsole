@@ -17,25 +17,25 @@ class Input_Select(HAnode):  # not stateful since it updates directly to store v
 
 	# self.DisplayStuff('init',True)
 
-	def SetValue(self, val):
+	def SetValue(self, inputop):
 		# validate to optionval, first, last, next, nextcycle, prev, prevcycle
-		if val.lower() == 'first':
+		if inputop.lower() == 'first':
 			ha.call_service(self.Hub.api, 'input_select', 'select_first', {'entity_id': '{}'.format(self.entity_id)})
-		elif val.lower() == 'last':
+		elif inputop.lower() == 'last':
 			ha.call_service(self.Hub.api, 'input_select', 'select_last', {'entity_id': '{}'.format(self.entity_id)})
-		elif val.lower() in ('next', 'nextcycle'):
-			cycle = val.lower() == 'nextcycle'
+		elif inputop.lower() in ('next', 'nextcycle'):
+			cycle = inputop.lower() == 'nextcycle'
 			ha.call_service(self.Hub.api, 'input_select', 'select_next',
 							{'entity_id': '{}'.format(self.entity_id), 'cycle': cycle})
-		elif val.lower() in ('prev', 'prevcycle'):
-			cycle = val.lower() == 'prevcycle'
+		elif inputop.lower() in ('prev', 'prevcycle'):
+			cycle = inputop.lower() == 'prevcycle'
 			ha.call_service(self.Hub.api, 'input_select', 'select_previous',
 							{'entity_id': '{}'.format(self.entity_id), 'cycle': cycle})
-		elif val in self.options:
+		elif inputop in self.options:
 			ha.call_service(self.Hub.api, 'input_select', 'select_option',
-							{'entity_id': '{}'.format(self.entity_id), 'option': '{}'.format(val)})
+							{'entity_id': '{}'.format(self.entity_id), 'option': '{}'.format(inputop)})
 		else:
-			logsupport.Logs.Log('{}: Illegal value ({}) for Input_Select {}'.format(self.Hub.name, val, self.name),
+			logsupport.Logs.Log('{}: Illegal value ({}) for Input_Select {}'.format(self.Hub.name, inputop, self.name),
 								severity=ConsoleWarning)
 
 	def Update(self, **ns):
