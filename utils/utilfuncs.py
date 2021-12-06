@@ -35,6 +35,14 @@ def interval_str(sec_elapsed, shrt=False):
 		return "{:>02d}mn {:>02d}sec".format(m, s)
 
 
+def BoolTrueWord(v):
+	return v.lower() in ('true', 'on', 'yes')
+
+
+def BoolFalseWord(v):
+	return v.lower() in ('false', 'off', 'no')
+
+
 def tint(clr, tint_factor=.25):
 	# tint_factor = .25
 	r, g, b = wc(clr)

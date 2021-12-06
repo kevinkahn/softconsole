@@ -365,7 +365,7 @@ class ScreenDesc(object):
 			if evnt.hub != '*VARSTORE*':  # var changes can be reported while any screen is up
 				logsupport.Logs.Log("Unexpected event to screen: ", self.name, ' Hub: ', str(evnt.hub), ' Node: ',
 									str(evnt.node),
-									' Val: ', str(evnt.value), severity=ConsoleDetail)
+									' Val: ', str(evnt.value))  # , severity=ConsoleDetail)
 			else:
 				pass
 		else:

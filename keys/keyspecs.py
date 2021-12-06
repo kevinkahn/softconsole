@@ -26,8 +26,10 @@ def KeyWithVarChanged(storeitem, old, new, param, modifier):
 
 
 def CreateKey(thisscreen, screensection, keyname):
+	# noinspection PyArgumentList
 	if screensection.get('type', 'ONOFF', delkey=False) == 'RUNTHEN':
 		screensection['type'] = 'RUNPROG'
+	# noinspection PyArgumentList
 	if screensection.get('type', 'ONOFF', delkey=False) == 'ONBLINKRUNTHEN':
 		screensection['type'] = 'RUNPROG'
 		screensection['FastPress'] = 1

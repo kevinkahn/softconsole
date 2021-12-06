@@ -215,6 +215,7 @@ def SetVar(params=None):
 		assert (type(p) == dict)
 	except:
 		logsupport.Logs.Log('Non-dict paramater to remote SetVar command: {}'.format(params), severity=ConsoleWarning)
+		raise
 	for v, val in p.items():
 		try:
 			valuestore.SetVal(v, val)

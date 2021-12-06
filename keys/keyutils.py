@@ -5,7 +5,7 @@ import shlex
 import hubs.hubs
 import logsupport
 from logsupport import ConsoleWarning
-from utils.utilfuncs import RepresentsInt, tint, wc
+from utils.utilfuncs import RepresentsInt, tint, wc, BoolTrueWord, BoolFalseWord
 
 
 def _resolvekeyname(kn, DefHub):
@@ -54,7 +54,7 @@ class ChooseType(Enum):
 	enumval = auto()
 	Noneval = auto()
 	strval = auto()
-
+	boolval = auto()
 
 class DispOpt(object):
 	# todo add a state to display opt?
@@ -81,6 +81,9 @@ class DispOpt(object):
 		elif desc[0] == 'None':
 			self.ChooserType = ChooseType.Noneval
 			self.Chooser = None
+		elif BoolTrueWord(desc[0]) or BoolFalseWord(desc[0]):
+			self.ChooserType = ChooseType.boolval
+			self.Chooser = BoolTrueWord(desc[0])
 		else:
 			self.ChooserType = ChooseType.strval
 			self.Chooser = desc[0]
@@ -102,6 +105,8 @@ class DispOpt(object):
 				return self.Chooser[0] <= v <= self.Chooser[1]
 			except ValueError:
 				return False
+		elif self.ChooserType == ChooseType.boolval:
+			return BoolTrueWord(val) == self.Chooser
 		elif self.ChooserType == ChooseType.strval:
 			return self.Chooser == val
 		elif self.ChooserType == ChooseType.enumval:
