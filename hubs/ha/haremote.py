@@ -329,21 +329,23 @@ def call_service(api: API, domain: str, service: str,
 				 timeout: int = 5) -> None:
 	"""Call a service at the remote API."""
 	# print('Call svc {} {} {}'.format(domain,service,service_data))
-	try:
-		req = api(METH_POST,
-				  URL_API_SERVICES_SERVICE.format(domain, service),
-				  service_data, timeout=timeout)
+	for tryit in ('first try', 'retry'):
+		try:
+			req = api(METH_POST,
+					  URL_API_SERVICES_SERVICE.format(domain, service),
+					  service_data, timeout=timeout)
 
-		if req.status_code != 200:
-			logsupport.Logs.Log(
-				"HA Error calling service {} - {} Request: domain: {} service: {} data: {}".format(req.status_code,
-																								   req.text, domain,
-																								   service,
-																								   service_data))
+			if req.status_code != 200:
+				logsupport.Logs.Log(
+					"HA Error calling service {} - {} Request: domain: {} service: {} data: {}".format(req.status_code,
+																									   req.text, domain,
+																									   service,
+																									   service_data))
 
-	except HomeAssistantError as e:
-		logsupport.Logs.Log("HA service call failed", repr(e), severity=logsupport.ConsoleWarning)
-		raise
+		except HomeAssistantError as e:
+			logsupport.Logs.Log("HA service call failed ({}) {}".format(tryit, repr(e)),
+								severity=logsupport.ConsoleWarning)
+			if tryit == 'retry': raise
 
 
 def async_caller(api, domain, service, service_data, timeout):
