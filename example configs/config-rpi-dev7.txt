@@ -273,6 +273,13 @@ CenterMessage = False
     Appearance = 1 blue 'FAN SPEED; LOW',2 red 'FAN SPEED; MED', 3 red 'FAN SPEED; HIGH'
     #DefaultAppearance = None Blue 'Weird Result $'
     Blink = 5
+    [[AwayStatus]]
+    type = SETINPUT
+    Var = HASS:input_boolean.home
+    Value = 'toggle'
+    label = TBool
+    Appearance = false Red "Away", true Green "Home"
+    DefaultAppearance = None Pink "Bad Occ Setting:$"
 
 
 #[TreeTest]
