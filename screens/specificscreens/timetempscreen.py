@@ -10,7 +10,7 @@ import screens.__screens as screens
 from logsupport import ConsoleWarning
 from stores import valuestore
 from utils.utilfuncs import wc, fmt
-from utils.weatherfromatting import CreateWeathBlock
+from utils.weatherformatting import CreateWeathBlock
 
 
 def extref(listitem, indexitem):

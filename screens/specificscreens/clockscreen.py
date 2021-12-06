@@ -7,7 +7,7 @@ import screens.__screens as screens
 from utils import utilities, fonts, hw
 from logsupport import ConsoleWarning
 from utils.utilfuncs import wc
-from utils.weatherfromatting import CreateWeathBlock
+from utils.weatherformatting import CreateWeathBlock
 
 
 class ClockScreenDesc(screen.ScreenDesc):

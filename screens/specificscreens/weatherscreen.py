@@ -8,7 +8,7 @@ from keyspecs import toucharea
 from utils import utilities, fonts, hw
 from stores import valuestore
 from utils.utilfuncs import wc, fmt
-from utils.weatherfromatting import CreateWeathBlock
+from utils.weatherformatting import CreateWeathBlock
 
 fsizes = ((20, False, False), (30, True, False), (45, True, True))
 
