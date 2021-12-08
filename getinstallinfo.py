@@ -222,11 +222,12 @@ with open('installvals', 'w') as f:
 with open('installscreencode', 'w') as f:
 	f.writelines(installsrc)
 
-ISYname = ""
+HubName = ""
 ans = ""
-ISYIP = ""
+IP = ""
 ISYUSER = ""
 ISYPWD = ""
+HATOKEN = ""
 exswitch = ""
 MinExampISY = GetYN("Set up minimal ISY example system?")
 MinExampHA = GetYN("Set up minimal Home Assistant example system?") if not MinExampISY else False
@@ -234,17 +235,17 @@ MinExampHA = GetYN("Set up minimal Home Assistant example system?") if not MinEx
 if MinExampISY:
 	go = False
 	while not go:
-		ISYname = input("Name to use for the ISY hub (defaults to ISY): ")
-		if ISYname == "":
-			ISYname = "ISY"
-		ISYIP = input("full URL to access ISY: ")
-		if ISYIP.endswith('/'):
-			ISYIP = ISYIP[0:-1]
+		HubName = input("Name to use for the ISY hub (defaults to ISY): ")
+		if HubName == "":
+			HubName = "ISY"
+		IP = input("full URL to access ISY: ")
+		if IP.endswith('/'):
+			IP = IP[0:-1]
 		ISYUSER = input("ISY user name: ")
 		ISYPWD = input("ISY password: ")
 		exswitch = input("Example switch to use (ISY name): ")
-		print("ISY Name: " + ISYname)
-		print("IP:       " + ISYIP)
+		print("ISY Name: " + HubName)
+		print("IP:       " + IP)
 		print("USER:     " + ISYUSER)
 		print("PASSWORD: " + ISYPWD)
 		print("SWITCH:   " + "[[" + exswitch + "]]")
@@ -252,16 +253,16 @@ if MinExampISY:
 elif MinExampHA:
 	go = False
 	while not go:
-		HAname = input("Name to use for the HA hub (defaults to HASS):")
-		if HAname == "":
-			HAname = "HASS"
-		HAIP = input("full URL to access HA: ")
-		if HAIP.endswith('/'):
-			HAIP = HAIP[0:-1]
+		HubName = input("Name to use for the HA hub (defaults to HASS):")
+		if HubName == "":
+			HubName = "HASS"
+		IP = input("full URL to access HA: ")
+		if IP.endswith('/'):
+			IP = IP[0:-1]
 		HATOKEN = input("HA access token: ")
 		HAexswitch = input("Example switch to use (HA entity name): ")
-		print("HA Name: " + HAname)
-		print("IP:       " + HAIP)
+		print("HA Name: " + HubName)
+		print("IP:       " + IP)
 		print("PASSWORD: " + HATOKEN)
 		print("SWITCH:   " + "[[" + HAexswitch + "]]")
 		go = GetYN("OK? (y/n)")
@@ -284,9 +285,9 @@ for pdir in dirs:
 
 if MinExampISY:
 	with open('/home/pi/Console/cfglib/auth.cfg', "w") as f:
-		cfg = ("[" + ISYname + "]",
+		cfg = ("[" + HubName + "]",
 			   "type = ISY",
-			   "address = " + ISYIP,
+			   "address = " + IP,
 			   "user = " + ISYUSER,
 			   "password = " + ISYPWD,
 			   "\n")
@@ -294,7 +295,7 @@ if MinExampISY:
 	with open('/home/pi/Console/config.txt', 'w') as f:
 		cfg = ('cfglib = cfglib',
 			   'include = auth.cfg, myclock.cfg',
-			   'DefaultHub = ' + ISYname,
+			   'DefaultHub = ' + HubName,
 			   'HomeScreenName = test',
 			   'PersistTO = 30',
 			   'DimLevel = 5',
@@ -310,16 +311,16 @@ if MinExampISY:
 		f.write("\n".join(cfg))
 elif MinExampHA:
 	with open('/home/pi/Console/cfglib/auth.cfg', "w") as f:
-		cfg = ("[" + HAname + "]",
+		cfg = ("[" + HubName + "]",
 			   "type = HASS.1",
-			   "address = " + HAIP,
+			   "address = " + IP,
 			   "password = " + HATOKEN,
 			   "\n")
 		f.write("\n".join(cfg))
 	with open('/home/pi/Console/config.txt', 'w') as f:
 		cfg = ('cfglib = cfglib',
 			   'include = auth.cfg, myclock.cfg',
-			   'DefaultHub = ' + HAname,
+			   'DefaultHub = ' + HubName,
 			   'HomeScreenName = test',
 			   'PersistTO = 30',
 			   'DimLevel = 5',
