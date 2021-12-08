@@ -228,9 +228,10 @@ ISYIP = ""
 ISYUSER = ""
 ISYPWD = ""
 exswitch = ""
-MinExamp = GetYN("Set up minimal example system?")
+MinExampISY = GetYN("Set up minimal ISY example system?")
+MinExampHA = GetYN("Set up minimal Home Assistant example system?") if not MinExampISY else False
 
-if MinExamp:
+if MinExampISY:
 	go = False
 	while not go:
 		ISYname = input("Name to use for the ISY hub (defaults to ISY): ")
@@ -247,6 +248,22 @@ if MinExamp:
 		print("USER:     " + ISYUSER)
 		print("PASSWORD: " + ISYPWD)
 		print("SWITCH:   " + "[[" + exswitch + "]]")
+		go = GetYN("OK? (y/n)")
+elif MinExampHA:
+	go = False
+	while not go:
+		HAname = input("Name to use for the HA hub (defaults to HASS):")
+		if HAname == "":
+			HAname = "HASS"
+		HAIP = input("full URL to access HA: ")
+		if HAIP.endswith('/'):
+			HAIP = HAIP[0:-1]
+		HATOKEN = input("HA access token: ")
+		HAexswitch = input("Example switch to use (HA entity name): ")
+		print("HA Name: " + HAname)
+		print("IP:       " + HAIP)
+		print("PASSWORD: " + HATOKEN)
+		print("SWITCH:   " + "[[" + HAexswitch + "]]")
 		go = GetYN("OK? (y/n)")
 
 print("Set up directory environment for console")
@@ -265,7 +282,7 @@ for pdir in dirs:
 		print("Already present: " + str(pdir))
 	shutil.chown(pdir, user='pi', group='pi')
 
-if MinExamp:
+if MinExampISY:
 	with open('/home/pi/Console/cfglib/auth.cfg', "w") as f:
 		cfg = ("[" + ISYname + "]",
 			   "type = ISY",
@@ -291,12 +308,39 @@ if MinExamp:
 			   '[[' + exswitch + ']]',
 			   "\n")
 		f.write("\n".join(cfg))
+elif MinExampHA:
+	with open('/home/pi/Console/cfglib/auth.cfg', "w") as f:
+		cfg = ("[" + HAname + "]",
+			   "type = HASS.1",
+			   "address = " + HAIP,
+			   "password = " + HATOKEN,
+			   "\n")
+		f.write("\n".join(cfg))
+	with open('/home/pi/Console/config.txt', 'w') as f:
+		cfg = ('cfglib = cfglib',
+			   'include = auth.cfg, myclock.cfg',
+			   'DefaultHub = ' + HAname,
+			   'HomeScreenName = test',
+			   'PersistTO = 30',
+			   'DimLevel = 5',
+			   'DimTO = 15',
+			   'DimIdleListNames = MyClock,',
+			   'DimIdleListTimes = 20,',
+			   'MainChain = test, MyClock',
+			   '[test]',
+			   'type = Keypad',
+			   'label = My, Test',
+			   '[[' + exswitch + ']]',
+			   "\n")
+		f.write("\n".join(cfg))
 
 print("\n\nSoftconsole install paramters:")
 for l in scriptvars:
 	print('    ' + l.replace('\n', ''))
-if MinExamp:
-	print("    Create minimal example configuration")
+if MinExampISY:
+	print("    Create minimal example ISY configuration")
+elif MinExampHA:
+	print("    Create minimal example Home Assistant configuration")
 else:
 	print("    Skip minimal example configuration")
 print('---------------------', flush=True)
