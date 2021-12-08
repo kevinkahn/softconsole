@@ -230,7 +230,7 @@ CenterMessage = False
     type = SETINPUT
     Var = HASS:input_select.inputselect
     Value = 'nextcycle'
-    Appearance = T2|T3 Red "InputSel:$"
+    Appearance = T2| Red "InputSel:$"
     DefaultAppearance = None Blue "WeirdSel:$"
     Blink = 5
     [[TestSelPC]]

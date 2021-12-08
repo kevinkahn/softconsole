@@ -1,13 +1,14 @@
 import debug
-import hubs.hubs
 import logsupport
 from screens import screen
-from utils import utilities
 from keys.keyspecs import KeyTypes
-from keys.keyutils import ErrorKey
+from keys.keyutils import DispOpt, AdjustAppearance
 from logsupport import ConsoleWarning
 from keyspecs.toucharea import ManualKeyDesc
-from keys.keyutils import DispOpt, AdjustAppearance
+from keys.keyutils import ErrorKey
+from utils import utilities
+import hubs.hubs
+
 
 # key to provide HA style input values
 class SetInputKey(ManualKeyDesc):

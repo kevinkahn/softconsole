@@ -116,12 +116,12 @@ The Console uses systemd service support for starting.  (Much older version used
 # Quick Setup of Minimal Test
 
 To ensure that the basic setup of the Console is ok and that you understand the pieces, there is a minimal test
-configuration that you might want to run. If you answer 'y' to the question above about creating a minimal ISY test
-configuration, setup will continue by asking for the IP address of your ISY, your ISY username, and your ISY password.
-It will create the file Console/cfglib/auth.cfg using this information. It will also ask for the ISY name of a single
-switch that you want to use for the test. It will use this information to create a single screen with a single button
-that should turn that switch on and off. It will also define a clock screen that should appear when the console is idle.
-The minimal test configuration is not currently supported for a HA hub.
+configuration that you might want to run. If you answer 'y' to the question above about creating a minimal ISY or HA
+test configuration, setup will continue by asking for the IP address of your hub, and for ISY your username and
+password, or for HA an access token. It will create the file Console/cfglib/auth.cfg using this information. It will
+also ask for the name of a single switch that you want to use for the test. It will use this information to create a
+single screen with a single button that should turn that switch on and off. It will also define a clock screen that
+should appear when the console is idle.
 
 Now start the console as root by going to the consolestable directory and running python -u console.py. This should
 bring up a very simple 1 screen instance of the console that can turn on/off the switch you picked. If you leave the
@@ -425,95 +425,134 @@ All screens support some common keyword parameters that control appearance of as
 * Clocked: a value in seconds that will cause a repaint of the screen every interval.  Not needed for Clock screens and TimeTemp screens that already clock every second but useful for things like key screens if you want their title to refresh.
 * label: a label for the screen to be used in nav keys that point to this screen; also is a default if a screen title is needed for a screen and one is not explicitly specified
 
-Note that all the elements referring to keys may be explicitly specified at the key level - there are just default values to use for the screen.  
+Note that all the elements referring to keys may be explicitly specified at the key level - there are just default
+values to use for the screen.
 
-##Screen Title
-If you set a non empty title for a screen that doesn't otherwise have one, the rest of the screen shrinks vertically to allow the space.  If ScreenTitleFields lists store items then these are substituted into the title whenever the screen is rendered (including when it is rendered based on "Clocked").  Substitution is based on standard Python formatting rules as defined in https://docs.python.org/3.7/library/string.html.  
+## Screen Title
+
+If you set a non empty title for a screen that doesn't otherwise have one, the rest of the screen shrinks vertically to
+allow the space. If ScreenTitleFields lists store items then these are substituted into the title whenever the screen is
+rendered (including when it is rendered based on "Clocked"). Substitution is based on standard Python formatting rules
+as defined in https://docs.python.org/3.7/library/string.html.
 
 ## Screen Types
 
 ### Keypad
-* Keypad: mimics the KPL.  Can support any number of buttons from 1 to 25 and will autoplace/autosize buttons in this range.  Parmetrs KeysPerColumn and KeysPerRow may be used to override the auto placement of the keys.  Keys may be colored as desired.  Key types are:
-    * ONOFF: linked to a device or scene and supports On, Off, FastOn, FastOff behaviors. If an ONOFF key is held down
-      for a prolonged period of time and the underlying device is a dimmer, then a slider screen is displayed that
-      allows the brightness to be set. For Insteon/ISY hubs, dimming also applies to scenes via the scene proxy
-      mechanism. This allows convient dimming for common 3-way switch setups where multiple dimmers are combined in a
-      scene to control a single load (or set of loads). By default the slider bar will display in the longer direction
-      of the screen (e.g., horizontally for the 7 inch screen in landscape mode and vertically for the smaller screen in
-      portrait mode). This can be overriden by explicitly specifying a SlideOrientation parameter where 0 is default
-      direction, 1 is force horizontal, and 2 is force vertical).
-    * RUNPROG: linked to a program to run. The program to run is specified by a **ProgramName** parameter. It issues a
-      RunThen on the designated program for ISY hubs. It issues a automation.trigger or script.<scriptname> for the
-      automation for HA hubs. A **Parameter** parameter may be supplied to provide parameter(s) to an HA script.  (ISY
-      programs do not accept parameters.)  The Parameter may be a single string in which case the json {'Parameter':
-      string} will be passed to HA. It may also be a comma delimited set of strings of the form A:vala,B:valb in which
-      case the json {'A':vala,'B':valb} will be passed.
-    * (Deprecated-use RUNPROG with modifiers) ONBLINKRUNTHEN: linked to a program. Will blink to provide user feedback
-      and will issue RunThen on program
-    * ON: will always send an "on" command to the linked device. This is useful for things like garage doors that use on
-      toggles.
-    * OFF: will always send an "off" command to the linked device.
-    * GOTO: Change to a specific screen. Takes a parameter ScreenName=<name of screen to go to>. Going to another screen
-      creates a stack of screens. On the new screen the Nav keys will be "Home" and "Back". Back returns to the calling
-      screen. Home returns to the top screen of the stack unless that is the screen Back would go to in which case Home
-      goes to the global console home screen.
-    * SETVAR: set the value of an ISY variable
-    * VARKEY: this type can be used passively to construct status displays or also allow stepping through a predefined
-      set of variable values. Its **Var** parameter specifies a store item to operate on. It has an **Appearance**
-      parameter that specifies the display appearance of the key for various values of the store item. This parameter
-      has the form of a list of comma delimited descriptor items. Each descriptor item is of the form "range color
-      label" (without the quotes). Range is either a single integer that specifies a store item value or a pair n:m
-      which defines a range within which the store item falls for this descriptor to be used. Color is the color of the
-      key for this value. Label is the label the key should have for this value using semicolons to separate lines
-      within the label and a $ to be substituted for the store item value if desired. If the label is left out of the
-      descriptor item the normal key label is used (either the key name or an explicit label parameter). if the store
-      value doesn't match any of the ranges the normal key label is used. A **ValueSeq** parameter optionally specifies
-      values that should be cyclically assigned to the store item if the key is pressed. If the current value of the
-      store item is not in the ValueSeq then a press sets the value to the first item in the sequence. Leaving it out
-      makes the key passive. As an example should help clarify:
+
+* Keypad: mimics the KPL. Can support any number of buttons from 1 to 25 and will autoplace/autosize buttons in this
+  range. Parmetrs KeysPerColumn and KeysPerRow may be used to override the auto placement of the keys. Keys may be
+  colored as desired. Key types are:
+
+#### Key Types
+
+* ONOFF: linked to a device or scene and supports On, Off, FastOn, FastOff behaviors. If an ONOFF key is held down for a
+  prolonged period of time and the underlying device is a dimmer, then a slider screen is displayed that allows the
+  brightness to be set. For Insteon/ISY hubs, dimming also applies to scenes via the scene proxy mechanism. This allows
+  convient dimming for common 3-way switch setups where multiple dimmers are combined in a scene to control a single
+  load (or set of loads). By default the slider bar will display in the longer direction of the screen (e.g.,
+  horizontally for the 7 inch screen in landscape mode and vertically for the smaller screen in portrait mode). This can
+  be overriden by explicitly specifying a SlideOrientation parameter where 0 is default direction, 1 is force
+  horizontal, and 2 is force vertical).
+* RUNPROG: linked to a program to run. The program to run is specified by a **ProgramName** parameter. It issues a
+  RunThen on the designated program for ISY hubs. It issues a automation.trigger or script.<scriptname> for the
+  automation for HA hubs. A **Parameter** parameter may be supplied to provide parameter(s) to an HA script.  (ISY
+  programs do not accept parameters.)  The Parameter may be a single string in which case the json {'Parameter':
+  string} will be passed to HA. It may also be a comma delimited set of strings of the form A:vala,B:valb in which case
+  the json {'A':vala,'B':valb} will be passed.
+* (Deprecated-use RUNPROG with modifiers) ONBLINKRUNTHEN: linked to a program. Will blink to provide user feedback and
+  will issue RunThen on program
+* ON: will always send an "on" command to the linked device. This is useful for things like garage doors that use on
+  toggles.
+* OFF: will always send an "off" command to the linked device.
+* GOTO: Change to a specific screen. Takes a parameter ScreenName=<name of screen to go to>. Going to another screen
+  creates a stack of screens. On the new screen the Nav keys will be "Home" and "Back". Back returns to the calling
+  screen. Home returns to the top screen of the stack unless that is the screen Back would go to in which case Home goes
+  to the global console home screen.
+* SETVAR: set the value of an ISY variable
+* VARKEY: this type can be used passively to construct status displays or also allow stepping through a predefined set
+  of variable values. Its **Var** parameter specifies a store item to operate on. It has an **Appearance**
+  parameter that specifies the display appearance of the key for various values of the store item. This parameter has
+  the form of a list of comma delimited descriptor items. Each descriptor item is of the form "range color label" (
+  without the quotes). Range is either a single integer that specifies a store item value or a pair n:m which defines a
+  range within which the store item falls for this descriptor to be used. Color is the color of the key for this value.
+  Label is the label the key should have for this value using semicolons to separate lines within the label and a $ to
+  be substituted for the store item value if desired. If the label is left out of the descriptor item the normal key
+  label is used (either the key name or an explicit label parameter). if the store value doesn't match any of the ranges
+  the normal key label is used. A **ValueSeq** parameter optionally specifies values that should be cyclically assigned
+  to the store item if the key is pressed. If the current value of the
+  store item is not in the ValueSeq then a press sets the value to the first item in the sequence. Leaving it out
+  makes the key passive. As an example should help clarify:
        ```
         [[TestKey]]
             type = VARKEY
-            label = Error in Value, $
-            Var = ISY:State:tEST
-            ValueSeq = 0,1,3,6
-            KeyCharColorOn = royalblue
-            Appearance = 0 green 'All good',1:2 yellow 'Probably; good; $',3:99 99 red 'Not so hot $'
-        ```
-      This describes a key that will be green and say "All good" if the variable is 0; be yellow and say "Probably good"
-      and show the value on 3 lines if the value is 1 or 2; and be red and say "Not so hot" and the value on a single
-      line for values of 3 to 99. For any other values the key will display "Error in Value" and the value. Sequential
-      presses of the key when the value is 0 will set the variable to 1, then 3, then 6, then 0. If something else has
-      set the variable to, e.g.,4, then pressing it will make the variable 0. A **ProgramName** parameter may be
-      optionally specified that will cause that script/program to be run in the hub (exactly as a RUNPROG key). In this
-      case a **Parameter** parameter may also be supplied.
-        
-    * Note the key types PROC, REMOTEPROC, and REMOTECPLXPROC are reserved for internal use by the console.
+  label = Error in Value, $
+  Var = ISY:State:tEST
+  ValueSeq = 0,1,3,6 KeyCharColorOn = royalblue Appearance = 0 green 'All good',1:2 yellow 'Probably; good; $',3:99 99 red 'Not so hot $'
+  ```
+  This describes a key that will be green and say "All good" if the variable is 0; be yellow and say "Probably good"
+  and show the value on 3 lines if the value is 1 or 2; and be red and say "Not so hot" and the value on a single line
+  for values of 3 to 99. For any other values the key will display "Error in Value" and the value. Sequential presses of
+  the key when the value is 0 will set the variable to 1, then 3, then 6, then 0. If something else has set the variable
+  to, e.g.,4, then pressing it will make the variable 0. A **ProgramName** parameter may be optionally specified that
+  will cause that script/program to be run in the hub (exactly as a RUNPROG key). In this case a **Parameter** parameter
+  may also be supplied.
+* SETINPUT: this key is specifically for HA hubs but is somewhat similar to the VARKEY. It allows the display and
+  setting of "input" entities in HA, specifically input_boolean, input_number, and input_select entities. These carry
+  their own limitations on values and so do not need the value sequence information that the VARKEY has. The key takes a
+  Value parameter which either provides an value for the input entity or calls an operation that is defined for that
+  type of input. For input_boolean VALUE may be "toggle", "on", or "off" ("true" and "false" are accepted as
+  alternatives for on and off). For input_number VALUE may be "inc", "dec", or a number to respectively increment the
+  value, decrement the value, or set the value.  (Note: inc and dec use the HA defined operations and the HA defined
+  step value.)  For input_select VALUE may be "first", "last", "next", "nextcycle", "prev", "prevcycle", or one of the
+  HA defined selection values. The SETINPUT key also takes an "Appearance" and a "DefaultAppearance" parameter for
+  control what the key looks like based on the entity value.
 
-  * Modifier Parameters: The ONOFF, RUNPROG, VARKEY, and SETVAR keytypes support certain parameters that modify the key
-    behavior:
-      * Verify = 1: displays a confirmation screen before running the program. The messages on the confirmation screen
-        can be customized with the GoMsg and/or NoGoMsg parameters.
-      * Blink = n: provide visual feedback when the runthen is issued by blinking the key n times.  (For VARKEY the key
-        will blink if you have not yet seen it with its current value, even if that value had been previously set while
-        another screen was showing on the console.)
-      * FastPress = 1: requires a quick double tap to activate the key. (Note not applicable to the ONOFF keys since
-        there a double press corresponds to issuing a fast on or off to the device).
+#### Key Type Notes
 
-  * Note: Scenes in general have no state to use for choosing the appearance of a button as on or off. ISY and HA handle
-    scenes somewhat differently. For ISY a scene can be turned off while for HA scenes can only be turned on. To provide
-    user visible feedback when a key corresponding to a scene is touched there are choices. The modifier parameter
-    SceneProxy can be used to designate a device whose state should be used to pick the display appearance for the key.
-    This is particularly useful for ISY scenes that simply model 3-way control of a light. For ISY scenes, the console
-    will attempt to automatically choose a device to use as the scene proxy if none is selected (and will usually choose
-    well). For HA automatic proxy choice is not done, so an explicit proxy would need to be specified if desired.
-    Alternately, the user my opt to blink the key to provide feedback that the scene was turned on.
-    
+* Note the key types PROC, REMOTEPROC, and REMOTECPLXPROC are reserved for internal use by the console.
+
+* Modifier Parameters: The ONOFF, RUNPROG, VARKEY, and SETVAR keytypes support certain parameters that modify the key
+  behavior:
+    * Verify = 1: displays a confirmation screen before running the program. The messages on the confirmation screen can
+      be customized with the GoMsg and/or NoGoMsg parameters.
+    * Blink = n: provide visual feedback when the runthen is issued by blinking the key n times.  (For VARKEY the key
+      will blink if you have not yet seen it with its current value, even if that value had been previously set while
+      another screen was showing on the console.)
+    * FastPress = 1: requires a quick double tap to activate the key. (Note not applicable to the ONOFF keys since there
+      a double press corresponds to issuing a fast on or off to the device).
+
+* Note: Scenes in general have no state to use for choosing the appearance of a button as on or off. ISY and HA handle
+  scenes somewhat differently. For ISY a scene can be turned off while for HA scenes can only be turned on. To provide
+  user visible feedback when a key corresponding to a scene is touched there are choices. The modifier parameter
+  SceneProxy can be used to designate a device whose state should be used to pick the display appearance for the key.
+  This is particularly useful for ISY scenes that simply model 3-way control of a light. For ISY scenes, the console
+  will attempt to automatically choose a device to use as the scene proxy if none is selected (and will usually choose
+  well). For HA automatic proxy choice is not done, so an explicit proxy would need to be specified if desired.
+  Alternately, the user my opt to blink the key to provide feedback that the scene was turned on.
+
+#### Key Appearance
+
+The SETINPUT and VARKEY keys accept and Appearance and DefaultAppearance parameter. Appearance takes a sequence of
+appearance descriptors where the first element (value matcher) describes what values is applies to, the second chooses a
+color, and the third provides a label. If the value matcher contains a ":" it defines a number range that matches. If it
+contains a "|" then it defines a sequence of 1 or more selection values. If it is an integer then it defines that
+integer value. If it is "None" then it matches a None value (see above). If it is "true" (or "on") or "false" (or "off")
+it matches that boolean condition. Finally, if it is none of these it matches a string.
+
 ### Clock
-* Clock: displays a clock formatted according to the OutFormat parameter using any of the underlying OS time formatting codes.  The character size for each line can be set individually.  If there are more lines in the format than character sizes the last size is repeated. Python standard formatting is at https://docs.python.org/2/library/time.html.  Linux (RPi) supports a somewhat richer set of codes e.g. http://linux.die.net/man/3/strftime
+
+* Clock: displays a clock formatted according to the OutFormat parameter using any of the underlying OS time formatting
+  codes. The character size for each line can be set individually. If there are more lines in the format than character
+  sizes the last size is repeated. Python standard formatting is at https://docs.python.org/2/library/time.html. Linux (
+  RPi) supports a somewhat richer set of codes e.g. http://linux.die.net/man/3/strftime
+
 ### Weather
-* Weather: uses a weather provider to display current conditions and forecast.  The location parameter is a location code defined as above.
-### Thermostat    
+
+* Weather: uses a weather provider to display current conditions and forecast. The location parameter is a location code
+  defined as above.
+
+### Thermostat
+
 * Thermostat: mimics the front panel of the typical thermostat and provides full function equivalency. Has been tested
   with Insteon thermostat via ISY and Nest Thermostat via HA but should work with any device those hubs support. This
   screen uses an improved update approach for the setpoints. Touching the setpoint buttons only adjusts the values
