@@ -234,7 +234,7 @@ logsupport.Logs.Log(
 	'Version/Sha/Dnld/Commit: {} {} {} {}'.format(config.sysStore.versionname, config.sysStore.versionsha, config.sysStore.versiondnld, config.sysStore.versioncommit))
 
 """
-Dynamically load class definitions for all defined screen types, slert types, hubtypes, weather provider types
+Dynamically load class definitions for all defined screen types, alert types, hubtypes, weather provider types
 and link them to how configuration happens
 """
 for screentype in os.listdir(os.getcwd() + '/screens/specificscreens'):
