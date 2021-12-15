@@ -1,0 +1,49 @@
+cfglib = cfglib
+include = /home/pi/Console/local/auth.cfg, picscreen.cfg, weathLQ.cfg, weathCC.cfg, weathPDX.cfg,timetempPDX.cfg,BR-kck.cfg, condotstats.cfg, mqtt.cfg, weathersources.cfg, timetempLQ.cfg, pdxalerts.cfg
+
+HomeScreenName = BR
+DimLevel = 5
+DimTO = 25
+
+DimIdleListNames = TimeTemp, LQTT, Pictures
+DimIdleListTimes =	5, 5, 45
+
+MainChain = BR, TimeTemp, climate.air_conditionerbr_hvac, climate.air_conditionerlr_hvac
+SecondaryChain = Local, Portland, La Quinta
+
+
+[Sonos]
+    type = Sonos
+    DefaultHub = HASS
+
+[Alerts]
+[[LXPanel]]
+         Type = Periodic
+         Interval = 24 hours
+         Invoke = LXPanelRestart.LXPanelRestart
+[[AdjustScreenDim]]
+	Type = Periodic
+	At = 11:00pm
+	Invoke = AssignVar.Assign
+	Parameter = System:DimLevel = 10
+[[AdjustScreenDimUp]]
+	Type = Periodic
+	At = 6:00am
+	Invoke = AssignVar.Assign
+	Parameter = System:DimLevel = 50
+#[[DimAway]]
+#	Type = VarChange
+#	Var = ISY:Int:HA_AwayNonState
+#	Test = EQ
+#	Value = 1
+#	Invoke = AssignVar.Assign
+#	Parameter = System:DimLevel = 5
+
+#[[DimHome]]
+#	Type = VarChange
+#	Var = ISY:Int:HA_AwayNonState
+#	Test = EQ
+#	Value = 0
+#	Invoke = AssignVar.Assign
+#	Parameter = System:DimLevel = 50
+
