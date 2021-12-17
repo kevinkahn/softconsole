@@ -1,0 +1,37 @@
+cfglib = cfglib
+include = /home/pi/Console/local/auth.cfg, pdxalerts.cfg, mqtt.cfg, inetalert.cfg, weathLQ.cfg, weathCC.cfg, weathPDX.cfg,timetempPDX.cfg,tstat.cfg,garage.cfg, octoprint.cfg, weathersources.cfg, timetempLQ.cfg, condostats.cfg
+
+HomeScreenName = Garage
+DimLevel = 5
+DimTO = 25
+DimIdleListNames = TimeTemp, LQTT
+DimIdleListTimes = 8,8
+
+MainChain = Garage, Prusa, TimeTemp,climate.air_conditionerbr_hvac,climate.air_conditionerlr_hvac
+SecondaryChain = Local, Portland, La Quinta
+
+[Alerts]
+[[LXPanel]]
+         Type = Periodic
+         Interval = 24 hours
+         Invoke = LXPanelRestart.LXPanelRestart
+
+#[[DimAway]]
+#	Type = VarChange
+#	Var = ISY:Int:HA_AwayNonState
+#	Test = EQ
+#	Value = 1
+#	Invoke = AssignVar.Assign
+#	Parameter = System:DimLevel = 0
+
+#[[DimHome]]
+#	Type = VarChange
+#	Var = ISY:Int:HA_AwayNonState
+#	Test = EQ
+##	Invoke = AssignVar.Assign
+#	Parameter = System:DimLevel = 100
+
+
+
+
+

@@ -184,6 +184,8 @@ def DomainSpecificEvent(e, message):
 
 
 def RegisterDomain(domainname, domainmodule, eventhdlr=DomainSpecificEvent):
+	if domainname in hadomains:
+		logsupport.Logs.Log('Redundant registration of HA domain {}'.format())
 	hadomains[domainname] = domainmodule
 	domainspecificevents[domainname] = eventhdlr
 
