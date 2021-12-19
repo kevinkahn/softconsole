@@ -10,11 +10,13 @@ import stats
 
 import config
 import historybuffer
+
 import logsupport
 from logsupport import ConsoleWarning, ConsoleDetail
 
 from ._weatherbit.api import Api
 from ._weatherbit.utils import LocalizeDateTime
+from .. import mqttsupport
 from ..genericweatherstore import RegisterFetcher
 
 from stores.weathprov.providerutils import TryShorten, WeathProvs, MissingIcon
@@ -268,6 +270,9 @@ class WeatherbitWeatherSource(object):
 			if time.time() < self.dailyreset:
 				logsupport.Logs.Log(
 					"Skip Weatherbit fetch for {}, over limit until {}".format(self.thisStoreName, self.resettime))
+				return
+			elif not mqttsupport.MQTTrunning:
+				logsupport.Logs.Log("Suppress weather fetch for MQTT not running")
 				return
 			else:
 				cur = None

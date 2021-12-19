@@ -19,6 +19,9 @@ import controlevents
 import stats
 from utils.utilities import CheckPayload
 
+MQTTrunning = False
+
+
 class MQitem(valuestore.StoreItem):
 	def __init__(self, name, Topic, Type, Expires, jsonflds, Store):
 		self.Topic = Topic
@@ -259,8 +262,10 @@ class MQTTBroker(valuestore.ValueStore):
 		config.MQTTBroker = self
 
 	def MQTTLoop(self):
+		global MQTTrunning
 		try:
 			self.MQTTclient.connect(self.address, keepalive=20)
+			MQTTrunning = True
 		except Exception as E:
 			self.MQTTCommFailed = True
 			logsupport.Logs.Log('Exception connecting to MQTT - authentication or server down error ({})'.format(E),
@@ -274,6 +279,7 @@ class MQTTBroker(valuestore.ValueStore):
 		logsupport.Logs.Log("MQTT handler thread ended for: " + self.name, severity=ConsoleWarning)
 		self.loopexited = True
 		self.MQTTrunning = False
+		MQTTrunning = False
 
 	def GetValByID(self, lclid):
 		self.GetVal(self.ids[lclid])
