@@ -295,7 +295,7 @@ CenterMessage = False
     Clocked = 2
     ScreenTitle = Living Room {:.1f}° {:.0f}% at {}
     ScreenTitleColor = red
-    ScreenTitleFields = MQTT:PatioTemp, MQTT:PatioHum, System:Time:%H*%M*%S
+    ScreenTitleFields = HASSpga:sensor.patio_sensor_temperature, HASSpga:sensor.patio_sensor_humidity, System:Time:%H*%M*%S
     type = Keypad
     label = Living, Room 1
 #    [[Office Ceiling]]

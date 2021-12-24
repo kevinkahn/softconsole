@@ -9,7 +9,7 @@ LogLevel = 3
 # switch to authall with HASSpga avail
 
 cfglib = "/home/pi/consolerem/example configs/cfglib"
-include = /home/pi/Console/local/authall.cfg, weathersources.cfg, weathPump.cfg, timetempLQ.cfg,  myclock.cfg,weathPDX.cfg,timetempLQ7.cfg, octoprint.cfg, weathCC.cfg, timetempPDX7.cfg, pgaTstat.cfg, pgawBRmain.cfg, pgaOther.cfg, pgaBath.cfg, pgalr.cfg, condotstats.cfg #mqtt.cfg,
+include = /home/pi/Console/local/authall.cfg, weathersources.cfg, weathPump.cfg, timetempLQ.cfg,  myclock.cfg,weathPDX.cfg,timetempLQ7.cfg, octoprint.cfg, weathCC.cfg, timetempPDX7.cfg, pgaTstat.cfg, pgawBRmain.cfg, pgaOther.cfg, pgaBath.cfg, pgalr.cfg, condotstats.cfg, pgaGR.cfg, mqtt.cfg, pgaKitchen.cfg
 #pgaalerts.cfg,
 HomeScreenName = 'Prusa'
 DimLevel = 10
@@ -19,7 +19,7 @@ DimIdleListNames = PDXTTbig, Pic, MyClock, LQTTbig, Pumpkin
 
 DimIdleListTimes =	5, 20, 5, 5, 5, 5
 
-MainChain = Prusa, pgawBath, PGALR, wxHouse, Pic, Pumpkin, Local, climate.air_conditionerbr_hvac,climate.air_conditionerlr_hvac,LR1
+MainChain = Prusa, pgawBath, PGALR, wxHouse, Pic, Pumpkin, Local, climate.air_conditionerbr_hvac,climate.air_conditionerlr_hvac,Test1, pgaGR, pgaKitchen
 SecondaryChain = Portland, LQTTbig, climate.master_bedroom, climate.living_room, pgawBR, pgawOther
 
 DefaultHub = HASS
@@ -200,13 +200,13 @@ CenterMessage = False
 #    NormalOff = Pucks, Downlights, Kitchen Dimmer, Office Ceiling
 #    NormalOn = Main Hall, Landscape, LR Dual Spots
 
-[LR1]
+[Test1]
     Clocked = 2
     ScreenTitle = Bool {} Num {} Select {}
     ScreenTitleColor = red
     ScreenTitleFields = HASS:input_boolean.home, HASS:input_number.inputnum, HASS:input_select.inputselect
     type = Keypad
-    label = Living, Room 1
+    label = Test1
     [[TestBool]]
     type = SETINPUT
     Var = HASS:input_boolean.home
