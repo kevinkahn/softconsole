@@ -135,6 +135,18 @@ configdir = os.path.dirname(config.sysStore.configfile)
 config.sysStore.configdir = configdir
 
 try:
+	with open('{}/versioninfo'.format(config.sysStore.ExecDir)) as f:
+		config.sysStore.SetVal('versionname', f.readline()[:-1].rstrip())
+		config.sysStore.SetVal('versionsha', f.readline()[:-1].rstrip())
+		config.sysStore.SetVal('versiondnld', f.readline()[:-1].rstrip())
+		config.sysStore.SetVal('versioncommit', f.readline()[:-1].rstrip())
+except (IOError, ValueError):
+	config.sysStore.SetVal('versionname', 'none')
+	config.sysStore.SetVal('versionsha', 'none')
+	config.sysStore.SetVal('versiondnld', 'none')
+	config.sysStore.SetVal('versioncommit', 'none')
+
+try:
 	sys.path.insert(0, '../')  # search for a localops module first in the home dir then one up
 	import localops
 
@@ -217,18 +229,8 @@ for root, dirs, files in os.walk(config.sysStore.ExecDir):
 			if os.path.getmtime(fn) > lastmod:
 				lastmod = os.path.getmtime(fn)
 				lastfn = fn
+####
 
-try:
-	with open('{}/versioninfo'.format(config.sysStore.ExecDir)) as f:
-		config.sysStore.SetVal('versionname',f.readline()[:-1].rstrip())
-		config.sysStore.SetVal('versionsha', f.readline()[:-1].rstrip())
-		config.sysStore.SetVal('versiondnld',f.readline()[:-1].rstrip())
-		config.sysStore.SetVal('versioncommit', f.readline()[:-1].rstrip())
-except (IOError, ValueError):
-	config.sysStore.SetVal('versionname', 'none')
-	config.sysStore.SetVal('versionsha', 'none')
-	config.sysStore.SetVal('versiondnld', 'none')
-	config.sysStore.SetVal('versioncommit', 'none')
 
 logsupport.Logs.Log(
 	'Version/Sha/Dnld/Commit: {} {} {} {}'.format(config.sysStore.versionname, config.sysStore.versionsha, config.sysStore.versiondnld, config.sysStore.versioncommit))

@@ -87,6 +87,11 @@ def PreOp():
 	except Exception as E:
 		PreOpScripts.append('Exception in runonce script handling: ({})'.format(E))
 
+	PreOpScripts.append('Version: {}'.format(config.sysStore.versionname))
+	if config.sysStore.versionname == 'development':
+		PreOpScripts.append('Skip config file updating for developement systems')
+		return
+
 	try:
 		cfgliblocal = set([f for f in os.listdir(conflocal) if os.path.isfile(os.path.join(conflocal, f))])
 		cfglibserver = set([f for f in os.listdir(cfgdirserver) if os.path.isfile(os.path.join(cfgdirserver, f))])
