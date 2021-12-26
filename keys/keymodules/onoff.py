@@ -5,9 +5,12 @@ import screens.supportscreens as supportscreens
 from utils import utilities, displayupdate
 from keys.keyspecs import KeyTypes
 from keys.keyutils import _resolvekeyname
+from keys.keyutils import DispOpt, AdjustAppearance
 from logsupport import ConsoleWarning
 from keyspecs.toucharea import ManualKeyDesc
 import functools
+import hubs.hubs
+import stores.valuestore as valuestore
 
 
 class OnOffKey(ManualKeyDesc):
@@ -15,13 +18,26 @@ class OnOffKey(ManualKeyDesc):
 		keyname, self.Hub = _resolvekeyname(kn, thisscreen.DefaultHubObj)
 		# self.ControlObj = None  # object on which to make operation calls
 		self.DisplayObj = None  # object whose state is reflected in key
+		self.advpaint = False
+		self.oldval = '####'
 
 		debug.debugPrint('Screen', "             New ", keytype, " Key Desc ", keyname)
 		ManualKeyDesc.__init__(self, thisscreen, keysection, keyname)
-		screen.AddUndefaultedParams(self, keysection, SceneProxy='', NodeName='')
+		screen.AddUndefaultedParams(self, keysection, SceneProxy='', NodeName='', Appearance=[], DefaultAppearance='',
+									Var='')
 
 		if keyname == '*Action*': keyname = self.NodeName  # special case for alert screen action keys that always have same name
 		self.ControlObj, self.DisplayObj = self.Hub.GetNode(keyname, self.SceneProxy)
+
+		self.displayoptions = []
+		if self.Appearance != []:
+			if self.DefaultAppearance == '':
+				self.defoption = DispOpt('None {} {}'.format(self.KeyColorOn, self.name), '')
+			else:
+				self.defoption = DispOpt(self.DefaultAppearance, self.label)
+			for item in self.Appearance:
+				self.displayoptions.append(DispOpt(item, self.label))
+			self.advpaint = True
 
 		if self.ControlObjUndefined():
 			debug.debugPrint('Screen', "Screen", keyname, "unbound")
@@ -73,6 +89,14 @@ class OnOffKey(ManualKeyDesc):
 			self.ControlObj.Hub.DeleteFromUnknowns(self.ControlObj)
 		self.PaintKey()
 		displayupdate.updatedisplay()
+
+	def PaintKey(self, ForceDisplay=False, DisplayState=True):
+		# create the images here dynamically then let lower methods do display, blink etc.
+		val = 1
+		if self.advpaint:
+			val = valuestore.GetVal(self.Var)
+			AdjustAppearance(self, val)
+		super().PaintKey(ForceDisplay, val is not None)
 
 	def FinishKey(self, center, size, firstfont=0, shrink=True):
 		super(OnOffKey, self).FinishKey(center, size, firstfont, shrink)

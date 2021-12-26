@@ -14,8 +14,8 @@ DimIdleListNames = MyClock, Pictures, PDXTTbig, LQTTbig
 
 DimIdleListTimes =	5, 24, 5, 5
 
-MainChain = pgaLR, pgawKitchen
-SecondaryChain = Thermostat - Main,climate.master_bedroom, climate.living_room, pgawOther, pgawBath
+MainChain = pgaGR, pgaKitchen
+SecondaryChain = climate.master_bedroom, climate.living_room, pgawOther, pgawBath
 
 DefaultHub = HASSpga
 HorizBorder = 10
