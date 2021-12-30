@@ -11,16 +11,16 @@ LogLevel = 3
 
 
 cfglib = "/home/pi/Console/cfglib"
-include = /home/pi/Console/local/authall.cfg, mqtt.cfg, pgawBRmain.cfg, pgaTstat.cfg, timetempLQ.cfg, timetempPDX.cfg, myclock2.cfg,weathPDX.cfg,weathPump.cfg,weathersources.cfg, pgaalerts.cfg, pgaBath.cfg, pgaOther.cfg#, testvarkey.cfg
+include = /home/pi/Console/local/authall.cfg, mqtt.cfg, pgawBRmain.cfg, pgaTstat.cfg, timetempLQ.cfg, timetempPDX.cfg, myclock2.cfg,weathPDX.cfg,weathPump.cfg,weathersources.cfg, pgaalerts.cfg, pgaBath.cfg, pgaOutside.cfg#, testvarkey.cfg
 HomeScreenName = pgawBR
 DimLevel = 25
 DimTO = 25
 DimIdleListNames = MyClock, Portland, LQTT, TimeTemp
 DimIdleListTimes =	8, 8, 8
 
-#MainChain = pgawBR, Varkeytest, LQTT, climate.master_bedroom, climate.living_room, pgawBath, pgawOther
-MainChain = pgawBR, LQTT, climate.master_bedroom, climate.living_room, pgawBath, pgawOther
-SecondaryChain = Portland, Pumpkin
+#MainChain = pgawBR, Varkeytest, LQTT, climate.master_bedroom, climate.living_room, pgawBath
+MainChain = pgawBR, LQTT, climate.master_bedroom, climate.living_room, pgawBath
+SecondaryChain = Portland, Pumpkin, pgawOutside, pgaGR, pgaKitchen
 
 DefaultHub = HASSpga
 

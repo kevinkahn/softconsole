@@ -9,9 +9,9 @@ LogLevel = 3
 # switch to authall with HASSpga avail
 
 cfglib = "/home/pi/consolerem/example configs/cfglib"
-include = /home/pi/Console/local/authall.cfg, weathersources.cfg, weathPump.cfg, timetempLQ.cfg,  myclock.cfg,weathPDX.cfg,timetempLQ7.cfg, octoprint.cfg, weathCC.cfg, timetempPDX7.cfg, pgaTstat.cfg, pgawBRmain.cfg, pgaOther.cfg, pgaBath.cfg, pgalr.cfg, condotstats.cfg, pgaGR.cfg, mqtt.cfg, pgaKitchen.cfg
+include = /home/pi/Console/local/authall.cfg, weathersources.cfg, weathPump.cfg, timetempLQ.cfg,  myclock.cfg,weathPDX.cfg,timetempLQ7.cfg, octoprint.cfg, weathCC.cfg, timetempPDX7.cfg, pgaTstat.cfg, pgawBRmain.cfg, pgaBath.cfg, condotstats.cfg, pgaGR.cfg, mqtt.cfg, pgaKitchen.cfg, pgaOutside.cfg
 #pgaalerts.cfg,
-HomeScreenName = 'Prusa'
+HomeScreenName = 'pgawBR'
 DimLevel = 10
 DimTO = 10
 PersistTO = 3
@@ -19,8 +19,8 @@ DimIdleListNames = PDXTTbig, Pic, MyClock, LQTTbig, Pumpkin
 
 DimIdleListTimes =	5, 20, 5, 5, 5, 5
 
-MainChain = Prusa, pgawBath, PGALR, wxHouse, Pic, Pumpkin, Local, climate.air_conditionerbr_hvac,climate.air_conditionerlr_hvac,Test1, pgaGR, pgaKitchen
-SecondaryChain = Portland, LQTTbig, climate.master_bedroom, climate.living_room, pgawBR, pgawOther
+MainChain = pgawBR, Prusa, pgawBath, wxHouse, Pic, Pumpkin, Local, climate.air_conditionerbr_hvac,climate.air_conditionerlr_hvac,Test1, pgaGR, pgaKitchen, pgaOutside
+SecondaryChain = Portland, LQTTbig, climate.master_bedroom, climate.living_room
 
 DefaultHub = HASS
 HorizBorder = 10

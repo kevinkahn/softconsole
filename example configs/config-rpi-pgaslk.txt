@@ -1,5 +1,5 @@
 cfglib = "/home/pi/Console/cfglib"
-include = /home/pi/Console/local/authpga.cfg, mqtt.cfg, pgawBRmain.cfg, pgaBath.cfg, pgaTstat.cfg, pgaOther.cfg, timetempLQ.cfg, myclock.cfg,weathPDX.cfg,weathPump.cfg,weathersources.cfg, pgaalerts.cfg
+include = /home/pi/Console/local/authpga.cfg, mqtt.cfg, pgawBRmain.cfg, pgaBath.cfg, pgaTstat.cfg, timetempLQ.cfg, myclock.cfg,weathPDX.cfg,weathPump.cfg,weathersources.cfg, pgaalerts.cfg
 HomeScreenName = pgawBR
 DimLevel = 25
 DimTO = 25
@@ -7,6 +7,6 @@ DimIdleListNames = MyClock, Portland, LQTT
 DimIdleListTimes =	8, 8, 8
 
 MainChain = pgawBR, LQTT, pgawBath, climate.master_bedroom, climate.living_room
-SecondaryChain = pgawOther, Portland, Pumpkin
+SecondaryChain = pgaOutside, pgaGR, pgaKitchen, Portland, Pumpkin
 
 DefaultHub = HASSpga
