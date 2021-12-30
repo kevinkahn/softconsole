@@ -151,6 +151,7 @@ print(" After this the install can run unattended to completion", flush=True)
 print("**************************************************************", flush=True)
 print("**************************************************************", flush=True)
 time.sleep(3)
+Buster = False
 with open('/etc/issue') as f:
 	sysver = f.readline()
 	if "Linux 10" in sysver:
