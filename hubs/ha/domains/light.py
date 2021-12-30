@@ -21,10 +21,11 @@ class Light(HAnode):
 		if self.entity_id == 'light.bar_lights' and 'brightness' in self.attributes:
 			oldbright = self.attributes['brightness']
 		else:
-			oldbright = 0
+			oldbright = -1
 		super().Update(**ns)
 		if self.entity_id == 'light.bar_lights' and 'brightness' in self.attributes:
-			safeprint('Update {}->{}'.format(oldbright, self.attributes['brightness']))
+			safeprint('{} Update {}->{}'.format(time.strftime('%m-%d-%y %H:%M:%S', time.localtime()), oldbright,
+												self.attributes['brightness']))
 			if self.attributes['brightness'] < 25: print(
 				'{} Update {} {} {}->{}'.format(time.strftime('%m-%d-%y %H:%M:%S', time.localtime()), self.name,
 												self.state, oldbright, self.attributes['brightness']))

@@ -107,8 +107,7 @@ class OnOffKey(ManualKeyDesc):
 		debug.debugPrint("Screen", "OnOffKey Key.InitDisplay ", self.Screen.name, self.name)
 		state = self.Hub.GetCurrentStatus(self.DisplayObj)
 		if state is None:
-			logsupport.Logs.Log("No state available for  key: " + self.name + ' on screen: ' + self.Screen.name,
-								severity=ConsoleWarning)
+			logsupport.Logs.Log("No state available for  key: " + self.name + ' on screen: ' + self.Screen.name)
 			state = -1
 			self.State = False
 		else:

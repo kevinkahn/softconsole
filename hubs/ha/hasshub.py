@@ -170,9 +170,7 @@ class Indirector(object):
 			if name == 'FriendlyName': return self.impliedname
 			logsupport.Logs.Log(
 				'Attempt to access uncompleted indirector for hub {} node {} (call {})'.format(self.Hub.name,
-																							   self.impliedname, name),
-				severity=ConsoleWarning)
-
+																							   self.impliedname, name))
 
 hadomains = {}
 domainspecificevents = {}
@@ -492,7 +490,8 @@ class HA(object):
 					del d['new_state']
 					del d['old_state']
 					del d['entity_id']
-					if ent == 'light.bar_lights': safeprint('{} -> {}'.format(old, new))
+					if ent == 'light.bar_lights': safeprint(
+						'{} {} -> {}'.format(time.strftime('%m-%d-%y %H:%M:%S', time.localtime()), old, new))
 					prog = 1.5
 					chgs, dels, adds = findDiff(old, new)
 					prog = 2
