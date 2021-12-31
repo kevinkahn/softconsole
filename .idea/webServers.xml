@@ -9,6 +9,13 @@
           </advancedOptions>
         </fileTransfer>
       </webServer>
+      <webServer id="126625d6-27ad-4084-8d91-440821edd148" name="Temp39">
+        <fileTransfer rootFolder="/home/pi" accessType="SFTP" host="rpi-lrentry.pgawhome" port="8623" sshConfigId="b8b4af7f-7bee-49dc-a6bb-512304ac9ab6" sshConfig="DevSmall">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+        </fileTransfer>
+      </webServer>
     </option>
   </component>
 </project>

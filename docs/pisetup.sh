@@ -25,14 +25,14 @@ LogBanner "This is the system setup script"
 LogBanner "Connect WiFI if needed"
 read -p "Press Enter to continue"
 
-LogBanner "Install Python2/3 Compatibility Support"
-echo "Note - installation switches system default Python to version 3"
-echo "To undo this run 'sudo update-alternatives --config python' to select desired alternative"
+#LogBanner "Install Python2/3 Compatibility Support"
+#echo "Note - installation switches system default Python to version 3"
+#echo "To undo this run 'sudo update-alternatives --config python' to select desired alternative"
 
-LogBanner "Switch default Python to Python3"
-update-alternatives --install /usr/bin/python python /usr/bin/python3 2
-update-alternatives --install /usr/bin/python python /usr/bin/python2 1
-update-alternatives --set python /usr/bin/python3
+#LogBanner "Switch default Python to Python3"
+#update-alternatives --install /usr/bin/python python /usr/bin/python3 2
+#update-alternatives --install /usr/bin/python python /usr/bin/python2 1
+#update-alternatives --set python /usr/bin/python3
 pip3 install --upgrade pip
 pip3 install wget
 

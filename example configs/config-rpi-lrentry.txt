@@ -1,0 +1,68 @@
+LogLevel = 3
+
+# switch to authall with HASSpga avail
+
+cfglib = cfglib
+include = /home/pi/Console/local/authall.cfg, mqtt.cfg,picscreen.cfg, weathersources.cfg, timetempLQ.cfg,  myclock.cfg,weathPDX.cfg,timetempLQ7.cfg, timetempPDX7.cfg, pgaTstat.cfg, pgawBRmain.cfg, pgaBath.cfg,pgaalerts.cfg, pgaGR.cfg, pgaKitchen.cfg, pgaOutside.cfg
+
+HomeScreenName = 'pgaGR'
+DimLevel = 10
+DimTO = 10
+PersistTO = 20
+
+DimIdleListNames = MyClock PDXTT, LQTT
+
+DimIdleListTimes =	5, 5, 5
+
+MainChain = pgaGR, pgaKitchen, pgaOutside
+SecondaryChain = climate.master_bedroom, climate.living_room
+
+DefaultHub = HASSpga
+HorizBorder = 10
+TopBorder = 5
+NavKeyHeight = 60
+HorizButGap = 5
+VertButGap =5
+
+
+
+[Variables]
+    InternetUp = 1
+
+[Pic]
+type = Picture
+#singlepic = '/home/pi/Console/spcpic.jpg'
+
+[Alerts]
+
+	[[Internet]]
+	Type = Periodic
+	Interval = 30 seconds
+	Invoke = NetworkHealth.Do_Ping
+	Parameter = '8.8.8.8',LocalVars:InternetUp
+	[[InternetAlert]]
+	Type = VarChange
+	Var = LocalVars:InternetUp
+	Test = NE
+	Value = 1
+	Invoke = InternetAlertScreen
+
+[InternetAlertScreen]
+    type = Alert
+    BackgroundColor = black
+	MessageBack = green
+	CharColor = navyblue
+	Message = Internet, Down
+	CharSize = 30,
+	DeferTime = 10
+	BlinkTime = 1
+	KeyColor = maroon
+	[[Action]]
+		type = SETVAR
+		Var = LocalVars:InternetUp
+		label = Acknowledge, Outage
+
+
+
+
+

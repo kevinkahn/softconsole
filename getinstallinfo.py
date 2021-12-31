@@ -273,7 +273,8 @@ print("Set up directory environment for console")
 with open('versionselector', 'w') as f:
 	f.write('stable\n')
 
-dirs = ['Console', 'consolestable', 'consolebeta', 'consolerem', 'consoledev', 'Console', 'Console/cfglib']
+dirs = ['Console', 'consolestable', 'consolebeta', 'consolerem', 'consoledev', 'Console', 'Console/cfglib',
+		'Console/.HistoryBuffer']
 if personal: dirs.append('consolecur')
 for pdir in dirs:
 	# noinspection PyBroadException
@@ -332,7 +333,7 @@ elif MinExampHA:
 			   '[test]',
 			   'type = Keypad',
 			   'label = My, Test',
-			   '[[' + exswitch + ']]',
+			   '[[' + HAexswitch + ']]',
 			   "\n")
 		f.write("\n".join(cfg))
 
