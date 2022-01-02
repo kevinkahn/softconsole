@@ -9,7 +9,8 @@ from utils.utilfuncs import RepresentsInt, tint, wc, BoolTrueWord, BoolFalseWord
 
 
 def _resolvekeyname(kn, DefHub):
-	t = kn.split(':')
+	knbase = kn.split('/')[0]  # remove any yniqueness suffix
+	t = knbase.split(':')
 	if len(t) == 1:
 		return t[0], DefHub
 	elif len(t) == 2:

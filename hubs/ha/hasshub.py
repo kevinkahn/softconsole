@@ -131,6 +131,27 @@ class HAnode(object):
 				return int(val)
 		return val
 
+	def SendSpecialCmd(self, cmd, target, params):
+		# This should get the target domain, check that the cmd applies, validate the params, and send the command to the hub
+		spccmds = self.Hub.SpecialCmds
+		targdom, targent = target.split('.')
+
+		if cmd in spccmds[targdom] and spccmds[targdom][cmd]['target'] == targdom:
+			thiscmd = spccmds[targdom][cmd]
+			# Normal command targeting an entity in the domain
+			for p, val in params.items():
+				if p not in thiscmd:
+					logsupport.Logs.Log('Invalid paramter {} for command {}'.format(p, cmd), severity=ConsoleWarning)
+					raise KeyError(p)
+			# send the command
+			serviceparams = dict(params)
+			serviceparams['entity_id'] = target
+			ha.call_service_async(self.Hub.api, targdom, cmd, service_data=serviceparams)
+		else:
+			logsupport.Logs.Log('Invalid special command {}({}} set at {}'.format(cmd, params, target),
+								severity=ConsoleWarning)
+			raise ValueError
+
 	def SendOnOffCommand(self, settoon):
 		pass
 
@@ -172,8 +193,10 @@ class Indirector(object):
 				'Attempt to access uncompleted indirector for hub {} node {} (call {})'.format(self.Hub.name,
 																							   self.impliedname, name))
 
-hadomains = {}
+
+hadomains = {}  # todo should these really be separate per hub.  As it is they get created twice for 2 hubs
 domainspecificevents = {}
+specialcommands = {}
 
 
 def DomainSpecificEvent(e, message):
@@ -181,11 +204,13 @@ def DomainSpecificEvent(e, message):
 	pass
 
 
-def RegisterDomain(domainname, domainmodule, eventhdlr=DomainSpecificEvent):
+def RegisterDomain(domainname, domainmodule, eventhdlr=DomainSpecificEvent, speccmd=None):
 	if domainname in hadomains:
 		logsupport.Logs.Log('Redundant registration of HA domain {}'.format())
 	hadomains[domainname] = domainmodule
 	domainspecificevents[domainname] = eventhdlr
+	specialcommands[domainname] = speccmd
+
 
 class HA(object):
 	class HAClose(Exception):
@@ -702,8 +727,56 @@ class HA(object):
 	def ReportThisError(self):
 		return config.sysStore.ErrLogReconnects and not self.restarting
 
+	def ParseDomainCommands(self, dom, services):
+		title = '{} ParseSpecial:'.format(dom)
+		entry = {}
+		normal = True
+
+		for c, info in services.items():
+			try:
+				t = info['target']
+				if 'entity' in t and 'domain' in t['entity'] and t['entity']['domain'] == dom:
+					targ = ''
+					entry[c] = {'target': dom}
+				elif 'entity' in t and t['entity'] == {}:
+					targ = ''
+					entry[c] = {'target': '*'}
+				else:
+					normal = False
+					entry[c] = {'target': 'NONSTD'}
+					targ = t
+			except Exception as E:
+				entry[c] = {'target': 'NONE'}
+				targ = "        No Target"
+
+			try:
+				flds = []
+				for fn, f in info['fields'].items():
+					s = f['selector'] if 'selector' in f else {}
+					keys = list(s.keys())
+					if len(keys) == 0:
+						entry[c][fn] = 'No selector'
+					elif len(keys) > 1:
+						flds.append("        Field: {} Selector: {}".format(fn, keys))
+					else:
+						entry[c][fn] = keys[0]
+			except Exception as E:
+				print("Pars excp: {} {} {} {}".format(dom, E, c, info))
+				print('Info: {} {}'.format(s, keys))
+			if not normal:
+				with open('{}-nonentitycmds.txt'.format(self.name), 'w') as f:
+					if title != '':
+						print("{} {}".format(self.name, title), file=f)
+						title = ''
+					print("    Command: {}".format(c), file=f)
+					if targ != '': print("    Target: {}".format(targ), file=f)
+					for l in flds: print(l, file=f)
+			else:
+				self.SpecialCmds[dom] = entry
+
 	# noinspection PyUnusedLocal
 	def __init__(self, hubname, addr, user, password, version):
+		self.SpecialCmds = {}
 		self.restarting = False
 		self.restartingtime = 0
 		self.UnknownList = {}
@@ -856,10 +929,26 @@ class HA(object):
 		for d in services:
 			if not d['domain'] in self.knownservices:
 				self.knownservices[d['domain']] = {}
-			for s,c in d['services'].items():
+			try:
+				self.ParseDomainCommands(d['domain'], d['services'])
+			except Exception as E:
+				print('Parse Except: {}'.format(E))
+			for s, c in d['services'].items():
 				if s in self.knownservices[d['domain']]:
-					logsupport.DevPrint('Duplicate service noted for domain {}: service: {} existing: {} new: {}'.format(d['domain'], s, self.knownservices[d['domain'][s]],c))
+					logsupport.DevPrint(
+						'Duplicate service noted for domain {}: service: {} existing: {} new: {}'.format(d['domain'], s,
+																										 self.knownservices[
+																											 d[
+																												 'domain'][
+																												 s]],
+																										 c))
 				self.knownservices[d['domain']][s] = c
+
+		# print(self.SpecialCmds)
+		# for d, cmds in self.SpecialCmds.items():
+		#	print("Domain {}".format(d))
+		#	for c,param in cmds.items():
+		#		print("    {}({}): {}".format(c,param['target'],{x: param[x] for x in param if x != 'target'}))
 
 		if config.sysStore.versionname in ('development', 'homerelease'):
 			with open('{}/Console/{}-services'.format(config.sysStore.HomeDir, self.name), 'w') as f:
