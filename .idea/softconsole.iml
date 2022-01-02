@@ -4,8 +4,8 @@
     <content url="file://$MODULE_DIR$">
       <excludeFolder url="file://$MODULE_DIR$/FuturesEtc" />
       <excludeFolder url="file://$MODULE_DIR$/deprecated" />
-      <excludeFolder url="file://$MODULE_DIR$/example configs" />
       <excludeFolder url="file://$MODULE_DIR$/auxinfo" />
+      <excludeFolder url="file://$MODULE_DIR$/example_configs" />
     </content>
     <orderEntry type="jdk" jdkName="Remote Python 3.9.2 (sftp://pi@rpi-lrentry.pgawhome:8623/usr/bin/python)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />

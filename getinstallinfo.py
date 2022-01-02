@@ -373,7 +373,7 @@ if os.path.exists('/boot/auth'):
 	shutil.rmtree('Console/local', ignore_errors=True)
 	shutil.move('/boot/auth', 'Console/local')
 
-subprocess.call("cp -r /home/pi/consolestable/'example configs'/* /home/pi/Console", shell=True)
+subprocess.call("cp -r /home/pi/consolestable/'example_configs'/* /home/pi/Console", shell=True)
 if piinstall:
 	print("****************************************************************", flush=True)
 	print("****************************************************************", flush=True)

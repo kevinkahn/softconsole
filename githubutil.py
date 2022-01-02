@@ -66,13 +66,13 @@ def InstallStagedVersion(d):
 	if os.path.exists('../homesystem'):
 		# noinspection PyBroadException
 		try:
-			subprocess.call('cp -u -r -p "example configs"/* ../Console', shell=True, stdout=logf, stderr=logf)
+			subprocess.call('cp -u -r -p "example_configs"/* ../Console', shell=True, stdout=logf, stderr=logf)
 		except:
-			print('Copy of example configs failed on homesystem', file=logf)
+			print('Copy of example_configs failed on homesystem', file=logf)
 
 	if not os.path.exists('../Console/termshortenlist'):
 		try:
-			os.rename('example configs/termshortenlist', '../Console/termshortenlist')
+			os.rename('example_configs/termshortenlist', '../Console/termshortenlist')
 			print("Initialized termshortenlist", file=logf)
 		except:
 			print("Couldn't move termshortenlist in " + str(os.getcwd()), file=logf)

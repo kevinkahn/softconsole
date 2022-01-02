@@ -27,7 +27,8 @@
       <paths name="Temp39">
         <serverdata>
           <mappings>
-            <mapping deploy="/" local="$PROJECT_DIR$" web="/" />
+            <mapping deploy="S:\PythonProjects\softconsole" local="$PROJECT_DIR$" web="/consolerem" />
+            <mapping local="" />
           </mappings>
         </serverdata>
       </paths>
