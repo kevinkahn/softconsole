@@ -181,7 +181,7 @@ file get them correst.
 # Setting up and Running Softconsole
 First I admit in advance that the syntax and parsing of the config files is both a bit arcane and somewhat error prone.  This is larglely due to the configuration parser I use and perhaps someday I can improve this.  You've been warned!  Given an understanding for the minimal test above you can then create real configuration files as you wish:
 
-* Create a main config file, see the files in the "example configs" directory within consolestable for help. The name of
+* Create a main config file, see the files in the "example_configs" directory within consolestable for help. The name of
   the config file defaults first to **config.txt**. If no config.txt file is found in the Console directory then the
   console looks for a file with the name **config-\<nodename\>.txt**. This is convenient if you are running multiple
   consoles around your home. You can create a single directory of all your configs and blindly load it onto each system
@@ -211,7 +211,7 @@ First I admit in advance that the syntax and parsing of the config files is both
   multiple consoles use some of the same screens and you want to have only one version of the description for those
   shared screens. It also supports a "cfglib = dirname" as a default place to look for included config files. Personally
   I have lots of small config files that I keep in a directory and specialize a single top level config file for each of
-  my consoles. See the directory "example configs" on github for lots of examples.
+  my consoles. See the directory "example_configs" on github for lots of examples.
 * Some responses from weather providers are fairly long phrases that don't display nicely on the weather screens. There
   is a file termshortenlist in the Console directory which is a json representation of a Python dictionary that maps
   phrases to shorter ones for display. It is self explanatory if you look at the examples that are prepopulated. You can
