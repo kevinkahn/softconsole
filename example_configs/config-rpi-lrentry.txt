@@ -3,18 +3,18 @@ LogLevel = 3
 # switch to authall with HASSpga avail
 
 cfglib = cfglib
-include = /home/pi/Console/local/authall.cfg, mqtt.cfg,picscreen.cfg, weathersources.cfg, timetempLQ.cfg,  myclock.cfg,weathPDX.cfg,timetempLQ7.cfg, timetempPDX7.cfg, pgaTstat.cfg, pgawBRmain.cfg, pgaBath.cfg,pgaalerts.cfg, pgaGR.cfg, pgaKitchen.cfg, pgaOutside.cfg
+include = /home/pi/Console/local/authall.cfg, mqtt.cfg, weathersources.cfg, timetempLQ.cfg,  myclock.cfg,weathPDX.cfg,timetempLQ7.cfg, timetempPDX7.cfg, pgaTstat.cfg, pgawBRmain.cfg, pgaBath.cfg,pgaalerts.cfg, pgaGR.cfg, pgaKitchen.cfg, pgaOutside.cfg
 
 HomeScreenName = 'pgaGR'
 DimLevel = 10
 DimTO = 10
 PersistTO = 20
 
-DimIdleListNames = MyClock PDXTT, LQTT
+DimIdleListNames = MyClock, PDXTT, LQTT
 
 DimIdleListTimes =	5, 5, 5
 
-MainChain = pgaGR, pgaKitchen, pgaOutside
+MainChain = pgaGR, pgaKitchen, pgaOutside, TestScreen
 SecondaryChain = climate.master_bedroom, climate.living_room
 
 DefaultHub = HASSpga
@@ -29,9 +29,17 @@ VertButGap =5
 [Variables]
     InternetUp = 1
 
-[Pic]
-type = Picture
-#singlepic = '/home/pi/Console/spcpic.jpg'
+[TestScreen]
+type = Keypad
+label = Test
+[[fan.lr_fanlight_fan/up]]
+type = SPECCMD
+Command=increase_speed
+label = Fan, Up
+[[fan.lr_fanlight_fan/down]]
+type = SPECCMD
+Command= decrease_speed
+label = Fan, Down
 
 [Alerts]
 
