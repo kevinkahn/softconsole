@@ -341,6 +341,8 @@ def call_service(api: API, domain: str, service: str,
 																									   req.text, domain,
 																									   service,
 																									   service_data))
+			else:
+				return
 
 		except HomeAssistantError as e:
 			logsupport.Logs.Log("HA service call failed ({}) {}".format(tryit, repr(e)),

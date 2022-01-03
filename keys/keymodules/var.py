@@ -2,7 +2,7 @@ import debug
 import logsupport
 from screens import screen
 from keys.keyspecs import KeyTypes
-from keys.keyutils import _SetUpProgram, DispOpt, AdjustAppearance
+from keys.keyutils import _SetUpProgram
 from logsupport import ConsoleWarning
 from stores import valuestore
 from keyspecs.toucharea import ManualKeyDesc
@@ -12,8 +12,7 @@ class VarKey(ManualKeyDesc):
 	def __init__(self, thisscreen, keysection, keyname):
 		debug.debugPrint('Screen', "              New Var Key ", keyname)
 		ManualKeyDesc.__init__(self, thisscreen, keysection, keyname)
-		screen.AddUndefaultedParams(self, keysection, Var='', Appearance=[], ValueSeq=[], ProgramName='', Parameter=[],
-									DefaultAppearance='')
+		screen.AddUndefaultedParams(self, keysection, ValueSeq=[], ProgramName='', Parameter=[])
 		if self.ValueSeq != [] and self.ProgramName != '':
 			logsupport.Logs.Log('VarKey {} cannot specify both ValueSeq and ProgramName'.format(self.name),
 								severity=ConsoleWarning)
@@ -27,25 +26,18 @@ class VarKey(ManualKeyDesc):
 			t = []
 			for n in self.ValueSeq: t.append(int(n))
 			self.ValueSeq = t
-		if self.DefaultAppearance == '':
-			self.defoption = DispOpt('None {} {}'.format(self.KeyColorOn, self.KeyLabelOn[:]), '')
-		else:
-			self.defoption = DispOpt(self.DefaultAppearance, self.label)
-		self.displayoptions = []
 		self.oldval = '*******'  # forces a display compute first time through
 		self.State = False
 		self.waspressed = False
-		for item in self.Appearance:
-			self.displayoptions.append(DispOpt(item, self.label))
 
-	def PaintKey(self, ForceDisplay=False, DisplayState=True):
-		# create the images here dynamically then let lower methods do display, blink etc.
-		val = valuestore.GetVal(self.Var)
-		AdjustAppearance(self, val)
-		#		if self.waspressed:  # todo verify that this is actually needed now Blink scheduling is done in super PaintKey
-		#			self.ScheduleBlinkKey(self.Blink)
-		#			self.waspressed = False
-		super().PaintKey(ForceDisplay, val is not None)
+	#	def PaintKey(self, ForceDisplay=False, DisplayState=True):
+	#		# create the images here dynamically then let lower methods do display, blink etc.
+	#		val = valuestore.GetVal(self.Var)
+	#		AdjustAppearance(self, val)
+	#		#		if self.waspressed:  # todo verify that this is actually needed now Blink scheduling is done in super PaintKey
+	#		#			self.ScheduleBlinkKey(self.Blink)
+	#		#			self.waspressed = False
+	#		super().PaintKey(ForceDisplay, val is not None)
 
 	# noinspection PyUnusedLocal
 	def VarKeyPressed(self):

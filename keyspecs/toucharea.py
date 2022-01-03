@@ -9,6 +9,8 @@ from utils import timers, utilities, fonts, displayupdate, hw
 from utils.hw import scaleW, scaleH
 from utils.utilfuncs import wc
 import typing
+from keys.keyutils import DispOpt, AdjustAppearance
+import stores.valuestore as valuestore
 
 
 class TouchPoint(object):
@@ -95,6 +97,9 @@ class ManualKeyDesc(TouchPoint):
 	def __getattr__(self, key):
 		return self.userstore.GetVal(key)
 
+	def ConnectandGetNameOverride(self, keyname, keysection):
+		return [self.name]
+
 	# noinspection PyMissingConstructor
 	def __init__(self, *args, **kwargs):
 		self.State = True
@@ -110,6 +115,7 @@ class ManualKeyDesc(TouchPoint):
 		self.autocolordull = True
 		self.usekeygaps = True
 		self.VerifyScreen = None  # set later by caller if needed
+		self.advpaint = False
 
 		# alternate creation signatures
 		self.ButtonFontSizes = (31, 28, 25, 22, 20, 18, 16)
@@ -168,6 +174,13 @@ class ManualKeyDesc(TouchPoint):
 
 		screen.AddUndefaultedParams(self, {}, FastPress=False, Verify=Verify, Blink=Blink, label=label)
 		self.Proc = proc
+		if self.label == ['']:
+			try:
+				if self.ControlObj.FriendlyName != '':
+					self.label = [self.ControlObj.FriendlyName]
+			except AttributeError:
+				# noinspection PyAttributeOutsideInit
+				self.label = [self.name]
 
 	def dosectioninit(self, thisscreen, keysection, keyname):
 		self.userstore = paramstore.ParamStore('Screen-' + thisscreen.name + '-' + keyname, dp=thisscreen.userstore,
@@ -178,7 +191,32 @@ class ManualKeyDesc(TouchPoint):
 													 'KeyColorOn', 'KeyColorOff',
 													 'KeyLabelOn', 'KeyLabelOff'},
 								 keysection)  # todo add sliderorientation
-		screen.AddUndefaultedParams(self, keysection, FastPress=0, Verify=False, Blink=0, label=[''])
+		screen.AddUndefaultedParams(self, keysection, FastPress=0, Verify=False, Blink=0, label=[''], Appearance=[],
+									DefaultAppearance='',
+									Var='')
+
+		self.autocolordull = self.KeyColorOff == ''
+		if self.KeyColorOff == '':
+			self.KeyColorOff = self.KeyColor
+		if self.KeyColorOn == '':
+			self.KeyColorOn = self.KeyColor
+		try:
+			nmoveride = self.ConnectandGetNameOverride(keyname, keysection)
+		except Exception as E:
+			nmoveride = [self.name]
+			print('chk {}'.format(E))
+		if self.label == ['']:
+			self.label = nmoveride
+
+		self.displayoptions = []
+		if self.Appearance != []:
+			for item in self.Appearance:
+				self.displayoptions.append(DispOpt(item, self.label))
+			self.advpaint = True
+		if self.DefaultAppearance == '':
+			self.defoption = DispOpt('None {}'.format(self.KeyColorOn), self.label)
+		else:
+			self.defoption = DispOpt(self.DefaultAppearance, self.label)
 
 		if self.Verify:
 			screen.AddUndefaultedParams(thisscreen, keysection, GoMsg=['Proceed'], NoGoMsg=['Cancel'])
@@ -186,6 +224,9 @@ class ManualKeyDesc(TouchPoint):
 		self.State = True
 
 	def PaintKey(self, ForceDisplay=False, DisplayState=True):
+		if self.advpaint:
+			val = valuestore.GetVal(self.Var) if self.Var != '' else self.entity.state
+			AdjustAppearance(self, val)
 		x = self.Center[0] - self.GappedSize[0] / 2
 		y = self.Center[1] - self.GappedSize[1] / 2
 		if not ForceDisplay:
@@ -335,13 +376,7 @@ class ManualKeyDesc(TouchPoint):
 			0] != 0:  # if size is not zero then set the pos/size of the key; otherwise it was previously set in manual creation
 			self.Center = center
 			self.Size = size
-		if self.label == ['']:
-			try:
-				if self.ControlObj.FriendlyName != '':
-					self.label = [self.ControlObj.FriendlyName]
-			except AttributeError:
-				# noinspection PyAttributeOutsideInit
-				self.label = [self.name]
+
 		if self.KeyLabelOn == ['', ]:
 			self.KeyLabelOn = self.label
 		if self.KeyLabelOff == ['', ]:

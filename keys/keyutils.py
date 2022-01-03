@@ -1,7 +1,5 @@
 from enum import Enum, auto
-
 import shlex
-
 import hubs.hubs
 import logsupport
 from logsupport import ConsoleWarning
@@ -89,7 +87,7 @@ class DispOpt(object):
 			self.ChooserType = ChooseType.strval
 			self.Chooser = desc[0]
 		self.Color = desc[1]
-		self.Label = deflabel if len(desc) < 3 else desc[2].split(';')
+		self.Label = [deflabel] if len(desc) < 3 else desc[2].split(';')
 
 	def Matches(self, val):
 		if self.ChooserType == ChooseType.Noneval:
@@ -116,23 +114,21 @@ class DispOpt(object):
 
 
 def AdjustAppearance(key, val):
-	if key.oldval != val:  # rebuild the key for a value change
-		key.oldval = val
-		lab = key.defoption.Label[:]
-		oncolor = tint(key.defoption.Color)
-		offcolor = wc(key.defoption.Color)
-		for i in key.displayoptions:
-			if i.Matches(val):
-				lab = i.Label[:]
-				oncolor = tint(i.Color)
-				offcolor = wc(i.Color)
-				break
-		lab2 = []
-		dval = '--' if val is None else str(val)
-		for line in lab:
-			lab2.append(line.replace('$', dval))
-		key.BuildKey(oncolor, offcolor)
-		key.SetKeyImages(lab2, lab2, 0, True)
+	lab = key.defoption.Label[:]
+	oncolor = tint(key.defoption.Color)
+	offcolor = wc(key.defoption.Color)
+	for i in key.displayoptions:
+		if i.Matches(val):
+			lab = i.Label[:]
+			oncolor = tint(i.Color)
+			offcolor = wc(i.Color)
+			break
+	lab2 = []
+	dval = '--' if val is None else str(val)
+	for line in lab:
+		lab2.append(line.replace('$', dval))
+	key.BuildKey(oncolor, offcolor)
+	key.SetKeyImages(lab2, lab2, 0, True)
 
 
 class DummyProgram(object):
