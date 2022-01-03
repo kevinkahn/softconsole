@@ -3,7 +3,7 @@ LogLevel = 3
 # switch to authall with HASSpga avail
 
 cfglib = cfglib
-include = /home/pi/Console/local/authall.cfg, mqtt.cfg,picscreen.cfg, weathersources.cfg, timetempLQ.cfg,  myclock.cfg,weathPDX.cfg,timetempLQ7.cfg, timetempPDX7.cfg, pgaTstat.cfg, pgawBRmain.cfg, pgaBath.cfg,pgaalerts.cfg, pgaGR.cfg, pgaKitchen.cfg, pgaOutside.cfg
+include = /home/pi/Console/local/authall.cfg, mqtt.cfg,picscreen.cfg, weathersources.cfg, myclock.cfg,timetempLQ7.cfg, timetempPDX7.cfg, pgaTstat.cfg, pgaalerts.cfg, pgaGR.cfg, pgaKitchen.cfg, pgaOutside.cfg, pgaShades.cfg
 
 HomeScreenName = 'pgaGR'
 DimLevel = 10
@@ -28,10 +28,6 @@ VertButGap =5
 
 [Variables]
     InternetUp = 1
-
-[Pic]
-type = Picture
-#singlepic = '/home/pi/Console/spcpic.jpg'
 
 [Alerts]
 

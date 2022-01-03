@@ -17,11 +17,12 @@ class Cover(HAnode):
 			elif state == 'closed':
 				return 0
 			else:
-				logsupport.Logs.Log('Cover {} reports odd state {}'.format(self.name, state))
+				logsupport.Logs.Log('Cover {} reports odd state {}'.format(self.name, state),
+									severity=logsupport.ConsoleDetail)
 				return -1
 		else:
-			logsupport.Logs.Log('Cover {} reports non-string state {}'.format(self.name, state))
+			logsupport.Logs.Log('Cover {} reports non-string state {}'.format(self.name, state),
+								severity=logsupport.ConsoleDetail)
 			return -1
-
 
 RegisterDomain('cover', Cover)
