@@ -41,4 +41,10 @@ class SetInputKey(ManualKeyDesc):
 
 		utilities.register_example("SetInputKey", self)
 
+	# noinspection PyUnusedLocal
+	def SetInputKeyPressed(self):
+		self.entity.SetValue(self.Value)  # Value is actually the type of input operation set in the config entry
+		self.ScheduleBlinkKey(self.Blink)
+
+
 KeyTypes['SETINPUT'] = SetInputKey
