@@ -14,7 +14,7 @@ DimIdleListNames = MyClock, Pictures, PDXTTbig, LQTTbig
 
 DimIdleListTimes =	5, 24, 5, 5
 
-MainChain = pgaGR, pgaKitchen, pgaOutside
+MainChain = pgaGR, pgaKitchen, pgaOutside, pgaShades
 SecondaryChain = climate.master_bedroom, climate.living_room
 
 DefaultHub = HASSpga
