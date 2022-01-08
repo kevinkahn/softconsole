@@ -9,8 +9,9 @@ from utils import timers, utilities, fonts, displayupdate, hw
 from utils.hw import scaleW, scaleH
 from utils.utilfuncs import wc
 import typing
-from keys.keyutils import DispOpt, ChooseType
+from keys.keyutils import DispOpt, ChooseType, ParseConfigToDispOpt
 import stores.valuestore as valuestore
+import time
 
 
 class TouchPoint(object):
@@ -118,6 +119,8 @@ class ManualKeyDesc(TouchPoint):
 		self.defoption = None
 		self.KeyAlpha = None
 		if not hasattr(self, 'statebasedkey'): self.statebasedkey = False
+		self.builds = 0
+		self.timeused = 0
 
 		# alternate creation signatures
 		self.ButtonFontSizes = (31, 28, 25, 22, 20, 18, 16)
@@ -151,7 +154,7 @@ class ManualKeyDesc(TouchPoint):
 	def docodeinit(self, thisscreen, keyname, label, bcolor, charcoloron, charcoloroff, center=(0, 0), size=(0, 0),
 				   KOn=None,
 				   KOff=None, proc=None, procdbl=None, KCon='', KCoff='', KLon=('',), KLoff=('',), State=True, Blink=0,
-				   Verify=False, gaps=False, dispopts=[], dispdef=None, var=''):
+				   Verify=False, gaps=False, dispopts=(), dispdef=None, var=''):
 		# NOTE: do not put defaults for KOn/KOff in signature - imports and arg parsing subtleties will cause error
 		# because of when config is imported and what walues are at that time versus at call time
 		self.userstore = paramstore.ParamStore('Screen-' + thisscreen.name + '-' + keyname, dp=thisscreen.userstore,
@@ -186,9 +189,9 @@ class ManualKeyDesc(TouchPoint):
 				self.label = [self.name]
 		self.displayoptions = dispopts
 		if dispdef is None:
-			self.defoption = DispOpt(
-				item="None ({} {} {})".format(self.KeyColorOn, self.KeyCharColorOn, self.KeyOnOutlineColor),
-				deflabel=self.label)
+			self.defoption = DispOpt(choosertype=ChooseType.Noneval,
+									 color=(self.KeyColorOn, self.KeyCharColorOn, self.KeyOnOutlineColor),
+									 deflabel=self.label)
 		else:
 			self.defoption = dispdef
 
@@ -222,9 +225,9 @@ class ManualKeyDesc(TouchPoint):
 		if self.KeyLabelOff == ['', ]:
 			self.KeyLabelOff = self.label
 
-		if self.Appearance != []:
+		if self.Appearance:
 			for item in self.Appearance:
-				self.displayoptions.append(DispOpt(item=item, deflabel=self.label))
+				self.displayoptions.append(ParseConfigToDispOpt(item, self.label))
 		elif self.statebasedkey:
 			dull = '/dull' if self.KeyColorOff == self.KeyColorOn else ''
 			self.displayoptions.append(DispOpt(choosertype=ChooseType.stateval, chooser='state*on',
@@ -232,12 +235,12 @@ class ManualKeyDesc(TouchPoint):
 											   deflabel=self.KeyLabelOn))
 			self.displayoptions.append(DispOpt(choosertype=ChooseType.stateval, chooser='state*off', color=(
 			self.KeyColorOff + dull, self.KeyCharColorOff, self.KeyOffOutlineColor), deflabel=self.KeyLabelOff))
-		# self.displayoptions.append(DispOpt(item='state*on ({} {} {})'.format(self.KeyColorOn, self.KeyCharColorOn, self.KeyOnOutlineColor), deflabel=self.KeyLabelOn)) # pass in the label as default because already digested
-		# self.displayoptions.append(DispOpt(item='state*off ({}{} {} {})'.format(self.KeyColorOff, dull, self.KeyCharColorOff, self.KeyOffOutlineColor), deflabel=self.KeyLabelOff))
+
 		if self.DefaultAppearance == '':
-			self.defoption = DispOpt(item='None {}'.format(self.KeyColorOn), deflabel=self.label)
+			self.defoption = DispOpt(choosertype=ChooseType.Noneval, color=(self.KeyColorOn,),
+									 deflabel=self.label)  # item='None {}'.format(self.KeyColorOn), deflabel=self.label)
 		else:
-			self.defoption = DispOpt(item=self.DefaultAppearance, deflabel=self.label)
+			self.defoption = ParseConfigToDispOpt(self.DefaultAppearance, self.label)
 
 		if self.Verify:
 			screen.AddUndefaultedParams(thisscreen, keysection, GoMsg=['Proceed'], NoGoMsg=['Cancel'])
@@ -245,6 +248,8 @@ class ManualKeyDesc(TouchPoint):
 		self.State = True
 
 	def PaintKey(self):
+		start = time.process_time()
+		statickey = False
 		# for i in self.displayoptions:
 		#	print(i)
 		# print('Key {}'.format(self.name))
@@ -253,26 +258,20 @@ class ManualKeyDesc(TouchPoint):
 		# print('Use Var: {} = {}'.format(self.Var, val))
 
 		elif self.statebasedkey:
-			val = self.DisplayObj.state
+			if hasattr(self.DisplayObj, 'state'):
+				val = self.DisplayObj.state
+			else:
+				val = self.State  # try to accommodate ISY hub code that uses events to update key state
 		else:
-			val = 99999
+			statickey = True
+			val = 99999999  # key display is static
 
-		if True:  # this needs  a check for change image of key and handle all key creations
-			# val = valuestore.GetVal(self.Var) if self.Var != '' else alt
-			# val = alt2 if alt2 != '' else alt
-
-			# AdjustAppearance(self, val)  #todo does this work with simpler blink?
+		if not self.LastImageValid:
 			self.BuildDynKey(val, 0, True)
+			if statickey: self.LastImageValid = True
+
 		x = self.Center[0] - self.GappedSize[0] / 2
 		y = self.Center[1] - self.GappedSize[1] / 2
-		if self.KeyAlpha is not None:
-			self.KeyImage.set_alpha(self.KeyAlpha)
-
-		if self.LastImageValid:
-			pass  # just use the last image and repaint it need to integrate it with Blink
-		# if not valid then regenerate the key with the advpaint logic (after on/off is integrated with it)
-		# and set  LastImage to valid and cache it. Do all this then just blit last image so the regen code only
-		# happens when invalid then Blink can be just whatever last image is alternating with blank
 
 		if self.BlinkState == 2:
 			hw.screen.blit(self.KeyBlankImage, (x, y))
@@ -281,6 +280,12 @@ class ManualKeyDesc(TouchPoint):
 		if self.UnknownState:
 			# overlay an X for lost states
 			hw.screen.blit(self.KeyUnknownOverlay, (x, y))
+		self.timeused = self.timeused + time.process_time() - start
+		self.builds += 1
+		if self.builds > 30:
+			print("Ave time for key {} was {}".format(self.name, self.timeused / self.builds))
+			self.timeused = 0
+			self.builds = 0
 
 	def FlashNo(self, cycle):
 		if cycle != 0:
@@ -381,6 +386,7 @@ class ManualKeyDesc(TouchPoint):
 		return temp
 
 	def BuildDynKey(self, val, firstfont, shrink):
+
 		def parsecolor(cname):
 			cd = 0.0 if len(cname.split('/')) == 1 else 0.5 if cname.split('/')[1] == 'dull' else float(
 				cname.split('/')[1])
@@ -414,9 +420,9 @@ class ManualKeyDesc(TouchPoint):
 		buttonsmaller = (self.GappedSize[0] - scaleW(6), self.GappedSize[1] - scaleH(6))
 
 		# create image of key
-		self.KeyImageBase = self._BuildKeyImage(color, buttonsmaller, outlncolor)
+		self.KeyImage = self._BuildKeyImage(color, buttonsmaller, outlncolor)
 		self.KeyBlankImage = self._BuildKeyImage(wc(self.Screen.BackgroundColor), buttonsmaller,
-												 wc(self.Screen.BackgroundColor))
+												 wc(outlncolor))  # self.Screen.BackgroundColor))
 
 		self.KeyUnknownOverlay = pygame.Surface(self.GappedSize)
 		pygame.draw.line(self.KeyUnknownOverlay, wc(self.KeyCharColorOn), (0, 0), self.GappedSize,
@@ -425,10 +431,11 @@ class ManualKeyDesc(TouchPoint):
 						 (self.GappedSize[0], 0), self.KeyOutlineOffset)
 		self.KeyUnknownOverlay.set_alpha(128)
 
-		self.KeyImage = self.KeyImageBase.copy()
-
 		fontchoice = self.FindFontSize(lab2, firstfont, shrink)
 		self.AddTitle(self.KeyImage, lab2, fontchoice, chcolor)
+
+		if self.KeyAlpha is not None:
+			self.KeyImage.set_alpha(self.KeyAlpha)
 
 	# noinspection PyAttributeOutsideInit
 	def FinishKey(self, center, size, firstfont=0, shrink=True):

@@ -60,12 +60,64 @@ class ChooseType(Enum):
 
 CodeKeyDesc = namedtuple('CodeKeyDesc', 'Display Var statebased')
 
+def ParseConfigToDispOpt(item, deflabel):
+	parseditem = shlex.shlex(item, posix=True, punctuation_chars='()')
+	desc = list(parseditem)
+	while ',' in desc: desc.remove(',')
+	if desc[1] == ':':
+		desc.pop(1)
+		ChooserType = ChooseType.rangeval
+		Chooser = (int(desc.pop(0)), int(desc.pop(0)))
+	elif desc[1] == '|':
+		ChooserType = ChooseType.enumval
+		r = []
+		while desc[1] == '|':
+			r.append(desc.pop(0))
+			desc.pop(0)  # remove the |
+		try:
+			r2 = []
+			for x in r:
+				r.append(int(x))
+			Chooser = r2
+		except ValueError:
+			Chooser = r
+	elif RepresentsInt(desc[0]):
+		ChooserType = ChooseType.intval
+		Chooser = int(desc.pop(0))
+	elif desc[0] == 'None':
+		ChooserType = ChooseType.Noneval
+		Chooser = None
+		desc.pop(0)
+	elif desc[0] in (
+			"state*on", "state*off"):  # this should be stateon and stateoff then set 2 options for an on/off button
+		# stateon Red onlabel -- this overlaps boolean but if state is 0 or non-zero then different test? maybe make this
+		# setup match state*on/state*off but then in match do check for val matches  on state or not
+		# stateoff Red|dull offlabel or just an off color
+		ChooserType = ChooseType.stateval
+		Chooser = desc.pop(0)
+	elif BoolTrueWord(desc[0]) or BoolFalseWord(desc[0]):
+		ChooserType = ChooseType.boolval
+		Chooser = BoolTrueWord(desc.pop(0))
+	else:
+		ChooserType = ChooseType.strval
+		Chooser = desc.pop(0)
+	if desc[0] != '(':
+		Color = [desc.pop(0)]
+	else:
+		Color = []
+		desc.pop(0)
+		while desc[0] != ')':
+			Color.append(desc.pop(0))
+		desc.pop(0)
+	Label = deflabel if len(desc) == 0 else desc[0].split(';')
+	return DispOpt(choosertype=ChooserType, chooser=Chooser, color=Color, deflabel=Label)
 
-class DispOpt(
-	object):  # typedesc colorset label  colorset is either a single color (default char and outline) or a triple (key, char, outline)
-	# todo add a state to display opt?
+
+class DispOpt(object):
+	# typedesc colorset label  colorset is either a single color (default char and outline) or a triple (key, char, outline)
 	def __init__(self, item='', deflabel='', choosertype=None, chooser=None, color=()):
 		if item != '':
+			print('Old Display Opt')
 			parseditem = shlex.shlex(item, posix=True, punctuation_chars='()')
 			desc = list(parseditem)
 			while ',' in desc: desc.remove(',')
