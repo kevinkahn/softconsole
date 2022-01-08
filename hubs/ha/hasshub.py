@@ -173,6 +173,7 @@ class Indirector(object):
 		self.realnode = None
 		self.Hub = Hub
 		self.impliedname = name
+		self.reportederror = False
 		Hub.Indirectors[name] = self
 		logsupport.Logs.Log('Creating indirector for missing {} node {}'.format(Hub.name,name),severity=ConsoleWarning)
 
@@ -189,9 +190,13 @@ class Indirector(object):
 			if name == 'name': return self.impliedname
 			if name == 'address': return self.impliedname
 			if name == 'FriendlyName': return self.impliedname
-			logsupport.Logs.Log(
-				'Attempt to access uncompleted indirector for hub {} node {} (call {})'.format(self.Hub.name,
-																							   self.impliedname, name))
+			if not self.reportederror:
+				logsupport.Logs.Log(
+					'Attempt to access uncompleted indirector for hub {} node {} (call {})'.format(self.Hub.name,
+																								   self.impliedname,
+																								   name),
+					severity=ConsoleWarning)
+				self.reportederror = True
 
 
 hadomains = {}  # todo should these really be separate per hub.  As it is they get created twice for 2 hubs

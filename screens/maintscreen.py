@@ -12,6 +12,7 @@ from logsupport import ConsoleWarning
 from screens.maintscreenbase import MaintScreenDesc, fixedoverrides
 import consolestatus
 import screens.supportscreens as supportscreens
+from keys.keyutils import DispOpt, ChooseType
 
 MaintScreen = None
 
@@ -51,23 +52,45 @@ def SetUpMaintScreens():
 	FlagsScreens = []
 	nflags = len(debug.DbgFlags) + 3
 	# will need key for each debug flag plus a return plus a loglevel up and loglevel down
-	tmpDbgFlags = ["LogLevelUp", "LogLevelDown"] + debug.DbgFlags[:]  # temp copy of Flags
+	# (label, tapproc, dbltapproc, verify, dispopts, defopts, var)
+	loglevdispup = DispOpt(choosertype=ChooseType.rangeval, chooser=(0, 9), color=('gold', 'blue', 'black'),
+						   deflabel=('Log Less', 'Detail', '$',))
+	loglevdispdef = DispOpt(choosertype=ChooseType.rangeval, chooser=(0, 9), color=('gold', 'blue', 'black'),
+							deflabel=('Log Bad', 'Level', '$'))
+	logleveldispdn = []
+	for i in range(len(logsupport.LogLevels)):
+		logleveldispdn.append(DispOpt(choosertype=ChooseType.intval, chooser=i, color=('gold', 'blue', 'black'),
+									  deflabel=('Log More', 'Detail', logsupport.LogLevels[i])))
+	nextdisp = (
+	DispOpt(choosertype=ChooseType.Noneval, chooser=None, color=('pink', 'blue', 'black'), deflabel=('Next',)),)
+	debFlagInput = [("LogLevelUp", None, None, False, '', loglevdispup, "System:LogLevel"),
+					("LogLevelDown", None, None, False, logleveldispdn, loglevdispdef, "System:LogLevel")]
+	for f in debug.DbgFlags:
+		debFlagInput.append((f, None, None, False,
+							 (DispOpt(choosertype=ChooseType.stateval, chooser='state*on',
+									  color=('gold', 'blue', 'white'), deflabel=(f,)),
+							  DispOpt(choosertype=ChooseType.stateval, chooser='state*off',
+									  color=('gold', 'blue', 'black'), deflabel=(f,))),
+							 None, 'Debug:' + f))
+
 	flagspercol = hw.screenheight // 120  # todo switch to new screen sizing
 	flagsperrow = hw.screenwidth // 120
 	flagoverrides = fixedoverrides.copy()
 	flagoverrides.update(KeysPerColumn=flagspercol, KeysPerRow=flagsperrow)
 	flagscreencnt = 0
-	while nflags > 0:
+	while nflags > 0:  # this needs to have a richer input where the flags have source of their state and a DispOpt
 		thisscrn = min(nflags, flagspercol * flagsperrow)
 		nflags = nflags - flagspercol * flagsperrow + 1
 		tmp = OrderedDict()
 		for i in range(thisscrn - 1):  # leave space for next or return
-			flg = tmpDbgFlags.pop(0)
-			tmp[flg] = (flg, setdbg)  # setdbg gets fixed below to be actually callable
+			n = debFlagInput[0][0]
+			tmp[n] = debFlagInput.pop(0)
+
 		if nflags > 0:  # will need another flag screen so build a "next"
-			tmp['next'] = (
-				'Next', functools.partial(goto, MaintScreen))  # this gets fixed below to be a real next
-		FlagsScreens.append(MaintScreenDesc('Flags Setting ({})'.format(flagscreencnt), tmp, overrides=flagoverrides))
+			tmp['next'] = ('Next', None, None, False, nextdisp, None)
+		#		'Next', functools.partial(goto, MaintScreen),False,'')  # this gets fixed below to be a real next
+		FlagsScreens.append(MaintScreenDesc('Flags Setting ({})'.format(flagscreencnt), tmp,
+											overrides=flagoverrides))  # this needs key descriptors passed in
 		flagscreencnt += 1
 		FlagsScreens[-1].KeysPerColumn = flagspercol
 		FlagsScreens[-1].KeysPerRow = flagsperrow
@@ -85,10 +108,6 @@ def SetUpMaintScreens():
 				k.Proc = functools.partial(setdbg, k)
 	debug.DebugFlagKeys["LogLevelUp"].Proc = functools.partial(adjloglevel, debug.DebugFlagKeys["LogLevelUp"])
 	debug.DebugFlagKeys["LogLevelDown"].Proc = functools.partial(adjloglevel, debug.DebugFlagKeys["LogLevelDown"])
-	debug.DebugFlagKeys["LogLevelUp"].SetKeyImages(
-		("Log Detail", logsupport.LogLevels[logsupport.LogLevel] + '(' + str(logsupport.LogLevel) + ')', "Less"))
-	debug.DebugFlagKeys["LogLevelDown"].SetKeyImages(
-		("Log Detail", logsupport.LogLevels[logsupport.LogLevel] + '(' + str(logsupport.LogLevel) + ')', "More"))
 
 	TopLevel = OrderedDict([('log', ('Show Log', functools.partial(screen.PushToScreen, LogDisp, 'Maint'))),
 							('versions', ('Select Version', functools.partial(screen.PushToScreen, Versions, 'Maint'),
@@ -126,18 +145,15 @@ def setdbg(K):
 # noinspection PyUnusedLocal
 def adjloglevel(K):
 	if K.name == "LogLevelUp":
-		if logsupport.LogLevel < len(logsupport.LogLevels) - 1:
-			logsupport.LogLevel += 1
+		if config.sysStore.LogLevel < len(logsupport.LogLevels) - 1:
+			config.sysStore.LogLevel += 1
 	else:
-		if logsupport.LogLevel > 0:
-			logsupport.LogLevel -= 1
-	debug.DebugFlagKeys["LogLevelUp"].SetKeyImages(
-		("Log Detail", logsupport.LogLevels[logsupport.LogLevel] + '(' + str(logsupport.LogLevel) + ')', "Less"))
-	debug.DebugFlagKeys["LogLevelDown"].SetKeyImages(
-		("Log Detail", logsupport.LogLevels[logsupport.LogLevel] + '(' + str(logsupport.LogLevel) + ')', "More"))
+		if config.sysStore.LogLevel > 0:
+			config.sysStore.LogLevel -= 1
+
 	debug.DebugFlagKeys["LogLevelUp"].PaintKey()
 	debug.DebugFlagKeys["LogLevelDown"].PaintKey()
-	logsupport.Logs.Log("Log Level changed via ", K.name, " to ", logsupport.LogLevel, severity=ConsoleWarning)
+	logsupport.Logs.Log("Log Level changed via ", K.name, " to ", config.sysStore.LogLevel, severity=ConsoleWarning)
 	displayupdate.updatedisplay()
 
 # noinspection PyUnusedLocal

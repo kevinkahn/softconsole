@@ -25,10 +25,10 @@ class SetVarValueKey(ManualKeyDesc):
 	def FinishKey(self, center, size, firstfont=0, shrink=True):
 		super(SetVarValueKey, self).FinishKey(center, size, firstfont, shrink)
 
-	def PaintKey(self, ForceDisplay=False, DisplayState=True):
+	def PaintKey(self):
 		# extact current value from variable array
 		self.SetKeyImages(self.label + [str(self.Value)])
-		super(SetVarValueKey, self).PaintKey(ForceDisplay, DisplayState)
+		super(SetVarValueKey, self).PaintKey()
 
 	def SetVarValue(self):
 		# Call a screen repainter proc

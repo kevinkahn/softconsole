@@ -115,11 +115,11 @@ class OctoPrintScreenDesc(screen.BaseKeyScreenDesc):
 															  size=(hw.screenwidth // 3, ctlhgt), KOn='', KOff='',
 															  proc=self.DoResume, Verify=False)
 		self.VerifyScreenCancel = supportscreens.VerifyScreen(self.JobKeys['Cancel'], ('Cancel', 'Job'), ('Back',),
-															  self.DoCancel, None,
+															  self.DoCancel,
 															  screen, self.KeyColor, self.CharColor, self.CharColor,
 															  True, None)
 		self.VerifyScreenPause = supportscreens.VerifyScreen(self.JobKeys['Pause'], ('Pause', 'Job'), ('Back',),
-															 self.DoPause, None,
+															 self.DoPause,
 															 screen, self.KeyColor, self.CharColor, self.CharColor,
 															 True, None)
 		self.FileSubscreen = supportscreens.ListChooserSubScreen(self, 'FileList', 8, useablescreenheight,

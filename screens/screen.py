@@ -11,7 +11,7 @@ import stores.paramstore as paramstore
 import stores.valuestore as valuestore
 from keyspecs import toucharea
 from logsupport import ConsoleError, ConsoleWarning, ConsoleDetail
-from utils.utilfuncs import wc, tint, fmt
+from utils.utilfuncs import wc, fmt
 from utils import timers, utilities, fonts, displayupdate, hw
 
 ScreenParams = {'DimTO': 99,
@@ -422,9 +422,9 @@ class ScreenDesc(object):
 
 	def PaintBase(self):
 		hw.screen.fill(wc(self.BackgroundColor))
-		lineclr = tint(self.BackgroundColor, tint_factor=.5)
+		lineclr = wc(self.BackgroundColor, factor=.5)
 		if config.sysStore.NetErrorIndicator:
-			pygame.draw.circle(hw.screen, tint(self.BackgroundColor, tint_factor=.5),
+			pygame.draw.circle(hw.screen, wc(self.BackgroundColor, factor=.5),
 							   (self.markradius, self.markradius), self.markradius, 0)
 			lineclr = wc(self.BackgroundColor)
 		if config.sysStore.ErrorNotice != -1:

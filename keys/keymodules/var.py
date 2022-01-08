@@ -30,15 +30,6 @@ class VarKey(ManualKeyDesc):
 		self.State = False
 		self.waspressed = False
 
-	#	def PaintKey(self, ForceDisplay=False, DisplayState=True):
-	#		# create the images here dynamically then let lower methods do display, blink etc.
-	#		val = valuestore.GetVal(self.Var)
-	#		AdjustAppearance(self, val)
-	#		#		if self.waspressed:  # todo verify that this is actually needed now Blink scheduling is done in super PaintKey
-	#		#			self.ScheduleBlinkKey(self.Blink)
-	#		#			self.waspressed = False
-	#		super().PaintKey(ForceDisplay, val is not None)
-
 	# noinspection PyUnusedLocal
 	def VarKeyPressed(self):
 		self.waspressed = True

@@ -59,7 +59,7 @@ class VerifyScreen(screen.BaseKeyScreenDesc):
 	def InitDisplay(self, nav):
 		logsupport.Logs.Log('Entering Verify Screen: ' + self.name, severity=ConsoleDetail)
 		super(VerifyScreen, self).InitDisplay({})
-
+'''
 class ValueChangeScreen(screen.ScreenDesc):  # todo may need to call super class
 	# need to set no nav keys
 	@staticmethod
@@ -170,7 +170,7 @@ class ValueChangeScreen(screen.ScreenDesc):  # todo may need to call super class
 		self.PaintKeys()
 		displayupdate.updatedisplay()
 		pass
-
+'''
 
 def TriangleCorners(c, hgt, invert):
 	h = .8 * hgt

@@ -18,7 +18,9 @@ class OnOffKey(ManualKeyDesc):
 		self.oldval = '####'
 
 		debug.debugPrint('Screen', "             New ", keytype, " Key Desc ", keyname)
+		self.statebasedkey = True
 		ManualKeyDesc.__init__(self, thisscreen, keysection, keyname)
+
 		screen.AddUndefaultedParams(self, keysection, SceneProxy='', NodeName='')
 
 		if keyname == '*Action*': keyname = self.NodeName  # special case for alert screen action keys that always have same name

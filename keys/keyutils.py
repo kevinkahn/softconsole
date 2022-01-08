@@ -3,7 +3,8 @@ import shlex
 import hubs.hubs
 import logsupport
 from logsupport import ConsoleWarning
-from utils.utilfuncs import RepresentsInt, tint, wc, BoolTrueWord, BoolFalseWord
+from utils.utilfuncs import RepresentsInt, wc, BoolTrueWord, BoolFalseWord
+from collections import namedtuple
 
 
 def _resolvekeyname(kn, DefHub):
@@ -54,40 +55,76 @@ class ChooseType(Enum):
 	Noneval = auto()
 	strval = auto()
 	boolval = auto()
+	stateval = auto()
 
-class DispOpt(object):
+
+CodeKeyDesc = namedtuple('CodeKeyDesc', 'Display Var statebased')
+
+
+class DispOpt(
+	object):  # typedesc colorset label  colorset is either a single color (default char and outline) or a triple (key, char, outline)
 	# todo add a state to display opt?
-	def __init__(self, item, deflabel):
-		desc = shlex.split(item)
-		if ':' in desc[0]:
-			self.ChooserType = ChooseType.rangeval
-			rng = desc[0].split(':')
-			self.Chooser = (int(rng[0]), int(rng[1]))
-		elif '|' in desc[0]:
-			self.ChooserType = ChooseType.enumval
-			rng = desc[0].split('|')
-			try:
+	def __init__(self, item='', deflabel='', choosertype=None, chooser=None, color=()):
+		if item != '':
+			parseditem = shlex.shlex(item, posix=True, punctuation_chars='()')
+			desc = list(parseditem)
+			while ',' in desc: desc.remove(',')
+			if desc[1] == ':':
+				desc.pop(1)
+				self.ChooserType = ChooseType.rangeval
+				self.Chooser = (int(desc.pop(0)), int(desc.pop(0)))
+			elif desc[1] == '|':
+				self.ChooserType = ChooseType.enumval
 				r = []
-				for x in rng:
-					r.append(int(x))
-				# r = (int(x) for x in rng) this simpler version results in an uncaught ValueError
-				self.Chooser = r
-			except ValueError:
-				self.Chooser = rng
-		elif RepresentsInt(desc[0]):
-			self.ChooserType = ChooseType.intval
-			self.Chooser = int(desc[0])
-		elif desc[0] == 'None':
-			self.ChooserType = ChooseType.Noneval
-			self.Chooser = None
-		elif BoolTrueWord(desc[0]) or BoolFalseWord(desc[0]):
-			self.ChooserType = ChooseType.boolval
-			self.Chooser = BoolTrueWord(desc[0])
+				while desc[1] == '|':
+					r.append(desc.pop(0))
+					desc.pop(0)  # remove the |
+				try:
+					r2 = []
+					for x in r:
+						r.append(int(x))
+					self.Chooser = r2
+				except ValueError:
+					self.Chooser = r
+			elif RepresentsInt(desc[0]):
+				self.ChooserType = ChooseType.intval
+				self.Chooser = int(desc.pop(0))
+			elif desc[0] == 'None':
+				self.ChooserType = ChooseType.Noneval
+				self.Chooser = None
+				desc.pop(0)
+			elif desc[0] in (
+			"state*on", "state*off"):  # this should be stateon and stateoff then set 2 options for an on/off button
+				# stateon Red onlabel -- this overlaps boolean but if state is 0 or non-zero then different test? maybe make this
+				# setup match state*on/state*off but then in match do check for val matches  on state or not
+				# stateoff Red|dull offlabel or just an off color
+				self.ChooserType = ChooseType.stateval
+				self.Chooser = desc.pop(0)
+			elif BoolTrueWord(desc[0]) or BoolFalseWord(desc[0]):
+				self.ChooserType = ChooseType.boolval
+				self.Chooser = BoolTrueWord(desc.pop(0))
+			else:
+				self.ChooserType = ChooseType.strval
+				self.Chooser = desc.pop(0)
+			if desc[0] != '(':
+				self.Color = [desc.pop(0)]
+			else:
+				self.Color = []
+				desc.pop(0)
+				while desc[0] != ')':
+					self.Color.append(desc.pop(0))
+				desc.pop(0)
+			self.Label = deflabel if len(desc) == 0 else desc[0].split(';')
 		else:
-			self.ChooserType = ChooseType.strval
-			self.Chooser = desc[0]
-		self.Color = desc[1]
-		self.Label = [deflabel] if len(desc) < 3 else desc[2].split(';')
+			self.ChooserType = choosertype
+			self.Chooser = chooser
+			self.Color = color
+			self.Label = deflabel
+
+	# print('Opt: {} {} {}'.format(self, deflabel, desc))
+
+	def __str__(self):
+		return "DispOpt({} {} {} {})".format(self.ChooserType, self.Chooser, self.Color, self.Label)
 
 	def Matches(self, val):
 		if self.ChooserType == ChooseType.Noneval:
@@ -110,25 +147,12 @@ class DispOpt(object):
 			return self.Chooser == val
 		elif self.ChooserType == ChooseType.enumval:
 			return val in self.Chooser
+		elif self.ChooserType == ChooseType.stateval:
+			if self.Chooser == 'state*on':
+				return BoolTrueWord(val)
+			elif self.Chooser == 'state*off':
+				return BoolFalseWord(val)
 		return False
-
-
-def AdjustAppearance(key, val):
-	lab = key.defoption.Label[:]
-	oncolor = tint(key.defoption.Color)
-	offcolor = wc(key.defoption.Color)
-	for i in key.displayoptions:
-		if i.Matches(val):
-			lab = i.Label[:]
-			oncolor = tint(i.Color)
-			offcolor = wc(i.Color)
-			break
-	lab2 = []
-	dval = '--' if val is None else str(val)
-	for line in lab:
-		lab2.append(line.replace('$', dval))
-	key.BuildKey(oncolor, offcolor)
-	key.SetKeyImages(lab2, lab2, 0, True)
 
 
 class DummyProgram(object):

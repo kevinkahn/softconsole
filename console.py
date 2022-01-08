@@ -402,8 +402,8 @@ for p, f in zip(pfiles, cfiles):
 logsupport.Logs.CopyEarly()
 debug.LogDebugFlags()
 
-logsupport.LogLevel = int(ParsedConfigFile.get('LogLevel', logsupport.LogLevel))
-logsupport.Logs.Log("Log level: ", logsupport.LogLevel)
+config.sysStore.Loglevel = int(ParsedConfigFile.get('LogLevel', config.sysStore.LogLevel))
+logsupport.Logs.Log("Log level: ", config.sysStore.LogLevel)
 
 logsupport.Logs.Log("Screensize: " + str(hw.screenwidth) + " x " + str(hw.screenheight))
 logsupport.Logs.Log(

@@ -534,9 +534,10 @@ as defined in https://docs.python.org/3.7/library/string.html.
 
 The SETINPUT and VARKEY keys accept and Appearance and DefaultAppearance parameter. Appearance takes a sequence of
 appearance descriptors where the first element (value matcher) describes what values is applies to, the second chooses a
-color, and the third provides a label. If the value matcher contains a ":" it defines a number range that matches. If it
-contains a "|" then it defines a sequence of 1 or more selection values. If it is an integer then it defines that
-integer value. If it is "None" then it matches a None value (see above). If it is "true" (or "on") or "false" (or "off")
+color, and the third provides a label. If the value matcher is of the form num1:num2 it defines a number range that
+matches. If it is of the form tag1|tag2|tag3| it defines a sequence of 1 or more selection values (note that there must
+be a trailing "|" to end the list of tags). If it is an integer then it defines that integer value. If it is "None" then
+it matches a None value (see above). If it is "true" (or "on") or "false" (or "off")
 it matches that boolean condition. Finally, if it is none of these it matches a string.
 
 ### Clock

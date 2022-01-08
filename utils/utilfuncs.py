@@ -6,17 +6,20 @@ import webcolors
 
 
 def wc(clr, factor=0.0, layercolor=(255, 255, 255)):
-	lc = webcolors.name_to_rgb(layercolor) if isinstance(layercolor, str) else layercolor
+	lc = webcolors.name_to_rgb(layercolor.lower()) if isinstance(layercolor, str) else layercolor
 	if isinstance(clr, str):
 		try:
-			v = webcolors.name_to_rgb(clr)
+			v = webcolors.name_to_rgb(clr.lower())
 		except ValueError:
 			# logsupport.Logs.Log('Bad color name: ' + str(clr), severity=ConsoleWarning)
 			v = webcolors.name_to_rgb('black')
 	else:
 		v = clr
-
-	return v[0] + (lc[0] - v[0]) * factor, v[1] + (lc[1] - v[1]) * factor, v[2] + (lc[2] - v[2]) * factor
+	try:
+		return v[0] + (lc[0] - v[0]) * factor, v[1] + (lc[1] - v[1]) * factor, v[2] + (lc[2] - v[2]) * factor
+	except Exception as E:
+		print('wc: {}'.format(E))
+		print(v, lc, clr, layercolor)
 
 
 def interval_str(sec_elapsed, shrt=False):
@@ -36,18 +39,15 @@ def interval_str(sec_elapsed, shrt=False):
 
 
 def BoolTrueWord(v):
+	if v is None: return False
+	if isinstance(v, bool): return v
 	return v.lower() in ('true', 'on', 'yes')
 
 
 def BoolFalseWord(v):
+	if v is None: return True
+	if isinstance(v, bool): return not v
 	return v.lower() in ('false', 'off', 'no')
-
-
-def tint(clr, tint_factor=.25):
-	# tint_factor = .25
-	r, g, b = wc(clr)
-	return r + (255 - r) * tint_factor, g + (255 - g) * tint_factor, b + (255 - b) * tint_factor
-
 
 def TreeDict(d, args):
 	# Allow a nest of dictionaries to be accessed by a tuple of keys for easier code

@@ -36,6 +36,7 @@ sysvals = {
 	'HomeScreenName': (str, '', None, True),
 	'MaxLogFiles': (int, 5, None, True),
 	'LogFontSize': (int, 14, None, True),
+	'LogLevel': (int, 3, None, True),
 	'DimHomeScreenCoverName': (str, "", None, False),
 	'MainChain': (list, [], None, False),
 	'SecondaryChain': (list, [], None, False),

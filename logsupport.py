@@ -65,7 +65,7 @@ Command = Enum('Command', 'LogEntry DevPrint FileWrite CloseHlog StartLog Touch 
 # 4 setup logfile 5 touch file  others tbd
 AsyncLogger = None
 
-LogLevel = 3
+# config.sysStore.LogLevel = 3
 LocalOnly = True
 
 
@@ -378,7 +378,7 @@ class Logger(object):
 			if homeonly and config.sysStore.versionname not in ('development', 'homerelease'):
 				return
 
-			if severity < LogLevel:
+			if severity < config.sysStore.LogLevel:
 				return
 
 			debugitem = kwargs.pop('debugitem', False)
