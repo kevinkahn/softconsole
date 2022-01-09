@@ -337,11 +337,15 @@ def call_service(api: API, domain: str, service: str,
 
 			if req.status_code != 200:
 				logsupport.Logs.Log(
-					"HA Error calling service {} - {} Request: domain: {} service: {} data: {}".format(req.status_code,
-																									   req.text, domain,
-																									   service,
-																									   service_data))
+					"HA Error calling service ({}) {} - {} Request: domain: {} service: {} data: {}".format(tryit,
+																											req.status_code,
+																											req.text,
+																											domain,
+																											service,
+																											service_data))
 			else:
+				if tryit == 'retry':
+					logsupport.Logs.Log('Retry worked ({}.{})'.format(domain, service))
 				return
 
 		except HomeAssistantError as e:

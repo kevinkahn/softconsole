@@ -34,6 +34,7 @@ def Arm(a):
 
 # noinspection PyUnusedLocal
 def VarChanged(storeitem, old, new, param, modifier):
+	print('VarChanged {}'.format(param))
 	debug.debugPrint('DaemonCtl', 'Var changed ', storeitem.name, ' from ', old, ' to ', new)
 	# noinspection PyArgumentList
 	if old != new:

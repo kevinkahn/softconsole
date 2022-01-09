@@ -12,6 +12,7 @@ class VarKey(ManualKeyDesc):
 	def __init__(self, thisscreen, keysection, keyname):
 		debug.debugPrint('Screen', "              New Var Key ", keyname)
 		ManualKeyDesc.__init__(self, thisscreen, keysection, keyname)
+		self.statebasedkey = True
 		screen.AddUndefaultedParams(self, keysection, ValueSeq=[], ProgramName='', Parameter=[])
 		if self.ValueSeq != [] and self.ProgramName != '':
 			logsupport.Logs.Log('VarKey {} cannot specify both ValueSeq and ProgramName'.format(self.name),

@@ -35,6 +35,7 @@ class Input_Boolean(HAnode):  # not stateful since it updates directly to store 
 				else:
 					stval = ns['state']
 				self.state = stval
+			super().Update(**ns)
 		except Exception as E:
 			logsupport.Logs.Log('Input_boolean update error: State: {}  Exc:{}'.format(repr(ns), repr(E)))
 			self.state = 'unknown'

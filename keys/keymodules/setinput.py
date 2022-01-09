@@ -22,6 +22,7 @@ class SetInputKey(ManualKeyDesc):
 		self.oldval = '*******'  # forces a display compute first time through
 		# determine type of input from store
 		try:
+			self.statebasedkey = True
 			self.Proc = self.SetInputKeyPressed
 			self.InputItem = self.Var.split(':')
 			self.entity = hubs.hubs.Hubs[self.InputItem[0]].GetNode(self.InputItem[1])[0]

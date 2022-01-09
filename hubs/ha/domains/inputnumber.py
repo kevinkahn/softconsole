@@ -55,6 +55,7 @@ class Input_Number(HAnode):  # not stateful since it updates directly to store v
 				else:
 					stval = ns['state']
 				self.state = stval
+				super().Update(**ns)
 		except Exception as E:
 			logsupport.Logs.Log('Input_number update error: State: {}  Exc:{}'.format(repr(ns), repr(E)))
 			self.state = 'unknown'

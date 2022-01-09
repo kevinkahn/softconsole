@@ -10,8 +10,8 @@ class Input_Select(HAnode):  # not stateful since it updates directly to store v
 			self.options = self.attributes['options']
 
 	def __init__(self, HAitem, d):
-		super(Input_Select, self).__init__(HAitem, **d)
 		self.options = None
+		super(Input_Select, self).__init__(HAitem, **d)
 		self.Hub.RegisterEntity('input_select', self.entity_id, self)
 		self.SetOptions()
 
@@ -53,10 +53,19 @@ class Input_Select(HAnode):  # not stateful since it updates directly to store v
 				else:
 					stval = ns['state']
 				self.state = stval
+				super().Update(**ns)
 		except Exception as E:
 			logsupport.Logs.Log('Input_Select update error: State: {}  Exc:{}'.format(repr(ns), repr(E)))
 			self.state = 'unknown'
-# self.DisplayStuff('update2', True)
+
+	# self.DisplayStuff('update2', True)
+
+	def _NormalizeState(self, state, brightness=None):  # may be overridden for domains with special state settings
+		if self.options is None: return None
+		if state not in self.options:
+			logsupport.Logs.Log('Input_Select {} unknown option: {} not in {}'.format(self.name, state, self.options))
+			return self.options[0]
+		return state
 
 
 RegisterDomain('input_select', Input_Select)

@@ -22,7 +22,7 @@ from stores import valuestore, haattraccess
 from utils.utilities import CheckPayload
 
 AddIgnoredDomain: Union[Callable, None] = None  # type Union[Callable, None]
-# gets filled in by ignore to avoid import loop
+# above gets filled in by ignore to avoid import loop
 
 ignoredeventtypes = [
 	'system_log_event', 'service_executed', 'logbook_entry', 'timer_out_of_sync', 'result',

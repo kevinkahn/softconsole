@@ -86,6 +86,11 @@ NavKeyAlpha = 50
 	#Value = 1
 	#Invoke = AssignVar.Assign
 	#Parameter = System:DimLevel = 5
+	[[AlertAway]]
+	Type = NodeChange
+	Node = HASSpga:input_boolean.testalert
+	Test = ISFALSE
+	Invoke = AwayAlert
 
     #[[DimHome]]
 	#Type = VarChange
@@ -161,22 +166,22 @@ KeyColor = maroon
 CenterMessage = False
 
 
-#[AwayAlert]
-#type = Alert
-#BackgroundColor = royalblue
-#MessageBack = red
-#CharColor = black
-#Message = "House", "in", "AWAY","Mode"
-#CharSize = 30, 30, 40, 30
-#DeferTime = 60 seconds
-#BlinkTime = 2
-#KeyColor = maroon
-#[[Action]]
-#type = RUNPROG
-#KeyColor = maroon
-#ProgramName = ClearAway
-#label = Set Home,
-#FastPress = 0
+[AwayAlert]
+type = Alert
+BackgroundColor = royalblue
+MessageBack = red
+CharColor = black
+Message = "House", "in", "AWAY","Mode"
+CharSize = 30, 30, 40, 30
+DeferTime = 60 seconds
+BlinkTime = 2
+KeyColor = maroon
+[[Action]]
+type = RUNPROG
+KeyColor = maroon
+ProgramName = ClearAway
+label = Set Home,
+FastPress = 0
 
 [InternetAlertScreen]
     type = Alert
@@ -207,6 +212,13 @@ CenterMessage = False
     ScreenTitleFields = HASS:input_boolean.home, HASS:input_number.inputnum, HASS:input_select.inputselect
     type = Keypad
     label = Test1
+    [[PGABOOL]]
+    type = SETINPUT
+    Var = HASSpga:input_boolean.testalert
+    Appearance = false Red "Away;$", true Green "Home;$"
+    DefaultAppearance = None red "Test;$"
+    #label = TestPGA
+    Value = 'toggle'
     [[TestBool]]
     type = SETINPUT
     Var = HASS:input_boolean.home
@@ -216,6 +228,7 @@ CenterMessage = False
     type = SETINPUT
     Var = HASS:input_number.inputnum
     Appearance = 0:99 Green "InputSel:$"
+    DefaultAppearance = None Purple "$"
     Value = 'inc'
     [[TestNumDec]]
     type = SETINPUT
@@ -279,7 +292,7 @@ CenterMessage = False
     Var = HASS:input_boolean.home
     Value = 'toggle'
     label = TBool
-    Appearance = false Red "Away", true Green "Home"
+    Appearance = false Red "Away;$", true Green "Home;$"
     DefaultAppearance = None Pink "Bad Occ Setting:$"
 
 

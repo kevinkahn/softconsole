@@ -255,7 +255,6 @@ class ManualKeyDesc(TouchPoint):
 		# print('Key {}'.format(self.name))
 		if hasattr(self, 'Var') and self.Var != '':
 			val = valuestore.GetVal(self.Var)
-		# print('Use Var: {} = {}'.format(self.Var, val))
 
 		elif self.statebasedkey:
 			if hasattr(self.DisplayObj, 'state'):

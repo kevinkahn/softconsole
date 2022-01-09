@@ -31,8 +31,22 @@ import operator
 
 Tests = ['EQ', 'NE', 'GT', 'LT', 'GE', 'LE']  # standard tests 2 operands
 TestOps = {x: operator.__dict__[x.lower()] for x in Tests}
-Tests.append('ISNONE')
+Tests = Tests + ['ISNONE', 'ISTRUE', 'ISFALSE']
 TestOps['ISNONE'] = lambda arg1, arg2: arg1 is None
+
+
+def TestTrue(arg1, arg2):
+	if arg1 in ('on', 'true', 'yes'): return True
+	if isinstance(arg1, int): return arg1 > 0
+
+
+def TestFalse(arg1, arg2):
+	if arg1 in ('off', 'false', 'no'): return True
+	if isinstance(arg1, int): return arg1 == 0
+
+
+TestOps['ISTRUE'] = TestTrue
+TestOps['ISFALSE'] = TestFalse
 
 
 def comparams(cspec):
