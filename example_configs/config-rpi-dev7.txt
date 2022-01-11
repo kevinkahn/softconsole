@@ -89,6 +89,7 @@ NavKeyAlpha = 50
 	[[AlertAway]]
 	Type = NodeChange
 	Node = HASSpga:input_boolean.testalert
+#    Node = HASS:input_boolean.home
 	Test = ISFALSE
 	Invoke = AwayAlert
 
@@ -177,9 +178,11 @@ DeferTime = 60 seconds
 BlinkTime = 2
 KeyColor = maroon
 [[Action]]
-type = RUNPROG
+type = SETINPUT
 KeyColor = maroon
-ProgramName = ClearAway
+Var = HASS:input_boolean.home
+Value = toggle
+#ProgramName = ClearAway
 label = Set Home,
 FastPress = 0
 

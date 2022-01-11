@@ -282,7 +282,7 @@ class ManualKeyDesc(TouchPoint):
 		self.timeused = self.timeused + time.process_time() - start
 		self.builds += 1
 		if self.builds > 30:
-			print("Ave time for key {} was {}".format(self.name, self.timeused / self.builds))
+			# print("Ave time for key {} was {}".format(self.name, self.timeused / self.builds))
 			self.timeused = 0
 			self.builds = 0
 
