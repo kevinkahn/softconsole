@@ -479,23 +479,24 @@ as defined in https://docs.python.org/3.7/library/string.html.
   be substituted for the store item value if desired. If the label is left out of the descriptor item the normal key
   label is used (either the key name or an explicit label parameter). if the store value doesn't match any of the ranges
   the normal key label is used. A **ValueSeq** parameter optionally specifies values that should be cyclically assigned
-  to the store item if the key is pressed. If the current value of the
-  store item is not in the ValueSeq then a press sets the value to the first item in the sequence. Leaving it out
-  makes the key passive. As an example should help clarify:
-       ```
-        [[TestKey]]
-            type = VARKEY
-  label = Error in Value, $
-  Var = ISY:State:tEST
-  ValueSeq = 0,1,3,6 KeyCharColorOn = royalblue Appearance = 0 green 'All good',1:2 yellow 'Probably; good; $',3:99 99 red 'Not so hot $'
-  ```
-  This describes a key that will be green and say "All good" if the variable is 0; be yellow and say "Probably good"
+  to the store item if the key is pressed. If the current value of the store item is not in the ValueSeq then a press
+  sets the value to the first item in the sequence. Leaving it out makes the key passive. As an example should help
+  clarify. The code snippet below describes a key that will be green and say "All good" if the variable is 0; be yellow
+  and say "Probably good"
   and show the value on 3 lines if the value is 1 or 2; and be red and say "Not so hot" and the value on a single line
   for values of 3 to 99. For any other values the key will display "Error in Value" and the value. Sequential presses of
   the key when the value is 0 will set the variable to 1, then 3, then 6, then 0. If something else has set the variable
   to, e.g.,4, then pressing it will make the variable 0. A **ProgramName** parameter may be optionally specified that
   will cause that script/program to be run in the hub (exactly as a RUNPROG key). In this case a **Parameter** parameter
-  may also be supplied.
+  may also be supplied as in the RunProgram command.
+   ```
+  [[TestKey]]
+  type = VARKEY
+  label = Error in Value, $
+  Var = ISY:State:tEST
+  ValueSeq = 0,1,3,6 KeyCharColorOn = royalblue Appearance = 0 green 'All good',1:2 yellow 'Probably; good; $',3:99 99 red 'Not so hot $'
+  ```
+
 * SETINPUT: this key is specifically for HA hubs but is somewhat similar to the VARKEY. It allows the display and
   setting of "input" entities in HA, specifically input_boolean, input_number, and input_select entities. These carry
   their own limitations on values and so do not need the value sequence information that the VARKEY has. The key takes a
@@ -506,6 +507,18 @@ as defined in https://docs.python.org/3.7/library/string.html.
   step value.)  For input_select VALUE may be "first", "last", "next", "nextcycle", "prev", "prevcycle", or one of the
   HA defined selection values. The SETINPUT key also takes an "Appearance" and a "DefaultAppearance" parameter for
   control what the key looks like based on the entity value.
+* SPECCMD: This key is specifically for HA hubs. It allows sending any command supported by an entity to that entity. It
+  requires a "Command =" parameter that specifies the command to be sent. If parameters are needed for the command they
+  can be supplied via and optional "Parameters =" paramter. For example, the following snippet issues an increase fan
+  speed command to a fan and blinks to indicate the touch:
+  ```
+  [[fan.lr_fanlight_fan/up]]
+  type = SPECCMD
+  KeyColor = red
+  Blink = 2
+  Command=increase_speed
+  label = Fan, Higher
+  ```
 
 #### Key Type Notes
 
@@ -532,13 +545,22 @@ as defined in https://docs.python.org/3.7/library/string.html.
 
 #### Key Appearance
 
-The SETINPUT and VARKEY keys accept and Appearance and DefaultAppearance parameter. Appearance takes a sequence of
-appearance descriptors where the first element (value matcher) describes what values is applies to, the second chooses a
-color, and the third provides a label. If the value matcher is of the form num1:num2 it defines a number range that
-matches. If it is of the form tag1|tag2|tag3| it defines a sequence of 1 or more selection values (note that there must
-be a trailing "|" to end the list of tags). If it is an integer then it defines that integer value. If it is "None" then
-it matches a None value (see above). If it is "true" (or "on") or "false" (or "off")
-it matches that boolean condition. Finally, if it is none of these it matches a string.
+All keys accept **Appearance** and **DefaultAppearance** parameters. These parameters define how the key is displayed
+based on either a specified value given with the **Var =** parameter or, absent this, the state of the entity associated
+with the key. Appearance takes a sequence of appearance descriptors where the first element (value matcher) describes
+what values is applies to, the second chooses a color or set of colors, and the third provides a label. If the value
+matcher is of the form num1:num2 it defines a number range that matches. If it is of the form tag1|tag2|tag3| it defines
+a sequence of 1 or more selection values (note that there must be a trailing "|" to end the list of tags). If it is an
+integer then it defines that integer value. If it is "None" then it matches a None value (see above). If it is "true" (
+or "on") or "false" (or "off")
+it matches that boolean condition. If is is "state*on" or "state*off" it matches the state of the relevant entity.
+Finally, if it is none of these it matches a string. If none of the Appearance descriptors match then the
+DefaultAppearance descriptor is used (for the default use None as the matcher). If the color is a single color then it
+is the key color to use. If color is a string of the form: **(c1 c2 c3)** (note no commas) then c1 is the key color, c2
+is the character color and c3 is the outline color. Any color can be suffixed with "/dull" as in red/dull to indicate
+that the color should be muted. The default key coloration for on/off keys is created internally by the program using
+state*on and state*off matches as a shortcut for the common case of an on/off key. See the example config files for
+examples of how all this works.
 
 ### Clock
 
