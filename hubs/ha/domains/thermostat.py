@@ -36,6 +36,7 @@ class Thermostat(HAnode):  # not stateful since has much state info
 		pass
 
 	def __init__(self, HAitem, d):
+		self.ignore_updates = False  # used to skip updates on pool/spa that report as climate devices but don't have much use
 		self.target_high = 100
 		self.target_low = 0
 		self.temperature = 0
@@ -93,6 +94,7 @@ class Thermostat(HAnode):  # not stateful since has much state info
 			logsupport.Logs.Log(
 				'{}: Climate device {} missing attributes ({}) - Exc:({})'.format(self.Hub.name, self.name,
 																				  self.attributes, E))
+			self.ignore_updates = True
 
 	def _NormalizeState(self, state, brightness=None):  # state is just the operation mode
 		return state
@@ -104,6 +106,7 @@ class Thermostat(HAnode):  # not stateful since has much state info
 	def Update(self, **ns):
 		self.__dict__.update(ns)
 		self.internalstate = self._NormalizeState(self.state)
+		if self.ignore_updates: return  # don't try to update info for pools
 		if 'attributes' in ns: self.attributes = ns['attributes']
 		self.GetTarget()
 		self.curtemp = self._SafeUpdate('current_temperature', self.curtemp)

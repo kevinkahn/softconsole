@@ -436,6 +436,7 @@ for i, v in ParsedConfigFile.items():
 	if isinstance(v, Section):
 		# noinspection PyArgumentList
 		stype = v.get('type', '', delkey=False)
+		# add stype Choice,  save all subsections, SCREEN names where to insert, then after specials do the insertions? todo
 		if stype == 'MQTT':
 			"""
 			Set up mqtt brokers
