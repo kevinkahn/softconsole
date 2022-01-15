@@ -12,7 +12,7 @@ PersistTO = 20
 
 DimIdleListNames = MyClock, TimeTemp, LQTT
 
-DimIdleListTimes =	5, 5, 5
+DimIdleListTimes =	10, 5, 10
 
 MainChain =pgaGR, pgaKitchen, pgaOutside, pgaShades1, pgaShades2
 SecondaryChain = climate.master_bedroom, climate.living_room
