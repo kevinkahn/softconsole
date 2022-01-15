@@ -326,7 +326,7 @@ class ManualKeyDesc(TouchPoint):
 			self.Screen.ScreenTimers.append((self.BlinkTimer, self.AbortBlink))
 
 	def AbortBlink(self):
-		print('abort')
+		# print('abort')
 		self.BlinkState = 0
 
 	def BlinkKey(self, event):

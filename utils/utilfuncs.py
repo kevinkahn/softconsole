@@ -41,13 +41,18 @@ def interval_str(sec_elapsed, shrt=False):
 def BoolTrueWord(v):
 	if v is None: return False
 	if isinstance(v, bool): return v
-	return v.lower() in ('true', 'on', 'yes')
-
+	try:
+		return v.lower() in ('true', 'on', 'yes')
+	except Exception as e:
+		print("Error1: {}".format(v))
 
 def BoolFalseWord(v):
 	if v is None: return True
 	if isinstance(v, bool): return not v
-	return v.lower() in ('false', 'off', 'no')
+	try:
+		return v.lower() in ('false', 'off', 'no')
+	except Exception as e:
+		print("Error2: {}".format(v))
 
 def TreeDict(d, args):
 	# Allow a nest of dictionaries to be accessed by a tuple of keys for easier code
