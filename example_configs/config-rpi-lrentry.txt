@@ -3,7 +3,7 @@ LogLevel = 3
 # switch to authall with HASSpga avail
 
 cfglib = cfglib
-include = /home/pi/Console/local/authall.cfg, mqtt.cfg, weathersources.cfg, timetempLQ.cfg,  myclock.cfg,pgaTstat.cfg, pgaalerts.cfg, pgaGR.cfg, pgaKitchen.cfg, pgaOutside.cfg, pgaShades3.cfg, timetempPDX.cfg
+include = /home/pi/Console/local/authall.cfg, mqtt.cfg, weathersources.cfg, timetempLQ.cfg,  myclock.cfg,pgaTstat.cfg, pgaalerts.cfg, pgaGR.cfg, pgaKitchen.cfg, pgaOutside.cfg, pgaShades3.cfg, timetempPDX.cfg, pgaScenes.cfg
 
 HomeScreenName = 'pgaGR'
 DimLevel = 10
@@ -14,7 +14,7 @@ DimIdleListNames = MyClock, TimeTemp, LQTT
 
 DimIdleListTimes =	10, 5, 10
 
-MainChain =pgaGR, pgaKitchen, pgaOutside, pgaShades1, pgaShades2
+MainChain =pgaGR, pgaKitchen, pgaOutside, pgaShades1, pgaShades2, pgaScenes
 SecondaryChain = climate.master_bedroom, climate.living_room
 
 DefaultHub = HASSpga
