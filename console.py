@@ -75,6 +75,7 @@ historybuffer.HBNet = historybuffer.HistoryBuffer(80, 'Net')
 atexit.register(exitutils.exitlogging)
 
 hubs.hubs.hubtypes['ISY'] = isy.ISY  # todo make dynamic load
+hubs.hubs.hubtypes['ISYDummy'] = isy.ISY
 hubs.hubs.hubtypes['HASS'] = hasshub.HA
 hubs.hubs.hubtypes['*missing*'] = missinghub.Hub
 
@@ -330,6 +331,7 @@ while includes:
 		configfilelist[f] = 0
 
 debug.InitFlags(ParsedConfigFile)
+isy.GetHandledNodeTypes(ParsedConfigFile)
 
 for nm, val in config.sysvals.items():
 	config.sysStore.SetVal([nm], val[0](ParsedConfigFile.get(nm, val[1])))
@@ -457,6 +459,7 @@ for i, v in ParsedConfigFile.items():
 			stype_vers = stype.split('.')
 			stype_base = stype_vers[0]
 			hubvers = 0 if len(stype_vers) == 1 else int(stype_vers[1])
+			if hubtyp == 'ISYDummy': hubvers = -1
 			from hubs.hubs import HubInitError
 			if stype_base == hubtyp:
 				# noinspection PyBroadException

@@ -466,6 +466,10 @@ class ISYEventMonitor(object):
 			wsurl = 'wss://' + self.isy.addr[8:] + '/rest/subscribe'
 		else:
 			wsurl = 'ws://' + self.isy.addr + '/rest/subscribe'
+		import logging
+		WStrace = open('/home/pi/WStrace', 'w')
+		print('Open {}'.format(wsurl), file=WStrace)
+		websocket.enableTrace(True, handler=logging.StreamHandler(stream=WStrace))
 		while True:
 			try:
 				# noinspection PyArgumentList

@@ -17,6 +17,14 @@ from logsupport import ConsoleWarning, ConsoleError, ConsoleDetailHigh, ConsoleD
 from stores import valuestore, isyvarssupport
 from ..hubs import HubInitError
 
+NodeServerSwitchTypes = []
+
+
+def GetHandledNodeTypes(sect):
+	global NodeServerSwitchTypes
+	t = sect.get('NodeServerSwitches', [])
+	NodeServerSwitchTypes = t if isinstance(t, list) else [t]
+
 
 class CommsError(Exception): pass
 
@@ -79,6 +87,14 @@ class Folder(TreeItem):
 		return "Folder: " + TreeItem.__repr__(self) + ' flag ' + str(self.flag) + ' parenttyp ' + str(self.parenttype)
 
 
+class UnhandledNode(Folder, ISYNode):
+	def __init__(self, hub, flag, name, addr, parenttyp, parentaddr, enabled, props):
+		Folder.__init__(self, hub, flag, name, addr, parenttyp, parentaddr)
+		self.pnode = None  # for things like KPLs
+		self.enabled = enabled == "true"
+		self.hasstatus = False
+		self.devState = -1  # device status reported in the ISY event stream
+
 class Node(Folder, OnOffItem):
 	"""
 	Represents and ISY device node.
@@ -90,15 +106,16 @@ class Node(Folder, OnOffItem):
 		self.enabled = enabled == "true"
 		self.hasstatus = False
 		self.devState = -1  # device status reported in the ISY event stream
-		# props is either an OrderedDict(@id:ST,@value:val, . . .) or a list of such
-		if isinstance(props, collections.OrderedDict):
-			props = [props]  # make it a list so below always works
-		for item in props:
-			if item['@id'] == 'ST':
-				# noinspection PyProtectedMember
-				self.devState = isycodes.NormalizeState(item['@value'])
-				if item['@value'] != ' ':
-					self.hasstatus = True
+		# props is either an OrderedDict(@id:ST,@value:val, . . .) or a list of such or "unknown"
+		if props != "unknown":
+			if isinstance(props, collections.OrderedDict):
+				props = [props]  # make it a list so below always works
+			for item in props:
+				if item['@id'] == 'ST':
+					# noinspection PyProtectedMember
+					self.devState = isycodes.NormalizeState(item['@value'])
+					if item['@value'] != ' ':
+						self.hasstatus = True
 		# no use for nodetype now
 		# device class -energy management
 		# wattage, dcPeriod
@@ -276,16 +293,20 @@ class ISY(object):
 	# noinspection PyUnusedLocal
 	def __init__(self, name, isyaddr, user, pwd, version):
 
-		if isyaddr == '' or user == '':
-			logsupport.Logs.Log("ISY id info missing:  addr: {} user: {}".format(isyaddr, user), severity=ConsoleError)
-			raise ValueError
-
-		if isyaddr.startswith('http'):
-			self.ISYprefix = isyaddr + '/rest/'
+		if version == -1:
+			pass
 		else:
-			self.ISYprefix = 'http://' + isyaddr + '/rest/'
-		self.ISYrequestsession = requests.session()
-		self.ISYrequestsession.auth = (user, pwd)
+			if isyaddr == '' or user == '':
+				logsupport.Logs.Log("ISY id info missing:  addr: {} user: {}".format(isyaddr, user),
+									severity=ConsoleError)
+				raise ValueError
+
+			if isyaddr.startswith('http'):
+				self.ISYprefix = isyaddr + '/rest/'
+			else:
+				self.ISYprefix = 'http://' + isyaddr + '/rest/'
+			self.ISYrequestsession = requests.session()
+			self.ISYrequestsession.auth = (user, pwd)
 
 		self.name = name
 		self.addr = isyaddr
@@ -316,37 +337,40 @@ class ISY(object):
 		"""
 		logsupport.Logs.Log("{}: Create Structure for ISY hub at {} for user {}".format(name, isyaddr, user))
 
-		trycount = 15 if config.sysStore.versionname not in ('none', 'development') else 1
-		while True:
-			# noinspection PyBroadException
-			try:
-				historybuffer.HBNet.Entry('ISY nodes get')
-				r = self.ISYrequestsession.get(self.ISYprefix + 'nodes', verify=False, timeout=5)
-				historybuffer.HBNet.Entry('ISY nodes get done')
-				logsupport.Logs.Log('{}: Successful node read: {}'.format(name, r.status_code))
-				break
-			except:
-				# after total power outage ISY is slower to come back than RPi so
-				# we wait testing periodically.  Eventually we try rebooting just in case our own network
-				# is what is hosed
-				trycount -= 1
-				if trycount > 0:
-					logsupport.Logs.Log('{}:  Hub not responding (nodes) at: {}'.format(self.name, self.ISYprefix))
-					time.sleep(15)
-				else:
-					logsupport.Logs.Log('No ISY response')
-					raise HubInitError
+		if version == -1:
+			pass
+		else:
+			trycount = 15 if config.sysStore.versionname not in ('none', 'development') else 1
+			while True:
+				# noinspection PyBroadException
+				try:
+					historybuffer.HBNet.Entry('ISY nodes get')
+					r = self.ISYrequestsession.get(self.ISYprefix + 'nodes', verify=False, timeout=5)
+					historybuffer.HBNet.Entry('ISY nodes get done')
+					logsupport.Logs.Log('{}: Successful node read: {}'.format(name, r.status_code))
+					break
+				except:
+					# after total power outage ISY is slower to come back than RPi so
+					# we wait testing periodically.  Eventually we try rebooting just in case our own network
+					# is what is hosed
+					trycount -= 1
+					if trycount > 0:
+						logsupport.Logs.Log('{}:  Hub not responding (nodes) at: {}'.format(self.name, self.ISYprefix))
+						time.sleep(15)
+					else:
+						logsupport.Logs.Log('No ISY response')
+						raise HubInitError
 
-		if r.status_code != 200:
-			logsupport.Logs.Log('Hub (' + self.name + ') text response:', severity=ConsoleError)
-			logsupport.Logs.Log('-----', severity=ConsoleError)
-			logsupport.Logs.Log(r.text, severity=ConsoleError)
-			logsupport.Logs.Log('-----', severity=ConsoleError)
-			logsupport.Logs.Log('Cannot access ISY - check username/password')
-			logsupport.Logs.Log('Status code: ' + str(r.status_code))
-			raise ValueError
+			if r.status_code != 200:
+				logsupport.Logs.Log('Hub (' + self.name + ') text response:', severity=ConsoleError)
+				logsupport.Logs.Log('-----', severity=ConsoleError)
+				logsupport.Logs.Log(r.text, severity=ConsoleError)
+				logsupport.Logs.Log('-----', severity=ConsoleError)
+				logsupport.Logs.Log('Cannot access ISY - check username/password')
+				logsupport.Logs.Log('Status code: ' + str(r.status_code))
+				raise ValueError
 
-		configdict = xmltodict.parse(r.text)['nodes']
+			configdict = xmltodict.parse(r.text)['nodes']
 		# with open('/home/pi/Console/txml.dmp') as f:
 		#	rtxt = f.readline()
 		# configdict = xmltodict.parse(rtxt)['nodes']
@@ -403,32 +427,49 @@ class ISY(object):
 			prop = 'unknown'
 			pnd = 'unknown'
 			devtyp = 'unknown.unknown'
+
 			if 'parent' in node:
 				ptyp = int(node['parent']['@type'])
 				parentaddr = node['parent']['#text']
 			# noinspection PyBroadException
-			try:
+			try:  # first assume it is a classic Insteon node or a ZWave node
+				ZWAVE_CAT_DIMMABLE = ["109", "119", "134", "186"]  # from pyisy
 				flg = node['@flag']
 				nm = node['name']
 				addr = node['address']
 				enabld = node['enabled']
 				pnd = node['pnode']
-				prop = node['property']
+				prop = node['property'] if 'property' in node else 'unknown'
+				nodedef = node['@nodeDefId'] if '@nodeDefId' in node else 'UnknownDef'
 				devtyp = node['type'].split('.')
-				if devtyp[0] == '5':
-					n = Thermostat(self, flg, nm, addr, ptyp, parentaddr, enabld, prop)
-				elif devtyp[0] == '1' and flg == '128':  # dimmer device
-					n = DimmableNode(self, flg, nm, addr, ptyp, parentaddr, enabld, prop)
-				else:
+				family = node['family'] if 'family' in node else "InsteonClassic"
+				if isinstance(family, dict): family = family['#text'] if '#text' in family else "UnknownFamily"
+				if family == "4":  # zwave device
+					zwdevtype = node['devtype']['cat']
+					if zwdevtype in ZWAVE_CAT_DIMMABLE:
+						n = n = DimmableNode(self, flg, nm, addr, ptyp, parentaddr, enabld, prop)
+					else:
+						n = Node(self, flg, nm, addr, ptyp, parentaddr, enabld, prop)
+				elif family == "10" and nodedef in NodeServerSwitchTypes:  # node server device that switches on/off
 					n = Node(self, flg, nm, addr, ptyp, parentaddr, enabld, prop)
+				elif family == "InsteonClassic":
+					if devtyp[0] == '5':
+						n = Thermostat(self, flg, nm, addr, ptyp, parentaddr, enabld, prop)
+					elif devtyp[0] == '1' and flg == '128':  # dimmer device
+						n = DimmableNode(self, flg, nm, addr, ptyp, parentaddr, enabld,
+										 prop)  # todo make dimmable zave based on pyisy hack
+					else:
+						n = Node(self, flg, nm, addr, ptyp, parentaddr, enabld, prop)
+				else:
+					logsupport.Logs.Log("{} of unhandled type {}/{} address {}".format(nm, family, nodedef, addr))
+					n = UnhandledNode(self, flg, nm, addr, ptyp, parentaddr, enabld, prop)
 				fixlist.append((n, pnd))
 				self.NodesByAddr[n.address] = n
 			#print("Node: {} {} type: {}".format(nm, type(n), node))
 			except Exception as E:
 				if prop == 'unknown':
 					# probably a v3 polyglot node or zwave
-					logsupport.Logs.Log("Probable v5 node seen: {}  Address: {}  Parent: {} ".format(nm, addr, pnd),
-										severity=ConsoleDetail)
+					logsupport.Logs.Log("Probable v5 node seen: {}  Address: {}  Parent: {} ".format(nm, addr, pnd))
 					logsupport.Logs.Log("ISY item: {}".format(repr(node)), severity=ConsoleDetail)
 					self.V3Nodes.append(addr)
 				else:

@@ -709,6 +709,11 @@ class HA(object):
 
 		self.haconnectstate = "Starting"
 		websocket.setdefaulttimeout(30)
+		# import logging
+		# logging.basicConfig(filename='/home/pi/WSlog',level=logging.INFO)
+		# WStrace = open('/home/pi/WStrace','a')
+		# print('Open {}'.format(self.wsurl),file=WStrace)
+		# websocket.enableTrace(True,handler=logging.StreamHandler(stream=WStrace))
 		try:
 			# websocket.enableTrace(True)
 			# noinspection PyProtectedMember
