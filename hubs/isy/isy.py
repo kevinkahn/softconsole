@@ -338,7 +338,7 @@ class ISY(object):
 		logsupport.Logs.Log("{}: Create Structure for ISY hub at {} for user {}".format(name, isyaddr, user))
 
 		if version == -1:
-			pass
+			logsupport.Logs.Log('Using ISY Test - skipping read')
 		else:
 			trycount = 15 if config.sysStore.versionname not in ('none', 'development') else 1
 			while True:
@@ -537,31 +537,36 @@ class ISY(object):
 		Build the Program tree
 		"""
 
-		trycount = 10
-		while True:
-			# noinspection PyBroadException
-			try:
-				historybuffer.HBNet.Entry('ISY programs get')
-				r = self.ISYrequestsession.get(self.ISYprefix + 'programs?subfolders=true', verify=False, timeout=5)
-				historybuffer.HBNet.Entry('ISY programs get done')
-				if r.status_code != 200:
-					logsupport.Logs.Log('Hub (' + self.name + ') bad program read' + r.text, severity=ConsoleWarning)
-					raise requests.exceptions.ConnectionError  # fake a connection error if we didn't get a good read
-				logsupport.Logs.Log('{}: Successful programs read: {}'.format(self.name, r.status_code))
-				break
-			# except requests.exceptions.ConnectTimeout:
-			except:
-				# after total power outage ISY is slower to come back than RPi sowait testing periodically.
-				# Eventually we try rebooting just in case our own network is what is hosed
-				trycount -= 1
-				if trycount > 0:
-					logsupport.Logs.Log(
-						'{}:  Hub not responding ({}) (programs) at: {}'.format(self.name, trycount, self.ISYprefix))
-					time.sleep(15)
-				else:
-					logsupport.Logs.Log('No ISY response restart (programs)')
-					raise HubInitError
-		configdict = xmltodict.parse(r.text)['programs']['program']
+		if version == -1:
+			logsupport.Logs.Log('Using ISY Test - skipping program read')
+		else:
+			trycount = 10
+			while True:
+				# noinspection PyBroadException
+				try:
+					historybuffer.HBNet.Entry('ISY programs get')
+					r = self.ISYrequestsession.get(self.ISYprefix + 'programs?subfolders=true', verify=False, timeout=5)
+					historybuffer.HBNet.Entry('ISY programs get done')
+					if r.status_code != 200:
+						logsupport.Logs.Log('Hub (' + self.name + ') bad program read' + r.text,
+											severity=ConsoleWarning)
+						raise requests.exceptions.ConnectionError  # fake a connection error if we didn't get a good read
+					logsupport.Logs.Log('{}: Successful programs read: {}'.format(self.name, r.status_code))
+					break
+				# except requests.exceptions.ConnectTimeout:
+				except:
+					# after total power outage ISY is slower to come back than RPi sowait testing periodically.
+					# Eventually we try rebooting just in case our own network is what is hosed
+					trycount -= 1
+					if trycount > 0:
+						logsupport.Logs.Log(
+							'{}:  Hub not responding ({}) (programs) at: {}'.format(self.name, trycount,
+																					self.ISYprefix))
+						time.sleep(15)
+					else:
+						logsupport.Logs.Log('No ISY response restart (programs)')
+						raise HubInitError
+			configdict = xmltodict.parse(r.text)['programs']['program']
 		if debug.dbgStore.GetVal('ISYLoad'):
 			configdict = xmltodict.parse(x2)['programs']['program']
 		if debug.dbgStore.GetVal('ISYDump'):
@@ -587,44 +592,49 @@ class ISY(object):
 		"""
 		Get the variables
 		"""
-		while True:
-			intgood = True
-			statgood = True
-			# noinspection PyBroadException
-			try:
-				historybuffer.HBNet.Entry('ISY vars get')
+		if version == -1:
+			logsupport.Logs.Log('Using ISY Test - skipping variable read')
+		else:
+			while True:
+				intgood = True
+				statgood = True
+				# noinspection PyBroadException
+				try:
+					historybuffer.HBNet.Entry('ISY vars get')
 
-				r1 = self.ISYrequestsession.get(self.ISYprefix + 'vars/definitions/2', verify=False, timeout=5)
-				r2 = self.ISYrequestsession.get(self.ISYprefix + 'vars/definitions/1', verify=False, timeout=5)
-				historybuffer.HBNet.Entry('ISY vars get done')
-				# if r1.status_code == 200 and r2.status_code == 200: # good reads for both
-				#	break
-				if r1.status_code != 200 and 'Not Found' in r1.text:  # no state vars
-					statgood = False
-				elif r1.status_code != 200:
-					logsupport.Logs.Log("Bad ISY state var read" + r1.text + r2.text, severity=ConsoleWarning)
-					raise requests.exceptions.ConnectionError  # fake connection error on bad read
+					r1 = self.ISYrequestsession.get(self.ISYprefix + 'vars/definitions/2', verify=False, timeout=5)
+					r2 = self.ISYrequestsession.get(self.ISYprefix + 'vars/definitions/1', verify=False, timeout=5)
+					historybuffer.HBNet.Entry('ISY vars get done')
+					# if r1.status_code == 200 and r2.status_code == 200: # good reads for both
+					#	break
+					if r1.status_code != 200 and 'Not Found' in r1.text:  # no state vars
+						statgood = False
+					elif r1.status_code != 200:
+						logsupport.Logs.Log("Bad ISY state var read" + r1.text + r2.text, severity=ConsoleWarning)
+						raise requests.exceptions.ConnectionError  # fake connection error on bad read
 
-				if r2.status_code != 200 and 'Not Found' in r2.text:  # no int vars
-					intgood = False
-				elif r2.status_code != 200:
-					logsupport.Logs.Log("Bad ISY int var read" + r1.text + r2.text, severity=ConsoleWarning)
-					raise requests.exceptions.ConnectionError  # fake connection error on bad read
-				break
-			except:
-				# after total power outage ISY is slower to come back than RPi so we wait testing periodically
-				# Eventually we try rebooting just in case our own network is what is hosed
-				trycount -= 1
-				if trycount > 0:
-					logsupport.Logs.Log('{}:  Hub not responding (variables) at: {}'.format(self.name, self.ISYprefix))
-					time.sleep(15)
-				else:
-					logsupport.Logs.Log('No ISY response restart (vars)')
-					raise HubInitError
+					if r2.status_code != 200 and 'Not Found' in r2.text:  # no int vars
+						intgood = False
+					elif r2.status_code != 200:
+						logsupport.Logs.Log("Bad ISY int var read" + r1.text + r2.text, severity=ConsoleWarning)
+						raise requests.exceptions.ConnectionError  # fake connection error on bad read
+					break
+				except:
+					# after total power outage ISY is slower to come back than RPi so we wait testing periodically
+					# Eventually we try rebooting just in case our own network is what is hosed
+					trycount -= 1
+					if trycount > 0:
+						logsupport.Logs.Log(
+							'{}:  Hub not responding (variables) at: {}'.format(self.name, self.ISYprefix))
+						time.sleep(15)
+					else:
+						logsupport.Logs.Log('No ISY response restart (vars)')
+						raise HubInitError
 
-		logsupport.Logs.Log(
-			'{}: Successful variable read: {}/{} ({}/{})'.format(self.name, r1.status_code, r2.status_code, statgood,
-																 intgood))
+			logsupport.Logs.Log(
+				'{}: Successful variable read: {}/{} ({}/{})'.format(self.name, r1.status_code, r2.status_code,
+																	 statgood,
+																	 intgood))
 
 		self.Vars = valuestore.NewValueStore(isyvarssupport.ISYVars(self))
 		# noinspection PyBroadException
