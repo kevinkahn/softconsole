@@ -105,7 +105,7 @@ class Node(Folder, OnOffItem):
 		self.pnode = None  # for things like KPLs
 		self.enabled = enabled == "true"
 		self.hasstatus = False
-		self.devState = -1  # device status reported in the ISY event stream
+		self._devState = -1  # device status reported in the ISY event stream
 		# props is either an OrderedDict(@id:ST,@value:val, . . .) or a list of such or "unknown"
 		if props != "unknown":
 			if isinstance(props, collections.OrderedDict):
@@ -120,6 +120,17 @@ class Node(Folder, OnOffItem):
 		# device class -energy management
 		# wattage, dcPeriod
 		utilities.register_example("Node", self)
+
+	@property
+	def devState(self):
+		print("Get {} as {}".format(self.name, self._devState))
+		return self._devState
+
+	@devState.setter
+	def devState(self, val):
+		self._devState = val
+		print("Set {} to {}".format(self.name, val))
+		return self._devState
 
 	def __repr__(self):
 		return 'Node: ' + Folder.__repr__(self) + 'primary: ' + self.pnode.name
