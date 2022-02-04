@@ -101,6 +101,9 @@ class ISYEventMonitor(object):
 		self.QHnum += 1
 
 	def PostStartQHThread(self):
+		if self.isy.version == -1:
+			# test mode
+			return
 		hungcount = 40
 		while self.THstate == 'restarting':
 			logsupport.Logs.Log(self.hubname + " Waiting thread start")
@@ -224,6 +227,8 @@ class ISYEventMonitor(object):
 				msav = copy.deepcopy(m)
 				if debug.dbgStore.GetVal('ISYDump'):
 					debug.ISYDump("isystream.dmp", message, pretty=False)
+
+				print(m)
 
 				if 'SubscriptionResponse' in m:
 					sr = m['SubscriptionResponse']
@@ -361,12 +366,13 @@ class ISYEventMonitor(object):
 					else:
 						pass  # handle any other?
 					efmtact = E.pop('fmtAct', 'v4stream')
+					efmtnm = E.pop('fmtName', 'noName')
 					if E:
 						lev = ConsoleDetailHigh if str(
 							enode) in self.isy.V3Nodes else ConsoleWarning  # supress to detail if it is a V3 node
 						logsupport.Logs.Log(
 							self.hubname + " Extra info in event: " + str(ecode) + '/' + str(prcode) + '/' + str(
-								eaction) + '/' + str(enode) + '/' + str(eInfo) + str(E), severity=lev)
+								eaction) + '/' + str(enode) + '/' + str(eInfo) + '   ' + str(E), severity=lev)
 					debug.debugPrint('DaemonStream', time.time() - config.sysStore.ConsoleStartTime,
 									 formatwsitem(esid, eseq, ecode, eaction, enode, eInfo, E, self.isy))
 
@@ -451,6 +457,23 @@ class ISYEventMonitor(object):
 			self.isy.HBWS.Entry('Processing time: {} Done: {}'.format(loopend - loopstart, repr(
 				message)))
 			time.sleep(.001)  # force thread to give up processor to allow response to time events
+
+		if self.isy.version == -1:
+			with open('/home/pi/Console/isystream.dmp', 'r') as f:
+				mes = f.readline()  # absorb first
+				print("Message1: {}".format(mes))
+				while True:
+					try:
+						mes = f.readline().rstrip('\n')
+					except Exception as E:
+						print("exc: {}".format(E))
+						break
+					print("Message: {}".format(mes))
+					on_message(None, mes)
+					time.sleep(.5)
+			while True:
+				time.sleep(500)
+			return  # todo have it get the stream dump and feed those to message call every half second or so.
 
 		self.THstate = 'delaying'
 		logsupport.Logs.Log("{}: WS stream thread {} setup".format(self.hubname, self.QHnum), severity=ConsoleDetail)

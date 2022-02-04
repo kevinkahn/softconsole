@@ -311,6 +311,7 @@ class ISY(object):
 		self.name = name
 		self.addr = isyaddr
 		self.user = user
+		self.version = version
 		self.password = pwd
 		self._NodeRoot = Folder(self, 0, '', u'0', 0, u'0')  # *root*
 		self._ProgRoot = None
