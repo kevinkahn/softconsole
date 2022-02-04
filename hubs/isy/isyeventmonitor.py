@@ -228,7 +228,7 @@ class ISYEventMonitor(object):
 				if debug.dbgStore.GetVal('ISYDump'):
 					debug.ISYDump("isystream.dmp", message, pretty=False)
 
-				print(m)
+				# print(m)
 
 				if 'SubscriptionResponse' in m:
 					sr = m['SubscriptionResponse']
@@ -461,16 +461,15 @@ class ISYEventMonitor(object):
 		if self.isy.version == -1:
 			with open('/home/pi/Console/isystream.dmp', 'r') as f:
 				mes = f.readline()  # absorb first
-				print("Message1: {}".format(mes))
+				#print("Message1: {}".format(mes))
 				while True:
-					try:
-						mes = f.readline().rstrip('\n')
-					except Exception as E:
-						print("exc: {}".format(E))
+					mes = f.readline().rstrip('\n')
+					if mes == '':
+						print('Done')
 						break
 					print("Message: {}".format(mes))
 					on_message(None, mes)
-					time.sleep(.5)
+				#time.sleep(.5)
 			while True:
 				time.sleep(500)
 			return  # todo have it get the stream dump and feed those to message call every half second or so.
