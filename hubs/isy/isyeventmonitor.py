@@ -459,9 +459,11 @@ class ISYEventMonitor(object):
 			time.sleep(.001)  # force thread to give up processor to allow response to time events
 
 		if self.isy.version == -1:
+			self.isy._HubOnline = True
+			time.sleep(7)
 			with open('/home/pi/Console/isystream.dmp', 'r') as f:
 				mes = f.readline()  # absorb first
-				#print("Message1: {}".format(mes))
+				# print("Message1: {}".format(mes))
 				while True:
 					mes = f.readline().rstrip('\n')
 					if mes == '':
@@ -469,11 +471,10 @@ class ISYEventMonitor(object):
 						break
 					print("Message: {}".format(mes))
 					on_message(None, mes)
-				#time.sleep(.5)
+				time.sleep(.1)
 			while True:
 				time.sleep(500)
-			return  # todo have it get the stream dump and feed those to message call every half second or so.
-
+			return
 		self.THstate = 'delaying'
 		logsupport.Logs.Log("{}: WS stream thread {} setup".format(self.hubname, self.QHnum), severity=ConsoleDetail)
 		if self.delayedstart != 0:
