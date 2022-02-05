@@ -78,11 +78,11 @@ class OnOffKey(ManualKeyDesc):
 		oldunknown = self.UnknownState
 		self.State = not (evnt.value == 0)  # K is off (false) only if state is 0
 		self.UnknownState = True if evnt.value == -1 else False
-		if self.UnknownState:
-			# add node to unknowns list for hub
-			self.ControlObj.Hub.AddToUnknowns(self.ControlObj)
-		elif oldunknown:
-			self.ControlObj.Hub.DeleteFromUnknowns(self.ControlObj)
+		# if self.UnknownState:
+		# add node to unknowns list for hub
+		#	self.ControlObj.Hub.AddToUnknowns(self.ControlObj,evnt)
+		# elif oldunknown and not self.UnknownState:
+		#	self.ControlObj.Hub.DeleteFromUnknowns(self.ControlObj,evnt)
 		self.PaintKey()
 		displayupdate.updatedisplay()
 
