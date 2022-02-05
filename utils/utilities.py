@@ -74,6 +74,8 @@ doclst = {}
 
 
 def register_example(estr, obj):
+	if estr in exemplarobjs:
+		return
 	exemplarobjs[estr] = list(dir(obj))
 	mro = list(obj.__class__.__mro__)
 	mro.reverse()
@@ -202,8 +204,8 @@ def InitializeEnvironment():
 
 
 def DumpDocumentation():
-	docfile = open('../docs/params.txt', 'w')
-	os.chmod('../docs/params.txt', 0o555)
+	docfile = open('/home/pi/Console/params.txt', 'w')
+	os.chmod('/home/pi/Console/params.txt', 0o555)
 	docfile.write('Global Parameters:\n')
 	for p in sorted(globdoc):
 		docfile.write(
@@ -218,10 +220,10 @@ def DumpDocumentation():
 		for q in sorted(moddoc[p]['ovrd']):
 			docfile.write('            ' + q + '\n')
 	docfile.close()
-	docfile = open('../docs/classstruct.txt', 'w')
+	docfile = open('/home/pi/Console/classstruct.txt', 'w')
 	docfile.write('Class/Attribute Structure:\n')
 	docfile.write('\n')
-	mdfile = open('../docs/classstruct.md', 'w')
+	mdfile = open('/home/pi/Console/classstruct.md', 'w')
 	mdfile.write('# Class/Attribute Structure:\n')
 	mdfile.write('\n')
 
