@@ -349,10 +349,12 @@ def call_service(api: API, domain: str, service: str,
 				return
 
 		except HomeAssistantError as e:
-			logsupport.Logs.Log("HA service call failed ({}) {}".format(tryit, repr(e)),
+			logsupport.Logs.Log("HA service call failed ({}) timeout: {} exc: {}".format(tryit, timeout, repr(e)),
 								severity=logsupport.ConsoleWarning)
-			if tryit == 'retry': raise
-
+			if tryit == 'retry':
+				raise
+			else:
+				timeout = 2 * timeout
 
 def async_caller(api, domain, service, service_data, timeout):
 	n = threading.current_thread().name
