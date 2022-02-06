@@ -31,6 +31,7 @@ def BaseAddr(addr):
 class ISYEventMonitor(object):
 
 	def __init__(self, thisISY):
+		self.connectionmode = 'try994'  # trypolisy: trying without subp, polisy: connection worked, try994: trying with subp 994worked.
 		self.isy = thisISY
 		self.hubname = thisISY.name
 		self.QHnum = 1
@@ -192,10 +193,17 @@ class ISYEventMonitor(object):
 					logsupport.Logs.Log(self.hubname + ' WS OS error', repr(error), severity=ConsoleError, tb=False)
 					self.lasterror = 'ISYNoRoute'  # probably semi permanent failure
 			else:
-				logsupport.Logs.Log(self.hubname + " Error in WS stream " + str(self.QHnum) + ': ' + repr(error),
-									severity=ConsoleError,
-									tb=True)
-				logsupport.Logs.Log(repr(websocket.WebSocketConnectionClosedException))
+				if self.connectionmode == 'try994':
+					logsupport.Logs.Log("{}: Connection failed using 994 convention".format(self.hubname))
+					self.connectionmode = 'trypolisy'
+				elif self.connectionmode == 'trypolisy':
+					logsupport.Logs.Log("{}: Connection failed using Polisy convention".format(self.hubname))
+					self.connectionmode = 'try994'
+				else:
+					logsupport.Logs.Log(self.hubname + " Error in WS stream " + str(self.QHnum) + ': ' + repr(error),
+										severity=ConsoleError,
+										tb=True)
+					logsupport.Logs.Log(repr(websocket.WebSocketConnectionClosedException))
 			self.THstate = 'failed'
 			debug.debugPrint('DaemonCtl', "Websocket stream error", self.QHnum, repr(error))
 			qws.close()
@@ -211,12 +219,20 @@ class ISYEventMonitor(object):
 		def on_open(qws):
 			self.isy.HBWS.Entry("Open")
 			self.THstate = 'starting'
-			logsupport.Logs.Log("{}: WS stream {} opened".format(self.hubname, self.QHnum))
+			if self.connectionmode == 'try994':
+				self.connectionmode = '994worked'
+				logsupport.Logs.Log('{} connection worked using 994 convention'.format(self.isy.name))
+			elif self.connectionmode == 'trypolisy':
+				self.connectionmode = 'polisyworked'
+				logsupport.Logs.Log('{} connection worked using Polisy convention'.format(self.isy.name))
+			mess = '994' if self.connectionmode == '994worked' else 'Polisy' if self.connectionmode == 'polisyworked' else self.connectionmode
+			logsupport.Logs.Log("{}: WS stream {} opened ({})".format(self.hubname, self.QHnum, mess))
 			debug.debugPrint('DaemonCtl', "Websocket stream opened: ", self.QHnum, self.streamid)
 			self.WS = qws
 
 		# noinspection PyUnusedLocal,PyUnboundLocalVariable
 		def on_message(qws, message):
+
 			loopstart = time.time()
 			self.isy.HBWS.Entry('Message: {}'.format(repr(message)))
 
@@ -496,11 +512,17 @@ class ISYEventMonitor(object):
 		while True:
 			try:
 				# noinspection PyArgumentList
-				ws = websocket.WebSocketApp(wsurl, on_message=on_message,
-											on_error=on_error,
-											on_close=on_close, on_open=on_open,
-											subprotocols=['ISYSUB'],
-											header={'Authorization': 'Basic ' + self.a.decode('ascii')})
+				if self.connectionmode in ('trypolisy', 'polisyworked'):
+					ws = websocket.WebSocketApp(wsurl, on_message=on_message,
+												on_error=on_error,
+												on_close=on_close, on_open=on_open,
+												subprotocols=['ISYSUB'],
+												header={'Authorization': 'Basic ' + self.a.decode('ascii')})
+				else:
+					ws = websocket.WebSocketApp(wsurl, on_message=on_message,
+												on_error=on_error,
+												on_close=on_close, on_open=on_open,
+												header={'Authorization': 'Basic ' + self.a.decode('ascii')})
 				break
 			except AttributeError as e:
 				logsupport.Logs.Log(self.hubname + " Problem starting WS handler - retrying: ", repr(e))
