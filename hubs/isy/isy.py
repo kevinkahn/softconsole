@@ -102,6 +102,7 @@ class Node(Folder, OnOffItem):
 
 	def __init__(self, hub, flag, name, addr, parenttyp, parentaddr, enabled, props):
 		Folder.__init__(self, hub, flag, name, addr, parenttyp, parentaddr)
+		self.nodetype = "Insteon"
 		self.pnode = None  # for things like KPLs
 		self.enabled = enabled == "true"
 		self.hasstatus = False
@@ -123,13 +124,13 @@ class Node(Folder, OnOffItem):
 
 	@property
 	def devState(self):
-		print("Get {} as {}".format(self.name, self._devState))
+		# print("Get {} as {}".format(self.name, self._devState))
 		return self._devState
 
 	@devState.setter
 	def devState(self, val):
 		self._devState = val
-		print("Set {} to {}".format(self.name, val))
+		#print("Set {} to {}".format(self.name, val))
 		return self._devState
 
 	def __repr__(self):
@@ -138,25 +139,27 @@ class Node(Folder, OnOffItem):
 
 class DimmableNode(Node):
 
-	def __init__(self, hub, flag, name, addr, parenttyp, parentaddr, enabled, props):
+	def __init__(self, hub, flag, name, addr, parenttyp, parentaddr, enabled, props, family='Insteon'):
 		super().__init__(hub, flag, name, addr, parenttyp, parentaddr, enabled, props)
 		self.valueatidle = -1
 		self.lastsendtime = 0
+		self.maxval = 100 if family == 'Zwave' else 255
+		self.family = family
 
 	def GetBrightness(self):
-		# print('Brightness: {}'.format(self.devState))
-		return 100 * self.devState / 255 if self.valueatidle == -1 else 100 * self.valueatidle / 255
+		# print('Get Brt {} {}'.format(self.name,self.devState))
+		return 100 * self.devState / self.maxval if self.valueatidle == -1 else 100 * self.valueatidle / self.maxval
 
 	def SendOnPct(self, brightpct, final=False):
-		self.valueatidle = int(brightpct * 255 / 100)
+		self.valueatidle = int(brightpct * self.maxval / 100)
 		now = time.time()
 		if now - self.lastsendtime > 1 or final:
 			# print('send brightness {} {}'.format(self.valueatidle, brightpct))
 			self.Hub.try_ISY_comm('nodes/' + self.address + '/cmd/DON/' + str(self.valueatidle), doasync=True)
 			self.lastsendtime = now
+			self.valueatidle = -1
 
 	def IdleSend(self):
-		# print('Idle send to node {} {}'.format(self.name,self.valueatidle))
 		self.Hub.try_ISY_comm('nodes/' + self.address + '/cmd/DON/' + str(self.valueatidle), doasync=True)
 		self.valueatidle = -1
 
@@ -230,7 +233,6 @@ class Scene(TreeItem, OnOffItem):
 
 	def GetBrightness(self):
 		prox = self.Hub.RetrieveSceneProxy(self, self.proxy)
-		# print(prox.name, prox.devState)
 		if prox is None:
 			logsupport.Logs.Log(
 				'{}: Missing proxy for Scene {} brightness slider ({})'.format(self.Hub.name, self.name, self.proxy))
@@ -240,7 +242,6 @@ class Scene(TreeItem, OnOffItem):
 	def SendToSceneMembers(self, brtval):
 		for obj in self.members:
 			if isinstance(obj[1], DimmableNode):
-				# print('send brightness {} to {}'.format(brtval, obj[1].name))
 				self.Hub.try_ISY_comm('nodes/' + obj[1].address + '/cmd/DON/' + str(brtval), doasync=True)
 
 	def SendOnPct(self, brightpct, final=False):
@@ -251,13 +252,10 @@ class Scene(TreeItem, OnOffItem):
 			self.SendToSceneMembers(self.valueatidle)
 			self.lastsendtime = now
 
-	# print('SendtoScene {} {} {} {}'.format(self.name, brightpct, self.valueatidle,final))
-
 	def IdleSend(self):
 		# print('Idle send to scene {} {}'.format(self.name,self.valueatidle))
 		self.SendToSceneMembers(self.valueatidle)
 		self.valueatidle = -1
-
 
 class ProgramFolder(TreeItem):
 	"""
@@ -454,22 +452,22 @@ class ISY(object):
 				prop = node['property'] if 'property' in node else 'unknown'
 				nodedef = node['@nodeDefId'] if '@nodeDefId' in node else 'UnknownDef'
 				devtyp = node['type'].split('.')
-				family = node['family'] if 'family' in node else "InsteonClassic"
-				if isinstance(family, dict): family = family['#text'] if '#text' in family else "UnknownFamily"
+				family = node['family'] if 'family' in node else "Insteon"
+				if isinstance(family, dict): family = family['#text'] if '#text' in family else "Unknown"
 				if family == "4":  # zwave device
 					zwdevtype = node['devtype']['cat']
 					if zwdevtype in ZWAVE_CAT_DIMMABLE:
-						n = n = DimmableNode(self, flg, nm, addr, ptyp, parentaddr, enabld, prop)
+						n = DimmableNode(self, flg, nm, addr, ptyp, parentaddr, enabld, prop, family='Zwave')
 					else:
 						n = Node(self, flg, nm, addr, ptyp, parentaddr, enabld, prop)
 				elif family == "10" and nodedef in NodeServerSwitchTypes:  # node server device that switches on/off
 					n = Node(self, flg, nm, addr, ptyp, parentaddr, enabld, prop)
-				elif family == "InsteonClassic":
+				elif family == "Insteon":
 					if devtyp[0] == '5':
 						n = Thermostat(self, flg, nm, addr, ptyp, parentaddr, enabld, prop)
 					elif devtyp[0] == '1' and flg == '128':  # dimmer device
 						n = DimmableNode(self, flg, nm, addr, ptyp, parentaddr, enabld,
-										 prop)  # todo make dimmable zave based on pyisy hack
+										 prop, family='Insteon')
 					else:
 						n = Node(self, flg, nm, addr, ptyp, parentaddr, enabld, prop)
 				else:
@@ -477,7 +475,6 @@ class ISY(object):
 					n = UnhandledNode(self, flg, nm, addr, ptyp, parentaddr, enabld, prop)
 				fixlist.append((n, pnd))
 				self.NodesByAddr[n.address] = n
-			#print("Node: {} {} type: {}".format(nm, type(n), node))
 			except Exception as E:
 				if prop == 'unknown':
 					# probably a v3 polyglot node or zwave
@@ -743,10 +740,9 @@ class ISY(object):
 			if isinstance(N, Node): self._check_real_time_node_status(N)
 
 	def try_ISY_comm(self, urlcmd, timeout=5, closeonfail=True, doasync=False):
-
+		# print('Command: {}'.format(urlcmd)) TestISY
+		# return ''
 		if doasync:
-			# print('Push to async' + urlcmd + ' Async:' + str(doasync) + str(timeout) + str(closeonfail))
-			# print(str(threading.active_count()) + ' threads active')
 			t = threading.Thread(name='ISY-' + urlcmd, target=self.try_ISY_comm, daemon=True,
 								 args=(urlcmd, timeout, closeonfail, False))
 			t.start()
@@ -756,7 +752,6 @@ class ISY(object):
 				thrd = 'main thread'
 			else:
 				thrd = 'asyn thread'
-		# print('Do cmd in ' + threading.current_thread().name + ' ' + urlcmd + ' Async:' + str(doasync) + str(timeout) + str(closeonfail))
 		error = ['Errors']
 		busyloop = 0
 		while self.Busy != 0:
