@@ -516,11 +516,11 @@ class ISYEventMonitor(object):
 					ws = websocket.WebSocketApp(wsurl, on_message=on_message,
 												on_error=on_error,
 												on_close=on_close, on_open=on_open,
-												subprotocols=['ISYSUB'],
 												header={'Authorization': 'Basic ' + self.a.decode('ascii')})
 				else:
 					ws = websocket.WebSocketApp(wsurl, on_message=on_message,
 												on_error=on_error,
+												subprotocols=['ISYSUB'],
 												on_close=on_close, on_open=on_open,
 												header={'Authorization': 'Basic ' + self.a.decode('ascii')})
 				break
