@@ -283,7 +283,7 @@ class ISYEventMonitor(object):
 
 					if isinstance(eaction, dict):
 						debug.debugPrint('DaemonStream', "V5 stream - pull up action value: ", eaction)
-						eaction = eaction["#text"]  # todo the new xmltodict will return as data['action']['#text']
+						eaction = eaction["#text"]  # the new xmltodict will return as data['action']['#text']
 
 					if enode in self.isy.NodesByAddr:  # get the node to set if any
 						N = self.isy.NodesByAddr[enode]
@@ -294,7 +294,7 @@ class ISYEventMonitor(object):
 
 						if isinstance(N, isycodes.ThermType):
 							N.cur = isycodes.NormalizeState(eaction)
-						elif N is not None:  # todo v5 has other things in stream without a node or with Node not in NodesByAddr?
+						elif N is not None:
 							oldstate = N.devState
 							N.devState = isycodes.NormalizeState(eaction)
 							debug.debugPrint('ISYchg', 'ISY Node: ', N.name, ' state change from: ', oldstate,
@@ -416,7 +416,7 @@ class ISYEventMonitor(object):
 
 					if ecode == "ST" or (ecode == "_3" and eaction == "CE"):
 						if self.LastMsgErr[0] != '***' and (
-								BaseAddr(self.LastMsgErr[0]) == BaseAddr(enode)):  # todo fix someday for v5
+								BaseAddr(self.LastMsgErr[0]) == BaseAddr(enode)):
 							# ERR msg followed by clearing - ISY weirdness?
 							logsupport.Logs.Log(
 								"{} reported and immediately cleared error for node: {} ({}) (seq:{}/{})".format(

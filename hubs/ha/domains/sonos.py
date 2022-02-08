@@ -16,7 +16,7 @@ class MediaPlayer(HAnode):
 			self.Sonos = True
 			self.internalstate = 255
 			self.sonos_group = self.attributes['sonos_group']
-			self.source_list = self.attributes['source_list']  # todo should this be conditional like in update?
+			self.source_list = self.attributes['source_list']  # should this be conditional like in update?
 			self.muted = self.attributes['is_volume_muted']
 			self.volume = self.attributes['volume_level']
 			self.song = self.attributes['media_title'] if 'media_title' in self.attributes else ''
@@ -95,4 +95,4 @@ class MediaPlayer(HAnode):
 
 RegisterDomain('media_player', MediaPlayer)
 
-# todo split to media and sonos
+# split to media and sonos

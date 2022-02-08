@@ -13,12 +13,11 @@ from keyspecs.toucharea import ManualKeyDesc
 class SetVarKey(ManualKeyDesc):
 	def __init__(self, thisscreen, keysection, keyname):
 		debug.debugPrint('Screen', "             New SetVar Key Desc ", keyname)
-		# todo suppress Verify
 		ManualKeyDesc.__init__(self, thisscreen, keysection, keyname)
 		screen.AddUndefaultedParams(self, keysection, VarType='undef', Var='', Value=0)
 		try:
 			self.Proc = self.SetVarKeyPressed
-			if self.VarType != 'undef':  # deprecate
+			if self.VarType != 'undef':
 
 				if self.VarType == 'State':
 					self.VarName = (hubs.hubs.defaulthub.name, 'State', self.Var)  # use default hub for each of these 2

@@ -173,7 +173,7 @@ class Thermostat(Node):
 		self.cur = 0
 		self.setlow = 0
 		self.sethigh = 0
-		self.statecode = 0  # should it have a N/A todo
+		self.statecode = 0
 		self.modecode = 0
 		self.fancode = 0
 		self.hum = 0
@@ -185,7 +185,7 @@ class Thermostat(Node):
 		state = ("Idle", "Heating", "Cooling")[self.statecode]
 		mode = self.Tmodes[self.modecode]
 		fan = self.Tfan[self.fancode - 7]
-		return cur, setlow, sethigh, state, mode, fan  # todo add hum - need to check what HA nest interface can do
+		return cur, setlow, sethigh, state, mode, fan
 
 	def GetModeInfo(self):
 		return self.Tmodes, self.Tfan
@@ -339,7 +339,7 @@ class ISY(object):
 		self.Vars = None
 		self.ErrNodes = {}
 		self.Busy = 0
-		self.V3Nodes = []  # temporary way to track and suppress errors from nodes we don't currently handle (todo V3)
+		self.V3Nodes = []  # temporary way to track and suppress errors from nodes we don't currently handle
 		self.UnknownList = {}
 
 		"""
@@ -477,7 +477,7 @@ class ISY(object):
 				self.NodesByAddr[n.address] = n
 			except Exception as E:
 				if prop == 'unknown':
-					# probably a v3 polyglot node or zwave
+					# probably a v3 polyglot node not listed as an on/off device
 					logsupport.Logs.Log("Probable v5 node seen: {}  Address: {}  Parent: {} ".format(nm, addr, pnd))
 					logsupport.Logs.Log("ISY item: {}".format(repr(node)), severity=ConsoleDetail)
 					self.V3Nodes.append(addr)
@@ -728,10 +728,6 @@ class ISY(object):
 				'{}: Failed attempt to delete {} from unknowns list {} ({})'.format(self.name, node.name,
 																					self.UnknownList, E),
 				severity=ConsoleWarning)
-
-	# def GetActualState(self, ent):
-	#	logsupport.Logs.Log('{}: Call to GetActualState for {}'.format(self.name, ent), severity=ConsoleWarning)
-	#	return 0  # fix this to return or fix?  todo
 
 	def CheckStates(self):
 		# sanity check all states in Hub against local cache

@@ -122,8 +122,6 @@ def InitializeEnvironment():
 
 	config.sysStore.SetVal('PersonalSystem', os.path.isfile(config.sysStore.HomeDir + "/homesystem"))
 
-	# todo move touchhandler selection to hw.py - return the handler to start for the thread
-
 	from touchhandler import Touchscreen, TS_PRESS, TS_RELEASE, TS_MOVE
 	ts = Touchscreen(os.path.dirname(config.sysStore.configfile), touchmod)
 

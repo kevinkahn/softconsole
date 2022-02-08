@@ -16,7 +16,7 @@ FASTPRESS = 1
 ecode = 0  # exit code set for main loop
 
 # Operational global navigation roots
-SonosScreen = None  # todo hack to handle late appearing players
+SonosScreen = None  # hack to handle late appearing players
 AS = None  # Current Active Screen
 
 # Avoids import loops

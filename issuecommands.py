@@ -51,7 +51,7 @@ def FetchInProgress():
 
 # todo further compress below to unify messagint
 # noinspection PyUnusedLocal
-def RestartConsole(params=None, Key=None, AutoVer=False):  # todo sort out autovers
+def RestartConsole(params=None, Key=None, AutoVer=False):
 	TempCheckSanity(Key, params)
 	if not FetchInProgress():
 		_SystemTermination('console restart', 'Console Restart', (MAINTRESTART, REMOTERESTART), Key, params)
@@ -91,7 +91,7 @@ def _SystemTermination(statmsg, exitmsg, exitcode, Key, params):
 	Exit(exitcode[1] if Key is None else exitcode[0])
 
 
-def DoDelayedAction(evnt):  # only for autover todo - what about ISY cmds - deprecate
+def DoDelayedAction(evnt):  # only for autover
 	PostEvent(ConsoleEvent(CEvent.RunProc, name='DelayedRestart', proc=evnt.action))
 
 

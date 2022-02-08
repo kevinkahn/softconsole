@@ -15,7 +15,6 @@ class SetInputKey(ManualKeyDesc):
 
 	def __init__(self, thisscreen, keysection, keyname):
 		debug.debugPrint('Screen', "             New SetVar Key Desc ", keyname)
-		# todo suppress Verify
 		ManualKeyDesc.__init__(self, thisscreen, keysection, keyname)
 		screen.AddUndefaultedParams(self, keysection, VarType='undef',
 									Value='')  # value should be checked later

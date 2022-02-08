@@ -132,8 +132,6 @@ class ManualKeyDesc(TouchPoint):
 			# signature: ManualKeyDesc(screen, keyname, label, bcolor, charcoloron, charcoloroff, center=, size=, KOn=, KOff=, proc=)
 			# initializing from program code case
 			self.docodeinit(*args, **kwargs)
-		# Future may need to change signature if handling "holds"?
-
 
 		if self.Size[0] != 0:  # this key can be imaged now since it has a size
 			self.FinishKey((0, 0), (0, 0))
@@ -203,7 +201,7 @@ class ManualKeyDesc(TouchPoint):
 													 'KeyCharColorOn', 'KeyCharColorOff', 'KeyOutlineOffset',
 													 'KeyColorOn', 'KeyColorOff',
 													 'KeyLabelOn', 'KeyLabelOff'},
-								 keysection)  # todo add sliderorientation
+								 keysection)
 		screen.AddUndefaultedParams(self, keysection, FastPress=0, Verify=False, Blink=0, label=[''], Appearance=[],
 									DefaultAppearance='',
 									Var='')
@@ -335,7 +333,7 @@ class ManualKeyDesc(TouchPoint):
 			if cycle > 1:
 				if cycle % 2 == 0:
 					self.BlinkState = 2
-					self.PaintKey()  # force on todo simplify
+					self.PaintKey()  # force on
 
 				else:
 					self.BlinkState = 1

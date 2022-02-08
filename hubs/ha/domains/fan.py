@@ -18,9 +18,7 @@ class Fan(HAnode):
 			# logsupport.DevPrint("Light on/off: {} {} {}".format(selcmd[settoon],self.entity_id, time.time()))
 			ha.call_service(self.Hub.api, 'fan', selcmd[settoon], {'entity_id': '{}'.format(self.entity_id)})
 			debug.debugPrint('HASSgeneral', "Fan OnOff sent: ", selcmd[settoon], ' to ', self.entity_id)
-		# PostEvent(ConsoleEvent(CEvent.HubNodeChange, hub=self.Hub.name, node=self.entity_id,
-		#					   value=(0, 255)[
-		#						   settoon]))  # hack to provide immediate faked feedback on zwave lights that take a while to report back todo fix
+
 		except ha.HomeAssistantError:
 			logsupport.Logs.Log(
 				"{} didn't respond to fan on/off for {} - probably restarting".format(self.Hub.name, self.name),

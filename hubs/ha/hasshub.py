@@ -199,7 +199,7 @@ class Indirector(object):
 				self.reportederror = True
 
 
-hadomains = {}  # todo should these really be separate per hub.  As it is they get created twice for 2 hubs
+hadomains = {}
 domainspecificevents = {}
 specialcommands = {}
 
