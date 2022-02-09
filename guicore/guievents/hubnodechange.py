@@ -12,7 +12,7 @@ def HubNodeChange(event):
 	debug.debugPrint('Dispatch', 'Hub Change Event', event)
 	if hasattr(event, 'node'):
 		if hasattr(event, 'varinfo'):
-			print('Event with both var and node {}'.format(event))
+			# print('Event with both var and node {}'.format(event))
 			logsupport.Logs.Log('Event with both var and node {}'.format(event),
 								severity=ConsoleWarning)
 		config.AS.NodeEvent(event)

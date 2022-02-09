@@ -4,6 +4,7 @@ import os
 import importlib
 import guicore.guiutils as guiutils
 import screens.__screens as screens
+from utils.utilfuncs import safeprint
 
 import guicore.screenmgt as screenmgt
 import guicore.switcher as switcher
@@ -98,7 +99,7 @@ def MainControlLoop():
 			if debug.dbgStore.GetVal('StatesDump'):
 				debug.dbgStore.SetVal('StatesDump', False)
 				for h, hub in hubs.hubs.Hubs.items():
-					print('States dump for hub: ', h)
+					safeprint('States dump for hub: ', h)
 					hub.StatesDump()
 				debug.dbgStore.SetVal('StatesDump', False)
 
@@ -143,7 +144,7 @@ def MainControlLoop():
 
 			# Dispatch Event
 			if event.type in EventDispatch:
-				# print('Event: {}'.format(event.type))
+				# safeprint('Event: {}'.format(event.type))
 				EventDispatch[event.type](event)
 			else:
 				logsupport.Logs.Log("Unknown main event {}".format(repr(event)), severity=ConsoleError, hb=True,

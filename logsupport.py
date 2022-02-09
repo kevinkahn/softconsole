@@ -14,6 +14,7 @@ from typing import Callable, Union
 from utils import fonts, displayupdate, hw
 import historybuffer
 import screens.__screens as screens
+from utils.utilfuncs import safeprint
 
 wc = webcolors.name_to_rgb  # can't use the safe version from utilities due to import loop but this is only used with
 
@@ -35,7 +36,7 @@ class TempLogger(object):
 		entry = "".join([str(i) for i in args])
 		if not isinstance(entry, str): entry = entry.encode('UTF-8', errors='backslashreplace')
 		EarlyLog.append((time.strftime('%m-%d-%y %H:%M:%S'), entry))
-		print(time.strftime('%m-%d-%y %H:%M:%S') + " " + entry)
+		safeprint(time.strftime('%m-%d-%y %H:%M:%S') + " " + entry)
 
 
 

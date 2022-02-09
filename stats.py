@@ -1,6 +1,7 @@
 import datetime
 import time
 from operator import itemgetter, lt, gt
+from utils.utilfuncs import safeprint
 
 # Performance info
 # todo triggered callbacks for immediate anomoly reports?
@@ -22,9 +23,9 @@ def Get(start=None):  # test code
 	at = lastreporttime if start is None else start
 	testtime = datetime.datetime.combine(datetime.datetime.today(), datetime.time.min).timestamp() + at
 	n = GetNextReportTime(at=testtime)
-	print(n)
+	safeprint(n)
 	for i in n:
-		print(time.strftime('%m-%d %H:%M:%S', time.localtime(i[0])), i[1].name)
+		safeprint(time.strftime('%m-%d %H:%M:%S', time.localtime(i[0])), i[1].name)
 
 
 def GetNextReportTime(at=None):

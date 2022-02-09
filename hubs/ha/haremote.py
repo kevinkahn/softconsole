@@ -23,7 +23,7 @@ from aiohttp.hdrs import METH_GET, METH_POST, CONTENT_TYPE
 from types import MappingProxyType
 import datetime
 import threading
-
+from utils.utilfuncs import safeprint
 import logsupport
 
 URL_API = '/api/'
@@ -322,7 +322,7 @@ def safe_call_service(api: API, domain: str, service: str,
 	try:
 		call_service(api, domain, service, service_data, timeout)
 	except Exception as E:
-		print('Exc: {}'.format(E))
+		safeprint('Exc: {}'.format(E))
 
 def call_service(api: API, domain: str, service: str,
 				 service_data: Dict = None,
@@ -373,7 +373,7 @@ def async_caller(api, domain, service, service_data, timeout):
 	except Exception as E:
 		logsupport.Logs.Log(
 			'Comm error in async call of {} {} {} Exc: {}'.format(domain, service, service_data, repr(E)))
-		print('Async exc: {} {}'.format(n, repr(E)))
+		safeprint('Async exc: {} {}'.format(n, repr(E)))
 
 
 def call_service_async(api: API, domain: str, service: str, service_data: Dict = None, timeout: int = 5) -> None:

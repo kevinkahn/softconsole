@@ -5,10 +5,11 @@ import time
 import gc
 import threading
 from typing import Optional
+from utils.utilfuncs import safeprint
 
 
 def DummyAsyncFileWrite(fn, writestr, access='a'):
-	print('Called  HB file write before init {} {} {}'.format(fn, writestr, access))
+	safeprint('Called  HB file write before init {} {} {}'.format(fn, writestr, access))
 
 
 AsyncFileWrite = DummyAsyncFileWrite  # set from log support to avoid circular imports
@@ -52,7 +53,7 @@ def NoteGCs(phase, info):
 def DumpAll(idline, entrytime):
 	global bufdumpseq
 	if HBdir == '':  # logs not yet set up
-		print(time.strftime('%m-%d-%y %H:%M:%S') + ' Suppressing History Buffer Dump for {}'.format(idline))
+		safeprint(time.strftime('%m-%d-%y %H:%M:%S') + ' Suppressing History Buffer Dump for {}'.format(idline))
 		return
 	fn = HBdir + str(bufdumpseq) + '-' + entrytime
 	try:

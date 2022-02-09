@@ -8,6 +8,7 @@ from screens import screen
 import screens.__screens as screens
 from utils import utilities, displayupdate
 from logsupport import ConsoleWarning
+from utils.utilfuncs import safeprint
 
 
 # noinspection PyBroadException
@@ -78,7 +79,7 @@ class KeyScreenDesc(screen.BaseKeyScreenDesc):
 			logsupport.Logs.Log('varchange via Node event? {} {}'.format(self.name, evnt), severity=ConsoleWarning)
 
 	def VarEvent(self, evnt):
-		print('Var event called {}'.format(evnt))
+		safeprint('Var event called {}'.format(evnt))
 		try:
 			K = self.Keys[evnt.varinfo[0]]
 			K.PaintKey()

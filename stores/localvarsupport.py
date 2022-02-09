@@ -2,6 +2,7 @@
 from configobj import Section
 
 from stores import valuestore
+from utils.utilfuncs import safeprint
 
 
 class LocalVars(valuestore.ValueStore):
@@ -22,6 +23,6 @@ class LocalVars(valuestore.ValueStore):
 				tpv = v.get('Value', None)
 				self.SetVal(i, tpv)
 				self.SetType(i, tpcvrt)
-				print('LocalVar call')
+				safeprint('LocalVar call')
 				#self.SetAttr(i, (3, lclid))
 				lclid += 1

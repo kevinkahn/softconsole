@@ -20,6 +20,7 @@ from controlevents import CEvent, PostEvent, ConsoleEvent, PostIfInterested
 from logsupport import ConsoleWarning, ConsoleError, ConsoleDetail, ConsoleInfo
 from stores import valuestore, haattraccess
 from utils.utilities import CheckPayload
+from utils.utilfuncs import safeprint
 
 AddIgnoredDomain: Union[Callable, None] = None  # type Union[Callable, None]
 # above gets filled in by ignore to avoid import loop
@@ -70,7 +71,7 @@ class HAnode(object):
 	def DisplayStuff(self, prefix, withattr=False):
 		d = dict(vars(self))
 		if not withattr: del d['attributes']
-		print(prefix, d)
+		safeprint(prefix, d)
 
 	def LogNewEntity(self, newstate):
 		logsupport.Logs.Log(
@@ -562,7 +563,7 @@ class HA(object):
 							if config.sysStore.versionname in ('development', 'homerelease'):
 								with open('{}/Console/{}-entities'.format(config.sysStore.HomeDir, self.name),
 										  'a') as f:
-									print('New ignored entity in {}: {} {}'.format(self.name, dom, ent), file=f)
+									safeprint('New ignored entity in {}: {} {}'.format(self.name, dom, ent), file=f)
 
 							N = hadomains[dom](self, p2)
 							N.LogNewEntity(repr(new))
@@ -712,7 +713,7 @@ class HA(object):
 		# import logging
 		# logging.basicConfig(filename='/home/pi/WSlog',level=logging.INFO)
 		# WStrace = open('/home/pi/WStrace','a')
-		# print('Open {}'.format(self.wsurl),file=WStrace)
+		# safeprint('Open {}'.format(self.wsurl),file=WStrace)
 		# websocket.enableTrace(True,handler=logging.StreamHandler(stream=WStrace))
 		try:
 			# websocket.enableTrace(True)
@@ -771,16 +772,16 @@ class HA(object):
 					else:
 						entry[c][fn] = keys[0]
 			except Exception as E:
-				print("Pars excp: {} {} {} {}".format(dom, E, c, info))
-				print('Info: {} {}'.format(s, keys))
+				safeprint("Pars excp: {} {} {} {}".format(dom, E, c, info))
+				safeprint('Info: {} {}'.format(s, keys))
 			if not normal:
 				with open('{}-nonentitycmds.txt'.format(self.name), 'w') as f:
 					if title != '':
-						print("{} {}".format(self.name, title), file=f)
+						safeprint("{} {}".format(self.name, title), file=f)
 						title = ''
-					print("    Command: {}".format(c), file=f)
-					if targ != '': print("    Target: {}".format(targ), file=f)
-					for l in flds: print(l, file=f)
+					safeprint("    Command: {}".format(c), file=f)
+					if targ != '': safeprint("    Target: {}".format(targ), file=f)
+					for l in flds: safeprint(l, file=f)
 			else:
 				self.SpecialCmds[dom] = entry
 
@@ -942,7 +943,7 @@ class HA(object):
 			try:
 				self.ParseDomainCommands(d['domain'], d['services'])
 			except Exception as E:
-				print('Parse Except: {}'.format(E))
+				safeprint('Parse Except: {}'.format(E))
 			for s, c in d['services'].items():
 				if s in self.knownservices[d['domain']]:
 					logsupport.DevPrint(

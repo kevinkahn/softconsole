@@ -6,6 +6,7 @@ import config
 from screens import screen
 import traceback
 import guicore.screenmgt as screenmgt
+from utils.utilfuncs import safeprint
 
 
 def SwitchScreen(NS, newdim, reason, *, newstate=None, AsCover=False, push=False, clear=False):
@@ -104,7 +105,7 @@ def SwitchScreen(NS, newdim, reason, *, newstate=None, AsCover=False, push=False
 	debug.debugPrint('Dispatch', "New watchlist(Main): " + str(config.AS.HubInterestList))
 
 	# if OS == screenmgt.AS:
-	#	print('Double dispatch: {}'.format(screenmgt.AS.name))
+	#	safeprint('Double dispatch: {}'.format(screenmgt.AS.name))
 	try:
 		config.AS.InitDisplay(nav)
 	except Exception as e:

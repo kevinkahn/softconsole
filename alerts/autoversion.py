@@ -11,6 +11,7 @@ import time
 from logsupport import ConsoleWarning, ConsoleDetail
 from consolestatus import ReportStatus
 import controlevents
+from utils.utilfuncs import safeprint
 
 
 def DoFetchRestart():
@@ -49,7 +50,7 @@ def DoFetchRestart():
 		ReportStatus('auto restart', hold=2)
 		varsnote = config.sysStore.configdir + '/.autovers'
 		with open(varsnote, 'w'):
-			print(time.strftime('%c'))
+			safeprint(time.strftime('%c'))
 		controlevents.PostEvent(
 			controlevents.ConsoleEvent(controlevents.CEvent.RunProc, proc=ForceRestart, name='ForceRestart'))
 		fetcher = None

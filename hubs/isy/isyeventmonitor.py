@@ -18,6 +18,7 @@ from controlevents import CEvent, PostEvent, ConsoleEvent, PostIfInterested
 from hubs.isy.isycodes import EVENT_CTRL, formatwsitem
 from logsupport import ConsoleWarning, ConsoleError, ConsoleDetail, ConsoleDetailHigh
 from utils.threadmanager import ThreadStartException
+from utils.utilfuncs import safeprint
 
 
 class ISYEMInternalError(Exception):
@@ -350,8 +351,6 @@ class ISYEventMonitor(object):
 
 						# logsupport.Logs.Log('reportable event '+str(ecode)+' for '+str(enode)+' action '+str(eaction))
 
-						if enode in ('22.18.A3 1', '22.18.A3 3'): print(
-							'Thermmsg: {} {}'.format(enode, isycodes.NormalizeState(eaction)))
 						PostIfInterested(self.isy, enode, isycodes.NormalizeState(eaction))
 
 					elif (prcode == 'Trigger') and (eaction == '6'):
@@ -465,7 +464,7 @@ class ISYEventMonitor(object):
 				else:
 					logsupport.Logs.Log(self.hubname + " Strange item in event stream: " + str(m),
 										severity=ConsoleWarning)
-					print(message)
+					safeprint(message)
 			except Exception as E:
 				logsupport.Logs.Log(self.hubname + " Exception in QH on message: ", repr(msav), ' Excp: ', repr(E),
 									severity=ConsoleWarning)
@@ -479,13 +478,13 @@ class ISYEventMonitor(object):
 			time.sleep(7)
 			with open('/home/pi/Console/isystream.dmp', 'r') as f:
 				mes = f.readline()  # absorb first
-				# print("Message1: {}".format(mes))
+				# safeprint("Message1: {}".format(mes))
 				while True:
 					mes = f.readline().rstrip('\n')
 					if mes == '':
-						print('Done')
+						safeprint('Done')
 						break
-					print("Message: {}".format(mes))
+					safeprint("Message: {}".format(mes))
 					on_message(None, mes)
 				time.sleep(.1)
 			while True:

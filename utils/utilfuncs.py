@@ -103,8 +103,9 @@ fmt = PartialFormatter()
 def safeprint(*args, **kwargs):
 	try:
 		print(*args, **kwargs)
-	except Exception:
-		pass
+	except OSError:
+		with open('/home/pi/Console/disconnectederrors.log', 'a') as f:
+			print(*args, **kwargs, file=f)
 
 def RepresentsInt(s):
 	try:

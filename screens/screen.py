@@ -13,6 +13,7 @@ from keyspecs import toucharea
 from logsupport import ConsoleError, ConsoleWarning, ConsoleDetail
 from utils.utilfuncs import wc, fmt
 from utils import timers, utilities, fonts, displayupdate, hw
+from utils.utilfuncs import safeprint
 
 ScreenParams = {'DimTO': 99,
 				'CharColor': "white",
@@ -237,7 +238,7 @@ class ScreenDesc(object):
 		return blk, w
 
 	def _ClockTickValid(self):
-		if not self.Active: print('Clock not valid {}'.format(self.name))
+		if not self.Active: safeprint('Clock not valid {}'.format(self.name))
 		return self.Active
 
 	# noinspection PyUnusedLocal

@@ -13,6 +13,7 @@ from screens import screen, maintscreen
 import math
 import time
 import utils.hw as hw
+from utils.utilfuncs import safeprint
 
 MouseStates = Enum('MouseStates', 'idle downwait upwait swallowup')
 
@@ -201,8 +202,8 @@ def ProcessTap(tapcnt, tappos):
 	if DumpEvents:
 		try:
 			for r in eventseq:
-				print(r)
-			print('--------- {}'.format(tapcnt))
+				safeprint(r)
+			safeprint('--------- {}'.format(tapcnt))
 		except Exception as E:
 			logsupport.Logs.Log('Development system disconnected ({})'.format(E))
 		eventseq = []

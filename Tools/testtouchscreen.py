@@ -9,6 +9,7 @@ import struct
 import time
 from collections import namedtuple
 import pygame
+from utils.utilfuncs import safeprint
 
 import select
 
@@ -254,7 +255,7 @@ class Touchscreen(object):
 					if self._flipx != 0:
 						tmp = self._flipx - event.value
 					if tmp < 0:
-						print('Negative touch position(x): {}'.format(tmp))
+						safeprint('Negative touch position(x): {}'.format(tmp))
 
 						tmp = 0
 					self._current_touch.x = round(tmp * self._scalex)
@@ -264,7 +265,7 @@ class Touchscreen(object):
 					if self._flipy != 0:
 						tmp = self._flipy - event.value
 					if tmp < 0:
-						print('Negative touch position(y): {}'.format(tmp))
+						safeprint('Negative touch position(y): {}'.format(tmp))
 
 						tmp = 0
 					self._current_touch.y = round(tmp * self._scaley)
