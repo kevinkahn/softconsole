@@ -240,9 +240,21 @@ elements in that section type=, address=, user=, and password=. An ISY Hub speci
         user = myusername
         password = mysecret
 ```
-Current types are ISY and HASS.  Note that Home Assistant Hubs do not expect a user.  For a HA hub use the password element to specify an access token that you create in your HA hub (HA 0.77 and after).  No user is needed for an HA hub.  The actual format of a hub type is name.# where # is an optional version.  If left out it defaults to 0.  At this time the HA hub supports version 0 that uses the old climate domain for thermostats and version 1 that supports the new climate domain.
 
-A default hub can be set for the configuration with DefaultHub= specifying the name of the default.  Any screen can also provide a DefaultHub= element to override the default hub for that screen.  Finally, key section names can specify explicitly the hub by which their device is controlled via the syntax hubname:nodename.
+Current types are ISY and HASS. Note that Home Assistant Hubs do not expect a user. For a HA hub use the password
+element to specify an access token that you create in your HA hub (HA 0.77 and after). No user is needed for an HA hub.
+The actual format of a hub type is name.# where # is an optional version. If left out it defaults to 0. At this time the
+HA hub supports version 0 that uses the old climate domain for thermostats and version 1 that supports the new climate
+domain.
+
+A default hub can be set for the configuration with DefaultHub= specifying the name of the default. Any screen can also
+provide a DefaultHub= element to override the default hub for that screen. Finally, key section names can specify
+explicitly the hub by which their device is controlled via the syntax hubname:nodename.
+
+ISY hubs support Insteon and Zwave nodes on ISY994 or Polisy systems. In addition, you can specify a parameter
+NodeServerSwitches = name1, name2, ... to define the nodeDefId (node definition id) from the ISY system for nodes that
+behave like on/off switches. For such nodes the console will treat them the same as Insteon or Zwave switches and issue
+on or off commands using the same protocol.
 
 # Stores and Values
 
