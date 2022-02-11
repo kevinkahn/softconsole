@@ -100,3 +100,5 @@ try:
 	os.replace('/home/pi/Console/weathhist', '/home/pi/Console/weathhist.prev')
 except:
 	pass
+
+ItemTypes = {}

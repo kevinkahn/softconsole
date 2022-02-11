@@ -14,6 +14,7 @@ from logsupport import ConsoleError, ConsoleWarning, ConsoleDetail
 from utils.utilfuncs import wc, fmt
 from utils import timers, utilities, fonts, displayupdate, hw
 from utils.utilfuncs import safeprint
+from config import ItemTypes
 
 ScreenParams = {'DimTO': 99,
 				'CharColor': "white",
@@ -104,6 +105,9 @@ def IncorporateParams(this, clsnm, theseparams, screensection):
 
 def AddUndefaultedParams(this, screensection, **kwargs):
 	if screensection is None: screensection = {}
+	if type(this).__name__ not in ItemTypes: ItemTypes[type(this).__name__] = set()
+	for n, v in kwargs.items():
+		ItemTypes[type(this).__name__].add(n)
 	for n, v in kwargs.items():
 		if n in this.__dict__: del this.__dict__[n]  # remove if it was declared statically
 		this.userstore.SetVal(n, type(v)(screensection.get(n, v)))

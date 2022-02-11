@@ -58,6 +58,7 @@ from screens import screen, maintscreen
 import historybuffer
 import controlevents
 
+
 config.sysStore.SetVal('ExecDir', os.path.dirname(os.path.abspath(__file__)))
 config.sysStore.SetVal('HomeDir', os.path.dirname(config.sysStore.ExecDir))
 
@@ -576,7 +577,27 @@ try:
 	Dump documentation if development version
 	"""
 	if config.sysStore.versionname == 'development':
-		utilities.DumpDocumentation()
+		with open('/home/pi/Console/helpfile.txt', 'w') as hf:
+			print('System Parameters', file=hf)
+			print('-----------------', file=hf)
+			for I, v in config.sysvals.items():
+				print('  {} (default: {})'.format(I, v[1]), file=hf)
+			print(' ', file=hf)
+			print('General Screen Parameters:', file=hf)
+			print('--------------------------', file=hf)
+			for I, v in screen.ScreenParams.items():
+				print('  {} (default: {})'.format(I, v), file=hf)
+			print(' ')
+			print('Key Parameters:', file=hf)
+			print('---------------', file=hf)
+			for I, params in config.ItemTypes.items():
+				if I in ('SliderScreen', 'ManualKeyDesc', 'VerifyScreen', 'ListChooserSubScreen', 'PagedDisplay',
+						 'StatusDisplayScreen',
+						 'ShowVersScreen', 'MaintScreenDesc', 'ScreenDesc'): continue
+				print('Key: {}'.format(I), file=hf)
+				for n in params:
+					print('     {}'.format(n), file=hf)
+# utilities.DumpDocumentation()
 except Exception as E:
 	logsupport.Logs.Log('Fatal Error while starting: {}'.format(E), severity=ConsoleError, hb=True, tb=False)
 	exitutils.EarlyAbort('Configuration Error')
