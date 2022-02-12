@@ -4,7 +4,8 @@ raspberrypi-ts|True|0|0|0|0|1.0|1.0
 raspberrypi-ts.cc90|True|0|0|0|800|1.0|1.0|True
 raspberrypi-ts.cc270|True|0|0|480|0|1.0|1.0|True
 raspberrypi-ts.flip|True|0|0|800|480|1.0|1.0|False
-Goodix Capacitive TouchScreen|True|-330|303|0|0|1.666|0.6
+#Goodix Capacitive TouchScreen|True|0|0|0|0|1.0|1.0|False
+Goodix Capacitive TouchScreen|True|0|0|480|0|1.667|0.6|True
 stmpe-ts|False|0|0|0|0|1.0|1.0
 stmpe-ts.cc270|False|0|0|480|0|1.0|1.0|True
 stmpe-ts.cc90|False|0|0|0|320|1.0|1.0|True
