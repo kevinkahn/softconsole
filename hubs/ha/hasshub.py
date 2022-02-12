@@ -97,12 +97,12 @@ class HAnode(object):
 		self.internalstate = self._NormalizeState(self.state)
 		if self.internalstate == -1:
 			logsupport.Logs.Log(
-				"Node {} ({}) set unavailable (was {})".format(self.name, self.entity_id, str(oldstate)),
-			)  # severity=ConsoleDetail)
+				"{} ({}) set unavailable (was {})".format(self.name, self.entity_id, str(oldstate))
+			)  # , severity=ConsoleDetail)
 		if oldstate == -1 and self.internalstate != -1:
 			logsupport.Logs.Log(
-				"Node {} ({}) became available ({})".format(self.name, self.entity_id, str(self.internalstate)),
-			)  #severity=ConsoleDetail)
+				"{} ({}) set available ({})".format(self.name, self.entity_id, str(self.internalstate))
+			)  #, severity=ConsoleDetail)
 		PostIfInterested(self.Hub, self.entity_id, self.internalstate)
 
 	def _NormalizeState(self, state, brightness=None): # may be overridden for domains with special state settings

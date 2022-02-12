@@ -2,6 +2,7 @@ import pygame
 import inspect
 
 import logsupport
+from logsupport import ConsoleWarning
 import debug
 from screens import screen
 import stores.paramstore as paramstore
@@ -9,7 +10,7 @@ from utils import timers, utilities, fonts, displayupdate, hw
 from utils.hw import scaleW, scaleH
 from utils.utilfuncs import wc
 import typing
-from keys.keyutils import DispOpt, ChooseType, ParseConfigToDispOpt
+from keys.keyutils import DispOpt, ChooseType, ParseConfigToDispOpt, BrightnessPossible
 import stores.valuestore as valuestore
 import time
 
@@ -127,10 +128,12 @@ class ManualKeyDesc(TouchPoint):
 		if len(args) == 3:
 			# signature: ManualKeyDesc(screen, keysection, keyname)
 			# initialize by reading config file
+			self.UserKey = True
 			self.dosectioninit(*args)
 		else:
 			# signature: ManualKeyDesc(screen, keyname, label, bcolor, charcoloron, charcoloroff, center=, size=, KOn=, KOff=, proc=)
 			# initializing from program code case
+			self.UserKey = False
 			self.docodeinit(*args, **kwargs)
 
 		if self.Size[0] != 0:  # this key can be imaged now since it has a size
@@ -248,9 +251,7 @@ class ManualKeyDesc(TouchPoint):
 	def PaintKey(self):
 		start = time.process_time()
 		statickey = False
-		# for i in self.displayoptions:
-		#	print(i)
-		# print('Key {}'.format(self.name))
+
 		if hasattr(self, 'Var') and self.Var != '':
 			val = valuestore.GetVal(self.Var)
 
@@ -405,6 +406,12 @@ class ManualKeyDesc(TouchPoint):
 				outlncolor = parsecolor(i.Color[2] if len(i.Color) > 2 else self.KeyOnOutlineColor)
 				break
 		lab2 = []
+		if self.UserKey and type(self) in BrightnessPossible:
+			try:
+				if hasattr(self.DisplayObj, 'brightness'): val = self.DisplayObj.brightness
+			except Exception as E:
+				logsupport.Logs.Log('Brightness exception: {} in {}'.format(E, self.name), severity=ConsoleWarning)
+
 		dval = '--' if val is None else str(val)
 		for line in lab:
 			lab2.append(line.replace('$', dval))

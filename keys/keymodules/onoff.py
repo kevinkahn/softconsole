@@ -4,7 +4,7 @@ from screens import screen
 import screens.supportscreens as supportscreens
 from utils import utilities, displayupdate
 from keys.keyspecs import KeyTypes
-from keys.keyutils import _resolvekeyname
+from keys.keyutils import _resolvekeyname, BrightnessPossible
 from logsupport import ConsoleWarning
 from keyspecs.toucharea import ManualKeyDesc
 import functools
@@ -149,6 +149,7 @@ class OnOffKey(ManualKeyDesc):
 		self.ControlObj.SendOnPct(brtpct, final=final)
 
 
+BrightnessPossible.append(OnOffKey)
 KeyTypes['ONOFF'] = functools.partial(OnOffKey, keytype='ONOFF')
 KeyTypes['ON'] = functools.partial(OnOffKey, keytype='ON')
 KeyTypes['OFF'] = functools.partial(OnOffKey, keytype='OFF')

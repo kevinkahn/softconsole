@@ -6,6 +6,7 @@ from logsupport import ConsoleWarning
 from utils.utilfuncs import RepresentsInt, wc, BoolTrueWord, BoolFalseWord
 from collections import namedtuple
 
+BrightnessPossible = []
 
 def _resolvekeyname(kn, DefHub):
 	knbase = kn.split('/')[0]  # remove any yniqueness suffix

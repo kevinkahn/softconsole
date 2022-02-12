@@ -145,11 +145,14 @@ class DimmableNode(Node):
 		self.lastsendtime = 0
 		self.maxval = 100 if family == 'Zwave' else 255
 		self.family = family
-		logsupport.Logs.Log('Found dimmable node {} as address {}'.format(name, addr))
+
+	@property
+	def brightness(self):
+		return self.GetBrightness()
 
 	def GetBrightness(self):
 		t = 100 * self.devState / self.maxval if self.valueatidle == -1 else 100 * self.valueatidle / self.maxval
-		logsupport.Logs.Log('Get Brightness for {} of {} ({}%)'.format(self.name, self.devState, t))
+		# logsupport.Logs.Log('Get Brightness for {} of {} ({}%)'.format(self.name, self.devState, t))
 		return t
 
 	def SendOnPct(self, brightpct, final=False):
@@ -304,6 +307,7 @@ class ISY(object):
 	# noinspection PyUnusedLocal
 	def __init__(self, name, isyaddr, user, pwd, version):
 
+		UnhandledTypes = {}
 		if version == -1:
 			pass
 		else:
@@ -473,7 +477,8 @@ class ISY(object):
 					else:
 						n = Node(self, flg, nm, addr, ptyp, parentaddr, enabld, prop)
 				else:
-					logsupport.Logs.Log("{} of unhandled type {}/{} address {}".format(nm, family, nodedef, addr))
+					if nodedef not in UnhandledTypes: UnhandledTypes[nodedef] = []
+					UnhandledTypes[nodedef].append(nm)
 					n = UnhandledNode(self, flg, nm, addr, ptyp, parentaddr, enabld, prop)
 				fixlist.append((n, pnd))
 				self.NodesByAddr[n.address] = n
@@ -488,7 +493,7 @@ class ISY(object):
 										str(pnd),
 										' ', str(flg), '/', str(enabld), '/', repr(prop), severity=ConsoleWarning)
 					logsupport.Logs.Log("Exc: {}  ISY item: {}".format(repr(E), repr(node)), severity=ConsoleWarning)
-				# for now at least try to avoid nodes without properties which apparently Zwave devices may have
+			# for now at least try to avoid nodes without properties which apparently Zwave devices may have
 		self._LinkChildrenParents(self.NodesByAddr, self._NodesByName, self._FoldersByAddr, self.NodesByAddr)
 		for fixitem in fixlist:
 			# noinspection PyBroadException
@@ -496,6 +501,12 @@ class ISY(object):
 				fixitem[0].pnode = self.NodesByAddr[fixitem[1]]
 			except:
 				logsupport.Logs.Log("Problem with processing node: ", fixitem[1], severity=ConsoleWarning)
+
+		logsupport.Logs.Log('Unsupported Polisy Types and Nodes:')
+		if UnhandledTypes != {}:
+			for ut, nds in UnhandledTypes.items():
+				logsupport.Logs.Log('     {}'.format(ut))
+				for n in nds: logsupport.Logs.Log('       {}'.format(n))
 
 		for scene in configdict['group']:
 			memberlist = []

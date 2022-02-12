@@ -47,6 +47,10 @@ class Light(HAnode):
 				"{} didn't respond to light on/off for {} - probably restarting".format(self.Hub.name, self.name),
 				severity=logsupport.ConsoleWarning)
 
+	@property
+	def brightness(self):
+		return self.GetBrightness()
+
 	def GetBrightness(self):
 		if 'brightness' in self.attributes:
 			t = 100 * (self.attributes['brightness'] / 255) if self.pctatidle == -1 else self.pctatidle
