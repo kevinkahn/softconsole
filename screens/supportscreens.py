@@ -491,6 +491,7 @@ class SliderScreen(screen.BaseKeyScreenDesc):
 
 	def NodeEvent(self, evnt):
 		self.curval = self.ValueGetter()
+		logsupport.Logs.Log("Got new value for {} of {}".format(self.name, self.curval))
 
 	def RequestIdles(self, proc, interval):
 		self.IdleProc = proc
@@ -503,6 +504,7 @@ class SliderScreen(screen.BaseKeyScreenDesc):
 	def Invoke(self):
 		self.initval = self.ValueGetter()
 		self.curval = self.initval
+		logsupport.Logs.Log('Open slider for {} at {}'.format(self.name, self.curval))
 		screen.PushToScreen(self, msg='Do Slider' + self.name, newstate='NonHome')
 
 	def InitDisplay(self, nav):

@@ -145,10 +145,12 @@ class DimmableNode(Node):
 		self.lastsendtime = 0
 		self.maxval = 100 if family == 'Zwave' else 255
 		self.family = family
+		logsupport.Logs.Log('Found dimmable node {} as address {}'.format(name, addr))
 
 	def GetBrightness(self):
-		# print('Get Brt {} {}'.format(self.name,self.devState))
-		return 100 * self.devState / self.maxval if self.valueatidle == -1 else 100 * self.valueatidle / self.maxval
+		t = 100 * self.devState / self.maxval if self.valueatidle == -1 else 100 * self.valueatidle / self.maxval
+		logsupport.Logs.Log('Get Brightness for {} of {} ({}%)'.format(self.name, self.devState, t))
+		return t
 
 	def SendOnPct(self, brightpct, final=False):
 		self.valueatidle = int(brightpct * self.maxval / 100)
@@ -389,13 +391,13 @@ class ISY(object):
 			with open('/home/pi/Console/xml.dmp', 'r') as f:
 				x1 = f.readline().rstrip('\n')
 				x2 = f.readline().rstrip('\n')
-				x3 = f.readline().rstrip('\n')
-				x4 = f.readline().rstrip('\n')
+				vars1 = f.readline().rstrip('\n')
+				vars2 = f.readline().rstrip('\n')
 				configdict = xmltodict.parse(x1)['nodes']
 		else:
 			x2 = ''
-			x3 = ''
-			x4 = ''
+			vars1 = ''
+			vars2 = ''
 
 		if debug.dbgStore.GetVal('ISYDump'):
 			debug.ISYDump("xml.dmp", r.text, pretty=False, new=True)
@@ -603,6 +605,8 @@ class ISY(object):
 		"""
 		if version == -1:
 			logsupport.Logs.Log('Using ISY Test - skipping variable read')
+			intgood = True
+			statgood = True
 		else:
 			while True:
 				intgood = True
@@ -648,9 +652,11 @@ class ISY(object):
 		self.Vars = valuestore.NewValueStore(isyvarssupport.ISYVars(self))
 		# noinspection PyBroadException
 		try:
-			configdictS = [] if not statgood else xmltodict.parse(r1.text)['CList']['e']  # is a list of vars
 			if debug.dbgStore.GetVal('ISYLoad'):
-				configdictS = xmltodict.parse(x3)['CList']['e']
+				configdictS = xmltodict.parse(vars1)['CList']['e']
+				if not isinstance(configdictS, list): configdictS = [configdictS]
+			else:
+				configdictS = [] if not statgood else xmltodict.parse(r1.text)['CList']['e']  # is a list of vars
 			if debug.dbgStore.GetVal('ISYDump'):
 				debug.ISYDump("xml.dmp", r1.text, pretty=False)
 				debug.ISYDump("struct.dmp", configdictS)
@@ -662,9 +668,11 @@ class ISY(object):
 			logsupport.Logs.Log('No state variables defined')
 		# noinspection PyBroadException
 		try:
-			configdictI = [] if not intgood else xmltodict.parse(r2.text)['CList']['e']
 			if debug.dbgStore.GetVal('ISYLoad'):
-				configdictI = xmltodict.parse(x4)['CList']['e']
+				configdictI = xmltodict.parse(vars2)['CList']['e']
+				if not isinstance(configdictI, list): configdictI = [configdictI]
+			else:
+				configdictI = [] if not intgood else xmltodict.parse(r2.text)['CList']['e']
 			if debug.dbgStore.GetVal('ISYDump'):
 				debug.ISYDump("xml.dmp", r2.text, pretty=False)
 				debug.ISYDump("struct.dmp", configdictI)

@@ -298,8 +298,9 @@ class ISYEventMonitor(object):
 						elif N is not None:
 							oldstate = N.devState
 							N.devState = isycodes.NormalizeState(eaction)
-							debug.debugPrint('ISYchg', 'ISY Node: ', N.name, ' state change from: ', oldstate,
-											 ' to: ', N.devState)
+							# debug.debugPrint
+							logsupport.Logs.Log('ISYchg', 'ISY Node: ', N.name, ' state change from: ', oldstate,
+												' to: ', N.devState)
 							if (oldstate == N.devState) and self.THstate == 'running':
 								logsupport.Logs.Log(self.hubname +
 													" State report with no change: " + N.name + ' state: ' + str(
@@ -486,7 +487,7 @@ class ISYEventMonitor(object):
 						break
 					safeprint("Message: {}".format(mes))
 					on_message(None, mes)
-				time.sleep(.1)
+				time.sleep(.4)
 			while True:
 				time.sleep(500)
 			return
