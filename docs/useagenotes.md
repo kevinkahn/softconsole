@@ -506,7 +506,8 @@ as defined in https://docs.python.org/3.7/library/string.html.
   type = VARKEY
   label = Error in Value, $
   Var = ISY:State:tEST
-  ValueSeq = 0,1,3,6 KeyCharColorOn = royalblue Appearance = 0 green 'All good',1:2 yellow 'Probably; good; $',3:99 99 red 'Not so hot $'
+  ValueSeq = 0,1,3,6 KeyCharColorOn = royalblue 
+  Appearance = 0 green 'All good',1:2 yellow 'Probably; good; $',3:99 99 red 'Not so hot $'
   ```
 
 * SETINPUT: this key is specifically for HA hubs but is somewhat similar to the VARKEY. It allows the display and
