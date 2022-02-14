@@ -31,7 +31,8 @@ ignoredeventtypes = [
 	'hacs/repository', 'hacs/config', 'entity_registry_updated', 'component_loaded', 'device_registry_updated',
 	'entity_registry_updated', 'lovelace_updated', 'isy994_control', 'core_config_updated', 'homeassistant_start',
 	'config_entry_discovered', 'automation_reloaded', 'hacs/stage', 'hacs/reload', 'zwave_js_value_notification',
-	'event_template_reloaded', 'panels_updated', 'data_entry_flow_progressed', 'scene_reloaded']
+	'event_template_reloaded', 'panels_updated', 'data_entry_flow_progressed', 'scene_reloaded',
+	'area_registry_updated']
 
 
 def stringtonumeric(v):
