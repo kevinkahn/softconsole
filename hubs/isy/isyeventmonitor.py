@@ -482,7 +482,7 @@ class ISYEventMonitor(object):
 				while True:
 					mes = f.readline().rstrip('\n')
 					if mes == '':
-						safeprint('Done')
+						# safeprint('Done')
 						break
 					# safeprint("Message: {}".format(mes))
 					on_message(None, mes)
