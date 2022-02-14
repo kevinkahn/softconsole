@@ -115,7 +115,7 @@ V3.10.2
 Minor release.  Adds fan domain to HA since HA now makes Inovelli fan switches fans instead of lights.  Adds MQTT commands for set/get vars for eventual use.  Fixes various minor bugs.
 
 V3.11
-Fairly major release.  For ISY systems it now handles differences in connections to 994 vs Polisy hubs and selects the proper parameters for each.  It adds support for Zwave nodes on ISY systems (previously only Insteon nodes were supported).  It also now supports other node types connected via nodeservers that do on/off operations via a config file parameter (NodeServerSwitches) that defines which such device types should be handled.
+Major release.  For ISY systems it now handles differences in connections to 994 vs Polisy hubs and selects the proper parameters for each.  It adds support for Zwave nodes on ISY systems (previously only Insteon nodes were supported).  It also now supports other node types connected via nodeservers that do on/off operations via a config file parameter (NodeServerSwitches) that defines which such device types should be handled.
 
 For Home Assistant hubs, the console now handles fan, cover, input_select, input_number, and input_bool domains.  The input domains can be accessed by a new setinput key type.  Also added for HA is a speccmd key type that will allow any defined service call for an HA node, which allows handling of HA domains that are not natively supported in the console or special commands specific to the domain.
 

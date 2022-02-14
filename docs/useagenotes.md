@@ -572,8 +572,9 @@ DefaultAppearance descriptor is used (for the default use None as the matcher). 
 is the key color to use. If color is a string of the form: **(c1 c2 c3)** (note no commas) then c1 is the key color, c2
 is the character color and c3 is the outline color. Any color can be suffixed with "/dull" as in red/dull to indicate
 that the color should be muted. The default key coloration for on/off keys is created internally by the program using
-state*on and state*off matches as a shortcut for the common case of an on/off key. See the example config files for
-examples of how all this works.
+state*on and state*off matches as a shortcut for the common case of an on/off key. Within a key label a '$' is replaced
+by the value of the Var or if no Var was specified by the state of the node/entity. If the node is dimmable then the $
+is replaced by the on percentage. See the example config files for examples of how all this works.
 
 ### Clock
 
