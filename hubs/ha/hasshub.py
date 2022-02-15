@@ -1,7 +1,6 @@
 import errno
 import json
 import time
-import os
 import importlib
 
 from utils.utilfuncs import safeprint
@@ -15,7 +14,7 @@ import debug
 from . import haremote as ha
 import historybuffer
 import logsupport
-from utils import threadmanager, hw
+from utils import threadmanager, hw, utilfuncs
 from controlevents import CEvent, PostEvent, ConsoleEvent, PostIfInterested
 from logsupport import ConsoleWarning, ConsoleError, ConsoleDetail, ConsoleInfo
 from stores import valuestore, haattraccess
@@ -803,20 +802,14 @@ class HA(object):
 		logsupport.Logs.Log(
 			"{}: Creating structure for Home Assistant hub version {} at {}".format(hubname, version, addr))
 
-		self.dyndomains = {}
-		for domainimpl in os.listdir(os.getcwd() + '/hubs/ha/domains'):
-			if '__' not in domainimpl:
-				splitname = os.path.splitext(domainimpl)
-				if splitname[1] == '.py':
-					if splitname[0] != 'thermostat':
-						self.dyndomains[splitname[0]] = importlib.import_module('hubs.ha.domains.' + splitname[0])
-					else:
-						if version == 0:
-							logsupport.Logs.Log('Using old version of HA climate support - are you sure?',
-												severity=ConsoleWarning)
-							self.dyndomains['thermostat'] = importlib.import_module('hubs.ha.domains.__oldthermostat')
-						else:
-							self.dyndomains['thermostat'] = importlib.import_module('hubs.ha.domains.thermostat')
+		# import supported domains
+		self.dyndomains = utilfuncs.importmodules('hubs/ha/domains')
+		print(self.dyndomains)
+
+		if version == 0:  # todo delete at some point
+			logsupport.Logs.Log('Using old version of HA climate support - are you sure?',
+								severity=ConsoleWarning)
+			self.dyndomains['thermostat'] = importlib.import_module('hubs.ha.domains.__oldthermostat')
 
 		for dom in hadomains:
 			self.DomainEntityReg[dom] = {}

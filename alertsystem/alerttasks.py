@@ -2,23 +2,18 @@ import debug
 import historybuffer
 import logsupport
 import screens.__screens as screens
-from utils import utilities
+from utils import utilities, utilfuncs
 from configobjects import Section
 from logsupport import ConsoleWarning, ConsoleDetail, ConsoleError
 from screens.specificscreens import alertscreen
 import guicore.switcher as switcher
 import alertsystem.alertutils as alertutils
-import os
-import importlib
 
 alertprocs = {}  # set by modules from alerts directory
 monitoredvars = []
 
-for trigtype in os.listdir(os.getcwd() + '/alertsystem/triggers'):
-	if '__' not in trigtype:
-		splitname = os.path.splitext(trigtype)
-		if splitname[1] == '.py':
-			importlib.import_module('alertsystem.triggers.' + splitname[0])
+# load triggers for alerts
+utilfuncs.importmodules('alertsystem/triggers')
 
 AlertsHB = historybuffer.HistoryBuffer(100, 'Alerts')
 

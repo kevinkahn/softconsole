@@ -1,7 +1,6 @@
 import hubs.hubs
 import time
 import os
-import importlib
 import guicore.guiutils as guiutils
 import screens.__screens as screens
 from utils.utilfuncs import safeprint
@@ -12,7 +11,7 @@ from alertsystem import alerttasks
 import config
 import debug
 import logsupport
-from utils import timers, threadmanager, exitutils
+from utils import timers, threadmanager, exitutils, utilfuncs
 from controlevents import CEvent, GetEvent
 from logsupport import ConsoleWarning, ConsoleError
 from consolestatus import ReportStatus
@@ -27,11 +26,7 @@ if os.path.exists('/home/pi/.forceoldtouch'): NewMouse = False
 
 def MainControlLoop():
 	# Load Event Handlers
-	for eventtype in os.listdir(os.getcwd() + '/guicore/guievents'):
-		if '__' not in eventtype:
-			splitname = os.path.splitext(eventtype)
-			if splitname[1] == '.py':
-				importlib.import_module('guicore.guievents.' + splitname[0])
+	utilfuncs.importmodules('guicore/guievents')
 
 	threadmanager.StartThreads()
 	config.sysStore.LogStartTime = time.time()  # MQTT will start tracking other console errors now

@@ -1,22 +1,15 @@
 import debug
 import logsupport
-from utils import utilities
+from utils import utilities, utilfuncs
 from controlevents import CEvent, PostEvent, ConsoleEvent
 from keys.keyutils import ErrorKey
 
 from logsupport import ConsoleWarning, ConsoleDetail
 from keyspecs.toucharea import ManualKeyDesc
-import os
-import importlib
 
 KeyTypes = {}
 
-for keytype in os.listdir(os.getcwd() + '/keys/keymodules'):
-	if '__' not in keytype:
-		splitname = os.path.splitext(keytype)
-		if splitname[1] == '.py':
-			importlib.import_module('keys.keymodules.' + splitname[0])
-
+utilfuncs.importmodules('keys/keymodules')
 
 # noinspection PyUnusedLocal
 def KeyWithVarChanged(storeitem, old, new, param, modifier):

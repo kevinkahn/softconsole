@@ -22,7 +22,6 @@ import pygame
 
 import cgitb
 import datetime
-import importlib
 
 import signal
 import sys
@@ -36,7 +35,7 @@ import config
 import debug
 import hubs.hubs
 import screens.__screens as screens
-from utils import timers, utilities, displayupdate, hw, exitutils
+from utils import timers, utilities, displayupdate, hw, exitutils, utilfuncs
 from stores import mqttsupport, valuestore, localvarsupport, sysstore
 
 config.sysStore = valuestore.NewValueStore(sysstore.SystemStore('System'))
@@ -241,34 +240,14 @@ logsupport.Logs.Log(
 Dynamically load class definitions for all defined screen types, alert types, hubtypes, weather provider types
 and link them to how configuration happens
 """
-for screentype in os.listdir(os.getcwd() + '/screens/specificscreens'):
-	if '__' not in screentype:
-		splitname = os.path.splitext(screentype)
-		if splitname[1] == '.py':
-			importlib.import_module('screens.specificscreens.' + splitname[0])
 
+utilfuncs.importmodules('screens/specificscreens')
 logsupport.Logs.Log("Screen types imported")
 
-for alertproctype in os.listdir(os.getcwd() + '/alerts'):
-	if '__' not in alertproctype:
-		splitname = os.path.splitext(alertproctype)
-		if splitname[1] == '.py':
-			importlib.import_module('alerts.' + splitname[0])
-
+utilfuncs.importmodules('alerts')
 logsupport.Logs.Log("Alert Proc types imported")
 
-# load weather providers
-splitname = ['--', '--']
-for wp in os.listdir(os.getcwd() + '/stores/weathprov'):
-	if '__' not in wp:
-		try:
-			splitname = os.path.splitext(wp)
-			if splitname[1] == '.py':
-				importlib.import_module('stores.weathprov.' + splitname[0])
-		except Exception as E:
-			logsupport.Logs.Log('Failed to import weather provider: {} ({})'.format(splitname[0], E),
-								severity=ConsoleWarning)
-
+utilfuncs.importmodules('stores/weathprov')
 logsupport.Logs.Log("Weather providers imported")
 
 for n in alerttasks.alertprocs:
