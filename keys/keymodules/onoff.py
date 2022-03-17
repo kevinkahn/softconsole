@@ -72,8 +72,10 @@ class OnOffKey(ManualKeyDesc):
 
 	def HandleNodeEvent(self, evnt):
 		if not isinstance(evnt.value, int):
-			logsupport.Logs.Log("Node event with non integer state: " + evnt,
-								severity=ConsoleWarning)
+			logsupport.Logs.Log(
+				"Node event to key {} on screen {} with non integer state: {}".format(self.name, self.Screen.name,
+																					  evnt),
+				severity=ConsoleWarning)
 			evnt.value = int(evnt.value)
 		oldunknown = self.UnknownState
 		self.State = not (evnt.value == 0)  # K is off (false) only if state is 0

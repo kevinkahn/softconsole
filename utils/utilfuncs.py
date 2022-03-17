@@ -4,6 +4,7 @@ Avoids import loops
 """
 import webcolors
 import importlib, os
+import config
 
 
 def importmodules(dir: str):
@@ -119,6 +120,7 @@ fmt = PartialFormatter()
 
 # noinspection PyBroadException
 def safeprint(*args, **kwargs):
+	if config.sysStore.versionname != 'development': return
 	try:
 		print(*args, **kwargs)
 	except OSError:

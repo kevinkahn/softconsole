@@ -7,7 +7,7 @@ class BinarySensor(HAnode):
 	def __init__(self, HAitem, d):
 		super(BinarySensor, self).__init__(HAitem, **d)
 		self.Hub.RegisterEntity('binary_sensor', self.entity_id, self)
-		if self.state not in ('on', 'off', 'unavailable'):
+		if self.state not in ('on', 'off', 'unavailable', 'unknown'):
 			logsupport.Logs.Log("Odd Binary sensor initial value: ", self.entity_id, ':', self.state,
 								severity=ConsoleWarning)
 		self.Hub.attrstore.SetVal(self.entity_id, self.state == 'on')
@@ -26,7 +26,7 @@ class BinarySensor(HAnode):
 				st = True
 			elif ns['state'] == 'off':
 				st = False
-			elif ns['state'] == 'unavailable':
+			elif ns['state'] in ('unavailable', 'unknown'):
 				st = None
 			else:
 				st = None
