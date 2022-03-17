@@ -120,7 +120,7 @@ fmt = PartialFormatter()
 
 # noinspection PyBroadException
 def safeprint(*args, **kwargs):
-	if config.sysStore.versionname != 'development': return
+	# if config.sysStore.versionname != 'development': return
 	try:
 		print(*args, **kwargs)
 	except OSError:
