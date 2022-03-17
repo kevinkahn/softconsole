@@ -11,6 +11,9 @@ class BinarySensor(HAnode):
 			logsupport.Logs.Log("Odd Binary sensor initial value: ", self.entity_id, ':', self.state,
 								severity=ConsoleWarning)
 		self.Hub.attrstore.SetVal(self.entity_id, self.state == 'on')
+		self.missinglast = 'Explicit' if self.state in (
+		'Xunknown', 'Xunavailable') else 'No'  # if unknown assume really not there (like pool stuff) options:
+		if self.missinglast == 'Explicit': print('Unavailable: {}'.format(self.entity_id))
 
 	def SetSensorAlert(self, p):
 		self.Hub.attrstore.AddAlert(self.entity_id, p)

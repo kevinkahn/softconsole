@@ -26,5 +26,9 @@ class Scene(HAnode):
 								severity=logsupport.ConsoleWarning)
 			return False
 
+	def _NormalizeState(self, state, brightness=None):
+		# print('Scene {} last set at {}'.format(self.name,state))
+		return state
+
 
 RegisterDomain('scene', Scene)

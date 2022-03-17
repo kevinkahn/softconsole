@@ -323,16 +323,12 @@ def ExpandTextwitVars(txt, screenname='**'):
 					lastscreenname = '**'
 				if isinstance(val, list):
 					newtext.append(partialline + str(val[0]).rstrip('\n'))
-					# print('A:{}'.format(partialline))
 					for l2 in val[1:-1]:
 						newtext.append(str(l2).rstrip('\n'))
-					# print('B:{}'.format(partialline))
 					if len(val) > 2:
 						partialline = str(val[-1]).rstrip('\n') + l1[i + 1]
-				# print('C:{}'.format(partialline))
 				else:
 					partialline = partialline + str(val).rstrip('\n') + l1[i + 1]
-				#print('D:{}'.format(partialline))
 			newtext.append(partialline)
 		else:
 			newtext.append(ln)

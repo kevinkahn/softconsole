@@ -1,3 +1,4 @@
+import collections
 import errno
 import json
 import time
@@ -22,6 +23,7 @@ from utils.utilities import CheckPayload
 from utils.utilfuncs import safeprint
 
 AddIgnoredDomain: Union[Callable, None] = None  # type Union[Callable, None]
+IgnoredDomains = []
 # above gets filled in by ignore to avoid import loop
 
 ignoredeventtypes = [
@@ -31,7 +33,7 @@ ignoredeventtypes = [
 	'entity_registry_updated', 'lovelace_updated', 'isy994_control', 'core_config_updated', 'homeassistant_start',
 	'config_entry_discovered', 'automation_reloaded', 'hacs/stage', 'hacs/reload', 'zwave_js_value_notification',
 	'event_template_reloaded', 'panels_updated', 'data_entry_flow_progressed', 'scene_reloaded',
-	'area_registry_updated']
+	'area_registry_updated', 'keymaster_lock_state_changed', 'zwave_js_notification']
 
 
 def stringtonumeric(v):
@@ -315,6 +317,21 @@ class HA(object):
 				'{}: Failed attempt to delete {} from unknowns list {} ({})'.format(self.name, node.name,
 																					self.UnknownList, E),
 				severity=ConsoleWarning)
+
+	def AddDevice(self, device, entitylist):
+		if device == None:
+			print('Add none device?')
+			return
+		self.DeviceToEnt[device] = entitylist
+		self.DevGoneCounts[device] = 0
+
+	def NoteDeviceGone(self, device):
+		if device == None: return
+		self.DevGoneCounts[device] += 1
+
+	def DevGoneCount(self, device):
+		if device == None: return
+		return self.DevGoneCounts[device]
 
 	def GetActualState(self, ent):
 		try:
@@ -794,6 +811,9 @@ class HA(object):
 		self.StatusCheckerThread = None
 		self.DomainEntityReg = {}
 		self.knownservices = []
+		self.DeviceToEnt = {}  # heuristically created lists - may not be absolutely acccurate since HA won't provide this mapping
+		self.EntToDev = {}
+		self.DevGoneCounts = {}
 		self.MonitoredAttributes = {}  # holds tuples with the name of attribute that is used in an alert
 		self.HB = historybuffer.HistoryBuffer(40, hubname)
 		if version not in (0, 1):
@@ -804,7 +824,6 @@ class HA(object):
 
 		# import supported domains
 		self.dyndomains = utilfuncs.importmodules('hubs/ha/domains')
-		print(self.dyndomains)
 
 		if version == 0:  # todo delete at some point
 			logsupport.Logs.Log('Using old version of HA climate support - are you sure?',
@@ -887,10 +906,14 @@ class HA(object):
 		self.attrstore = valuestore.NewValueStore(
 			haattraccess.HAattributes(hubname, self))  # don't create until access is ok
 		entities = ha.get_states(self.api)
+		byobjid = collections.OrderedDict()
+		DontClassify = list(IgnoredDomains) + ['scene', 'input_number', 'input_boolean', 'input_select', 'automation',
+											   'script', 'cover']
 		for e in entities:
 			if e.domain not in self.Domains:
 				self.Domains[e.domain] = {}
 			p2 = dict(e.as_dict(), **{'domain': e.domain, 'name': e.name, 'object_id': e.object_id})
+			if e.domain not in DontClassify: byobjid[e.object_id + '_' + e.domain] = p2
 
 			if e.domain in hadomains:
 				N = hadomains[e.domain](self, p2)
@@ -903,6 +926,41 @@ class HA(object):
 				debug.debugPrint('HASSgeneral', "Unhandled node type: ", e.object_id)
 
 			self.Domains[e.domain][e.object_id] = N
+
+		sortedents = sorted(byobjid.items()) + [('ZZZZZZZ', None)]
+		i = 0
+		gpstart = 0
+		devlist = {}
+		notdone = True
+		while notdone:
+
+			# print(sortedents[i][0])
+			if gpstart == i:
+				startstring = sortedents[i][0].split('_')
+				longmatch = 999
+				i += 1
+			else:
+				frontmatch = 0
+				nextitem = sortedents[i][0].split('_')
+				while startstring[frontmatch] == nextitem[frontmatch]: frontmatch += 1
+				if frontmatch != 0:
+					longmatch = min(longmatch, frontmatch)
+					i += 1
+				else:
+					# print('Device {}   {}  {} to {}'.format('_'.join(startstring[0:longmatch]), longmatch, gpstart, i-1))
+					entsfordev = []
+					devname = '_'.join(startstring[0:longmatch])
+					for j in sortedents[gpstart:i]:
+						# print('   {}'.format(j[1]))
+						entsfordev.append(j[1]['entity_id'])
+					self.AddDevice(devname, entsfordev)
+					if sortedents[i][0] != 'ZZZZZZZ':
+						gpstart = i
+					else:
+						notdone = False
+		for dev, ents in self.DeviceToEnt.items():
+			for i in ents: self.EntToDev[i] = dev
+		# print('{} -> {}'.format(dev,ents))
 
 		for n, T in self.DomainEntityReg['climate'].items():
 			# This is special cased for Thermostats to connect the sensor entity with the thermostat to check for changes
