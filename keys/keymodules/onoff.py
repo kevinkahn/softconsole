@@ -72,11 +72,24 @@ class OnOffKey(ManualKeyDesc):
 
 	def HandleNodeEvent(self, evnt):
 		if not isinstance(evnt.value, int):
-			logsupport.Logs.Log(
-				"Node event to key {} on screen {} with non integer state: {}".format(self.name, self.Screen.name,
-																					  evnt),
-				severity=ConsoleWarning)
-			evnt.value = int(evnt.value)
+			try:
+				if evnt.node.split('.')[0] == 'scene':
+					evnt.value = 1
+				else:
+					logsupport.Logs.Log(
+						"Node event to key {} on screen {} with non integer state: {}".format(self.name,
+																							  self.Screen.name,
+																							  evnt),
+						severity=ConsoleWarning)
+					evnt.value = 1
+			except Exception as E:
+				logsupport.Logs.Log(
+					'Exception handling node event key {} on screen {} event {} exception {}'.format(self.name,
+																									 self.Screen.name,
+																									 evnt, E),
+					severity=ConsoleWarning)
+				evnt.value = 1
+
 		oldunknown = self.UnknownState
 		self.State = not (evnt.value == 0)  # K is off (false) only if state is 0
 		self.UnknownState = True if evnt.value == -1 else False

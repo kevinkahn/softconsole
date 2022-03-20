@@ -119,8 +119,9 @@ fmt = PartialFormatter()
 
 
 # noinspection PyBroadException
+isdevsystem = False
 def safeprint(*args, **kwargs):
-	# if config.sysStore.versionname != 'development': return
+	if not isdevsystem: return
 	try:
 		print(*args, **kwargs)
 	except OSError:

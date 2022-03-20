@@ -147,6 +147,8 @@ except (IOError, ValueError):
 	config.sysStore.SetVal('versiondnld', 'none')
 	config.sysStore.SetVal('versioncommit', 'none')
 
+if config.sysStore.versionname == 'development': utilfuncs.isdevsystem = True
+
 try:
 	sys.path.insert(0, '../')  # search for a localops module first in the home dir then one up
 	import localops

@@ -122,7 +122,7 @@ class ConsoleEvent(object):
 	def __repr__(self):
 		rep = '<ConsoleEvent: {}'.format(self.type.name)
 		for atr, val in self.__dict__.items():
-			rep = rep + ' {}={}'.format(atr, val)
+			rep = rep + ' {}={} ({})'.format(atr, val, type(atr))
 		return rep + '>'
 
 	def __str__(self):
