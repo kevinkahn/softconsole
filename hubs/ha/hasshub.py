@@ -4,7 +4,7 @@ import json
 import time
 import importlib
 
-from utils.utilfuncs import safeprint
+# from utils.utilfuncs import safeprint
 from ..hubs import HubInitError
 
 import websocket
@@ -214,7 +214,7 @@ def DomainSpecificEvent(e, message):
 
 def RegisterDomain(domainname, domainmodule, eventhdlr=DomainSpecificEvent, speccmd=None):
 	if domainname in hadomains:
-		logsupport.Logs.Log('Redundant registration of HA domain {}'.format())
+		logsupport.Logs.Log("Redundant registration of HA domain {}".format(domainname))
 	hadomains[domainname] = domainmodule
 	domainspecificevents[domainname] = eventhdlr
 	specialcommands[domainname] = speccmd
@@ -293,7 +293,7 @@ class HA(object):
 
 	def AddToUnknowns(self, node):  # ** flesh out
 		# need to start a thread that checks periodically the status of the node.  When it changes to known value that thread should exit (perhaps post?)
-		# the "delete" would get triggered the next time the paint is called (or would it? - can the change to real value happen under the covers?)  Maybe don't need to do the delete
+		# "delete" would get triggered the next time the paint is called (or would it? - can the change to real value happen under the covers?)  Maybe don't need to do the delete
 		# since the thread will be not alive - can just start the thread if not alive and let it die peacefully after doing its job?
 		self.UnknownList[node.name] = node
 		# need a single slot for the node status checker thread per hub instance check is_alive on each entry.  Worst case on the next key repaint this will get
@@ -319,18 +319,18 @@ class HA(object):
 				severity=ConsoleWarning)
 
 	def AddDevice(self, device, entitylist):
-		if device == None:
+		if device is None:
 			print('Add none device?')
 			return
 		self.DeviceToEnt[device] = entitylist
 		self.DevGoneCounts[device] = 0
 
 	def NoteDeviceGone(self, device):
-		if device == None: return
+		if device is None: return
 		self.DevGoneCounts[device] += 1
 
 	def DevGoneCount(self, device):
-		if device == None: return
+		if device is None: return
 		return self.DevGoneCounts[device]
 
 	def GetActualState(self, ent):
@@ -773,12 +773,13 @@ class HA(object):
 					normal = False
 					entry[c] = {'target': 'NONSTD'}
 					targ = t
-			except Exception as E:
+			except Exception:
 				entry[c] = {'target': 'NONE'}
 				targ = "        No Target"
-
+			flds = []
+			keys = []
+			s = {}
 			try:
-				flds = []
 				for fn, f in info['fields'].items():
 					s = f['selector'] if 'selector' in f else {}
 					keys = list(s.keys())
@@ -932,6 +933,8 @@ class HA(object):
 		gpstart = 0
 		devlist = {}
 		notdone = True
+		longmatch = 999
+		startstring = ''
 		while notdone:
 
 			# print(sortedents[i][0])

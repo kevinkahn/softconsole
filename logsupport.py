@@ -36,7 +36,7 @@ class TempLogger(object):
 		entry = "".join([str(i) for i in args])
 		if not isinstance(entry, str): entry = entry.encode('UTF-8', errors='backslashreplace')
 		EarlyLog.append((time.strftime('%m-%d-%y %H:%M:%S'), entry))
-		safeprint(time.strftime('%m-%d-%y %H:%M:%S') + " " + entry)
+		safeprint(" " + entry)
 
 
 

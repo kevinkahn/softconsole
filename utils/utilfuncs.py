@@ -2,6 +2,8 @@
 This file holds utility functions that have no dependencies on other console code.
 Avoids import loops
 """
+import time
+
 import webcolors
 import importlib, os
 import config
@@ -123,7 +125,7 @@ isdevsystem = False
 def safeprint(*args, **kwargs):
 	if not isdevsystem: return
 	try:
-		print(*args, **kwargs)
+		print(time.strftime('%m-%d-%y %H:%M:%S'), *args, **kwargs)
 	except OSError:
 		with open('/home/pi/Console/disconnectederrors.log', 'a') as f:
 			print(*args, **kwargs, file=f)

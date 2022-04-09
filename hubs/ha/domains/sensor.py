@@ -40,10 +40,10 @@ class Sensor(HAnode):  # not stateful since it updates directly to store value
 							safeprint(
 								'    Set intermittent device {}  {}'.format(device, self.Hub.DevGoneCount(device)))
 							logsupport.Logs.Log(
-								'Sensor data missing intermittent device {}; future outagesnot be logged'.format(
+								'Sensor data missing intermittent device {}; future outages not  logged'.format(
 									device))
 						elif self.Hub.DevGoneCount(device) > 3:
-							safeprint('    Intermittent device {}  {}'.format(device, self.Hub.DevGoneCount(device)))
+							pass  # safeprint('    Intermittent device {}  {}'.format(device, self.Hub.DevGoneCount(device)))
 						else:
 							safeprint('    Gone {} from {} {}'.format(self.entity_id, device, ns))
 							logsupport.Logs.Log(
@@ -55,13 +55,13 @@ class Sensor(HAnode):  # not stateful since it updates directly to store value
 								if nd.missinglast == 'No':
 									nd.missinglast = 'Implied'
 									if self.Hub.DevGoneCount(device) > 2:
-										safeprint('    Intermittent device {} {} {}'.format(device, ent,
-																							self.Hub.DevGoneCount(
-																								device)))
+										pass  # safeprint('    Intermittent device {} {} {}'.format(device, ent,
+									#											self.Hub.DevGoneCount(
+									#												device)))
 									else:
 										safeprint('    Imply {} from {}'.format(ent, device))
 
-						self.missinglast = 'Explicit'
+						self.missinglast = 'Explicit' if self.missinglast == 'No' else 'ExplicitOnly'
 						self.gone = time.time()
 					elif self.missinglast == 'Implied':
 						self.missinglast = 'Explicit'
@@ -76,7 +76,7 @@ class Sensor(HAnode):  # not stateful since it updates directly to store value
 						safeprint(
 							'Not whole device {} Ent: {} {}'.format(self.Hub.EntToDev[self.entity_id], self.entity_id,
 																	ns))
-					elif self.missinglast == 'Explicit':
+					elif self.missinglast in ('Explicit', 'ExplicitOnly'):
 						if self.Hub.DevGoneCount(device) < 3:
 							logsupport.Logs.Log(
 								'Sensor data now available for {} value: {}, Device {}'.format(ns['entity_id'],
@@ -85,7 +85,7 @@ class Sensor(HAnode):  # not stateful since it updates directly to store value
 																								   self.entity_id]))
 							safeprint('Back: {} after {} Device {} {}'.format(self.entity_id, time.time() - self.gone,
 																			  self.Hub.EntToDev[self.entity_id], ns))
-						self.missinglast = 'No'
+						self.missinglast = 'No' if self.missinglast == 'Explicit' else 'No-ExplicitOnly'
 					elif self.missinglast == 'No-ExplicitOnly':
 						# safeprint('Odd item {} state {} {}'.format(self.entity_id,self.missinglast, ns))
 						pass
