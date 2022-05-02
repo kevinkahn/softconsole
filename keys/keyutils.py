@@ -186,7 +186,7 @@ class DispOpt(object):
 		elif self.ChooserType == ChooseType.intval:
 			try:
 				v2 = int(val)
-			except ValueError:
+			except (ValueError, TypeError):
 				return False
 			return self.Chooser == v2
 		elif self.ChooserType == ChooseType.rangeval:
