@@ -31,6 +31,7 @@ class Scene(HAnode):
 
 		if settoon:
 			t = threading.Thread(name='HAscene-' + self.name, target=self.SceneOn, daemon=True)
+			t.start()
 			return False  # scenes always show as off for display purposes
 		else:
 			logsupport.Logs.Log('{} attempt to set scene {} to off'.format(self.Hub.name, self.name),
