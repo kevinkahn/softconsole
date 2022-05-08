@@ -445,6 +445,8 @@ class HA(object):
 				p2 = dict(e.as_dict(), **{'domain': e.domain, 'name': e.name, 'object_id': e.object_id})
 				if e.entity_id in self.Entities:
 					self.Entities[e.entity_id].Update(**p2)
+				elif e.domain in IgnoredDomains:
+					pass  # continue to ignore these
 				else:
 					logsupport.Logs.Log("{} restart found new entity {} state: {}".format(self.name, e, p2),
 										severity=ConsoleWarning)
