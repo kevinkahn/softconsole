@@ -32,7 +32,7 @@ class Sensor(HAnode):  # not stateful since it updates directly to store value
 				except Exception as E:
 					safeprint('Device lookup error {} {} {}'.format(self.entity_id, ns, E))
 					device = None
-				if ns['state'] in ('', 'unknown', 'None', 'unavailable'):
+				if ns['state'] in ('', 'unknown', 'None', 'unavailable', 'error'):
 					if self.missinglast in ('No', 'No-ExplicitOnly'):  # don't keep reporting same outage
 
 						self.Hub.NoteDeviceGone(device)
