@@ -72,6 +72,10 @@ NavKeyAlpha = 50
 	Type = Periodic
 	Interval = 3 hours
 	Invoke = AutoVersion.CheckUpToDate
+	[[ConfigCheck]]
+	Type = Periodic
+	Interval = 1 minutes
+	Invoke = ConfigCheck.ConfigCheck
 	[[AdjustScreenDim]]
 	Type = Periodic
 	At = 11:00pm

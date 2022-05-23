@@ -66,7 +66,7 @@ config.sysStore.SetVal('HomeDir', os.path.dirname(config.sysStore.ExecDir))
 Constants
 '''
 configfilebase = "/home/pi/Console/"  # actual config file can be overridden from arg1
-configfilelist = {}  # list of configfiles and their timestamps
+from config import configfilelist  # list of configfiles and their timestamps
 
 logsupport.SpawnAsyncLogger()
 HBMain = historybuffer.HistoryBuffer(40, 'Main')
@@ -202,6 +202,16 @@ def LogBadParams(section, name):
 									severity=ConsoleWarning)
 
 
+def CheckForTempConfigVersion(dir, f):
+	if config.sysStore.versionname == 'development':
+		# override config file with a working version if it exists
+		foveride = f + 'x'
+		if os.path.exists(dir + foveride):
+			logsupport.Logs.Log('Use temp version of config file: {}'.format(f))
+			f = foveride
+	return f
+
+
 if os.getegid() != 0:
 	# Not running as root
 	logsupport.Logs.Log(u"Not running as root - exit")
@@ -291,9 +301,11 @@ includes = ParsedConfigFile.get('include', [])
 while includes:
 	f = includes.pop(0)
 	if f[0] != '/':
+		f = CheckForTempConfigVersion(cfglib, f)
 		pfiles.append('+' + f)
 		f = cfglib + f
 	else:
+		f = CheckForTempConfigVersion('', f)
 		pfiles.append(f)
 	cfiles.append(f)
 	# noinspection PyBroadException
@@ -311,7 +323,28 @@ while includes:
 		logsupport.Logs.Log("MISSING config file " + f)
 		logsupport.Logs.Log('Excp: {}'.format(repr(E)))
 		configfilelist[f] = 0
+'''
+confserver = '/home/pi/.exconfs/'
+cfgdirserver = confserver + 'cfglib/'
+for f, ftime in configfilelist.items():
+	fl, fb = f.split('/')[-2:]
+	if fl == 'cfglib':
+		try:
+			mt = os.path.getmtime(cfgdirserver + fb)
+			mts = datetime.datetime.fromtimestamp(mt).strftime('%Y-%m-%d %H:%M:%S')
+		except Exception as E:
+			mts = 'None'
+			print('Error getting current library timestamp {}'.format(E))
+	else:
+		try:
+			mt = os.path.getmtime(confserver + fb)
+			mts = datetime.datetime.fromtimestamp(mt).strftime('%Y-%m-%d %H:%M:%S')
+		except Exception as E:
+			mts = 'None'
+			print('Error getting current base timestamp {}'.format(E))
 
+	print('{} of {} vs {} ({})'.format(f,datetime.datetime.fromtimestamp(ftime).strftime('%Y-%m-%d %H:%M:%S'),mts,mt-ftime))
+'''
 debug.InitFlags(ParsedConfigFile)
 isy.GetHandledNodeTypes(ParsedConfigFile)
 

@@ -20,7 +20,7 @@ ScreenTitle = {}  ({:.1f}°)
 ScreenTitleColor = white
 ScreenTitleFields = 'System:Time:%I*%M*%S %p', HASS:sensor.br_balcony_am2301_temperature
 type = Keypad
-label = Credenza,
+label = Great Room,
 [[switch.bedsideeast]]
 type = ONOFF
 label = Bedside, East

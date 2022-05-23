@@ -6,6 +6,7 @@ from utils.utilfuncs import safeprint
 hooks = None
 resendidle = False
 noisytouch = False
+configfilelist = {}
 
 Running = False
 Exiting = False
