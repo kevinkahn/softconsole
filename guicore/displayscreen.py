@@ -124,7 +124,7 @@ def MainControlLoop():
 						if event.seq == screenmgt.activityseq:
 							needvalidevent = False
 						else:
-							if config.sysStore.versionname == 'development':
+							if utilfuncs.isdevsystem:
 								logsupport.Logs.Log(
 									'Outdated activity {} {}'.format(event.seq, screenmgt.activityseq))
 								guiutils.HBEvents.Entry(

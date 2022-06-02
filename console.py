@@ -203,7 +203,7 @@ def LogBadParams(section, name):
 
 
 def CheckForTempConfigVersion(dir, f):
-	if config.sysStore.versionname == 'development':
+	if utilfuncs.isdevsystem:
 		# override config file with a working version if it exists
 		foveride = f + 'x'
 		if os.path.exists(dir + foveride):
@@ -298,6 +298,14 @@ if cfglib != '':
 if cfglib[0] != '/':
 	cfglib = configdir + '/' + cfglib
 includes = ParsedConfigFile.get('include', [])
+
+if utilfuncs.isdevsystem:
+	for cfgfile in os.listdir(cfglib):
+		if cfgfile.endswith('.cfg'):
+			if cfgfile not in includes:
+				print('Autoadd {} to includes for development'.format(cfgfile))
+				includes.append(cfgfile)
+
 while includes:
 	f = includes.pop(0)
 	if f[0] != '/':
@@ -590,7 +598,7 @@ try:
 	"""
 	Dump documentation if development version
 	"""
-	if config.sysStore.versionname == 'development':
+	if utilfuncs.isdevsystem:
 		with open('/home/pi/Console/helpfile.txt', 'w') as hf:
 			print('System Parameters', file=hf)
 			print('-----------------', file=hf)

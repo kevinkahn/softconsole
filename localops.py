@@ -4,6 +4,8 @@ import config
 import logsupport
 import subprocess
 
+from utils import utilfuncs
+
 PreOpScripts = []
 NewCfgs = set()
 DeletedCfgs = set()
@@ -88,7 +90,7 @@ def PreOp():
 		PreOpScripts.append('Exception in runonce script handling: ({})'.format(E))
 
 	PreOpScripts.append('Version: {}'.format(config.sysStore.versionname))
-	if config.sysStore.versionname == 'development':
+	if utilfuncs.isdevsystem:
 		PreOpScripts.append('Skip config file updating for developement systems')
 		return
 

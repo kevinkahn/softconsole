@@ -4,12 +4,14 @@ import configobj
 from configobj import Section
 import config
 import debug
-from utils import exitutils
+from utils import exitutils, utilfuncs
+from utils.utilfuncs import safeprint
 import logsupport
 import screens.__screens as screens
 from logsupport import ConsoleWarning, ConsoleError, ConsoleDetail
 
 GoToTargetList = {}
+
 
 class MyScreens(object):
 
@@ -55,16 +57,18 @@ class MyScreens(object):
 					screens.ExtraDict[NewScreen.name] = NewScreen
 					screens.ExtraChain.append(NewScreen.name)
 
-		if config.sysStore.versionname == 'development':
+		if utilfuncs.isdevsystem:
+			safeprint('Add all screens for testing')
 			allscreens = {**screens.MainDict, **screens.SecondaryDict, **screens.ExtraDict}
 			thisscreenpartial = None
 			scrnnum = 0
 			perscreen = 0
 			for sn, s in allscreens.items():
+				safeprint('    Test {}'.format(sn))
 				if perscreen == 0:
 					if thisscreenpartial is not None:
-						config.sysStore.MainChain.append('TestScreen-{}'.format(scrnnum))
-						screens.MainDict['TestScreen-{}'.format(scrnnum)] = screens.screentypes['Keypad'](
+						config.sysStore.SecondaryChain.append('TestScreen-{}'.format(scrnnum))
+						screens.SecondaryDict['TestScreen-{}'.format(scrnnum)] = screens.screentypes['Keypad'](
 							thisscreenpartial, 'TestScreen-{}'.format(scrnnum))
 					scrnnum += 1
 					perscreen = 6
@@ -73,10 +77,11 @@ class MyScreens(object):
 				thisscreenpartial[sn] = {'type': 'GOTO', 'ScreenName': sn, 'label': sn}
 				perscreen -= 1
 			if perscreen != 6:  # get the leftovers
-				config.sysStore.MainChain.append('TestScreen-{}'.format(scrnnum))
-				screens.MainDict['TestScreen-{}'.format(scrnnum)] = screens.screentypes['Keypad'](thisscreenpartial,
-																								  'TestScreen-{}'.format(
-																									  scrnnum))
+				config.sysStore.SecondaryChain.append('TestScreen-{}'.format(scrnnum))
+				screens.SecondaryDict['TestScreen-{}'.format(scrnnum)] = screens.screentypes['Keypad'](
+					thisscreenpartial,
+					'TestScreen-{}'.format(
+						scrnnum))
 
 		# Validate screen lists and log them
 
