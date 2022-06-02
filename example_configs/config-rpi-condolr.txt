@@ -4,7 +4,7 @@ DimLevel = 20
 DimTO = 20
 DefaultHub = HASS
 
-include = /home/pi/Console/local/authall.cfg, picscreen.cfg, weathersources.cfg, weathPump.cfg, myclock.cfg,weathPDX.cfg,timetempLQ7.cfg, mqtt.cfg, weathLQ.cfg, timetempPDX7.cfg, pdxalerts.cfg
+include = /home/pi/Console/local/authall.cfg, picscreen.cfg, pdxcondolr.cfg, weathersources.cfg, weathPump.cfg, myclock.cfg,weathPDX.cfg,timetempLQ7.cfg, mqtt.cfg, weathLQ.cfg, timetempPDX7.cfg, pdxalerts.cfg
 
 DimIdleListNames = Portland, MyClock, LQTTbig, PDXTTbig, Pumpkin, Pictures
 
@@ -14,22 +14,4 @@ HomeScreenName = Condo
 
 MainChain = Condo, Pumpkin, Portland, La Quinta
 
-[Condo]
-Clocked = 1
-ScreenTitle = {}  ({:.1f}°)
-ScreenTitleColor = white
-ScreenTitleFields = 'System:Time:%I*%M*%S %p', HASS:sensor.br_balcony_am2301_temperature
-type = Keypad
-label = Great Room,
-[[switch.bedsideeast]]
-type = ONOFF
-label = Bedside, East
-[[switch.bedsidewest]]
-type = ONOFF
-label = Bedside, West
-[[switch.lr_corner_uplight]]
-type = ONOFF
-label = Corner, Uplight
-[[switch.credenza]]
-type = ONOFF
-label = Credenza
+
