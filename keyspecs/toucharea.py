@@ -402,7 +402,7 @@ class ManualKeyDesc(TouchPoint):
 			if i.Matches(val):
 				lab = i.Label[:]
 				color = parsecolor(i.Color[0])
-				chcolor = parsecolor(i.Color[1] if len(i.Color) > 1 else self.KeyColorOn)
+				chcolor = parsecolor(i.Color[1] if len(i.Color) > 1 else self.KeyCharColorOn)
 				outlncolor = parsecolor(i.Color[2] if len(i.Color) > 2 else self.KeyOnOutlineColor)
 				break
 		lab2 = []
