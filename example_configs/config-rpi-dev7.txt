@@ -249,9 +249,10 @@ FastPress = 0
     Value = 'toggle'
     [[TestBool]]
     type = SETINPUT
+    Fields = HASS:input_datetime.glc_expected_charged, HASS:input_select.inputselect
     Var = HASS:input_boolean.home
     Value = 'toggle'
-    label = TBool
+    label = TBool, {1}, {0}
     [[TestNumInc]]
     type = SETINPUT
     Var = HASS:input_number.inputnum

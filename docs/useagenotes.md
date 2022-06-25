@@ -576,6 +576,11 @@ state*on and state*off matches as a shortcut for the common case of an on/off ke
 by the value of the Var or if no Var was specified by the state of the node/entity. If the node is dimmable then the $
 is replaced by the on percentage. See the example config files for examples of how all this works.
 
+Key labels may also include dynamic values taken from the store by referencing them in the usual way as storename:name.
+To do this include a "Fields =" parameter in the key description to name the desired fields and then reference them in
+the key label in the normal Python manner as {} for the next field or {n} for a specific field. This is the same
+convention as used in screen titles as described above.
+
 ### Clock
 
 * Clock: displays a clock formatted according to the OutFormat parameter using any of the underlying OS time formatting
@@ -637,7 +642,7 @@ when it changes no caching is done for single mode.
 
 Alert: used to display an alarm condition. This screen type is tightly connected to Alerts which are described next.
 Creating Alert screens is a two part process. First, you define the conditions that trigger the alert, this definition
-includes the action to take with the triffer is fired, which is defined via Invoke= parameter naming an alert screen.  (
+includes the action to take when the trigger is fired, which is defined via Invoke= parameter naming an alert screen.  (
 The 'Invoke' command may also name an Alert procedure which is a different case.)  An example of defining an Alert
 screen might look like:
 ```

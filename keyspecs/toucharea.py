@@ -8,7 +8,7 @@ from screens import screen
 import stores.paramstore as paramstore
 from utils import timers, utilities, fonts, displayupdate, hw
 from utils.hw import scaleW, scaleH
-from utils.utilfuncs import wc
+from utils.utilfuncs import wc, fmt
 import typing
 from keys.keyutils import DispOpt, ChooseType, ParseConfigToDispOpt, BrightnessPossible
 import stores.valuestore as valuestore
@@ -167,6 +167,7 @@ class ManualKeyDesc(TouchPoint):
 		self.State = State
 		self.Screen = thisscreen
 		self.Var = var
+		self.Fields = []
 		screen.IncorporateParams(self, 'TouchArea',
 								 {'KeyColor': bcolor,
 								  'KeyOffOutlineColor': KOff,
@@ -207,7 +208,7 @@ class ManualKeyDesc(TouchPoint):
 								 keysection)
 		screen.AddUndefaultedParams(self, keysection, FastPress=0, Verify=False, Blink=0, label=[''], Appearance=[],
 									DefaultAppearance='',
-									Var='')
+									Var='', Fields=[])
 
 		try:
 			nmoveride = self.ConnectandGetNameOverride(keyname, keysection)
@@ -255,6 +256,8 @@ class ManualKeyDesc(TouchPoint):
 		if hasattr(self, 'Var') and self.Var != '':
 			val = valuestore.GetVal(self.Var)
 
+		elif hasattr(self, 'Fields') and self.Fields != []:
+			val = 999999  # not a static key
 		elif self.statebasedkey:
 			if hasattr(self.DisplayObj, 'state'):
 				val = self.DisplayObj.state
@@ -265,7 +268,7 @@ class ManualKeyDesc(TouchPoint):
 			val = 99999999  # key display is static
 
 		if not self.LastImageValid:
-			self.BuildDynKey(val, 0, True)
+			self.BuildDynKey(val, 0, True, self.Fields)
 			if statickey: self.LastImageValid = True
 
 		x = self.Center[0] - self.GappedSize[0] / 2
@@ -383,7 +386,7 @@ class ManualKeyDesc(TouchPoint):
 		pygame.draw.rect(temp, wc(outlineclr), ((scaleW(bord), scaleH(bord)), buttonsmaller), bord)
 		return temp
 
-	def BuildDynKey(self, val, firstfont, shrink):
+	def BuildDynKey(self, val, firstfont, shrink, fields):
 
 		def parsecolor(cname):
 			cd = 0.0 if len(cname.split('/')) == 1 else 0.5 if cname.split('/')[1] == 'dull' else float(
@@ -414,7 +417,8 @@ class ManualKeyDesc(TouchPoint):
 
 		dval = '--' if val is None else str(val)
 		for line in lab:
-			lab2.append(line.replace('$', dval))
+			fieldvals = ['--' if fields is None else v for v in [valuestore.GetVal(f) for f in fields]]
+			lab2.append(fmt.format(line, *fieldvals).replace('$', dval))
 
 		if self.usekeygaps:
 			self.GappedSize = (self.Size[0] - self.Screen.HorizButGap, self.Size[1] - self.Screen.VertButGap)
