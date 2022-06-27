@@ -5,6 +5,7 @@ import signal
 from queue import Empty as QEmpty
 from threading import Lock
 import difflib
+from datetime import datetime
 
 import pygame
 
@@ -211,12 +212,15 @@ def LogProcess(q):
 			elif item[0] == Command.DumpRemote:  # force remote message dump
 				pass
 			else:
-				with open('/home/pi/Console/.HistoryBuffer/hlog', 'a') as f:
-					f.write('Log process got garbage: {}\n'.format(item))
+				with open('/home/pi/Console/hlogerror', 'a') as f:
+					f.write(
+						'{} Log process got garbage: {}\n'.format(datetime.now().strftime("%m/%d/%Y, %H:%M:%S"), item))
 					f.flush()
 		except Exception as E:
-			with open('/home/pi/Console/.HistoryBuffer/hlog', 'a') as f:
-				f.write('Log process had exception {} handling {}'.format(repr(E), item))
+			with open('/home/pi/Console/hlogerror', 'a') as f:
+				f.write(
+					'{} Log process had exception {} handling {}'.format(datetime.now().strftime("%m/%d/%Y, %H:%M:%S"),
+																		 repr(E), item))
 				f.flush()
 	try:
 		print('----------------- {}({}): Logger loop ended'.format(os.getpid(), time.time()))
