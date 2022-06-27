@@ -1,5 +1,5 @@
 cfglib = cfglib
-include = /home/pi/Console/local/auth.cfg, pdxalerts.cfg, mqtt.cfg, inetalert.cfg, weathLQ.cfg, weathCC.cfg, weathPDX.cfg,timetempPDX.cfg,tstat.cfg,garage.cfg, octoprint.cfg, weathersources.cfg, timetempLQ.cfg, condostats.cfg
+include = /home/pi/Console/local/auth.cfg, pdxalerts.cfg, mqtt.cfg, inetalert.cfg, weathLQ.cfg, weathCC.cfg, weathPDX.cfg,timetempPDX.cfg,garage.cfg, octoprint.cfg, weathersources.cfg, timetempLQ.cfg, condotstats.cfg
 
 HomeScreenName = Garage
 DimLevel = 5
