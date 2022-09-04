@@ -4,4 +4,5 @@ Uses a Raspberry Pi with any of a number of touch screens including Adafruit PiT
 For detailed documentation see the [useage notes](docs/useagenotes.md).
 
 ![Console](console.jpg)
- See the jpg files above for some other images of the consoles that I run.
+ 
+See the jpg files above for some other images of the consoles that I run.
