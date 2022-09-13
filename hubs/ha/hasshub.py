@@ -489,7 +489,7 @@ class HA(object):
 			self.HB.Entry(repr(message))
 			# logsupport.Logs.Log("-->{}".format(repr(message)))
 			# with open('/home/pi/Console/msglog{}'.format(self.name),'a') as f:
-			#	f.write('{}\n'.format(repr(message)))
+			#  f.write('{}\n'.format(repr(message)))
 			adds = []
 			chgs = []
 			dels = []
