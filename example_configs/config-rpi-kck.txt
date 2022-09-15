@@ -1,5 +1,5 @@
 cfglib = cfglib
-include = /home/pi/Console/local/authall.cfg, pdxalerts.cfg, pdxBR.cfg, pdxBR2, condotstats.cfg,weathPump.cfg,weathCC.cfg,weathPDX.cfg,myclock.cfg,timetempLQ.cfg,timetempPDX.cfg, mqtt.cfg, weathersources.cfg, #octoprint.cfg
+include = /home/pi/Console/local/authall.cfg, pdxalerts.cfg, pdxBR.cfg, pdxBR2.cfg, condotstats.cfg,weathPump.cfg,weathCC.cfg,weathPDX.cfg,myclock.cfg,timetempLQ.cfg,timetempPDX.cfg, mqtt.cfg, weathersources.cfg, #octoprint.cfg
 HomeScreenName = BR
 DimLevel = 50
 DimTO = 25

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="PublishConfigData" autoUpload="Always" serverName="pi@rpi-dev7.pdxhome:8623 agent" promptOnLocalOverwrite="false" exclude=".svn;.cvs;.idea;.DS_Store;.git;.hg;*.pyc" autoUploadExternalChanges="true">
+  <component name="PublishConfigData" autoUpload="Always" serverName="PDX Dev7" promptOnLocalOverwrite="false" exclude=".svn;.cvs;.idea;.DS_Store;.git;.hg;*.pyc" autoUploadExternalChanges="true">
     <serverData>
       <paths name="PDX Dev7">
         <serverdata>
@@ -13,6 +13,13 @@
         <serverdata>
           <mappings>
             <mapping deploy="/tmp/pycharm_project_834" local="$PROJECT_DIR$" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="pi@rpi-dev7.pdxhome:8623 agent (1)">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/tmp/pycharm_project_983" local="$PROJECT_DIR$" />
           </mappings>
         </serverdata>
       </paths>
