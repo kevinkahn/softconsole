@@ -7,7 +7,7 @@
       <excludeFolder url="file://$MODULE_DIR$/auxinfo" />
       <excludeFolder url="file://$MODULE_DIR$/example_configs" />
     </content>
-    <orderEntry type="jdk" jdkName="PDX Dev7x" jdkType="Python SDK" />
+    <orderEntry type="jdk" jdkName="Remote Python 3.7.3 (sftp://pi@rpi-dev7.pdxhome:8623/usr/bin/python)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
   </component>
 </module>
