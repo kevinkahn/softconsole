@@ -289,8 +289,8 @@ class WeatherbitWeatherSource(object):
 												  payload=json.dumps(pld))
 					historybuffer.HBNet.Entry('Weather fetch done')
 					logsupport.Logs.Log(
-						'Fetched weather for {} ({}) locally'.format(self.thisStoreName, self.location),
-						severity=ConsoleDetail)
+						'Fetched weather for {} ({}) locally'.format(self.thisStoreName, self.location))  # ,
+					# severity=ConsoleDetail)
 
 					if ByLocStatGp.Exists(self.thisStoreName):
 						ByLocStatGp.Op(name=self.thisStoreName)
