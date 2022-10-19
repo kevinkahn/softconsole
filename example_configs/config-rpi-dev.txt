@@ -7,7 +7,7 @@
 
 
 cfglib = cfglib
-include = /home/pi/Console/local/authall.cfg, pgaBath.cfg, timetempPR.cfg, timetempLQ.cfg, weathCC.cfg, timetempPDX.cfg, myclock.cfg,bathroom.cfg,upperlev.cfg,BR-kck.cfg,tstat.cfg, weathersources.cfg, weathPDX.cfg, mqtt.cfg #, pdxalerts.cfg
+include = /home/pi/Console/local/authall.cfg, pgaBath.cfg, timetempPR.cfg, timetempLQ.cfg, timetempPDX.cfg, myclock.cfg,bathroom.cfg,upperlev.cfg,BR-kck.cfg,tstat.cfg, weathersources.cfg, weathPDX.cfg, mqtt.cfg #, pdxalerts.cfg
 HomeScreenName = LR1
 DimLevel = 50
 DimTO = 25

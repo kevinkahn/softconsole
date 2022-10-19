@@ -9,7 +9,7 @@ ISYLoad=True
 # switch to authall with HASSpga avail
 
 cfglib = "/home/pi/consolerem/example_configs/cfglib"
-include = /home/pi/Console/local/authall.cfg, weathersources.cfg, weathPump.cfg, timetempLQ.cfg,  myclock.cfg,weathPDX.cfg,timetempLQ7.cfg, octoprint.cfg, weathCC.cfg, timetempPDX7.cfg, pgaTstat.cfg, pgawBRmain.cfg, pgaBath.cfg, condotstats.cfg, pgaGR.cfg, mqtt.cfg, pgaKitchen.cfg, pgaOutside.cfg, pgaShades.cfg, pgaScenes.cfg
+include = /home/pi/Console/local/authall.cfg, weathersources.cfg, weathPump.cfg, timetempLQ.cfg,  myclock.cfg,weathPDX.cfg,timetempLQ7.cfg, octoprint.cfg, timetempPDX7.cfg, pgaTstat.cfg, pgawBRmain.cfg, pgaBath.cfg, condotstats.cfg, pgaGR.cfg, mqtt.cfg, pgaKitchen.cfg, pgaOutside.cfg, pgaShades.cfg, pgaScenes.cfg
 #pgaalerts.cfg,
 HomeScreenName = 'pgawBR'
 DimLevel = 10
@@ -19,7 +19,7 @@ DimIdleListNames = PDXTTbig, Pic, MyClock, LQTTbig, Pumpkin
 
 DimIdleListTimes =	5, 20, 5, 5, 5, 5
 
-MainChain = pgawBR, pgaShades, pgaScenes, Prusa, pgawBath, wxHouse, Pic, Pumpkin, Local, climate.air_conditionerbr_hvac,climate.air_conditionerlr_hvac,Test1, pgaGR, pgaKitchen, pgaOutside
+MainChain = pgawBR, pgaShades, pgaScenes, Prusa, pgawBath, wxHouse, Pic, Pumpkin, climate.air_conditionerbr_hvac,climate.air_conditionerlr_hvac,Test1, pgaGR, pgaKitchen, pgaOutside
 SecondaryChain = Portland, LQTTbig, climate.master_bedroom, climate.living_room
 
 DefaultHub = HASS

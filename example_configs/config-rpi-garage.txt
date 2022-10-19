@@ -1,5 +1,5 @@
 cfglib = cfglib
-include = /home/pi/Console/local/auth.cfg, pdxalerts.cfg, mqtt.cfg, inetalert.cfg, weathLQ.cfg, weathCC.cfg, weathPDX.cfg,timetempPDX.cfg,garage.cfg, octoprint.cfg, weathersources.cfg, timetempLQ.cfg, condotstats.cfg
+include = /home/pi/Console/local/auth.cfg, pdxalerts.cfg, mqtt.cfg, inetalert.cfg, weathLQ.cfg, weathPDX.cfg,timetempPDX.cfg,garage.cfg, octoprint.cfg, weathersources.cfg, timetempLQ.cfg, condotstats.cfg
 
 HomeScreenName = Garage
 DimLevel = 5
@@ -8,7 +8,7 @@ DimIdleListNames = TimeTemp, LQTT
 DimIdleListTimes = 8,8
 
 MainChain = Garage, Prusa, TimeTemp,climate.air_conditionerbr_hvac,climate.air_conditionerlr_hvac
-SecondaryChain = Local, Portland, La Quinta
+SecondaryChain = Portland, La Quinta
 
 [Alerts]
 [[LXPanel]]

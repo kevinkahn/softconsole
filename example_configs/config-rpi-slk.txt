@@ -1,5 +1,5 @@
 cfglib = cfglib
-include = /home/pi/Console/local/auth.cfg, picscreen.cfg, weathLQ.cfg, weathCC.cfg, weathPDX.cfg,timetempPDX.cfg,pdxBR.cfg, pdxBR2.cfg, condotstats.cfg, mqtt.cfg, weathersources.cfg, timetempLQ.cfg, pdxalerts.cfg
+include = /home/pi/Console/local/auth.cfg, picscreen.cfg, weathLQ.cfg, weathPDX.cfg,timetempPDX.cfg,pdxBR.cfg, pdxBR2.cfg, condotstats.cfg, mqtt.cfg, weathersources.cfg, timetempLQ.cfg, pdxalerts.cfg
 
 HomeScreenName = BR
 DimLevel = 5
@@ -9,7 +9,7 @@ DimIdleListNames = TimeTemp, LQTT, Pictures
 DimIdleListTimes =	5, 5, 45
 
 MainChain = BR, BR2, TimeTemp, climate.air_conditionerbr_hvac, climate.air_conditionerlr_hvac
-SecondaryChain = Local, Portland, La Quinta
+SecondaryChain = Portland, La Quinta
 
 
 [Sonos]
