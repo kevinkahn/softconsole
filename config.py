@@ -75,6 +75,9 @@ def ptf(pstr):
 	if sysStore.versionname in ('homerelease', 'development'):
 		with open('/home/pi/Console/weathtrace', 'a') as f:
 			safeprint('{}:{}'.format(time.strftime('%H:%M:%S', time.localtime(time.time())), pstr), file=f, flush=True)
+	else:
+		with open('/home/pi/Console/vtrace', 'a') as f:
+			safeprint('Version was {}'.format(sysStore.versionname))
 
 lastfetch = 0
 
