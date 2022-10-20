@@ -24,8 +24,6 @@ SecondaryChain = Portland, Pumpkin, pgaOutside, pgaGR, pgaKitchen
 
 DefaultHub = HASSpga
 
-[Variables]
-    InternetUp = 1
 
 
 
