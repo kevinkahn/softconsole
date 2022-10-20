@@ -123,12 +123,12 @@ fmt = PartialFormatter()
 # noinspection PyBroadException
 isdevsystem = False
 def safeprint(*args, **kwargs):
-	if not isdevsystem or config.sysStore.versionname == 'homerelease': return
-	try:
-		print(time.strftime('%m-%d-%y %H:%M:%S'), *args, **kwargs)
-	except OSError:
-		with open('/home/pi/Console/disconnectederrors.log', 'a') as f:
-			print(*args, **kwargs, file=f)
+	if isdevsystem or config.sysStore.versionname == 'homerelease':
+		try:
+			print(time.strftime('%m-%d-%y %H:%M:%S'), *args, **kwargs)
+		except OSError:
+			with open('/home/pi/Console/disconnectederrors.log', 'a') as f:
+				print(*args, **kwargs, file=f)
 
 def RepresentsInt(s):
 	try:
