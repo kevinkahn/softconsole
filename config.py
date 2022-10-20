@@ -92,6 +92,9 @@ def ptf2(pstr):
 		with open('/home/pi/Console/weathhist', 'a') as f:
 			safeprint('{}{}:{}'.format(flag, time.strftime('%H:%M:%S', time.localtime(time.time())), pstr), file=f,
 					  flush=True)
+	else:
+		with open('/home/pi/Console/vtrace', 'a') as f:
+			safeprint('Version2 was {}'.format(sysStore.versionname))
 
 
 # noinspection PyBroadException

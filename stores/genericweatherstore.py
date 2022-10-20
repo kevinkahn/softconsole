@@ -33,8 +33,8 @@ CacheUser = {}  # index by provider to dict that indexes by location that points
 Provs = {}
 WeatherFetcherNotInit = True  # thread that does the fetching
 MQTTqueue = queue.Queue()
-MINWAITBETWEENTRIES = 180  # 5 minutes
-NetMinimalFetchGap = 240
+MINWAITBETWEENTRIES = 1800  # 30 minutes
+NetMinimalFetchGap = 600
 
 
 @dataclass
