@@ -123,7 +123,7 @@ fmt = PartialFormatter()
 # noinspection PyBroadException
 isdevsystem = False
 def safeprint(*args, **kwargs):
-	if not isdevsystem: return
+	if not isdevsystem or config.sysStore.versionname == 'homerelease': return
 	try:
 		print(time.strftime('%m-%d-%y %H:%M:%S'), *args, **kwargs)
 	except OSError:

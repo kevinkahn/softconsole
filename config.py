@@ -70,14 +70,14 @@ sysvals = {
 #  configdir
 #  hostname
 
+
+# todo rationalize with safeprint for when to actually print
 def ptf(pstr):
 	# noinspection PyUnresolvedReferences
 	if sysStore.versionname in ('homerelease', 'development'):
 		with open('/home/pi/Console/weathtrace', 'a') as f:
 			safeprint('{}:{}'.format(time.strftime('%H:%M:%S', time.localtime(time.time())), pstr), file=f, flush=True)
-	else:
-		with open('/home/pi/Console/vtrace', 'a') as f:
-			safeprint('Version was {}'.format(sysStore.versionname), file=f, flush=True)
+
 
 lastfetch = 0
 
@@ -92,9 +92,6 @@ def ptf2(pstr):
 		with open('/home/pi/Console/weathhist', 'a') as f:
 			safeprint('{}{}:{}'.format(flag, time.strftime('%H:%M:%S', time.localtime(time.time())), pstr), file=f,
 					  flush=True)
-	else:
-		with open('/home/pi/Console/vtrace', 'a') as f:
-			safeprint('Version2 was {}'.format(sysStore.versionname), file=f, flush=True)
 
 
 # noinspection PyBroadException
