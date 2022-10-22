@@ -112,7 +112,7 @@ def MQTTWeatherUpdate(provider, locname, wpayload):
 		return  # broadcast for location this node doesn't use
 
 	if not provider in WeatherCache: WeatherCache[provider] = {}
-
+	config.ptf('Got mqtt weather: {}'.format(wpayload))
 	winfo = wpayload['weatherinfo']
 	try:
 		fcstskipcnt = wpayload['fcstskipcnt']
@@ -236,10 +236,10 @@ def DoWeatherFetches():
 				store.startedfetch = time.time()
 				if WeatherCache[provnm][inst.thisStoreName].fcstskipcnt <= 0:
 					getnewfcst = True
-					WeatherCache[provnm][inst.thisStoreName].fcstskipcnt = FCSTSKIP
+					skipcnttouse = FCSTSKIP
 				else:
 					getnewfcst = False
-					WeatherCache[provnm][inst.thisStoreName].fcstskipcnt -= 1
+					skipcnttouse = WeatherCache[provnm][inst.thisStoreName].fcstskipcnt - 1
 				config.ptf('Do actual fetch with getnew: {} skipcnt: {}'.format(getnewfcst, WeatherCache[provnm][
 					inst.thisStoreName].fcstskipcnt))
 				winfo = inst.FetchWeather()  # todo if not get new fcst then need to replace half of winfo
@@ -283,13 +283,15 @@ def DoWeatherFetches():
 					if not provnm in WeatherCache: WeatherCache[provnm] = {}
 					WeatherCache[provnm][inst.thisStoreName] = CacheEntry(inst.location, 'self',
 																		  weathertime, inst.actualfetch.Values()[0],
-																		  winfo, 0)
+																		  winfo, WeatherCache[provnm][
+																			  inst.thisStoreName].fcstskipcnt)
 					if winfo is not None:
 						bcst = {'weatherinfo': winfo, 'location': inst.thisStoreName,
 								'fetchtime': weathertime,
 								'fetchcount': inst.actualfetch.Values()[0],
 								'fetchingnode': config.sysStore.hostname,
-								'fcstskipcnt': WeatherCache[provnm][inst.thisStoreName].fcstskipcnt}
+								'fcstskipcnt': skipcnttouse}
+						config.ptf('Publishing {}'.format(bcst))
 						if config.mqttavailable:
 							config.MQTTBroker.Publish('{}/{}'.format(provnm, inst.thisStoreName), node='all/weather2',
 													  payload=json.dumps(bcst), retain=True)
