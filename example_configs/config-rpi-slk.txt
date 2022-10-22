@@ -11,11 +11,6 @@ DimIdleListTimes =	5, 5, 45
 MainChain = BR, BR2, TimeTemp, climate.air_conditionerbr_hvac, climate.air_conditionerlr_hvac
 SecondaryChain = Portland, La Quinta
 
-
-[Sonos]
-    type = Sonos
-    DefaultHub = HASS
-
 [Alerts]
 [[LXPanel]]
          Type = Periodic

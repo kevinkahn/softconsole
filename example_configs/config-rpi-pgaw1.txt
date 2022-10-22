@@ -11,7 +11,7 @@ LogLevel = 3
 
 
 cfglib = "/home/pi/Console/cfglib"
-include = /home/pi/Console/local/authall.cfg, mqtt.cfg, pgawBRmain.cfg, pgaTstat.cfg, timetempLQ.cfg, timetempPDX.cfg, myclock2.cfg,weathPDX.cfg,weathPump.cfg,weathersources.cfg, pgaalerts.cfg, pgaBath.cfg, pgaOutside.cfg#, testvarkey.cfg, pgaGR.cfg, pgaKitchen
+include = /home/pi/Console/local/authall.cfg, mqtt.cfg, pgawBRmain.cfg, pgaTstat.cfg, timetempLQ.cfg, timetempPDX.cfg, myclock2.cfg,weathPDX.cfg,weathPump.cfg,weathersources.cfg, pgaalerts.cfg, pgaBath.cfg#, pgaOutside.cfg, pgaGR.cfg, pgaKitchen
 HomeScreenName = pgawBR
 DimLevel = 25
 DimTO = 25
