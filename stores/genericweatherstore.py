@@ -112,13 +112,12 @@ def MQTTWeatherUpdate(provider, locname, wpayload):
 		return  # broadcast for location this node doesn't use
 
 	if not provider in WeatherCache: WeatherCache[provider] = {}
-	config.ptf('Got mqtt weather: {}'.format(wpayload))
 	winfo = wpayload['weatherinfo']
 	try:
 		fcstskipcnt = wpayload['fcstskipcnt']
-		config.ptf2('Got skipcnt {} for {}'.format(fcstskipcnt, locname))
+		config.ptf2('Got mqtt weather with skipcnt {} for {}'.format(fcstskipcnt, locname))
 	except Exception:
-		config.ptf2('Got no skipcnt for {}'.format(locname))
+		config.ptf2('Got mqtt weather with no skipcnt for {}'.format(locname))
 		fcstskipcnt = 0
 
 	if isinstance(winfo, str):
@@ -239,10 +238,15 @@ def DoWeatherFetches():
 					skipcnttouse = FCSTSKIP
 				else:
 					getnewfcst = False
+					oldfcst = WeatherCache[provnm][inst.thisStoreName].winfo['forecast']
 					skipcnttouse = WeatherCache[provnm][inst.thisStoreName].fcstskipcnt - 1
 				config.ptf('Do actual fetch with getnew: {} skipcnt: {}'.format(getnewfcst, WeatherCache[provnm][
 					inst.thisStoreName].fcstskipcnt))
-				winfo = inst.FetchWeather()  # todo if not get new fcst then need to replace half of winfo
+				winfo = inst.FetchWeather()
+				if winfo['forecast'] is None:
+					winfo['forecast'] = oldfcst
+					config.ptf('Return old forecast')
+
 				weathertime = time.time()
 
 				if store.CurFetchGood:

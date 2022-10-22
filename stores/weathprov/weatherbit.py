@@ -429,10 +429,7 @@ class WeatherbitWeatherSource(object):
 			controlevents.PostEvent(controlevents.ConsoleEvent(controlevents.CEvent.GeneralRepaint))
 			return True
 		except Exception as E:
-			logsupport.DevPrint(
-				'Exception {} in Weatherrbit report processing: {}'.format(E,
-																		   forecast))  # todo should I record where came from? or handle as exc at caller
-
+			logsupport.DevPrint('Exception {} in Weatherrbit report processing: {}'.format(E, forecast))
 			self.thisStore.StatusDetail = "(Failed Decode)"
 			logsupport.Logs.Log(
 				'Decode failure on return data from weather fetch of {} Exc: {} Winfo: {}'.format(self.thisStoreName,
