@@ -35,6 +35,10 @@ WeatherFetcherNotInit = True  # thread that does the fetching
 MQTTqueue = queue.Queue()
 MINWAITBETWEENTRIES = 1800  # 30 minutes
 NetMinimalFetchGap = 600
+FCSTSKIP = 2
+'''
+Need to keep the cnt in the fcst itself, need to keep the last fcst at this level, pass in a boolean to get fcst, in the return sub saved fcst for the None that comes back. Do this before propogating the mqtt message. The mqtt msg must carry the fcst cycle cnt to other nodes with the fcst.  To them it looks like a normal update but really only the cnt has changed.  Ony reason to pass in the cnt to fetch is that it can't see the last fcst in the cache.
+'''
 
 
 @dataclass
@@ -44,6 +48,7 @@ class CacheEntry:
 	fetchtime: float
 	fetchcount: int
 	weatherinfo: dict
+	fcstskipcnt: int
 
 
 WeatherCache = {}
@@ -65,11 +70,17 @@ def MQTTWeatherUpdate(provider, locname, wpayload):
 			config.ptf('Old fetched message {}'.format(age))
 			return
 		Provs[provider].lastfetch = wpayload['time']
+		try:
+			fcstfetch = str(wpayload['fcstfetch'])
+		except Exception:
+			fcstfetch = 'Unknown'
 		# MQTTqueue.put((provider, locname, wpayload))
 		config.ptf('Fetched at: {}: {}'.format(time.strftime('%H:%M', time.localtime(wpayload['time'])), wpayload))
 		if wpayload['success'] == 'both':
-			config.ptf2('Fetch by {} of {} at {}'.format(wpayload['fetchingnode'], wpayload['location'],
-														 time.strftime('%H:%M', time.localtime(wpayload['time']))))
+			config.ptf2('Fetch by {} of {} at {} fcst: {}'.format(wpayload['fetchingnode'], wpayload['location'],
+																  time.strftime('%H:%M',
+																				time.localtime(wpayload['time'])),
+																  fcstfetch))
 		else:
 			config.ptf2('Fail by {} of {} at {} because {}'.format(wpayload['fetchingnode'], wpayload['location'],
 																   time.strftime('%H:%M',
@@ -103,7 +114,13 @@ def MQTTWeatherUpdate(provider, locname, wpayload):
 	if not provider in WeatherCache: WeatherCache[provider] = {}
 
 	winfo = wpayload['weatherinfo']
-	# print('MQTTcall {} {}'.format(provider, locname))
+	try:
+		fcstskipcnt = wpayload['fcstskipcnt']
+		config.ptf2('Got skipcnt {} for {}'.format(fcstskipcnt, locname))
+	except Exception:
+		config.ptf2('Got no skipcnt for {}'.format(locname))
+		fcstskipcnt = 0
+
 	if isinstance(winfo, str):
 		if winfo == 'CACHEPURGE':
 			logsupport.Logs.Log(
@@ -116,7 +133,7 @@ def MQTTWeatherUpdate(provider, locname, wpayload):
 		# curtime = WeatherCache[provider][locname].fetchtime if locname in WeatherCache[provider] else 0
 		# print('Actual MQTT update for {} current {} incoming {}'.format(locname, curtime, wpayload['fetchtime']))
 		WeatherCache[provider][locname] = CacheEntry(wpayload['location'], wpayload['fetchingnode'],
-													 wpayload['fetchtime'], wpayload['fetchcount'], winfo)
+													 wpayload['fetchtime'], wpayload['fetchcount'], winfo, fcstskipcnt)
 		MQTTqueue.put((provider, locname))
 	else:
 		pass
@@ -217,7 +234,15 @@ def DoWeatherFetches():
 				store.CurFetchGood = False
 				store.Status = ("Fetching",)
 				store.startedfetch = time.time()
-				winfo = inst.FetchWeather()
+				if WeatherCache[provnm][inst.thisStoreName].fcstskipcnt <= 0:
+					getnewfcst = True
+					WeatherCache[provnm][inst.thisStoreName].fcstskipcnt = FCSTSKIP
+				else:
+					getnewfcst = False
+					WeatherCache[provnm][inst.thisStoreName].fcstskipcnt -= 1
+				config.ptf('Do actual fetch with getnew: {} skipcnt: {}'.format(getnewfcst, WeatherCache[provnm][
+					inst.thisStoreName].fcstskipcnt))
+				winfo = inst.FetchWeather()  # todo if not get new fcst then need to replace half of winfo
 				weathertime = time.time()
 
 				if store.CurFetchGood:
@@ -258,12 +283,13 @@ def DoWeatherFetches():
 					if not provnm in WeatherCache: WeatherCache[provnm] = {}
 					WeatherCache[provnm][inst.thisStoreName] = CacheEntry(inst.location, 'self',
 																		  weathertime, inst.actualfetch.Values()[0],
-																		  winfo)
+																		  winfo, 0)
 					if winfo is not None:
 						bcst = {'weatherinfo': winfo, 'location': inst.thisStoreName,
 								'fetchtime': weathertime,
 								'fetchcount': inst.actualfetch.Values()[0],
-								'fetchingnode': config.sysStore.hostname}
+								'fetchingnode': config.sysStore.hostname,
+								'fcstskipcnt': WeatherCache[provnm][inst.thisStoreName].fcstskipcnt}
 						if config.mqttavailable:
 							config.MQTTBroker.Publish('{}/{}'.format(provnm, inst.thisStoreName), node='all/weather2',
 													  payload=json.dumps(bcst), retain=True)

@@ -222,7 +222,7 @@ class WeatherbitWeatherSource(object):
 		self.resettime = '(unset)'
 		WeatherMsgStoreName[location] = storename
 		RegisterFetcher('Weatherbit', storename, self, sys.modules[__name__])
-		self.actualfetch = stats.CntStat(name=storename, title=storename, keeplaps=True, PartOf=LocalFetches, inc=2,
+		self.actualfetch = stats.CntStat(name=storename, title=storename, keeplaps=True, PartOf=LocalFetches, inc=1,
 										 init=0)
 		# noinspection PyBroadException
 		try:  # t try to convert to lat/lon
@@ -262,8 +262,7 @@ class WeatherbitWeatherSource(object):
 			logsupport.Logs.Log('Exception {} mapping weather item {} {}'.format(E, src, item), severity=ConsoleWarning)
 			return None
 
-
-	def FetchWeather(self):
+	def FetchWeather(self, getfcst=True):
 		Esave = None
 		# print('WBFetch {}'.format(self.thisStoreName))
 		try:
@@ -279,11 +278,19 @@ class WeatherbitWeatherSource(object):
 				try:
 					historybuffer.HBNet.Entry('Weatherbit weather fetch{}'.format(self.thisStoreName))
 					cur = self.get_current()['data'][0]
-					fcst = self.get_forecast()['data']
-					winfo = {'current': cur, 'forecast': fcst}
 					self.actualfetch.Op()  # cound actual local fetches
+					fcst = self.get_forecast()['data']
+					self.actualfetch.Op()  # cound actual local fetches
+					# if getfcst:  todo
+					#	fcst = self.get_forecast()['data']
+					#	self.actualfetch.Op()  # cound actual local fetches
+					# else:
+					#	fcst = None
+
+					winfo = {'current': cur, 'forecast': fcst}
+
 					pld = {'fetchingnode': config.sysStore.hostname, 'time': time.time(),
-						   'location': self.thisStoreName, 'success': 'both'}
+						   'location': self.thisStoreName, 'success': 'both', 'fcstfetch': getfcst}
 					if config.mqttavailable:
 						config.MQTTBroker.Publish('Weatherbit/fetched', node='all/weather2',
 												  payload=json.dumps(pld))
