@@ -281,11 +281,11 @@ class WeatherbitWeatherSource(object):
 					self.actualfetch.Op()  # cound actual local fetches
 					fcst = self.get_forecast()['data']
 					self.actualfetch.Op()  # cound actual local fetches
-					# if getfcst:  todo
-					#	fcst = self.get_forecast()['data']
-					#	self.actualfetch.Op()  # cound actual local fetches
-					# else:
-					#	fcst = None
+					if getfcst:
+						fcst = self.get_forecast()['data']
+						self.actualfetch.Op()  # cound actual local fetches
+					else:
+						fcst = None
 
 					winfo = {'current': cur, 'forecast': fcst}
 

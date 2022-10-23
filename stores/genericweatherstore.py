@@ -240,9 +240,11 @@ def DoWeatherFetches():
 					getnewfcst = False
 					oldfcst = WeatherCache[provnm][inst.thisStoreName].winfo['forecast']
 					skipcnttouse = WeatherCache[provnm][inst.thisStoreName].fcstskipcnt - 1
-				config.ptf('Do actual fetch with getnew: {} skipcnt: {}'.format(getnewfcst, WeatherCache[provnm][
-					inst.thisStoreName].fcstskipcnt))
-				winfo = inst.FetchWeather()
+				config.ptf('Do actual fetch with getnew: {} skipcnt: {} skipcnttouse: {}'.format(getnewfcst,
+																								 WeatherCache[provnm][
+																									 inst.thisStoreName].fcstskipcnt),
+						   skipcnttouse)
+				winfo = inst.FetchWeather(getfcst=getnewfcst)
 				if winfo['forecast'] is None:
 					winfo['forecast'] = oldfcst
 					config.ptf('Return old forecast')
