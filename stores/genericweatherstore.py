@@ -35,11 +35,7 @@ WeatherFetcherNotInit = True  # thread that does the fetching
 MQTTqueue = queue.Queue()
 MINWAITBETWEENTRIES = 1800  # 30 minutes
 NetMinimalFetchGap = 600
-FCSTSKIP = 2
-'''
-Need to keep the cnt in the fcst itself, need to keep the last fcst at this level, pass in a boolean to get fcst, in the return sub saved fcst for the None that comes back. Do this before propogating the mqtt message. The mqtt msg must carry the fcst cycle cnt to other nodes with the fcst.  To them it looks like a normal update but really only the cnt has changed.  Ony reason to pass in the cnt to fetch is that it can't see the last fcst in the cache.
-'''
-
+FCSTSKIP = 3
 
 @dataclass
 class CacheEntry:
@@ -235,7 +231,7 @@ def DoWeatherFetches():
 				store.startedfetch = time.time()
 				if WeatherCache[provnm][inst.thisStoreName].fcstskipcnt <= 0:
 					getnewfcst = True
-					skipcnttouse = FCSTSKIP
+					skipcnttouse = store.skipforecast
 				else:
 					getnewfcst = False
 					oldfcst = WeatherCache[provnm][inst.thisStoreName].weatherinfo['forecast']
@@ -297,7 +293,7 @@ def DoWeatherFetches():
 								'fetchcount': inst.actualfetch.Values()[0],
 								'fetchingnode': config.sysStore.hostname,
 								'fcstskipcnt': skipcnttouse}
-						config.ptf('Publishing {}'.format(bcst))
+						# config.ptf('Publishing {}'.format(bcst))
 						if config.mqttavailable:
 							config.MQTTBroker.Publish('{}/{}'.format(provnm, inst.thisStoreName), node='all/weather2',
 													  payload=json.dumps(bcst), retain=True)
@@ -343,7 +339,7 @@ class WeatherItem(valuestore.StoreItem):
 
 class WeatherVals(valuestore.ValueStore):
 
-	def __init__(self, location, weathersource, refresh):
+	def __init__(self, location, weathersource, refresh, skipfcst):
 		global WeatherFetcherNotInit
 		if WeatherFetcherNotInit:
 			# create the fetcher thread
@@ -354,6 +350,7 @@ class WeatherVals(valuestore.ValueStore):
 		self.failedfetchcount = 0
 		self.failedfetchtime = 0
 		self.refreshinterval = 60 * refresh
+		self.skipforecast = skipfcst
 		if config.mqttavailable:  # randomize refresh intervals
 			self.refreshinterval += int((random() * .05) * self.refreshinterval)
 		super().__init__(location)

@@ -515,9 +515,10 @@ for i, v in ParsedConfigFile.items():
 					desc = i
 					loccode = v.get('location', desc)
 					refresh = int(v.get('refresh', 60))  # default refresh in minutes
-					units = str(v.get('units', 'I')) # set to I for Imperial; M for Metric
+					skipfcst = int(v.get('skipforecast', 2))  # default is skip 2 cycles between forecast fetches
+					units = str(v.get('units', 'I'))  # set to I for Imperial; M for Metric
 					ws = info[0](desc, loccode, info[1], units)
-					valuestore.NewValueStore(genericweatherstore.WeatherVals(desc, ws, refresh))
+					valuestore.NewValueStore(genericweatherstore.WeatherVals(desc, ws, refresh, skipfcst))
 				except Exception as e:
 					logsupport.Logs.Log('Unhandled error creating weather location: ', loccode, repr(e),
 										severity=ConsoleError, tb=False)
