@@ -36,6 +36,8 @@ ByLocStatGp = stats.StatSubGroup(name='ByLocation', PartOf=WBstats, title='Fetch
 ByNodeStatGp = stats.StatSubGroup(name='ByNode', PartOf=WBstats, title='Fetches by Node', totals='Total Fetches')
 LocalFetches = stats.StatSubGroup(name='LocalWeatherbitFetches', PartOf=WBstats, title='Actual Local Fetches',
 								  totals='Total Local Fetches', rpt=stats.daily)
+LocalFcstFetches = stats.StatSubGroup(name='LocalWeatherbitFcstFetches', PartOf=WBstats, title='Actual Fcst Fetches',
+									  totals='Total Fcst Fetches', rpt=stats.daily)
 RateLimited = stats.CntStat(name='RateLimited', PartOf=WBstats, inc=1, init=0)
 
 readytofetch = set()
@@ -224,6 +226,8 @@ class WeatherbitWeatherSource(object):
 		RegisterFetcher('Weatherbit', storename, self, sys.modules[__name__])
 		self.actualfetch = stats.CntStat(name=storename, title=storename, keeplaps=True, PartOf=LocalFetches, inc=1,
 										 init=0)
+		self.actualfcst = stats.CntStat(name=storename, title=storename, keeplaps=True, PartOf=LocalFcstFetches, inc=1,
+										init=0)
 		# noinspection PyBroadException
 		try:  # t try to convert to lat/lon
 			locationstr = location.split(',')
@@ -279,11 +283,12 @@ class WeatherbitWeatherSource(object):
 					historybuffer.HBNet.Entry('Weatherbit weather fetch{}'.format(self.thisStoreName))
 					cur = self.get_current()['data'][0]
 					self.actualfetch.Op()  # cound actual local fetches
-					fcst = self.get_forecast()['data']
-					self.actualfetch.Op()  # cound actual local fetches
+					# fcst = self.get_forecast()['data']
+					# self.actualfetch.Op()  # cound actual local fetches
 					if getfcst:
 						fcst = self.get_forecast()['data']
 						self.actualfetch.Op()  # cound actual local fetches
+						self.actualfcst.Op()
 					else:
 						fcst = None
 
