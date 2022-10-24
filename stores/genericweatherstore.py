@@ -73,10 +73,11 @@ def MQTTWeatherUpdate(provider, locname, wpayload):
 		# MQTTqueue.put((provider, locname, wpayload))
 		config.ptf('Fetched at: {}: {}'.format(time.strftime('%H:%M', time.localtime(wpayload['time'])), wpayload))
 		if wpayload['success'] == 'both':
-			config.ptf2('Fetch by {} of {} at {} fcst: {}'.format(wpayload['fetchingnode'], wpayload['location'],
-																  time.strftime('%H:%M',
-																				time.localtime(wpayload['time'])),
-																  fcstfetch))
+			config.ptf2(
+				'Fetch by {} of {} at {} fcst: {} fetchcnt:{}'.format(wpayload['fetchingnode'], wpayload['location'],
+																	  time.strftime('%H:%M',
+																					time.localtime(wpayload['time'])),
+																	  fcstfetch, wpayload['fetchcount']))
 		else:
 			config.ptf2('Fail by {} of {} at {} because {}'.format(wpayload['fetchingnode'], wpayload['location'],
 																   time.strftime('%H:%M',
@@ -111,7 +112,8 @@ def MQTTWeatherUpdate(provider, locname, wpayload):
 	winfo = wpayload['weatherinfo']
 	try:
 		fcstskipcnt = wpayload['fcstskipcnt']
-		config.ptf2('Got mqtt weather with skipcnt {} for {}'.format(fcstskipcnt, locname))
+		config.ptf2(
+			'Got mqtt weather with skipcnt {}, fetchcnt {} for {}'.format(fcstskipcnt, wpayload['fetchcount'], locname))
 	except Exception:
 		config.ptf2('Got mqtt weather with no skipcnt for {}'.format(locname))
 		fcstskipcnt = 0
@@ -241,9 +243,6 @@ def DoWeatherFetches():
 																									 inst.thisStoreName].fcstskipcnt,
 																								 skipcnttouse))
 				winfo = inst.FetchWeather(getfcst=getnewfcst)
-				if winfo['forecast'] is None:
-					winfo['forecast'] = oldfcst
-					config.ptf('Return old forecast')
 
 				weathertime = time.time()
 
@@ -271,6 +270,11 @@ def DoWeatherFetches():
 																					 store.failedfetchcount))
 					break  # don't try to load bad weather
 
+				# if didn't get forecast use the old one
+				if winfo['forecast'] is None:
+					winfo['forecast'] = oldfcst
+					config.ptf('Return old forecast')
+
 				if not inst.LoadWeather(winfo, weathertime, fn='self'):
 					# print('Load for {} time {}'.format(store.name, weathertime))
 					if config.mqttavailable:  # force bad fetch out of the cache
@@ -285,9 +289,11 @@ def DoWeatherFetches():
 					if not provnm in WeatherCache: WeatherCache[provnm] = {}
 					WeatherCache[provnm][inst.thisStoreName] = CacheEntry(inst.location, 'self',
 																		  weathertime, inst.actualfetch.Values()[0],
-																		  winfo, WeatherCache[provnm][
-																			  inst.thisStoreName].fcstskipcnt)
+																		  winfo, skipcnttouse)
+
 					if winfo is not None:
+						config.ptf2('Publish: skipcnt: {} newfcst: {}'.format(skipcnttouse, getnewfcst, weathertime,
+																			  inst.actualfetch.Values()[0]))
 						bcst = {'weatherinfo': winfo, 'location': inst.thisStoreName,
 								'fetchtime': weathertime,
 								'fetchcount': inst.actualfetch.Values()[0],
