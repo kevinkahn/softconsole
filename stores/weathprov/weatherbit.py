@@ -295,7 +295,8 @@ class WeatherbitWeatherSource(object):
 					winfo = {'current': cur, 'forecast': fcst}
 
 					pld = {'fetchingnode': config.sysStore.hostname, 'time': time.time(),
-						   'location': self.thisStoreName, 'success': 'both', 'fcstfetch': getfcst}
+						   'location': self.thisStoreName, 'success': 'both', 'fcstfetch': getfcst,
+						   'fetchcount': self.actualfetch.Values()[0]}
 					if config.mqttavailable:
 						config.MQTTBroker.Publish('Weatherbit/fetched', node='all/weather2',
 												  payload=json.dumps(pld))
