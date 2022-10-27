@@ -18,6 +18,7 @@ from typing import Callable, Union
 from enum import Enum
 
 from stores import valuestore
+from utils import hw
 from utils.exitutils import MAINTEXIT, Exit_Screen_Message, MAINTRESTART, MAINTPISHUT, MAINTPIREBOOT, Exit, \
 	REMOTERESTART, \
 	REMOTEEXIT, REMOTEPISHUT, REMOTEPIREBOOT
@@ -278,40 +279,47 @@ class CommandRecord:
 	Verify: str  # whether to do a verify when on a screen
 	where: tuple  # which places to use this record
 	notgroup: bool  # true if only works for targeted node
+	suppresstoself: bool  # true if suppress "all" on sending node
 	cmdparam: Union[Callable, None] = None  # - optional proc that provides a parameter to send with the command
 
 
 cmdcalls = OrderedDict({
-	'restart': CommandRecord(RestartConsole, True, "Restart Console", 'True', MaintExits, False),
-	'shut': CommandRecord(ShutConsole, True, "Shutdown Console", 'True', MaintExits, False),
-	'reboot': CommandRecord(RebootPi, True, "Reboot Pi", 'True', MaintExits, False),
-	'shutpi': CommandRecord(ShutdownPi, True, "Shutdown Pi", 'True', MaintExits, False),
-	'usestable': CommandRecord(UseStable, True, "Use Stable Release", 'False', MaintVers, False),
-	'usebeta': CommandRecord(UseBeta, True, "Use Beta Release", 'False', MaintVers, False),
-	'usedev': CommandRecord(UseDev, True, "Use Development Release", 'False', MaintVersAdv, False),
-	'getstable': CommandRecord(GetStable, True, "Download Release", 'False', MaintVers, False),
-	'getbeta': CommandRecord(GetBeta, True, "Download Beta", 'False', MaintVers, False),
-	'getdev': CommandRecord(GetDev, True, "Download Development", 'False', MaintVersAdv, False),
-	'hbdump': CommandRecord(DumpHB, True, "Dump HB", 'False', RemoteOnlyAdv, False),
+	'restart': CommandRecord(RestartConsole, True, "Restart Console", 'True', MaintExits, False, True),
+	'shut': CommandRecord(ShutConsole, True, "Shutdown Console", 'True', MaintExits, False, True),
+	'reboot': CommandRecord(RebootPi, True, "Reboot Pi", 'True', MaintExits, False, True),
+	'shutpi': CommandRecord(ShutdownPi, True, "Shutdown Pi", 'True', MaintExits, False, True),
+	'usestable': CommandRecord(UseStable, True, "Use Stable Release", 'False', MaintVers, False, True),
+	'usebeta': CommandRecord(UseBeta, True, "Use Beta Release", 'False', MaintVers, False, True),
+	'usedev': CommandRecord(UseDev, True, "Use Development Release", 'False', MaintVersAdv, False, True),
+	'getstable': CommandRecord(GetStable, True, "Download Release", 'False', MaintVers, False, True),
+	'getbeta': CommandRecord(GetBeta, True, "Download Beta", 'False', MaintVers, False, True),
+	'getdev': CommandRecord(GetDev, True, "Download Development", 'False', MaintVersAdv, False, True),
+	'hbdump': CommandRecord(DumpHB, True, "Dump HB", 'False', RemoteOnlyAdv, False, False),
 	# 'status': CommandRecord(EchoStat, True, "Echo Status", 'False', RemoteOnly),
-	'getlog': CommandRecord(GetLog, False, "Get Remote Log", "False", RemoteOnly, True),
-	'geterrors': CommandRecord(GetErrors, False, "Get Recent Errors", 'False', RemoteOnly, True),
-	'clearerrindicator': CommandRecord(ClearIndicator, True, "Clear Error Indicator", 'False', RemoteOnly, False),
+	'getlog': CommandRecord(GetLog, False, "Get Remote Log", "False", RemoteOnly, True, True),
+	'geterrors': CommandRecord(GetErrors, False, "Get Recent Errors", 'False', RemoteOnly, True, True),
+	'clearerrindicator': CommandRecord(ClearIndicator, True, "Clear Error Indicator", 'False', RemoteOnly, False,
+									   False),
 	'clearerrindicatormatch': CommandRecord(SendErrMatch, True, 'Clear Matching Error', 'False', RemoteOnly, False,
+											False,
 											IncludeErrToMatch),
 	'issueerror': CommandRecord(functools.partial(LogItem, ConsoleError), True, "Issue Error", 'False',
-								RemoteOnlyAdv, False),
+								RemoteOnlyAdv, False, True),
 	'issuewarning': CommandRecord(functools.partial(LogItem, ConsoleWarning), True, "Issue Warning", 'False',
-								  RemoteOnlyAdv, False),
+								  RemoteOnlyAdv, False, True),
 	'issueinfo': CommandRecord(functools.partial(LogItem, ConsoleInfo), True, "Issue Info", 'False',
-							   RemoteOnlyAdv, False),
-	'deletehistory': CommandRecord(DelHistory, True, 'Clear History', 'True', RemoteOnlyDead, True),
-	'setvar': CommandRecord(SetVar, True, "Set Variable Value", 'False', MQTTOnly, False),
-	'getvar': CommandRecord(GetVar, False, "Get Variable Value", 'False', MQTTOnly, True)})
+							   RemoteOnlyAdv, False, True),
+	'deletehistory': CommandRecord(DelHistory, True, 'Clear History', 'True', RemoteOnlyDead, True, True),
+	'setvar': CommandRecord(SetVar, True, "Set Variable Value", 'False', MQTTOnly, False, True),
+	'getvar': CommandRecord(GetVar, False, "Get Variable Value", 'False', MQTTOnly, True, True)})
 
 
 def IssueCommand(source, cmd, seq, fromnd, param=None):
 	if cmd.lower() in cmdcalls:
+		if fromnd == hw.hostname and cmdcalls[cmd.lower()].suppresstoself:
+			logsupport.Logs.Log(
+				'Ignore remote command {} to ALL from self'.format(cmd))
+			return
 		try:
 			PostEvent(
 				ConsoleEvent(CEvent.RunProc, name=cmd, proc=cmdcalls[cmd.lower()].Proc,

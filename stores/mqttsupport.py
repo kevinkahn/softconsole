@@ -98,13 +98,8 @@ class MQTTBroker(valuestore.ValueStore):
 					logsupport.Logs.Log(
 						'{}: Remote command received on {} from {}-{}: {} {}'.format(self.name, msgtopic, fromnd, seq,
 																					 cmd, cmdparam))
-					if fromnd == hw.hostname:
-						logsupport.Logs.Log(
-							'{}: Ignore remote command to ALL from self'.format(self.name))
-						return
+
 					issuecommands.IssueCommand(self.name, cmd, seq, fromnd, param=cmdparam)
-					# if fromnd != 'unknown':
-					#	self.Publish('resp', '{}|ok|{}'.format(cmd, seq), fromnd)
 					return
 				elif msgtopic in ('consoles/all/set', 'consoles/' + hw.hostname + '/set'):
 					d = json.loads(CheckPayload(msg.payload.decode('ascii'), msgtopic, 'mqtt-consoles-set'))
