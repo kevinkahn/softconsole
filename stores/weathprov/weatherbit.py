@@ -48,6 +48,26 @@ def RLHit():
 	RateLimited.Op()
 
 
+def CountFetchByNode(fn, fcst):
+	if ByNodeStatGp.Exists(fn):
+		ByNodeStatGp.Op(name=fn)
+	else:
+		stats.CntStat(name=fn, PartOf=ByNodeStatGp, inc=1, init=1)
+	if fcst == 'True': ByNodeStatGp.Op(name=fn)
+	config.ptf2('Called Countbynode {} {}'.format(fn, fcst))
+
+
+def CountFetchByLoc(loc, fcst):
+	if ByLocStatGp.Exists(loc):
+		ByLocStatGp.Op(name=loc)
+	else:
+		stats.CntStat(name=loc, title=WeatherMsgStoreName[
+			loc] if loc in WeatherMsgStoreName else loc,
+					  PartOf=ByLocStatGp, inc=1, init=1)
+	if fcst == 'True': ByLocStatGp.Op(name=loc)
+	config.ptf2('Called Countbyloc {} {}'.format(loc, fcst))
+
+
 def TreeDict(d, args):
 	# Allow a nest of dictionaries to be accessed by a tuple of keys for easier code
 	if len(args) == 1:
@@ -305,12 +325,12 @@ class WeatherbitWeatherSource(object):
 						'Fetched weather for {} ({}) locally'.format(self.thisStoreName, self.location))  # ,
 					# severity=ConsoleDetail)
 
-					if ByLocStatGp.Exists(self.thisStoreName):
-						ByLocStatGp.Op(name=self.thisStoreName)
-					else:
-						stats.CntStat(name=self.thisStoreName, title=WeatherMsgStoreName[
-							self.thisStoreName] if self.thisStoreName in WeatherMsgStoreName else self.thisStoreName,
-									  PartOf=ByLocStatGp, inc=2, init=2)
+					# if ByLocStatGp.Exists(self.thisStoreName):
+					#	ByLocStatGp.Op(name=self.thisStoreName)
+					# else:
+					#	stats.CntStat(name=self.thisStoreName, title=WeatherMsgStoreName[
+					#		self.thisStoreName] if self.thisStoreName in WeatherMsgStoreName else self.thisStoreName,
+					#				  PartOf=ByLocStatGp, inc=1, init=1)
 					self.thisStore.CurFetchGood = True
 					return winfo
 
@@ -383,11 +403,11 @@ class WeatherbitWeatherSource(object):
 		try:
 			current = winfo['current']
 			forecast = winfo['forecast']
-			if ByNodeStatGp.Exists(fn):
-				ByNodeStatGp.Op(name=fn)
-			else:
-				stats.CntStat(name=fn, PartOf=ByNodeStatGp, inc=2, init=2)
-			self.thisStore.ValidWeather = False  # show as invalid for the short duration of the update - still possible to race but very unlikely.
+			# if ByNodeStatGp.Exists(fn):
+			#	ByNodeStatGp.Op(name=fn)
+			# else:
+			#	stats.CntStat(name=fn, PartOf=ByNodeStatGp, inc=1, init=1)
+			# self.thisStore.ValidWeather = False  # show as invalid for the short duration of the update - still possible to race but very unlikely.
 			specfields = self.thisStore.InitSourceSpecificFields(forecast[0])
 			tempfcstinfo = {}
 			for fn in FcstFieldMap: tempfcstinfo[fn] = []

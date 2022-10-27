@@ -78,6 +78,8 @@ def MQTTWeatherUpdate(provider, locname, wpayload):
 																	  time.strftime('%H:%M',
 																					time.localtime(wpayload['time'])),
 																	  fcstfetch, wpayload['fetchcount']))
+			Provs[provider].CountFetchByNode(wpayload['fetchingnode'], fcstfetch)
+			Provs[provider].CountFetchByLoc(wpayload['location'], fcstfetch)
 		else:
 			config.ptf2('Fail by {} of {} at {} because {}'.format(wpayload['fetchingnode'], wpayload['location'],
 																   time.strftime('%H:%M',
