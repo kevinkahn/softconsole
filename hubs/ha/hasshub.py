@@ -25,7 +25,7 @@ from utils.utilfuncs import safeprint
 AddIgnoredDomain: Union[Callable, None] = None  # type Union[Callable, None]
 IgnoredDomains = []
 # above gets filled in by ignore to avoid import loop
-
+# todo should read this from an easily updated place
 ignoredeventtypes = [
 	'system_log_event', 'service_executed', 'logbook_entry', 'timer_out_of_sync', 'result',
 	'persistent_notifications_updated', 'automation_triggered', 'script_started', 'service_removed', 'hacs/status',
