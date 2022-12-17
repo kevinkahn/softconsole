@@ -34,7 +34,7 @@ ignoredeventtypes = [
 	'config_entry_discovered', 'automation_reloaded', 'hacs/stage', 'hacs/reload', 'zwave_js_value_notification',
 	'event_template_reloaded', 'panels_updated', 'data_entry_flow_progressed', 'scene_reloaded',
 	'area_registry_updated', 'keymaster_lock_state_changed', 'zwave_js_notification', 'repairs_issue_registry_updated',
-	'amcrest']
+	'amcrest', 'recorder_hourly_statistics_generated', 'recorder_5min_statistics_generated']
 
 
 def stringtonumeric(v):
