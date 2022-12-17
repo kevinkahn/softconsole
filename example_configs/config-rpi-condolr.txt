@@ -4,7 +4,7 @@ DimLevel = 20
 DimTO = 20
 DefaultHub = HASS
 
-include = /home/pi/Console/local/authall.cfg, picscreen.cfg, pdxcondolr.cfg, weathersources.cfg, weathPump.cfg, myclock.cfg,weathPDX.cfg,timetempLQ7.cfg, mqtt.cfg, weathLQ.cfg, timetempPDX7.cfg, pdxalerts.cfg
+include = /home/pi/Console/local/authall.cfg, picscreen.cfg, pdxcondolr.cfg, weathersources.cfg, weathPump.cfg, myclock.cfg,weathPDX.cfg,timetempLQ7.cfg, mqtt.cfg, weathLQ.cfg, timetempPDX7.cfg, pdxalerts.cfg,pdxLRScenes.cfg
 
 DimIdleListNames = Portland, MyClock, LQTTbig, PDXTTbig, Pumpkin, Pictures
 
@@ -12,6 +12,6 @@ DimIdleListTimes =	5, 5, 5, 5, 5, 60
 
 HomeScreenName = Condo
 
-MainChain = Condo, Pumpkin, Portland, La Quinta
+MainChain = Condo, pdxLRScenes, Pumpkin, Portland, La Quinta
 
 
