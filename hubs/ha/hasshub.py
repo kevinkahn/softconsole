@@ -766,12 +766,27 @@ class HA(object):
 		for c, info in services.items():
 			try:
 				t = info['target']
-				if 'entity' in t and 'domain' in t['entity'] and t['entity']['domain'] == dom:
-					targ = ''
-					entry[c] = {'target': dom}
-				elif 'entity' in t and t['entity'] == {}:
-					targ = ''
-					entry[c] = {'target': '*'}
+				if 'entity' in t:
+					# handle option of list of args as a single arg since that is all the key defs use right now
+					titem = t['entity'][0] if isinstance(t['entity'], list) else t['entity']
+					if 'domain' in titem:
+						ditem = titem['domain'] if isinstance(titem['domain'], list) else [titem['domain']]
+						if dom in ditem:
+							targ = ''
+							entry[c] = {'target': dom}
+						else:
+							with open('{}-specialcmds.txt'.format(self.name), 'a') as f:
+								safeprint('Dom not is dom list {} {} {}'.format(t, c, dom), file=f)
+							entry[c] = {'stuff': t, 'ditem': ditem}
+
+
+					elif titem == {}:
+						targ = ''
+						entry[c] = {'target': '*'}
+					else:
+						normal = False
+						entry[c] = {'target': 'NONSTD'}
+						targ = t
 				else:
 					normal = False
 					entry[c] = {'target': 'NONSTD'}
@@ -795,16 +810,27 @@ class HA(object):
 			except Exception as E:
 				safeprint("Pars excp: {} {} {} {}".format(dom, E, c, info))
 				safeprint('Info: {} {}'.format(s, keys))
-			if not normal:
-				with open('{}-nonentitycmds.txt'.format(self.name), 'w') as f:
+			if normal:
+				with open('{}-specialcmds.txt'.format(self.name), 'a') as f:
+					if title != '':
+						safeprint("{} {}".format(self.name, title), file=f)
+						title = ''
+					safeprint("    Special Entry: {}".format(entry), file=f)
+					safeprint("    Command: {}".format(c), file=f)
+					if targ != '': safeprint("    Target: {}".format(targ), file=f)
+					for l in flds: safeprint(l, file=f)
+				self.SpecialCmds[dom] = entry
+			else:
+				with open('{}-nonentitycmds.txt'.format(self.name), 'a') as f:
 					if title != '':
 						safeprint("{} {}".format(self.name, title), file=f)
 						title = ''
 					safeprint("    Command: {}".format(c), file=f)
 					if targ != '': safeprint("    Target: {}".format(targ), file=f)
 					for l in flds: safeprint(l, file=f)
-			else:
-				self.SpecialCmds[dom] = entry
+		with open('{}-specialcmds.txt'.format(self.name), 'a') as f:
+			safeprint("Full Entry for {}".format(dom), file=f)
+			safeprint('{}'.format(self.SpecialCmds[dom]), file=f)
 
 	# noinspection PyUnusedLocal
 	def __init__(self, hubname, addr, user, password, version):
@@ -826,6 +852,7 @@ class HA(object):
 		logsupport.Logs.Log(
 			"{}: Creating structure for Home Assistant hub version {} at {}".format(hubname, version, addr))
 
+
 		# import supported domains
 		self.dyndomains = utilfuncs.importmodules('hubs/ha/domains')
 
@@ -842,6 +869,10 @@ class HA(object):
 		self.name = hubname
 		# with open('/home/pi/Console/msglog{}'.format(self.name), 'w') as f:
 		#	f.write('----------START Log\n')
+		with open('{}-nonentitycmds.txt'.format(self.name), 'w') as f:
+			f.write('--------------')
+		with open('{}-specialcmds.txt'.format(self.name), 'w') as f:
+			f.write('--------------')
 		if addr.startswith('https'):
 			prefix = 'https://'
 			wsprefix = 'wss://'
