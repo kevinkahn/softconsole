@@ -233,17 +233,20 @@ def DoWeatherFetches():
 				store.CurFetchGood = False
 				store.Status = ("Fetching",)
 				store.startedfetch = time.time()
-				if WeatherCache[provnm][inst.thisStoreName].fcstskipcnt <= 0:
+				if inst.thisStoreName not in WeatherCache[provnm]:
+					config.ptf("Initial fetch for {}".format(inst.thisStoreName))
+					getnewfcst = True
+					skipcnttouse = store.skipforecast
+				elif WeatherCache[provnm][inst.thisStoreName].fcstskipcnt <= 0:
 					getnewfcst = True
 					skipcnttouse = store.skipforecast
 				else:
 					getnewfcst = False
 					oldfcst = WeatherCache[provnm][inst.thisStoreName].weatherinfo['forecast']
 					skipcnttouse = WeatherCache[provnm][inst.thisStoreName].fcstskipcnt - 1
-				config.ptf('Do actual fetch with getnew: {} skipcnt: {} skipcnttouse: {}'.format(getnewfcst,
-																								 WeatherCache[provnm][
-																									 inst.thisStoreName].fcstskipcnt,
-																								 skipcnttouse))
+				config.ptf(
+					'Do actual fetch for {} with getnew: {} skipcnttouse: {}'.format(inst.thisStoreName, getnewfcst,
+																					 skipcnttouse))
 				winfo = inst.FetchWeather(getfcst=getnewfcst)
 
 				weathertime = time.time()
