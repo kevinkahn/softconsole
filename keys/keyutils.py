@@ -197,7 +197,7 @@ class DispOpt(object):
 			try:
 				v = float(val)
 				return self.Chooser[0] <= v <= self.Chooser[1]
-			except ValueError:
+			except (ValueError, TypeError):
 				return False
 		elif self.ChooserType == ChooseType.boolval:
 			return BoolTrueWord(val) == self.Chooser
