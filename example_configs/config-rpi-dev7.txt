@@ -4,7 +4,7 @@ LogLevel = 3
 #Main = True
 #Dispatch = True
 #DaemonCtl = True
-ISYLoad=True
+#ISYLoad=True
 
 # switch to authall with HASSpga avail
 
@@ -303,7 +303,7 @@ FastPress = 0
     [[HASSpga:scene.pool_lights_on]]
         label = Light, Pool
         type = ON
-        SceneProxy = HASSpga:switch.pool_light
+        SceneProxy = HASSpga:light.pool_light
     [[HASSpga:scene.pool_lights_off]]
         label = Pool,Light,Off
         type = ON
