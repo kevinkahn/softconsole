@@ -20,7 +20,7 @@ from controlevents import CEvent, PostEvent, ConsoleEvent, PostIfInterested
 from logsupport import ConsoleWarning, ConsoleError, ConsoleDetail, ConsoleInfo
 from stores import valuestore, haattraccess
 from utils.utilities import CheckPayload
-from utils.utilfuncs import safeprint
+from utils.utilfuncs import safeprint, safeprintnd
 
 AddIgnoredDomain: Union[Callable, None] = None  # type Union[Callable, None]
 IgnoredDomains = []
@@ -101,7 +101,7 @@ class HAnode(object):
 		if self.internalstate == -1:
 			logsupport.Logs.Log(
 				"{} ({}) set unavailable (was {})".format(self.name, self.entity_id, str(oldstate))
-			)  # , severity=ConsoleDetail)
+				, severity=ConsoleDetail)
 		if oldstate == -1 and self.internalstate != -1:
 			logsupport.Logs.Log(
 				"{} ({}) set available ({})".format(self.name, self.entity_id, str(self.internalstate))
@@ -765,6 +765,7 @@ class HA(object):
 
 		for c, info in services.items():
 			try:
+				targ = '*unset*'
 				t = info['target']
 				if 'entity' in t:
 					# handle option of list of args as a single arg since that is all the key defs use right now
@@ -776,7 +777,7 @@ class HA(object):
 							entry[c] = {'target': dom}
 						else:
 							with open('{}-specialcmds.txt'.format(self.name), 'a') as f:
-								safeprint('Dom not is dom list {} {} {}'.format(t, c, dom), file=f)
+								safeprintnd('Dom not in dom list {} {} {}'.format(t, c, dom), file=f)
 							entry[c] = {'stuff': t, 'ditem': ditem}
 
 
@@ -811,26 +812,32 @@ class HA(object):
 				safeprint("Pars excp: {} {} {} {}".format(dom, E, c, info))
 				safeprint('Info: {} {}'.format(s, keys))
 			if normal:
-				with open('{}-specialcmds.txt'.format(self.name), 'a') as f:
-					if title != '':
-						safeprint("{} {}".format(self.name, title), file=f)
-						title = ''
-					safeprint("    Special Entry: {}".format(entry), file=f)
-					safeprint("    Command: {}".format(c), file=f)
-					if targ != '': safeprint("    Target: {}".format(targ), file=f)
-					for l in flds: safeprint(l, file=f)
+				# with open('{}-specialcmds.txt'.format(self.name), 'a') as f:
+				# if title != '':
+				#	safeprint("{} {}".format(self.name, title), file=f)
+				#	title = ''
+				# safeprint("    Special Entry: {}".format(entry), file=f)
+				# safeprint("    Command: {}".format(c), file=f)
+				# if targ != '': safeprint("    Target: {}".format(targ), file=f)
+				# for l in flds: safeprint(l, file=f)
 				self.SpecialCmds[dom] = entry
 			else:
 				with open('{}-nonentitycmds.txt'.format(self.name), 'a') as f:
 					if title != '':
-						safeprint("{} {}".format(self.name, title), file=f)
+						safeprintnd("{} {}".format(self.name, title), file=f)
 						title = ''
-					safeprint("    Command: {}".format(c), file=f)
-					if targ != '': safeprint("    Target: {}".format(targ), file=f)
-					for l in flds: safeprint(l, file=f)
+					safeprintnd("  {}".format(c), file=f)
+					if targ != '': safeprintnd("    Target: {}".format(targ), file=f)
+					for l in flds: safeprintnd(l, file=f)
 		with open('{}-specialcmds.txt'.format(self.name), 'a') as f:
-			safeprint("Full Entry for {}".format(dom), file=f)
-			safeprint('{}'.format(self.SpecialCmds[dom]), file=f)
+			if dom in self.SpecialCmds:
+				safeprintnd('', file=f)
+				safeprintnd('', file=f)
+				safeprintnd("Special Commands for {}".format(dom), file=f)
+				for c, params in self.SpecialCmds[dom].items():
+					safeprintnd('          {}: {}'.format(c, params), file=f)
+			else:
+				safeprintnd('No special commands for {}'.format(dom), file=f)
 
 	# noinspection PyUnusedLocal
 	def __init__(self, hubname, addr, user, password, version):
@@ -870,9 +877,9 @@ class HA(object):
 		# with open('/home/pi/Console/msglog{}'.format(self.name), 'w') as f:
 		#	f.write('----------START Log\n')
 		with open('{}-nonentitycmds.txt'.format(self.name), 'w') as f:
-			f.write('--------------')
+			f.write('')
 		with open('{}-specialcmds.txt'.format(self.name), 'w') as f:
-			f.write('--------------')
+			f.write('')
 		if addr.startswith('https'):
 			prefix = 'https://'
 			wsprefix = 'wss://'
