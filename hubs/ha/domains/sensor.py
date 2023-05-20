@@ -49,7 +49,8 @@ class Sensor(HAnode):  # not stateful since it updates directly to store value
 								'    Gone from Hub: {} {} from {} {}'.format(self.Hub.name, self.entity_id, device, ns))
 							logsupport.Logs.Log(
 								'Sensor data missing for {} value: {}, Device {} offline'.format(ns['entity_id'],
-																								 ns['state'], device))
+																								 ns['state'], device),
+								severity=logsupport.ConsoleDetail)
 						for ent in self.Hub.DeviceToEnt[device]:
 							nd = self.Hub.GetNode(ent)[0]
 							if hasattr(nd, 'missinglast'):
@@ -83,7 +84,8 @@ class Sensor(HAnode):  # not stateful since it updates directly to store value
 								'Sensor data now available for {} value: {}, Device {}'.format(ns['entity_id'],
 																							   ns['state'],
 																							   self.Hub.EntToDev[
-																								   self.entity_id]))
+																								   self.entity_id]),
+								severity=logsupport.ConsoleDetail)
 							safeprint('Back: {} after {} Device {} {}'.format(self.entity_id, time.time() - self.gone,
 																			  self.Hub.EntToDev[self.entity_id], ns))
 						self.missinglast = 'No' if self.missinglast == 'Explicit' else 'No-ExplicitOnly'

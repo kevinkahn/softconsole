@@ -123,6 +123,8 @@ fmt = PartialFormatter()
 # noinspection PyBroadException
 isdevsystem = False
 ishomesystem = False
+
+
 def safeprint(*args, **kwargs):
 	if isdevsystem or ishomesystem:
 		try:
@@ -131,12 +133,24 @@ def safeprint(*args, **kwargs):
 			with open('/home/pi/Console/disconnectederrors.log', 'a') as f:
 				print(*args, **kwargs, file=f)
 
+
+def safeprintnd(*args, **kwargs):
+	if isdevsystem or ishomesystem:
+		try:
+			print(*args, **kwargs)
+		except OSError:
+			with open('/home/pi/Console/disconnectederrors.log', 'a') as f:
+				print(*args, **kwargs, file=f)
+
+
 def RepresentsInt(s):
 	try:
 		int(s)
 		return True
 	except (ValueError, TypeError):
 		return False
+
+
 '''
 class WFormatter(string.Formatter):
 	def format_field(self, value, format_spec):
