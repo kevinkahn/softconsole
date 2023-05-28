@@ -69,7 +69,12 @@ class Thermostat(HAnode):  # not stateful since has much state info
 
 		if 'FanModes' in self.features:
 			def GetFanModes():
-				self.fan = self.attributes['fan_mode']
+				try:
+					self.fan = self.attributes['fan_mode']
+				except KeyError:
+					logsupport.Logs.Log(
+						'{}: Climate device {} no fan_mode in update with mode {}'.format(self.Hub.name, self.name,
+																						  self.internalstate))
 				self.fanstates = self.attributes['fan_modes']
 
 			self.GetFanModes = GetFanModes
