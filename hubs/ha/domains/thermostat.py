@@ -24,7 +24,7 @@ class Thermostat(HAnode):  # not stateful since has much state info
 		if attrnm in self.attributes:
 			return self.attributes[attrnm]
 		else:
-			if self.internalstate != 'unavailable':
+			if self.internalstate != 'unavailable' and not curval is None:
 				logsupport.Logs.Log('{}: Thermostat {} available but missing {} ({} {})'.format(
 					self.Hub.name, self.name, attrnm, self.internalstate, curval), severity=logsupport.ConsoleWarning)
 			return curval
