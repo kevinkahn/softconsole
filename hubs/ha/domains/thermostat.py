@@ -21,7 +21,13 @@ def GetFeatures(n):
 class Thermostat(HAnode):  # not stateful since has much state info
 
 	def _SafeUpdate(self, attrnm, curval):
-		return self.attributes[attrnm] if attrnm in self.attributes else curval
+		if attrnm in self.attributes:
+			return self.attributes[attrnm]
+		else:
+			if self.internalstate != 'unavailable':
+				logsupport.Logs.Log('{}: Thermostat {} available but missing {} ({} {})'.format(
+					self.Hub.name, self.name, attrnm, self.internalstate, curval), severity=logsupport.ConsoleWarning)
+			return curval
 
 	def GetRange(self):
 		pass
@@ -63,18 +69,13 @@ class Thermostat(HAnode):  # not stateful since has much state info
 		if 'Presets' in self.features:
 			def GetPresets():
 				self.preset_modes = self.attributes['preset_modes']
-				self.preset_mode = self.attributes['preset_mode']
+				self.preset_mode = self._SafeUpdate('preset_mode', self.preset_mode)
 
 			self.GetPresets = GetPresets
 
 		if 'FanModes' in self.features:
 			def GetFanModes():
-				try:
-					self.fan = self.attributes['fan_mode']
-				except KeyError:
-					logsupport.Logs.Log(
-						'{}: Climate device {} no fan_mode in update with mode {}'.format(self.Hub.name, self.name,
-																						  self.internalstate))
+				self.fan = self._SafeUpdate('fan_mode', self.fan)
 				self.fanstates = self.attributes['fan_modes']
 
 			self.GetFanModes = GetFanModes
