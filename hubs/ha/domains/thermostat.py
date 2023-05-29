@@ -48,6 +48,7 @@ class Thermostat(HAnode):  # not stateful since has much state info
 		self.temperature = 0
 		self.fanstates = []
 		self.fan = None
+		self.preset_mode = None
 		super().__init__(HAitem, **d)
 		self.Hub.RegisterEntity('climate', self.entity_id, self)
 		self.timerseq = 0
