@@ -299,13 +299,13 @@ FastPress = 0
     type = SETINPUT
     Var = HASS:input_select.inputselect
     Value = 'last'
-    [[cover.west1/pos]]
+    [[cover.west1/position]]
     label = West, Left
     type = SPECCMD
-    Command = set_cover_position
-    Slider = True
+    Command = stop_cover
+    SliderCommand = set_cover_position
     Var = HASS:cover.west1:current_position
-    Parameter = 'position'
+    SliderParameter = 'position'
     DefaultAppearance = None Green "West Left;$"
     KeyColor = blue
     Blink = 3

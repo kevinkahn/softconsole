@@ -10,7 +10,7 @@ class SpecCmd(ManualKeyDesc):
 	def __init__(self, thisscreen, keysection, keyname):
 		debug.debugPrint('Screen', "             New SpecCmd Key ", keyname)
 		ManualKeyDesc.__init__(self, thisscreen, keysection, keyname)
-		screen.AddUndefaultedParams(self, keysection, Command='', Parameter=[], Slider=False)
+		screen.AddUndefaultedParams(self, keysection, Command='', Parameter=[], SliderCommand='', SliderParameter=[])
 
 		self.Hub = None  # never monitor state messages for key in slider
 		self.target, self.hub = _resolvekeyname(keyname, thisscreen.DefaultHubObj)
@@ -24,11 +24,22 @@ class SpecCmd(ManualKeyDesc):
 					self.param[t[0]] = t[1]
 				else:
 					self.param[p] = 'noval'
+		self.sliderparam = {}
+		if self.SliderParameter != []:
+			for p in self.SliderParameter:
+				if ':' in p:
+					t = p.split(':')
+					self.sliderparam[t[0]] = t[1]
+				else:
+					self.sliderparam[p] = 'noval'
+
 		self.State = False
 		self.ProcLong = self.IgnorePress
-		if self.Slider:
+		if self.Command == '':
 			self.CmdKeyPressed = self.IgnorePress
 			self.CmdKeyDblPressed = self.IgnorePress
+
+		if self.SliderCommand != '':
 			screen.AddUndefaultedParams(self, keysection, SlideOrientation=0)
 			self.SliderScreen = supportscreens.SliderScreen(self, self.KeyCharColorOn, self.KeyColor,
 															self.GetSliderVal,
@@ -48,14 +59,14 @@ class SpecCmd(ManualKeyDesc):
 			self.Proc = self.CmdKeyPressed
 			self.ProcDblTap = self.CmdKeyDblPressed
 
+
 	def GetSliderVal(self):
 		return self.entity
 
 	def SetSliderVal(self, val, final=False):
 		if final:
-			temp = {list(self.param.keys())[0]: int(val)}
-			self.node.SendSpecialCmd(self.Command, self.target, temp)
-
+			temp = {list(self.sliderparam.keys())[0]: int(val)}
+			self.node.SendSpecialCmd(self.SliderCommand, self.target, temp)
 	def CmdKeyPressed(self):
 		if self.FastPress: return
 		self.node.SendSpecialCmd(self.Command, self.target, self.param)
