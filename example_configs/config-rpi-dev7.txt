@@ -299,6 +299,16 @@ FastPress = 0
     type = SETINPUT
     Var = HASS:input_select.inputselect
     Value = 'last'
+    [[cover.west1/pos]]
+    label = West, Left
+    type = SPECCMD
+    Command = set_cover_position
+    Slider = True
+    Var = HASS:cover.west1:current_position
+    Parameter = 'position'
+    DefaultAppearance = None Green "West Left;$"
+    KeyColor = blue
+    Blink = 3
 
     [[HASSpga:scene.pool_lights_on]]
         label = Light, Pool

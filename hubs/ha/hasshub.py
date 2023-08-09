@@ -152,7 +152,7 @@ class HAnode(object):
 			serviceparams['entity_id'] = target
 			ha.call_service_async(self.Hub.api, targdom, cmd, service_data=serviceparams)
 		else:
-			logsupport.Logs.Log('Invalid special command {}({}} set at {}'.format(cmd, params, target),
+			logsupport.Logs.Log('Invalid special command {}({}) set at {}'.format(cmd, params, target),
 								severity=ConsoleWarning)
 			raise ValueError
 

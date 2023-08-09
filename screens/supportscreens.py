@@ -443,7 +443,7 @@ class SliderScreen(screen.BaseKeyScreenDesc):
 		self.NavKeysShowing = False
 		self.DefaultNavKeysShowing = False
 		self.HubInterestList = {}
-		self.AddToHubInterestList(key.Hub, key.DisplayObj.address, self)
+		if key.Hub is not None: self.AddToHubInterestList(key.Hub, key.DisplayObj.address, self)
 		self.DimTO = 20
 		self.PersistTO = 10
 		self.label = screen.FlatenScreenLabel(key.label)
@@ -505,7 +505,7 @@ class SliderScreen(screen.BaseKeyScreenDesc):
 	def Invoke(self):
 		self.initval = self.ValueGetter()
 		self.curval = self.initval
-		logsupport.Logs.Log('Open slider for {} at {}'.format(self.name, self.curval))
+		logsupport.Logs.Log('Open slider for {} at {}'.format(self.name, self.curval), severity=ConsoleDetail)
 		screen.PushToScreen(self, msg='Do Slider' + self.name, newstate='NonHome')
 
 	def InitDisplay(self, nav):

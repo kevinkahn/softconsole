@@ -12,9 +12,9 @@ class Cover(HAnode):
 
 	def _NormalizeState(self, state, brightness=None):  # may be overridden for domains with special state settings
 		if isinstance(state, str):
-			if state == 'open':
+			if state in ('open', 'opening'):
 				return 1
-			elif state == 'closed':
+			elif state in ('closed', 'closing'):
 				return 0
 			else:
 				logsupport.Logs.Log('Cover {} reports odd state {}'.format(self.name, state),
