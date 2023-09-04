@@ -1,6 +1,6 @@
 import debug
 import logsupport
-from screens import screen
+from screens import screen, supportscreens
 from keys.keyspecs import KeyTypes
 from keys.keyutils import DispOpt
 from logsupport import ConsoleWarning
@@ -20,9 +20,16 @@ class SetInputKey(ManualKeyDesc):
 									Value='')  # value should be checked later
 		self.oldval = '*******'  # forces a display compute first time through
 		# determine type of input from store
+		if self.Verify:
+			self.VerifyScreen = supportscreens.VerifyScreen(self, self.GoMsg, self.NoGoMsg, self.SetInputKeyPressed,
+															thisscreen, self.KeyColorOff,
+															thisscreen.BackgroundColor, thisscreen.CharColor,
+															self.State, thisscreen.HubInterestList)
+			self.Proc = self.VerifyScreen.Invoke
+		else:
+			self.Proc = self.SetInputKeyPressed
 		try:
 			self.statebasedkey = True
-			self.Proc = self.SetInputKeyPressed
 			self.InputItem = self.Var.split(':')
 			self.entity = hubs.hubs.Hubs[self.InputItem[0]].GetNode(self.InputItem[1])[0]
 
