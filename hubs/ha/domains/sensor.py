@@ -61,7 +61,7 @@ class Sensor(HAnode):  # not stateful since it updates directly to store value
 									#											self.Hub.DevGoneCount(
 									#												device)))
 									else:
-										safeprint('    Imply {} from {}'.format(ent, device))
+										pass  # safeprint('    Imply {} from {}'.format(ent, device))
 
 						self.missinglast = 'Explicit' if self.missinglast == 'No' else 'ExplicitOnly'
 						self.gone = time.time()
