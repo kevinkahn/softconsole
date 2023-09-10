@@ -9,3 +9,4 @@ pi7B|/dev/fb0|fbcon|Pi7
 28rB|/dev/fb0|fbcon|PWM18
 pimoroni4|/dev/fb0|fbcon|PWM19
 pimoroni4B|/dev/fb0|fbcon|PWM19
+5incap|/dev/fb0|fbcon|Pi7

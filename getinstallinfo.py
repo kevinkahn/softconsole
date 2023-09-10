@@ -159,7 +159,7 @@ with open('/etc/issue') as f:
 AddToScript('Buster', 'Y' if Buster else 'N')
 if piinstall:
 	AddToScript('NodeName', GetVal("What name for this system?"))
-	AddToScript('VNCstdPort', GetYN("Install VNC on standard port (Y/N/alt port number)?", Allownum=True))
+# AddToScript('VNCstdPort', GetYN("Install VNC on standard port (Y/N/alt port number)?", Allownum=True))
 personal = GetYN("Is this the developer personal system (Y/N) (bit risky to say Y if it not)?")
 if personal:
 	with open('homesystem', 'w') as f:
@@ -230,28 +230,29 @@ ISYUSER = ""
 ISYPWD = ""
 HATOKEN = ""
 exswitch = ""
-MinExampISY = GetYN("Set up minimal ISY example system?")
+# MinExampISY = GetYN("Set up minimal ISY example system?")
 MinExampHA = GetYN("Set up minimal Home Assistant example system?") if not MinExampISY else False
 
-if MinExampISY:
-	go = False
-	while not go:
-		HubName = input("Name to use for the ISY hub (defaults to ISY): ")
-		if HubName == "":
-			HubName = "ISY"
-		IP = input("full URL to access ISY: ")
-		if IP.endswith('/'):
-			IP = IP[0:-1]
-		ISYUSER = input("ISY user name: ")
-		ISYPWD = input("ISY password: ")
-		exswitch = input("Example switch to use (ISY name): ")
-		print("ISY Name: " + HubName)
-		print("IP:       " + IP)
-		print("USER:     " + ISYUSER)
-		print("PASSWORD: " + ISYPWD)
-		print("SWITCH:   " + "[[" + exswitch + "]]")
-		go = GetYN("OK? (y/n)")
-elif MinExampHA:
+# if MinExampISY:
+#	go = False
+#	while not go:
+#		HubName = input("Name to use for the ISY hub (defaults to ISY): ")
+#		if HubName == "":
+#			HubName = "ISY"
+#		IP = input("full URL to access ISY: ")
+#		if IP.endswith('/'):
+#			IP = IP[0:-1]
+#		ISYUSER = input("ISY user name: ")
+#		ISYPWD = input("ISY password: ")
+#		exswitch = input("Example switch to use (ISY name): ")
+#		print("ISY Name: " + HubName)
+#		print("IP:       " + IP)
+#		print("USER:     " + ISYUSER)
+#		print("PASSWORD: " + ISYPWD)
+#		print("SWITCH:   " + "[[" + exswitch + "]]")
+#		go = GetYN("OK? (y/n)")
+# elif
+if MinExampHA:
 	go = False
 	while not go:
 		HubName = input("Name to use for the HA hub (defaults to HASS):")
@@ -285,33 +286,33 @@ for pdir in dirs:
 		print("Already present: " + str(pdir))
 	shutil.chown(pdir, user='pi', group='pi')
 
-if MinExampISY:
-	with open('/home/pi/Console/cfglib/auth.cfg', "w") as f:
-		cfg = ("[" + HubName + "]",
-			   "type = ISY",
-			   "address = " + IP,
-			   "user = " + ISYUSER,
-			   "password = " + ISYPWD,
-			   "\n")
-		f.write("\n".join(cfg))
-	with open('/home/pi/Console/config.txt', 'w') as f:
-		cfg = ('cfglib = cfglib',
-			   'include = auth.cfg, myclock.cfg',
-			   'DefaultHub = ' + HubName,
-			   'HomeScreenName = test',
-			   'PersistTO = 30',
-			   'DimLevel = 5',
-			   'DimTO = 15',
-			   'DimIdleListNames = MyClock,',
-			   'DimIdleListTimes = 20,',
-			   'MainChain = test, MyClock',
-			   '[test]',
-			   'type = Keypad',
-			   'label = My, Test',
-			   '[[' + exswitch + ']]',
-			   "\n")
-		f.write("\n".join(cfg))
-elif MinExampHA:
+# if MinExampISY:
+#	with open('/home/pi/Console/cfglib/auth.cfg', "w") as f:
+#		cfg = ("[" + HubName + "]",
+#			   "type = ISY",
+#			   "address = " + IP,
+#			   "user = " + ISYUSER,
+#			   "password = " + ISYPWD,
+#			   "\n")
+#		f.write("\n".join(cfg))
+#	with open('/home/pi/Console/config.txt', 'w') as f:
+#		cfg = ('cfglib = cfglib',
+#			   'include = auth.cfg, myclock.cfg',
+#			   'DefaultHub = ' + HubName,
+#			   'HomeScreenName = test',
+#			   'PersistTO = 30',
+#			   'DimLevel = 5',
+#			   'DimTO = 15',
+#			   'DimIdleListTimes = 20,',
+#			   'MainChain = test, MyClock',
+#			   '[test]',
+#			   'type = Keypad',
+#			   'label = My, Test',
+#			   '[[' + exswitch + ']]',
+#			   "\n")
+#		f.write("\n".join(cfg))
+# elif
+if MinExampHA:
 	with open('/home/pi/Console/cfglib/auth.cfg', "w") as f:
 		cfg = ("[" + HubName + "]",
 			   "type = HASS.1",
@@ -340,9 +341,9 @@ elif MinExampHA:
 print("\n\nSoftconsole install paramters:")
 for l in scriptvars:
 	print('    ' + l.replace('\n', ''))
-if MinExampISY:
-	print("    Create minimal example ISY configuration")
-elif MinExampHA:
+# if MinExampISY:
+#	print("    Create minimal example ISY configuration")
+if MinExampHA:
 	print("    Create minimal example Home Assistant configuration")
 else:
 	print("    Skip minimal example configuration")

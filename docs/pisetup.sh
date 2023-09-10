@@ -22,24 +22,14 @@ exec 2>&1
 
 cd /home/pi
 LogBanner "This is the system setup script"
-LogBanner "Connect WiFI if needed"
-read -p "Press Enter to continue"
 
-#LogBanner "Install Python2/3 Compatibility Support"
-#echo "Note - installation switches system default Python to version 3"
-#echo "To undo this run 'sudo update-alternatives --config python' to select desired alternative"
-
-#LogBanner "Switch default Python to Python3"
-#update-alternatives --install /usr/bin/python python /usr/bin/python3 2
-#update-alternatives --install /usr/bin/python python /usr/bin/python2 1
-#update-alternatives --set python /usr/bin/python3
 pip3 install --upgrade pip
 pip3 install wget
 
-LogBanner "Set Time Zone"
-dpkg-reconfigure tzdata
-LogBanner "Pi User Password"
-sudo passwd pi
+#LogBanner "Set Time Zone"
+#dpkg-reconfigure tzdata
+#LogBanner "Pi User Password"
+#sudo passwd pi
 
 wget https://raw.githubusercontent.com/kevinkahn/softconsole/master/getinstallinfo.py
 
@@ -53,21 +43,9 @@ LogBanner "Upgrade/Update System"
 apt-get update
 DEBIAN_FRONTEND=noninteractive apt-get -y upgrade
 
-echo "deb http://mirrordirector.raspbian.org/raspbian/ stretch main contrib non-free rpi firmware" >>/etc/apt/sources.list.d/raspi.list
+#echo "deb http://mirrordirector.raspbian.org/raspbian/ stretch main contrib non-free rpi firmware" >>/etc/apt/sources.list.d/raspi.list
 
 source installvals
-
-LogBanner "Force WiFi to US"
-COUNTRY=US
-if [ -e /etc/wpa_supplicant/wpa_supplicant.conf ]; then
-  if grep -q "^country=" /etc/wpa_supplicant/wpa_supplicant.conf; then
-    sed -i --follow-symlinks "s/^country=.*/country=$COUNTRY/g" /etc/wpa_supplicant/wpa_supplicant.conf
-  else
-    sed -i --follow-symlinks "1i country=$COUNTRY" /etc/wpa_supplicant/wpa_supplicant.conf
-  fi
-else
-  echo "country=$COUNTRY" >/etc/wpa_supplicant/wpa_supplicant.conf
-fi
 
 LogBanner "Fix Keyboard"
 echo "
@@ -82,11 +60,6 @@ BACKSPACE=\"guess\"
 invoke-rc.d keyboard-setup start
 udevadm trigger --subsystem-match=input --action=change
 
-LogBanner "Run raspi-config if you need non-US wifi, non-US keyboard, or other specials"
-
-LogBanner "Turn on ssh"
-touch /boot/ssh # turn on ssh
-
 LogBanner "Changing Node Name to: $NodeName"
 mv -n /etc/hosts /etc/hosts.orig
 sed s/raspberrypi/$NodeName/ /etc/hosts.orig >/etc/hosts
@@ -97,41 +70,41 @@ LogBanner "Set better LX Terminal parameters"
 sudo -u pi mkdir -p /home/pi/.config/lxterminal
 mv -f lxterminal.conf /home/pi/.config/lxterminal
 
-case $VNCstdPort in # if [ $VNCstdPort != "Y" ]
-Y)
-  echo "VNC will be set up on its normal port"
-  su pi -c vncserver
-  ;;
-N)
-  echo "No VNC will ne set up"
-  ;;
-*)
-  su pi -c vncserver # create the Xvnc file in ~pi/.vnc/config.d so it can be modified below
-  SSHDport=$(($VNCstdPort - 100))
-  VNCConsole=$(($VNCstdPort - 1))
-  echo "Virtual VNC will be set up on port " $VNCstdPort
-  echo "sshd will be moved to port " $SSHDport
-  cp /etc/ssh/sshd_config /etc/ssh/sshd_config.sav
-  sed "/Port /s/.*/Port $SSHDport/" /etc/ssh/sshd_config.sav >/etc/ssh/sshd_config
-  echo "RfbPort=$VNCstdPort" >>/home/pi/.vnc/config.d/Xvnc
-  chown pi:pi /home/pi/.vnc/config.d/Xvnc
-  ;;
-esac
-LogBanner "Setup Virtual VNC Service"
+#case $VNCstdPort in # if [ $VNCstdPort != "Y" ]
+#Y)
+#  echo "VNC will be set up on its normal port"
+#  su pi -c vncserver
+#  ;;
+#N)
+#  echo "No VNC will ne set up"
+#  ;;
+#*)
+#  su pi -c vncserver # create the Xvnc file in ~pi/.vnc/config.d so it can be modified below
+#  SSHDport=$(($VNCstdPort - 100))
+#  VNCConsole=$(($VNCstdPort - 1))
+#  echo "Virtual VNC will be set up on port " $VNCstdPort
+#  echo "sshd will be moved to port " $SSHDport
+#  cp /etc/ssh/sshd_config /etc/ssh/sshd_config.sav
+#  sed "/Port /s/.*/Port $SSHDport/" /etc/ssh/sshd_config.sav >/etc/ssh/sshd_config
+#  echo "RfbPort=$VNCstdPort" >>/home/pi/.vnc/config.d/Xvnc
+#  chown pi:pi /home/pi/.vnc/config.d/Xvnc
+#  ;;
+#esac
+#LogBanner "Setup Virtual VNC Service"
 
-if [ $VNCstdPort == "N" ]; then
-  echo "VNC service file installation skipped"
-else
-  echo "VNC service file installed"
-  mv /home/pi/vncserverpi.service /usr/lib/systemd/system
-  systemctl enable vncserverpi
-fi
+#if [ $VNCstdPort == "N" ]; then
+#  echo "VNC service file installation skipped"
+#else
+#  echo "VNC service file installed"
+#  mv /home/pi/vncserverpi.service /usr/lib/systemd/system
+#  systemctl enable vncserverpi
+#fi
 
 cd /home/pi
 
-if [ $Buster == 'N' ]; then
-  sed -isav s/fb0/fb1/ /usr/share/X11/xorg.conf.d/99-fbturbo.conf
-fi
+#if [ $Buster == 'N' ]; then
+#  sed -isav s/fb0/fb1/ /usr/share/X11/xorg.conf.d/99-fbturbo.conf
+#fi
 
 LogBanner "Run screen specific install code"
 source installscreencode
