@@ -38,8 +38,6 @@ LogBanner "Upgrade/Update System"
 apt-get update
 DEBIAN_FRONTEND=noninteractive apt-get -y upgrade
 
-#echo "deb http://mirrordirector.raspbian.org/raspbian/ stretch main contrib non-free rpi firmware" >>/etc/apt/sources.list.d/raspi.list
-
 source installvals
 
 LogBanner "Fix Keyboard"
@@ -66,8 +64,10 @@ sudo -u pi mkdir -p /home/pi/.config/lxterminal
 mv -f lxterminal.conf /home/pi/.config/lxterminal
 
 LogBanner "Enable vncserver"
-/etc/vnc/vncservice start vncserver-virtuald
-vncserver-virtual
+# Need to run the vnc server under a real user or you get access issues; don't know why can't get the virtuald version to work
+mv /home/pi/vncserverpi.service /usr/lib/systemd/system
+systemctl enable vncserverpi
+#/etc/vnc/vncservice start vncserver-virtuald
 
 cd /home/pi
 
