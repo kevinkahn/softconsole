@@ -107,19 +107,19 @@ NavKeyAlpha = 50
 
 
 
-	[[xwatch]]
-	Type = FileWatch
-	File = x.txt
-	# example of the contents of x.txt for testing at bottom of this file (put in Console directory)
-	Parameter = Settings
-	Invoke = DynAlertScreenx
+#	[[xwatch]]
+#	Type = FileWatch
+#	File = x.txt
+#	# example of the contents of x.txt for testing at bottom of this file (put in Console directory)
+#	Parameter = Settings
+#	Invoke = DynAlertScreenx
 
-	[[ywatch]]
-	Type = FileWatch
-	File = y.txt
-	# example of the contents of y.txt for testing at bottom of this file
-	Parameter = SingleItem
-	Invoke = DynAlertScreeny
+#	[[ywatch]]
+#	Type = FileWatch
+#	File = y.txt
+#	# example of the contents of y.txt for testing at bottom of this file
+#	Parameter = SingleItem
+#	Invoke = DynAlertScreeny
 
 #	[[Sanity]]
 #	Type = Periodic

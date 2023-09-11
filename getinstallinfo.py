@@ -165,8 +165,12 @@ if personal:
 	with open('homesystem', 'w') as f:
 		f.write('homesystem\n')
 AddToScript('Personal', personal)
+
+selectbeta = False
 beta = GetYN("Download current beta as well as stable? (usually waste of time)")
-AddToScript('InstallBeta', beta)
+if beta: selectbeta = GetYN("Set beta as version to run?")
+
+# AddToScript('InstallBeta', beta)
 AddToScript('AutoConsole', GetYN("Autostart console (Y/N)?"))
 AddToScript('Reboot', GetYN("Automatically reboot to clean system after install?"))
 
@@ -230,28 +234,9 @@ ISYUSER = ""
 ISYPWD = ""
 HATOKEN = ""
 exswitch = ""
-# MinExampISY = GetYN("Set up minimal ISY example system?")
+
 MinExampHA = GetYN("Set up minimal Home Assistant example system?")  # if not MinExampISY else False
 
-# if MinExampISY:
-#	go = False
-#	while not go:
-#		HubName = input("Name to use for the ISY hub (defaults to ISY): ")
-#		if HubName == "":
-#			HubName = "ISY"
-#		IP = input("full URL to access ISY: ")
-#		if IP.endswith('/'):
-#			IP = IP[0:-1]
-#		ISYUSER = input("ISY user name: ")
-#		ISYPWD = input("ISY password: ")
-#		exswitch = input("Example switch to use (ISY name): ")
-#		print("ISY Name: " + HubName)
-#		print("IP:       " + IP)
-#		print("USER:     " + ISYUSER)
-#		print("PASSWORD: " + ISYPWD)
-#		print("SWITCH:   " + "[[" + exswitch + "]]")
-#		go = GetYN("OK? (y/n)")
-# elif
 if MinExampHA:
 	go = False
 	while not go:
@@ -286,32 +271,6 @@ for pdir in dirs:
 		print("Already present: " + str(pdir))
 	shutil.chown(pdir, user='pi', group='pi')
 
-# if MinExampISY:
-#	with open('/home/pi/Console/cfglib/auth.cfg', "w") as f:
-#		cfg = ("[" + HubName + "]",
-#			   "type = ISY",
-#			   "address = " + IP,
-#			   "user = " + ISYUSER,
-#			   "password = " + ISYPWD,
-#			   "\n")
-#		f.write("\n".join(cfg))
-#	with open('/home/pi/Console/config.txt', 'w') as f:
-#		cfg = ('cfglib = cfglib',
-#			   'include = auth.cfg, myclock.cfg',
-#			   'DefaultHub = ' + HubName,
-#			   'HomeScreenName = test',
-#			   'PersistTO = 30',
-#			   'DimLevel = 5',
-#			   'DimTO = 15',
-#			   'DimIdleListTimes = 20,',
-#			   'MainChain = test, MyClock',
-#			   '[test]',
-#			   'type = Keypad',
-#			   'label = My, Test',
-#			   '[[' + exswitch + ']]',
-#			   "\n")
-#		f.write("\n".join(cfg))
-# elif
 if MinExampHA:
 	with open('/home/pi/Console/cfglib/auth.cfg', "w") as f:
 		cfg = ("[" + HubName + "]",
@@ -341,8 +300,7 @@ if MinExampHA:
 print("\n\nSoftconsole install paramters:")
 for l in scriptvars:
 	print('    ' + l.replace('\n', ''))
-# if MinExampISY:
-#	print("    Create minimal example ISY configuration")
+
 if MinExampHA:
 	print("    Create minimal example Home Assistant configuration")
 else:
@@ -351,7 +309,7 @@ print('---------------------', flush=True)
 
 import githubutil as U
 
-print('Download console code', flush=True)
+print('Download console code - this takes a while', flush=True)
 
 if personal:
 	# personal system
@@ -369,10 +327,17 @@ if beta:
 	print('Stage beta also')
 	U.InstallStagedVersion('consolebeta')
 	print('Intalled staged beta')
+	if selectbeta:
+		with open('versionselector', 'w') as f:
+			f.write('beta\n')
 
 if os.path.exists('/boot/auth'):
 	shutil.rmtree('Console/local', ignore_errors=True)
 	shutil.move('/boot/auth', 'Console/local')
+	if os.path.exists('Console/local/fstabadj.txt'):
+		with open('Console/local/fstabadj.txt', 'r') as adds:
+			with open('/etc/fstab', 'a') as f:
+				shutil.copyfileobj(adds, f)
 
 subprocess.call("cp -r /home/pi/consolestable/'example_configs'/* /home/pi/Console", shell=True)
 if piinstall:
