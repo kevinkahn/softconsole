@@ -26,11 +26,6 @@ LogBanner "This is the system setup script"
 pip3 install --upgrade pip
 pip3 install wget
 
-#LogBanner "Set Time Zone"
-#dpkg-reconfigure tzdata
-#LogBanner "Pi User Password"
-#sudo passwd pi
-
 wget https://raw.githubusercontent.com/kevinkahn/softconsole/master/getinstallinfo.py
 
 python getinstallinfo.py
