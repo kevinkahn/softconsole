@@ -8,7 +8,7 @@ LogLevel = 3
 
 # switch to authall with HASSpga avail
 
-cfglib = "/home/pi/cConsole/cfglib"
+cfglib = "/home/pi/Console/cfglib"
 include = /home/pi/Console/local/authall.cfg, weathersources.cfg, weathPump.cfg, timetempLQ.cfg,  myclock.cfg,weathPDX.cfg,timetempLQ7.cfg, octoprint.cfg, timetempPDX7.cfg, pgaTstat.cfg, pgawBRmain.cfg, pgaBath.cfg, condotstats.cfg, pgaGR.cfg, mqtt.cfg, pgaKitchen.cfg, pgaOutside.cfg, pgaShades.cfg, pgaScenes.cfg
 #pgaalerts.cfg,
 HomeScreenName = 'pgawBR'

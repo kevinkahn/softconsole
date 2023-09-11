@@ -70,35 +70,9 @@ LogBanner "Set better LX Terminal parameters"
 sudo -u pi mkdir -p /home/pi/.config/lxterminal
 mv -f lxterminal.conf /home/pi/.config/lxterminal
 
-#case $VNCstdPort in # if [ $VNCstdPort != "Y" ]
-#Y)
-#  echo "VNC will be set up on its normal port"
-#  su pi -c vncserver
-#  ;;
-#N)
-#  echo "No VNC will ne set up"
-#  ;;
-#*)
-#  su pi -c vncserver # create the Xvnc file in ~pi/.vnc/config.d so it can be modified below
-#  SSHDport=$(($VNCstdPort - 100))
-#  VNCConsole=$(($VNCstdPort - 1))
-#  echo "Virtual VNC will be set up on port " $VNCstdPort
-#  echo "sshd will be moved to port " $SSHDport
-#  cp /etc/ssh/sshd_config /etc/ssh/sshd_config.sav
-#  sed "/Port /s/.*/Port $SSHDport/" /etc/ssh/sshd_config.sav >/etc/ssh/sshd_config
-#  echo "RfbPort=$VNCstdPort" >>/home/pi/.vnc/config.d/Xvnc
-#  chown pi:pi /home/pi/.vnc/config.d/Xvnc
-#  ;;
-#esac
-#LogBanner "Setup Virtual VNC Service"
-
-#if [ $VNCstdPort == "N" ]; then
-#  echo "VNC service file installation skipped"
-#else
-#  echo "VNC service file installed"
-#  mv /home/pi/vncserverpi.service /usr/lib/systemd/system
-#  systemctl enable vncserverpi
-#fi
+LogBanner "Enable vncserver"
+/etc/vnc/vncservice start vncserver-virtuald
+vncserver-virtual
 
 cd /home/pi
 

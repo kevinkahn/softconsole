@@ -231,7 +231,7 @@ ISYPWD = ""
 HATOKEN = ""
 exswitch = ""
 # MinExampISY = GetYN("Set up minimal ISY example system?")
-MinExampHA = GetYN("Set up minimal Home Assistant example system?") if not MinExampISY else False
+MinExampHA = GetYN("Set up minimal Home Assistant example system?")  # if not MinExampISY else False
 
 # if MinExampISY:
 #	go = False
