@@ -178,13 +178,14 @@ GetScripts('personal' if personal else 'stable')
 if beta: GetScripts('beta', save=('personal' if personal else 'stable'))
 
 screentype = '--'
-supportedscreens = ('28r', '28c', '35r', 'pi7')
+supportedscreens = ('28r', '28c', '35r', 'pi7', '5incap')
 # adafruit script rotations {'28r': 4, '28c': 2, '35r': 4}
 screeninstallcode = {'28r': p(adafruit, '28r', 4), '28c': p(adafruit, '28c', 2), '35r': p(adafruit, '35r', 4),
-					 'pi7': p(doflip, 'pi7'), '--': p(noscreen, '--')}
+					 'pi7': p(doflip, 'pi7'), '5incap': p(doflip, 'pi7'), '--': p(noscreen, '--')}
 baseorientation = {'28c': 'power on left',
 				   '35r': 'power on left',
 				   'pi7': 'power at bottom',
+				   '5incap': 'power at bottom',
 				   '--': 'is unknown'}
 
 if piinstall:
