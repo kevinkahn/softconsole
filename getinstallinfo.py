@@ -185,7 +185,7 @@ screeninstallcode = {'28r': p(adafruit, '28r', 4), '28c': p(adafruit, '28c', 2),
 baseorientation = {'28c': 'power on left',
 				   '35r': 'power on left',
 				   'pi7': 'power at bottom',
-				   '5incap': 'power at bottom',
+				   '5incap': 'power at top',
 				   '--': 'is unknown'}
 
 if piinstall:

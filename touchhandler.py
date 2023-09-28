@@ -144,9 +144,9 @@ class Touchscreen(object):
 																  1.0,
 																  1.0, 'False']
 						self.touchdefs[touchitem[0] + '.cc90'] = ['True', 0, 0, 0, config.screenwidth, 1.0, 1.0,
-																  'False']
+																  'True']
 						self.touchdefs[touchitem[0] + '.cc270'] = ['True', 0, 0, config.screenheight, 0, 1.0, 1.0,
-																   'False']
+																   'True']
 		# else:
 		#	print('Ignore {}'.format(l))
 
