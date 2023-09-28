@@ -330,12 +330,21 @@ class Touchscreen(object):
 		for evdev in glob.glob("/sys/class/input/event*"):
 			try:
 				with io.open(os.path.join(evdev, 'device', 'name'), 'r') as f:
-					dev = f.read().strip()
+					basedev = f.read().strip()
 					if self.touchmod != '':
-						dev = dev + '.' + self.touchmod
+						dev = basedev + '.' + self.touchmod
+					if dev in self.touchdefs:
+						usedev = dev
+					else:
+						for l in self.touchdefs.keys():
+							if l[0] == '*':
+								if basedev in l[1:]:
+									usedev = l.split('.')[0] + '.' + self.touchmod
+					print('Touchinfo: {}, {}, {}:  {} '.format(basedev, dev, usedev, self.touchdefs[usedev]))
+
 					if dev in self.touchdefs:
 						self.controller = dev
-						vals = self.touchdefs[dev]
+						vals = self.touchdefs[usedev]
 						self._shiftx = int(vals[1])
 						self._shifty = int(vals[2])
 						self._flipx = int(vals[3])
