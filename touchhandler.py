@@ -338,8 +338,12 @@ class Touchscreen(object):
 					else:
 						for l in self.touchdefs.keys():
 							if l[0] == '*':
-								if basedev in l[1:]:
-									usedev = l.split('.')[0] + '.' + self.touchmod
+								targbase = l.split(".")[0][1:]
+								print('Try {}:'.format(targbase))
+								if targbase in basedev:
+									print('Matched')
+									usedev = '*' + targbase + '.' + self.touchmod
+									print('Use {}'.format(usedev))
 					print('Touchinfo: {}, {}, {}:  {} '.format(basedev, dev, usedev, self.touchdefs[usedev]))
 
 					if dev in self.touchdefs:
