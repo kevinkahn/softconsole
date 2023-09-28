@@ -339,7 +339,7 @@ class Touchscreen(object):
 						for l in self.touchdefs.keys():
 							if l[0] == '*':
 								targbase = l.split(".")[0][1:]
-								print('Try {}:'.format(targbase))
+								print('Try targ {} in {}'.format(targbase, basedev))
 								if targbase in basedev:
 									print('Matched')
 									usedev = '*' + targbase + '.' + self.touchmod
