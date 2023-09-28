@@ -10,7 +10,6 @@ import time
 from collections import namedtuple
 import logsupport
 import config
-from utils import hw
 
 import select
 import debug
@@ -141,10 +140,13 @@ class Touchscreen(object):
 					self.touchdefs[touchitem[0]] = touchitem[1:]
 					if self.touchitem[1] in ('True', '1', 'true', 'TRUE'):
 						# for capacitive screens autogenerate the rotations
-						self.touchdefs[touchitem[0] + '.flip'] = ['True', 0, 0, hw.screenwidth, hw.screenheight, 1.0,
+						self.touchdefs[touchitem[0] + '.flip'] = ['True', 0, 0, config.screenwidth, config.screenheight,
+																  1.0,
 																  1.0, 'False']
-						self.touchdefs[touchitem[0] + '.cc90'] = ['True', 0, 0, 0, hw.screenwidth, 1.0, 1.0, 'False']
-						self.touchdefs[touchitem[0] + '.cc270'] = ['True', 0, 0, hw.screenheight, 0, 1.0, 1.0, 'False']
+						self.touchdefs[touchitem[0] + '.cc90'] = ['True', 0, 0, 0, config.screenwidth, 1.0, 1.0,
+																  'False']
+						self.touchdefs[touchitem[0] + '.cc270'] = ['True', 0, 0, config.screenheight, 0, 1.0, 1.0,
+																   'False']
 				else:
 					print('Ignore {}'.format(l))
 

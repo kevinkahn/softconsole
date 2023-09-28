@@ -24,6 +24,9 @@ AS = None  # Current Active Screen
 mqttavailable = False
 MQTTBroker = None
 
+screenwidth = 0
+screenheight = 0
+
 sysstats = None
 
 # Global Defaults Settable in config.txt in Console

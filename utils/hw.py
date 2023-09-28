@@ -128,6 +128,8 @@ def initOS(scrntyp, configdir):
 
 	pygame.display.init()
 	screenwidth, screenheight = (pygame.display.Info().current_w, pygame.display.Info().current_h)
+	config.screenwidth = screenwidth
+	config.screenheight = screenheight
 
 	dispratioW = float(screenwidth) / float(basewidth)
 	dispratioH = float(screenheight) / float(baseheight)
