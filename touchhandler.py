@@ -147,8 +147,8 @@ class Touchscreen(object):
 																  'False']
 						self.touchdefs[touchitem[0] + '.cc270'] = ['True', 0, 0, config.screenheight, 0, 1.0, 1.0,
 																   'False']
-				else:
-					print('Ignore {}'.format(l))
+		# else:
+		#	print('Ignore {}'.format(l))
 
 		# noinspection PyBroadException
 		try:
@@ -159,9 +159,9 @@ class Touchscreen(object):
 					self.touchdefs[touchitem[0]] = touchitem[1:]
 		except:
 			pass
-		print("Touchdefs:")
-		for l in self.touchdefs:
-			print("{}: {}".format(l, self.touchdefs[l]))
+		# print("Touchdefs:")
+		# for l in self.touchdefs:
+		#	print("{}: {}".format(l, self.touchdefs[l]))
 		self._use_multitouch = True
 		self.controller = "unknown"
 		self._shiftx = 0
@@ -326,11 +326,12 @@ class Touchscreen(object):
 	def _touch_device(self):
 		global ABS_MT_POSITION_Y, ABS_MT_POSITION_X
 		dev = 'unknown'
+		usedev = 'unknown'
 		# return '/dev/input/touchscreen'
 		for evdev in glob.glob("/sys/class/input/event*"):
 			try:
 				with io.open(os.path.join(evdev, 'device', 'name'), 'r') as f:
-					basedev = f.read().strip()
+					basedev = f.read().strip()  # todo should make this all lower for even simpler match
 					if self.touchmod != '':
 						dev = basedev + '.' + self.touchmod
 					if dev in self.touchdefs:
@@ -339,14 +340,13 @@ class Touchscreen(object):
 						for l in self.touchdefs.keys():
 							if l[0] == '*':
 								targbase = l.split(".")[0][1:]
-								print('Try targ {} in {}'.format(targbase, basedev))
+								# print('Try targ {} in {}'.format(targbase, basedev))
 								if targbase in basedev:
-									print('Matched')
 									usedev = '*' + targbase + '.' + self.touchmod
-									print('Use {}'.format(usedev))
-					print('Touchinfo: {}, {}, {}:  {} '.format(basedev, dev, usedev, self.touchdefs[usedev]))
+							# print('Use {}'.format(usedev))
+					# print('Touchinfo: {}, {}, {}:  {} '.format(basedev, dev, usedev, self.touchdefs[usedev]))
 
-					if dev in self.touchdefs:
+					if usedev in self.touchdefs:
 						self.controller = dev
 						vals = self.touchdefs[usedev]
 						self._shiftx = int(vals[1])
