@@ -138,7 +138,7 @@ class Touchscreen(object):
 				touchitem = l.split('|')
 				if touchitem[0][0] != '#':
 					self.touchdefs[touchitem[0]] = touchitem[1:]
-					if self.touchitem[1] in ('True', '1', 'true', 'TRUE'):
+					if touchitem[1] in ('True', '1', 'true', 'TRUE'):
 						# for capacitive screens autogenerate the rotations
 						self.touchdefs[touchitem[0] + '.flip'] = ['True', 0, 0, config.screenwidth, config.screenheight,
 																  1.0,
@@ -159,7 +159,9 @@ class Touchscreen(object):
 					self.touchdefs[touchitem[0]] = touchitem[1:]
 		except:
 			pass
-		print("Touchdefs: {}".format(self.touchdefs))
+		print("Touchdefs:")
+		for l in self.touchdefs:
+			print("{}: {}".format(l, self.touchdefs[l]))
 		self._use_multitouch = True
 		self.controller = "unknown"
 		self._shiftx = 0
