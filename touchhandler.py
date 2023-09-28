@@ -138,7 +138,7 @@ class Touchscreen(object):
 				touchitem = l.split('|')
 				if touchitem[0][0] != '#':
 					self.touchdefs[touchitem[0]] = touchitem[1:]
-					if touchitem[1] in ('True', '1', 'true', 'TRUE'):
+					if touchitem[1] in ('True', '1', 'true', 'TRUE') and not '.' in touchitem[0]:
 						# for capacitive screens autogenerate the rotations
 						self.touchdefs[touchitem[0] + '.flip'] = ['True', 0, 0, config.screenwidth, config.screenheight,
 																  1.0,
@@ -147,8 +147,8 @@ class Touchscreen(object):
 																  'True']
 						self.touchdefs[touchitem[0] + '.cc270'] = ['True', 0, 0, config.screenheight, 0, 1.0, 1.0,
 																   'True']
-		# else:
-		#	print('Ignore {}'.format(l))
+			# else:
+			#	print('Ignore {}'.format(l))
 
 		# noinspection PyBroadException
 		try:
@@ -332,8 +332,7 @@ class Touchscreen(object):
 			try:
 				with io.open(os.path.join(evdev, 'device', 'name'), 'r') as f:
 					basedev = f.read().strip()  # todo should make this all lower for even simpler match
-					if self.touchmod != '':
-						dev = basedev + '.' + self.touchmod
+					dev = basedev + '.' + self.touchmod if self.touchmod != '' else basedev
 					if dev in self.touchdefs:
 						usedev = dev
 					else:
