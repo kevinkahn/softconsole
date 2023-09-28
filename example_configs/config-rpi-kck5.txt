@@ -1,0 +1,74 @@
+cfglib = cfglib
+include = /home/pi/Console/local/authall.cfg, pdxalerts.cfg, pdxBR.cfg, pdxBR2.cfg, pdxshadeswest.cfg, pdxshadesnorthbath.cfg, condotstats.cfg,weathPump.cfg,weathPDX.cfg,weathLQ.cfg, myclock.cfg,timetempLQ.cfg,timetempPDX.cfg, mqtt.cfg, weathersources.cfg, #octoprint.cfg
+HomeScreenName = BR
+DimLevel = 50
+DimTO = 25
+DimIdleListNames = MyClock, LQTT, TimeTemp
+DimIdleListTimes = 8,8,8
+DefaultHub = HASS
+
+MainChain = BR, WestShades, NorthShades, BR2, MyClock, climate.air_conditionerbr_hvac, climate.air_conditionerlr_hvac#,Prusa
+SecondaryChain = Portland, Pumpkin, La Quinta
+[Variables]
+    InternetUp = 1
+
+[Alerts]
+	[[Internet]]
+	Type = Periodic
+	Interval = 60 seconds
+	Invoke = NetworkHealth.Do_Ping
+	Parameter = '8.8.8.8',LocalVars:InternetUp
+	[[InternetAlert]]
+	Type = VarChange
+	Var = LocalVars:InternetUp
+	Test = NE
+	Value = 1
+	Invoke = InternetAlertScreen
+
+	[[AdjustScreenDim]]
+	Type = Periodic
+	At = 11:00pm
+	Invoke = AssignVar.Assign
+	Parameter = System:DimLevel = 10
+	[[AdjustScreenDimUp]]
+	Type = Periodic
+	At = 6:00am
+	Invoke = AssignVar.Assign
+	Parameter = System:DimLevel = 50
+	[[DimAway]]
+	Type = NodeChange
+	Node = HASS:input_boolean.home
+	Test = ISFALSE
+	Invoke = AssignVar.Assign
+	Parameter = System:DimLevel = 5
+	[[DimHome]]
+	Type = NodeChange
+	Node = HASS:input_boolean.home
+	Test = ISTRUE
+	Invoke = AssignVar.Assign
+	Parameter = System:DimLevel = 100
+
+   [[LXPanel]]
+         Type = Periodic
+         Interval = 24 hours
+         Invoke = LXPanelRestart.LXPanelRestart
+
+[InternetAlertScreen]
+    type = Alert
+    BackgroundColor = black
+	MessageBack = green
+	CharColor = navyblue
+	Message = Internet, Down
+	CharSize = 30,
+	DeferTime = 10
+	BlinkTime = 1
+	KeyColor = maroon
+	[[Action]]
+		type = SETVAR
+		Var = LocalVars:InternetUp
+		label = Acknowledge, Outage
+
+
+
+
+
