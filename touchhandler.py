@@ -10,7 +10,7 @@ import time
 from collections import namedtuple
 import logsupport
 import config
-
+from utils import hw
 
 import select
 import debug
@@ -137,7 +137,17 @@ class Touchscreen(object):
 			defs = f.read().splitlines()
 			for l in defs:
 				touchitem = l.split('|')
-				self.touchdefs[touchitem[0]] = touchitem[1:]
+				if touchitem[0][0] != '#':
+					self.touchdefs[touchitem[0]] = touchitem[1:]
+					if self.touchitem[1] in ('True', '1', 'true', 'TRUE'):
+						# for capacitive screens autogenerate the rotations
+						self.touchdefs[touchitem[0] + '.flip'] = ['True', 0, 0, hw.screenwidth, hw.screenheight, 1.0,
+																  1.0, 'False']
+						self.touchdefs[touchitem[0] + '.cc90'] = ['True', 0, 0, 0, hw.screenwidth, 1.0, 1.0, 'False']
+						self.touchdefs[touchitem[0] + '.cc270'] = ['True', 0, 0, hw.screenheight, 0, 1.0, 1.0, 'False']
+				else:
+					print('Ignore {}'.format(l))
+
 		# noinspection PyBroadException
 		try:
 			with open(configdir + '/touchdefinitions') as f:
@@ -147,6 +157,7 @@ class Touchscreen(object):
 					self.touchdefs[touchitem[0]] = touchitem[1:]
 		except:
 			pass
+		print("Touchdefs: {}".format(self.touchdefs))
 		self._use_multitouch = True
 		self.controller = "unknown"
 		self._shiftx = 0

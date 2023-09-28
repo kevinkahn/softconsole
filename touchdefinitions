@@ -11,8 +11,11 @@ stmpe-ts.cc270|False|0|0|480|0|1.0|1.0|True
 stmpe-ts.cc90|False|0|0|0|320|1.0|1.0|True
 stmpe-ts.flip|False|0|0|320|480|1.0|1.0|False
 EP0110M09|True|0|0|0|0|1.0|1.0
-generic ft5x06 (11).cc270|True|0|0|320|0|1.0|1.0|True
-generic ft5x06 (11).cc90|True|0|0|0|240|1.0|1.0|True
-generic ft5x06 (11).flip|True|0|0|240|320|1.0|1.0|False
+#generic ft5x06 (11).cc270|True|0|0|320|0|1.0|1.0|True
+#generic ft5x06 (11).cc90|True|0|0|0|240|1.0|1.0|True
+#generic ft5x06 (11).flip|True|0|0|240|320|1.0|1.0|False
 generic ft5x06 (11)|True|0|0|0|0|1.0|1.0
 generic ft5x06 (79)|True|0|0|0|0|1.0|1.0
+#generic ft5x06 (79).flip|True|0|0|800|480|1.0|1.0
+#generic ft5x06 (79).cc270|True|0|0|320|0|1.0|1.0|True
+#generic ft5x06 (79).cc90|True|0|0|0|240|1.0|1.0 |True
