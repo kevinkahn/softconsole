@@ -3,11 +3,6 @@ from functools import partial
 import hubs.ha.hasshub as hasshub
 import logsupport
 
-IgnoreThese = (
-'sun', 'person', 'notifications', 'persistent_notification', 'zone', 'history_graph', 'updater', 'number',
-'configurator', 'weather', 'counter', 'camera', 'lock', 'alarm_control_panel',
-'device_tracker', 'vacuum', 'timer', 'alert', 'zwave_js', 'input_datetime', 'input_text',
-'select', 'button', 'update', 'calendar')
 IngoredEntities = {}
 
 
@@ -43,10 +38,10 @@ def AddIgnoredDomain(dom):
 
 
 hasshub.AddIgnoredDomain = AddIgnoredDomain
-hasshub.IgnoredDomains = IgnoreThese
+# hasshub.IgnoredDomains = IgnoreThese
 
 # logsupport.Logs.Log('Note: following HA domains are ignored by the console:')
-for d in IgnoreThese:
+for d in hasshub.IgnoredDomains:
 	#	logsupport.Logs.Log('     {}'.format(d))
 	reg = partial(IgnoredDomain, d)
 	IngoredEntities[d] = {}

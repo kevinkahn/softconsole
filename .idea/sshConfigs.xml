@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<project version="4">
-  <component name="SshConfigs">
-    <configs>
-      <sshConfig authType="PASSWORD" host="rpi-dev7x.pdxhome" id="7392566a-fa42-4216-935c-36d40ef28a01" port="22" nameFormat="DESCRIPTIVE" username="pi" useOpenSSHConfig="true" />
-    </configs>
-  </component>
-</project>

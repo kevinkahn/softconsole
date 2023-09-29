@@ -33,7 +33,7 @@ from configobj import ConfigObj, Section
 
 import config
 import debug
-import hubs.hubs
+
 import screens.__screens as screens
 from utils import timers, utilities, displayupdate, hw, exitutils, utilfuncs
 from stores import mqttsupport, valuestore, localvarsupport, sysstore
@@ -45,9 +45,7 @@ import configobjects
 import atexit
 
 from guicore import displayscreen
-import hubs.isy.isy as isy
-import hubs.ha.hasshub as hasshub
-import hubs.missing.missinghub as missinghub
+
 import logsupport
 from logsupport import ConsoleWarning, ConsoleError, ConsoleDetail
 
@@ -74,10 +72,6 @@ historybuffer.HBNet = historybuffer.HistoryBuffer(80, 'Net')
 
 atexit.register(exitutils.exitlogging)
 
-hubs.hubs.hubtypes['ISY'] = isy.ISY  # todo make dynamic load
-hubs.hubs.hubtypes['ISYDummy'] = isy.ISY
-hubs.hubs.hubtypes['HASS'] = hasshub.HA
-hubs.hubs.hubtypes['*missing*'] = missinghub.Hub
 
 # noinspection PyUnusedLocal
 def handler(signum, frame):
@@ -134,6 +128,17 @@ else:
 
 configdir = os.path.dirname(config.sysStore.configfile)
 config.sysStore.configdir = configdir
+
+# Wait to import/initialize hubs until config info above is set so can use (e.g., HA params)
+import hubs.hubs
+import hubs.isy.isy as isy
+import hubs.ha.hasshub as hasshub
+import hubs.missing.missinghub as missinghub
+
+hubs.hubs.hubtypes['ISY'] = isy.ISY
+hubs.hubs.hubtypes['ISYDummy'] = isy.ISY
+hubs.hubs.hubtypes['HASS'] = hasshub.HA
+hubs.hubs.hubtypes['*missing*'] = missinghub.Hub
 
 try:
 	with open('{}/versioninfo'.format(config.sysStore.ExecDir)) as f:

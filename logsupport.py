@@ -35,8 +35,9 @@ class TempLogger(object):
 		global EarlyLog
 		# entry = "".join([unicode(i) for i in args])
 		entry = "".join([str(i) for i in args])
+		sev = 3 if 'severity' not in kwargs else kwargs['severity']
 		if not isinstance(entry, str): entry = entry.encode('UTF-8', errors='backslashreplace')
-		EarlyLog.append((time.strftime('%m-%d-%y %H:%M:%S'), entry))
+		EarlyLog.append((time.strftime('%m-%d-%y %H:%M:%S'), entry, sev))
 		safeprint(" " + entry)
 
 
@@ -362,7 +363,7 @@ class Logger(object):
 	def CopyEarly():
 		LoggerQueue.put((Command.LogEntry, 3, '-----Copy of PreLog Entries-----', '-----------------'))
 		for ent in EarlyLog:
-			LoggerQueue.put((Command.LogEntry, 3, ent[1], ent[0]))
+			LoggerQueue.put((Command.LogEntry, ent[2], ent[1], ent[0]))
 		LoggerQueue.put((Command.LogEntry, 3, '-----End of PreLog Entries------', '-----------------'))
 
 	def Log(self, *args, **kwargs):

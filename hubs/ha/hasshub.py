@@ -25,16 +25,31 @@ from utils.utilfuncs import safeprint, safeprintnd
 AddIgnoredDomain: Union[Callable, None] = None  # type Union[Callable, None]
 IgnoredDomains = []
 # above gets filled in by ignore to avoid import loop
-# todo should read this from an easily updated place
-ignoredeventtypes = [
-	'system_log_event', 'service_executed', 'logbook_entry', 'timer_out_of_sync', 'result',
-	'persistent_notifications_updated', 'automation_triggered', 'script_started', 'service_removed', 'hacs/status',
-	'hacs/repository', 'hacs/config', 'entity_registry_updated', 'component_loaded', 'device_registry_updated',
-	'entity_registry_updated', 'lovelace_updated', 'isy994_control', 'core_config_updated', 'homeassistant_start',
-	'config_entry_discovered', 'automation_reloaded', 'hacs/stage', 'hacs/reload', 'zwave_js_value_notification',
-	'event_template_reloaded', 'panels_updated', 'data_entry_flow_progressed', 'scene_reloaded',
-	'area_registry_updated', 'keymaster_lock_state_changed', 'zwave_js_notification', 'repairs_issue_registry_updated',
-	'amcrest', 'recorder_hourly_statistics_generated', 'recorder_5min_statistics_generated']
+
+with open(config.sysStore.configdir + '/HAparameters.txt') as f:
+	HAparams = f.read().splitlines()
+
+unknownparams = {}
+curparams = []
+ignoredeventtypes = []
+
+for lorig in HAparams:
+	l = lorig.strip()
+	if l[0] == '[':
+		if 'IgnoredEventTypes' in l:
+			curparams = []
+			ignoredeventtypes = curparams
+		elif 'IgnoredDomains' in l:
+			curparams = []
+			IgnoredDomains = curparams
+		else:
+			curparams = []
+			unknownparams[l] = curparams
+	else:
+		curparams.append(l)
+
+if unknownparams != {}: logsupport.Logs.Log('Junk in HAparameters file: {}'.format(unknownparams),
+											severity=logsupport.ConsoleWarning)
 
 
 def stringtonumeric(v):

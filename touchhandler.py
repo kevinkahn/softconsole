@@ -327,11 +327,13 @@ class Touchscreen(object):
 		global ABS_MT_POSITION_Y, ABS_MT_POSITION_X
 		dev = 'unknown'
 		usedev = 'unknown'
+		possibletouchdevs = []
 		# return '/dev/input/touchscreen'
 		for evdev in glob.glob("/sys/class/input/event*"):
 			try:
 				with io.open(os.path.join(evdev, 'device', 'name'), 'r') as f:
 					basedev = f.read().strip()  # todo should make this all lower for even simpler match
+					possibletouchdevs.append(basedev)
 					dev = basedev + '.' + self.touchmod if self.touchmod != '' else basedev
 					if dev in self.touchdefs:
 						usedev = dev
@@ -341,7 +343,7 @@ class Touchscreen(object):
 								targbase = l.split(".")[0][1:]
 								# print('Try targ {} in {}'.format(targbase, basedev))
 								if targbase in basedev:
-									usedev = '*' + targbase + '.' + self.touchmod
+									usedev = '*' + targbase + '.' + self.touchmod if self.touchmod != '' else '*' + targbase
 							# print('Use {}'.format(usedev))
 					# print('Touchinfo: {}, {}, {}:  {} '.format(basedev, dev, usedev, self.touchdefs[usedev]))
 
@@ -379,7 +381,7 @@ class Touchscreen(object):
 			except IOError as e:
 				if e.errno != errno.ENOENT:
 					raise
-		raise RuntimeError('Unable to locate touchscreen device ({})'.format(dev))
+		raise RuntimeError('Unable to locate touchscreen device ({})'.format(possibletouchdevs))
 
 	def read(self):
 		return next(iter(self))
