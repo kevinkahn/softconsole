@@ -35,18 +35,7 @@ SecondaryChain = Portland, Pumpkin, La Quinta
 	At = 6:00am
 	Invoke = AssignVar.Assign
 	Parameter = System:DimLevel = 50
-	[[DimAway]]
-	Type = NodeChange
-	Node = HASS:input_boolean.home
-	Test = ISFALSE
-	Invoke = AssignVar.Assign
-	Parameter = System:DimLevel = 5
-	[[DimHome]]
-	Type = NodeChange
-	Node = HASS:input_boolean.home
-	Test = ISTRUE
-	Invoke = AssignVar.Assign
-	Parameter = System:DimLevel = 100
+
 
    [[LXPanel]]
          Type = Periodic

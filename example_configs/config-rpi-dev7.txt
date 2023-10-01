@@ -80,7 +80,7 @@ NavKeyAlpha = 50
 	Type = Periodic
 	At = 11:00pm
 	Invoke = AssignVar.Assign
-	Parameter = System:DimLevel = 5
+	Parameter = System:DimLevel = 20
 	[[AdjustScreenDimUp]]
 	Type = Periodic
 	At = 7:00am

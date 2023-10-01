@@ -15,3 +15,14 @@ HomeScreenName = Condo
 MainChain = Condo, pdxLRScenes, Pumpkin, Portland, La Quinta
 
 
+[Alerts]
+    [[AdjustScreenDim]]
+	Type = Periodic
+	At = 11:00pm
+	Invoke = AssignVar.Assign
+	Parameter = System:DimLevel = 15
+	[[AdjustScreenDimUp]]
+	Type = Periodic
+	At = 6:00am
+	Invoke = AssignVar.Assign
+	Parameter = System:DimLevel = 50
