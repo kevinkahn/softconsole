@@ -24,7 +24,6 @@ cd /home/pi
 LogBanner "This is the system setup script"
 
 pip3 install wget
-
 wget https://raw.githubusercontent.com/kevinkahn/softconsole/master/getinstallinfo.py
 
 python getinstallinfo.py
@@ -38,19 +37,6 @@ apt-get update
 DEBIAN_FRONTEND=noninteractive apt-get -y upgrade
 
 source installvals
-
-#LogBanner "Fix Keyboard"
-#echo "
-# Softconsole setup forced keyboard setting for US Standard
-# Consult the keyboard(5) manual page.
-#XKBMODEL=\"pc105\"
-#XKBLAYOUT=\"us\"
-#XKBVARIANT=\"\"
-#XKBOPTIONS=\"\"
-#BACKSPACE=\"guess\"
-#" >/etc/default/keyboard
-#invoke-rc.d keyboard-setup start
-udevadm trigger --subsystem-match=input --action=change
 
 LogBanner "Changing Node Name to: $NodeName"
 mv -n /etc/hosts /etc/hosts.orig
@@ -69,10 +55,6 @@ systemctl enable vncserverpi
 #/etc/vnc/vncservice start vncserver-virtuald
 
 cd /home/pi
-
-#if [ $Buster == 'N' ]; then
-#  sed -isav s/fb0/fb1/ /usr/share/X11/xorg.conf.d/99-fbturbo.conf
-#fi
 
 LogBanner "Run screen specific install code"
 source installscreencode

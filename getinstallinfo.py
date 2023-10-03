@@ -72,14 +72,16 @@ def AddToScript(varset, value):
 
 def adafruit(scr, rotation):
 	return ["echo Adafruit {} screen\n".format(scr),
-			"apt-get update",
-			"apt-get install -y git python3-pip",
-			"pip3 install --upgrade adafruit-python-shell click",
-			"git clone https://github.com/adafruit/Raspberry-Pi-Installer-Scripts.git",
-			"cd Raspberry-Pi-Installer-Scripts",
+			# below from https://learn.adafruit.com/adafruit-pitft-3-dot-5-touch-screen-for-raspberry-pi/easy-install-2
+			# apt-get update done early in install script
+			# apt-get install -y git python3-pip\n  done earlier
+			"pip3 install --upgrade adafruit-python-shell click\n",
+			"git clone https://github.com/adafruit/Raspberry-Pi-Installer-Scripts.git\n",
+			"cd Raspberry-Pi-Installer-Scripts\n",
 			"python ./adafruit-pitft.py --display={} --rotation={} --reboot=no --install-type=console \n".format(scr,
 																												 rotation),
-			"mv Raspberry-Pi-Installer-Scripts .consoleinstallleftovers"]
+			'cd ..\n'
+			'mv Raspberry-Pi-Installer-Scripts .consoleinstallleftovers\n']
 
 
 # noinspection PyUnusedLocal
@@ -145,10 +147,14 @@ if beta:
 screentype = '--'
 
 # adafruit script rotations {'28r': 4, '28c': 2, '35r': 4}
-screeninstallcode = {'28r': p(adafruit, '28r', 0), '28c': p(adafruit, '28c', 0), '35r': p(adafruit, '35r', 0),
+screeninstallcode = {'28r': p(adafruit, '28r', 0), '28c': p(adafruit, '28c', 180), '35r': p(adafruit, '35r', 0),
 					 'pi7': p(doflip, 'pi7'), '5incap': p(doflip, 'pi7'), '--': p(noscreen, '--')}
-supportedscreens = screeninstallcode.keys() - '--'
+
+supportedscreens = list(screeninstallcode.keys())
+supportedscreens.remove('--')
+
 baseorientation = {'28c': 'power on left',
+				   '28r': 'power on left',
 				   '35r': 'power on left',
 				   'pi7': 'power at bottom',
 				   '5incap': 'power at top',
