@@ -23,7 +23,6 @@ exec 2>&1
 cd /home/pi
 LogBanner "This is the system setup script"
 
-pip3 install --upgrade pip
 pip3 install wget
 
 wget https://raw.githubusercontent.com/kevinkahn/softconsole/master/getinstallinfo.py
@@ -40,17 +39,17 @@ DEBIAN_FRONTEND=noninteractive apt-get -y upgrade
 
 source installvals
 
-LogBanner "Fix Keyboard"
-echo "
+#LogBanner "Fix Keyboard"
+#echo "
 # Softconsole setup forced keyboard setting for US Standard
 # Consult the keyboard(5) manual page.
-XKBMODEL=\"pc105\"
-XKBLAYOUT=\"us\"
-XKBVARIANT=\"\"
-XKBOPTIONS=\"\"
-BACKSPACE=\"guess\"
-" >/etc/default/keyboard
-invoke-rc.d keyboard-setup start
+#XKBMODEL=\"pc105\"
+#XKBLAYOUT=\"us\"
+#XKBVARIANT=\"\"
+#XKBOPTIONS=\"\"
+#BACKSPACE=\"guess\"
+#" >/etc/default/keyboard
+#invoke-rc.d keyboard-setup start
 udevadm trigger --subsystem-match=input --action=change
 
 LogBanner "Changing Node Name to: $NodeName"
@@ -88,7 +87,6 @@ else
 fi
 
 rm githubutil.*
-mv adafruit* .consoleinstallleftovers
 mv getinstallinfo.py .consoleinstallleftovers
 mv installvals .consoleinstallleftovers
 mv installscreencode .consoleinstallleftovers

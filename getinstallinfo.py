@@ -1,9 +1,5 @@
-import sys, time, os, wget, stat, shutil, subprocess
+import sys, time, os, wget, shutil, subprocess
 from functools import partial as p
-
-neededfiles = {'adafruit-pitft-touch-cal': 'https://raw.githubusercontent.com/adafruit/Adafruit-PiTFT-Helper/master/',
-			   'adafruit-pitft.py': 'https://raw.githubusercontent.com/adafruit/Raspberry-Pi-Installer-Scripts/master/'}
-#			   'adafruit-pitft.sh': 'https://raw.githubusercontent.com/adafruit/Raspberry-Pi-Installer-Scripts/master/'}
 
 gitselector = {'stable': 'currentrelease', 'personal': 'homerelease', 'beta': 'currentbeta'}
 gitprefix = 'https://raw.githubusercontent.com/kevinkahn/softconsole/'
@@ -75,37 +71,15 @@ def AddToScript(varset, value):
 
 
 def adafruit(scr, rotation):
-	# fin = open('/home/pi/adafruit-pitft.sh')
-	# displays = []
-	# while not displays:
-	#	line = fin.readline()
-	#	if line.startswith('PITFT_TYPES='):
-	#		displays = line[line.index('(') + 1: line.index(')')].replace('"', '').split(' ')
-	#	else:
-	#		pass
-	# fin.close()
-
-	# noinspection PyBroadException
-	# try:
-	#	dnum = displays.index(scr) + 1
-	# except:
-	#	print('Screen name not found in Adafruit scripts - report to developer!')
-	#	sys.exit(1)
-	# fout = open('adafinput', 'w')
-	# fout.write(str(dnum) + '\n')
-	# fout.write(str(rotation) + '\n')
-	# fout.write('Y\n')  # pi console to pitft
-	# fout.write('N\n')  # don't reboot
-	# fout.close()
-	# return ["echo Adafruit {} screen\n".format(scr),
-	#		"./adafruit-pitft.sh < adafinput\n",
-	#		"raspi-config nonint do_boot_behaviour B4 # set boot to desktop already logged in\n"]
 	return ["echo Adafruit {} screen\n".format(scr),
-			"pip3 install Click==7.0\n",
-			"pip3 install adafruit-python-shell\n",
-			"python ./adafruit-pitft.py --display {} --rotation {} --reboot no --install-type console \n".format(scr,
+			"apt-get update",
+			"apt-get install -y git python3-pip",
+			"pip3 install --upgrade adafruit-python-shell click",
+			"git clone https://github.com/adafruit/Raspberry-Pi-Installer-Scripts.git",
+			"cd Raspberry-Pi-Installer-Scripts",
+			"python ./adafruit-pitft.py --display={} --rotation={} --reboot=no --install-type=console \n".format(scr,
 																												 rotation),
-			"raspi-config nonint do_boot_behaviour B4 # set boot to desktop already logged in\n"]
+			"mv Raspberry-Pi-Installer-Scripts .consoleinstallleftovers"]
 
 
 # noinspection PyUnusedLocal
@@ -133,17 +107,6 @@ piinstall = len(sys.argv) == 1
 shutil.rmtree('.consoleinstallleftovers', ignore_errors=True)
 os.mkdir('.consoleinstallleftovers')
 
-if piinstall:
-	for n, loc in neededfiles.items():
-		# noinspection PyBroadException
-		try:
-			os.remove(n)
-		except Exception:
-			pass
-		print(loc + n, n)
-		wget.download(loc + n, n, bar=None)
-		os.chmod(n, stat.S_IXUSR)
-
 print("**************************************************************", flush=True)
 print("**************************************************************", flush=True)
 print(" Will now collect all necessary configuration information", flush=True)
@@ -168,20 +131,23 @@ AddToScript('Personal', personal)
 
 selectbeta = False
 beta = GetYN("Download current beta as well as stable? (usually waste of time)")
-if beta: selectbeta = GetYN("Set beta as version to run?")
+if beta:
+	selectbeta = GetYN("Set beta as version to run?")
 
 # AddToScript('InstallBeta', beta)
 AddToScript('AutoConsole', GetYN("Autostart console (Y/N)?"))
 AddToScript('Reboot', GetYN("Automatically reboot to clean system after install?"))
 
 GetScripts('personal' if personal else 'stable')
-if beta: GetScripts('beta', save=('personal' if personal else 'stable'))
+if beta:
+	GetScripts('beta', save=('personal' if personal else 'stable'))
 
 screentype = '--'
-supportedscreens = ('28r', '28c', '35r', 'pi7', '5incap')
+
 # adafruit script rotations {'28r': 4, '28c': 2, '35r': 4}
-screeninstallcode = {'28r': p(adafruit, '28r', 4), '28c': p(adafruit, '28c', 2), '35r': p(adafruit, '35r', 4),
+screeninstallcode = {'28r': p(adafruit, '28r', 0), '28c': p(adafruit, '28c', 0), '35r': p(adafruit, '35r', 0),
 					 'pi7': p(doflip, 'pi7'), '5incap': p(doflip, 'pi7'), '--': p(noscreen, '--')}
+supportedscreens = screeninstallcode.keys() - '--'
 baseorientation = {'28c': 'power on left',
 				   '35r': 'power on left',
 				   'pi7': 'power at bottom',
@@ -213,7 +179,8 @@ if screentype in baseorientation:
 	print("     2: 180 degrees counterclockwise (vertical flip)")
 	print("     3: 270 degrees counterclockwise")
 	rot = GetInt('Rotation option:', (0, 1, 2, 3, 4))
-	if rot != 0: installsrc.append('echo Soft rotation code {}\n'.format(rot))
+	if rot != 0:
+		installsrc.append('echo Soft rotation code {}\n'.format(rot))
 
 screentp = screentype + 'B' if Buster else screentype
 
@@ -238,6 +205,7 @@ exswitch = ""
 
 MinExampHA = GetYN("Set up minimal Home Assistant example system?")  # if not MinExampISY else False
 
+HAexswitch = 'unknown'
 if MinExampHA:
 	go = False
 	while not go:
@@ -262,7 +230,8 @@ with open('versionselector', 'w') as f:
 
 dirs = ['Console', 'consolestable', 'consolebeta', 'consolerem', 'consoledev', 'Console', 'Console/cfglib',
 		'Console/.HistoryBuffer']
-if personal: dirs.append('consolecur')
+if personal:
+	dirs.append('consolecur')
 for pdir in dirs:
 	# noinspection PyBroadException
 	try:
