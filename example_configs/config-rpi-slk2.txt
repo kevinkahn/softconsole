@@ -23,7 +23,7 @@ SecondaryChain = Portland, La Quinta
 	Parameter = System:DimLevel = 15
 [[AdjustScreenDimUp]]
 	Type = Periodic
-	At = 6:00am
+	At = 6:30am
 	Invoke = AssignVar.Assign
 	Parameter = System:DimLevel = 50
 #[[DimAway]]
