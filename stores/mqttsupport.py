@@ -102,6 +102,7 @@ class MQTTBroker(valuestore.ValueStore):
 					issuecommands.IssueCommand(self.name, cmd, seq, fromnd, param=cmdparam)
 					return
 				elif msgtopic in ('consoles/all/set', 'consoles/' + hw.hostname + '/set'):
+					# e.g. to set DimLevel publish to consoles/rpi-kck5/set with json: {"name": "System:DimLevel", "value": 20}
 					d = json.loads(CheckPayload(msg.payload.decode('ascii'), msgtopic, 'mqtt-consoles-set'))
 					try:
 						logsupport.Logs.Log('{}: set {} = {}'.format(self.name, d['name'], d['value']))

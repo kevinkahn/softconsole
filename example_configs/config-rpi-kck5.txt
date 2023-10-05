@@ -1,7 +1,7 @@
 cfglib = cfglib
 include = /home/pi/Console/local/authall.cfg, pdxalerts.cfg, pdxBR.cfg, pdxBR2.cfg, pdxshadeswest.cfg, pdxshadesnorthbath.cfg, condotstats.cfg,weathPump.cfg,weathPDX.cfg,weathLQ.cfg, myclock.cfg,timetempLQ.cfg,timetempPDX.cfg, mqtt.cfg, weathersources.cfg, #octoprint.cfg
 HomeScreenName = BR
-DimLevel = 50
+DimLevel = 46
 DimTO = 25
 DimIdleListNames = MyClock, LQTT, TimeTemp
 DimIdleListTimes = 8,8,8
@@ -46,12 +46,12 @@ SecondaryChain = Portland, Pumpkin, La Quinta
 	Node = HASS:input_boolean.home
 	Test = ISTRUE
 	Invoke = AssignVar.Assign
-	Parameter = System:DimLevel = 50
+	Parameter = System:DimLevel = 45
 
-   [[LXPanel]]
-         Type = Periodic
-         Interval = 24 hours
-         Invoke = LXPanelRestart.LXPanelRestart
+#  [[LXPanel]]
+#         Type = Periodic
+#         Interval = 24 hours
+#         Invoke = LXPanelRestart.LXPanelRestart
 
 [InternetAlertScreen]
     type = Alert

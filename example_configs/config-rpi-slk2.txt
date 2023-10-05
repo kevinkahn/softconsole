@@ -20,19 +20,19 @@ SecondaryChain = Portland, La Quinta
 	Type = Periodic
 	At = 11:00pm
 	Invoke = AssignVar.Assign
-	Parameter = System:DimLevel = 15
+	Parameter = System:DimLevel = 2
 [[AdjustScreenDimUp]]
 	Type = Periodic
 	At = 6:30am
 	Invoke = AssignVar.Assign
-	Parameter = System:DimLevel = 50
+	Parameter = System:DimLevel = 40
 #[[DimAway]]
 #	Type = VarChange
 #	Var = ISY:Int:HA_AwayNonState
 #	Test = EQ
 #	Value = 1
 #	Invoke = AssignVar.Assign
-#	Parameter = System:DimLevel = 5
+#	Parameter = System:DimLevel = 0
 
 #[[DimHome]]
 #	Type = VarChange
@@ -40,5 +40,5 @@ SecondaryChain = Portland, La Quinta
 #	Test = EQ
 #	Value = 0
 #	Invoke = AssignVar.Assign
-#	Parameter = System:DimLevel = 50
+#	Parameter = System:DimLevel = 40
 
