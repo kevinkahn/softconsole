@@ -91,7 +91,7 @@ NavKeyAlpha = 50
 #	Node = HASS:input_boolean.home
 #	Test = ISFALSE
 #	Invoke = AssignVar.Assign
-#	Parameter = System:DimLevel = 5
+#	Parameter = System:DimLevel = 0
 #	[[DimHome]]
 #	Type = NodeChange
 #	Node = HASS:input_boolean.home

@@ -4,7 +4,8 @@ import socket
 import config
 
 import pygame
-import wiringpi
+# import wiringpi
+import RPi.GPIO as GPIO
 
 disklogging = True
 
@@ -103,10 +104,7 @@ def initOS(scrntyp, configdir):
 	os.environ['SDL_FBDEV'] = screendev
 	os.environ['SDL_VIDEODRIVER'] = screendefs[screentype][1]
 	DimType = screendefs[screentype][2]
-	#	with open('/home/pi/check', 'w') as f:
-	#		f.write('{}\n'.format(wiringpi.__file__))
-	#		f.write('{}\n'.format(dir(wiringpi)))
-	#		f.write('{}\n'.format(len(dir(wiringpi))))
+
 	if DimType in ('PWM18', 'PWM19'):
 		if DimType == 'PWM18':
 			dimpin = 18
@@ -118,10 +116,12 @@ def initOS(scrntyp, configdir):
 				f.write('0')
 		except:
 			pass
-		wiringpi.wiringPiSetupGpio()
-		wiringpi.pinMode(dimpin, 2)
-		wiringpi.pwmSetMode(wiringpi.PWM_MODE_MS)  # default balanced mode makes screen dark at about 853/1024
-		wiringpi.pwmWrite(dimpin, 1024)
+		GPIO.setmode(GPIO.BOARD)
+		GPIO.setup(dimpin, GPIO.OUT)
+	# wiringpi.wiringPiSetupGpio()
+	# wiringpi.pinMode(dimpin, 2)
+	# wiringpi.pwmSetMode(wiringpi.PWM_MODE_MS)  # default balanced mode makes screen dark at about 853/1024
+	#wiringpi.pwmWrite(dimpin, 1024)
 
 	# print('Screen: {}  Device: {} Driver: {} Dim: {}'.format(screentype, os.environ['SDL_FBDEV'],
 	#														 os.environ['SDL_VIDEODRIVER'], DimType))
@@ -138,8 +138,11 @@ def initOS(scrntyp, configdir):
 
 
 def GoDimPWM(level):
-	# This version of hw uses the real hw pwm for screen dimming - much better appearance
-	wiringpi.pwmWrite(dimpin, int((level * 1024) // 100))
+	pass
+
+
+# This version of hw uses the real hw pwm for screen dimming - much better appearance
+#wiringpi.pwmWrite(dimpin, int((level * 1024) // 100))
 
 
 def GoDimPi7(level):

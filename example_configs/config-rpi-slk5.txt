@@ -1,0 +1,44 @@
+cfglib = cfglib
+include = /home/pi/Console/local/auth.cfg, picscreen.cfg, weathLQ.cfg, weathPDX.cfg,timetempPDX.cfg,pdxBR.cfg, pdxBR2.cfg, pdxshadeswest.cfg, pdxshadesnorthbath.cfg, condotstats.cfg, mqtt.cfg, weathersources.cfg, timetempLQ.cfg, pdxalerts.cfg
+
+HomeScreenName = BR
+DimLevel = 40
+DimTO = 25
+
+DimIdleListNames = TimeTemp, LQTT, Pictures
+DimIdleListTimes =	5, 5, 45
+
+MainChain = BR, WestShades, NorthShades, BR2, TimeTemp, climate.air_conditionerbr_hvac, climate.air_conditionerlr_hvac
+SecondaryChain = Portland, La Quinta
+
+[Alerts]
+#[[LXPanel]]
+#         Type = Periodic
+#         Interval = 24 hours
+#         Invoke = LXPanelRestart.LXPanelRestart
+[[AdjustScreenDim]]
+	Type = Periodic
+	At = 11:00pm
+	Invoke = AssignVar.Assign
+	Parameter = System:DimLevel = 2
+[[AdjustScreenDimUp]]
+	Type = Periodic
+	At = 6:30am
+	Invoke = AssignVar.Assign
+	Parameter = System:DimLevel = 40
+#[[DimAway]]
+#	Type = VarChange
+#	Var = ISY:Int:HA_AwayNonState
+#	Test = EQ
+#	Value = 1
+#	Invoke = AssignVar.Assign
+#	Parameter = System:DimLevel = 0
+
+#[[DimHome]]
+#	Type = VarChange
+#	Var = ISY:Int:HA_AwayNonState
+#	Test = EQ
+#	Value = 0
+#	Invoke = AssignVar.Assign
+#	Parameter = System:DimLevel = 40
+

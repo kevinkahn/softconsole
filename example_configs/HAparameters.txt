@@ -35,6 +35,7 @@ repairs_issue_registry_updated
 amcrest
 recorder_hourly_statistics_generated
 recorder_5min_statistics_generated
+zha_event
 [IgnoredDomains]
 sun
 person
