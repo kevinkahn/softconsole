@@ -35,18 +35,19 @@ ignoredeventtypes = []
 
 for lorig in HAparams:
 	l = lorig.strip()
-	if l[0] == '[':
-		if 'IgnoredEventTypes' in l:
-			curparams = []
-			ignoredeventtypes = curparams
-		elif 'IgnoredDomains' in l:
-			curparams = []
-			IgnoredDomains = curparams
+	if len(l) > 0:
+		if l[0] == '[':
+			if 'IgnoredEventTypes' in l:
+				curparams = []
+				ignoredeventtypes = curparams
+			elif 'IgnoredDomains' in l:
+				curparams = []
+				IgnoredDomains = curparams
+			else:
+				curparams = []
+				unknownparams[l] = curparams
 		else:
-			curparams = []
-			unknownparams[l] = curparams
-	else:
-		curparams.append(l)
+			curparams.append(l)
 
 if unknownparams != {}: logsupport.Logs.Log('Junk in HAparameters file: {}'.format(unknownparams),
 											severity=logsupport.ConsoleWarning)
