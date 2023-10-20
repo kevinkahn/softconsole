@@ -1,7 +1,6 @@
 import functools
 
-import pygame
-from pygame import gfxdraw
+from guicore.screencallmanager import pg
 
 import debug
 import logsupport
@@ -58,9 +57,9 @@ class ThermostatScreenDesc(screen.BaseKeyScreenDesc):
 		sp = fonts.fonts.Font(self.fsize[2]).render("{:2d}".format(99), 0, wc(self.CharColor))
 		self.SPHgt = sp.get_height()
 		self.SPWdt = sp.get_width()
-		self.SetPointSurf = pygame.Surface((self.SPWdt, self.SPHgt))
+		self.SetPointSurf = pg.Surface((self.SPWdt, self.SPHgt))
 		self.SetPointSurf.fill(wc(self.BackgroundColor))
-		self.AdjButSurf = pygame.Surface((hw.screenwidth, scaleH(self.spacer[3])))
+		self.AdjButSurf = pg.Surface((hw.screenwidth, scaleH(self.spacer[3])))
 		self.AdjButTops = self.SPVPos + fonts.fonts.Font(self.fsize[2]).get_linesize() - scaleH(self.spacer[0])
 		centerspacing = hw.screenwidth // 5
 		self.SPHPosL = int(1.5 * centerspacing)
@@ -83,8 +82,8 @@ class ThermostatScreenDesc(screen.BaseKeyScreenDesc):
 		self.TimerName = 0
 
 		for i in range(4):
-			gfxdraw.filled_trigon(self.AdjButSurf, *trifromtop(centerspacing, arrowsize // 2, i + 1, arrowsize,
-															   wc(("red", "blue", "red", "blue")[i]), i % 2 != 0))
+			pg.gfxdraw.filled_trigon(self.AdjButSurf, *trifromtop(centerspacing, arrowsize // 2, i + 1, arrowsize,
+																  wc(("red", "blue", "red", "blue")[i]), i % 2 != 0))
 			self.Keys['temp' + str(i)] = toucharea.TouchPoint('temp' + str(i),
 															  (centerspacing * (i + 1),
 															   self.AdjButTops + arrowsize // 2),
@@ -129,7 +128,6 @@ class ThermostatScreenDesc(screen.BaseKeyScreenDesc):
 														wc(self.CharColor, factor=self.LocalOnly[0]))
 			hw.screen.blit(rL, (self.SPHPosL - self.SPWdt // 2, self.SPVPos))
 			displayupdate.updatedisplay()
-		# pygame.display.update(pygame.Rect(self.SPHPosL - self.SPWdt // 2, self.SPVPos, self.SPWdt, self.SPHgt))
 		else:
 			self.t_high += change
 			hw.screen.blit(self.SetPointSurf, (self.SPHPosR - self.SPWdt // 2, self.SPVPos))
@@ -137,7 +135,6 @@ class ThermostatScreenDesc(screen.BaseKeyScreenDesc):
 														wc(self.CharColor, factor=self.LocalOnly[1]))
 			hw.screen.blit(rH, (self.SPHPosR - self.SPWdt // 2, self.SPVPos))
 			displayupdate.updatedisplay()
-		# pygame.display.update(pygame.Rect(self.SPHPosR - self.SPWdt // 2, self.SPVPos, self.SPWdt, self.SPHgt))
 		self.TimerName += 1
 		self.TimeBumpSP = timers.OnceTimer(2.0, name='ThermostatSP' + str(self.TimerName), proc=self.PushTemp)
 		self.TimeBumpSP.start()

@@ -1,7 +1,7 @@
 ScreenType = 'Picture'
 from screens import screen
 import screens.__screens as screens
-import pygame
+from guicore.screencallmanager import pg
 import debug
 from utils import utilities, threadmanager, hw
 import time
@@ -55,7 +55,7 @@ class PictureScreenDesc(screen.ScreenDesc):
 
 		if self.NavKeyAlpha == -1: self.NavKeyAlpha = None
 		self.holdtime = 0
-		self.blankpic = (pygame.Surface((1, 1)), 1, 1)
+		self.blankpic = (pg.Surface((1, 1)), 1, 1)
 		self.picshowing = self.blankpic[0]
 		self.woffset = 1
 		self.hoffset = 1
@@ -129,7 +129,7 @@ class PictureScreenDesc(screen.ScreenDesc):
 						select += 1
 						try:
 							picdescr = (
-								pygame.image.load(self.cachedir + savpic), self.piccache[picture][1],
+								pg.image.load(self.cachedir + savpic), self.piccache[picture][1],
 								self.piccache[picture][2])
 						except Exception as E:
 							logsupport.Logs.Log(
@@ -148,10 +148,10 @@ class PictureScreenDesc(screen.ScreenDesc):
 								reportedpics.append(picture)
 							picdescr = self.blankpic
 						self.piccache[picture] = (pictime, picdescr[1], picdescr[2])
-						pygame.image.save(picdescr[0], self.cachedir + savpic)
+						pg.image.save(picdescr[0], self.cachedir + savpic)
 				self.picqueue.put((picture, picdescr), block=True)
 		except Exception as E:
-			logsupport.Logs.Log('{} picture handling thread exceptoin: {}'.format(self.name, E),
+			logsupport.Logs.Log('{} picture handling thread exception: {}'.format(self.name, E),
 								severity=ConsoleWarning)
 
 	def InitDisplay(self, nav):
@@ -163,7 +163,7 @@ class PictureScreenDesc(screen.ScreenDesc):
 
 	@staticmethod
 	def _preppic(pic):
-		rawp = pygame.image.load(pic)
+		rawp = pg.image.load(pic)
 		# noinspection PyBroadException
 		try:
 			# noinspection PyProtectedMember
@@ -171,7 +171,7 @@ class PictureScreenDesc(screen.ScreenDesc):
 		except Exception:
 			exif = 1
 		rot = [0, 0, 0, 180, 0, 0, 270, 0, 90][exif]
-		if rot != 0: rawp = pygame.transform.rotate(rawp, rot)
+		if rot != 0: rawp = pg.transform.rotate(rawp, rot)
 		ph = rawp.get_height()
 		pw = rawp.get_width()
 		vertratio = hw.screenheight / ph
@@ -183,7 +183,7 @@ class PictureScreenDesc(screen.ScreenDesc):
 			scalefac = vertratio
 		else:
 			scalefac = horizratio
-		picframed = pygame.transform.smoothscale(rawp, (int(scalefac * pw), int(scalefac * ph)))
+		picframed = pg.transform.smoothscale(rawp, (int(scalefac * pw), int(scalefac * ph)))
 		woffset = (hw.screenwidth - picframed.get_width()) // 2
 		hoffset = (hw.screenheight - picframed.get_height()) // 2
 		return picframed, woffset, hoffset

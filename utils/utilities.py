@@ -2,7 +2,8 @@ import collections
 import os
 import signal
 
-import pygame
+# import py-game
+from guicore.screencallmanager import pg
 
 import config
 import debug
@@ -34,8 +35,8 @@ def MarkErr(section):
 	ErroredConfigSections.append(section)
 
 
-# next several lines stolen from https://stackoverflow.com/questions/39198961/pygame-init-fails-when-run-with-systemd
-# this handles some weird random SIGHUP when initializing pygame, it's really a hack to work around it
+# next several lines stolen from https://stackoverflow.com/questions/39198961/py\game-init-fails-when-run-with-systemd
+# this handles some weird random SIGHUP when initializing py-game, it's really a hack to work around it
 # Not really sure what other ill effects this might have!!!
 def handler(signum, frame):
 	logsupport.DevPrint('Systemd signal hack raised {} {}'.format(signum, repr(frame)))
@@ -179,13 +180,13 @@ def InitializeEnvironment():
 								severity=logsupport.ConsoleWarning)
 			softrotate = 0
 		if softrotate == 0:  # use hardware orientation/rotation
-			hw.screen = pygame.display.set_mode((hw.screenwidth, hw.screenheight), pygame.FULLSCREEN)
+			hw.screen = pg.display.set_mode((0, 0), pg.FULLSCREEN)
 		else:  # use software rotation
-			hw.realscreen = pygame.display.set_mode((hw.screenwidth, hw.screenheight), pygame.FULLSCREEN)
+			hw.realscreen = pg.display.set_mode((0, 0), pg.FULLSCREEN)
 			if softrotate in (1, 3):
 				hw.screenwidth, hw.screenheight = hw.screenheight, hw.screenwidth
 
-			hw.screen = pygame.Surface((hw.screenwidth, hw.screenheight))
+			hw.screen = pg.Surface((hw.screenwidth, hw.screenheight))
 
 			displayupdate.initdisplayupdate(softrotate)
 
@@ -197,8 +198,10 @@ def InitializeEnvironment():
 		raise KeyboardInterrupt  # HACK
 
 	hw.screen.fill((0, 0, 0))  # clear screen
-	pygame.display.update()
-	pygame.mouse.set_visible(False)  # no cursor
+	print('A')
+	pg.display.update()
+	print('B')
+	pg.mouse.set_visible(False)  # no cursor
 
 
 def DumpDocumentation():

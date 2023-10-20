@@ -1,7 +1,6 @@
 import functools
 
-import pygame
-from pygame import gfxdraw
+from guicore.screencallmanager import pg
 
 import debug
 import logsupport
@@ -58,11 +57,11 @@ class ThermostatScreen2Desc(screen.BaseKeyScreenDesc):
 		sp = fonts.fonts.Font(self.fsize[2]).render("{:2d}".format(99), 0, wc(self.CharColor))
 		self.SPHgt = sp.get_height()
 		self.SPWdt = sp.get_width()
-		self.SetPointSurf = pygame.Surface((self.SPWdt, self.SPHgt))
+		self.SetPointSurf = pg.Surface((self.SPWdt, self.SPHgt))
 		self.SetPointSurf.fill(wc(self.BackgroundColor))
 		self.AdjButSurf = None
-		self.AdjButSurfR = pygame.Surface((hw.screenwidth, scaleH(self.spacer[3])))
-		self.AdjButSurfC = pygame.Surface((hw.screenwidth, scaleH(self.spacer[3])))
+		self.AdjButSurfR = pg.Surface((hw.screenwidth, scaleH(self.spacer[3])))
+		self.AdjButSurfC = pg.Surface((hw.screenwidth, scaleH(self.spacer[3])))
 		self.AdjButTops = self.SPVPos + fonts.fonts.Font(self.fsize[2]).get_linesize() - scaleH(self.spacer[0])
 		centerspacing = hw.screenwidth // 5
 		self.SPHPosL = int(1.5 * centerspacing)
@@ -90,8 +89,8 @@ class ThermostatScreen2Desc(screen.BaseKeyScreenDesc):
 		self.KeysR = {}
 
 		for i in range(4):
-			gfxdraw.filled_trigon(self.AdjButSurfR, *trifromtop(centerspacing, arrowsize // 2, i + 1, arrowsize,
-																wc(("red", "blue", "red", "blue")[i]), i % 2 != 0))
+			pg.gfxdraw.filled_trigon(self.AdjButSurfR, *trifromtop(centerspacing, arrowsize // 2, i + 1, arrowsize,
+																   wc(("red", "blue", "red", "blue")[i]), i % 2 != 0))
 			self.KeysR['temp' + str(i)] = toucharea.TouchPoint('temp' + str(i),
 															   (centerspacing * (i + 1),
 																self.AdjButTops + arrowsize // 2),
@@ -101,8 +100,8 @@ class ThermostatScreen2Desc(screen.BaseKeyScreenDesc):
 																					  (1, -1, 1, -1)[i]))
 
 		for i in range(2):
-			gfxdraw.filled_trigon(self.AdjButSurfC, *trifromtop(centerspacing, arrowsize // 2, i + 2, arrowsize,
-																wc(("red", "blue")[i]), i % 2 != 0))
+			pg.gfxdraw.filled_trigon(self.AdjButSurfC, *trifromtop(centerspacing, arrowsize // 2, i + 2, arrowsize,
+																   wc(("red", "blue")[i]), i % 2 != 0))
 			self.KeysC['temp' + str(i)] = toucharea.TouchPoint('temp' + str(i),
 															   (centerspacing * (i + 2),
 																self.AdjButTops + arrowsize // 2),

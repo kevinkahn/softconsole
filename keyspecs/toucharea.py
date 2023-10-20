@@ -1,5 +1,6 @@
-import pygame
+# import py-game
 import inspect
+from guicore.screencallmanager import pg
 
 import logsupport
 from logsupport import ConsoleWarning
@@ -106,16 +107,16 @@ class ManualKeyDesc(TouchPoint):
 	def __init__(self, *args, **kwargs):
 		self.State = True
 		self.UnknownState = False
-		self.KeyBlankImage = None  # type: typing.Union[pygame.Surface, None]
-		self.KeyUnknownOverlay = None  # type: typing.Union[pygame.Surface, None]
+		self.KeyBlankImage = None  # type: typing.Union[pg.Surface, None]
+		self.KeyUnknownOverlay = None  # type: typing.Union[pg.Surface, None]
 		self.userstore = None
 		self.BlinkTimer = None
 		self.BlinkState = 0  # 0: not blinking 1: blink on 2: blink off
 		self.usekeygaps = True
 		self.VerifyScreen = None  # set later by caller if needed
-		self.KeyImage = None  # type: typing.Union[pygame.Surface, None]
+		self.KeyImage = None  # type: typing.Union[pg.Surface, None]
 		self.LastImageValid = False
-		self.LastImage = None  # type: typing.Union[pygame.Surface, None]
+		self.LastImage = None  # type: typing.Union[pg.Surface, None]
 		self.displayoptions = []
 		self.defoption = None
 		self.KeyAlpha = None
@@ -380,10 +381,10 @@ class ManualKeyDesc(TouchPoint):
 		self.BlinkState = 0
 
 	def _BuildKeyImage(self, color, buttonsmaller, outlineclr):
-		temp = pygame.Surface(self.GappedSize)
-		pygame.draw.rect(temp, color, ((0, 0), self.Size), 0)
+		temp = pg.Surface(self.GappedSize)
+		pg.draw.rect(temp, color, ((0, 0), self.Size), 0)
 		bord = self.KeyOutlineOffset
-		pygame.draw.rect(temp, wc(outlineclr), ((scaleW(bord), scaleH(bord)), buttonsmaller), bord)
+		pg.draw.rect(temp, wc(outlineclr), ((scaleW(bord), scaleH(bord)), buttonsmaller), bord)
 		return temp
 
 	def BuildDynKey(self, val, firstfont, shrink, fields):
@@ -432,11 +433,11 @@ class ManualKeyDesc(TouchPoint):
 		self.KeyBlankImage = self._BuildKeyImage(wc(self.Screen.BackgroundColor), buttonsmaller,
 												 wc(outlncolor))  # self.Screen.BackgroundColor))
 
-		self.KeyUnknownOverlay = pygame.Surface(self.GappedSize)
-		pygame.draw.line(self.KeyUnknownOverlay, wc(self.KeyCharColorOn), (0, 0), self.GappedSize,
-						 self.KeyOutlineOffset)
-		pygame.draw.line(self.KeyUnknownOverlay, wc(self.KeyCharColorOn), (0, self.GappedSize[1]),
-						 (self.GappedSize[0], 0), self.KeyOutlineOffset)
+		self.KeyUnknownOverlay = pg.Surface(self.GappedSize)
+		pg.draw.line(self.KeyUnknownOverlay, wc(self.KeyCharColorOn), (0, 0), self.GappedSize,
+					 self.KeyOutlineOffset)
+		pg.draw.line(self.KeyUnknownOverlay, wc(self.KeyCharColorOn), (0, self.GappedSize[1]),
+					 (self.GappedSize[0], 0), self.KeyOutlineOffset)
 		self.KeyUnknownOverlay.set_alpha(128)
 
 		fontchoice = self.FindFontSize(lab2, firstfont, shrink)

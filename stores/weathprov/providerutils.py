@@ -1,5 +1,6 @@
 import json
-import pygame
+# import py-game
+from guicore.screencallmanager import pg
 
 import config
 import logsupport
@@ -46,7 +47,8 @@ GenericShortener = {
 
 NoiseItems = (' throughout the day', '.')
 
-MissingIcon = pygame.Surface((64, 64)).fill((128, 128, 128))
+MissingIcon = pg.Surface((64, 64))
+MissingIcon.fill((128, 128, 128))
 
 
 def TryShorten(term):

@@ -3,7 +3,7 @@ from collections import OrderedDict
 from dataclasses import dataclass
 from random import random
 
-import pygame
+from guicore.screencallmanager import pg
 import json
 import queue
 from utils import threadmanager
@@ -24,9 +24,9 @@ icon/icon cache - should different sources have different caches?  Different ico
 CondFields = (
 	('Time', str), ('Location', str), ('Temp', float), ('Sky', str), ('Feels', float), ('WindDir', str),
 	('WindMPH', float), ('WindGust', int), ('Sunrise', str), ('Sunset', str), ('Moonrise', str),
-	('Moonset', str), ('Humidity', str), ('Icon', pygame.Surface), ('TimeEpoch', int), ('Age', None))
+	('Moonset', str), ('Humidity', str), ('Icon', pg.Surface), ('TimeEpoch', int), ('Age', None))
 FcstFields = (('Day', str), ('High', float), ('Low', float), ('Sky', str), ('WindSpd', float), ('WindDir', str),
-			  ('Icon', pygame.Surface))
+			  ('Icon', pg.Surface))
 CommonFields = (('FcstDays', int), ('FcstEpoch', int), ('FcstDate', str))
 
 CacheUser = {}  # index by provider to dict that indexes by location that points to instance

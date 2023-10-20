@@ -3,7 +3,8 @@ import subprocess
 import sys
 import time
 
-import pygame
+# import py-game
+from guicore.screencallmanager import pg
 
 import config
 import historybuffer
@@ -11,7 +12,6 @@ import logsupport
 from utils import timers, fonts, displayupdate, hw
 from logsupport import ConsoleError
 from utils.utilfuncs import *
-
 
 # Exit Codes:
 # 1x: shutdown console (don't restart in systemd or script)
@@ -77,7 +77,7 @@ def EarlyAbort(scrnmsg, screen=True):
 	time.sleep(10)
 	logsupport.Logs.livelog = False
 	timers.ShutTimers(scrnmsg)
-	pygame.quit()
+	pg.quit()
 	# noinspection PyProtectedMember
 	sys.exit(EARLYABORT)
 
@@ -122,8 +122,8 @@ def Exit(ecode, immediate=False):
 		time.sleep(.1)
 		logsupport.Logs.Log("Async log close issued")
 		config.running = False
-		pygame.display.quit()
-		pygame.quit()
+		pg.display.quit()
+		pg.quit()
 		# noinspection PyProtectedMember
 		os._exit(ecode)  # use this vs sys.exit to avoid atexit interception
 	else:

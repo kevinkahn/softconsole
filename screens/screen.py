@@ -1,6 +1,6 @@
 import collections
 
-import pygame
+from guicore.screencallmanager import pg
 import functools
 from guicore.switcher import SwitchScreen
 import config
@@ -429,12 +429,12 @@ class ScreenDesc(object):
 		hw.screen.fill(wc(self.BackgroundColor))
 		lineclr = wc(self.BackgroundColor, factor=.5)
 		if config.sysStore.NetErrorIndicator:
-			pygame.draw.circle(hw.screen, wc(self.BackgroundColor, factor=.5),
-							   (self.markradius, self.markradius), self.markradius, 0)
+			pg.draw.circle(hw.screen, wc(self.BackgroundColor, factor=.5),
+						   (self.markradius, self.markradius), self.markradius, 0)
 			lineclr = wc(self.BackgroundColor)
 		if config.sysStore.ErrorNotice != -1:
-			pygame.draw.line(hw.screen, lineclr, (0, self.markradius), (2 * self.markradius, self.markradius), 3)
-			pygame.draw.line(hw.screen, lineclr, (self.markradius, 0), (self.markradius, 2 * self.markradius), 3)
+			pg.draw.line(hw.screen, lineclr, (0, self.markradius), (2 * self.markradius, self.markradius), 3)
+			pg.draw.line(hw.screen, lineclr, (self.markradius, 0), (self.markradius, 2 * self.markradius), 3)
 
 
 class BaseKeyScreenDesc(ScreenDesc):

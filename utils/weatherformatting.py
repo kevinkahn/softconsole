@@ -1,4 +1,5 @@
-import pygame
+# import py-game
+from guicore.screencallmanager import pg
 
 from utils import fonts
 import logsupport
@@ -104,13 +105,13 @@ def CreateWeathBlock(Format, Fields, WeathFont, FontSize, WeathColor, icon, cent
 		iconsize = 0
 		totw = fw
 		hoff = 0
-	fsfc = pygame.Surface((totw, fh))
+	fsfc = pg.Surface((totw, fh))
 	fsfc.set_colorkey(wc('black'))
 	v = 0
 	# noinspection PyBroadException
 	try:
 		if iconref is not None and valuestore.ValueStores[icon[0]].GetVal(iconref) != MissingIcon:
-			tmp = pygame.transform.smoothscale(valuestore.ValueStores[icon[0]].GetVal(iconref), (iconsize, iconsize))
+			tmp = pg.transform.smoothscale(valuestore.ValueStores[icon[0]].GetVal(iconref), (iconsize, iconsize))
 			fsfc.blit(tmp, (0, (fh - iconsize) // 2))
 	except Exception as E:
 		if useicon:

@@ -1,7 +1,7 @@
 import functools
 
-import pygame
-from pygame import draw
+from guicore.screencallmanager import pg
+
 import inspect
 
 import debug
@@ -162,8 +162,8 @@ class ValueChangeScreen(screen.ScreenDesc):  # todo may need to call super class
 			hw.screen.blit(self.chgval[i][1],
 						   self.offsetpoint(self.dnarrowcenter[i],
 											(fho, self.arrowht / 2 - fvo - self.arrowht / 10)))
-			draw.lines(hw.screen, wc(self.Outline), True, self.uparrowverts[i], 5)
-			draw.lines(hw.screen, wc(self.Outline), True, self.dnarrowverts[i], 5)
+			pg.draw.lines(hw.screen, wc(self.Outline), True, self.uparrowverts[i], 5)
+			pg.draw.lines(hw.screen, wc(self.Outline), True, self.dnarrowverts[i], 5)
 		# need to add in the value to change by l
 		hw.screen.blit(self.labelrend, self.labelloc)
 		self.Keys['accept'].SetKeyImages(("Accept", str(self.Value)))
@@ -297,8 +297,8 @@ class ListChooserSubScreen(screen.ScreenDesc):
 			hw.screen.blit(rs, (self.HorizBorder, voff))
 		upcolor = wc(self.CharColor) if self.firstitem != 0 else self.DullKeyColor
 		dncolor = wc(self.CharColor) if self.firstitem + self.NumSlots < len(self.itemlist) else self.DullKeyColor
-		pygame.draw.polygon(hw.screen, upcolor, TriangleCorners(self.SrcPrev, self.sourceheight, False), 3)
-		pygame.draw.polygon(hw.screen, dncolor, TriangleCorners(self.SrcNext, self.sourceheight, True), 3)
+		pg.draw.polygon(hw.screen, upcolor, TriangleCorners(self.SrcPrev, self.sourceheight, False), 3)
+		pg.draw.polygon(hw.screen, dncolor, TriangleCorners(self.SrcNext, self.sourceheight, True), 3)
 		displayupdate.updatedisplay()  # todo delete once specific screen is used
 
 
@@ -467,11 +467,11 @@ class SliderScreen(screen.BaseKeyScreenDesc):
 			self.sliderbartopleft = (self.starthorizspace + (self.useablehorizspace - self.slidelinelen) / 2,
 									 self.startvertspace + self.sliderareavert * .6)
 			self.touchrecttopleft = (
-			self.sliderbartopleft[0] - .05 * self.slidelinelen, self.sliderbartopleft[1] - 4 * self.slidelinewidth)
+				self.sliderbartopleft[0] - .05 * self.slidelinelen, self.sliderbartopleft[1] - 4 * self.slidelinewidth)
 			self.touchwidth = self.slidelinelen * 1.1
 			self.touchheight = self.slidelinewidth * 9
-			self.sliderect = pygame.Rect(self.sliderbartopleft, (self.slidelinelen, self.slidelinewidth))
-			self.touchrect = pygame.Rect(self.touchrecttopleft, (self.touchwidth, self.touchheight))
+			self.sliderect = pg.Rect(self.sliderbartopleft, (self.slidelinelen, self.slidelinewidth))
+			self.touchrect = pg.Rect(self.touchrecttopleft, (self.touchwidth, self.touchheight))
 		else:
 			self.slidelinelen = self.sliderareavert * .8
 			self.slidelinewidth = makeeven(self.useablehorizspace * .02)
@@ -480,9 +480,9 @@ class SliderScreen(screen.BaseKeyScreenDesc):
 			self.sliderbartopleft = (self.starthorizspace + self.useablehorizspace / 2 - self.slidelinewidth / 2,
 									 self.startvertspace + self.sliderareavert * .1)
 			self.touchrecttopleft = (
-			self.sliderbartopleft[0] - 3 * self.slidelinewidth, self.sliderbartopleft[1] - .05 * self.slidelinelen)
-			self.sliderect = pygame.Rect(self.sliderbartopleft, (self.slidelinewidth, self.slidelinelen))
-			self.touchrect = pygame.Rect(self.touchrecttopleft, (self.touchwidth, self.touchheight))
+				self.sliderbartopleft[0] - 3 * self.slidelinewidth, self.sliderbartopleft[1] - .05 * self.slidelinelen)
+			self.sliderect = pg.Rect(self.sliderbartopleft, (self.slidelinewidth, self.slidelinelen))
+			self.touchrect = pg.Rect(self.touchrecttopleft, (self.touchwidth, self.touchheight))
 		self.slidebuttonrad = self.useablevertspacesansnav * .05
 		self.slidecolor = charcolor
 		self.LayoutKeys(self.sliderareavert, keyheight)
@@ -513,14 +513,14 @@ class SliderScreen(screen.BaseKeyScreenDesc):
 		super().InitDisplay({})
 
 	def ScreenContentRepaint(self):
-		pygame.draw.rect(hw.screen, wc(self.slidecolor), self.sliderect)
+		pg.draw.rect(hw.screen, wc(self.slidecolor), self.sliderect)
 		if self.HorizBar:
 			center = (int(self.curval * self.slidelinelen / 100 + self.sliderbartopleft[0]),
 					  int(self.sliderbartopleft[1] + self.slidelinewidth / 2))
 		else:
 			center = (int(self.sliderbartopleft[0] + self.slidelinewidth / 2),
 					  int(self.curval * self.slidelinelen / 100 + self.sliderbartopleft[1]))
-		pygame.draw.circle(hw.screen, wc(self.slidecolor), center, int(self.slidebuttonrad), 0)
+		pg.draw.circle(hw.screen, wc(self.slidecolor), center, int(self.slidebuttonrad), 0)
 		if self.ShowPct:
 			t = self.font.render(str(int(self.curval)), False, wc(self.slidecolor))
 			hw.screen.blit(t, (self.starthorizspace * 2, self.startvertspace * 2))

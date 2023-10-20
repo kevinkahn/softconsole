@@ -2,7 +2,7 @@ from keys.keyutils import internalprocs
 
 ScreenType = 'Alert'
 
-import pygame
+from guicore.screencallmanager import pg
 import functools
 
 from alertsystem import alerttasks
@@ -92,7 +92,7 @@ class AlertsScreenDesc(screen.ScreenDesc):
 		self.Keys['action'].State = True  # for appearance only
 		self.Keys['action'].FinishKey((0, 0), (0, 0))
 
-		self.messageblank = pygame.Surface((hw.screenwidth - 2 * self.HorizBorder, self.messageareaheight))
+		self.messageblank = pg.Surface((hw.screenwidth - 2 * self.HorizBorder, self.messageareaheight))
 		self.messageblank.fill(wc(self.BackgroundColor))
 
 		self.Alert = None  # gets filled in by code that parses/defines an alert that invokes the screen
@@ -145,7 +145,7 @@ class AlertsScreenDesc(screen.ScreenDesc):
 			h = h + l[i].get_height()
 		s = (self.messageareaheight - h) / (len(l))
 
-		messageimage = pygame.Surface((hw.screenwidth - 2 * self.HorizBorder, self.messageareaheight))
+		messageimage = pg.Surface((hw.screenwidth - 2 * self.HorizBorder, self.messageareaheight))
 		messageimage.fill(wc(self.MessageBack))
 
 		vert_off = s / 2

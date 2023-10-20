@@ -3,7 +3,8 @@ import platform
 import socket
 import config
 
-import pygame
+# import py-game
+from guicore.screencallmanager import pg
 import wiringpi
 
 disklogging = True
@@ -11,7 +12,7 @@ disklogging = True
 IsDim = False
 DimType = 'None'
 
-screen = None  # pygame screen to blit on etc
+screen = None  # py-game screen to blit on etc
 realscreen = None  # used for soft rotate
 
 baseheight = 480  # program design height
@@ -126,8 +127,8 @@ def initOS(scrntyp, configdir):
 	# print('Screen: {}  Device: {} Driver: {} Dim: {}'.format(screentype, os.environ['SDL_FBDEV'],
 	#														 os.environ['SDL_VIDEODRIVER'], DimType))
 
-	pygame.display.init()
-	screenwidth, screenheight = (pygame.display.Info().current_w, pygame.display.Info().current_h)
+	pg.display.init()
+	screenwidth, screenheight = (pg.display.Info().current_w, pg.display.Info().current_h)
 	config.screenwidth = screenwidth
 	config.screenheight = screenheight
 

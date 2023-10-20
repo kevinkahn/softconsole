@@ -10,7 +10,7 @@ pip install smbus
  #--break-system-packages
 pip install psutil
  #--break-system-packages
-pip install aiohttp#
+pip install aiohttp
 # --break-system-packages
 pip install --upgrade websocket-client
 #--break-system-packages
@@ -20,7 +20,7 @@ pip install --upgrade paho-mqtt
 #--break-system-packages
 pip install --upgrade python-dateutil
 #--break-system-packages
-pip install darksky_weather
+#pip install darksky_weather
 #--break-system-packages
 
 if [ -e setupsystemd.py ]; then

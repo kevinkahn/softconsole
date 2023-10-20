@@ -125,7 +125,7 @@ class Touchscreen(object):
 
 	def __init__(self):
 		self.touchdefs = {}
-		with open('touchdefinitions') as fn:
+		with open('../touchdefinitions') as fn:
 			defitems = fn.read().splitlines()
 			for ln in defitems:
 				touchitem = ln.split('|')
@@ -311,7 +311,7 @@ class Touchscreen(object):
 if __name__ == "__main__":
 
 	screendefs = {}
-	with open('screendefinitions') as f:
+	with open('../screendefinitions') as f:
 		defs = f.read().splitlines()
 		for l in defs:
 			screenitem = l.split('|')

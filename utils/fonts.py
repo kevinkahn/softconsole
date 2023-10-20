@@ -1,4 +1,5 @@
-import pygame
+# import py-game
+from guicore.screencallmanager import pg
 
 import debug
 from utils import hw
@@ -9,12 +10,12 @@ monofont = "notomono"  # gets reset to "droidsansmono" if noto not present to su
 class Fonts(object):
 	def __init__(self):
 		global monofont
-		pygame.font.init()
-		f = pygame.font.get_fonts()
+		pg.font.init()
+		f = pg.font.get_fonts()
 		if not monofont in f:
 			# pre stretch system doesn't have noto mono
 			monofont = "droidsansmono"
-		self.fontcache = {"": {40: {True: {True: pygame.font.SysFont("", hw.scaleH(40), True, True)}}}}
+		self.fontcache = {"": {40: {True: {True: pg.font.SysFont("", hw.scaleH(40), True, True)}}}}
 
 	# cache is tree dir with first key as name, second as size, third as ital, fourth as bold
 	# initialize with 1 font for use in early abort messages (40,"",True,True)
@@ -23,7 +24,7 @@ class Fonts(object):
 		def gennewfont(gname, gsize, gbold, gitalic):
 			# logsupport.Logs.Log('Generated Font: ', repr(name), str(size), str(utilities.scaleH(size)), str(bold),
 			#					str(italic))
-			return pygame.font.SysFont(gname, hw.scaleH(gsize), gbold, gitalic)
+			return pg.font.SysFont(gname, hw.scaleH(gsize), gbold, gitalic)
 
 		size = int(fsize)
 		try:

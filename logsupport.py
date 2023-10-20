@@ -7,7 +7,7 @@ from threading import Lock
 import difflib
 from datetime import datetime
 
-import pygame
+from guicore.screencallmanager import pg
 
 import webcolors
 
@@ -489,7 +489,7 @@ def LineRenderer(itemnumber, logfont, uselog):
 		rl.append(logfont.render(''.join(ptext), False, wc(color)))
 		h += rl[-1].get_height()
 		ptext = ["    "]
-	blk = pygame.Surface((hw.screenwidth, h))
+	blk = pg.Surface((hw.screenwidth, h))
 	blk.set_colorkey(wc('black'))
 	v = 0
 	for l in rl:

@@ -1,6 +1,7 @@
 import time
 
-import pygame
+# import py-game
+from guicore.screencallmanager import pg
 
 import debug
 from utils import fonts, hw
@@ -96,7 +97,7 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 			h = h + renderedtime[-1].get_height()
 			if renderedtime[-1].get_width() > tw: tw = renderedtime[-1].get_width()
 			sizeindex += 1
-		renderedtimelabel.append(pygame.Surface((tw, h)))
+		renderedtimelabel.append(pg.Surface((tw, h)))
 		renderedtimelabel[-1].set_colorkey(wc('black'))
 		v = 0
 		for l in renderedtime:
@@ -105,9 +106,12 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 		spaces = 1
 
 		if self.LocationSize != 0:
-			renderedtimelabel.append(
-				fonts.fonts.Font(self.LocationSize, self.Font).render(
-					fmt.format("{d}", d=self.scrlabel), 0, wc(self.CharColor)))
+			t1 = fonts.fonts.Font(self.LocationSize, self.Font)
+			t2 = t1.render(fmt.format("{d}", d=self.scrlabel), 0, wc(self.CharColor))
+			renderedtimelabel.append(t2)
+			# renderedtimelabel.append(
+			#	fonts.fonts.Font(self.LocationSize, self.Font).render(
+			#		fmt.format("{d}", d=self.scrlabel), 0, wc(self.CharColor)))
 			h = h + renderedtimelabel[-1].get_height()
 			spaces += 1
 		sizeindex += 1
@@ -204,8 +208,8 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 				if v_off > maxvert: maxvert = v_off
 				hw.screen.blit(fcst, (h_off, v_off))
 
-			if self.FcstLayout == '2ColVert': pygame.draw.line(hw.screen, wc('white'),
-															   (usewidth, startvert + fcstvert // 3),
-															   (usewidth, maxvert + 2 * fcstvert / 3))
+			if self.FcstLayout == '2ColVert': pg.draw.line(hw.screen, wc('white'),
+														   (usewidth, startvert + fcstvert // 3),
+														   (usewidth, maxvert + 2 * fcstvert / 3))
 
 screens.screentypes["TimeTemp"] = TimeTempScreenDesc

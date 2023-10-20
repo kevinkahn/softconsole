@@ -1,4 +1,4 @@
-import pygame
+from guicore.screencallmanager import pg
 
 from utils import fonts
 from utils.utilfuncs import wc
@@ -49,7 +49,7 @@ def CreateTextBlock(textlines, fontsizes, color, center, font=fonts.monofont, Fi
 			rl.append(line)
 			h += rl[-1].get_height()
 			w = max(w, rl[-1].get_width())
-	blk = pygame.Surface((w, h))
+	blk = pg.Surface((w, h))
 	blk.set_colorkey(wc('black'))
 	v = 0
 	for l in rl:

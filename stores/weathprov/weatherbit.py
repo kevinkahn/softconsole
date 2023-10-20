@@ -3,7 +3,7 @@ import time
 import sys
 from datetime import datetime
 
-import pygame
+from guicore.screencallmanager import pg
 import controlevents
 import json
 import stats
@@ -99,8 +99,8 @@ def geticon(nm):
 		if iconpath in WeatherIconCache:
 			return WeatherIconCache[iconpath]
 		else:
-			icon_gif = pygame.image.load(iconpath)
-			icon_scr = pygame.Surface.convert_alpha(icon_gif)
+			icon_gif = pg.image.load(iconpath)
+			icon_scr = pg.Surface.convert_alpha(icon_gif)
 			icon_scr.set_colorkey(icon_gif.get_colorkey())
 			WeatherIconCache[iconpath] = icon_scr
 		return icon_scr

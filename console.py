@@ -18,7 +18,8 @@ import os
 import traceback
 
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
-import pygame
+# import py-game
+from guicore.screencallmanager import pg
 
 import cgitb
 import datetime
@@ -85,7 +86,7 @@ def handler(signum, frame):
 			timers.ShutTimers(config.terminationreason)
 			logsupport.Logs.Log('Console exiting')
 			hw.GoBright(100)
-			pygame.quit()
+			pg.quit()
 			sys.exit(config.ecode)
 		config.Running = False
 		if signum == signal.SIGUSR1:
@@ -645,7 +646,7 @@ logsupport.Logs.Log("Main line exit: ", config.ecode)
 timers.ShutTimers(config.terminationreason)
 logsupport.Logs.Log('Console exiting')
 hw.GoBright(100)
-pygame.quit()
+pg.quit()
 logsupport.DevPrint('Exit handling done')
 
 sys.exit(config.ecode)
