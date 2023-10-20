@@ -1,11 +1,16 @@
 import pygame
+import pygame.gfxdraw
+
+pg = pygame
+pg.gfxdraw = pygame.gfxdraw
+'''
+import pygame
 from pygame import gfxdraw
 import inspect
-import sys
 import functools
 
 
-class pg(object):
+class pgactual(object):
 	FULLSCREEN = pygame.FULLSCREEN
 	Rect = pygame.Rect
 
@@ -23,7 +28,7 @@ class pg(object):
 
 		@staticmethod
 		def set_mode(*args, **kwargs):
-			return pg.Surface(wrap=pygame.display.set_mode(*args, **kwargs))
+			return pgactual.Surface(wrap=pygame.display.set_mode(*args, **kwargs))
 
 		@staticmethod
 		def update(*args, **kwargs):
@@ -37,6 +42,7 @@ class pg(object):
 		z = None
 
 		def __init__(self, *args, **kwargs):
+			print('Surface: {} -- {}'.format(args, kwargs))
 			if 'wrap' in kwargs:
 				# print('Wrap {} -> {}'.format(kwargs['wrap'],self))
 				self.z = kwargs['wrap']
@@ -55,7 +61,7 @@ class pg(object):
 				tmpargs[0] = self._unwrap(tmpargs[0])
 				return self.z.convert_alpha(*tmpargs)
 			else:
-				return pg.Surface(wrap=self.z.convert_alpha())
+				return pgactual.Surface(wrap=self.z.convert_alpha())
 
 		def set_colorkey(self, *args, **kwargs):
 			return self.z.set_colorkey(*args, **kwargs)
@@ -90,16 +96,16 @@ class pg(object):
 	class transform(object):
 		@staticmethod
 		def smoothscale(*args, **kwargs):
-			return pg.Surface(wrap=pygame.transform.smoothscale(*_unwrapSurf(*args), **kwargs))
+			return pgactual.Surface(wrap=pygame.transform.smoothscale(*_unwrapSurf(*args), **kwargs))
 
 		@staticmethod
 		def rotate(*args, **kwargs):
-			return pg.Surface(wrap=pygame.transform.rotate(*_unwrapSurf(*args), **kwargs))
+			return pgactual.Surface(wrap=pygame.transform.rotate(*_unwrapSurf(*args), **kwargs))
 
 	class image(object):
 		@staticmethod
 		def load(*args, **kwargs):
-			return pg.Surface(wrap=pygame.image.load(*args, **kwargs))
+			return pgactual.Surface(wrap=pygame.image.load(*args, **kwargs))
 
 		@staticmethod
 		def save(*args, **kwargs):
@@ -147,7 +153,7 @@ class pg(object):
 				self.z = item
 
 			def render(self, *args, **kwargs):
-				return pg.Surface(wrap=self.z.render(*args, **kwargs))
+				return pgactual.Surface(wrap=self.z.render(*args, **kwargs))
 
 			def size(self, *args, **kwargs):
 				return self.z.size(*args, **kwargs)
@@ -165,8 +171,9 @@ class pg(object):
 
 		@staticmethod
 		def SysFont(*args, **kwargs):
+			print('Sysfont {} -- {}'.format(args,kwargs))
 			y = pygame.font.SysFont(*args, **kwargs)
-			return pg.font.Font(y)
+			return pgactual.font.Font(y)
 
 	def init():
 		return pygame.init()
@@ -181,30 +188,50 @@ def _unwrapSurf(*args):
 	return tempargs
 
 
-def DoRemoteCall(cls, meth, params, keywdparams):
-	print('Issue call for {}.{} with {},{}'.format(cls, meth, params, keywdparams))
+def DoRemoteCall(cls, meth, *args, **kwargs):
+	print('Issue call for {}.{} with {},{}'.format(cls, meth, args, kwargs))
+	print(pg.actualclass[cls][meth])
+	res = pg.actualclass[cls][meth](*args,**kwargs)
+	return res
+
+def DoRemoteClassInit(cls, meth, clsdef, *args, **kwargs):
+	print('Class init for {}.{} with {} {} {}'.format(cls, meth, clsdef, args, kwargs))
+	tmp1 = clsdef(*args,**kwargs)
+	print(tmp1)
+	#tmp1.__init__(*args,**kwargs)
+	return tmp1
 
 
 class remotestuff(object):
 	remclass = {}
+	actualclass = {}
 
 	def __init__(self):
-		pgclasses = pg.__dict__
-		# remclass = {}
+		pgclasses = pgactual.__dict__
 		for nm, desc in pgclasses.items():
 			if inspect.isclass(desc):
 				subcls = desc.__dict__
+				actualmethods = {}
 				remmethods = {'__module--': 'guicore.screencallmanager'}
 				for methnm, methcod in subcls.items():
-					if inspect.isfunction(methcod):
+					if methnm == '__init__':
+						remmethods[methnm] = functools.partial(DoRemoteClassInit, nm, methnm, desc)
+					elif inspect.isfunction(methcod):
 						remmethods[methnm] = functools.partial(DoRemoteCall, nm, methnm)
+						actualmethods[methnm] = methcod
 					elif type(methcod) == staticmethod:
 						remmethods[methnm] = functools.partial(DoRemoteCall, nm, methnm)
+						actualmethods[methnm] = methcod.__func__
 				self.remclass[nm] = type(nm, (object,), remmethods)
+				self.actualclass[nm] = actualmethods
 		print(self.remclass)
+		print(self.actualclass)
+		for xx,zz in self.actualclass.items():
+			print('{}: {}'.format(xx,zz))
 		self.remotes = type('remotes', (object,), self.remclass)
 
 
-global x
-x = remotestuff()
-x.__dict__ = x.remclass
+#global x
+pg = remotestuff()
+pg.__dict__ = pg.remclass
+'''
