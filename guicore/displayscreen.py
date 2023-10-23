@@ -4,6 +4,7 @@ import os
 import guicore.guiutils as guiutils
 import screens.__screens as screens
 from utils.utilfuncs import safeprint
+from guicore.screencallmanager import SeqNums, SeqNumLast
 
 import guicore.screenmgt as screenmgt
 import guicore.switcher as switcher
@@ -66,11 +67,19 @@ def MainControlLoop():
 	stackdepth = 0
 
 	guiutils.SetUpStats()
+	lastpgdump = 0
 
 	try:
 		while config.Running:  # Operational Control Loop
 			guiutils.CycleStats()
 			guiutils.HBEvents.Entry('Start event loop iteration')
+			if lastpgdump < time.time() - 600:
+				lastpgdump = time.time()
+				print('--------------------------')
+				for n, s in SeqNums.items():
+					print('Thread {}: {}'.format(n, s - SeqNumLast[n]))
+					SeqNumLast[n] = s
+				print('--------------------------')
 
 			StackCheck = traceback.format_stack()
 			if stackdepth == 0:

@@ -198,9 +198,7 @@ def InitializeEnvironment():
 		raise KeyboardInterrupt  # HACK
 
 	hw.screen.fill((0, 0, 0))  # clear screen
-	print('A')
 	pg.display.update()
-	print('B')
 	pg.mouse.set_visible(False)  # no cursor
 
 

@@ -170,6 +170,7 @@ class PictureScreenDesc(screen.ScreenDesc):
 			exif = PIL.Image.open(pic)._getexif()[274]
 		except Exception:
 			exif = 1
+		#		print("{} rot: {}".format(pic,exif))
 		rot = [0, 0, 0, 180, 0, 0, 270, 0, 90][exif]
 		if rot != 0: rawp = pg.transform.rotate(rawp, rot)
 		ph = rawp.get_height()
