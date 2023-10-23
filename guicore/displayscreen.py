@@ -22,7 +22,8 @@ import traceback
 EventDispatch = {}
 NewMouse = True
 
-if os.path.exists('/home/pi/.forceoldtouch'): NewMouse = False
+if os.path.exists('/home/pi/.forceoldtouch'):
+	NewMouse = False
 
 
 def MainControlLoop():
@@ -77,6 +78,9 @@ def MainControlLoop():
 				lastpgdump = time.time()
 				print('--------------------------', file=open('/home/pi/Console/pgerrors.txt', 'a'))
 				for n, s in SeqNums.items():
+					t = s - SeqNumLast[n]
+					if t < 0:
+						t = t + 10000000
 					print('Thread {}: {}'.format(n, s - SeqNumLast[n]), file=open('/home/pi/Console/pgerrors.txt', 'a'))
 					SeqNumLast[n] = s
 				print('--------------------------', file=open('/home/pi/Console/pgerrors.txt', 'a'))
@@ -107,7 +111,7 @@ def MainControlLoop():
 					hub.StatesDump()
 				debug.dbgStore.SetVal('StatesDump', False)
 
-			if guiutils.Deferrals:  # an event was deferred mid screen touches - handle now
+			if guiutils.Deferrals:  # an event was deferred mid-screen touches - handle now
 				event = guiutils.Deferrals.pop(0)
 				guiutils.HBEvents.Entry('Got deferred event: {}   {}'.format(time.time(), repr(event)))
 				debug.debugPrint('EventList', 'Deferred Event Pop', event)
@@ -162,12 +166,11 @@ def MainControlLoop():
 						hb=True, homeonly=True)
 			guiutils.HBEvents.Entry('End Event Loop took: {}'.format(time.time() - postwaittime))
 
-
 	except Exception as E:
 		logsupport.Logs.Log('Main display loop had exception: {}'.format(repr(E)))
 		tbinfo = traceback.format_exc().splitlines()
-		for l in tbinfo:
-			logsupport.Logs.Log(l)
+		for ln in tbinfo:
+			logsupport.Logs.Log(ln)
 		config.ecode = exitutils.ERRORRESTART
 
 	logsupport.Logs.Log('Main GUI loop exiting')

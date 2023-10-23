@@ -18,7 +18,8 @@ callhist = deque('', 20)
 
 
 def remote(func, *args, **kwargs):
-	if kwargs != {}:  print('KEYWORDS! {}'.format(kwargs))
+	if kwargs != {}:
+		print('KEYWORDS! {}'.format(kwargs))
 	return Send(rem, None, func, args, kwargs)
 
 
@@ -151,11 +152,13 @@ class pg(object):
 		def filled_trigon(*args, **kwargs):
 			return remote('gfxdraw.filled_trigon', *_unwrapSurf(*args), **kwargs)
 
+	'''
 	# class Rect(object):
 	# this is tricky to wrap but may not need to be unless other functions are called in it
 	#	z = None
 	#	def __init__(self, *args):
 	#		self.z = pygame.Rect(*args)
+	'''
 
 	class font(object):
 
@@ -167,7 +170,6 @@ class pg(object):
 
 			def render(self, *args, **kwargs):
 				return pg.Surface(wrap=remoteobj(self.actualobj, 'render', *args, **kwargs))
-
 
 			def size(self, *args, **kwargs):
 				return remoteobj(self.actualobj, 'size', *args, **kwargs)
@@ -220,7 +222,7 @@ def Send(calltype, obj, func, args, kwargs):
 		ToPygame.put([(me, -1), 0])
 		while me not in FromPygame:
 			time.sleep(.1)
-		resout = FromPygame[me].get()
+		FromPygame[me].get()
 
 	SeqNums[me] = (SeqNums[me] + 1) % 10000000
 	if calltype == rem:
