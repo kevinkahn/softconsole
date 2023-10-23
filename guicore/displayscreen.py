@@ -81,7 +81,7 @@ def MainControlLoop():
 					t = s - SeqNumLast[n]
 					if t < 0:
 						t = t + 10000000
-					print('Thread {}: {}'.format(n, s - SeqNumLast[n]), file=open('/home/pi/Console/pgerrors.txt', 'a'))
+					print('Thread {}: {}'.format(n, t), file=open('/home/pi/Console/pgerrors.txt', 'a'))
 					SeqNumLast[n] = s
 				print('--------------------------', file=open('/home/pi/Console/pgerrors.txt', 'a'))
 
