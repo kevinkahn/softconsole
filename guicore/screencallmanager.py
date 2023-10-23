@@ -222,7 +222,7 @@ def Send(calltype, obj, func, args, kwargs):
 			time.sleep(.1)
 		resout = FromPygame[me].get()
 
-	SeqNums[me] = (SeqNums[me] + 1) % 100000
+	SeqNums[me] = (SeqNums[me] + 1) % 10000000
 	if calltype == rem:
 		callparmsout = [(me, SeqNums[me]), calltype, func, args, kwargs]
 	else:
