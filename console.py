@@ -57,6 +57,7 @@ import historybuffer
 import controlevents
 
 
+
 config.sysStore.SetVal('ExecDir', os.path.dirname(os.path.abspath(__file__)))
 config.sysStore.SetVal('HomeDir', os.path.dirname(config.sysStore.ExecDir))
 
@@ -80,7 +81,7 @@ def handler(signum, frame):
 	if signum in (signal.SIGTERM, signal.SIGINT, signal.SIGUSR1):
 		config.terminationreason = exitutils.reasonmap[signum][0]
 		config.ecode = exitutils.reasonmap[signum][1]
-		if not config.Running:
+		if not config.Running and not config.Exiting:
 			# interrupt before gui is started so just exit here
 			logsupport.Logs.Log("Exit during startup: {}".format(config.ecode))
 			timers.ShutTimers(config.terminationreason)
@@ -89,15 +90,17 @@ def handler(signum, frame):
 			pg.quit()
 			sys.exit(config.ecode)
 		config.Running = False
-		if signum == signal.SIGUSR1:
+		if signum == signal.SIGUSR1 and not config.Exiting:
 			logsupport.DevPrint('Watchdog termination')
-			logsupport.Logs.Log("Console received a watchdog termination signal: {} - Exiting".format(signum), tb=True)
+			logsupport.Logs.Log("Console received a watchdog termination signal: {} - Exiting(1)".format(signum),
+								tb=True)
 			if config.sysStore.Watchdog_pid != 0: os.kill(config.sysStore.Watchdog_pid, signal.SIGUSR1)
-		else:
+		elif not config.Exiting:
 			logsupport.DevPrint('Signal termination {}'.format(signum))
-			logsupport.Logs.Log("Console received termination signal: {} - Exiting".format(signum))
+			logsupport.Logs.Log("Console received termination signal: {} - Exiting(2)".format(signum))
 			if config.sysStore.Watchdog_pid != 0: os.kill(config.sysStore.Watchdog_pid, signal.SIGUSR1)
 			if config.sysStore.Topper_pid != 0: os.kill(config.sysStore.Topper_pid, signal.SIGKILL)
+
 	else:
 		if config.Running:
 			logsupport.Logs.Log("Console received signal {} - Ignoring".format(signum))
@@ -645,6 +648,7 @@ gui.join()
 logsupport.Logs.Log("Main line exit: ", config.ecode)
 timers.ShutTimers(config.terminationreason)
 logsupport.Logs.Log('Console exiting')
+config.Exiting = True
 hw.GoBright(100)
 pg.quit()
 logsupport.DevPrint('Exit handling done')
