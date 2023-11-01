@@ -21,7 +21,7 @@ def importmodules(dir: str):
 		if '__' not in modulename:
 			splitname = os.path.splitext(modulename)
 			if splitname[1] == '.py':
-				#print('import {}{} using {}'.format(pypath, splitname[0], modulename))
+				print('import {}{} using {}'.format(pypath, splitname[0], modulename))
 				importlist[splitname[0]] = importlib.import_module(pypath + splitname[0])
 	return importlist
 

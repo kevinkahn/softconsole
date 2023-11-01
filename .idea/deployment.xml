@@ -1,33 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="PublishConfigData" autoUpload="Always" serverName="pi@rpi-dev7x.pdxhome:22" promptOnLocalOverwrite="false" exclude=".svn;.cvs;.idea;.DS_Store;.git;.hg;*.pyc" confirmBeforeUploading="false" autoUploadExternalChanges="true">
+  <component name="PublishConfigData" autoUpload="Always" serverName="Dev7XPGA" promptOnLocalOverwrite="false" exclude=".svn;.cvs;.idea;.DS_Store;.git;.hg;*.pyc" confirmBeforeUploading="false" autoUploadExternalChanges="true">
     <option name="confirmBeforeUploading" value="false" />
     <serverData>
-      <paths name="PDX Dev7">
-        <serverdata>
-          <mappings>
-            <mapping deploy="/consolerem" local="$PROJECT_DIR$" web="/" />
-          </mappings>
-        </serverdata>
-      </paths>
-      <paths name="pi@rpi-dev7.pdxhome:8623 agent">
-        <serverdata>
-          <mappings>
-            <mapping deploy="/tmp/pycharm_project_834" local="$PROJECT_DIR$" />
-          </mappings>
-        </serverdata>
-      </paths>
-      <paths name="pi@rpi-dev7x.pdxhome:22">
+      <paths name="Dev7XPGA">
         <serverdata>
           <mappings>
             <mapping deploy="/home/pi/consolerem" local="$PROJECT_DIR$" />
           </mappings>
         </serverdata>
       </paths>
-      <paths name="rpi-dev7x">
+      <paths name="pi@rpi-dev7x.pgawhome:22 password">
         <serverdata>
           <mappings>
-            <mapping deploy="/consolerem" local="$PROJECT_DIR$" web="/" />
+            <mapping deploy="consolerem" local="$PROJECT_DIR$" />
           </mappings>
         </serverdata>
       </paths>

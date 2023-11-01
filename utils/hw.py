@@ -167,6 +167,8 @@ dimmethods = {'Pi7': GoDimPi7,
 
 
 def GoDim(level):
+	if config.sysStore.DimToOff:
+		level = 0
 	global IsDim, DimType
 	IsDim = True
 	if DimType in dimmethods:

@@ -35,6 +35,7 @@ sysStore = None
 sysvals = {
 	# name: (type, value, (AddAlertproc, param) or None, write to log)
 	'DimLevel': (int, 10, (hw.ResetScreenLevel, True), True),
+	'DimToOff': (bool, False, None, True),
 	'BrightLevel': (int, 100, (hw.ResetScreenLevel, False), True),
 	'MultiTapTime': (int, 400, None, True),
 	'HomeScreenName': (str, '', None, True),

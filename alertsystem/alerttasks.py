@@ -1,3 +1,4 @@
+import config
 import debug
 import historybuffer
 import logsupport
@@ -161,6 +162,8 @@ def ParseAlerts(alertspec):
 		for nm, spec in alertspec.items():
 			if isinstance(spec, Section):
 				alert = ParseAlertParams(nm, spec)
+				cond = spec.get('Condition', None)
+				# todo swap order of alerts and locals in console, use Condition = (LocalVars:Condname = Cond param) as gate
 				if alert is not None:
 					AlertsList[id(alert)] = alert
 

@@ -59,6 +59,7 @@ CharColor = white
 [Variables]
     InternetUp = 1
     TestVar = 1
+    House = 'PDX'
 
 
 [Pic]
@@ -69,6 +70,7 @@ NavKeyAlpha = 50
 
 [Alerts]
 	[[AutoVersion]]
+	# Condition = LocalVars:House = 'PDX'
 	Type = Periodic
 	Interval = 3 hours
 	Invoke = AutoVersion.CheckUpToDate

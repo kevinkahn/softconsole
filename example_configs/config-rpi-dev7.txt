@@ -59,6 +59,7 @@ CharColor = white
 [Variables]
     InternetUp = 1
     TestVar = 1
+    House = 'PDX'
 
 
 [Pic]

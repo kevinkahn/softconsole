@@ -1,27 +1,19 @@
 #!/usr/bin/env bash
 
+export PATH="/home/pi/pyenv/bin:$PATH"
+
 pip install configobj
- #--break-system-packages
 pip install webcolors
- #--break-system-packages
 pip install xmltodict
- #--break-system-packages
 pip install smbus
- #--break-system-packages
 pip install psutil
- #--break-system-packages
 pip install aiohttp
-# --break-system-packages
 pip install --upgrade websocket-client
-#--break-system-packages
 pip install --upgrade wiringpi
-#--break-system-packages
 pip install --upgrade paho-mqtt
-#--break-system-packages
 pip install --upgrade python-dateutil
-#--break-system-packages
-#pip install darksky_weather
-#--break-system-packages
+pip install requests
+pip install pillow
 
 if [ -e setupsystemd.py ]; then
   echo Initial install
