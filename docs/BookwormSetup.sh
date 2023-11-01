@@ -23,21 +23,31 @@ exec 2>&1
 cd /home/pi
 LogBanner "This is the system setup script"
 
+LogBanner "Remember to do rpi-update first!"
+
 apt install python3-wget
 wget https://raw.githubusercontent.com/kevinkahn/softconsole/master/getinstallinfo.py
 
-apt install python3-full
+DEBIAN_FRONTEND=noninteractive apt-get install python3-full
+# make non-interactive
 mkdir pyenv
 mkdir .xdgdir
 python -m venv /home/pi/pyenv
 export PATH="/home/pi/pyenv/bin:$PATH"
-
+pip install wget, requests
 
 python getinstallinfo.py
 if [ $? -ne 0 ]; then
   echo "Exiting pisetup due to error in getinstallinfo"
   exit 1
 fi
+
+#TEMP!!!
+cp /home/pi/consolebeta/scripts/softconsoleBW.service /usr/lib/systemd/system/softconsole.service
+systemctl daemon-reload
+
+DEBIAN_FRONTEND=noninteractive apt-get install libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev libfreetype6-dev libportmidi-dev libjpeg-dev python3-setuptools python3-dev python3-numpy
+DEBIAN_FRONTEND=noninteractive apt-get install libegl-dev
 
 LogBanner "Upgrade/Update System"
 apt-get update
@@ -50,6 +60,16 @@ mv -n /etc/hosts /etc/hosts.orig
 sed s/raspberrypi/$NodeName/ /etc/hosts.orig >/etc/hosts
 echo $NodeName >/etc/hostname
 hostname $NodeName
+
+LogBanner "Set Boot to Logged in CLI"
+systemctl --quiet set-default multi-user.target
+sed -i 's/^.*HandlePowerKey=.*$/#HandlePowerKey=poweroff/' /etc/systemd/logind.conf
+cat > /etc/systemd/system/getty@tty1.service.d/autologin.conf << EOF
+[Service]
+ExecStart=
+ExecStart=-/sbin/agetty --autologin $USER --noclear %I \$TERM
+EOF
+systemctl daemon-reload
 
 #LogBanner "Set better LX Terminal parameters"
 #sudo -u pi mkdir -p /home/pi/.config/lxterminal

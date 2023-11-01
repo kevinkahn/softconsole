@@ -14,6 +14,7 @@ pip install --upgrade paho-mqtt
 pip install --upgrade python-dateutil
 pip install requests
 pip install pillow
+pip install pygame
 
 if [ -e setupsystemd.py ]; then
   echo Initial install
