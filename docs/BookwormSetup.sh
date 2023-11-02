@@ -25,10 +25,10 @@ source installvals
 cd /home/pi
 LogBanner "This is the system setup script"
 
-if [ $Bookworm == True ];
-  LogBanner "Remember to do rpi-update first!"
+  LogBanner "If BookWorm: Remember to do rpi-update first!"
   sleep 5
   LogBanner "Continuing . . ."
+
 
 DEBIAN_FRONTEND=noninteractive apt-get -y install python3-wget
 wget https://raw.githubusercontent.com/kevinkahn/softconsole/master/getinstallinfo.py
@@ -67,6 +67,7 @@ if [ Z$NodeName != Z ]; then
 else
   NodeName=`hostname`
   LogBanner "Leaving Node Name as:  $NodeName"
+fi
 
 LogBanner "Set Boot to Logged in CLI"
 systemctl --quiet set-default multi-user.target

@@ -311,16 +311,15 @@ else:
 
 U.InstallStagedVersion('consolestable')
 print('Installed stable version', flush=True)
-if Bookworm:
+if Bookworm and os.path.exists('consolestable/scripts/softconsoleBW.service'):
 	shutil.copy('consolestable/scripts/softconsoleBW.service', 'consolestable/scripts/softconsole.service')
-
 
 if beta:
 	U.StageVersion('consolebeta', 'currentbeta', 'Initial Install')
 	print('Stage beta also')
 	U.InstallStagedVersion('consolebeta')
 	print('Intalled staged beta')
-	if Bookworm:
+	if Bookworm and os.path.exists('consolebeta/scripts/softconsoleBW.service'):
 		shutil.copy('consolebeta/scripts/softconsoleBW.service', 'consolebeta/scripts/softconsole.service')
 	if selectbeta:
 		with open('versionselector', 'w') as f:
