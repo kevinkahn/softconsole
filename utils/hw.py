@@ -100,7 +100,7 @@ def initOS(scrntyp, configdir):
 				screendev = '/dev/fb1'
 			except:
 				pass
-
+	os.environ['XDG_RUNTIME_DIR'] = '/home/pi/.xdgdir'  # needed for Bookworm, harmless for earlier versions
 	os.environ['SDL_FBDEV'] = screendev
 	os.environ['SDL_VIDEODRIVER'] = screendefs[screentype][1]
 	DimType = screendefs[screentype][2]

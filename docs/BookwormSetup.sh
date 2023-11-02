@@ -25,16 +25,17 @@ LogBanner "This is the system setup script"
 
 LogBanner "Remember to do rpi-update first!"
 
-apt install python3-wget
+DEBIAN_FRONTEND=noninteractive apt-get -y install python3-wget
 wget https://raw.githubusercontent.com/kevinkahn/softconsole/master/getinstallinfo.py
-
-DEBIAN_FRONTEND=noninteractive apt-get install python3-full
+LogBanner "Got getinstallinfo"
+DEBIAN_FRONTEND=noninteractive apt-get -y install python3-full
+LogBanner "Installed python3-full"
 # make non-interactive
 mkdir pyenv
 mkdir .xdgdir
 python -m venv /home/pi/pyenv
 export PATH="/home/pi/pyenv/bin:$PATH"
-pip install wget, requests
+pip install wget requests
 
 python getinstallinfo.py
 if [ $? -ne 0 ]; then
@@ -46,8 +47,8 @@ fi
 cp /home/pi/consolebeta/scripts/softconsoleBW.service /usr/lib/systemd/system/softconsole.service
 systemctl daemon-reload
 
-DEBIAN_FRONTEND=noninteractive apt-get install libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev libfreetype6-dev libportmidi-dev libjpeg-dev python3-setuptools python3-dev python3-numpy
-DEBIAN_FRONTEND=noninteractive apt-get install libegl-dev
+DEBIAN_FRONTEND=noninteractive apt-get -y install libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev libfreetype6-dev libportmidi-dev libjpeg-dev python3-setuptools python3-dev python3-numpy
+DEBIAN_FRONTEND=noninteractive apt-get -y install libegl-dev
 
 LogBanner "Upgrade/Update System"
 apt-get update

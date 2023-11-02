@@ -121,6 +121,13 @@ with open('/etc/issue') as f:
 	sysver = f.readline()
 	if "Linux 10" in sysver:
 		Buster = True
+	if "Linux 12" in sysver:
+		Bookworm = True
+		print("**************************************************************", flush=True)
+		print("**************************************************************", flush=True)
+		print("Installing for Bookworm", flush=True)
+		print("**************************************************************", flush=True)
+		print("**************************************************************", flush=True)
 AddToScript('Buster', 'Y' if Buster else 'N')
 if piinstall:
 	AddToScript('NodeName', GetVal("What name for this system?"))
@@ -189,6 +196,7 @@ if screentype in baseorientation:
 		installsrc.append('echo Soft rotation code {}\n'.format(rot))
 
 screentp = screentype + 'B' if Buster else screentype
+screentp = screentype + 'BW' if Bookworm else screentype
 
 with open('.Screentype', 'w') as f:
 	if rot == 0:
@@ -198,6 +206,8 @@ with open('.Screentype', 'w') as f:
 
 with open('installvals', 'w') as f:
 	f.writelines(scriptvars)
+	if Bookworm:
+		f.write("export BOOKWORM=True")
 with open('installscreencode', 'w') as f:
 	f.writelines(installsrc)
 
@@ -297,6 +307,8 @@ if personal:
 else:
 	U.StageVersion('consolestable', 'currentrelease', 'Initial Install')
 	print("Stage standard stable release")
+if Bookworm:
+	shutil.copy('consolestable/scripts/softconsoleBW.service', 'consolestable/scripts/softconsole.service')
 
 U.InstallStagedVersion('consolestable')
 print('Installed stable version', flush=True)
@@ -306,6 +318,8 @@ if beta:
 	print('Stage beta also')
 	U.InstallStagedVersion('consolebeta')
 	print('Intalled staged beta')
+	if Bookworm:
+		shutil.copy('consolebeta/scripts/softconsoleBW.service', 'consolebeta/scripts/softconsole.service')
 	if selectbeta:
 		with open('versionselector', 'w') as f:
 			f.write('beta\n')
