@@ -323,10 +323,14 @@ if beta:
 	if selectbeta:
 		with open('versionselector', 'w') as f:
 			f.write('beta\n')
-
-if os.path.exists('/boot/auth'):
+authdir = '/boot/auth' if os.path.exists('/boot/auth') else '/boot/firmware/auth' if os.path.exists(
+	'/boot/firmware/auth') else None
+print("****************************************************************", flush=True)
+print(" auth directory found at ()".format(authdir))
+print("****************************************************************", flush=True)
+if authdir is not None:
 	shutil.rmtree('Console/local', ignore_errors=True)
-	shutil.move('/boot/auth', 'Console/local')
+	shutil.move(authdir, 'Console/local')
 	if os.path.exists('Console/local/fstabadj.txt'):
 		with open('Console/local/fstabadj.txt', 'r') as adds:
 			with open('/etc/fstab', 'a') as f:
