@@ -130,8 +130,9 @@ with open('/etc/issue') as f:
 		print("**************************************************************", flush=True)
 AddToScript('Buster', 'Y' if Buster else 'N')
 if piinstall:
-	AddToScript('NodeName', GetVal("What name for this system?"))
-# AddToScript('VNCstdPort', GetYN("Install VNC on standard port (Y/N/alt port number)?", Allownum=True))
+	NodeName = GetVal("Enter name for system or return to leave as is:")
+	AddToScript('NodeName', NodeName)
+
 personal = GetYN("Is this the developer personal system (Y/N) (bit risky to say Y if it not)?")
 if personal:
 	with open('homesystem', 'w') as f:
@@ -307,11 +308,12 @@ if personal:
 else:
 	U.StageVersion('consolestable', 'currentrelease', 'Initial Install')
 	print("Stage standard stable release")
-if Bookworm:
-	shutil.copy('consolestable/scripts/softconsoleBW.service', 'consolestable/scripts/softconsole.service')
 
 U.InstallStagedVersion('consolestable')
 print('Installed stable version', flush=True)
+if Bookworm:
+	shutil.copy('consolestable/scripts/softconsoleBW.service', 'consolestable/scripts/softconsole.service')
+
 
 if beta:
 	U.StageVersion('consolebeta', 'currentbeta', 'Initial Install')
@@ -326,7 +328,7 @@ if beta:
 authdir = '/boot/auth' if os.path.exists('/boot/auth') else '/boot/firmware/auth' if os.path.exists(
 	'/boot/firmware/auth') else None
 print("****************************************************************", flush=True)
-print(" auth directory found at ()".format(authdir))
+print(" auth directory found at {}".format(authdir))
 print("****************************************************************", flush=True)
 if authdir is not None:
 	shutil.rmtree('Console/local', ignore_errors=True)

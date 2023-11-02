@@ -20,17 +20,23 @@ fi
 exec > >(tee -a /home/pi/prep.log)
 exec 2>&1
 
+source installvals
+
 cd /home/pi
 LogBanner "This is the system setup script"
 
-LogBanner "Remember to do rpi-update first!"
+if [ $Bookworm == True ];
+  LogBanner "Remember to do rpi-update first!"
+  sleep 5
+  LogBanner "Continuing . . ."
 
 DEBIAN_FRONTEND=noninteractive apt-get -y install python3-wget
 wget https://raw.githubusercontent.com/kevinkahn/softconsole/master/getinstallinfo.py
-LogBanner "Got getinstallinfo"
+
+LogBanner "Install python3-full"
 DEBIAN_FRONTEND=noninteractive apt-get -y install python3-full
-LogBanner "Installed python3-full"
-# make non-interactive
+
+LogBanner "Create Virtual Python Environment"
 mkdir pyenv
 mkdir .xdgdir
 python -m venv /home/pi/pyenv
@@ -43,10 +49,7 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 
-#TEMP!!!
-cp /home/pi/consolebeta/scripts/softconsoleBW.service /usr/lib/systemd/system/softconsole.service
-systemctl daemon-reload
-
+LogBanner "Install SDL2 stuff"
 DEBIAN_FRONTEND=noninteractive apt-get -y install libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev libfreetype6-dev libportmidi-dev libjpeg-dev python3-setuptools python3-dev python3-numpy
 DEBIAN_FRONTEND=noninteractive apt-get -y install libegl-dev
 
@@ -54,13 +57,16 @@ LogBanner "Upgrade/Update System"
 apt-get update
 DEBIAN_FRONTEND=noninteractive apt-get -y upgrade
 
-source installvals
 
-LogBanner "Changing Node Name to: $NodeName"
-mv -n /etc/hosts /etc/hosts.orig
-sed s/raspberrypi/$NodeName/ /etc/hosts.orig >/etc/hosts
-echo $NodeName >/etc/hostname
-hostname $NodeName
+if [ Z$NodeName != Z ]; then
+  LogBanner "Changing Node Name to: $NodeName"
+  mv -n /etc/hosts /etc/hosts.orig
+  sed s/raspberrypi/$NodeName/ /etc/hosts.orig >/etc/hosts
+  echo $NodeName >/etc/hostname
+  hostname $NodeName
+else
+  NodeName=`hostname`
+  LogBanner "Leaving Node Name as:  $NodeName"
 
 LogBanner "Set Boot to Logged in CLI"
 systemctl --quiet set-default multi-user.target
