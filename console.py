@@ -66,6 +66,10 @@ config.sysStore.SetVal('HomeDir', os.path.dirname(config.sysStore.ExecDir))
 Constants
 '''
 configfilebase = "/home/pi/Console/"  # actual config file can be overridden from arg1
+with open(configfilebase + 'crashlogO', 'w') as f:
+	print('Print Catch StdOutput at {}'.format(time.ctime(config.sysStore.ConsoleStartTime)), file=f)
+with open(configfilebase + 'crashlogE', 'w') as f:
+	print('Print Catch StdOutput at {}'.format(time.ctime(config.sysStore.ConsoleStartTime)), file=f)
 from config import configfilelist  # list of configfiles and their timestamps
 
 logsupport.SpawnAsyncLogger()
@@ -378,7 +382,7 @@ logsupport.Logs.Log("Switching to real log")
 logsupport.Logs = logsupport.InitLogs(hw.screen, os.path.dirname(config.sysStore.configfile))
 utilities.Logs = logsupport.Logs
 #cgitb.enable(format='text')
-logsupport.Logs.Log(u"Soft ISY Console")
+logsupport.Logs.Log(u"Soft Home Automation Console")
 
 logsupport.Logs.Log(u"  \u00A9 Kevin Kahn 2016, 2017, 2018, 2019, 2020, 2021")
 logsupport.Logs.Log("Software under Apache 2.0 License")

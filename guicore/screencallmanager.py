@@ -1,5 +1,6 @@
 import pygame
 import pygame.gfxdraw
+import config
 
 """
 To disable the thread version of pygame uncomment the below and comment the rest of the file
@@ -248,8 +249,11 @@ def Send(calltype, obj, func, args, kwargs):
 def DoPygameOps():
 	try:
 		while True:
-			callparms = ToPygame.get()
-
+			try:
+				callparms = ToPygame.get(timeout=1.25)  # add timeout for clean shutdown
+			except queue.Empty:
+				print('Pygame common thread exiting for no work')
+				raise queue.Empty
 			callhist.append('Exec: {}'.format(callparms))
 			if callparms[1] == rem:
 				op = callparms[2].split('.')
@@ -268,6 +272,9 @@ def DoPygameOps():
 				res = 'ok'
 
 			FromPygame[callparms[0][0]].put((callparms[0], res))
+
+	except queue.Empty:
+		print('Pygame Thread end')
 	except Exception as E:
 		print('Pygame Thread excetion {}'.format(E))
 
