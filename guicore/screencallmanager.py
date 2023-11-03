@@ -1,6 +1,5 @@
 import pygame
 import pygame.gfxdraw
-import config
 
 """
 To disable the thread version of pygame uncomment the below and comment the rest of the file
@@ -216,8 +215,10 @@ initq = 0
 rem = 1
 remobj = 2
 
-
+pgstats = {}
 def Send(calltype, obj, func, args, kwargs):
+	if func not in pgstats:
+		pgstats[func] = [0, 0]
 	me = threading.current_thread().name
 	if me not in FromPygame:
 		ToPygame.put([(me, -1), 0])
@@ -232,8 +233,11 @@ def Send(calltype, obj, func, args, kwargs):
 		callparmsout = [(me, SeqNums[me]), calltype, obj, func, args, kwargs]
 	callhist.append('Call: {}'.format(callparmsout))
 
+	calltime = time.time()
 	ToPygame.put(callparmsout)
 	resout = FromPygame[me].get()
+	pgstats[func][0] += time.time() - calltime
+	pgstats[func][1] += 1
 	if SeqNums[me] != resout[0][1]:
 		print('SEQ Error: {}:{} <> {}'.format(me, SeqNums[me], resout[0]))
 		print('SEQ Error: {}:{} <> {}'.format(me, SeqNums[me], resout[0]),
@@ -247,13 +251,11 @@ def Send(calltype, obj, func, args, kwargs):
 
 
 def DoPygameOps():
+	dumptime = time.time()
 	try:
 		while True:
-			try:
-				callparms = ToPygame.get(timeout=1.25)  # add timeout for clean shutdown
-			except queue.Empty:
-				print('Pygame common thread exiting for no work')
-				raise queue.Empty
+			callparms = ToPygame.get(timeout=1.25)  # add timeout for clean shutdown
+
 			callhist.append('Exec: {}'.format(callparms))
 			if callparms[1] == rem:
 				op = callparms[2].split('.')
@@ -271,13 +273,18 @@ def DoPygameOps():
 				FromPygame[callparms[0][0]] = queue.SimpleQueue()
 				res = 'ok'
 
+				if time.time() - dumptime > 600:
+					print('Pygame Calls')
+					for f, i in pgstats.items():
+						print('{}: {} ({}/{})'.format(f, i[0] / i[1], i[0], i[1]))
+					dumptime = time.time()
+
+
 			FromPygame[callparms[0][0]].put((callparms[0], res))
 
-	except queue.Empty:
-		print('Pygame Thread end')
 	except Exception as E:
 		print('Pygame Thread excetion {}'.format(E))
 
 
-PyGameExec = threading.Thread(target=DoPygameOps, name='PyGame call thread')
+PyGameExec = threading.Thread(target=DoPygameOps, name='PyGame call thread', daemon=True)
 PyGameExec.start()
