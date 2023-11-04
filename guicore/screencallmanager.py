@@ -258,9 +258,13 @@ def Send(calltype, obj, func, args, kwargs):
 
 
 def DoPygameOps():
-	dumptime = time.time()
-	lastcall = time.time()
-	lastparm = None
+	# dumptime = time.time()
+	# lastcall = time.time()
+	# lastparm = None
+	with open('/home/pi/Console/pgerrors.txt', 'a') as pgerr:
+		print('-------------------------------------------------------------', file=pgerr)
+		print('PG Error Log Start ({})'.format(time.ctime(time.time())), file=pgerr)
+		print('-------------------------------------------------------------', file=pgerr)
 	try:
 		while True:
 			callparms = ToPygame.get()
@@ -282,18 +286,18 @@ def DoPygameOps():
 				SeqNumLast[callparms[0][0]] = 0
 				FromPygame[callparms[0][0]] = queue.SimpleQueue()
 				res = 'ok'
-			if calltime - lastcall > 1.7:
-				print('Call gap {}    ({})'.format(calltime - lastcall, time.time() - dumptime))
-				print('  from {}'.format(lastparm))
-				print('   to {}'.format(callparms))
-			lastcall = calltime
-			lastparm = callparms
+			# if calltime - lastcall > 1.7:
+			#	print('Call gap {}    ({})'.format(calltime - lastcall, time.time() - dumptime))
+			#	print('  from {}'.format(lastparm))
+			#	print('   to {}'.format(callparms))
+			# lastcall = calltime
+			#lastparm = callparms
 
-			if time.time() - dumptime > 600:
-				print('Pygame Calls')
-				for f, i in pgstats.items():
-					print('{}: {} ({}/{})'.format(f, i[0] / i[1], i[0], i[1]))
-				dumptime = time.time()
+			# if time.time() - dumptime > 600:
+			#	print('Pygame Calls')
+			#	for f, i in pgstats.items():
+			#		print('{}: {} ({}/{})'.format(f, i[0] / i[1], i[0], i[1]))
+			#	dumptime = time.time()
 
 
 			FromPygame[callparms[0][0]].put((callparms[0], res))

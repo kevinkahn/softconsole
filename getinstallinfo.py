@@ -320,14 +320,12 @@ if beta:
 	print('Stage beta also')
 	U.InstallStagedVersion('consolebeta')
 	print('Intalled staged beta')
-
+	if Bookworm and os.path.exists('consolebeta/scripts/softconsoleBW.service'):
+		print('Use beta softconsoleBW.service for systemctl')
+		shutil.copy('consolebeta/scripts/softconsoleBW.service', 'consolebeta/scripts/softconsole.service')
 	if selectbeta:
 		with open('versionselector', 'w') as f:
 			f.write('beta\n')
-		if Bookworm and os.path.exists('consolebeta/scripts/softconsoleBW.service'):
-			print('Use beta softconsoleBW.service for systemctl')
-			shutil.copy('consolebeta/scripts/softconsoleBW.service', 'consolebeta/scripts/softconsole.service')
-
 authdir = '/boot/auth' if os.path.exists('/boot/auth') else '/boot/firmware/auth' if os.path.exists(
 	'/boot/firmware/auth') else None
 print("****************************************************************", flush=True)

@@ -57,9 +57,9 @@ def StageVersion(vdir, tag, label, uselog=False):
 	logf.close()
 
 # noinspection PyBroadException
-def InstallStagedVersion(d):
+def InstallStagedVersion(d, Bookworm=False):
 	logf = open('stagelog.log', 'a')
-	print("Installing", file=logf)
+	print("Installing in {}".format(d), file=logf)
 	shutil.rmtree(d + '/previousversion', True)  # don't keep multiple previous version in tree
 	os.rename(d, d + '.TMP')  # move active directory to temp
 	os.rename(d + '.TMP/stagedversion', d)  # move new version into place
@@ -80,9 +80,26 @@ def InstallStagedVersion(d):
 		except:
 			print("Couldn't move termshortenlist in " + str(os.getcwd()), file=logf)
 
+	if Bookworm and os.path.exists('scripts/softconsoleBW.service'):
+		print('Use softconsoleBW.service for systemctl')
+		shutil.copy('scripts/softconsoleBW.service', 'scripts/softconsole.service')
+
 	print('Process upgrade extras script', file=logf)
 	subprocess.call('sudo bash ' + './scripts/upgradeprep.sh', shell=True, stdout=logf, stderr=logf)
 	print('End upgrade extras script', file=logf)
+
+	print('Setup systemd service from {}'.format(d))
+	os.chmod('runconsole.py', 0o555)
+	os.chmod('/console.py', 0o555)
+	# noinspection PyBroadException
+	try:
+		os.mkdir('/usr/lib/systemd/system')
+	# make it in case it isn't already there
+	except:
+		pass
+	subprocess.call('cp -f ' + 'scripts/softconsole.service /usr/lib/systemd/system', shell=True)
+	subprocess.call('systemctl daemon-reload', shell=True)
+
 	logf.close()
 	os.chdir('..')
 

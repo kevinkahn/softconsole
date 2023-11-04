@@ -74,16 +74,16 @@ def MainControlLoop():
 		while config.Running:  # Operational Control Loop
 			guiutils.CycleStats()
 			guiutils.HBEvents.Entry('Start event loop iteration')
-			if lastpgdump < time.time() - 3600:
-				lastpgdump = time.time()
-				print('--------------------------', file=open('/home/pi/Console/pgerrors.txt', 'a'))
-				for n, s in SeqNums.items():
-					t = s - SeqNumLast[n]
-					if t < 0:
-						t = t + 10000000
-					print('Thread {}: {}'.format(n, t), file=open('/home/pi/Console/pgerrors.txt', 'a'))
-					SeqNumLast[n] = s
-				print('--------------------------', file=open('/home/pi/Console/pgerrors.txt', 'a'))
+			# if lastpgdump < time.time() - 3600:
+			#	lastpgdump = time.time()
+			#	print('--------------------------', file=open('/home/pi/Console/pgerrors.txt', 'a'))
+			#	for n, s in SeqNums.items():
+			#		t = s - SeqNumLast[n]
+			#		if t < 0:
+			#			t = t + 10000000
+			#		print('Thread {}: {}'.format(n, t), file=open('/home/pi/Console/pgerrors.txt', 'a'))
+			#		SeqNumLast[n] = s
+			#	print('--------------------------', file=open('/home/pi/Console/pgerrors.txt', 'a'))
 
 			StackCheck = traceback.format_stack()
 			if stackdepth == 0:
