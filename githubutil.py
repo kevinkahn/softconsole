@@ -90,7 +90,7 @@ def InstallStagedVersion(d, Bookworm=False):
 
 	print('Setup systemd service from {}'.format(d))
 	os.chmod('runconsole.py', 0o555)
-	os.chmod('/console.py', 0o555)
+	os.chmod('console.py', 0o555)
 	# noinspection PyBroadException
 	try:
 		os.mkdir('/usr/lib/systemd/system')
