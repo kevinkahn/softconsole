@@ -15,8 +15,9 @@ import threading
 import queue
 
 callhist = deque('', 20)
-
-
+pgstats = {}
+pgstats['load'] = [0, 0]
+pgstats['save'] = [0, 0]
 def remote(func, *args, **kwargs):
 	if kwargs != {}:
 		print('KEYWORDS! {}'.format(kwargs))
@@ -119,11 +120,18 @@ class pg(object):
 	class image(object):  # Memoryless so do locally
 		@staticmethod
 		def load(*args, **kwargs):  # Memoryless so do locally
-			return pg.Surface(wrap=pygame.image.load(*args, **kwargs))
+			calltime = time.time()
+			ret = pg.Surface(wrap=pygame.image.load(*args, **kwargs))
+			pgstats['load'][0] += time.time() - calltime
+			pgstats['load'][1] += 1
+			return ret
 
 		@staticmethod
 		def save(*args, **kwargs):  # Memoryless so do locally
+			calltime = time.time()
 			pygame.image.save(*_unwrapSurf(*args), **kwargs)
+			pgstats['save'][0] += time.time() - calltime
+			pgstats['save'][1] += 1
 
 	class draw(object):
 
@@ -215,7 +223,6 @@ initq = 0
 rem = 1
 remobj = 2
 
-pgstats = {}
 def Send(calltype, obj, func, args, kwargs):
 	if func not in pgstats:
 		pgstats[func] = [0, 0]
@@ -252,9 +259,12 @@ def Send(calltype, obj, func, args, kwargs):
 
 def DoPygameOps():
 	dumptime = time.time()
+	lastcall = time.time()
+	lastparm = None
 	try:
 		while True:
-			callparms = ToPygame.get(timeout=1.25)  # add timeout for clean shutdown
+			callparms = ToPygame.get()
+			calltime = time.time()
 
 			callhist.append('Exec: {}'.format(callparms))
 			if callparms[1] == rem:
@@ -272,12 +282,18 @@ def DoPygameOps():
 				SeqNumLast[callparms[0][0]] = 0
 				FromPygame[callparms[0][0]] = queue.SimpleQueue()
 				res = 'ok'
+			if calltime - lastcall > 1.7:
+				print('Call gap {}    ({})'.format(calltime - lastcall, time.time() - dumptime))
+				print('  from {}'.format(lastparm))
+				print('   to {}'.format(callparms))
+			lastcall = calltime
+			lastparm = callparms
 
-				if time.time() - dumptime > 600:
-					print('Pygame Calls')
-					for f, i in pgstats.items():
-						print('{}: {} ({}/{})'.format(f, i[0] / i[1], i[0], i[1]))
-					dumptime = time.time()
+			if time.time() - dumptime > 600:
+				print('Pygame Calls')
+				for f, i in pgstats.items():
+					print('{}: {} ({}/{})'.format(f, i[0] / i[1], i[0], i[1]))
+				dumptime = time.time()
 
 
 			FromPygame[callparms[0][0]].put((callparms[0], res))

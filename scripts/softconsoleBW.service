@@ -25,8 +25,10 @@ Restart=on-failure
 # Slows things down a little on restarts, maybe doesn't need to be so long
 RestartSec=3
 # Makes sure any output gets to syslog and named sensibly
-StandardOutput=append:/home/pi/Console/crashlogO
-StandardError=append:/home/pi/Console/crashlogE
+StandardOutput=journal
+#append:/home/pi/Console/crashlogO
+StandardError=journal
+#append:/home/pi/Console/crashlogE
 SyslogIdentifier=softconsole
 
 [Install]

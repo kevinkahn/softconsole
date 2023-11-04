@@ -11,8 +11,11 @@ NOTE: This gets used in initial setup of console by the setup program
 """
 
 
-def StageVersion(vdir, tag, label):
-	logf = open('stagelog.log', 'w')
+def StageVersion(vdir, tag, label, uselog=False):
+	if uselog:
+		logf = open('stagelog.log', 'a')
+	else:
+		logf = open('stagelog.log', 'w')
 	print(datetime.datetime.now().strftime("%I:%M%p on %B %d, %Y"), file=logf)
 	print("Staging " + tag + " in " + vdir + ' because ' + label, file=logf)
 
