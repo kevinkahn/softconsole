@@ -129,6 +129,7 @@ with open('/etc/issue') as f:
 		print("**************************************************************", flush=True)
 		print("**************************************************************", flush=True)
 AddToScript('Buster', 'Y' if Buster else 'N')
+AddToScript('Bookworm', 'Y' if Bookworm else 'N')
 if piinstall:
 	NodeName = GetVal("Enter name for system or return to leave as is:")
 	AddToScript('NodeName', NodeName)
@@ -311,18 +312,12 @@ else:
 
 U.InstallStagedVersion('consolestable')
 print('Installed stable version', flush=True)
-if Bookworm and os.path.exists('consolestable/scripts/softconsoleBW.service'):
-	print('Use stable softconsoleBW.service for systemctl')
-	shutil.copy('consolestable/scripts/softconsoleBW.service', 'consolestable/scripts/softconsole.service')
 
 if beta:
 	U.StageVersion('consolebeta', 'currentbeta', 'Initial Install')
 	print('Stage beta also')
 	U.InstallStagedVersion('consolebeta')
 	print('Intalled staged beta')
-	if Bookworm and os.path.exists('consolebeta/scripts/softconsoleBW.service'):
-		print('Use beta softconsoleBW.service for systemctl')
-		shutil.copy('consolebeta/scripts/softconsoleBW.service', 'consolebeta/scripts/softconsole.service')
 	if selectbeta:
 		with open('versionselector', 'w') as f:
 			f.write('beta\n')

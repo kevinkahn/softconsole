@@ -88,7 +88,7 @@ def InstallStagedVersion(d, Bookworm=False):
 	subprocess.call('sudo bash ' + './scripts/upgradeprep.sh', shell=True, stdout=logf, stderr=logf)
 	print('End upgrade extras script', file=logf)
 
-	print('Setup systemd service from {}'.format(d))
+	print('Setup systemd service from {}'.format(d), file=logf)
 	os.chmod('runconsole.py', 0o555)
 	os.chmod('console.py', 0o555)
 	# noinspection PyBroadException
@@ -97,6 +97,7 @@ def InstallStagedVersion(d, Bookworm=False):
 	# make it in case it isn't already there
 	except:
 		pass
+	print('DO cp -f ' + 'scripts/softconsole.service /usr/lib/systemd/system', file=logf)
 	subprocess.call('cp -f ' + 'scripts/softconsole.service /usr/lib/systemd/system', shell=True)
 	subprocess.call('systemctl daemon-reload', shell=True)
 

@@ -20,8 +20,6 @@ fi
 exec > >(tee -a /home/pi/prep.log)
 exec 2>&1
 
-source installvals
-
 cd /home/pi
 LogBanner "This is the system setup script"
 
@@ -48,6 +46,8 @@ if [ $? -ne 0 ]; then
   echo "Exiting pisetup due to error in getinstallinfo"
   exit 1
 fi
+
+source installvals
 
 LogBanner "Install SDL2 stuff"
 DEBIAN_FRONTEND=noninteractive apt-get -y install libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev libfreetype6-dev libportmidi-dev libjpeg-dev python3-setuptools python3-dev python3-numpy
