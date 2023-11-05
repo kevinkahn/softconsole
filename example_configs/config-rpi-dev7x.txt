@@ -69,11 +69,6 @@ NavKeyAlpha = 50
 #singlepic = 'spcpic.jpg'
 
 [Alerts]
-	[[AutoVersion]]
-	# Condition = LocalVars:House = 'PDX'
-	Type = Periodic
-	Interval = 3 hours
-	Invoke = AutoVersion.CheckUpToDate
 	[[ConfigCheck]]
 	Type = Periodic
 	Interval = 1 minutes

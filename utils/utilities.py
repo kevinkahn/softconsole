@@ -173,7 +173,7 @@ def InitializeEnvironment():
 			+ str(config.sysStore.ConsoleStartTime - lastup) + '\n')
 
 	signal.signal(signal.SIGALRM, alarm_handler)  # HACK
-	signal.alarm(3)  # HACK
+	signal.alarm(10)  # HACK
 	try:  # HACK
 		if softrotate > 4:
 			logsupport.Logs.Log("Ignoring bad soft rotation value: {}".format(softrotate),

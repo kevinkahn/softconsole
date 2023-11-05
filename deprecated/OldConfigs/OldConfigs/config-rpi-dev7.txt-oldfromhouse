@@ -11,21 +11,21 @@ LogLevel = 3
 # switch to authall with HASSpga avail
 
 cfglib = "/home/pi/consolerem/example configs/cfglib"
-include = /home/pi/Console/local/authall.cfg, weathersources.cfg, weathPump.cfg, timetempLQ.cfg,  myclock.cfg,bathroom.cfg,upperlev.cfg,BR-kck.cfg,tstat.cfg,weathPDX.cfg,timetempLQ7.cfg, octoprint.cfg, timetempPDX7.cfg, pgaTstat.cfg, pgawBRmain.cfg, pgaBath.cfg,timetempLQ7dks.cfg, pgaGR.cfg, pgaKitchen.cfg, pgaOutside.cfg
+include = /home/pi/Console/local/authall.cfg, weathersources.cfg, weathPump.cfg, timetempLQ.cfg,  myclock.cfg,weathPDX.cfg,timetempLQ7.cfg, mqtt.cfg, octoprint.cfg, weathCC.cfg, timetempPDX7.cfg, pgaTstat.cfg, pgawBRmain.cfg, pgaBath.cfg, condotstats.cfg
 #pgaalerts.cfg,
 HomeScreenName = 'Prusa'
 DimLevel = 10
-DimTO = 5
+DimTO = 10
 PersistTO = 3
 #DimIdleListNames = Portland, PDXTTbig, MyClock, LQTTbig, Pumpkin
-DimIdleListNames = PDXTTbig, Pic, MyClock, LQTTbig, LQTTbigdks, Pumpkin
+DimIdleListNames = PDXTTbig, Pic, MyClock, LQTTbig, Pumpkin
 
 DimIdleListTimes =	5, 20, 5, 5, 5, 5
 
-MainChain = Prusa, wxHouse, Pic, TreeTest, LR1,Sonos,LR2, Pumpkin, Upper Level, Test
-SecondaryChain = Portland, Bathroom, BR, Thermostat - Main,LQTTbig, climate.master_bedroom, climate.living_room, pgawBR, pgaOutside, pgaGR, pgaKitchen, pgawBath
+MainChain = Prusa, pgawBath, PGALR, wxHouse, Pic, TreeTest, LR1,Sonos,LR2, Pumpkin, Local, Test,climate.air_conditionerbr_hvac,climate.air_conditionerlr_hvac
+SecondaryChain = Portland, LQTTbig, climate.master_bedroom, climate.living_room, pgawBR, pgawOther
 
-DefaultHub = ISY
+DefaultHub = HASS
 HorizBorder = 10
 TopBorder = 5
 NavKeyHeight = 60
@@ -59,36 +59,37 @@ CharColor = white
 [Variables]
     InternetUp = 1
 
-[Sonos]
-    type = Sonos
-    DefaultHub = HASS
+#[Sonos]
+#    type = Sonos
+#    DefaultHub = HASS
 
 [Pic]
 type = Picture
-picturedir = pics
+picturedir = /home/pi/photos/rpi-pgalr
 NavKeyAlpha = 50
 #singlepic = 'spcpic.jpg'
 
 [Alerts]
-	[[AutoVersion]]
+	[[AdjustScreenDimUp]]
 	Type = Periodic
-	Interval = 3 hours
-	Invoke = AutoVersion.CheckUpToDate
-	[[DimAway]]
-	Type = VarChange
-	Var = ISY:Int:HA_AwayNonState
-	Test = EQ
-	Value = 1
+	At = 7:00am
 	Invoke = AssignVar.Assign
-	Parameter = System:DimLevel = 5
+	Parameter = System:DimLevel = 50
+	#[[DimAway]]
+	#Type = VarChange
+	#Var = ISY:Int:HA_AwayNonState
+	#Test = EQ
+	#Value = 1
+	#Invoke = AssignVar.Assign
+	#Parameter = System:DimLevel = 5
 
-    [[DimHome]]
-	Type = VarChange
-	Var = ISY:Int:HA_AwayNonState
-	Test = EQ
-	Value = 0
-	Invoke = AssignVar.Assign
-	Parameter = System:DimLevel = 100
+    #[[DimHome]]
+	#Type = VarChange
+	#Var = ISY:Int:HA_AwayNonState
+	#Test = EQ
+	#Value = 0
+	#Invoke = AssignVar.Assign
+	#Parameter = System:DimLevel = 100
 
 	[[xwatch]]
 	Type = FileWatch
@@ -146,13 +147,13 @@ NavKeyAlpha = 50
 #	Value = 0
 #	Delay = 2 seconds
 #	Invoke = NodeTest2
-[[Garage Door]]
-Type = NodeChange
-Node = Garage Door Opener-Sensor
-Test = EQ
-Value = 0
-Delay = 20 seconds
-Invoke = GarageDoor
+#[[Garage Door]]
+#Type = NodeChange
+#Node = Garage Door Opener-Sensor
+#Test = EQ
+#Value = 0
+#Delay = 20 seconds
+#Invoke = GarageDoor
 
 	[[Internet]]
 	Type = Periodic
@@ -197,21 +198,22 @@ KeyColor = maroon
 CenterMessage = False
 
 
-[GarageDoor]
-type = Alert
-BackgroundColor = cyan
-MessageBack = red
-CharColor = black
-Message = Garage, Door, is, Open
-CharSize = 30, 30, 30,40
-DeferTime = 15 seconds
-BlinkTime = 1
-KeyColor = maroon
-[[Action]]
-type = ON
-NodeName = Garage Door Opener-Relay
-KeyColor = maroon
-label = Garage, Door
+#[AwayAlert]
+#type = Alert
+#BackgroundColor = royalblue
+#MessageBack = red
+#CharColor = black
+#Message = "House", "in", "AWAY","Mode"
+#CharSize = 30, 30, 40, 30
+#DeferTime = 60 seconds
+#BlinkTime = 2
+#KeyColor = maroon
+#[[Action]]
+#type = RUNPROG
+#KeyColor = maroon
+#ProgramName = ClearAway
+#label = Set Home,
+#FastPress = 0
 
 [InternetAlertScreen]
     type = Alert
@@ -243,20 +245,19 @@ label = Garage, Door
 #		NodeName = Office Ceiling
 #		label = Clear, Test Condition
 
-[NodeTest2]
-	type = Alert
-	BackgroundColor = pink
-	MessageBack = aqua
-	CharColor = navyblue
-	Message = Test, Node, Ceiling, On2
-	CharSize = 30,
-	DeferTime = 10
-	BlinkTime = 4
-	KeyColor = maroon
-	[[Action]]
-		type = ONOFF
-		NodeName = Office Ceiling
-		label = Clear, Test Condition
+#[NodeTest2]
+#	type = Alert
+#	BackgroundColor = pink
+#	MessageBack = aqua
+#	CharColor = navyblue
+#	Message = Test, Node, Ceiling, On2
+##	DeferTime = 10
+#	BlinkTime = 4
+#	KeyColor = maroon
+#	[[Action]]
+#		type = ONOFF
+#		NodeName = Office Ceiling
+#		label = Clear, Test Condition
 		
 
 #[TestAlert]
@@ -283,21 +284,24 @@ label = Garage, Door
 
 [LR1]
     Clocked = 2
-    ScreenTitle = Living Room  {}
+    ScreenTitle = Living Room {:.1f}° {:.0f}% at {}
     ScreenTitleColor = red
-    ScreenTitleFields =  System:Time:%H*%M*%S
+    ScreenTitleFields = HASSpga:sensor.patio_sensor_temperature, HASSpga:sensor.patio_sensor_humidity, System:Time:%H*%M*%S
     type = Keypad
     label = Living, Room 1
-    [[Office Ceiling]]
-    type = ONOFF
-	label = Office, Ceiling
-	Verify = 1
-	Blink = 5
+#    [[Office Ceiling]]
+#    type = ONOFF
+#	label = Office, Ceiling
+#	Verify = 1
+#	Blink = 5
 
-    [[LR Dual Spots]]
-        label = Dual, Spots
-    [[LR Pict Spot]]
-        label = Art Spot,
+    [[HASSpga:scene.pool_lights_on]]
+        label = Light, Pool
+        type = ON
+        SceneProxy = HASSpga:switch.pool_light
+    [[HASSpga:scene.pool_lights_off]]
+        label = Pool,Light,Off
+        type = ON
  #   [[Up Lights]]
  #       Blink = 5
     [[TestSeq]]
@@ -307,49 +311,52 @@ label = Garage, Door
     ValueSeq = 1,2,3
     Appearance = 1 red 'FAN SPEED; LOW',2 red 'FAN SPEED; MED', 3 red 'FAN SPEED; HIGH'
 
- [LR2]
-    type = Keypad
-    label = Living, Room 2   
-    [[Main Hall]]
-    [[Upper Hall]]
-    [[TestProg]]
-        type=RUNPROG
-        ProgramName = TestProc
-        KeyColor = green
-        Verify = 1
-        GoMsg = Yes, Do, It!
-        NoGoMsg = Oops, Never Mind!
-        Blink = 11
-        label = Test, Program, Verify
+# [LR2]
+#    type = Keypad
+#    label = Living, Room 2
+#    [[Window Sconce]]
+#    [[Bed Sconce Win]]
+#    type =ONOFF
+#    [[Upper Hall]]
+#    [[TestProg]]
+#        type=RUNPROG
+#        ProgramName = TestProc
+#        Parameter = a:b
+#        KeyColor = green
+#        Verify = 1
+#        GoMsg = Yes, Do, It!
+#        NoGoMsg = Oops, Never Mind!
+#        Blink = 11
+#        label = Test, Program, Verify
 
-[TreeTest]
-type = Keypad
-label = Stuff,
-[[LR1]]
-type = GOTO
-ScreenName = LR1
-KeyColor = purple
-[[LR2]]
-type = GOTO
-ScreenName = LR2
- [[Office Ceiling]]
-    type = ONOFF
-	label = Office, Ceiling2
-	KeyColorOn = black
-	KeyColorOff = black
-[[TreeTest2]]
-type = GOTO
-ScreenName = TreeTest2
+#[TreeTest]
+#type = Keypad
+#label = Stuff,
+#[[LR1]]
+#type = GOTO
+#ScreenName = LR1
+#KeyColor = purple
+#[[LR2]]
+#type = GOTO
+#ScreenName = LR2
+# [[Office Ceiling]]
+#    type = ONOFF
+#	label = Office, Ceiling2
+#	KeyColorOn = black
+#	KeyColorOff = black
+#[[TreeTest2]]
+#type = GOTO
+#ScreenName = TreeTest2
 
-[TreeTest2]
-type = Keypad
-label = More Stuff,
- [[Office Ceiling]]
-    type = ONOFF
-	label = Office, Ceiling3
-[[LR1]]
-type = GOTO
-ScreenName = LR1
+#[TreeTest2]
+#type = Keypad
+#label = More Stuff,
+# [[Office Ceiling]]
+#    type = ONOFF
+#	label = Office, Ceiling3
+#[[LR1]]
+#type = GOTO
+#ScreenName = LR1
 
 #    [[LR Plug Dr]]
 #        label = Reading, Light, Door

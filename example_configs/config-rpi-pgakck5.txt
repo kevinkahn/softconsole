@@ -1,0 +1,32 @@
+LogLevel = 3
+#Screen = True
+#Main = True
+#Dispatch = True
+#DaemonCtl = True
+#ISYDump = True
+#ISYLoad = True
+#StoreTrack = True
+#HASSgeneral = True
+#HASSchg = True
+
+
+cfglib = "/home/pi/Console/cfglib"
+include = /home/pi/Console/local/authall.cfg, mqtt.cfg, pgawBRmain.cfg, pgaTstat.cfg, timetempLQ.cfg, timetempPDX.cfg, myclock2.cfg,weathPDX.cfg,weathPump.cfg,weathersources.cfg, pgaalerts.cfg, pgaBath.cfg#, pgaOutside.cfg, pgaGR.cfg, pgaKitchen
+HomeScreenName = pgawBR
+DimLevel = 25
+DimTO = 25
+DimIdleListNames = MyClock, Portland, LQTT, TimeTemp
+DimIdleListTimes =	8, 8, 8
+
+#MainChain = pgawBR, Varkeytest, LQTT, climate.master_bedroom, climate.living_room, pgawBath
+MainChain = pgawBR, LQTT, climate.master_bedroom, climate.living_room, pgawBath
+SecondaryChain = Portland, Pumpkin, pgaOutside, pgaGR, pgaKitchen
+
+DefaultHub = HASSpga
+
+
+
+
+
+
+

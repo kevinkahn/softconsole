@@ -21,10 +21,6 @@ DefaultHub = ISY
     DefaultHub = HASS
 
 [Alerts]
-	[[AutoVersion]]
-	Type = Periodic
-	Interval = 3 hours
-	Invoke = AutoVersion.CheckUpToDate
     [[DimAway]]
         Type = VarChange
         Var = ISY:Int:HA_AwayNonState
