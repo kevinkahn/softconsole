@@ -22,10 +22,6 @@ SecondaryChain = Portland, LQTT
     InternetUp = 1
 
 [Alerts]
-	[[AutoVersion]]
-	Type = Periodic
-	Interval = 3 hours
-	Invoke = AutoVersion.CheckUpToDate
 #	[[AltVarTest]]
 #	Type = StateVarChange
 #	Var = tEST
