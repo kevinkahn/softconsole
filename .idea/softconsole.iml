@@ -7,7 +7,7 @@
       <excludeFolder url="file://$MODULE_DIR$/auxinfo" />
       <excludeFolder url="file://$MODULE_DIR$/example_configs" />
     </content>
-    <orderEntry type="jdk" jdkName="Remote Python 3.9.2 (sftp://pi@rpi-dev7x.pgawhome:22/home/pi/python-sudo.sh) (2)" jdkType="Python SDK" />
+    <orderEntry type="jdk" jdkName="Remote Python 3.11.2 (sftp://pi@rpi-dev7x:22/home/pi/pyenv/bin/python)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
   </component>
   <component name="PackageRequirementsSettings">

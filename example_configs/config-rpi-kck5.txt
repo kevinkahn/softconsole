@@ -1,5 +1,5 @@
 cfglib = cfglib
-include = /home/pi/Console/local/authall.cfg, pdxalerts.cfg, pdxBR.cfg, pdxBR2.cfg, pdxshadeswest.cfg, pdxshadesnorthbath.cfg, condotstats.cfg,weathPump.cfg,weathPDX.cfg,weathLQ.cfg, myclock.cfg,timetempLQ.cfg,timetempPDX.cfg, mqtt.cfg, weathersources.cfg, #octoprint.cfg
+include = /home/pi/Console/local/authall.cfg, pdxalerts.cfg, pdxBR.cfg, pdxBR2.cfg, pdxshadeswest.cfg, pdxshadesnorthbath.cfg, condotstats.cfg,weathPump.cfg,weathPDX.cfg,weathLQ.cfg, myclock.cfg,timetempLQ.cfg,timetempPDX.cfg, mqtt.cfg, weathersources.cfg, inetmonitor.cfg #octoprint.cfg
 HomeScreenName = BR
 DimLevel = 46
 DimTO = 25
@@ -13,18 +13,6 @@ SecondaryChain = Portland, Pumpkin, La Quinta
     InternetUp = 1
 
 [Alerts]
-	[[Internet]]
-	Type = Periodic
-	Interval = 60 seconds
-	Invoke = NetworkHealth.Do_Ping
-	Parameter = '8.8.8.8',LocalVars:InternetUp
-	[[InternetAlert]]
-	Type = VarChange
-	Var = LocalVars:InternetUp
-	Test = NE
-	Value = 1
-	Invoke = InternetAlertScreen
-
 	[[AdjustScreenDim]]
 	Type = Periodic
 	At = 11:00pm
