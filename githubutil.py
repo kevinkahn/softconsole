@@ -91,15 +91,10 @@ def InstallStagedVersion(d, Bookworm=False):
 	print('Setup systemd service from {}'.format(d), file=logf)
 	os.chmod('runconsole.py', 0o555)
 	os.chmod('console.py', 0o555)
-	# noinspection PyBroadException
-	try:
-		os.mkdir('/usr/lib/systemd/system')
-	# make it in case it isn't already there
-	except:
-		pass
+
 	print('DO cp -f ' + 'scripts/softconsole.service /usr/lib/systemd/system', file=logf)
-	subprocess.call('cp -f ' + 'scripts/softconsole.service /usr/lib/systemd/system', shell=True)
-	subprocess.call('systemctl daemon-reload', shell=True)
+	subprocess.call('sudo cp -f ' + 'scripts/softconsole.service /usr/lib/systemd/system', shell=True)
+	subprocess.call('sudo systemctl daemon-reload', shell=True)
 
 	logf.close()
 	os.chdir('..')

@@ -328,13 +328,17 @@ print(" auth directory found at {}".format(authdir))
 print("****************************************************************", flush=True)
 if authdir is not None:
 	shutil.rmtree('Console/local', ignore_errors=True)
-	shutil.move(authdir, 'Console/local')
+	shutil.copytree(authdir, 'Console/local')
+	# shutil.move(authdir, 'Console/local')
 	if os.path.exists('Console/local/fstabadj.txt'):
+		shutil.copy('/etc/fstab', 'fstab.orig')
 		with open('Console/local/fstabadj.txt', 'r') as adds:
-			with open('/etc/fstab', 'a') as f:
+			with open('fstab.orig', 'a') as f:
 				shutil.copyfileobj(adds, f)
+		subprocess.call('sudo cp -f fstab.orig /etc/fstab', shell=True)
 
-subprocess.call("cp -r /home/pi/consolestable/'example_configs'/* /home/pi/Console", shell=True)
+shutil.copytree('/home/pi/consolestable/example_configs', '/home/pi/Console', dirs_exist_ok=True)
+#subprocess.call("cp -r /home/pi/consolestable/'example_configs'/* /home/pi/Console", shell=True)
 if piinstall:
 	print("****************************************************************", flush=True)
 	print("****************************************************************", flush=True)
