@@ -102,6 +102,10 @@ NavKeyAlpha = 50
 	Test = ISFALSE
 	Invoke = AwayAlert
 
+[[VersionCheck]]
+Type = Periodic
+Interval = 3 hours
+Invoke = AutoVersion.CheckUpToDate
 
 
 #	[[xwatch]]

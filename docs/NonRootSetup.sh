@@ -72,11 +72,13 @@ fi
 LogBanner "Set Boot to Logged in CLI"
 sudo systemctl --quiet set-default multi-user.target
 sudo sed -i 's/^.*HandlePowerKey=.*$/#HandlePowerKey=poweroff/' /etc/systemd/logind.conf
-sudo cat > /etc/systemd/system/getty@tty1.service.d/autologin.conf << EOF
+cat > tempautoLogin << EOF
 [Service]
 ExecStart=
 ExecStart=-/sbin/agetty --autologin $USER --noclear %I \$TERM
 EOF
+sudo cp tempautoLogin /etc/systemd/system/getty@tty1.service.d/autologin.conf
+rm tempautoLogin
 sudo systemctl daemon-reload
 
 #LogBanner "Enable vncserver"
