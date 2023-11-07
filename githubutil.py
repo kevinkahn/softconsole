@@ -85,7 +85,7 @@ def InstallStagedVersion(d, Bookworm=False):
 		shutil.copy('scripts/softconsoleBW.service', 'scripts/softconsole.service')
 
 	print('Process upgrade extras script', file=logf)
-	subprocess.call('sudo bash ' + './scripts/upgradeprep.sh', shell=True, stdout=logf, stderr=logf)
+	subprocess.call('bash ./scripts/upgradeprep.sh', shell=True, stdout=logf, stderr=logf)
 	print('End upgrade extras script', file=logf)
 
 	print('Setup systemd service from {}'.format(d), file=logf)
@@ -93,8 +93,10 @@ def InstallStagedVersion(d, Bookworm=False):
 	os.chmod('console.py', 0o555)
 
 	print('DO cp -f ' + 'scripts/softconsole.service /usr/lib/systemd/system', file=logf)
-	subprocess.call('sudo cp -f ' + 'scripts/softconsole.service /usr/lib/systemd/system', shell=True)
-	subprocess.call('sudo systemctl daemon-reload', shell=True)
+	suc = subprocess.call('sudo cp -f scripts/softconsole.service /usr/lib/systemd/system', shell=True)
+	print('Service copy result: []', format(suc), file=logf)
+	suc = subprocess.call('sudo systemctl daemon-reload', shell=True)
+	print('Reload result: {}'.format(suc), file=logf)
 
 	logf.close()
 	os.chdir('..')

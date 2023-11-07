@@ -58,7 +58,7 @@ def initOS(scrntyp, configdir):
 
 	screentype = scrntyp
 
-	os.nice(-10)
+	# os.nice(-10) todo
 
 	# hostname = socket.gethostname()
 	# get platform info
