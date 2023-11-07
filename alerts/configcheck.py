@@ -12,7 +12,7 @@ from utils.utilfuncs import safeprint
 
 confserver = '/home/pi/.exconfs/'
 cfgdirserver = confserver + 'cfglib/'
-
+reporteddifferences = {}
 
 def ForceRestart():
 	logsupport.Logs.Log('Configuration Update Needed')
@@ -48,7 +48,7 @@ def ConfigFilesChanged():
 				mt = ftime
 				mts = 'None'
 				safeprint('Error getting current base timestamp {}'.format(E))
-		if abs(ftime - mt) > 1:
+		if ftime - mt < 6:  # newer file in master directory with small slop to avoid partial updates
 			changes = True
 			logsupport.Logs.Log(
 				'Configuration file change: file: {} was: {} now: {} diff: {}'.format(fb, ftimes, mts, mt - ftime))
@@ -56,6 +56,11 @@ def ConfigFilesChanged():
 				safeprint('***************************', file=lgf)
 				safeprint('{} changed (was: {} now: {} diff: {}'.format(fb, ftimes, mts, ftime - mt), file=lgf)
 				safeprint('***************************', file=lgf)
+		elif ftime - mt > 0:  # newer file locally - report that
+			if fb not in reporteddifferences or reporteddifferences[fb] != mts:
+				reporteddifferences[fb] = mts
+				logsupport.Logs.Log(
+					'Local config file {} {} newer than master: {}'.format(fb, ftimes, mts), severity=ConsoleWarning)
 		else:
 			pass
 	# with open('/home/pi/Console/configcheck', 'a') as lgf:
@@ -73,13 +78,17 @@ class ConfigCheck(object):
 			logsupport.Logs.Log("ConfigCheck found non-deployment version running: ", config.sysStore.versionname,
 								severity=ConsoleDetail)
 		elif ConfigFilesChanged():
-			logsupport.Logs.Log('Restart config update')
-			ReportStatus('auto restart', hold=2)
-			varsnote = config.sysStore.configdir + '/.autovers'
-			with open(varsnote, 'w') as f:
-				safeprint(time.strftime('%c'), file=f)
-			controlevents.PostEvent(
-				controlevents.ConsoleEvent(controlevents.CEvent.RunProc, proc=ForceRestart, name='ForceRestart'))
+			if os.path.exists("../.freezeconfig"):
+				logsupport.Logs.Log('Config check found changes while configs frozen')
+				return
+			else:
+				logsupport.Logs.Log('Restart config update')
+				ReportStatus('auto restart', hold=2)
+				varsnote = config.sysStore.configdir + '/.autovers'
+				with open(varsnote, 'w') as f:
+					safeprint(time.strftime('%c'), file=f)
+				controlevents.PostEvent(
+					controlevents.ConsoleEvent(controlevents.CEvent.RunProc, proc=ForceRestart, name='ForceRestart'))
 
 
 alerttasks.alertprocs["ConfigCheck"] = ConfigCheck

@@ -90,8 +90,11 @@ def PreOp():
 		PreOpScripts.append('Exception in runonce script handling: ({})'.format(E))
 
 	PreOpScripts.append('Version: {}'.format(config.sysStore.versionname))
-	if utilfuncs.isdevsystem:
+	if utilfuncs.isdevsystem:  # check frozen todo
 		PreOpScripts.append('Skip config file updating for developement systems')
+		return
+	if os.path.exists("../.freezeconfig"):
+		PreOpScripts.append('SKip config update because configs frozen')
 		return
 
 	try:

@@ -1,4 +1,4 @@
-import sys
+import sys, os
 
 from alertsystem import alerttasks
 import config
@@ -13,7 +13,6 @@ from consolestatus import ReportStatus
 import controlevents
 from utils.utilfuncs import safeprint
 
-
 def DoFetchRestart():
 	global fetcher
 	try:
@@ -21,7 +20,8 @@ def DoFetchRestart():
 		sha, c = githubutil.GetSHA(config.sysStore.versionname)
 		historybuffer.HBNet.Entry('Autoversion get sha done')
 		# logsupport.Logs.Log('sha: ',sha, ' cvshha: ',config.versionsha,severity=ConsoleDetail)
-		if sha != config.sysStore.versionsha and sha != 'no current sha':
+		if sha != config.sysStore.versionsha and sha != 'no current sha' and not os.path.isfile(
+				'../.freezeconfig'):  # check frozen todo
 			logsupport.Logs.Log('Current hub version different')
 			logsupport.Logs.Log(
 				'Running (' + config.sysStore.versionname + '): ' + config.sysStore.versionsha + ' of ' + config.sysStore.versioncommit)
@@ -29,6 +29,10 @@ def DoFetchRestart():
 		elif sha == 'no current sha':
 			logsupport.Logs.Log('No sha for autoversion: ', config.sysStore.versionname, severity=ConsoleWarning)
 			fetcher = None  # allow next autoversion to proceed
+			return
+		elif os.path.exists("../.freezeconfig"):
+			logsupport.Logs.Log('Configuration files frozen')
+			fetcher = None
 			return
 		else:
 			fetcher = None  # allow next autoversion to proceed

@@ -10,13 +10,6 @@ This might make some testing scenarios easier
 import os
 import subprocess
 
-if os.path.isfile('usebeta'):
-	# use the beta version
-	versdir = 'consolebeta'
-else:
-	# use the stable version
-	versdir = 'consolestable'
-
 if os.path.isfile('versionselector'):
 	with open('versionselector', 'r') as f:
 		vers = f.readline().rstrip('\n')
