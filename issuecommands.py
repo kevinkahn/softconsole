@@ -131,28 +131,38 @@ def GetDev(params=None, Key=None):
 
 def UseStable(params=None, Key=None):
 	TempCheckSanity(Key, params)
-	subprocess.Popen('sudo echo stable > /home/pi/versionselector', shell=True)
+	subprocess.Popen('echo stable > /home/pi/versionselector', shell=True)
 	CommandResp(Key, 'ok', params, None)
 
 
 def UseBeta(params=None, Key=None):
 	TempCheckSanity(Key, params)
-	subprocess.Popen('sudo echo beta > /home/pi/versionselector', shell=True)
+	subprocess.Popen('echo beta > /home/pi/versionselector', shell=True)
 	CommandResp(Key, 'ok', params, None)
 
 
 def UseDev(params=None, Key=None):
 	TempCheckSanity(Key, params)
-	subprocess.Popen('sudo echo dev > /home/pi/versionselector', shell=True)
+	subprocess.Popen('echo dev > /home/pi/versionselector', shell=True)
 	CommandResp(Key, 'ok', params, None)
 
+
+def FreezeConfig(params=None, Key=None):
+	TempCheckSanity(Key, params)
+	subprocess.Popen('echo FROZEN > /home/pi/.freezeconfig', shell=True)
+	CommandResp((Key, 'ok', params, None))
+
+
+def UnfreezeConfig(params=None, Key=None):
+	TempCheckSanity(Key, params)
+	subprocess.Popen('rm /home/pi/.freezeconfig', shell=True)
+	CommandResp((Key, 'ok', params, None))
 
 def DumpHB(params=None, Key=None):
 	TempCheckSanity(Key, params)
 	entrytime = time.strftime('%m-%d-%y %H:%M:%S')
 	historybuffer.DumpAll('Command Dump', entrytime)
 	CommandResp(Key, 'ok', params, None)
-
 
 def EchoStat(params=None, Key=None):
 	TempCheckSanity(Key, params)
@@ -291,6 +301,8 @@ cmdcalls = OrderedDict({
 	'usestable': CommandRecord(UseStable, True, "Use Stable Release", 'False', MaintVers, False, True),
 	'usebeta': CommandRecord(UseBeta, True, "Use Beta Release", 'False', MaintVers, False, True),
 	'usedev': CommandRecord(UseDev, True, "Use Development Release", 'False', MaintVersAdv, False, True),
+	'freezeconfig': CommandRecord(FreezeConfig, True, 'Freeze Configuration', 'False', MaintVersAdv, False, True),
+	'unfreezeconfig': CommandRecord(UnfreezeConfig, True, 'Unfreeze Configuration', 'False', MaintVersAdv, False, True),
 	'getstable': CommandRecord(GetStable, True, "Download Release", 'False', MaintVers, False, True),
 	'getbeta': CommandRecord(GetBeta, True, "Download Beta", 'False', MaintVers, False, True),
 	'getdev': CommandRecord(GetDev, True, "Download Development", 'False', MaintVersAdv, False, True),
