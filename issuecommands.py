@@ -150,13 +150,13 @@ def UseDev(params=None, Key=None):
 def FreezeConfig(params=None, Key=None):
 	TempCheckSanity(Key, params)
 	subprocess.Popen('echo FROZEN > /home/pi/.freezeconfig', shell=True)
-	CommandResp((Key, 'ok', params, None))
+	CommandResp(Key, 'ok', params, None)
 
 
 def UnfreezeConfig(params=None, Key=None):
 	TempCheckSanity(Key, params)
 	subprocess.Popen('rm /home/pi/.freezeconfig', shell=True)
-	CommandResp((Key, 'ok', params, None))
+	CommandResp(Key, 'ok', params, None)
 
 def DumpHB(params=None, Key=None):
 	TempCheckSanity(Key, params)
