@@ -101,6 +101,9 @@ else
   LogBanner "Set No Console Autostart at Boot"
 fi
 
+LogBanner "Add pi to root group"
+sudo usermod -aG root pi
+
 rm githubutil.*
 mv getinstallinfo.py .consoleinstallleftovers
 mv installvals .consoleinstallleftovers

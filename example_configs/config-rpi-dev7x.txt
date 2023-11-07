@@ -69,10 +69,10 @@ NavKeyAlpha = 50
 #singlepic = 'spcpic.jpg'
 
 [Alerts]
-	[[ConfigCheck]]
-	Type = Periodic
-	Interval = 1 minutes
-	Invoke = ConfigCheck.ConfigCheck
+#	[[ConfigCheck]]
+#	Type = Periodic
+#	Interval = 1 minutes
+#	Invoke = ConfigCheck.ConfigCheck
 	[[AdjustScreenDim]]
 	Type = Periodic
 	At = 11:00pm
