@@ -134,7 +134,7 @@ print("**************************************************************", flush=Tr
 print("   Set group access on needed hardware", flush=True)
 for item in setgroupaccess:
 	print(item)
-	suc = subprocess.call('sudo chmod g+w {}', format(item), shell=True)
+	suc = subprocess.call('sudo chmod g+w {}'.format(item), shell=True)
 	print('  Result: {}'.format(suc))
 print("**************************************************************", flush=True)
 AddToScript('Buster', 'Y' if Buster else 'N')
