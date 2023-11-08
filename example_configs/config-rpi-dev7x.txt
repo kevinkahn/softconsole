@@ -71,7 +71,7 @@ NavKeyAlpha = 50
 [Alerts]
 	[[ConfigCheck]]
 	Type = Periodic
-	Interval = 10 minutes
+	Interval = 4 minutes
 	Invoke = ConfigCheck.ConfigCheck
 	[[AdjustScreenDim]]
 	Type = Periodic

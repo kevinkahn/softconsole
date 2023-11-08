@@ -39,7 +39,6 @@ def ConfigFilesChanged():
 		elif fl == 'local':
 			mt = ftime
 			mts = 'skip'
-		# always skip password file? todo
 		else:
 			try:
 				mt = os.path.getmtime(confserver + fb)
