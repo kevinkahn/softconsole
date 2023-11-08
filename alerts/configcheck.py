@@ -48,7 +48,7 @@ def ConfigFilesChanged():
 				mt = ftime
 				mts = 'None'
 				safeprint('Error getting current base timestamp {}'.format(E))
-		if ftime - mt < 6:  # newer file in master directory with small slop to avoid partial updates
+		if mt - ftime > 0:  # newer file in master directory
 			changes = True
 			logsupport.Logs.Log(
 				'Configuration file change: file: {} was: {} now: {} diff: {}'.format(fb, ftimes, mts, mt - ftime))
