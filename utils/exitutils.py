@@ -3,7 +3,6 @@ import subprocess
 import sys
 import time
 
-# import py-game
 from guicore.screencallmanager import pg
 
 import config
@@ -65,7 +64,7 @@ def exitlogging():
 
 
 def EarlyAbort(scrnmsg, screen=True):
-	if screen:
+	if screen and hw.screen is not None:
 		hw.screen.fill(wc("red"))
 		# this font is manually loaded into the fontcache to avoid log message on early abort before log is up
 		# see fonts.py

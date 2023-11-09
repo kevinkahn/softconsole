@@ -61,11 +61,12 @@ import controlevents
 
 config.sysStore.SetVal('ExecDir', os.path.dirname(os.path.abspath(__file__)))
 config.sysStore.SetVal('HomeDir', os.path.dirname(config.sysStore.ExecDir))
-with open(config.sysStore.HomeDir + '/.permissionchanges', 'r') as f:
-	perms = f.readlines()
-for l in perms:
-	res = subprocess.call(l, shell=True)
-	logsupport.Logs.Log('Set permission {} Result; {}'.format(l, res))
+if os.path.exists(config.sysStore.HomeDir + '/.permissionchanges'):
+	with open(config.sysStore.HomeDir + '/.permissionchanges', 'r') as f:
+		perms = f.readlines()
+	for l in perms:
+		res = subprocess.call(l, shell=True)
+		logsupport.Logs.Log('Set permission {} Result; {}'.format(l, res))
 
 
 '''
@@ -226,15 +227,6 @@ def CheckForTempConfigVersion(dir, f):
 			logsupport.Logs.Log('Use temp version of config file: {}'.format(f))
 			f = foveride
 	return f
-
-
-if os.getegid() != 0:
-	# Not running as root
-	logsupport.Logs.Log(u"Not running as root - exit")
-	print(u"Must run as root")
-	# noinspection PyProtectedMember
-	exitutils.EarlyAbort('Not Running as Root')
-#	sys.exit(exitutils.EARLYABORT)
 
 try:
 	utilities.InitializeEnvironment()

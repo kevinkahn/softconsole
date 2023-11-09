@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Meant to be put on boot file system when SD card is created then run as root
+# Meant to be put on boot file system when SD card is created then run pi
 
 function LogBanner() {
   echo
@@ -11,11 +11,6 @@ function LogBanner() {
   echo "----------------------------------------------------------"
   echo "----------------------------------------------------------"
 }
-
-#if [[ "$EUID" -ne 0 ]]; then
-#  echo "Must be run as root"
-#  exit
-#fi
 
 exec > >(tee -a /home/pi/prep.log)
 exec 2>&1
