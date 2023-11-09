@@ -134,7 +134,7 @@ print("**************************************************************", flush=Tr
 print("   Set group access on needed hardware", flush=True)
 for item, chg in setgroupaccess.items():
 	print(item)
-	suc = subprocess.call('sudo chmod {}} {}'.format(chg, item), shell=True)
+	suc = subprocess.call('sudo chmod {} {}'.format(chg, item), shell=True)
 	print('  Result: {}'.format(suc))
 	with open('.permissionchanges', 'a') as f:
 		print('sudo chmod {} {}'.format(chg, item), file=f)

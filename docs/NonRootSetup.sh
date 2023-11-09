@@ -21,7 +21,7 @@ exec > >(tee -a /home/pi/prep.log)
 exec 2>&1
 
 cd /home/pi
-LogBanner "This is the system setup script"
+LogBanner "This is the system setup script for console  for user pi"
 
   LogBanner "If BookWorm: Remember to do rpi-update first!"
   sleep 5
