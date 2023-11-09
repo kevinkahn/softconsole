@@ -4,7 +4,7 @@ from functools import partial as p
 gitselector = {'stable': 'currentrelease', 'personal': 'homerelease', 'beta': 'currentbeta'}
 gitprefix = 'https://raw.githubusercontent.com/kevinkahn/softconsole/'
 installscripts = {'vncserverpi.service': 'scripts/', 'lxterminal.conf': 'scripts/', 'githubutil.py': ''}
-setgroupaccess = {'/sys/class/backlight/10-0045/brightness'}
+setgroupaccess = {'/sys/class/backlight/10-0045/brightness': 'g+w'}
 
 
 def GetScripts(vers, save=''):
@@ -132,10 +132,12 @@ with open('/etc/issue') as f:
 
 print("**************************************************************", flush=True)
 print("   Set group access on needed hardware", flush=True)
-for item in setgroupaccess:
+for item, chg in setgroupaccess.items():
 	print(item)
-	suc = subprocess.call('sudo chmod g+w {}'.format(item), shell=True)
+	suc = subprocess.call('sudo chmod {}} {}'.format(chg, item), shell=True)
 	print('  Result: {}'.format(suc))
+	with open('.permissionchanges', 'a') as f:
+		print('sudo chmod {} {}'.format(chg, item), file=f)
 print("**************************************************************", flush=True)
 AddToScript('Buster', 'Y' if Buster else 'N')
 AddToScript('Bookworm', 'Y' if Bookworm else 'N')

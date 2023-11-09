@@ -10,12 +10,14 @@ Type=forking
 PIDFile=/home/pi/console.pid
 RestartPreventExitStatus=11 12 13
 RestartForceExitStatus=31 32 33 34 35
+User=pi
 
 # try not to start until system time has had a chance to update
 ExecStartPre=/bin/sleep 5
 ExecStart=/home/pi/consolestable/runconsole.py
 Environment="PATH=/home/pi/pyenv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 Environment="XDG_RUNTIME_DIR=/home/pi/.xdgdir"
+
 # to test systemd stuff change to consolestable consolecur
 
 WorkingDirectory=/home/pi

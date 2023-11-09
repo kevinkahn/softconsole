@@ -15,6 +15,7 @@ Copyright 2016, 2017, 2018, 2019, 2020, 2021 Kevin Kahn
    limitations under the License.
 """
 import os
+import subprocess
 import traceback
 
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
@@ -60,6 +61,11 @@ import controlevents
 
 config.sysStore.SetVal('ExecDir', os.path.dirname(os.path.abspath(__file__)))
 config.sysStore.SetVal('HomeDir', os.path.dirname(config.sysStore.ExecDir))
+with open(config.sysStore.HomeDir + '/.permissionchanges', 'r') as f:
+	perms = f.readlines()
+for l in perms:
+	res = subprocess.call(l, shell=True)
+	logsupport.Logs.Log('Set permission {} Result; {}'.format(l, res))
 
 
 '''
