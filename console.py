@@ -381,7 +381,7 @@ utilities.Logs = logsupport.Logs
 #cgitb.enable(format='text')
 logsupport.Logs.Log(u"Soft Home Automation Console")
 
-logsupport.Logs.Log(u"  \u00A9 Kevin Kahn 2016, 2017, 2018, 2019, 2020, 2021")
+logsupport.Logs.Log(u"  \u00A9 Kevin Kahn 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023")
 logsupport.Logs.Log("Software under Apache 2.0 License")
 logsupport.Logs.Log("Version Information:")
 logsupport.Logs.Log(" Running under Python: ", sys.version)
@@ -415,6 +415,8 @@ logsupport.Logs.Log("Screen Orientation: ", ("Landscape", "Portrait")[displayupd
 if config.sysStore.PersonalSystem:
 	logsupport.Logs.Log("Personal System")
 	logsupport.Logs.Log("Latency Tolerance: {}".format(controlevents.LateTolerance))
+if os.path.exists("../.freezeconfig"):
+	logsupport.Logs.Log('Configuration frozed', severity=ConsoleWarning)
 if utilities.previousup > 0:
 	logsupport.Logs.Log("Previous Console Lifetime: ", str(datetime.timedelta(seconds=utilities.previousup)))
 if utilities.lastup > 0:

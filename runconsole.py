@@ -39,14 +39,14 @@ while True:
 	consoleproc = subprocess.Popen(['python3', 'console.py'])
 	consolepid = consoleproc.pid
 	print('Proc = {}'.format(consolepid))
-	time.sleep(5)
+	time.sleep(10)  # some pis need 10 seconds - most don't
 	if os.path.exists('../running'):
 		print('Console running with pid: {}'.format(consolepid))
 		break
 	print('Console start hung - retry')
 	print('   Failed at {}'.format(datetime.datetime.now()), file=runlog)
-	consoleproc.send_signal(signal.SIGINT)
-	print('Semt signal')
+	consoleproc.send_signal(signal.SIGKILL)
+	print('Sent signal')
 	exit(35)
 
 with open('../console.pid', 'w') as f:
