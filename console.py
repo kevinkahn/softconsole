@@ -14,15 +14,12 @@ Copyright 2016, 2017, 2018, 2019, 2020, 2021 Kevin Kahn
    See the License for the specific language governing permissions and
    limitations under the License.
 """
-# from multiprocessing import set_start_method
-# set_start_method("spawn")
 import os
 import subprocess
 import traceback
 
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
-
-import guicore.screencallmanager
+# import py-game
 from guicore.screencallmanager import pg
 
 # import cgitb
@@ -60,7 +57,7 @@ from screens import screen, maintscreen
 import historybuffer
 import controlevents
 
-guicore.screencallmanager.InitPygameHandler()
+
 
 config.sysStore.SetVal('ExecDir', os.path.dirname(os.path.abspath(__file__)))
 config.sysStore.SetVal('HomeDir', os.path.dirname(config.sysStore.ExecDir))
