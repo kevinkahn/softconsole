@@ -6,6 +6,9 @@ and selects the version of console to actually use.
 For now it looks for a file usebeta to select the beta version.  If a file versionselector exists that is used instead after prefixing with "console".
 This might make some testing scenarios easier
 """
+from multiprocessing import set_start_method
+
+set_start_method("spawn")
 
 import os
 import subprocess
