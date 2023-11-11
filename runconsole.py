@@ -26,7 +26,7 @@ else:
 
 print('Starting using directory: ' + versdir)
 runlog = open('RunLog', 'a')
-print('Run attempt at {}'.format(datetime.datetime.now(()), file=runlog))
+print('Run attempt at {}'.format(datetime.datetime.now()), file=runlog)
 os.chdir(versdir)
 if os.path.exists('../running'):
 	print('Clear running')
@@ -44,11 +44,11 @@ while True:
 		print('Console running with pid: {}'.format(consolepid))
 		break
 	print('Console start hung - retry')
-	print('   Failed at {}'.format(datetime.datetime.now(()), file=runlog))
+	print('   Failed at {}'.format(datetime.datetime.now()), file=runlog)
 	consoleproc.send_signal(signal.SIGINT)
 	print('Semt signal')
 	exit(35)
 
 with open('../console.pid', 'w') as f:
 	f.write(str(consolepid))
-print('   Success at {}'.format(datetime.datetime.now(()), file=runlog))
+print('   Success at {}'.format(datetime.datetime.now()), file=runlog)
