@@ -8,7 +8,7 @@ After=network.target
 # Script needs to be executable and first line will be '#!/usr/bin/python -u'
 Type=forking
 PIDFile=/home/pi/console.pid
-RestartPreventExitStatus=11 12 13
+RestartPreventExitStatus=11 12 13 14 15
 RestartForceExitStatus=31 32 33 34 35
 User=pi
 
