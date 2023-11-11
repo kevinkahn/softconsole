@@ -1,4 +1,4 @@
-#!/usr/bin/python -u
+#!/home/pi/pyenv/bin/python -u
 """
 Copyright 2016, 2017, 2018, 2019, 2020, 2021 Kevin Kahn
 
@@ -242,6 +242,9 @@ lastfn = u""
 lastmod = 0
 
 logsupport.Logs.Log('Exdir: {}  Pid: {}'.format(config.sysStore.ExecDir, str(config.sysStore.Console_pid)))
+
+with open('../running', 'w') as f:
+	print('Running at {}'.format(time.time()), file=f)
 
 for root, dirs, files in os.walk(config.sysStore.ExecDir):
 	for fname in files:
