@@ -11,13 +11,11 @@ pg.gfxdraw = pygame.gfxdraw
 import time
 
 from collections import deque
-import threading
+import multiprocessing, threading
 import queue
 
 callhist = deque('', 20)
-pgstats = {}
-pgstats['load'] = [0, 0]
-pgstats['save'] = [0, 0]
+pgstats = {'load': [0, 0], 'save': [0, 0]}
 def remote(func, *args, **kwargs):
 	if kwargs != {}:
 		print('KEYWORDS! {}'.format(kwargs))
@@ -268,7 +266,6 @@ def DoPygameOps():
 	try:
 		while True:
 			callparms = ToPygame.get()
-			calltime = time.time()
 
 			callhist.append('Exec: {}'.format(callparms))
 			if callparms[1] == rem:
@@ -286,19 +283,6 @@ def DoPygameOps():
 				SeqNumLast[callparms[0][0]] = 0
 				FromPygame[callparms[0][0]] = queue.SimpleQueue()
 				res = 'ok'
-			# if calltime - lastcall > 1.7:
-			#	print('Call gap {}    ({})'.format(calltime - lastcall, time.time() - dumptime))
-			#	print('  from {}'.format(lastparm))
-			#	print('   to {}'.format(callparms))
-			# lastcall = calltime
-			#lastparm = callparms
-
-			# if time.time() - dumptime > 600:
-			#	print('Pygame Calls')
-			#	for f, i in pgstats.items():
-			#		print('{}: {} ({}/{})'.format(f, i[0] / i[1], i[0], i[1]))
-			#	dumptime = time.time()
-
 
 			FromPygame[callparms[0][0]].put((callparms[0], res))
 
@@ -306,5 +290,10 @@ def DoPygameOps():
 		print('Pygame Thread excetion {}'.format(E))
 
 
-PyGameExec = threading.Thread(target=DoPygameOps, name='PyGame call thread', daemon=True)
-PyGameExec.start()
+PyGameExec = None
+
+
+def InitPygameHandler():
+	global PyGameExec
+	PyGameExec = multiprocessing.Thread(target=DoPygameOps, name='PyGame call thread', daemon=True)
+	PyGameExec.start()
