@@ -10,6 +10,8 @@ from utils.utilfuncs import safeprint
 confserver = '/home/pi/.exconfs/'
 cfgdirserver = confserver + 'cfglib/'
 reporteddifferences = {}
+reftime = os.path.getmtime('console.py')  # use as install time of the console tar
+reftimes = datetime.datetime.fromtimestamp(reftime).strftime('%Y-%m-%d %H:%M:%S')
 
 def ConfigFilesChanged():
 	changes = False
@@ -47,7 +49,13 @@ def ConfigFilesChanged():
 				safeprint('{} changed (was: {} now: {} diff: {}'.format(fb, ftimes, mts, ftime - mt), file=lgf)
 				safeprint('***************************', file=lgf)
 		elif ftime - mt > 0:  # newer file locally - report that
-			if fb not in reporteddifferences or reporteddifferences[fb] != mts:
+			if ftime == reftime:
+				# local file was part of an initial install
+				reporteddifferences[fb] = mts
+				logsupport.Logs.Log(
+					'Local config file {} part of initial install stamped {} (Ref time {})'.format(fb, ftimes,
+																								   reftimes))
+			elif fb not in reporteddifferences or reporteddifferences[fb] != mts:
 				reporteddifferences[fb] = mts
 				logsupport.Logs.Log(
 					'Local config file {} {} newer than master: {}'.format(fb, ftimes, mts), severity=ConsoleWarning)
