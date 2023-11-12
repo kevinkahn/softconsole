@@ -5,6 +5,7 @@
     <inspection_tool class="Duplicates" enabled="false" level="WEAK WARNING" enabled_by_default="false" />
     <inspection_tool class="ES6CheckImport" enabled="false" level="WEAK WARNING" enabled_by_default="false" />
     <inspection_tool class="ES6ClassMemberInitializationOrder" enabled="false" level="WARNING" enabled_by_default="false" />
+    <inspection_tool class="GrazieInspection" enabled="false" level="GRAMMAR_ERROR" enabled_by_default="false" />
     <inspection_tool class="HttpUrlsUsage" enabled="true" level="WEAK WARNING" enabled_by_default="true">
       <option name="ignoredUrls">
         <list>
@@ -78,6 +79,7 @@
           <option value="stores.isyvarssupport.ISYVars.name" />
           <option value="Exception.response" />
           <option value="types.ModuleType.IgnoredDomain" />
+          <option value="enum.Enum.*" />
         </list>
       </option>
     </inspection_tool>

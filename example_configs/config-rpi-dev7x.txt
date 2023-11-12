@@ -106,6 +106,9 @@ NavKeyAlpha = 50
 Type = Periodic
 Interval = 3 hours
 Invoke = AutoVersion.CheckUpToDate
+[[AutoVersionInit]]
+Type = Init
+Invoke = AutoVersion.CheckUpToDate
 
 
 #	[[xwatch]]
