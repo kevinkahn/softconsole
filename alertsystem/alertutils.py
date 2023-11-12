@@ -1,8 +1,13 @@
 from dataclasses import dataclass
-
+from consolestatus import ReportStatus
 from utils import utilfuncs, utilities, exitutils
 import logsupport
 from logsupport import ConsoleWarning, ConsoleError
+from utils.utilfuncs import safeprint
+import config
+import controlevents
+import time
+from functools import partial
 
 TriggerTypes = {}
 
@@ -67,3 +72,19 @@ def TestCondition(arg1, arg2, test):
 	except KeyError:
 		logsupport.Logs.Log('Bad test in IsTrue', test, severity=ConsoleError)
 		return False
+
+
+def ForceRestart(logmsg, exitreason):
+	logsupport.Logs.Log(logmsg)
+	config.terminationreason = exitreason
+	exitutils.Exit(exitutils.AUTORESTART)
+
+
+def UpdateRestartStatus(logmsg, exitreason):
+	ReportStatus('auto restart', hold=2)
+	varsnote = config.sysStore.configdir + '/.autovers'
+	with open(varsnote, 'w') as f:
+		safeprint(time.strftime('%c'), file=f)
+	controlevents.PostEvent(
+		controlevents.ConsoleEvent(controlevents.CEvent.RunProc, proc=partial(ForceRestart, logmsg, exitreason),
+								   name='ForceRestart'))

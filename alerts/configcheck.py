@@ -1,7 +1,7 @@
 from alertsystem import alerttasks
 import config
 from config import configfilelist
-from alertutils import UpdateRestartStatus
+from alertsystem.alertutils import UpdateRestartStatus
 import os, datetime
 import logsupport
 from logsupport import ConsoleWarning, ConsoleDetail

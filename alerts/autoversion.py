@@ -1,7 +1,6 @@
 import sys, os
-from alerts import alertutils
 
-from alertsystem import alerttasks
+from alertsystem import alerttasks, alertutils
 import config
 import githubutil
 import historybuffer
