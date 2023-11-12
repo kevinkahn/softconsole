@@ -16,7 +16,7 @@ apikey = xyz
 module = this would need to be either relative to stores/jsonfetchers or absolute to get user provided
 
 this would cause an import module
-call to setup which would populate a jsongetter dict, or register a storetype?  would need to be able to instantiate
+call to set up which would populate a jsongetter dict, or register a storetype?  would need to be able to instantiate
 equivalent of weather locations
 
 register jsonproviders by name,

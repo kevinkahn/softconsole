@@ -15,9 +15,8 @@ import threading
 import queue
 
 callhist = deque('', 20)
-pgstats = {}
-pgstats['load'] = [0, 0]
-pgstats['save'] = [0, 0]
+pgstats = {'load': [0, 0], 'save': [0, 0]}
+
 def remote(func, *args, **kwargs):
 	if kwargs != {}:
 		print('KEYWORDS! {}'.format(kwargs))
@@ -96,8 +95,8 @@ class pg(object):
 		def set_alpha(self, *args, **kwargs):
 			return remoteobj(self.actualobj, 'set_alpha', *args, **kwargs)
 
-		def _unwrap(self, target):
-			# print('Unwrap {} -> {}'.format(target, target.actualobj))
+		@staticmethod
+		def _unwrap(target):
 			return target.actualobj
 
 		def get_locked(self):
@@ -208,6 +207,7 @@ class pg(object):
 		return remote('quit')
 
 
+# noinspection PyProtectedMember
 def _unwrapSurf(*args):
 	tempargs = list(args)
 	tempargs[0] = tempargs[0]._unwrap(tempargs[0])
@@ -268,7 +268,6 @@ def DoPygameOps():
 	try:
 		while True:
 			callparms = ToPygame.get()
-			calltime = time.time()
 
 			callhist.append('Exec: {}'.format(callparms))
 			if callparms[1] == rem:
@@ -286,19 +285,6 @@ def DoPygameOps():
 				SeqNumLast[callparms[0][0]] = 0
 				FromPygame[callparms[0][0]] = queue.SimpleQueue()
 				res = 'ok'
-			# if calltime - lastcall > 1.7:
-			#	print('Call gap {}    ({})'.format(calltime - lastcall, time.time() - dumptime))
-			#	print('  from {}'.format(lastparm))
-			#	print('   to {}'.format(callparms))
-			# lastcall = calltime
-			#lastparm = callparms
-
-			# if time.time() - dumptime > 600:
-			#	print('Pygame Calls')
-			#	for f, i in pgstats.items():
-			#		print('{}: {} ({}/{})'.format(f, i[0] / i[1], i[0], i[1]))
-			#	dumptime = time.time()
-
 
 			FromPygame[callparms[0][0]].put((callparms[0], res))
 

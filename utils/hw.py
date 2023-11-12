@@ -77,7 +77,7 @@ def initOS(scrntyp, configdir):
 			screenitem = l.split('|')
 			screendefs[screenitem[0]] = screenitem[1:]
 	try:
-		# allow overwrite of system values
+		# allow the overwrite of system values
 		with open(configdir + '/screendefinitions') as f:
 			defs = f.read().splitlines()
 			for l in defs:
@@ -94,7 +94,7 @@ def initOS(scrntyp, configdir):
 		if 'DISPLAY' in os.environ: del os.environ['DISPLAY']
 	screendev = screendefs[screentype][0]
 	if screentype[-1] == 'B':  # Buster system
-		if screendev[-1] == '0':  # check if there is an fb1 and use that if available
+		if screendev[-1] == '0':  # check if there is a fb1 and use that if available
 			try:
 				open('/dev/fb1')
 				screendev = '/dev/fb1'

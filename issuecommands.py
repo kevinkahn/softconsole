@@ -286,7 +286,7 @@ class CommandRecord:
 	Proc: callable  # called locally or at remote site
 	simple: bool  # simple or None - handle remote response simply or call a special proc (name mapping in consolestatus
 	DisplayName: str  # button label when on a screen
-	Verify: str  # whether to do a verify when on a screen
+	Verify: str  # whether to do verify when on a screen
 	where: tuple  # which places to use this record
 	notgroup: bool  # true if only works for targeted node
 	suppresstoself: bool  # true if suppress "all" on sending node

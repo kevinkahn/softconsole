@@ -1,4 +1,3 @@
-import config
 import debug
 import historybuffer
 import logsupport

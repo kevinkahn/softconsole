@@ -120,8 +120,7 @@ class HAnode(object):
 				, severity=ConsoleDetail)
 		if oldstate == -1 and self.internalstate != -1:
 			logsupport.Logs.Log(
-				"{} ({}) set available ({})".format(self.name, self.entity_id, str(self.internalstate))
-			)  #, severity=ConsoleDetail)
+				"{} ({}) set available ({})".format(self.name, self.entity_id, str(self.internalstate)))
 		PostIfInterested(self.Hub, self.entity_id, self.internalstate)
 
 	def _NormalizeState(self, state, brightness=None): # may be overridden for domains with special state settings
@@ -747,6 +746,7 @@ class HA(object):
 		self.haconnectstate = "Starting"
 		websocket.setdefaulttimeout(30)
 		# import logging
+		# code:
 		# logging.basicConfig(filename='/home/pi/WSlog',level=logging.INFO)
 		# WStrace = open('/home/pi/WStrace','a')
 		# safeprint('Open {}'.format(self.wsurl),file=WStrace)

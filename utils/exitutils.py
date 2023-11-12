@@ -1,11 +1,10 @@
-import os, signal
+import signal
 import subprocess
 import sys
-import time
-
-from guicore.screencallmanager import pg
 
 import config
+from guicore.screencallmanager import pg
+
 import historybuffer
 import logsupport
 from utils import timers, fonts, displayupdate, hw

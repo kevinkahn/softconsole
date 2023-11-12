@@ -6,7 +6,6 @@ import time
 
 import webcolors
 import importlib, os
-import config
 
 
 def importmodules(dir: str):

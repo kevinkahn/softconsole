@@ -4,7 +4,6 @@ import os
 import guicore.guiutils as guiutils
 import screens.__screens as screens
 from utils.utilfuncs import safeprint
-from guicore.screencallmanager import SeqNums, SeqNumLast
 
 import guicore.screenmgt as screenmgt
 import guicore.switcher as switcher

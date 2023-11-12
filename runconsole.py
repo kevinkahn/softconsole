@@ -3,7 +3,7 @@
 """
 This is run by systemd from /home/pi
 and selects the version of console to actually use.
-For now it looks for a file usebeta to select the beta version.  If a file versionselector exists that is used instead after prefixing with "console".
+For now, it looks for a file usebeta to select the beta version.  If a file versionselector exists that is used instead after prefixing with "console".
 This might make some testing scenarios easier
 """
 import datetime

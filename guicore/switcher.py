@@ -6,7 +6,6 @@ import config
 from screens import screen
 import traceback
 import guicore.screenmgt as screenmgt
-from utils.utilfuncs import safeprint
 
 
 def SwitchScreen(NS, newdim, reason, *, newstate=None, AsCover=False, push=False, clear=False):

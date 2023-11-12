@@ -219,14 +219,14 @@ def LogBadParams(section, name):
 									severity=ConsoleWarning)
 
 
-def CheckForTempConfigVersion(dir, f):
+def CheckForTempConfigVersion(directory, fo):
 	if utilfuncs.isdevsystem:
 		# override config file with a working version if it exists
-		foveride = f + 'x'
-		if os.path.exists(dir + foveride):
+		foveride = fo + 'x'
+		if os.path.exists(directory + foveride):
 			logsupport.Logs.Log('Use temp version of config file: {}'.format(f))
-			f = foveride
-	return f
+			fo = foveride
+	return fo
 
 try:
 	utilities.InitializeEnvironment()

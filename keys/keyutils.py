@@ -3,7 +3,7 @@ import shlex
 import hubs.hubs
 import logsupport
 from logsupport import ConsoleWarning
-from utils.utilfuncs import RepresentsInt, wc, BoolTrueWord, BoolFalseWord
+from utils.utilfuncs import RepresentsInt, BoolTrueWord, BoolFalseWord
 from collections import namedtuple
 
 BrightnessPossible = []

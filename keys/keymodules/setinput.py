@@ -2,7 +2,6 @@ import debug
 import logsupport
 from screens import screen, supportscreens
 from keys.keyspecs import KeyTypes
-from keys.keyutils import DispOpt
 from logsupport import ConsoleWarning
 from keyspecs.toucharea import ManualKeyDesc
 from keys.keyutils import ErrorKey

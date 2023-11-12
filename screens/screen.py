@@ -10,7 +10,7 @@ import screens.__screens as screens
 import stores.paramstore as paramstore
 import stores.valuestore as valuestore
 from keyspecs import toucharea
-from logsupport import ConsoleError, ConsoleWarning, ConsoleDetail
+from logsupport import ConsoleError, ConsoleWarning
 from utils.utilfuncs import wc, fmt
 from utils import timers, utilities, fonts, displayupdate, hw
 from utils.utilfuncs import safeprint

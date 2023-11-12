@@ -52,7 +52,7 @@ def CycleStats():
 	global nextstat, ckperf, rptreal, rptvirt
 	if maincyc.Op() == 4:
 		config.sysstats.ResetGrp(exclude=maincyc)
-		ckperf = 0  # get a initial mem reading next cycle
+		ckperf = 0  # get an initial mem reading next cycle
 	if nextstat[0][0] < time.time():
 		nextstat, rpt = stats.TimeToReport(nextstat)
 

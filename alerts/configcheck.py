@@ -1,24 +1,15 @@
 from alertsystem import alerttasks
 import config
 from config import configfilelist
-from utils import exitutils
+from alertutils import UpdateRestartStatus
 import os, datetime
 import logsupport
-import time
 from logsupport import ConsoleWarning, ConsoleDetail
-from consolestatus import ReportStatus
-import controlevents
 from utils.utilfuncs import safeprint
 
 confserver = '/home/pi/.exconfs/'
 cfgdirserver = confserver + 'cfglib/'
 reporteddifferences = {}
-
-def ForceRestart():
-	logsupport.Logs.Log('Configuration Update Needed')
-	config.terminationreason = 'configcheck'
-	exitutils.Exit(exitutils.AUTORESTART)
-
 
 def ConfigFilesChanged():
 	changes = False
@@ -71,6 +62,7 @@ def ConfigFilesChanged():
 
 class ConfigCheck(object):
 
+	# noinspection PyUnusedLocal
 	@staticmethod
 	def ConfigCheck(alert):
 		if config.sysStore.versionname in ('none', 'development'):  # skip if we don't know what is running
@@ -82,12 +74,8 @@ class ConfigCheck(object):
 				return
 			else:
 				logsupport.Logs.Log('Restart config update')
-				ReportStatus('auto restart', hold=2)
-				varsnote = config.sysStore.configdir + '/.autovers'
-				with open(varsnote, 'w') as f:
-					safeprint(time.strftime('%c'), file=f)
-				controlevents.PostEvent(
-					controlevents.ConsoleEvent(controlevents.CEvent.RunProc, proc=ForceRestart, name='ForceRestart'))
+				UpdateRestartStatus('Configuration Update Needed', 'configcheck')
+
 
 
 alerttasks.alertprocs["ConfigCheck"] = ConfigCheck

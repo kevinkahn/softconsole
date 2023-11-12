@@ -1,17 +1,14 @@
 import sys, os
+from alerts import alertutils
 
 from alertsystem import alerttasks
 import config
-from utils import exitutils
 import githubutil
 import historybuffer
 import logsupport
 import threading
-import time
 from logsupport import ConsoleWarning, ConsoleDetail
 from consolestatus import ReportStatus
-import controlevents
-from utils.utilfuncs import safeprint
 
 def DoFetchRestart():
 	global fetcher
@@ -51,23 +48,13 @@ def DoFetchRestart():
 		githubutil.InstallStagedVersion(config.sysStore.ExecDir)
 		logsupport.Logs.Log("Staged version installed in ", config.sysStore.ExecDir)
 		logsupport.Logs.Log('Restart for new version')
-		ReportStatus('auto restart', hold=2)
-		varsnote = config.sysStore.configdir + '/.autovers'
-		with open(varsnote, 'w') as f:
-			safeprint(time.strftime('%c'), file=f)
-		controlevents.PostEvent(
-			controlevents.ConsoleEvent(controlevents.CEvent.RunProc, proc=ForceRestart, name='ForceRestart'))
+		alertutils.UpdateRestartStatus('Autoversion Restart Event', 'autoversion')
 		fetcher = None
 	except Exception as E:
 		historybuffer.HBNet.Entry(
 			'Version access failure: {}:{}'.format(str(sys.exc_info()[0]), str(sys.exc_info()[1])))
 		logsupport.Logs.Log('Version access failed ({})'.format(E), severity=ConsoleWarning)
 		fetcher = None  # allow next autoversion to proceed
-
-def ForceRestart():
-	logsupport.Logs.Log('Autoversion Restart Event')
-	config.terminationreason = 'autoversion'
-	exitutils.Exit(exitutils.AUTORESTART)
 
 fetcher = None
 

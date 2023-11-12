@@ -132,7 +132,7 @@ class HistoryBuffer(object):
 	def content(self):
 		# freeze for dump and reset empty
 		# this is subject to races from other threads doing entry reports
-		# sequence must be create new buf offline, replace current buf with it so always one or other valid list
+		# sequence must be to create new buf offline, replace current buf with it so always one or other valid list
 		# then change current back to 0
 		# at worst this loses a few events that record between grabbing current and replacing with new one
 		tempbuf = []

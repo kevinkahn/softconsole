@@ -22,7 +22,7 @@ def TempThreadList():
 	"""
 	This routine is just for working cleanly with PyCharm IDE.  If you leave a system running that was launched from
 	PyCharm, if the PC controlling it goes to sleep it kills the console.  Unfortunately it only partially kills it and
-	so leaves zombies and threads running.  This code makes sure everything gets killed so as to not leave connections
+	so leaves zombies and threads running.  This code makes sure everything gets killed to not leave connections
 	to the ISY which will eventually force it to its limit without manual intervention.
 	"""
 	time.sleep(10)
