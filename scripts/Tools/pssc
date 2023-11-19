@@ -1,0 +1,2 @@
+#! /usr/bin/bash
+ps agx | fgrep python

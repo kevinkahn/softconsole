@@ -15,6 +15,7 @@ pip install --upgrade python-dateutil
 pip install requests
 pip install pillow
 pip install pygame
+pip install setproctitle
 #echo Setup Systemd
 #pwd
 #if [ -e setupsystemd.py ]; then

@@ -98,6 +98,11 @@ def InstallStagedVersion(d, Bookworm=False):
 	suc = subprocess.call('sudo systemctl daemon-reload', shell=True)
 	print('Reload result: {}'.format(suc), file=logf)
 
+	if not os.path.exists('/home/pi/bin'):
+		os.mkdir('/home/pi/bin')
+	shutil.copytree('scripts/tools', '/home/pi/bin')
+	subprocess.call('chmod +x /home/pi/bin/*', shell=True, stdout=logf, stderr=logf)
+
 	logf.close()
 	os.chdir('..')
 

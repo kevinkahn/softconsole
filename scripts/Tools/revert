@@ -1,0 +1,4 @@
+#! /usr/bin/bash
+mv consolestable/previousversion tmpvers
+mv consolestable nextvers
+mv tmpvers consolestable
