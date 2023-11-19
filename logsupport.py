@@ -6,6 +6,7 @@ from queue import Empty as QEmpty
 from threading import Lock
 import difflib
 from datetime import datetime
+from setproctitle import setproctitle
 
 from guicore.screencallmanager import pg
 
@@ -94,6 +95,7 @@ historybuffer.AsyncFileWrite = AsyncFileWrite  # to avoid circular imports
 # noinspection PyBroadException
 def LogProcess(q):
 	global Logs
+	setproctitle('Console Logger')
 	item = (99, 'init')
 	exiting = 0
 

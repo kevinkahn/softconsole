@@ -5,6 +5,8 @@ import time
 import atexit
 import threading
 
+from setproctitle import setproctitle
+
 import config
 import logsupport as L
 from controlevents import CEvent, PostEvent, ConsoleEvent
@@ -104,6 +106,7 @@ def IgnoreHUP(signum, frame):
 
 
 def MasterWatchDog():
+	setproctitle('Console Watchdog')
 	signal.signal(signal.SIGTERM, WatchdogDying)  # don't want the sig handlers from the main console
 	signal.signal(signal.SIGINT, EndWatchDog)
 	signal.signal(signal.SIGUSR1, EndWatchDog)

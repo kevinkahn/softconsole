@@ -18,6 +18,8 @@ import os
 import subprocess
 import traceback
 
+from setproctitle import setproctitle
+
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
 # import py-game
 from guicore.screencallmanager import pg
@@ -74,6 +76,8 @@ Constants
 '''
 configfilebase = "/home/pi/Console/"  # actual config file can be overridden from arg1
 from config import configfilelist  # list of configfiles and their timestamps
+
+setproctitle('Console Main')
 
 logsupport.SpawnAsyncLogger()
 HBMain = historybuffer.HistoryBuffer(40, 'Main')
