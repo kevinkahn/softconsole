@@ -687,8 +687,8 @@ class HA(object):
 				pass
 				logsupport.Logs.Log("WS lib workaround hit (2)", severity=ConsoleWarning)  # tempdel
 			if isinstance(error, websocket.WebSocketConnectionClosedException):
-				logsupport.Logs.Log(self.name + " closed WS stream " + str(self.HAnum) + "; attempt to reopen",
-									severity=ConsoleWarning if not self.restarting else ConsoleInfo)
+				logsupport.Logs.Log(self.name + " closed WS stream " + str(self.HAnum) + "; attempt to reopen")
+
 			elif isinstance(error, ConnectionRefusedError):
 				logsupport.Logs.Log(self.name + " WS socket refused connection", severity=ConsoleWarning)
 			elif isinstance(error, TimeoutError):
@@ -721,7 +721,7 @@ class HA(object):
 			self.HB.Entry('Close')
 			logsupport.Logs.Log(
 				self.name + " WS stream " + str(self.HAnum) + " closed: " + str(code) + ' : ' + str(reason),
-				severity=ConsoleWarning if not self.restarting else ConsoleInfo, tb=False, hb=True)
+				tb=False, hb=True)
 			if self.haconnectstate != "Failed": self.haconnectstate = "Closed"
 
 		# noinspection PyUnusedLocal

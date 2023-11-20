@@ -26,6 +26,7 @@ class ThreadItem(object):
 		self.Thread = None
 		self.CheckOk = checkok
 		self.ReportError = rpterr
+		self.RestartCount = 0
 
 
 #	def StopThread(self):
@@ -46,6 +47,9 @@ def DeleteHelperThread(name):
 def DoRestart(T):
 	T.seq += 1
 	logsupport.Logs.Log("Restarting helper thread (", T.seq, ") for: ", T.name)
+	T.RestartCount += 1
+	if T.RestartCount % 10 == 0:
+		logsupport.Logs.Log(f'Helper Thread High Restart Count: {T.RestartCount}', severity=ConsoleWarning)
 	for i in range(10):
 		try:
 			if T.PreRestartThread is not None: T.PreRestartThread()

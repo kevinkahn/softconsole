@@ -52,7 +52,7 @@ sysvals = {
 	'NetErrorIndicator': (bool, False, None, False),
 	'LogStartTime': (int, 0, None, False),
 	'FirstUnseenErrorTime': (int, 0, None, False),
-	'ErrLogReconnects': (bool, True, None, True),
+	'ErrLogReconnects': (bool, False, None, True),
 	'LongTapTime': (int, 1300, None, False)  # time in msec
 }
 
