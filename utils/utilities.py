@@ -155,22 +155,24 @@ def InitializeEnvironment():
 
 	threadmanager.SetUpHelperThread('TouchHandler', ts.run)
 	downtime = 'unknown'
-	previousup = 'unknown'
+	previousupstr = 'unknown'
 	prevsetup = 'unknown'
 	try:  # todo cleanup
 		lastup = os.path.getmtime("{}/.ConsoleStart".format(config.sysStore.HomeDir))
 		with open("{}/.ConsoleStart".format(config.sysStore.HomeDir)) as f:
 			laststart = float(f.readline())
 			lastrealstart = float(f.readline())
-		previousup = f"{lastup - lastrealstart:.2f}"
+		previousup = lastup - lastrealstart
+		previousupstr = f"{previousup:.2f}"
 		prevsetup = f"{lastrealstart - laststart:.2f}"
 		downtime = f"{config.sysStore.ConsoleStartTime - lastup:.2f}"
 	except (IOError, ValueError):
-		pass
+		previousup = -1
+		lastup = -1
 
 	with open("{}/.RelLog".format(config.sysStore.HomeDir), "a") as f:
 		print(
-			f"Start: {datetime.fromtimestamp(config.sysStore.ConsoleStartTime).strftime('%c')} Last Setup: {prevsetup:.2f} Last Up: {previousup} Down: {downtime}",
+			f"Start: {datetime.fromtimestamp(config.sysStore.ConsoleStartTime).strftime('%c')} Last Setup: {prevsetup} Last Up: {previousupstr} Down: {downtime}",
 			file=f)
 	# f.write(
 	#	str(config.sysStore.ConsoleStartTime) + ' ' + str(prevsetup) + ' ' + str(previousup) + ' ' + str(lastup) + ' '
