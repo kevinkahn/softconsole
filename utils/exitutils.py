@@ -1,6 +1,7 @@
 import signal
 import subprocess
 import sys
+from datetime import datetime
 
 import config
 from guicore.screencallmanager import pg
@@ -85,7 +86,9 @@ def Exit(ecode, immediate=False):
 	consoleup = time.time() - config.sysStore.ConsoleStartTime
 	logsupport.Logs.Log("Console was up: ", interval_str(consoleup))
 	with open("{}/.RelLog".format(config.sysStore.HomeDir), "a") as f:
-		f.write('Exit ' + str(ecode) + '\n')
+		print(
+			f"  --->  At {datetime.fromtimestamp(config.sysStore.ConsoleStartTime).strftime('%c')} Exit code {ecode} was up {interval_str(consoleup)}",
+			file=f)
 	os.chdir(config.sysStore.ExecDir)  # set cwd to be correct when dirs move underneath us so that scripts execute
 	logsupport.Logs.Log("Console Exiting - Ecode: " + str(ecode))
 	if config.sysStore.Watchdog_pid != 0: os.kill(config.sysStore.Watchdog_pid, signal.SIGUSR1)

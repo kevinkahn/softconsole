@@ -154,23 +154,27 @@ def InitializeEnvironment():
 		touchtyp.on_idle = touchidle
 
 	threadmanager.SetUpHelperThread('TouchHandler', ts.run)
-
-	try:
+	downtime = 'unknown'
+	previousup = 'unknown'
+	prevsetup = 'unknown'
+	try:  # todo cleanup
 		lastup = os.path.getmtime("{}/.ConsoleStart".format(config.sysStore.HomeDir))
 		with open("{}/.ConsoleStart".format(config.sysStore.HomeDir)) as f:
 			laststart = float(f.readline())
 			lastrealstart = float(f.readline())
-		previousup = lastup - lastrealstart
-		prevsetup = lastrealstart - laststart
+		previousup = f"{lastup - lastrealstart:.2f}"
+		prevsetup = f"{lastrealstart - laststart:.2f}"
+		downtime = f"{config.sysStore.ConsoleStartTime - lastup:.2f}"
 	except (IOError, ValueError):
-		previousup = -1
-		lastup = -1
-		prevsetup = -1
+		pass
 
 	with open("{}/.RelLog".format(config.sysStore.HomeDir), "a") as f:
-		f.write(
-			str(config.sysStore.ConsoleStartTime) + ' ' + str(prevsetup) + ' ' + str(previousup) + ' ' + str(lastup) + ' '
-			+ str(config.sysStore.ConsoleStartTime - lastup) + '\n')
+		print(
+			f"Start: {datetime.fromtimestamp(config.sysStore.ConsoleStartTime).strftime('%c')} Last Setup: {prevsetup:.2f} Last Up: {previousup} Down: {downtime}",
+			file=f)
+	# f.write(
+	#	str(config.sysStore.ConsoleStartTime) + ' ' + str(prevsetup) + ' ' + str(previousup) + ' ' + str(lastup) + ' '
+	#	+ str(config.sysStore.ConsoleStartTime - lastup) + '\n')
 
 	signal.signal(signal.SIGALRM, alarm_handler)  # HACK
 	signal.alarm(10)  # HACK
@@ -263,7 +267,7 @@ def DumpDocumentation():
 
 
 import re
-from datetime import timedelta
+from datetime import timedelta, datetime
 
 
 def get_timedelta(line):
