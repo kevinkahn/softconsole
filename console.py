@@ -319,6 +319,8 @@ if utilfuncs.isdevsystem:
 			if cfgfile not in includes:
 				print('Autoadd {} to includes for development'.format(cfgfile))
 				includes.append(cfgfile)
+	if os.path.exists(cfglib + 'devsys.ovr'):
+		includes.append(cfglib + 'devsys.ovr')
 
 while includes:
 	f = includes.pop(0)

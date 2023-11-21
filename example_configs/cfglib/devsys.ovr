@@ -1,0 +1,7 @@
+[Alerts]    # Override the screen dim for dev system
+    [[DimAway]]
+    Type = NodeChange
+    Node = HASS:input_boolean.home
+    Test = ISFALSE
+    Invoke = AssignVar.Assign
+    Parameter = System:DimToOff = False
