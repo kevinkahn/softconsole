@@ -45,8 +45,8 @@ class Sensor(HAnode):  # not stateful since it updates directly to store value
 						elif self.Hub.DevGoneCount(device) > 3:
 							pass  # safeprint('    Intermittent device {}  {}'.format(device, self.Hub.DevGoneCount(device)))
 						else:
-							safeprint(
-								'    Gone from Hub: {} {} from {} {}'.format(self.Hub.name, self.entity_id, device, ns))
+							# todo safeprint(
+							#	'    Gone from Hub: {} {} from {} {}'.format(self.Hub.name, self.entity_id, device, ns))
 							logsupport.Logs.Log(
 								'Sensor data missing for {} value: {}, Device {} offline'.format(ns['entity_id'],
 																								 ns['state'], device),
@@ -75,9 +75,9 @@ class Sensor(HAnode):  # not stateful since it updates directly to store value
 				else:
 					if self.missinglast == 'Implied':
 						self.missinglast = 'No-ExplicitOnly'
-						safeprint(
-							'Not whole device {} Ent: {} {}'.format(self.Hub.EntToDev[self.entity_id], self.entity_id,
-																	ns))
+					# todo safeprint(
+					#	'Not whole device {} Ent: {} {}'.format(self.Hub.EntToDev[self.entity_id], self.entity_id,
+					#											ns))
 					elif self.missinglast in ('Explicit', 'ExplicitOnly'):
 						if self.Hub.DevGoneCount(device) < 3:
 							logsupport.Logs.Log(
@@ -86,8 +86,8 @@ class Sensor(HAnode):  # not stateful since it updates directly to store value
 																							   self.Hub.EntToDev[
 																								   self.entity_id]),
 								severity=logsupport.ConsoleDetail)
-							safeprint('Back: {} after {} Device {} {}'.format(self.entity_id, time.time() - self.gone,
-																			  self.Hub.EntToDev[self.entity_id], ns))
+						# todo safeprint('Back: {} after {} Device {} {}'.format(self.entity_id, time.time() - self.gone,
+						#												  self.Hub.EntToDev[self.entity_id], ns))
 						self.missinglast = 'No' if self.missinglast == 'Explicit' else 'No-ExplicitOnly'
 					elif self.missinglast == 'No-ExplicitOnly':
 						# safeprint('Odd item {} state {} {}'.format(self.entity_id,self.missinglast, ns))
