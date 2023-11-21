@@ -41,11 +41,17 @@ class NetworkHealth(object):
 					logsupport.LoggerQueue.put(
 						(logsupport.Command.FileWrite, '/home/pi/Console/.HistoryBuffer/hlog', 'a',
 						 'Bad ping: {}\n'.format(l)))
-				wlanq = subprocess.check_output('iwconfig wlan0', shell=True, universal_newlines=True, stderr=subprocess.STDOUT).splitlines()
-				for l in wlanq:
+				try:
+					wlanq = subprocess.check_output('iwconfig wlan0', shell=True, universal_newlines=True,
+													stderr=subprocess.STDOUT).splitlines()
+					for l in wlanq:
+						logsupport.LoggerQueue.put(
+							(logsupport.Command.FileWrite, '/home/pi/Console/.HistoryBuffer/hlog', 'a',
+							 'WLAN    : {}\n'.format(l)))
+				except Exception as E:
 					logsupport.LoggerQueue.put(
 						(logsupport.Command.FileWrite, '/home/pi/Console/.HistoryBuffer/hlog', 'a',
-						 'WLAN    : {}\n'.format(l)))
+						 f'WLAN check got exception {E}'))
 				time.sleep(.25)
 		# logsupport.Logs.Log('Finished ping thread {} in {}'.format(ok, threading.current_thread().name))
 		controlevents.PostEvent(
