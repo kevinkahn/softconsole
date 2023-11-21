@@ -68,7 +68,16 @@ picturedir = /home/pi/photos/rpi-pgalr
 NavKeyAlpha = 50
 #singlepic = 'spcpic.jpg'
 
+
 [Alerts]
+    # Override the screen dim for dev system
+    [[DimAway]]
+    Type = NodeChange
+    Node = HASS:input_boolean.home
+    Test = ISFALSE
+    Invoke = AssignVar.Assign
+    Parameter = System:DimToOff = False
+
 	[[ConfigCheck]]
 	Type = Periodic
 	Interval = 4 minutes
