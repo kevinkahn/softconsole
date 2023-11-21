@@ -21,10 +21,9 @@ import traceback
 from setproctitle import setproctitle
 
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
-# import py-game
 from guicore.screencallmanager import pg
+from utils import tracebackplus
 
-# import cgitb
 import datetime
 
 import signal
@@ -382,7 +381,7 @@ logsupport.Logs.Log("Parsed globals")
 logsupport.Logs.Log("Switching to real log")
 logsupport.Logs = logsupport.InitLogs(hw.screen, os.path.dirname(config.sysStore.configfile))
 utilities.Logs = logsupport.Logs
-#cgitb.enable(format='text')
+tracebackplus.enable()
 logsupport.Logs.Log(u"Soft Home Automation Console")
 
 logsupport.Logs.Log(u"  \u00A9 Kevin Kahn 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023")
