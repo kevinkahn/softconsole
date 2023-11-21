@@ -258,6 +258,6 @@ class Hook:
 handler = Hook().handle
 
 
-def enable(logdir=None, context=5):
+def enable(logdir=None, context=5, file=None):
 	"""Install an exception handler that sends verbose tracebacks to STDOUT."""
-	sys.excepthook = Hook(logdir=logdir, context=context)
+	sys.excepthook = Hook(logdir=logdir, context=context, file=file)

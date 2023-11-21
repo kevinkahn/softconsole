@@ -274,10 +274,12 @@ class Stream_to_Logger(object):
 	def write(buf):
 		print(buf)  # also put on stdout
 		if len(buf) > 1:
-			LoggerQueue.put((Command.LogString, '-------------Captured Python Exception-------------'))
+			LoggerQueue.put((Command.LogString,
+							 f"{time.strftime('%m-%d-%y %H:%M:%S', time.time())} -------------Captured Python Exception-------------"))
 			for line in buf.rstrip().splitlines():
-				LoggerQueue.put((Command.LogString, line.rstrip()))
-			LoggerQueue.put((Command.LogString, '---------------End Captured Exception--------------'))
+				LoggerQueue.put((Command.LogString, '       ||          ' + line.rstrip()))
+			LoggerQueue.put((Command.LogString,
+							 f"{time.strftime('%m-%d-%y %H:%M:%S', time.time())} ---------------End Captured Exception--------------"))
 
 
 class Logger(object):
@@ -358,7 +360,7 @@ class Logger(object):
 					for f in frames[:-2]:
 						fname, lineno, fn, text = f
 						LoggerQueue.put(
-							(Command.LogString, '->' + fname + ':' + str(lineno) + ' ' + fn + ' ' + text))
+							(Command.LogString, '        ->' + fname + ':' + str(lineno) + ' ' + fn + ' ' + text))
 					LoggerQueue.put((Command.LogString, '--------------End Traceback--------------'))
 
 	@staticmethod
