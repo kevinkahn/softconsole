@@ -1,2 +1,2 @@
 #! /usr/bin/bash
-ps agx | fgrep python
+ps agx | fgrep Console
