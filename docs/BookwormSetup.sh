@@ -1,6 +1,12 @@
 #!/bin/bash
 #
 # Meant to be put on boot file system when SD card is created then run as root
+# Command from Win to copy ssh credentials:
+# mkdir ~/.ssh on target (done in this script)
+# scp  id_rsa.pub pi@rpi-<hostname>.pdxhome:~/.ssh/authorized_keys  (from Win .ssh dir)
+
+
+
 
 function LogBanner() {
   echo
@@ -35,6 +41,7 @@ LogBanner "Install python3-full"
 DEBIAN_FRONTEND=noninteractive apt-get -y install python3-full
 
 LogBanner "Create Virtual Python Environment"
+mkdir .ssh
 mkdir pyenv
 mkdir .xdgdir
 python -m venv /home/pi/pyenv
