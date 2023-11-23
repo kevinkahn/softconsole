@@ -73,7 +73,10 @@ class AlertsScreenDesc(screen.ScreenDesc):
 													  proc=self.DeferAction)}
 
 		def CallClear(screentoclear):
-			screentoclear.Alert.trigger.ClearTrigger()
+			try:
+				screentoclear.Alert.trigger.ClearTrigger()
+			except Exception as E:  # graceful for test screen case
+				logsupport.Logs.Log(f"Alert screen clear call with no action ({E})", severity=logsupport.ConsoleWarning)
 			SwitchScreen(screens.HomeScreen, 'Bright', 'Manual defer an alert', newstate='Home')
 
 		if 'Action' in screensection:
@@ -107,7 +110,10 @@ class AlertsScreenDesc(screen.ScreenDesc):
 
 	def DeferAction(self):
 		debug.debugPrint('Screen', 'Alertscreen manual defer: ' + self.name)
-		self.Alert.state = 'Deferred'
+		try:
+			self.Alert.state = 'Deferred'
+		except Exception as E:  # graceful for test screen case
+			logsupport.Logs.Log(f"Alert screen error deferring action ({E})", severity=logsupport.ConsoleWarning)
 		# Deferral timer will get set in Exit Screen
 		SwitchScreen(screens.HomeScreen, 'Bright', 'Manual defer an alert', newstate='Home')
 
@@ -163,17 +169,19 @@ class AlertsScreenDesc(screen.ScreenDesc):
 
 	def ExitScreen(self, viaPush):
 		super().ExitScreen(viaPush)
-
-		if self.Alert.trigger.IsTrue():  # if the trigger condition is still true requeue post deferral
-			self.Alert.state = 'Deferred'
-			self.TimerName += 1
-			self.DeferTimer = timers.OnceTimer(self.Defer, start=True, name=self.name + '-Defer-' + str(self.TimerName),
-											   proc=alerttasks.HandleDeferredAlert, param=self.Alert)
-			debug.debugPrint('Screen', 'Alert screen defer to another screen: ' + self.name)
-			logsupport.Logs.Log("Alert screen " + self.name + " deferring", severity=ConsoleDetail)
-		else:
-			debug.debugPrint('Screen', 'Alert screen cause cleared: ' + self.name)
-			logsupport.Logs.Log("Alert screen " + self.name + " cause cleared", severity=ConsoleDetail)
-
+		try:  # graceful for test screen case
+			if self.Alert.trigger.IsTrue():  # if the trigger condition is still true requeue post deferral
+				self.Alert.state = 'Deferred'
+				self.TimerName += 1
+				self.DeferTimer = timers.OnceTimer(self.Defer, start=True,
+												   name=self.name + '-Defer-' + str(self.TimerName),
+												   proc=alerttasks.HandleDeferredAlert, param=self.Alert)
+				debug.debugPrint('Screen', 'Alert screen defer to another screen: ' + self.name)
+				logsupport.Logs.Log("Alert screen " + self.name + " deferring", severity=ConsoleDetail)
+			else:
+				debug.debugPrint('Screen', 'Alert screen cause cleared: ' + self.name)
+				logsupport.Logs.Log("Alert screen " + self.name + " cause cleared", severity=ConsoleDetail)
+		except Exception as E:
+			logsupport.Logs.Log(f"Alert screen exit error ({E})", severity=logsupport.ConsoleWarning)
 
 screens.screentypes[ScreenType] = AlertsScreenDesc

@@ -313,17 +313,20 @@ if cfglib[0] != '/':
 	cfglib = configdir + '/' + cfglib
 includes = ParsedConfigFile.get('include', [])
 
+autoadd = []
 if utilfuncs.isdevsystem:
 	for cfgfile in os.listdir(cfglib):
 		if cfgfile.endswith('.cfg'):
 			if cfgfile not in includes:
 				print('Autoadd {} to includes for development'.format(cfgfile))
 				includes.append(cfgfile)
+				autoadd.append(cfgfile)
 	if os.path.exists(cfglib + 'devsys.ovr'):
 		includes.append(cfglib + 'devsys.ovr')
 
 while includes:
 	f = includes.pop(0)
+	fbase = f
 	if f[0] != '/':
 		f = CheckForTempConfigVersion(cfglib, f)
 		pfiles.append('+' + f)
@@ -332,15 +335,18 @@ while includes:
 		f = CheckForTempConfigVersion('', f)
 		pfiles.append(f)
 	cfiles.append(f)
-	# noinspection PyBroadException
 	try:
 		tmpconf = ConfigObj(f)
+		if fbase in autoadd:
+			for nonscreen in ('Alerts', 'MQTT', 'VARIABLES'):
+				if nonscreen in tmpconf:
+					del tmpconf[nonscreen]
+					logsupport.Logs.Log(f"Suppress {nonscreen} section in {f}")
 		includes = includes + tmpconf.get('include', [])
 		ParsedConfigFile.merge(tmpconf)
 		logsupport.Logs.Log("Merged config file " + f)
-	except:
-		logsupport.Logs.Log("Error merging include file: ", f)
-	# noinspection PyBroadException
+	except Exception as E:
+		logsupport.Logs.Log(f"Error merging include file: {f} ({E}")
 	try:
 		configfilelist[f] = os.path.getmtime(f)
 	except Exception as E:
