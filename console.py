@@ -67,7 +67,7 @@ if os.path.exists(config.sysStore.HomeDir + '/.permissionchanges'):
 		perms = f.readlines()
 	for l in perms:
 		res = subprocess.call(l, shell=True)
-		logsupport.Logs.Log('Set permission {} Result; {}'.format(l, res))
+		logsupport.Logs.Log(f'Set permission {l[0:-1]} Result: {res}')
 
 
 '''
@@ -132,7 +132,6 @@ config.sysStore.SetVal('Topper_pid',0)
 os.chdir(config.sysStore.ExecDir)  # make sure we are in the directory we are executing from
 config.sysStore.SetVal('consolestatus', 'started')
 config.sysStore.SetVal('hostname', hw.hostname)
-logsupport.Logs.Log(u"Console ( " + str(config.sysStore.Console_pid) + u") starting in " + os.getcwd())
 if len(sys.argv) == 2:
 	config.sysStore.configfile = sys.argv[1]
 elif os.path.isfile(configfilebase + "config.txt"):
@@ -237,14 +236,11 @@ except Exception as E:
 	logsupport.Logs.Log('HW Config Exception: {}'.format(E))
 	exitutils.EarlyAbort('HW Config Issue', screen=False)
 
-logsupport.Logs.Log(u'Environment initialized on host ' + hw.hostname)
 if 'Zero' in hw.hwinfo:
 	controlevents.LateTolerance = 4.0
 
 lastfn = u""
 lastmod = 0
-
-logsupport.Logs.Log('Exdir: {}  Pid: {}'.format(config.sysStore.ExecDir, str(config.sysStore.Console_pid)))
 
 with open('../running', 'w') as f:
 	print('Running at {}'.format(time.time()), file=f)
@@ -409,7 +405,7 @@ logsupport.Logs.Log(" Version date: ", config.sysStore.versioncommit)
 logsupport.Logs.Log("Start time: ", time.ctime(config.sysStore.ConsoleStartTime))
 with open("{}/.ConsoleStart".format(config.sysStore.HomeDir), "w") as f:
 	f.write(str(config.sysStore.ConsoleStartTime) + '\n')
-logsupport.Logs.Log("Console Starting  pid: ", config.sysStore.Console_pid)
+logsupport.Logs.Log(f"Console Starting ({config.sysStore.Console_pid}) in {os.getcwd()}")
 logsupport.Logs.Log("Host name: ", hw.hostname)
 logsupport.Logs.Log("Screen type: {}".format(hw.screentype))
 if displayupdate.softrotate != 0:
