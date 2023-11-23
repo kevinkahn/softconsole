@@ -12,11 +12,10 @@ import logsupport as L
 from controlevents import CEvent, PostEvent, ConsoleEvent
 
 KeepAlive = multiprocessing.Event()
-FailsafeInterval = 60
-
+FailsafeInterval = 60  # 1000000 if utils.utilfuncs.isdevsystem else 60
 
 def DevPrint(msg):
-	with open('/home/pi/Console/.HistoryBuffer/hlog', 'a') as f:
+	with open('/home/pi/Console/.HistoryBuffer/hlogW', 'a') as f:
 		f.write('{}: {}\n'.format(time.time(), msg))
 		f.flush()
 
@@ -106,6 +105,7 @@ def IgnoreHUP(signum, frame):
 
 
 def MasterWatchDog():
+	DevPrint('Watchdog')
 	setproctitle('Console Watchdog')
 	signal.signal(signal.SIGTERM, WatchdogDying)  # don't want the sig handlers from the main console
 	signal.signal(signal.SIGINT, EndWatchDog)

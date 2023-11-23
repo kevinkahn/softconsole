@@ -1,3 +1,5 @@
+import sys
+
 import stats
 import config
 import time
@@ -97,9 +99,12 @@ def CycleStats():
 Integrity Checks
 '''
 Failsafe = multiprocessing.Process(target=failsafe.MasterWatchDog, name='Failsafe')
-
+checksestablished = False
+logsupport.DevPrint('Created failsafe process')
 
 def SetUpIntegrity():
+	global checksestablished
+
 	if config.sysStore.versionname in ('development',):
 		TempThdList = threading.Thread(target=failsafe.TempThreadList, name='ThreadLister')
 		TempThdList.daemon = True
@@ -108,14 +113,21 @@ def SetUpIntegrity():
 	Injector.daemon = True
 	Injector.start()
 	Failsafe.daemon = True
-	Failsafe.start()
-	config.sysStore.SetVal('Watchdog_pid', Failsafe.pid)
-	# if config.sysStore.versionname in ('development', 'homerelease'): topper.inittop()
-	logsupport.Logs.Log(
-		'Starting master watchdog {} for {}'.format(config.sysStore.Watchdog_pid, config.sysStore.Console_pid))
+	if sys.gettrace() is None:
+		Failsafe.start()
+		config.sysStore.SetVal('Watchdog_pid', Failsafe.pid)
+		# if config.sysStore.versionname in ('development', 'homerelease'): topper.inittop()
+		logsupport.Logs.Log(
+			'Starting master watchdog {} for {}'.format(config.sysStore.Watchdog_pid, config.sysStore.Console_pid))
+		checksestablished = True
+	else:
+		logsupport.Logs.Log(f"No watchdog for debugging run")
+		print('Skip watchdog for debugging')
 
 
 def CheckConsoleIntegrity():
+	if not checksestablished:
+		return
 	if not Failsafe.is_alive():
 		logsupport.DevPrint('Watchdog died')
 		logsupport.Logs.Log('Watchdog died - restarting console', severity=ConsoleError, hb=True)
