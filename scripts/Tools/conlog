@@ -1,7 +1,6 @@
 #! /usr/bin/bash
-if [ X$1 == X ]
-then
-less ~/Console/Console.log
+if [ X$1 == X ]; then
+    less ~/Console/Console.log
 else
-less ~/Console/Console.log.$1
+    less ~/Console/Console.log.$1
 fi
