@@ -12,6 +12,7 @@ import os
 import subprocess
 import shutil
 import PIL.Image
+import PIL.ExifTags
 import logsupport
 from logsupport import ConsoleWarning, ConsoleDetail
 
@@ -69,6 +70,27 @@ class PictureScreenDesc(screen.ScreenDesc):
 																	   self.singlepicmode], prestart=None,
 																   poststart=None, prerestart=None, postrestart=None,
 																   checkok=None)
+
+	def RetryDirMount(self):
+		defertime = 300
+		while self.missingpicdir:
+			logsupport.Logs.Log(f"Will retry picture directory mount for {self.name} in {defertime} seconds")
+			time.sleep(defertime)
+			logsupport.Logs.Log(f'Try mount for picture directory {self.picturedir}')
+			mntres = subprocess.run(['mount', '-a'])
+			logsupport.Logs.Log("Mount result: {}".format(mntres))
+			if not os.path.exists(self.picturedir):
+				logsupport.Logs.Log("Still no picture directory - defer screen", severity=ConsoleWarning)
+			else:
+				logsupport.Logs.Log(f'Got picture directory {self.picturedir} for {self.name}')
+				self.missingpicdir = False
+				threadmanager.SetUpHelperThread(self.name + '-picqueue',
+												[self.QueuePics, self.QueueSinglePic][
+													self.singlepicmode], prestart=None,
+												poststart=None, prerestart=None, postrestart=None,
+												checkok=None)
+		logsupport.Logs.Log(f'Exiting deferal thread for {self.name}')
+
 
 	def QueueSinglePic(self):
 		while True:
@@ -166,9 +188,9 @@ class PictureScreenDesc(screen.ScreenDesc):
 		rawp = pg.image.load(pic)
 		# noinspection PyBroadException
 		try:
-			# noinspection PyProtectedMember
-			exif = PIL.Image.open(pic)._getexif()[274]
-		except Exception:
+			exinfo = PIL.Image.open(pic).getexif()
+			exif = exinfo[PIL.ExifTags.Base.Orientation.value]
+		except:
 			exif = 1
 		#		print("{} rot: {}".format(pic,exif))
 		rot = [0, 0, 0, 180, 0, 0, 270, 0, 90][exif]
