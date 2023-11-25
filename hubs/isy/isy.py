@@ -131,7 +131,7 @@ class Node(Folder, OnOffItem):
 	def devState(self, val):
 		self._devState = val
 		#print("Set {} to {}".format(self.name, val))
-		return self._devState
+	# return self._devState
 
 	def __repr__(self):
 		return 'Node: ' + Folder.__repr__(self) + 'primary: ' + self.pnode.name

@@ -6,6 +6,7 @@ class MissingHubStore(valuestore.ValueStore):
 	def __init__(self, hubnm, hub):
 		super().__init__(hubnm)
 		self.hub = hub
+		self.name = 'DummyHub'
 		logsupport.Logs.Log('Created dummy store {}'.format(hubnm))
 		self.reportedlist = []
 

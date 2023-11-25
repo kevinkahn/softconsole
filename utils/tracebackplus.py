@@ -2,12 +2,12 @@
 
 To enable this module, do:
 
-    import tracebackplus; tracebackplus.enable()
+	import tracebackplus; tracebackplus.enable()
 
 at the top of your script.  The optional arguments to enable() are:
 
-    logdir      - if set, tracebacks are written to files in this directory
-    context     - number of lines of source code to show for each stack frame
+	logdir      - if set, tracebacks are written to files in this directory
+	context     - number of lines of source code to show for each stack frame
 
 By default, tracebacks are displayed but not saved and the context is 5 lines.
 Alternatively, if you have caught an exception and want tracebackplus to display it
@@ -101,20 +101,20 @@ __UNDEF__ = []  # a special sentinel object
 
 
 def lookup(name, frame, locals):
-    """Find the value for a given name in the given environment."""
-    if name in locals:
-        return 'local', locals[name]
-    if name in frame.f_globals:
-        return 'global', frame.f_globals[name]
-    if '__builtins__' in frame.f_globals:
-        builtins = frame.f_globals['__builtins__']
-        if isinstance(builtins, dict):
-            if name in builtins:
-                return 'builtin', builtins[name]
-        else:
-            if hasattr(builtins, name):
-                return 'builtin', getattr(builtins, name)
-    return None, __UNDEF__
+	"""Find the value for a given name in the given environment."""
+	if name in locals:
+		return 'local', locals[name]
+	if name in frame.f_globals:
+		return 'global', frame.f_globals[name]
+	if '__builtins__' in frame.f_globals:
+		builtins = frame.f_globals['__builtins__']
+		if isinstance(builtins, dict):
+			if name in builtins:
+				return 'builtin', builtins[name]
+		else:
+			if hasattr(builtins, name):
+				return 'builtin', getattr(builtins, name)
+	return None, __UNDEF__
 
 
 def scanvars(reader, frame, locals):

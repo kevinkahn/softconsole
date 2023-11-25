@@ -80,6 +80,7 @@
           <option value="Exception.response" />
           <option value="types.ModuleType.IgnoredDomain" />
           <option value="enum.Enum.*" />
+          <option value="PIL.ExifTags.Base" />
         </list>
       </option>
     </inspection_tool>

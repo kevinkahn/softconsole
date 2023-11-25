@@ -168,13 +168,13 @@ def on_message(client, userdata, msg):
 						except Exception as E:
 							logprint(
 								'Exception posting event from mqtt resp: ({}) Exception {}'.format(
-									(self.name, msgdcd, respnode, userdata), E), severity=ConsoleError)
+									(self.name, msgdcd, respnode, userdata), E))
 				return
 
 		# noinspection PySimplifyBooleanCheck
 		# not a command/status message
 		if var == []:
-			logprint('Unknown topic ', msgtopic, ' from broker ', self.name)
+			logprint(f"Unknown topic {msgtopic} from broker {self.name}")
 		else:
 			for v in var:
 				v.SetTime = time.time()
@@ -195,8 +195,7 @@ def on_message(client, userdata, msg):
 							v.Value = None
 					# debug.debugPrint('StoreTrack', "Store(mqtt): ", self.name, ':', v, ' Value: ', v.Value)
 					except Exception as e:
-						logprint('Error handling json MQTT item: ', v.name, str(v.jsonflds),
-								 msg.payload.decode('ascii'), str(e), repr(payload))
+						logprint(f"Error handling json MQTT item: {v.name} {str(v.jsonflds)} {msg.payload.decode('ascii')} {e} {repr(payload)}")
 
 	except Exception as E:
 		logprint('MQTT Error: {} topic: {} msg: {}'.format(repr(E), msgtopic, msg.payload))

@@ -32,6 +32,7 @@ class Hub(object):
 	def GetProgram(self, name):
 		return self.DummyNode
 
+	# noinspection PyMethodMayBeStatic
 	def GetCurrentStatus(self, MonitorNode):
 		return -1
 

@@ -5,7 +5,6 @@ from configobj import Section
 import config
 import debug
 from utils import exitutils, utilfuncs
-from utils.utilfuncs import safeprint
 import logsupport
 import screens.__screens as screens
 from logsupport import ConsoleWarning, ConsoleError, ConsoleDetail

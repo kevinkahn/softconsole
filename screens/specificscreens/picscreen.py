@@ -51,7 +51,7 @@ class PictureScreenDesc(screen.ScreenDesc):
 				mntres = subprocess.run(['mount', '-a'])
 				logsupport.Logs.Log("Mount result: {}".format(mntres))
 				if not os.path.exists(self.picturedir):
-					logsupport.Logs.Log("Still no picture directory - disabling screen", severity=ConsoleWarning)
+					logsupport.Logs.Log("Still no picture directory - defer screen start", severity=ConsoleWarning)
 					self.missingpicdir = True
 
 		if self.NavKeyAlpha == -1: self.NavKeyAlpha = None
@@ -65,11 +65,13 @@ class PictureScreenDesc(screen.ScreenDesc):
 		self.picqueue = Queue(maxsize=1)
 		self.DoSinglePic = Event()
 		self.DoSinglePic.set()
-		if not self.missingpicdir: threadmanager.SetUpHelperThread(self.name + '-picqueue',
-																   [self.QueuePics, self.QueueSinglePic][
-																	   self.singlepicmode], prestart=None,
-																   poststart=None, prerestart=None, postrestart=None,
-																   checkok=None)
+		if self.missingpicdir:
+			threadmanager.SetUpHelperThread(self.name + '-deferpicdir', self.RetryDirMount, prestart=None,
+											poststart=None, prerestart=None, postrestart=None, checkok=None)
+		else:
+			threadmanager.SetUpHelperThread(self.name + '-picqueue',
+											[self.QueuePics, self.QueueSinglePic][self.singlepicmode], prestart=None,
+											poststart=None, prerestart=None, postrestart=None, checkok=None)
 
 	def RetryDirMount(self):
 		defertime = 300

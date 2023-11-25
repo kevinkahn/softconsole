@@ -156,7 +156,7 @@ class ISYEventMonitor(object):
 				logsupport.Logs.Log(self.hubname + ' WS restart because of failed direct communication failure')
 				self.delayedstart = 90  # probably ISY doing query
 			elif self.lasterror == 'ISYNoRoute':
-				logsupport.Logs.Log("{}: Hub probably down (semi) permanently ({})".self.name, self.longdown)
+				logsupport.Logs.Log("{}: Hub probably down (semi) permanently ({})".format(self.hubname, self.longdown))
 				self.delayedstart = 3600 + self.longdown * 1800  # spread checks way out
 				self.isy._HubOnline = False
 				self.longdown += 1

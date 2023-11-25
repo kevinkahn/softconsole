@@ -275,11 +275,11 @@ class Stream_to_Logger(object):
 		print(buf)  # also put on stdout
 		if len(buf) > 1:
 			LoggerQueue.put((Command.LogString,
-							 f"{time.strftime('%m-%d-%y %H:%M:%S', time.time())} -------------Captured Python Exception-------------"))
+							 f"{time.strftime('%m-%d-%y %H:%M:%S', time.localtime(time.time()))} -------------Captured Python Exception-------------"))
 			for line in buf.rstrip().splitlines():
 				LoggerQueue.put((Command.LogString, '       ||          ' + line.rstrip()))
 			LoggerQueue.put((Command.LogString,
-							 f"{time.strftime('%m-%d-%y %H:%M:%S', time.time())} ---------------End Captured Exception--------------"))
+							 f"{time.strftime('%m-%d-%y %H:%M:%S', time.localtime(time.time()))} ---------------End Captured Exception--------------"))
 
 
 class Logger(object):

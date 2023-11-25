@@ -17,7 +17,7 @@ import historybuffer
 import logsupport
 from utils import threadmanager, hw, utilfuncs
 from controlevents import CEvent, PostEvent, ConsoleEvent, PostIfInterested
-from logsupport import ConsoleWarning, ConsoleError, ConsoleDetail, ConsoleInfo
+from logsupport import ConsoleWarning, ConsoleError, ConsoleDetail
 from stores import valuestore, haattraccess
 from utils.utilities import CheckPayload
 from utils.utilfuncs import safeprint, safeprintnd
