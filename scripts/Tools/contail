@@ -1,0 +1,2 @@
+#! /usr/bin/bash
+tail -F ~/Console/Console.log

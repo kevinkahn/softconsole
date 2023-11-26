@@ -1,2 +1,0 @@
-#! /usr/bin/bash
-ps agx | fgrep Console
