@@ -12,24 +12,26 @@ class Light(HAnode):
 	def __init__(self, HAitem, d):
 		super().__init__(HAitem, **d)
 		self.Hub.RegisterEntity('light', self.entity_id, self)
-		if 'brightness' in self.attributes:
-			self.internalstate = self._NormalizeState(self.state, int(self.attributes['brightness']))
+		if 'brightness' in self.attributes and self.attributes['brightness'] is not None:
+			self.internalstate = self._NormalizeState(self.state, self.attributes['brightness'])
 		self.pctatidle = -1
 		self.lastsendtime = 0
 
 	def Update(self, **ns):
-		if self.entity_id == 'light.bar_lights' and 'brightness' in self.attributes:
+		if self.entity_id == 'light.bar_lights' and 'brightness' in self.attributes and self.attributes[
+			'brightness'] is not None:
 			oldbright = self.attributes['brightness']
 		else:
 			oldbright = -1
 		super().Update(**ns)
-		if self.entity_id == 'light.bar_lights' and 'brightness' in self.attributes:
+		if self.entity_id == 'light.bar_lights' and 'brightness' in self.attributes and self.attributes[
+			'brightness'] is not None:
 			safeprint('{} Update {}->{}'.format(time.strftime('%m-%d-%y %H:%M:%S', time.localtime()), oldbright,
 												self.attributes['brightness']))
 			if self.attributes['brightness'] < 25: safeprint(
 				'{} Update {} {} {}->{}'.format(time.strftime('%m-%d-%y %H:%M:%S', time.localtime()), self.name,
 												self.state, oldbright, self.attributes['brightness']))
-		if 'brightness' in self.attributes:
+		if 'brightness' in self.attributes and self.attributes['brightness'] is not None:
 			self.internalstate = self._NormalizeState(self.state, int(self.attributes['brightness']))
 
 	# noinspection PyUnusedLocal
@@ -52,7 +54,7 @@ class Light(HAnode):
 		return self.GetBrightness()
 
 	def GetBrightness(self):
-		if 'brightness' in self.attributes:
+		if 'brightness' in self.attributes and self.attributes['brightness'] is not None:
 			t = 100 * (self.attributes['brightness'] / 255) if self.pctatidle == -1 else self.pctatidle
 			# if t < 5: safeprint('GetBright: {} {} {}'.format(self.name, t, self.pctatidle))
 			return 100 * (self.attributes['brightness'] / 255) if self.pctatidle == -1 else self.pctatidle
