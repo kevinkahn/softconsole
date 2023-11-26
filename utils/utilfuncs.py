@@ -125,11 +125,12 @@ ishomesystem = False
 
 
 def safeprint(*args, **kwargs):
+	debugprintlog = '/home/pi/Console/.HistoryBuffer/debugprint'
 	if isdevsystem or ishomesystem:
 		try:
 			print(time.strftime('%m-%d-%y %H:%M:%S'), *args, **kwargs)
 		except OSError:
-			with open('/home/pi/Console/disconnectederrors.log', 'a') as f:
+			with open(debugprintlog, 'a') as f:
 				print(*args, **kwargs, file=f)
 
 
