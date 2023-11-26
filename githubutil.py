@@ -23,7 +23,7 @@ def StageVersion(vdir, tag, label, uselog=False):
 	try:
 		os.chdir(vdir)
 	except Exception as E:
-		print("Staging directory {} doesn't exist - try to create it ({})".format(vdir, E))
+		print("Staging directory {} doesn't exist - try to create it ({})".format(vdir, E), file=logf)
 		os.mkdir(vdir)
 		os.chdir(vdir)
 	shutil.rmtree('stagedversion', True)
@@ -103,7 +103,7 @@ def InstallStagedVersion(d, Bookworm=False):
 	try:
 		shutil.copytree('scripts/Tools', '/home/pi/bin')
 	except Exception as E:
-		print(f"Exception copying Tools: {E} while in {os.getcwd()}")
+		print(f"Exception copying Tools: {E} while in {os.getcwd()}", file=logf)
 	if os.path.exists('/home/pi/bin/authorized_keys'):
 		shutil.copy('/home/pi/bin/authorized_keys', '/home/pi/.ssh')
 	subprocess.call('chmod +x /home/pi/bin/*', shell=True, stdout=logf, stderr=logf)
