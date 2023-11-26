@@ -101,7 +101,7 @@ def InstallStagedVersion(d, Bookworm=False):
 	if not os.path.exists('/home/pi/bin'):
 		os.mkdir('/home/pi/bin')
 	try:
-		shutil.copytree('scripts/Tools', '/home/pi/bin')
+		shutil.copytree('scripts/Tools', '/home/pi/bin', dirs_exist_ok=True)
 	except Exception as E:
 		print(f"Exception copying Tools: {E} while in {os.getcwd()}", file=logf)
 	if os.path.exists('/home/pi/bin/authorized_keys'):
