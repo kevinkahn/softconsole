@@ -100,7 +100,10 @@ def InstallStagedVersion(d, Bookworm=False):
 
 	if not os.path.exists('/home/pi/bin'):
 		os.mkdir('/home/pi/bin')
-	shutil.copytree('scripts/Tools', '/home/pi/bin')
+	try:
+		shutil.copytree('scripts/Tools', '/home/pi/bin')
+	except Exception as E:
+		print(f"Exception copying Tools: {E} while in {os.getcwd()}")
 	if os.path.exists('/home/pi/bin/authorized_keys'):
 		shutil.copy('/home/pi/bin/authorized_keys', '/home/pi/.ssh')
 	subprocess.call('chmod +x /home/pi/bin/*', shell=True, stdout=logf, stderr=logf)
