@@ -8,7 +8,7 @@ elif [ $1 == 'restart' ]; then
 elif [ $1 == 'status' ]; then
     systemctl status softconsole
 elif [ $1 == 'journal' ]; then
-    journalctl -u softconsole
+    journalctl -b --no-hostname -e -u softconsole
 elif [ $1 == ps ]; then
     ps agx | fgrep Console
 else
