@@ -12,6 +12,11 @@ function LogBanner() {
   echo "----------------------------------------------------------"
 }
 
+if [[ "$EUID" -eq 0 ]]; then
+  echo "Do not run as root"
+  exit
+fi
+
 exec > >(tee -a /home/pi/prep.log)
 exec 2>&1
 
