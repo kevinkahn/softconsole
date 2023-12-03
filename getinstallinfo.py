@@ -53,7 +53,7 @@ def GetInt(prompt, allowed=None):
 					return answer
 				else:
 					print('Choices are {}'.format(allowed))
-		except:
+		except Exception:
 			print('Bad input - choices are: {}'.format(allowed))
 
 
@@ -72,17 +72,17 @@ def AddToScript(varset, value):
 
 
 def adafruit(scr, rotation):
-	return ["echo Adafruit {} screen\n".format(scr),
-			# below from https://learn.adafruit.com/adafruit-pitft-3-dot-5-touch-screen-for-raspberry-pi/easy-install-2
-			# apt-get update done early in install script
-			# apt-get install -y git python3-pip\n  done earlier
+	# below from https://learn.adafruit.com/adafruit-pitft-3-dot-5-touch-screen-for-raspberry-pi/easy-install-2
+	return [f"echo Adafruit {scr} screen\n",
 			"pip3 install --upgrade adafruit-python-shell click\n",
 			"git clone https://github.com/adafruit/Raspberry-Pi-Installer-Scripts.git\n",
 			"cd Raspberry-Pi-Installer-Scripts\n",
-			"python ./adafruit-pitft.py --display={} --rotation={} --reboot=no --install-type=console \n".format(scr,
-																												 rotation),
-			'cd ..\n'
+			f"sudo -E env PATH=$PATH python3 adafruit-pitft-mipi.py --display={scr} --rotation={rotation} --reboot=no \n",
+			'cd ..\n',
 			'mv Raspberry-Pi-Installer-Scripts .consoleinstallleftovers\n']
+
+
+# --install-type=console
 
 
 # noinspection PyUnusedLocal
@@ -349,7 +349,7 @@ if authdir is not None:
 		subprocess.call('sudo cp -f fstab.orig /etc/fstab', shell=True)
 
 shutil.copytree('/home/pi/consolestable/example_configs', '/home/pi/Console', dirs_exist_ok=True)
-#subprocess.call("cp -r /home/pi/consolestable/'example_configs'/* /home/pi/Console", shell=True)
+
 if piinstall:
 	print("****************************************************************", flush=True)
 	print("****************************************************************", flush=True)
