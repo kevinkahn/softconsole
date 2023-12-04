@@ -85,7 +85,8 @@ def InstallStagedVersion(d, Bookworm=False):
 		shutil.copy('scripts/softconsoleBW.service', 'scripts/softconsole.service')
 
 	print('Process upgrade extras script', file=logf)
-	subprocess.call('bash ./scripts/upgradeprep.sh', shell=True, stdout=logf, stderr=logf)
+	# subprocess.call('bash ./scripts/upgradeprep.sh', shell=True, stdout=logf, stderr=logf)
+	subprocess.call('bash /home/pi/pyenv/bin/pip -r requirements.txt', shell=True, stdout=logf, stderr=logf)
 	print('End upgrade extras script', file=logf)
 
 	print('Setup systemd service from {}'.format(d), file=logf)
@@ -105,7 +106,8 @@ def InstallStagedVersion(d, Bookworm=False):
 	except Exception as E:
 		print(f"Exception copying Tools: {E} while in {os.getcwd()}", file=logf)
 	if not os.path.exists('/home/pi/.ssh'):
-		os.mkdir('/home/pi/.ssh')
+		print('Create .ssh dir', file=logf)
+		os.mkdir(f'/home/pi/.ssh')
 	if os.path.exists('/home/pi/bin/authorized_keys'):
 		shutil.copy('/home/pi/bin/authorized_keys', '/home/pi/.ssh')
 	subprocess.call('chmod +x /home/pi/bin/*', shell=True, stdout=logf, stderr=logf)

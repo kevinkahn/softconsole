@@ -5,14 +5,14 @@ export PATH="/home/pi/pyenv/bin:$PATH"
 pip install configobj
 pip install webcolors
 pip install xmltodict
-pip install smbus
+#pip install smbus
 pip install psutil
-pip install aiohttp
+pip install --upgrade aiohttp
 pip install --upgrade websocket-client
 pip install --upgrade wiringpi
 pip install --upgrade paho-mqtt
 pip install --upgrade python-dateutil
-pip install requests
+pip install --upgrade requests
 pip install pillow
 pip install pygame
 pip install setproctitle

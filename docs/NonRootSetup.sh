@@ -37,6 +37,7 @@ DEBIAN_FRONTEND=noninteractive sudo apt-get -y install python3-full
 LogBanner "Create Virtual Python Environment"
 mkdir pyenv
 mkdir .xdgdir
+# Note using the --system-site-packages flag on the next command can lead to version issues
 python -m venv /home/pi/pyenv
 export PATH="/home/pi/pyenv/bin:$PATH"
 pip install wget requests

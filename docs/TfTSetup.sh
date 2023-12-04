@@ -27,9 +27,15 @@ LogBanner "This is the system setup script for console  for user pi"
   sleep 5
   LogBanner "Continuing . . ."
 
+LogBanner "Create Virtual Python Environment"
+mkdir pyenv
+mkdir .xdgdir
+# Note using the --system-site-packages flag on the next command can lead to version issues
+python -m venv /home/pi/pyenv
+export PATH="/home/pi/pyenv/bin:$PATH"
 
 if DEBIAN_FRONTEND=noninteractive sudo apt-get -y install python3-wget ; then
-  echo Wget install ok
+  echo wget install ok
 else
   echo Error installing wget
   exit
@@ -45,14 +51,10 @@ else
   exit
 fi
 
-LogBanner "Create Virtual Python Environment"
-mkdir pyenv
-mkdir .xdgdir
-python -m venv /home/pi/pyenv --system-site-packages
-export PATH="/home/pi/pyenv/bin:$PATH"
-pip install wget requests
 
-python getinstallinfo.py
+/home/pi/pyenv/bin/pip install wget requests
+
+/home/pi/pyenv/bin/python getinstallinfo.py
 if [ $? -ne 0 ]; then
   echo "Exiting pisetup due to error in getinstallinfo"
   exit 1

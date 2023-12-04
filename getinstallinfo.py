@@ -4,7 +4,7 @@ from functools import partial as p
 gitselector = {'stable': 'currentrelease', 'personal': 'homerelease', 'beta': 'currentbeta'}
 gitprefix = 'https://raw.githubusercontent.com/kevinkahn/softconsole/'
 installscripts = {'vncserverpi.service': 'scripts/', 'lxterminal.conf': 'scripts/', 'githubutil.py': ''}
-setgroupaccess = {'/sys/class/backlight/10-0045/brightness': 'g+w'}
+setgroupaccess = {}
 
 
 def GetScripts(vers, save=''):
@@ -74,7 +74,7 @@ def AddToScript(varset, value):
 def adafruit(scr, rotation):
 	# below from https://learn.adafruit.com/adafruit-pitft-3-dot-5-touch-screen-for-raspberry-pi/easy-install-2
 	return [f"echo Adafruit {scr} screen\n",
-			"pip3 install --upgrade adafruit-python-shell click\n",
+			"/home/pi/pyenv/bin/pip install --upgrade adafruit-python-shell click\n",
 			"git clone https://github.com/adafruit/Raspberry-Pi-Installer-Scripts.git\n",
 			"cd Raspberry-Pi-Installer-Scripts\n",
 			f"sudo -E env PATH=$PATH python3 adafruit-pitft-mipi.py --display={scr} --rotation={rotation} --reboot=no \n",
@@ -87,7 +87,8 @@ def adafruit(scr, rotation):
 
 # noinspection PyUnusedLocal
 def doflip(scr):
-	global baseorientation
+	global baseorientation, setgroupaccess
+	setgroupaccess['/sys/class/backlight/10-0045/brightness'] = 'g+w'
 	print("If you are not using a Pi4 you can use hardware to flip the base orientation")
 	print("of the display so that the power connector is on the top.")
 	print("If you are on a Pi4 use the soft rotation option that will get asked for next")
@@ -130,15 +131,6 @@ with open('/etc/issue') as f:
 		print("**************************************************************", flush=True)
 		print("**************************************************************", flush=True)
 
-print("**************************************************************", flush=True)
-print("   Set group access on needed hardware", flush=True)
-for item, chg in setgroupaccess.items():
-	print(item)
-	suc = subprocess.call('sudo chmod {} {}'.format(chg, item), shell=True)
-	print('  Result: {}'.format(suc))
-	with open('.permissionchanges', 'a') as f:
-		print('sudo chmod {} {}'.format(chg, item), file=f)
-print("**************************************************************", flush=True)
 AddToScript('Buster', 'Y' if Buster else 'N')
 AddToScript('Bookworm', 'Y' if Bookworm else 'N')
 if piinstall:
@@ -223,6 +215,16 @@ with open('installvals', 'w') as f:
 		f.write("export BOOKWORM=True")
 with open('installscreencode', 'w') as f:
 	f.writelines(installsrc)
+
+print("**************************************************************", flush=True)
+print("   Set group access on needed hardware", flush=True)
+for item, chg in setgroupaccess.items():
+	print(item)
+	suc = subprocess.call('sudo chmod {} {}'.format(chg, item), shell=True)
+	print('  Result: {}'.format(suc))
+	with open('.shell=True, stdout=logf, stderr=logfpermissionchanges', 'a') as f:
+		print('sudo chmod {} {}'.format(chg, item), file=f)
+print("**************************************************************", flush=True)
 
 HubName = ""
 ans = ""
