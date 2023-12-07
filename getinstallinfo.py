@@ -72,6 +72,8 @@ def AddToScript(varset, value):
 
 
 def adafruit(scr, rotation):
+	global setgroupaccess
+	setgroupaccess['/dev/gpiomem'] = '660'
 	# below from https://learn.adafruit.com/adafruit-pitft-3-dot-5-touch-screen-for-raspberry-pi/easy-install-2
 	return [f"echo Adafruit {scr} screen\n",
 			"/home/pi/pyenv/bin/pip install --upgrade adafruit-python-shell click\n",
@@ -130,6 +132,7 @@ with open('/etc/issue') as f:
 		print("Installing for Bookworm", flush=True)
 		print("**************************************************************", flush=True)
 		print("**************************************************************", flush=True)
+
 
 AddToScript('Buster', 'Y' if Buster else 'N')
 AddToScript('Bookworm', 'Y' if Bookworm else 'N')
@@ -218,12 +221,12 @@ with open('installscreencode', 'w') as f:
 
 print("**************************************************************", flush=True)
 print("   Set group access on needed hardware", flush=True)
-for item, chg in setgroupaccess.items():
-	print(item)
-	suc = subprocess.call('sudo chmod {} {}'.format(chg, item), shell=True)
-	print('  Result: {}'.format(suc))
-	with open('.shell=True, stdout=logf, stderr=logfpermissionchanges', 'a') as f:
-		print('sudo chmod {} {}'.format(chg, item), file=f)
+with open('.permissionchanges', 'w') as f:
+	for item, chg in setgroupaccess.items():
+		print(item)
+		suc = subprocess.call('sudo chmod {} {}'.format(chg, item), shell=True)
+		print(f'sudo chmod {chg} {item}', file=f)
+		print(f'  Permission: chmod {chg} {item}   Result: {svc}')
 print("**************************************************************", flush=True)
 
 HubName = ""
