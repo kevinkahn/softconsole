@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="WebServers">
+    <option name="servers">
+      <webServer id="310b05f6-c1aa-4807-b980-57b2b67813da" name="rpi-bwtest.pdxhome">
+        <fileTransfer rootFolder="/home/pi" accessType="SFTP" host="rpi-bwtest.pdxhome" port="22" sshConfigId="a194eb79-f6fc-488e-a2d9-1d025662a10e" sshConfig="pi@rpi-bwtest.pdxhome:22 password">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" keepAliveTimeout="0" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+        </fileTransfer>
+      </webServer>
+    </option>
+  </component>
+</project>
