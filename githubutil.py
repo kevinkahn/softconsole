@@ -86,7 +86,7 @@ def InstallStagedVersion(d, Bookworm=False):
 
 	print('Process upgrade extras script', file=logf)
 	# subprocess.call('bash ./scripts/upgradeprep.sh', shell=True, stdout=logf, stderr=logf)
-	subprocess.call('bash /home/pi/pyenv/bin/pip -r requirements.txt', shell=True, stdout=logf, stderr=logf)
+	subprocess.call('/home/pi/pyenv/bin/pip install -r requirements.txt', shell=True, stdout=logf, stderr=logf)
 	print('End upgrade extras script', file=logf)
 
 	print('Setup systemd service from {}'.format(d), file=logf)
@@ -110,6 +110,8 @@ def InstallStagedVersion(d, Bookworm=False):
 		os.mkdir(f'/home/pi/.ssh')
 	if os.path.exists('/home/pi/bin/authorized_keys'):
 		shutil.copy('/home/pi/bin/authorized_keys', '/home/pi/.ssh')
+	if os.path.exists('/home/pi/.bash_aliases'):
+		shutil.copy('/home/pi/.bash_aliases', '/home/pi/.bash_aliases')
 	subprocess.call('chmod +x /home/pi/bin/*', shell=True, stdout=logf, stderr=logf)
 
 	logf.close()
