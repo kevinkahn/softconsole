@@ -1,4 +1,4 @@
-import sys
+import sys, time, os
 import traceback
 import multiprocessing
 import signal
@@ -7,6 +7,10 @@ from threading import Lock
 import difflib
 from datetime import datetime
 from setproctitle import setproctitle
+import config
+from enum import Enum
+import re
+from utils.hw import disklogging
 
 from guicore.screencallmanager import pg
 
@@ -37,19 +41,14 @@ class TempLogger(object):
 		# entry = "".join([unicode(i) for i in args])
 		entry = "".join([str(i) for i in args])
 		sev = 3 if 'severity' not in kwargs else kwargs['severity']
-		if not isinstance(entry, str): entry = entry.encode('UTF-8', errors='backslashreplace')
+		if not isinstance(entry, str):
+			entry = entry.encode('UTF-8', errors='backslashreplace')
 		EarlyLog.append((time.strftime('%m-%d-%y %H:%M:%S'), entry, sev))
 		safeprint(" " + entry)
 
 
-
 Logs = TempLogger()
-import config
-import time
-import os
-import re
-from utils.hw import disklogging
-from enum import Enum
+
 
 LogLevels = ('Debug', 'DetailHigh', 'Detail', 'Info', 'Warning', 'Error')
 ConsoleDebug = 0
@@ -59,7 +58,8 @@ ConsoleInfo = 3
 ConsoleWarning = 4
 ConsoleError = 5
 primaryBroker = None  # for cross system reporting if mqtt is running
-errorlogfudge = 0  # force a new log start time for each use of the log to make sure other nodes see it as a change in value due to the alert only on change
+errorlogfudge = 0  # force a log start time for each use of log to make sure other nodes see change in value due to
+# the alert only on change
 LoggerQueue = multiprocessing.Queue()
 
 # noinspection PyArgumentList
@@ -71,7 +71,6 @@ AsyncLogger = None
 
 # config.sysStore.LogLevel = 3
 LocalOnly = True
-
 
 
 def SpawnAsyncLogger():
@@ -128,9 +127,9 @@ def LogProcess(q):
 	while running:
 		try:
 			try:
-				item = q.get(timeout = 2)
+				item = q.get(timeout=2)
 				lastmsgtime = time.time()
-				if exiting !=0:
+				if exiting != 0:
 					if time.time() - exiting > 3:  # don't note items within few seconds of exit request just process them
 						with open('/home/pi/Console/.HistoryBuffer/hlog', 'a') as f:
 							f.write('@ {} late item: {} exiting {}\n'.format(time.time(), item, exiting))
@@ -139,7 +138,7 @@ def LogProcess(q):
 				if exiting != 0 and time.time() - exiting > 10:
 					# exiting got set but we seem stuck - just leave
 					with open('/home/pi/Console/.HistoryBuffer/hlog', 'a') as f:
-						f.write('{}({}): Logger exiting because seems zombied\n'.format(os.getpid(),time.time()))
+						f.write(f"{os.getpid()}({time.time()}): Logger exiting because seems zombied\n")
 						f.flush()
 					running = False
 					continue
@@ -192,7 +191,7 @@ def LogProcess(q):
 					with open('/home/pi/Console/.HistoryBuffer/hlog', 'a') as f:
 						f.write('{}({}): Async Logger ending: {}\n'.format(os.getpid(), time.time(), item[1]))
 						f.flush()
-				except:
+				except Exception:
 					pass  # hlog was never set up
 				Logs = TempLogger
 			elif item[0] == Command.StartLog:
@@ -206,7 +205,7 @@ def LogProcess(q):
 					f.flush()
 			elif item[0] == Command.Touch:
 				# liveness touch
-				os.utime(item[1],None)
+				os.utime(item[1], None)
 			elif item[0] == Command.LogString:
 				# Logentry string (7,entry)
 				disklogfile.write('{}\n'.format(item[1]))
@@ -227,7 +226,7 @@ def LogProcess(q):
 				f.flush()
 	try:
 		print('----------------- {}({}): Logger loop ended'.format(os.getpid(), time.time()))
-	except:
+	except Exception:
 		pass
 	try:
 		with open('/home/pi/Console/.HistoryBuffer/hlog', 'a') as f:
@@ -237,13 +236,14 @@ def LogProcess(q):
 			'{} Sev: {} {}\n'.format(time.strftime('%m-%d-%y %H:%M:%S', time.localtime(time.time())), 3, "End Log"))
 		disklogfile.flush()
 		os.fsync(disklogfile.fileno())
-	except:
-		print('----------------- No disk logs to close')
+	except Exception as E:
+		print(f'----------------- No disk logs to close  {E}')
 
 
 def DevPrintInit(arg):
 	pstr = '{}({}): {}'.format(str(os.getpid()), time.time(), arg)
 	print(pstr)
+
 
 def DevPrintDoIt(arg):
 	pstr = '{}({}): {}'.format(str(os.getpid()), time.time(), arg)
@@ -268,18 +268,20 @@ class Stream_to_Logger(object):
 
 	@staticmethod
 	def flush():
-		time.sleep(1)
+		pass  # time.sleep(1)
 
 	@staticmethod
 	def write(buf):
 		print(buf)  # also put on stdout
 		if len(buf) > 1:
 			LoggerQueue.put((Command.LogString,
-							 f"{time.strftime('%m-%d-%y %H:%M:%S', time.localtime(time.time()))} -------------Captured Python Exception-------------"))
+							 f"{time.strftime('%m-%d-%y %H:%M:%S', time.localtime(time.time()))} -------------Captured Python "
+							 f"Exception-------------"))
 			for line in buf.rstrip().splitlines():
 				LoggerQueue.put((Command.LogString, '       ||          ' + line.rstrip()))
 			LoggerQueue.put((Command.LogString,
-							 f"{time.strftime('%m-%d-%y %H:%M:%S', time.localtime(time.time()))} ---------------End Captured Exception--------------"))
+							 f"{time.strftime('%m-%d-%y %H:%M:%S', time.localtime(time.time()))} ---------------End Captured "
+							 f"Exception--------------"))
 
 
 class Logger(object):
@@ -304,7 +306,7 @@ class Logger(object):
 			# noinspection PyBroadException
 			try:
 				os.rename('Console.log', 'Console.log.1')
-			except:
+			except Exception:
 				pass
 			LoggerQueue.put((Command.StartLog, dirnm, os.getpid()))
 			# self.disklogfile = open('Console.log', 'w')
@@ -382,8 +384,7 @@ class Logger(object):
 			entrytime = kwargs.pop('entrytime', time.strftime('%m-%d-%y %H:%M:%S', localnow))
 			tb = kwargs.pop('tb', severity == ConsoleError)
 			hb = kwargs.pop('hb', False)
-			localonly = kwargs.pop('localonly',
-								   False)  # to avoid error storms if MQTT is slow don't pub to net from MQTT
+			localonly = kwargs.pop('localonly', False)  # to avoid storms if MQTT is slow don't pub to net from MQTT
 			homeonly = kwargs.pop('homeonly', False)
 			if homeonly and config.sysStore.versionname not in ('development', 'homerelease'):
 				return
@@ -396,7 +397,8 @@ class Logger(object):
 			for i in args:
 				entry = entry + str(i)
 
-			if hb: historybuffer.DumpAll(entry, entrytime)
+			if hb:
+				historybuffer.DumpAll(entry, entrytime)
 
 			self.RecordMessage(severity, entry, entrytime, debugitem, tb)
 
@@ -421,12 +423,11 @@ class Logger(object):
 			self.RecordMessage(ConsoleError, 'Exception while local logging: {}'.format(repr(E)),
 							   defentrytime, False, True)
 			tbinfo = traceback.format_exc().splitlines()
-			for l in tbinfo:  # todo doesn't seem to work?
-				print('---{}'.format(l))
-				self.RecordMessage(ConsoleError, '{}'.format(l),
-								   defentrytime, False, True)
+			for line in tbinfo:  # todo doesn't seem to work?
+				print('---{}'.format(line))
+				self.RecordMessage(ConsoleError, '{}'.format(line), defentrytime, False, True)
 
-
+	# noinspection DuplicatedCode
 	def RenderLogLine(self, itext, clr, pos):  # todo switch initial log display to using LineRenderer
 		# odd logic below is to make sure that if an unbroken item would by itself exceed line length it gets forced out
 		# thus avoiding an infinite loop
@@ -479,6 +480,7 @@ def LineRenderer(itemnumber, logfont, uselog):
 
 	ptext = []
 	while len(ltext) > 1:
+		# noinspection DuplicatedCode
 		ptext.append(ltext[0])
 		del ltext[0]
 		while 1:
@@ -496,8 +498,8 @@ def LineRenderer(itemnumber, logfont, uselog):
 	blk = pg.Surface((hw.screenwidth, h))
 	blk.set_colorkey(wc('black'))
 	v = 0
-	for l in rl:
-		blk.blit(l, (0, v))
-		v += l.get_height()
+	for line in rl:
+		blk.blit(line, (0, v))
+		v += line.get_height()
 
 	return blk, itemnumber + 1 < len(uselog)

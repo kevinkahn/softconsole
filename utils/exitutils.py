@@ -78,6 +78,7 @@ def EarlyAbort(scrnmsg, screen=True):
 	timers.ShutTimers(scrnmsg)
 	pg.quit()
 	# noinspection PyProtectedMember
+	hw.Cleanup()
 	sys.exit(EARLYABORT)
 
 
@@ -126,6 +127,7 @@ def Exit(ecode, immediate=False):
 		pg.display.quit()
 		pg.quit()
 		# noinspection PyProtectedMember
+		hw.CleanUp()
 		os._exit(ecode)  # use this vs sys.exit to avoid atexit interception
 	else:
 		config.ecode = ecode

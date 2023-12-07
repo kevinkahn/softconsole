@@ -14,10 +14,12 @@ from controlevents import CEvent, PostEvent, ConsoleEvent
 KeepAlive = multiprocessing.Event()
 FailsafeInterval = 60  # 1000000 if utils.utilfuncs.isdevsystem else 60
 
+
 def DevPrint(msg):
 	with open('/home/pi/Console/.HistoryBuffer/hlogW', 'a') as f:
 		f.write('{}: {}\n'.format(time.time(), msg))
 		f.flush()
+
 
 def TempThreadList():
 	"""
@@ -30,16 +32,16 @@ def TempThreadList():
 	while True:
 		multiprocessing.active_children()  # clean any zombie failsafe
 		# for x in L:
-		#	DevPrint('Process {}: alive: {} pid: {} daemon: {}'.format(x.name, x.is_alive(), x.pid, x.daemon))
+		# DevPrint('Process {}: alive: {} pid: {} daemon: {}'.format(x.name, x.is_alive(), x.pid, x.daemon))
 		threadlist = threading.enumerate()
 		for thd in threadlist:
-			# DevPrint('Threadlist: {} alive: {} ident: {} daemon: {} \n'.format(thd.name, thd.is_alive(), thd.ident, thd.daemon))
 			if thd.name == 'MainThread' and not thd.is_alive():
 				DevPrint('Main Thread died')
 				os.kill(os.getpid(), signal.SIGINT)  # kill myself
 
 		# DevPrint('=================End')
 		time.sleep(30)
+
 
 def NoEventInjector():
 	L.Logs.Log('Starting watchdog activity injector')
@@ -76,13 +78,13 @@ def WatchdogDying(signum, frame):
 			# noinspection PyBroadException
 			try:
 				os.kill(config.sysStore.Console_pid, signal.SIGUSR1)
-			except:
+			except Exception:
 				pass  # probably main console already gone
 			time.sleep(3)
 			# noinspection PyBroadException
 			try:
 				os.kill(config.sysStore.Console_pid, signal.SIGKILL)  # with predjudice
-			except:
+			except Exception:
 				pass  # probably already gone
 			os._exit(0)
 	except Exception as E:
@@ -128,7 +130,7 @@ def MasterWatchDog():
 	# noinspection PyBroadException
 	try:
 		os.kill(config.sysStore.Console_pid, 0)
-	except:
+	except Exception:
 		DevPrint('Normal watchdog exit')
 		return
 	DevPrint('Failsafe interrupt {}'.format(config.sysStore.Console_pid))
@@ -142,6 +144,5 @@ def MasterWatchDog():
 	except Exception as E:
 		print('Failsafe exiting')
 		DevPrint("Failsafe successfully ended console (pid: {}), failsafe (pid: {}) exiting (Exc: {})".format(
-			config.sysStore.Console_pid,
-																							   os.getpid(),repr(E)))
+			config.sysStore.Console_pid, os.getpid(), repr(E)))
 	DevPrint('Watchdog exiting')

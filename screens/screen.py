@@ -45,8 +45,8 @@ ScreenParams = {'DimTO': 99,
 				'VertButGap': 0,
 				'NavKeyHeight': 60,
 				'HorizButGap': 0,
-				'NavKeyWidth': 60
-				}
+				'NavKeyWidth': 60,
+				'TitleBold': True}
 
 screenStore = valuestore.NewValueStore(paramstore.ParamStore('ScreenParams'))
 
@@ -93,10 +93,12 @@ def PopScreen(msg='PopScreen', newstate='Maint'):
 
 # noinspection PyUnusedLocal
 def IncorporateParams(this, clsnm, theseparams, screensection):
-	if screensection is None: screensection = {}
+	if screensection is None:
+		screensection = {}
 	for p in theseparams:
 		if isinstance(theseparams, dict):
-			if theseparams[p] is not None: this.userstore.SetVal(p, theseparams[p])  # a value was set in config file
+			if theseparams[p] is not None:
+				this.userstore.SetVal(p, theseparams[p])  # a value was set in config file
 		else:
 			if p in screensection:
 				# this.userstore.SetVal(p, type(ScreenParams[p])(screensection.get(p, "")))  # string only safe default
@@ -104,12 +106,15 @@ def IncorporateParams(this, clsnm, theseparams, screensection):
 
 
 def AddUndefaultedParams(this, screensection, **kwargs):
-	if screensection is None: screensection = {}
-	if type(this).__name__ not in ItemTypes: ItemTypes[type(this).__name__] = set()
+	if screensection is None:
+		screensection = {}
+	if type(this).__name__ not in ItemTypes:
+		ItemTypes[type(this).__name__] = set()
 	for n, v in kwargs.items():
 		ItemTypes[type(this).__name__].add(n)
 	for n, v in kwargs.items():
-		if n in this.__dict__: del this.__dict__[n]  # remove if it was declared statically
+		if n in this.__dict__:
+			del this.__dict__[n]  # remove if it was declared statically
 		this.userstore.SetVal(n, type(v)(screensection.get(n, v)))
 
 
@@ -187,22 +192,19 @@ class ScreenDesc(object):
 		self.homekey = toucharea.ManualKeyDesc(self, 'Back<' + 'Home', ('Home',),
 											   self.CmdKeyCol, self.CmdCharCol, self.CmdCharCol,
 											   proc=functools.partial(GoToScreen, HOMETOKEN),
-											   center=(
-												   self.starthorizspace + .5 * self.NavKeyWidth,
-												   cvertcenter),
+											   center=(self.starthorizspace + .5 * self.NavKeyWidth, cvertcenter),
 											   size=(self.NavKeyWidth, self.NavKeyHeight), gaps=True)
 		self.backkey = toucharea.ManualKeyDesc(self, 'Nav>' + 'Back', ('Back',),
 											   self.CmdKeyCol, self.CmdCharCol, self.CmdCharCol,
 											   proc=functools.partial(GoToScreen, BACKTOKEN),
-											   center=(
-												   self.starthorizspace + 1.5 * self.NavKeyWidth,
-												   cvertcenter),
+											   center=(self.starthorizspace + 1.5 * self.NavKeyWidth, cvertcenter),
 											   size=(self.NavKeyWidth, self.NavKeyHeight), gaps=True)
 
 		IncorporateParams(self, 'Screen',
 						  {'CharColor', 'DimTO', 'PersistTO', 'BackgroundColor', 'CmdKeyCol', 'CmdCharCol',
-						   'DefaultHub', 'ScreenTitle', 'ScreenTitleColor', 'ScreenTitleFields', 'ScreenTitleSize', 'KeyCharColorOn',
-						   'KeyCharColorOff', 'KeyColor'}, screensection)
+						   'DefaultHub', 'ScreenTitle', 'ScreenTitleColor', 'ScreenTitleFields', 'ScreenTitleSize',
+						   'KeyCharColorOn',
+						   'KeyCharColorOff', 'KeyColor', 'TitleBold'}, screensection)
 		AddUndefaultedParams(self, screensection, label=[screenname])
 		try:
 			self.DefaultHubObj = hubs.hubs.Hubs[self.DefaultHub]
@@ -237,17 +239,19 @@ class ScreenDesc(object):
 		vals = ['--' if v is None else v for v in
 				[valuestore.GetVal(f) for f in fields]]
 		formattedTitle = fmt.format(title, *vals)
-		blk = fonts.fonts.Font(self.ScreenTitleSize, bold=True).render(formattedTitle, 0, wc(color))
+		blk = fonts.fonts.Font(self.ScreenTitleSize, bold=self.TitleBold).render(formattedTitle, 0, wc(color))
 		w = blk.get_width()
 		return blk, w
 
 	def _ClockTickValid(self):
-		if not self.Active: safeprint('Clock not valid {}'.format(self.name))
+		if not self.Active:
+			safeprint('Clock not valid {}'.format(self.name))
 		return self.Active
 
 	# noinspection PyUnusedLocal
 	def _ClockTick(self, params):
-		if not self.Active: return  # avoid race with timer and screen exit
+		if not self.Active:
+			return  # avoid race with timer and screen exit
 		self.ClockTick()
 
 	def ClockTick(self):  # this is meant to be overridden if screen want more complex operation
@@ -272,24 +276,19 @@ class ScreenDesc(object):
 											   prevk.CmdKeyCol, prevk.CmdCharCol,
 											   prevk.CmdCharCol,
 											   proc=functools.partial(GoToScreen, prevk),
-											   center=(
-												   self.starthorizspace + .5 * (
-													   self.NavKeyWidth),
-												   cvertcenter),
+											   center=(self.starthorizspace + .5 * self.NavKeyWidth, cvertcenter),
 											   size=(self.NavKeyWidth, self.NavKeyHeight), gaps=True)
 		self.nextkey = toucharea.ManualKeyDesc(self, 'Nav>' + nextk.name,
 											   nextk.label,
 											   nextk.CmdKeyCol, nextk.CmdCharCol,
 											   nextk.CmdCharCol,
 											   proc=functools.partial(GoToScreen, nextk),
-											   center=(
-												   self.starthorizspace + 1.5 * (
-													   self.NavKeyWidth),
-												   cvertcenter),
+											   center=(self.starthorizspace + 1.5 * self.NavKeyWidth, cvertcenter),
 											   size=(self.NavKeyWidth, self.NavKeyHeight), gaps=True)
 
 	def ClearScreenTitle(self):
-		if self.ScreenTitleBlk is None: return
+		if self.ScreenTitleBlk is None:
+			return
 		h = self.ScreenTitleBlk.get_height()
 		self.ScreenTitleBlk = None
 		self.ScreenTitle = ''
@@ -348,7 +347,8 @@ class ScreenDesc(object):
 			else:
 				RunningScreenClock.resume()
 
-		if init: self.NavKeys = nav
+		if init:
+			self.NavKeys = nav
 		self.PaintBase()
 		self.PaintKeys()
 		if self.ScreenTitleBlk is not None:
@@ -381,14 +381,14 @@ class ScreenDesc(object):
 	def VarEvent(self, evnt):
 		pass  # var changes can happen with any screen up so if screen doesn't care about vars it doesn't define a handler
 
-	# logsupport.Logs.Log('Var event to screen {} with no handler (Event: {})'.format(self.name,evnt), severity=ConsoleError)
-
 	def ExitScreen(self, viaPush):
-		if self.ScreenClock is not None: self.ScreenClock.pause()
+		if self.ScreenClock is not None:
+			self.ScreenClock.pause()
 		for timer in self.ScreenTimers:
 			if timer[0].is_alive():
 				timer[0].cancel()
-				if timer[1] is not None: timer[1]()
+				if timer[1] is not None:
+					timer[1]()
 		self.ScreenTimers = []
 		if self.singleuse:
 			if viaPush:
@@ -396,9 +396,11 @@ class ScreenDesc(object):
 			else:
 				self.userstore.DropStore()
 				for nm, k in self.Keys.items():
-					if hasattr(k, 'userstore'): k.userstore.DropStore()
+					if hasattr(k, 'userstore'):
+						k.userstore.DropStore()
 				for nm, k in self.NavKeys.items():
-					if hasattr(k, 'userstore'): k.userstore.DropStore()
+					if hasattr(k, 'userstore'):
+						k.userstore.DropStore()
 				self.used = True
 
 	def DeleteScreen(self):
@@ -407,7 +409,8 @@ class ScreenDesc(object):
 		for timer in self.ScreenTimers:
 			if timer[0].is_alive():
 				timer[0].cancel()
-				if timer[1] is not None: timer[1]()
+				if timer[1] is not None:
+					timer[1]()
 		for n, s in self.ChildScreens.items():
 			s.DeleteScreen()
 
@@ -423,7 +426,6 @@ class ScreenDesc(object):
 		except Exception as E:
 			logsupport.Logs.Log('Screen sequencing exception for screen {}: {}'.format(self.name, repr(E)),
 								severity=ConsoleWarning)
-
 
 	def PaintBase(self):
 		hw.screen.fill(wc(self.BackgroundColor))
