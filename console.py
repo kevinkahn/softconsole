@@ -98,6 +98,7 @@ def handler(signum, frame):
 			logsupport.Logs.Log('Console exiting')
 			hw.GoBright(100)
 			pg.quit()
+			hw.CleanUp()
 			sys.exit(config.ecode)
 		config.Running = False
 		if signum == signal.SIGUSR1 and not config.Exiting:
@@ -118,6 +119,7 @@ def handler(signum, frame):
 			print('Development environment exit')
 			if config.sysStore.Watchdog_pid != 0: os.kill(config.sysStore.Watchdog_pid, signal.SIGUSR1)
 			if config.sysStore.Topper_pid != 0: os.kill(config.sysStore.Topper_pid, signal.SIGKILL)
+			hw.CleanUp()
 			sys.exit(999)
 
 
@@ -663,4 +665,5 @@ hw.GoBright(100)
 pg.quit()
 logsupport.DevPrint('Exit handling done')
 
+hw.CleanUp()
 sys.exit(config.ecode)

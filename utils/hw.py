@@ -3,14 +3,15 @@ import platform
 import socket
 import config
 
-# import py-game
 from guicore.screencallmanager import pg
-import wiringpi
+# import wiringpi
+import RPi.GPIO as GPIO
 
 disklogging = True
 
 IsDim = False
 DimType = 'None'
+PWMVal = GPIO.PWM
 
 screen = None  # py-game screen to blit on etc
 realscreen = None  # used for soft rotate
@@ -40,7 +41,6 @@ def scaleH(p):
 	return int(round(float(p) * float(dispratioH)))
 
 
-
 # noinspection PyUnusedLocal
 def ResetScreenLevel(storeitem, old, val, dim, unusedsrc):
 	global IsDim
@@ -54,7 +54,8 @@ def ResetScreenLevel(storeitem, old, val, dim, unusedsrc):
 
 # noinspection PyBroadException
 def initOS(scrntyp, configdir):
-	global boottime, osversion, hwinfo, screentype, hostname, screenwidth, screenheight, dispratioW, dispratioH, DimType, dimpin
+	global boottime, osversion, hwinfo, screentype, hostname, screenwidth, screenheight, dispratioW, dispratioH, \
+		DimType, dimpin, PWMVal
 
 	screentype = scrntyp
 
@@ -73,17 +74,17 @@ def initOS(scrntyp, configdir):
 	screendefs = {}
 	with open(config.sysStore.ExecDir + '/screendefinitions') as f:
 		defs = f.read().splitlines()
-		for l in defs:
-			screenitem = l.split('|')
+		for line in defs:
+			screenitem = line.split('|')
 			screendefs[screenitem[0]] = screenitem[1:]
 	try:
 		# allow the overwrite of system values
 		with open(configdir + '/screendefinitions') as f:
 			defs = f.read().splitlines()
-			for l in defs:
-				screenitem = l.split('|')
+			for line in defs:
+				screenitem = line.split('|')
 				screendefs[screenitem[0]] = screenitem[1:]
-	except:
+	except Exception:
 		pass
 
 	if screentype not in screendefs:
@@ -91,23 +92,20 @@ def initOS(scrntyp, configdir):
 		raise ValueError
 
 	if screendefs[screentype][1] != 'XWin':
-		if 'DISPLAY' in os.environ: del os.environ['DISPLAY']
+		if 'DISPLAY' in os.environ:
+			del os.environ['DISPLAY']
 	screendev = screendefs[screentype][0]
 	if screentype[-1] == 'B':  # Buster system
 		if screendev[-1] == '0':  # check if there is a fb1 and use that if available
 			try:
 				open('/dev/fb1')
 				screendev = '/dev/fb1'
-			except:
+			except Exception:
 				pass
 	os.environ['XDG_RUNTIME_DIR'] = '/home/pi/.xdgdir'  # needed for Bookworm, harmless for earlier versions
 	os.environ['SDL_FBDEV'] = screendev
 	os.environ['SDL_VIDEODRIVER'] = screendefs[screentype][1]
 	DimType = screendefs[screentype][2]
-	#	with open('/home/pi/check', 'w') as f:
-	#		f.write('{}\n'.format(wiringpi.__file__))
-	#		f.write('{}\n'.format(dir(wiringpi)))
-	#		f.write('{}\n'.format(len(dir(wiringpi))))
 	if DimType in ('PWM18', 'PWM19'):
 		if DimType == 'PWM18':
 			dimpin = 18
@@ -117,15 +115,17 @@ def initOS(scrntyp, configdir):
 			# if this system has the newer screen control then turn off the SMTPE control so PWM works
 			with open('/sys/class/backlight/soc:backlight/brightness', 'w') as f:
 				f.write('0')
-		except:
+		except Exception:
 			pass
-		wiringpi.wiringPiSetupGpio()
-		wiringpi.pinMode(dimpin, 2)
-		wiringpi.pwmSetMode(wiringpi.PWM_MODE_MS)  # default balanced mode makes screen dark at about 853/1024
-		wiringpi.pwmWrite(dimpin, 1024)
+		# wiringpi.wiringPiSetupGpio()
+		# wiringpi.pinMode(dimpin, 2)
+		# wiringpi.pwmSetMode(wiringpi.PWM_MODE_MS)  # default balanced mode makes screen dark at about 853/1024
+		# wiringpi.pwmWrite(dimpin, 1024)
 
-	# print('Screen: {}  Device: {} Driver: {} Dim: {}'.format(screentype, os.environ['SDL_FBDEV'],
-	#														 os.environ['SDL_VIDEODRIVER'], DimType))
+		GPIO.setmode(GPIO.BCM)
+		GPIO.setup(dimpin, GPIO.OUT)
+		PWMVal = GPIO.PWM(dimpin, 1500000)
+		PWMVal.start(100.0)
 
 	pg.display.init()
 	screenwidth, screenheight = (pg.display.Info().current_w, pg.display.Info().current_h)
@@ -140,14 +140,16 @@ def initOS(scrntyp, configdir):
 
 def GoDimPWM(level):
 	# This version of hw uses the real hw pwm for screen dimming - much better appearance
-	wiringpi.pwmWrite(dimpin, int((level * 1024) // 100))
+	# wiringpi.pwmWrite(dimpin, int((level * 1024) // 100))
+	PWMVal.ChangeDutyCycle(level)
 
 
 def GoDimPi7(level):
+	# noinspection PyBroadException
 	try:
 		with open('/sys/devices/platform/rpi_backlight/backlight/rpi_backlight/brightness', 'w') as f:
 			f.write(str(level * 255 // 100))
-	except:
+	except Exception:
 		with open('/sys/class/backlight/10-0045/brightness', 'w') as f:
 			f.write(str(level * 255 // 100))
 
@@ -184,3 +186,7 @@ def GoBright(level):
 		dimmethods[DimType](level)
 	else:
 		pass
+
+
+def CleanUp():
+	GPIO.cleanup()
