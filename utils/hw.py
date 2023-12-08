@@ -189,4 +189,8 @@ def GoBright(level):
 
 
 def CleanUp():
-	GPIO.cleanup()
+	try:
+		print("Cleaning up GPIO")
+		GPIO.cleanup()
+	except Exception as e:
+		print('Extra call to GPIO cleanup')
