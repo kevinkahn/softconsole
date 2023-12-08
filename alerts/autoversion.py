@@ -47,14 +47,14 @@ def DoFetchRestart():
 		stagedvers = githubutil.StageVersion(config.sysStore.ExecDir, config.sysStore.versionname, 'Auto Dnld')
 		logsupport.Logs.Log(f'Update fetch thread staged in {stagedvers}')
 		ReportStatus("auto install firmware", hold=1)
-		logsupport.Logs.Log(f'Try to reload Install ({os.path.getmtime("githubutil.py")})')
 		try:
+			logsupport.Logs.Log(f'Try to reload Install ({id(githubutil.InstallStagedVersion)})')
 			shutil.copy('githubutil.py', 'githubutil.py.sav')
 			shutil.copy(f'{stagedvers}/githubutil.py', config.sysStore.ExecDir)
 			importlib.reload(githubutil)
-			logsupport.Logs.Log(f'Reloaded githubutil {os.path.getmtime("githubutil.py")}')
+			logsupport.Logs.Log(f'Reloaded githubutil {id(githubutil.InstallStagedVersion)}')
 		except Exception as E:
-			logsupport.Logs.Log(f'Error reloading githubutil: {E} ({os.path.getmtime("githubutil")}')
+			logsupport.Logs.Log(f'Error reloading githubutil: {E}')
 
 		githubutil.InstallStagedVersion(config.sysStore.ExecDir)
 		logsupport.Logs.Log("Staged version installed in ", config.sysStore.ExecDir)
