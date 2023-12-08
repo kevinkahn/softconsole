@@ -1,5 +1,6 @@
 import sys, time, os, wget, shutil, subprocess
 from functools import partial as p
+import githubutil as U
 
 gitselector = {'stable': 'currentrelease', 'personal': 'homerelease', 'beta': 'currentbeta'}
 gitprefix = 'https://raw.githubusercontent.com/kevinkahn/softconsole/'
@@ -224,7 +225,7 @@ print("   Set group access on needed hardware", flush=True)
 with open('.permissionchanges', 'w') as f:
 	for item, chg in setgroupaccess.items():
 		print(item)
-		suc = subprocess.call('sudo chmod {} {}'.format(chg, item), shell=True)
+		svc = subprocess.call('sudo chmod {} {}'.format(chg, item), shell=True)
 		print(f'sudo chmod {chg} {item}', file=f)
 		print(f'  Permission: chmod {chg} {item}   Result: {svc}')
 print("**************************************************************", flush=True)
@@ -274,7 +275,7 @@ for pdir in dirs:
 	try:
 		os.mkdir(pdir)
 		print("Created: " + str(pdir))
-	except:
+	except Exception:
 		print("Already present: " + str(pdir))
 	shutil.chown(pdir, user='pi', group='pi')
 
@@ -305,16 +306,14 @@ if MinExampHA:
 		f.write("\n".join(cfg))
 
 print("\n\nSoftconsole install paramters:")
-for l in scriptvars:
-	print('    ' + l.replace('\n', ''))
+for line in scriptvars:
+	print('    ' + line.replace('\n', ''))
 
 if MinExampHA:
 	print("    Create minimal example Home Assistant configuration")
 else:
 	print("    Skip minimal example configuration")
 print('---------------------', flush=True)
-
-import githubutil as U
 
 print('Download console code - this takes a while', flush=True)
 

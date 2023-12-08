@@ -1,7 +1,4 @@
 from keys.keyutils import internalprocs
-
-ScreenType = 'Alert'
-
 from guicore.screencallmanager import pg
 import functools
 
@@ -19,8 +16,9 @@ from configobj import ConfigObj
 from typing import Union
 from guicore.switcher import SwitchScreen
 
-alertscreens = {}
+ScreenType = 'Alert'
 
+alertscreens = {}
 
 class AlertsScreenDesc(screen.ScreenDesc):
 	global alertscreens
@@ -55,8 +53,8 @@ class AlertsScreenDesc(screen.ScreenDesc):
 		self.Msg = True
 
 		messageareapart = .7
-		self.messageareaheight = (
-										 hw.screenheight - 2 * self.TopBorder) * messageareapart  # no Nav keys todo switch to new screen sizing
+		self.messageareaheight = (hw.screenheight - 2 * self.TopBorder) * messageareapart
+		# no Nav keys todo switch to new screen sizing
 		alertbutheight = (hw.screenheight - self.messageareaheight - 2 * self.TopBorder) / 2
 		self.upperleft = (self.HorizBorder, self.TopBorder)
 
@@ -65,11 +63,9 @@ class AlertsScreenDesc(screen.ScreenDesc):
 		self.timetoclear = 0
 
 		self.Keys = {'defer': toucharea.ManualKeyDesc(self, 'defer', ['Defer'], self.KeyColor, self.KeyCharColorOn,
-													  self.KeyCharColorOff,
-													  center=(hw.screenwidth / 2,
-															  self.TopBorder + self.messageareaheight + 0.5 * alertbutheight),
-													  size=(
-														  hw.screenwidth - 2 * self.HorizBorder, alertbutheight),
+													  self.KeyCharColorOff, center=(
+			hw.screenwidth / 2, self.TopBorder + self.messageareaheight + 0.5 * alertbutheight),
+													  size=(hw.screenwidth - 2 * self.HorizBorder, alertbutheight),
 													  proc=self.DeferAction)}
 
 		def CallClear(screentoclear):

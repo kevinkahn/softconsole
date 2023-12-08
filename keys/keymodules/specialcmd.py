@@ -17,7 +17,7 @@ class SpecCmd(ManualKeyDesc):
 		self.node = self.hub.GetNode(self.target)[0]
 
 		self.param = {}
-		if self.Parameter != []:
+		if self.Parameter:
 			for p in self.Parameter:
 				if ':' in p:
 					t = p.split(':')
@@ -25,7 +25,7 @@ class SpecCmd(ManualKeyDesc):
 				else:
 					self.param[p] = 'noval'
 		self.sliderparam = {}
-		if self.SliderParameter != []:
+		if self.SliderParameter:
 			for p in self.SliderParameter:
 				if ':' in p:
 					t = p.split(':')

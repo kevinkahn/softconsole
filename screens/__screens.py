@@ -13,7 +13,7 @@ screenslist = collections.ChainMap(MainDict, SecondaryDict, ExtraDict)
 
 screenStore = None  # filled in by screen to avoid import circularity
 
-screentypes = {}  # set by each module for screens of the type that module creates (see last line in any XxxScreen module
+screentypes = {}  # set by each module for screens of type that module creates (see last line in any XxxScreen module
 
 
 # noinspection PyUnresolvedReferences

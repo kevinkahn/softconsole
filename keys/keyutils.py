@@ -33,10 +33,9 @@ def _SetUpProgram(ProgramName, Parameter, thisscreen, kn):
 	if Prog is None:
 		Prog = DummyProgram(kn, hub.name, ProgramName)
 		logsupport.Logs.Log(
-			"Missing Prog binding Key: {} on screen {} Hub: {} Program: {}".format(kn, thisscreen.name, hub.name,
-																				   ProgramName),
+			f"Missing Prog binding Key: {kn} on screen {thisscreen.name} Hub: {hub.name} Program: {ProgramName}",
 			severity=ConsoleWarning)
-	if Parameter == []:
+	if not Parameter:
 		pdict = None
 	else:
 		pdict = {}

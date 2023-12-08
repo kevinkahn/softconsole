@@ -26,13 +26,13 @@ class AssignVar(object):
 			else:
 				try:
 					val = float(item[1].strip())
-				except:
+				except Exception as E1:
 					try:
 						val = valuestore.GetVal(item[1].strip())
 					except BaseException as e:
 						logsupport.Logs.Log("Error setting var in AssignVar alert: ", str(item[1]), ' to ', repr(val),
 											severity=ConsoleWarning)
-						logsupport.Logs.Log("Exception was: ", repr(e), severity=ConsoleWarning)
+						logsupport.Logs.Log(f"Exception was: {e} after {E1}", repr(e), severity=ConsoleWarning)
 			valuestore.SetVal(item[0].strip(), val)
 			logsupport.Logs.Log("Var ", item[0], ' set to value of ', item[1], ' (', val,
 								')')

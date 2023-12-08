@@ -64,18 +64,9 @@ class Alert(object):
 		else:
 			targtype = 'Proc'
 		tname = '*no timer*'
-		if self.timer is not None: tname = self.timer.name
-		return '{}:{} Alert({}) Trigger: {} \n  Invoke: {}:{} Target:{}\n  Params: {}\n  Timer: {}'.format(self.name,
-																										   self.type,
-																										   self.state,
-																										   repr(
-																											   self.trigger),
-																										   targtype,
-																										   self.actionname,
-																										   str(
-																											   self.actiontarget),
-																										   self.param,
-																										   tname)
+		if self.timer is not None:
+			tname = self.timer.name
+		return f'{self.name}:{self.type} Alert({self.state}) Trigger: {repr(self.trigger)} \n  Invoke: {targtype}:{self.actionname} Target:{str(self.actiontarget)}\n  Params: {self.param}\n  Timer: {tname}'
 
 
 def ArmAlerts():
@@ -92,6 +83,7 @@ def ArmAlerts():
 			logsupport.Logs.Log("Internal error - unknown alert type: ", a.type, ' for ', a.name,
 								severity=ConsoleError, tb=False)
 	logsupport.Logs.Log("Armed {} alerts".format(cnt))
+
 
 def ParseAlertParams(nm, spec):
 	global alertprocs, monitoredvars
@@ -113,8 +105,8 @@ def ParseAlertParams(nm, spec):
 			# noinspection PyBroadException
 			try:
 				action = getattr(alertprocs[nmlist[0]], nmlist[1])
-			except:
-				logsupport.Logs.Log('No proc ', nmlist[1], ' in ', nmlist[0], severity=ConsoleWarning)
+			except Exception as E:
+				logsupport.Logs.Log(f'No proc {nmlist[1]} in {nmlist[0]} Exc: {E}', severity=ConsoleWarning)
 				return None
 			actionname = t
 			fixscreen = False
@@ -146,22 +138,12 @@ def ParseAlertParams(nm, spec):
 	return A
 
 
-# class Alerts(object):
-#	def __init__(self, alertsspec):
-#		self.AlertsList = {}  # hash:AlertItem
-#		if alertsspec is not None:
-#			for nm, spec in alertsspec.items():
-#				if isinstance(spec, Section):
-#					alert = ParseAlertParams(nm, spec)
-#					if alert is not None:
-#						self.AlertsList[id(alert)] = alert
-
 def ParseAlerts(alertspec):
 	if alertspec is not None:
 		for nm, spec in alertspec.items():
 			if isinstance(spec, Section):
 				alert = ParseAlertParams(nm, spec)
-				cond = spec.get('Condition', None)
+				# cond = spec.get('Condition', None)
 				# todo swap order of alerts and locals in console, use Condition = (LocalVars:Condname = Cond param) as gate
 				if alert is not None:
 					AlertsList[id(alert)] = alert

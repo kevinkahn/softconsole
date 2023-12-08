@@ -25,7 +25,7 @@ class ThermostatScreenDesc(screen.BaseKeyScreenDesc):
 		debug.debugPrint('Screen', "New ThermostatScreenDesc ", screenname)
 		super().__init__(screensection, screenname)
 		screen.IncorporateParams(self, 'ThermostatScreen', {'KeyColor', 'KeyOffOutlineColor', 'KeyOnOutlineColor'},
-								 screensection)
+						screensection)
 		nominalfontsz = (30, 50, 80, 160)
 		nominalspacers = (5, 20, 25, 40, 50, 85)
 
@@ -83,30 +83,26 @@ class ThermostatScreenDesc(screen.BaseKeyScreenDesc):
 
 		for i in range(4):
 			pg.gfxdraw.filled_trigon(self.AdjButSurf, *trifromtop(centerspacing, arrowsize // 2, i + 1, arrowsize,
-																  wc(("red", "blue", "red", "blue")[i]), i % 2 != 0))
+												wc(("red", "blue", "red", "blue")[i]), i % 2 != 0))
 			self.Keys['temp' + str(i)] = toucharea.TouchPoint('temp' + str(i),
-															  (centerspacing * (i + 1),
-															   self.AdjButTops + arrowsize // 2),
-															  (arrowsize * 1.2, arrowsize * 1.2),
-															  proc=functools.partial(self.BumpTemp,
-																					 (True, True, False, False)[i],
-																					 (1, -1, 1, -1)[i]))
+					(centerspacing * (i + 1), self.AdjButTops + arrowsize // 2), (arrowsize * 1.2, arrowsize * 1.2),
+						proc=functools.partial(self.BumpTemp, (True, True, False, False)[i], (1, -1, 1, -1)[i]))
 
 		self.ModeButPos = self.AdjButTops + scaleH(self.spacer[5])  # pixel
 
 		bsize = (scaleW(100), scaleH(self.spacer[4]))  # pixel
 
 		self.Keys['Mode'] = toucharea.ManualKeyDesc(self, "Mode", ["Mode"],
-													self.KeyColor, self.CharColor, self.CharColor,
-													center=(self.SPHPosL, self.ModeButPos), size=bsize,
-													KOn=self.KeyOffOutlineColor,
-													proc=self.BumpMode)
+												self.KeyColor, self.CharColor, self.CharColor,
+												center=(self.SPHPosL, self.ModeButPos), size=bsize,
+												KOn=self.KeyOffOutlineColor,
+												proc=self.BumpMode)
 
 		self.Keys['Fan'] = toucharea.ManualKeyDesc(self, "Fan", ["Fan"],
-												   self.KeyColor, self.CharColor, self.CharColor,
-												   center=(self.SPHPosR, self.ModeButPos), size=bsize,
-												   KOn=self.KeyOffOutlineColor,
-												   proc=self.BumpFan)
+												self.KeyColor, self.CharColor, self.CharColor,
+												center=(self.SPHPosR, self.ModeButPos), size=bsize,
+												KOn=self.KeyOffOutlineColor,
+												proc=self.BumpFan)
 
 		self.ModesPos = self.ModeButPos + bsize[1] // 2 + scaleH(self.spacer[0])
 		if self.ThermNode is not None:
@@ -192,8 +188,7 @@ class ThermostatScreenDesc(screen.BaseKeyScreenDesc):
 		m = self.fanstates.index(self.fan)
 		self.fanstates = self.fanstates[m:] + self.fanstates[:m]
 
-		r = fonts.fonts.Font(self.fsize[3], bold=True).render(u"{:4.1f}".format(self.t_cur), 0,
-															  wc(self.CharColor))
+		r = fonts.fonts.Font(self.fsize[3], bold=True).render(u"{:4.1f}".format(self.t_cur), 0, wc(self.CharColor))
 		hw.screen.blit(r, ((hw.screenwidth - r.get_width()) // 2, self.TempPos))
 		r = fonts.fonts.Font(self.fsize[0]).render(self.t_state.capitalize(), 0, wc(self.CharColor))
 		hw.screen.blit(r, ((hw.screenwidth - r.get_width()) // 2, self.StatePos))
@@ -222,13 +217,16 @@ class ThermostatScreenDesc(screen.BaseKeyScreenDesc):
 	def ReInitDisplay(self):
 		super().ReInitDisplay()
 
+	# noinspection PyUnusedLocal
 	def NodeEvent(self, evnt):
 		# need to verify that this is the real update?
 		self.LocalOnly = [0.0, 0.0]
 		self.ModeLocal = 0.0
 		self.FanLocal = 0.0
 		self.t_cur, self.t_low, self.t_high, self.t_state, self.mode, self.fan = self.ThermNode.GetThermInfo()
-		if self.Active: self.ReInitDisplay()
+		if self.Active:
+			self.ReInitDisplay()
+
 
 screens.screentypes["Thermostat"] = ThermostatScreenDesc
 screens.screentypes["NestThermostat"] = ThermostatScreenDesc

@@ -24,8 +24,7 @@ def AlertEvents(event):
 				alert.state = 'Delayed'
 				debug.debugPrint('Dispatch', "Post with delay:", alert.name, alert.trigger.delay)
 				TimerName += 1
-				alert.timer = timers.OnceTimer(alert.trigger.delay, start=True,
-											   name='MainLoop' + str(TimerName),
+				alert.timer = timers.OnceTimer(alert.trigger.delay, start=True, name='MainLoop' + str(TimerName),
 											   proc=alerttasks.HandleDeferredAlert, param=alert)
 			else:  # invoke now
 				alert.state = 'FiredNoDelay'
@@ -58,11 +57,9 @@ def AlertEvents(event):
 	else:
 		# this is ok until maybe I figure out how to avoid.  The change causes a firing and the arming causes a second posting
 		# logsupport.Logs.Log("Anomolous change situation  State: ", alert.state, " Alert: ", repr(alert),
-		#					" Trigger IsTrue: ",
-		#					alert.trigger.IsTrue(), severity=ConsoleWarning, hb=True)
+		# " Trigger IsTrue: ",alert.trigger.IsTrue(), severity=ConsoleWarning, hb=True)
 		debug.debugPrint('Dispatch', 'ISYVar/ISYAlert passing: ', alert.state, alert.trigger.IsTrue(),
-						 event,
-						 alert)
+						 event, alert)
 
 
 # Armed and false: irrelevant report

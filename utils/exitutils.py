@@ -78,7 +78,7 @@ def EarlyAbort(scrnmsg, screen=True):
 	timers.ShutTimers(scrnmsg)
 	pg.quit()
 	# noinspection PyProtectedMember
-	hw.Cleanup()
+	hw.CleanUp()
 	sys.exit(EARLYABORT)
 
 
