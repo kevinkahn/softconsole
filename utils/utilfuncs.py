@@ -3,16 +3,17 @@ This file holds utility functions that have no dependencies on other console cod
 Avoids import loops
 """
 import time
-
+import string
 import webcolors
 import importlib, os
 
 
-def importmodules(dir: str):
+def importmodules(directory: str):
 	# dir of form relative path name
 	importlist = {}
-	path = dir.split('/')
-	if path[0] == '': del path[0]
+	path = directory.split('/')
+	if path[0] == '':
+		del path[0]
 	pypath = '.'.join(path) + '.'
 	impdir = '/'.join(path)
 	# print('Dir {} Digested {} Path {}'.format(dir, pypath, impdir))
@@ -58,27 +59,32 @@ def interval_str(sec_elapsed, shrt=False):
 		return "{:>02d}mn {:>02d}sec".format(m, s)
 
 
-def BoolTrueWord(v):
-	if v is None: return False
-	if isinstance(v, bool): return v
+def BoolTrueWord(v: str):
+	if v is None:
+		return False
+	if isinstance(v, bool):
+		return v
 	try:
 		return v.lower() in ('true', 'on', 'yes')
-	except Exception as e:
-		print("Error1: {}".format(v))
+	except Exception as E:
+		print(f"Error1: {v} ({E})")
 
-def BoolFalseWord(v):
-	if v is None: return True
-	if isinstance(v, bool): return not v
+
+def BoolFalseWord(v: str):
+	if v is None:
+		return True
+	if isinstance(v, bool):
+		return not v
 	try:
 		return v.lower() in ('false', 'off', 'no')
-	except Exception as e:
-		print("Error2: {}".format(v))
+	except Exception as E:
+		print(f"Error2: {v} ({E}")
+
 
 def TreeDict(d, args):
 	# Allow a nest of dictionaries to be accessed by a tuple of keys for easier code
 	if len(args) == 1:
 		temp = d[args[0]]
-		#temp = getattr(d,args[0])
 		if isinstance(temp, str) and temp.isdigit():
 			temp = int(temp)
 		else:
@@ -89,9 +95,8 @@ def TreeDict(d, args):
 		return temp
 	else:
 		return TreeDict(d[args[0]], args[1:])
-		#return TreeDict(getattr(d,args[0]),args[1:])
 
-import string
+
 class PartialFormatter(string.Formatter):
 	def __init__(self, missing='--', bad_fmt='--'):
 		self.missing, self.bad_fmt = missing, bad_fmt
@@ -106,7 +111,8 @@ class PartialFormatter(string.Formatter):
 
 	def format_field(self, value, spec):
 		# handle an invalid format
-		if value is None: return self.missing
+		if value is None:
+			return self.missing
 		try:
 			return super().format_field(value, spec)
 		except ValueError:

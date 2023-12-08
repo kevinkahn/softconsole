@@ -1,15 +1,15 @@
-import shutil
-import sys, os
+import os
+import sys
+import threading
 
-from alertsystem import alerttasks, alertutils
 import config
 import githubutil
 import historybuffer
 import logsupport
-import threading
-from logsupport import ConsoleWarning, ConsoleDetail
+import utils.utilities
+from alertsystem import alerttasks, alertutils
 from consolestatus import ReportStatus
-import importlib
+from logsupport import ConsoleWarning, ConsoleDetail
 
 
 def DoFetchRestart():
@@ -47,6 +47,9 @@ def DoFetchRestart():
 		stagedvers = githubutil.StageVersion(config.sysStore.ExecDir, config.sysStore.versionname, 'Auto Dnld')
 		logsupport.Logs.Log(f'Update fetch thread staged in {stagedvers}')
 		ReportStatus("auto install firmware", hold=1)
+		utils.utilities.UpdateGitHubModule(stagedvers)
+
+		'''
 		try:
 			logsupport.Logs.Log(f'Try to reload Install ({id(githubutil.InstallStagedVersion)})')
 			shutil.copy('githubutil.py', 'githubutil.py.sav')
@@ -55,6 +58,7 @@ def DoFetchRestart():
 			logsupport.Logs.Log(f'Reloaded githubutil {id(githubutil.InstallStagedVersion)}')
 		except Exception as E:
 			logsupport.Logs.Log(f'Error reloading githubutil: {E}')
+		'''
 
 		githubutil.InstallStagedVersion(config.sysStore.ExecDir)
 		logsupport.Logs.Log("Staged version installed in ", config.sysStore.ExecDir)

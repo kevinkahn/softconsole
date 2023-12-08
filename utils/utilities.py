@@ -1,8 +1,9 @@
 import collections
 import os
+import shutil
+import githubutil
 import signal
-
-# import py-game
+import importlib
 from guicore.screencallmanager import pg
 
 import config
@@ -13,6 +14,8 @@ from controlevents import CEvent, PostEvent, ConsoleEvent
 from logsupport import ConsoleDetail, ConsoleWarning
 from stores import valuestore
 import time
+import re
+from datetime import timedelta, datetime
 
 # from sets import Set
 
@@ -54,11 +57,12 @@ except AttributeError:
 
 def CheckPayload(payload, topic, tag, emptyok=False):
 	if payload == '':
-		if not emptyok: logsupport.Logs.Log('Empty payload string at {} for topic {}'.format(tag, topic),
-											severity=ConsoleWarning)
+		if not emptyok:
+			logsupport.Logs.Log('Empty payload string at {} for topic {}'.format(tag, topic), severity=ConsoleWarning)
 		return '{}'
 	else:
 		return payload
+
 
 class clsstruct:
 	def __init__(self, nm):
@@ -101,6 +105,7 @@ def InitializeEnvironment():
 	# lines below commented with HACK also part of workaround
 	# see https://stackoverflow.com/questions/17035699/pygame-requires-keyboard-interrupt-to-init-display
 	global lastup, previousup, ts
+
 	class Alarm(Exception):
 		pass
 
@@ -130,7 +135,8 @@ def InitializeEnvironment():
 		global evntcnt
 		evntcnt += 1
 		slot = touch.slot
-		if slot != 0: return  # no multitouch events for now
+		if slot != 0:
+			return  # no multitouch events for now
 		p = (touch.x, touch.y)
 		if event == TS_PRESS:
 			debug.debugPrint('Touch', 'Press pos: {} seq: {}'.format(p, evntcnt))
@@ -172,11 +178,8 @@ def InitializeEnvironment():
 
 	with open("{}/.RelLog".format(config.sysStore.HomeDir), "a") as f:
 		print(
-			f"Start: {datetime.fromtimestamp(config.sysStore.ConsoleStartTime).strftime('%c')} Last Setup: {prevsetup} Last Up: {previousupstr} Down: {downtime}",
-			file=f)
-	# f.write(
-	#	str(config.sysStore.ConsoleStartTime) + ' ' + str(prevsetup) + ' ' + str(previousup) + ' ' + str(lastup) + ' '
-	#	+ str(config.sysStore.ConsoleStartTime - lastup) + '\n')
+			f"Start: {datetime.fromtimestamp(config.sysStore.ConsoleStartTime).strftime('%c')} Last Setup: {prevsetup} "
+			f"Last Up: {previousupstr} Down: {downtime}", file=f)
 
 	signal.signal(signal.SIGALRM, alarm_handler)  # HACK
 	signal.alarm(10)  # HACK
@@ -268,14 +271,11 @@ def DumpDocumentation():
 	mdfile.close()
 
 
-import re
-from datetime import timedelta, datetime
-
-
 def get_timedelta(line):
 	if line is None:
 		return 0
-	if line == '': return 0
+	if line == '':
+		return 0
 	if line.isdigit():
 		line += ' seconds'
 	timespaces = {"days": 0}
@@ -315,7 +315,8 @@ def ExpandTextwitVars(txt, screenname='**'):
 		tokens = [x for x in ln.split() if ':' in x]
 		if tokens:
 			lnreduced = ln
-			for d in tokens: lnreduced = lnreduced.replace(d, ':')
+			for d in tokens:
+				lnreduced = lnreduced.replace(d, ':')
 			l1 = lnreduced.split(':')
 			partialline = l1[0]
 			for i, x in enumerate(tokens):
@@ -340,5 +341,17 @@ def ExpandTextwitVars(txt, screenname='**'):
 		else:
 			newtext.append(ln)
 	return newtext
+
+
+def UpdateGitHubModule(stagedvers):
+	try:
+		logsupport.Logs.Log(f'Try to reload Install ({id(githubutil.InstallStagedVersion)})')
+		shutil.copy('githubutil.py', 'githubutil.py.sav')
+		shutil.copy(f'{stagedvers}/githubutil.py', config.sysStore.ExecDir)
+		importlib.reload(githubutil)
+		logsupport.Logs.Log(f'Reloaded githubutil {id(githubutil.InstallStagedVersion)}')
+	except Exception as E:
+		logsupport.Logs.Log(f'Error reloading githubutil: {E}')
+
 
 mqttregistered = False
