@@ -1,3 +1,4 @@
+import shutil
 import sys, os
 
 from alertsystem import alerttasks, alertutils
@@ -8,6 +9,8 @@ import logsupport
 import threading
 from logsupport import ConsoleWarning, ConsoleDetail
 from consolestatus import ReportStatus
+import importlib
+
 
 def DoFetchRestart():
 	global fetcher
@@ -20,7 +23,7 @@ def DoFetchRestart():
 				'../.freezeconfig'):  # check frozen todo
 			logsupport.Logs.Log('Current hub version different')
 			logsupport.Logs.Log(
-				'Running (' + config.sysStore.versionname + '): ' + config.sysStore.versionsha + ' of ' + config.sysStore.versioncommit)
+				f'Running ({config.sysStore.versionname}: {config.sysStore.versionsha} of {config.sysStore.versioncommit}')
 			logsupport.Logs.Log('Getting: ' + sha + ' of ' + c)
 		elif sha == 'no current sha':
 			logsupport.Logs.Log('No sha for autoversion: ', config.sysStore.versionname, severity=ConsoleWarning)
@@ -41,9 +44,18 @@ def DoFetchRestart():
 	try:
 		logsupport.Logs.Log('Update fetch started')
 		ReportStatus("auto updt firmware", hold=1)
-		githubutil.StageVersion(config.sysStore.ExecDir, config.sysStore.versionname, 'Auto Dnld')
-		logsupport.Logs.Log('Update fetch thread staged')
+		stagedvers = githubutil.StageVersion(config.sysStore.ExecDir, config.sysStore.versionname, 'Auto Dnld')
+		logsupport.Logs.Log(f'Update fetch thread staged in {stagedvers}')
 		ReportStatus("auto install firmware", hold=1)
+		logsupport.Logs.Log(f'Try to reload Install ({os.path.getmtime("githubutil.py")})')
+		try:
+			shutil.copy('githubutil.py', 'githubutil.py.sav')
+			shutil.copy(f'{stagedvers}/githubutil.py', config.sysStore.ExecDir)
+			importlib.reload(githubutil)
+			logsupport.Logs.Log(f'Reloaded githubutil {os.path.getmtime("githubutil.py")}')
+		except Exception as E:
+			logsupport.Logs.Log(f'Error reloading githubutil: {E} ({os.path.getmtime("githubutil")}')
+
 		githubutil.InstallStagedVersion(config.sysStore.ExecDir)
 		logsupport.Logs.Log("Staged version installed in ", config.sysStore.ExecDir)
 		logsupport.Logs.Log('Restart for new version')
@@ -55,9 +67,12 @@ def DoFetchRestart():
 		logsupport.Logs.Log('Version access failed ({})'.format(E), severity=ConsoleWarning)
 		fetcher = None  # allow next autoversion to proceed
 
+
 fetcher = None
 
 # noinspection PyUnusedLocal
+
+
 class AutoVersion(object):
 	def __init__(self):
 		global fetcher

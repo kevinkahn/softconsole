@@ -35,7 +35,8 @@ def StageVersion(vdir, tag, label, uselog=False):
 		subprocess.call('chown -R pi: *', shell=True, stdout=logf, stderr=logf)
 		os.remove('master')
 	else:
-		subprocess.call('wget https://github.com/kevinkahn/softconsole/archive/' + tag + '.tar.gz', shell=True, stdout=logf, stderr=logf)
+		subprocess.call('wget https://github.com/kevinkahn/softconsole/archive/' + tag + '.tar.gz',
+						shell=True, stdout=logf, stderr=logf)
 		subprocess.call('tar -zxls --strip-components=1 < ' + tag + '.tar.gz', shell=True, stdout=logf, stderr=logf)
 		sha, cdate = GetSHA(tag)
 		with open('versioninfo', 'w') as f:
@@ -45,16 +46,18 @@ def StageVersion(vdir, tag, label, uselog=False):
 	# noinspection PyBroadException
 	try:
 		os.chmod('runconsole.py', 0o555)
-	except:
+	except Exception:
 		pass
 	# noinspection PyBroadException
 	try:
 		os.chmod('console.py', 0o555)
-	except:
+	except Exception:
 		pass
 
 	os.chdir(cwd)
 	logf.close()
+	return f"{vdir}/stagedversion"
+
 
 # noinspection PyBroadException
 def InstallStagedVersion(d, Bookworm=False):
@@ -70,26 +73,26 @@ def InstallStagedVersion(d, Bookworm=False):
 		# noinspection PyBroadException
 		try:
 			subprocess.call('cp -u -r -p "example_configs"/* ../Console', shell=True, stdout=logf, stderr=logf)
-		except:
+		except Exception:
 			print('Copy of example_configs failed on homesystem', file=logf)
 
 	if not os.path.exists('../Console/termshortenlist'):
 		try:
 			os.rename('example_configs/termshortenlist', '../Console/termshortenlist')
 			print("Initialized termshortenlist", file=logf)
-		except:
+		except Exception:
 			print("Couldn't move termshortenlist in " + str(os.getcwd()), file=logf)
 
 	if Bookworm and os.path.exists('scripts/softconsoleBW.service'):
 		print('Use softconsoleBW.service for systemctl')
 		shutil.copy('scripts/softconsoleBW.service', 'scripts/softconsole.service')
 
-	print('Process upgrade extras script', file=logf)
+	print(f'Process requirements from {os.getcwd()}', file=logf)
 	# subprocess.call('bash ./scripts/upgradeprep.sh', shell=True, stdout=logf, stderr=logf)
 	subprocess.call('/home/pi/pyenv/bin/pip install -r requirements.txt', shell=True, stdout=logf, stderr=logf)
-	print('End upgrade extras script', file=logf)
+	print('End processing requirements', file=logf)
 
-	print('Setup systemd service from {}'.format(d), file=logf)
+	print(f'Setup systemd service from {d} {os.getcwd()}', file=logf)
 	os.chmod('runconsole.py', 0o555)
 	os.chmod('console.py', 0o555)
 
@@ -110,8 +113,8 @@ def InstallStagedVersion(d, Bookworm=False):
 		os.mkdir(f'/home/pi/.ssh')
 	if os.path.exists('/home/pi/bin/authorized_keys'):
 		shutil.copy('/home/pi/bin/authorized_keys', '/home/pi/.ssh')
-	if os.path.exists('/home/pi/.bash_aliases'):
-		shutil.copy('/home/pi/.bash_aliases', '/home/pi/.bash_aliases')
+	if os.path.exists('/home/pi/bin/.bash_aliases'):
+		shutil.copy('/home/pi/bin/.bash_aliases', '/home/pi/.bash_aliases')
 	subprocess.call('chmod +x /home/pi/bin/*', shell=True, stdout=logf, stderr=logf)
 
 	logf.close()
