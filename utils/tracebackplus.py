@@ -1,3 +1,14 @@
+import inspect
+import keyword
+import linecache
+import os
+import pydoc
+import sys
+import tempfile
+import time
+import tokenize
+import traceback
+
 """More comprehensive traceback formatting for Python scripts.
 
 To enable this module, do:
@@ -86,16 +97,7 @@ agrees to be bound by the terms and conditions of this License
 Agreement.
 '''
 
-import inspect
-import keyword
-import linecache
-import os
-import pydoc
-import sys
-import tempfile
-import time
-import tokenize
-import traceback
+
 
 __UNDEF__ = []  # a special sentinel object
 

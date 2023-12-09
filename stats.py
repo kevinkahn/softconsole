@@ -35,8 +35,8 @@ def GetNextReportTime(at=None):
 		daysec = time.time() - midnight
 	else:
 		daysec = at - midnight
-	h = daysec // 3600
-	m = (daysec - h * 3600) // 60
+	# h = daysec // 3600
+	# m = (daysec - h * 3600) // 60
 	reporttimesleft = list(filter(lambda x: x[0] > daysec, ReportTimes))
 	if reporttimesleft:
 		lastreporttime = reporttimesleft[0][0]
@@ -116,7 +116,8 @@ class StatGroup(object):
 		for e in self.elements.values():
 			logitems = e.Report()
 			if logitems is not None:
-				for l in logitems[1]: rpt.append(l)
+				for line in logitems[1]:
+					rpt.append(line)
 				tot += logitems[0]
 
 		if self.totals != '':
@@ -275,7 +276,8 @@ def GetReportables(root=statroot):
 	temp = {}
 	tempdict = {}
 	t = _NetRpr(root)
-	if t != {}: tempdict['*Totals*'] = t
+	if t != {}:
+		tempdict['*Totals*'] = t
 	for nm, st in root.elements.items():
 		if not isinstance(st, StatGroup):
 			if st.rpt == none:
@@ -287,14 +289,16 @@ def GetReportables(root=statroot):
 
 		if isinstance(st, StatGroup):
 			t = GetReportables(st)[1]
-			if t != {}: tempdict[st.name] = t
+			if t != {}:
+				tempdict[st.name] = t
 	return temp, tempdict
 
 
 '''
 #Testing code
 
-sysstats = StatReportGroup(name='System', title='System Statistics', totals=False, reporttime=(LOCAL(0), LOCAL(1), LOCAL(1,30)))
+sysstats = StatReportGroup(name='System', title='System Statistics', totals=False, reporttime=(LOCAL(0), LOCAL(1),
+	LOCAL(1,30)))
 qd = MaxStat(name='queuedepthmax', PartOf=sysstats, rpt=2,keeplaps=True, title='Maximum Queue Depth')
 qt = MaxStat(name='queuetimemax', PartOf=sysstats, rpt=2,keeplaps=True, title='Maximum Queued Time')
 c1 = CntStat(name='maincyclecnt', PartOf=sysstats, title='Main Loop Cycle:', keeplaps=True)
@@ -302,7 +306,8 @@ qd.Set(55, 66)
 qt.Set(43, 21)
 
 
-wb = StatReportGroup(name='Weather', title='Weatherbit Statistics', reporttime= (LOCAL(1), LOCAL(1,30), GMT(0), LOCAL(3)))
+wb = StatReportGroup(name='Weather', title='Weatherbit Statistics', reporttime= (LOCAL(1), LOCAL(1,30), GMT(0),
+	LOCAL(3)))
 bl = StatSubGroup(name='ByLocation', PartOf=wb, title='Fetches by Location', totals='Total Fetches')
 bn = StatSubGroup(name='ByNode', PartOf=wb, title='Fetches by Node', totals='Total Fetches')
 lf = StatSubGroup(name='Local', PartOf=wb, title='Actual Local Fetches', totals='Total Local Fetches', rpt=stats.daily

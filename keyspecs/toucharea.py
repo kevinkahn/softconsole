@@ -45,7 +45,7 @@ class TouchPoint(object):
 
 	def touched(self, pos):
 		return (pos[0] > self.Center[0] - self.Size[0] / 2) and (pos[0] < self.Center[0] + self.Size[0] / 2) and \
-			   (pos[1] > self.Center[1] - self.Size[1] / 2) and (pos[1] < self.Center[1] + self.Size[1] / 2)
+			(pos[1] > self.Center[1] - self.Size[1] / 2) and (pos[1] < self.Center[1] + self.Size[1] / 2)
 
 	def Pressed(self, tapcount):
 		# print('Pressed: {}({})'.format(self.name, tapcount))
@@ -204,8 +204,7 @@ class ManualKeyDesc(TouchPoint):
 		TouchPoint.__init__(self, keyname, (0, 0), (0, 0))
 		screen.IncorporateParams(self, 'TouchArea', {'KeyColor', 'KeyOffOutlineColor', 'KeyOnOutlineColor',
 													 'KeyCharColorOn', 'KeyCharColorOff', 'KeyOutlineOffset',
-													 'KeyColorOn', 'KeyColorOff',
-													 'KeyLabelOn', 'KeyLabelOff'},
+													 'KeyColorOn', 'KeyColorOff', 'KeyLabelOn', 'KeyLabelOff'},
 								 keysection)
 		screen.AddUndefaultedParams(self, keysection, FastPress=0, Verify=False, Blink=0, label=[''], Appearance=[],
 									DefaultAppearance='',

@@ -14,11 +14,12 @@ from logsupport import ConsoleWarning, ConsoleDetail
 from stores import valuestore
 
 '''
-At the generic level defining the available fields seems reasonable; issue with the specific sources holding their mappings 
-should they do it entirely inside their instance or use the mapinfo idea of the store; leaning toward the former since
-no real reason to store the map in the store and it is only used to populate the store on a refresh
-
-icon/icon cache - should different sources have different caches?  Different icons if multiple sources happen to get used?
+At the generic level defining the available fields seems reasonable; issue with the specific sources holding
+their mappings should they do it entirely inside their instance or use the mapinfo idea of the store; leaning
+toward the former since no real reason to store the map in the store and it is only used to populate the store
+on a refresh 
+icon/icon cache - should different sources have different caches?
+  Different icons if multiple sources happen to get used?
 '''
 
 CondFields = (
@@ -37,6 +38,7 @@ MINWAITBETWEENTRIES = 1800  # 30 minutes
 NetMinimalFetchGap = 600
 FCSTSKIP = 3
 
+
 @dataclass
 class CacheEntry:
 	location: str
@@ -51,9 +53,11 @@ WeatherCache = {}
 
 
 def RegisterFetcher(provider, locname, instance, provmod):
-	if provider not in CacheUser: CacheUser[provider] = {}
+	if provider not in CacheUser:
+		CacheUser[provider] = {}
 	CacheUser[provider][locname] = instance
 	Provs[provider] = provmod
+
 
 def LocationOnNode(prov, locname):
 	return prov in CacheUser and locname in CacheUser[prov]
@@ -66,6 +70,7 @@ def MQTTWeatherUpdate(provider, locname, wpayload):
 			config.ptf('Old fetched message {}'.format(age))
 			return
 		Provs[provider].lastfetch = wpayload['time']
+		# noinspection PyBroadException
 		try:
 			fcstfetch = str(wpayload['fcstfetch'])
 		except Exception:
@@ -110,14 +115,15 @@ def MQTTWeatherUpdate(provider, locname, wpayload):
 		# print('Unused location {} {}'.format(provider, locname))
 		return  # broadcast for location this node doesn't use
 
-	if not provider in WeatherCache: WeatherCache[provider] = {}
+	if provider not in WeatherCache:
+		WeatherCache[provider] = {}
 	winfo = wpayload['weatherinfo']
 	try:
 		fcstskipcnt = wpayload['fcstskipcnt']
 		config.ptf2(
 			'Got mqtt weather with skipcnt {}, fetchcnt {} for {}'.format(fcstskipcnt, wpayload['fetchcount'], locname))
-	except Exception:
-		config.ptf2('Got mqtt weather with no skipcnt for {}'.format(locname))
+	except Exception as E:
+		config.ptf2(f'Got mqtt weather with no skipcnt for {locname} ({E})')
 		fcstskipcnt = 0
 
 	if isinstance(winfo, str):
@@ -136,7 +142,7 @@ def MQTTWeatherUpdate(provider, locname, wpayload):
 		MQTTqueue.put((provider, locname))
 	else:
 		pass
-	#print('Dupe MQTT update for {} times {}'.format(locname, WeatherCache[provider][locname].fetchtime))
+
 
 def HandleMQTTItem(item):
 	if len(item) == 2:  # normal cache update
@@ -146,6 +152,7 @@ def HandleMQTTItem(item):
 											 fn=WeatherCache[prov][locname].fetchingnode)
 	else:
 		config.ptf('Should not get this!!! {}'.format(item))
+
 
 def HandleMQTTinputs(timeout):
 	if timeout <= 0:
@@ -186,18 +193,17 @@ def DoWeatherFetches():
 					continue
 				config.ptf('Prep local fetch for {}'.format(instnm))
 				Provs[provnm].readytofetch.add(config.sysStore.hostname)
-				pld = {'fetchingnode': config.sysStore.hostname, 'time': time.time(),
-					   'location': instnm}
+				pld = {'fetchingnode': config.sysStore.hostname, 'time': time.time(), 'location': instnm}
 				if config.mqttavailable:
-					config.MQTTBroker.Publish('Weatherbit/readytofetch', node='all/weather2',
-											  payload=json.dumps(pld))
+					config.MQTTBroker.Publish('Weatherbit/readytofetch', node='all/weather2', payload=json.dumps(pld))
 				logsupport.Logs.Log(
 					'Try weather refresh: {} age: {} {} {} {} {}'.format(store.name, (now - store.ValidWeatherTime),
 																		 store.ValidWeatherTime, store.refreshinterval,
 																		 store.failedfetchtime, now),
 					severity=ConsoleDetail)
 				config.ptf('Presleep set for {}: {}'.format(store.name, Provs[provnm].readytofetch))
-				if config.mqttavailable: time.sleep(10)  # if net fetching in use wait to see if others doing work
+				if config.mqttavailable:
+					time.sleep(10)  # if net fetching in use wait to see if others doing work
 				config.ptf('Fetch set for {}: {}'.format(store.name, Provs[provnm].readytofetch))
 				if config.sysStore.hostname not in Provs[provnm].readytofetch:
 					# some other node already started a fetch
@@ -219,14 +225,13 @@ def DoWeatherFetches():
 																											provnm].lastfetch))))
 						break
 
-				pld = {'fetchingnode': config.sysStore.hostname, 'time': time.time(),
-					   'location': instnm}
+				pld = {'fetchingnode': config.sysStore.hostname, 'time': time.time(), 'location': instnm}
 				if config.mqttavailable:
-					config.MQTTBroker.Publish('Weatherbit/fetching', node='all/weather2',
-											  payload=json.dumps(pld))
+					config.MQTTBroker.Publish('Weatherbit/fetching', node='all/weather2', payload=json.dumps(pld))
 				else:
 					fetchcnt -= 1
-					if fetchcnt <= 0: MinimalFetchGap = NetMinimalFetchGap
+					if fetchcnt <= 0:
+						MinimalFetchGap = NetMinimalFetchGap
 
 				config.ptf('Do local fetch for {}'.format(instnm))
 
@@ -291,7 +296,8 @@ def DoWeatherFetches():
 												  payload=None, retain=True)
 						logsupport.Logs.Log('Force cache clear for {}({})'.format(inst.location, inst.thisStoreName))
 				else:
-					if not provnm in WeatherCache: WeatherCache[provnm] = {}
+					if provnm not in WeatherCache:
+						WeatherCache[provnm] = {}
 					WeatherCache[provnm][inst.thisStoreName] = CacheEntry(inst.location, 'self',
 																		  weathertime, inst.actualfetch.Values()[0],
 																		  winfo, skipcnttouse)
@@ -328,9 +334,9 @@ def DoWeatherFetches():
 				config.ptf('Next {} in {} Val {} Intrvl {} Next {}'.format(instnm, int(nextfetchforloc - now),
 																		   time.strftime('%H:%M', time.localtime(
 																			   store.ValidWeatherTime)),
-																		   store.refreshinterval,
-																		   time.strftime('%H:%M', time.localtime(
-																			   nextfetchforloc))))
+																		   store.refreshinterval, time.strftime('%H:%M',
+																												time.localtime(
+																													nextfetchforloc))))
 			now = time.time()
 			if mindelay + now > nextfetch:
 				config.ptf('Override next fetch timing for gapping was: {} now: {}'.format(
@@ -392,7 +398,8 @@ class WeatherVals(valuestore.ValueStore):
 			fcst.Value = valuestore.StoreList(fcst)
 
 	def InitSourceSpecificFields(self, fcst):
-		if self.sourcespecset: return self.sourcespecset  # only do once
+		if self.sourcespecset:
+			return self.sourcespecset  # only do once
 		for fld, val in fcst.items():
 			if not isinstance(val, dict):
 				nm = ('Fcst', fld)
