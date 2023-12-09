@@ -298,6 +298,7 @@ class Program(ProgramFolder):
 		return 'Program: ' + TreeItem.__repr__(self) + ' '
 
 
+# noinspection PyUnboundLocalVariable
 class ISY(object):
 	"""
 	Representation of an ISY system as a whole and provides roots to its structures

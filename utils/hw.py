@@ -193,4 +193,4 @@ def CleanUp():
 		print("Cleaning up GPIO")
 		GPIO.cleanup()
 	except Exception as e:
-		print('Extra call to GPIO cleanup')
+		print(f'Extra call to GPIO cleanup {e}')

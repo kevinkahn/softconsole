@@ -32,7 +32,8 @@ def BaseAddr(addr):
 class ISYEventMonitor(object):
 
 	def __init__(self, thisISY):
-		self.connectionmode = 'try994'  # trypolisy: trying without subp, polisy: connection worked, try994: trying with subp 994worked.
+		self.connectionmode = 'try994'
+		# trypolisy: trying without subp, polisy: connection worked, try994: trying with subp 994worked.
 		self.isy = thisISY
 		self.hubname = thisISY.name
 		self.QHnum = 1
@@ -77,8 +78,10 @@ class ISYEventMonitor(object):
 		else:
 			time.sleep(2)
 			logsupport.Logs.Log(self.hubname + ": Query (" + str(seq) + ") attempt succeeded for node: " + ndnm)
-		if enode in self.isy.ErrNodes: del self.isy.ErrNodes[enode]
-		if enode in self.queryqueued: del self.queryqueued[enode]
+		if enode in self.isy.ErrNodes:
+			del self.isy.ErrNodes[enode]
+		if enode in self.queryqueued:
+			del self.queryqueued[enode]
 
 	def DoNodeQuery(self, enode, ndnm):
 		if enode not in self.queryqueued:
@@ -111,7 +114,8 @@ class ISYEventMonitor(object):
 			logsupport.Logs.Log(self.hubname + " Waiting thread start")
 			time.sleep(2)
 			hungcount -= 1
-			if hungcount < 0: raise ThreadStartException
+			if hungcount < 0:
+				raise ThreadStartException
 		while self.THstate == 'delaying':
 			time.sleep(1)
 		hungcount = 60
@@ -119,7 +123,8 @@ class ISYEventMonitor(object):
 			logsupport.Logs.Log(self.hubname + ": Waiting initial status dump")
 			time.sleep(2)
 			hungcount -= 1
-			if hungcount < 0: raise ThreadStartException
+			if hungcount < 0:
+				raise ThreadStartException
 		if self.THstate == 'running':
 			self.isy._HubOnline = True
 			self.isy.Vars.CheckValsUpToDate(reload=True)
@@ -226,7 +231,8 @@ class ISYEventMonitor(object):
 			elif self.connectionmode == 'trypolisy':
 				self.connectionmode = 'polisyworked'
 				logsupport.Logs.Log('{} connection worked using Polisy convention'.format(self.isy.name))
-			mess = '994' if self.connectionmode == '994worked' else 'Polisy' if self.connectionmode == 'polisyworked' else self.connectionmode
+			mess = '994' if (self.connectionmode
+							 == '994worked') else 'Polisy' if self.connectionmode == 'polisyworked' else self.connectionmode
 			logsupport.Logs.Log("{}: WS stream {} opened ({})".format(self.hubname, self.QHnum, mess))
 			debug.debugPrint('DaemonCtl', "Websocket stream opened: ", self.QHnum, self.streamid)
 			self.WS = qws
@@ -340,7 +346,6 @@ class ISYEventMonitor(object):
 						N.setlow = isycodes.NormalizeState(eaction)
 					elif ecode == 'CLISPC' and isinstance(N, isycodes.ThermType):
 						N.sethigh = isycodes.NormalizeState(eaction)
-
 
 					if ecode in self.reportablecodes:
 						# Node change report
@@ -477,7 +482,7 @@ class ISYEventMonitor(object):
 			self.isy._HubOnline = True
 			time.sleep(7)
 			with open('/home/pi/Console/isystream.dmp', 'r') as f:
-				mes = f.readline()  # absorb first
+				f.readline()  # absorb first
 				# safeprint("Message1: {}".format(mes))
 				while True:
 					mes = f.readline().rstrip('\n')
@@ -489,6 +494,7 @@ class ISYEventMonitor(object):
 				time.sleep(.4)
 			while True:
 				time.sleep(500)
+			# noinspection PyUnreachableCode
 			return
 		self.THstate = 'delaying'
 		logsupport.Logs.Log("{}: WS stream thread {} setup".format(self.hubname, self.QHnum), severity=ConsoleDetail)

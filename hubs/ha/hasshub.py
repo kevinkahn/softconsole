@@ -21,6 +21,7 @@ from logsupport import ConsoleWarning, ConsoleError, ConsoleDetail
 from stores import valuestore, haattraccess
 from utils.utilities import CheckPayload
 from utils.utilfuncs import safeprint, safeprintnd
+from ast import literal_eval
 
 AddIgnoredDomain: Union[Callable, None] = None  # type Union[Callable, None]
 IgnoredDomains = []
@@ -34,23 +35,23 @@ curparams = []
 ignoredeventtypes = []
 
 for lorig in HAparams:
-	l = lorig.strip()
-	if len(l) > 0:
-		if l[0] == '[':
-			if 'IgnoredEventTypes' in l:
+	line = lorig.strip()
+	if len(line) > 0:
+		if line[0] == '[':
+			if 'IgnoredEventTypes' in line:
 				curparams = []
 				ignoredeventtypes = curparams
-			elif 'IgnoredDomains' in l:
+			elif 'IgnoredDomains' in line:
 				curparams = []
 				IgnoredDomains = curparams
 			else:
 				curparams = []
-				unknownparams[l] = curparams
+				unknownparams[line] = curparams
 		else:
-			curparams.append(l)
+			curparams.append(line)
 
-if unknownparams != {}: logsupport.Logs.Log('Junk in HAparameters file: {}'.format(unknownparams),
-											severity=logsupport.ConsoleWarning)
+if unknownparams != {}:
+	logsupport.Logs.Log('Junk in HAparameters file: {}'.format(unknownparams), severity=logsupport.ConsoleWarning)
 
 
 def stringtonumeric(v):
@@ -58,20 +59,18 @@ def stringtonumeric(v):
 		return v
 	# noinspection PyBroadException
 	try:
-		f = float(v)
-		return f
-	except:
+		ftemp = float(v)
+		return ftemp
+	except Exception:
 		pass
 	# noinspection PyBroadException
 	try:
 		i = int(v)
 		return i
-	except:
+	except Exception:
 		pass
 	return v
 
-
-from ast import literal_eval
 
 class HAnode(object):
 	def __init__(self, HAitem, **entries):
@@ -82,24 +81,22 @@ class HAnode(object):
 		self.state = 0
 		self.internalstate = self._NormalizeState(self.state)
 		self.__dict__.update(entries)
-		if 'friendly_name' in self.attributes: self.FriendlyName = self.attributes['friendly_name']
+		if 'friendly_name' in self.attributes:
+			self.FriendlyName = self.attributes['friendly_name']
 		self.address = self.entity_id
 		self.Hub = HAitem
 		self.domname = 'unset'
 
 	def DisplayStuff(self, prefix, withattr=False):
 		d = dict(vars(self))
-		if not withattr: del d['attributes']
+		if not withattr:
+			del d['attributes']
 		safeprint(prefix, d)
 
 	def LogNewEntity(self, newstate):
 		logsupport.Logs.Log(
 			"New entity since startup seen from {}: {} (Domain: {}) New: {}".format(
 				self.Hub.name, self.entity_id, self.domname, repr(newstate)))
-
-	# def Update(self, **ns):
-	#	# just updates last triggered etc.
-	#	self.__dict__.update(ns)
 
 	def Update(self, **ns):
 		if self.entity_id in self.Hub.MonitoredAttributes:
@@ -116,14 +113,14 @@ class HAnode(object):
 		self.internalstate = self._NormalizeState(self.state)
 		if self.internalstate == -1:
 			logsupport.Logs.Log(
-				"{} ({}) set unavailable (was {})".format(self.name, self.entity_id, str(oldstate))
-				, severity=ConsoleDetail)
+				"{} ({}) set unavailable (was {})".format(self.name, self.entity_id, str(oldstate)),
+				severity=ConsoleDetail)
 		if oldstate == -1 and self.internalstate != -1:
 			logsupport.Logs.Log(
 				"{} ({}) set available ({})".format(self.name, self.entity_id, str(self.internalstate)))
 		PostIfInterested(self.Hub, self.entity_id, self.internalstate)
 
-	def _NormalizeState(self, state, brightness=None): # may be overridden for domains with special state settings
+	def _NormalizeState(self, state, brightness=None):  # may be overridden for domains with special state settings
 		if isinstance(state, str):
 			if state == 'on':
 				if brightness is not None:
@@ -181,7 +178,6 @@ class HAnode(object):
 		return str(self.name) + '::' + str(self.state)
 
 
-
 class Indirector(object):
 	# used as a placeholder if config names a node that isn't in HA - allows for late discovery of HA nodes
 	# in GetNode if name doesn't exist create one of these and return it
@@ -194,21 +190,25 @@ class Indirector(object):
 		self.impliedname = name
 		self.reportederror = False
 		Hub.Indirectors[name] = self
-		logsupport.Logs.Log('Creating indirector for missing {} node {}'.format(Hub.name,name),severity=ConsoleWarning)
+		logsupport.Logs.Log('Creating indirector for missing {} node {}'.format(Hub.name, name),
+							severity=ConsoleWarning)
 
 	def SetRealNode(self, node):
 		self.realnode = node
 		self.Undefined = False
-		logsupport.Logs.Log('Real node appeared for hub {} node {}'.format(self.Hub.name,self.impliedname))
+		logsupport.Logs.Log('Real node appeared for hub {} node {}'.format(self.Hub.name, self.impliedname))
 
 	def __getattr__(self, name):
 		# noinspection PyBroadException
 		try:
 			return getattr(self.realnode, name)
-		except:
-			if name == 'name': return self.impliedname
-			if name == 'address': return self.impliedname
-			if name == 'FriendlyName': return self.impliedname
+		except Exception:
+			if name == 'name':
+				return self.impliedname
+			if name == 'address':
+				return self.impliedname
+			if name == 'FriendlyName':
+				return self.impliedname
 			if not self.reportederror:
 				logsupport.Logs.Log(
 					'Attempt to access uncompleted indirector for hub {} node {} (call {})'.format(self.Hub.name,
@@ -261,8 +261,8 @@ class HA(object):
 			if name not in self.Entities:
 				logsupport.Logs.Log("{}: Attempting to access unknown object: {}".format(self.name, name),
 									severity=ConsoleWarning)
-			I = Indirector(self, name)
-			return I, I
+			Ind = Indirector(self, name)
+			return Ind, Ind
 		except Exception as E:
 			logsupport.Logs.Log("{}: Exception in GetNode: {}".format(self.name, E), severity=ConsoleWarning)
 			return None, None
@@ -284,7 +284,7 @@ class HA(object):
 		# noinspection PyBroadException
 		try:
 			return MonitorNode.internalstate
-		except:
+		except Exception:
 			# ** part of handling late discovered nodes
 			logsupport.Logs.Log("Error accessing current state in HA Hub: " + self.name + ' ' + repr(MonitorNode),
 								severity=ConsoleWarning)
@@ -302,18 +302,26 @@ class HA(object):
 			worktodo = bool(self.UnknownList)
 
 	def StartStatusChecker(self):
-		# logic here would be to start a thread that runs while List is non-empty - need to be careful regarding it changing length
-		# while in the loop.  Also needs to be conservative about stopping and the starter needs to double-check the is alive in some way
-		# so as not to get caught with an entry but not running.
+		"""
+		logic here would be to start a thread that runs while List is non-empty - need to be careful regarding it
+		changing length while in the loop.  Also needs to be conservative about stopping and the starter needs
+		to double-check the is alive in some way so as not to get caught with an entry but not running.
+		"""
 		pass
 
 	def AddToUnknowns(self, node):  # ** flesh out
-		# need to start a thread that checks periodically the status of the node.  When it changes to known value that thread should exit (perhaps post?)
-		# "delete" would get triggered the next time the paint is called (or would it? - can the change to real value happen under the covers?)  Maybe don't need to do the delete
-		# since the thread will be not alive - can just start the thread if not alive and let it die peacefully after doing its job?
+		"""
+		need to start a thread that checks periodically the status of the node.  When it changes to known value
+		that thread should exit (perhaps post?) "delete" would get triggered the next time the paint is called
+		(or would it? - can the change to real value happen under the covers?)  Maybe don't need to do the delete
+		since the thread will be not alive - can just start the thread if not alive and let it
+		die peacefully after doing its job?
+		"""
 		self.UnknownList[node.name] = node
-		# need a single slot for the node status checker thread per hub instance check is_alive on each entry.  Worst case on the next key repaint this will get
-		# called again and the status checking will start.
+		'''
+		need a single slot for the node status checker thread per hub instance check is_alive on each entry.  
+		Worst case on the next key repaint this will get called again and the status checking will start.
+		'''
 		logsupport.Logs.Log('{}: Adding {} to unknowns list {}'.format(self.name, node.name, self.UnknownList),
 							severity=ConsoleWarning)
 		if self.UnknownList:
@@ -342,11 +350,13 @@ class HA(object):
 		self.DevGoneCounts[device] = 0
 
 	def NoteDeviceGone(self, device):
-		if device is None: return
+		if device is None:
+			return
 		self.DevGoneCounts[device] += 1
 
 	def DevGoneCount(self, device):
-		if device is None: return
+		if device is None:
+			return
 		return self.DevGoneCounts[device]
 
 	def GetActualState(self, ent):
@@ -387,9 +397,9 @@ class HA(object):
 			self.AlertNodes[node.address] = [alert]
 
 	def StatesDump(self):
-		with open('/home/pi/Console/{}Dump.txt'.format(self.name), mode='w') as f:
+		with open('/home/pi/Console/{}Dump.txt'.format(self.name), mode='w') as ftxt:
 			for n, nd in self.Entities.items():
-				f.write('Node({}) {}: -> {} {} {}\n'.format(type(nd), n, nd.internalstate, nd.state, type(nd.state)))
+				ftxt.write('Node({}) {}: -> {} {} {}\n'.format(type(nd), n, nd.internalstate, nd.state, type(nd.state)))
 
 	def HACheckThread(self):
 		if self.haconnectstate != "Running":
@@ -454,8 +464,6 @@ class HA(object):
 
 	def GetAllCurrentState(self):
 		entities = ha.get_states(self.api)
-		# with open('/home/pi/Console/msglog{}'.format(self.name), 'a') as f:
-		#	f.write('----------REFRESH\n')
 		for e in entities:
 			try:
 				p2 = dict(e.as_dict(), **{'domain': e.domain, 'name': e.name, 'object_id': e.object_id})
@@ -481,15 +489,18 @@ class HA(object):
 			old = {} if d1 is None else d1
 			new = {} if d2 is None else d2
 			for k in new.keys():
-				if not k in old:
+				if k not in old:
 					adds[k] = new[k]
 			for k in old.keys():
 				if k in new:
 					if isinstance(old[k], dict):
 						c, d, a = findDiff(old[k], new[k])
-						if c != {}: chg[k] = c
-						if d != {}: dels[k] = d
-						if a != {}: adds[k] = a
+						if c != {}:
+							chg[k] = c
+						if d != {}:
+							dels[k] = d
+						if a != {}:
+							adds[k] = a
 					# chg[k], dels[k], adds[k] = findDiff(d1[k], d2[k])
 					else:
 						if old[k] != new[k]:
@@ -517,7 +528,7 @@ class HA(object):
 				# noinspection PyBroadException
 				try:
 					mdecode = json.loads(CheckPayload(message, 'none', 'hasshubmsg'))
-				except:
+				except Exception:
 					logsupport.Logs.Log("HA event with bad message: ", message, severity=ConsoleError)
 					return
 				if mdecode['type'] == 'auth_ok':
@@ -556,13 +567,13 @@ class HA(object):
 					del d['new_state']
 					del d['old_state']
 					del d['entity_id']
-					if ent == 'light.bar_lights': safeprint(
-						'{} {} -> {}'.format(time.strftime('%m-%d-%y %H:%M:%S', time.localtime()), old, new))
+					if ent == 'light.bar_lights':
+						safeprint(f"{time.strftime('%m-%d-%y %H:%M:%S', time.localtime())} {old} -> {new}")
 					prog = 1.5
 					chgs, dels, adds = findDiff(old, new)
 					prog = 2
 
-					if not ent in self.Entities:
+					if ent not in self.Entities:
 						# not an entitity type that is currently known
 						debug.debugPrint('HASSgeneral', self.name,
 										 ' WS Stream item for unhandled entity: ' + ent + ' Added: ' + str(
@@ -572,7 +583,7 @@ class HA(object):
 							N = hadomains[dom](self, p2)
 							self.Entities[ent] = N
 							N.AddPlayer()  # todo specific to media player?
-						if ent in self.Indirectors: # expected node finally showed up
+						if ent in self.Indirectors:  # expected node finally showed up
 							p2 = dict(new, **{'domain': dom,
 											  'name': new['attributes']['friendly_name'] if 'friendly_name' in new[
 												  'attributes'] else nm.replace('_', ' '), 'object_id': ent})
@@ -584,7 +595,8 @@ class HA(object):
 								logsupport.Logs.Log('Indirector from {} for {} resolved'.format(self.name, ent))
 							else:
 								del self.Indirectors[ent]
-								logsupport.Logs.Log('Indirector in {} for {} not for a supported domain {}'.format(self.name,ent,dom))
+								logsupport.Logs.Log(
+									'Indirector in {} for {} not for a supported domain {}'.format(self.name, ent, dom))
 						else:
 							if old is not None:
 								logsupport.Logs.Log(
@@ -597,8 +609,8 @@ class HA(object):
 
 							if config.sysStore.versionname in ('development', 'homerelease'):
 								with open('{}/Console/{}-entities'.format(config.sysStore.HomeDir, self.name),
-										  'a') as f:
-									safeprint('New ignored entity in {}: {} {}'.format(self.name, dom, ent), file=f)
+										  'a') as ftxt:
+									safeprint('New ignored entity in {}: {} {}'.format(self.name, dom, ent), file=ftxt)
 
 							N = hadomains[dom](self, p2)
 							N.LogNewEntity(repr(new))
@@ -611,11 +623,14 @@ class HA(object):
 					self.HB.Entry(
 						'Change to {} Added: {} Deleted: {} Changed: {}'.format(ent, str(adds), str(dels), str(chgs)))
 
-					if m['origin'] == 'LOCAL': del m['origin']
-					if m['data'] == {}: del m['data']
+					if m['origin'] == 'LOCAL':
+						del m['origin']
+					if m['data'] == {}:
+						del m['data']
 					timefired = m['time_fired']
 					del m['time_fired']
-					if m != {}: self.HB.Entry('Extras @ {}: {}'.format(timefired, repr(m)))
+					if m != {}:
+						self.HB.Entry('Extras @ {}: {}'.format(timefired, repr(m)))
 					if ent in self.AlertNodes:
 						# alert node changed
 						self.HB.Entry('Report change to: {}'.format(ent))
@@ -631,8 +646,6 @@ class HA(object):
 						logsupport.Logs.Log('{}: Restarting, suppress errors until restarted'.format(self.name))
 						self.restarting = True
 						self.restartingtime = time.time()
-				# else:
-				#	logsupport.Logs.Log('Saw {}'.format(d))
 				elif m['event_type'] == 'system_log_event':
 					logsupport.Logs.Log('Hub: ' + self.name + ' logged at level: ' + d['level'] + ' Msg: ' + d[
 						'message'])
@@ -653,8 +666,6 @@ class HA(object):
 						domainspecificevents[d](ev, message)
 				elif m['event_type'] == 'homeassistant_started':
 					# HA just finished initializing everything, so we may have been quicker - refresh all state
-					# with open('/home/pi/Console/msglog{}'.format(self.name), 'a') as f:
-					#	f.write('DO REFRESH FOR STARTED')
 					self.GetAllCurrentState()
 				else:
 					logsupport.Logs.Log('{} Unknown event: {}'.format(self.name, message), severity=ConsoleWarning)
@@ -683,7 +694,7 @@ class HA(object):
 					# library bug workaround - get this error after close happens just ignore
 					logsupport.Logs.Log("WS lib workaround hit (1)", severity=ConsoleWarning)  # tempdel
 					return
-			except:
+			except Exception:
 				pass
 				logsupport.Logs.Log("WS lib workaround hit (2)", severity=ConsoleWarning)  # tempdel
 			if isinstance(error, websocket.WebSocketConnectionClosedException):
@@ -706,7 +717,7 @@ class HA(object):
 				if isinstance(error, AttributeError):
 					# error = (errno.ETIMEDOUT,"Websock bug catch")
 					logsupport.Logs.Log("WS lib workaround hit (3)", severity=ConsoleWarning)  # tempdel
-			except:
+			except Exception:
 				pass
 			self.haconnectstate = "Failed"
 			qws.close()
@@ -722,7 +733,8 @@ class HA(object):
 			logsupport.Logs.Log(
 				self.name + " WS stream " + str(self.HAnum) + " closed: " + str(code) + ' : ' + str(reason),
 				tb=False, hb=True)
-			if self.haconnectstate != "Failed": self.haconnectstate = "Closed"
+			if self.haconnectstate != "Failed":
+				self.haconnectstate = "Closed"
 
 		# noinspection PyUnusedLocal
 		def on_open(qws):
@@ -730,8 +742,6 @@ class HA(object):
 			# possible logic - record successful open then if error while not yet open cause console to restart by setting some
 			# global flag? Flag would be checked in main gui loop and cause a restart.  It is a one way comm from the threads so
 			# should not be subject to a race
-			# with open('/home/pi/Console/msglog{}'.format(self.name),'a') as f:
-			#	f.write('----------OPEN\n')
 			self.HB.Entry('Open')
 			if self.restarting:
 				logsupport.Logs.Log('{}: WS Stream {} opened (HA restart took: {} secs.)'.format(self.name, self.HAnum,
@@ -754,8 +764,7 @@ class HA(object):
 		try:
 			# websocket.enableTrace(True)
 			# noinspection PyProtectedMember
-			self.ws = websocket.WebSocketApp(self.wsurl, on_message=on_message,
-											 on_error=on_error,
+			self.ws = websocket.WebSocketApp(self.wsurl, on_message=on_message, on_error=on_error,
 											 on_close=on_close, on_open=on_open, header=self.api._headers)
 			self.msgcount = 0
 		except AttributeError as e:
@@ -769,7 +778,8 @@ class HA(object):
 		sev = ConsoleWarning if self.ReportThisError() else logsupport.ConsoleInfo
 		logsupport.Logs.Log(self.name + " Event Thread " + str(self.HAnum) + " exiting", severity=sev,
 							tb=False)
-		if self.haconnectstate not in ("Failed", "Closed"): self.haconnectstate = "Exited"
+		if self.haconnectstate not in ("Failed", "Closed"):
+			self.haconnectstate = "Exited"
 
 	def ReportThisError(self):
 		return config.sysStore.ErrLogReconnects and not self.restarting
@@ -780,6 +790,7 @@ class HA(object):
 		normal = True
 
 		for c, info in services.items():
+			# noinspection PyBroadException
 			try:
 				targ = '*unset*'
 				t = info['target']
@@ -792,10 +803,9 @@ class HA(object):
 							targ = ''
 							entry[c] = {'target': dom}
 						else:
-							with open('{}-specialcmds.txt'.format(self.name), 'a') as f:
-								safeprintnd('Dom not in dom list {} {} {}'.format(t, c, dom), file=f)
+							with open('{}-specialcmds.txt'.format(self.name), 'a') as ftxt:
+								safeprintnd('Dom not in dom list {} {} {}'.format(t, c, dom), file=ftxt)
 							entry[c] = {'stuff': t, 'ditem': ditem}
-
 
 					elif titem == {}:
 						targ = ''
@@ -815,8 +825,8 @@ class HA(object):
 			keys = []
 			s = {}
 			try:
-				for fn, f in info['fields'].items():
-					s = f['selector'] if 'selector' in f else {}
+				for fn, fld in info['fields'].items():
+					s = fld['selector'] if 'selector' in fld else {}
 					keys = list(s.keys())
 					if len(keys) == 0:
 						entry[c][fn] = 'No selector'
@@ -828,32 +838,26 @@ class HA(object):
 				safeprint("Pars excp: {} {} {} {}".format(dom, E, c, info))
 				safeprint('Info: {} {}'.format(s, keys))
 			if normal:
-				# with open('{}-specialcmds.txt'.format(self.name), 'a') as f:
-				# if title != '':
-				#	safeprint("{} {}".format(self.name, title), file=f)
-				#	title = ''
-				# safeprint("    Special Entry: {}".format(entry), file=f)
-				# safeprint("    Command: {}".format(c), file=f)
-				# if targ != '': safeprint("    Target: {}".format(targ), file=f)
-				# for l in flds: safeprint(l, file=f)
 				self.SpecialCmds[dom] = entry
 			else:
-				with open('{}-nonentitycmds.txt'.format(self.name), 'a') as f:
+				with open('{}-nonentitycmds.txt'.format(self.name), 'a') as ftxt:
 					if title != '':
-						safeprintnd("{} {}".format(self.name, title), file=f)
+						safeprintnd("{} {}".format(self.name, title), file=ftxt)
 						title = ''
-					safeprintnd("  {}".format(c), file=f)
-					if targ != '': safeprintnd("    Target: {}".format(targ), file=f)
-					for l in flds: safeprintnd(l, file=f)
-		with open('{}-specialcmds.txt'.format(self.name), 'a') as f:
+					safeprintnd("  {}".format(c), file=ftxt)
+					if targ != '':
+						safeprintnd("    Target: {}".format(targ), file=ftxt)
+					for tline in flds:
+						safeprintnd(tline, file=ftxt)
+		with open('{}-specialcmds.txt'.format(self.name), 'a') as ftxt:
 			if dom in self.SpecialCmds:
-				safeprintnd('', file=f)
-				safeprintnd('', file=f)
-				safeprintnd("Special Commands for {}".format(dom), file=f)
+				safeprintnd('', file=ftxt)
+				safeprintnd('', file=ftxt)
+				safeprintnd("Special Commands for {}".format(dom), file=ftxt)
 				for c, params in self.SpecialCmds[dom].items():
-					safeprintnd('          {}: {}'.format(c, params), file=f)
+					safeprintnd('          {}: {}'.format(c, params), file=ftxt)
 			else:
-				safeprintnd('No special commands for {}'.format(dom), file=f)
+				safeprintnd('No special commands for {}'.format(dom), file=ftxt)
 
 	# noinspection PyUnusedLocal
 	def __init__(self, hubname, addr, user, password, version):
@@ -864,7 +868,7 @@ class HA(object):
 		self.StatusCheckerThread = None
 		self.DomainEntityReg = {}
 		self.knownservices = []
-		self.DeviceToEnt = {}  # heuristically created lists - may not be absolutely acccurate since HA won't provide this mapping
+		self.DeviceToEnt = {}  # heuristically created lists - may not be absolutely acccurate HA won't provide this mapping
 		self.EntToDev = {}
 		self.DevGoneCounts = {}
 		self.MonitoredAttributes = {}  # holds tuples with the name of attribute that is used in an alert
@@ -874,7 +878,6 @@ class HA(object):
 			raise ValueError
 		logsupport.Logs.Log(
 			"{}: Creating structure for Home Assistant hub version {} at {}".format(hubname, version, addr))
-
 
 		# import supported domains
 		self.dyndomains = utilfuncs.importmodules('hubs/ha/domains')
@@ -890,12 +893,10 @@ class HA(object):
 		self.addibledomains = {}  # {'media_player': MediaPlayer} todo resolve how to add things
 
 		self.name = hubname
-		# with open('/home/pi/Console/msglog{}'.format(self.name), 'w') as f:
-		#	f.write('----------START Log\n')
-		with open('{}-nonentitycmds.txt'.format(self.name), 'w') as f:
-			f.write('')
-		with open('{}-specialcmds.txt'.format(self.name), 'w') as f:
-			f.write('')
+		with open('{}-nonentitycmds.txt'.format(self.name), 'w') as ftxt:
+			ftxt.write('')
+		with open('{}-specialcmds.txt'.format(self.name), 'w') as ftxt:
+			ftxt.write('')
 		if addr.startswith('https'):
 			prefix = 'https://'
 			wsprefix = 'wss://'
@@ -924,7 +925,9 @@ class HA(object):
 		self.watchstarttime = time.time()
 		self.Entities = {}
 		self.Domains = {}
-		self.Indirectors = {}  # these hold nodes that the console config thinks exist but HA doesn't have yet - happens at startup of joint HA/Console node
+		self.Indirectors = {}
+		# these hold nodes that the console config thinks exist but HA doesn't have yet - happens
+		# at startup of joint HA/Console node
 		self.alertspeclist = {}  # if ever want auto alerts like ISY command vars they get put here
 		self.AlertNodes = {}
 		self.lasterror = None
@@ -971,7 +974,8 @@ class HA(object):
 			if e.domain not in self.Domains:
 				self.Domains[e.domain] = {}
 			p2 = dict(e.as_dict(), **{'domain': e.domain, 'name': e.name, 'object_id': e.object_id})
-			if e.domain not in DontClassify: byobjid[e.object_id + '_' + e.domain] = p2
+			if e.domain not in DontClassify:
+				byobjid[e.object_id + '_' + e.domain] = p2
 
 			if e.domain in hadomains:
 				N = hadomains[e.domain](self, p2)
@@ -1002,7 +1006,8 @@ class HA(object):
 			else:
 				frontmatch = 0
 				nextitem = sortedents[i][0].split('_')
-				while startstring[frontmatch] == nextitem[frontmatch]: frontmatch += 1
+				while startstring[frontmatch] == nextitem[frontmatch]:
+					frontmatch += 1
 				if frontmatch != 0:
 					longmatch = min(longmatch, frontmatch)
 					i += 1
@@ -1012,6 +1017,7 @@ class HA(object):
 					devname = '_'.join(startstring[0:longmatch])
 					for j in sortedents[gpstart:i]:
 						# print('   {}'.format(j[1]))
+						# noinspection PyTypeChecker
 						entsfordev.append(j[1]['entity_id'])
 					self.AddDevice(devname, entsfordev)
 					if sortedents[i][0] != 'ZZZZZZZ':
@@ -1019,7 +1025,8 @@ class HA(object):
 					else:
 						notdone = False
 		for dev, ents in self.DeviceToEnt.items():
-			for i in ents: self.EntToDev[i] = dev
+			for i in ents:
+				self.EntToDev[i] = dev
 		# print('{} -> {}'.format(dev,ents))
 
 		for n, T in self.DomainEntityReg['climate'].items():
@@ -1043,7 +1050,8 @@ class HA(object):
 		services = {}
 		for i in range(3):
 			services = ha.get_services(self.api)
-			if services != {}: break
+			if services != {}:
+				break
 			logsupport.Logs.Log('Retry getting services from {}'.format(self.name))
 			time.sleep(1)
 		if services == {}:
@@ -1067,32 +1075,34 @@ class HA(object):
 																										 c))
 				self.knownservices[d['domain']][s] = c
 
-		# print(self.SpecialCmds)
-		# for d, cmds in self.SpecialCmds.items():
-		#	print("Domain {}".format(d))
-		#	for c,param in cmds.items():
-		#		print("    {}({}): {}".format(c,param['target'],{x: param[x] for x in param if x != 'target'}))
+		'''
+		print(self.SpecialCmds)
+		for d, cmds in self.SpecialCmds.items():
+			print("Domain {}".format(d))
+			for c,param in cmds.items():
+				print("    {}({}): {}".format(c,param['target'],{x: param[x] for x in param if x != 'target'}))
+		'''
 
 		if config.sysStore.versionname in ('development', 'homerelease'):
-			with open('{}/Console/{}-services'.format(config.sysStore.HomeDir, self.name), 'w') as f:
+			with open('{}/Console/{}-services'.format(config.sysStore.HomeDir, self.name), 'w') as ftxt:
 				for d, svc in self.knownservices.items():
-					print(d, file=f)
+					print(d, file=ftxt)
 					for s, c in svc.items():
-						print('    {}'.format(s), file=f)
-						print('         {}'.format(c), file=f)
-					print('==================', file=f)
-			with open('{}/Console/{}-entities'.format(config.sysStore.HomeDir, self.name), 'w') as f:
-				print('===== Ignored =====', file=f)
+						print('    {}'.format(s), file=ftxt)
+						print('         {}'.format(c), file=ftxt)
+					print('==================', file=ftxt)
+			with open('{}/Console/{}-entities'.format(config.sysStore.HomeDir, self.name), 'w') as ftxt:
+				print('===== Ignored =====', file=ftxt)
 				for d, de in self.DomainEntityReg.items():
 					for e, t in de.items():
 						if isinstance(t, self.dyndomains['ignore'].IgnoredDomain):
-							print('Ignored entity in {}: {} {}'.format(self.name, d, e), file=f)
-				print('===== Active  =====', file=f)
+							print('Ignored entity in {}: {} {}'.format(self.name, d, e), file=ftxt)
+				print('===== Active  =====', file=ftxt)
 				for d, de in self.DomainEntityReg.items():
 					for e, t in de.items():
 						if not isinstance(t, self.dyndomains['ignore'].IgnoredDomain):
-							print('Watched entity in {}: {} {}'.format(self.name, d, e), file=f)
-				print('=====   New   =====', file=f)
+							print('Watched entity in {}: {} {}'.format(self.name, d, e), file=ftxt)
+				print('=====   New   =====', file=ftxt)
 		# listeners = ha.get_event_listeners(self.api)
 		logsupport.Logs.Log(self.name + ": Processed " + str(len(self.Entities)) + " total entities")
 		for d, e in self.DomainEntityReg.items():

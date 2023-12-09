@@ -24,7 +24,7 @@ class Thermostat(HAnode):  # not stateful since has much state info
 		if attrnm in self.attributes:
 			return self.attributes[attrnm]
 		else:
-			if self.internalstate != 'unavailable' and not curval is None:
+			if self.internalstate != 'unavailable' and curval is not None:
 				logsupport.Logs.Log('{}: Thermostat {} available but missing {} ({} {})'.format(
 					self.Hub.name, self.name, attrnm, self.internalstate, curval), severity=logsupport.ConsoleWarning)
 			return curval
@@ -98,9 +98,7 @@ class Thermostat(HAnode):  # not stateful since has much state info
 		# self.DisplayStuff('init')
 		except Exception as E:
 			# if attributes are missing then don't do updates later - probably a pool
-			logsupport.Logs.Log(
-				'{}: Climate device {} missing attributes ({}) - Exc:({})'.format(self.Hub.name, self.name,
-																				  self.attributes, E))
+			logsupport.Logs.Log(f'{self.Hub.name}: Climate device {self.name} missing ({self.attributes}) - Exc:({E})')
 			self.ignore_updates = True
 
 	def _NormalizeState(self, state, brightness=None):  # state is just the operation mode
@@ -113,8 +111,10 @@ class Thermostat(HAnode):  # not stateful since has much state info
 	def Update(self, **ns):
 		self.__dict__.update(ns)
 		self.internalstate = self._NormalizeState(self.state)
-		if self.ignore_updates: return  # don't try to update info for pools
-		if 'attributes' in ns: self.attributes = ns['attributes']
+		if self.ignore_updates:
+			return  # don't try to update info for pools
+		if 'attributes' in ns:
+			self.attributes = ns['attributes']
 		self.GetTarget()
 		self.curtemp = self._SafeUpdate('current_temperature', self.curtemp)
 		self.GetRange()

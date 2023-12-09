@@ -98,7 +98,9 @@ class StatGroup(object):
 	def ResetGrp(self, exclude):
 		skip = exclude if isinstance(exclude, tuple) else (exclude,)
 		for e in self.elements.values():
-			if e not in skip: e.Reset()
+			if e not in skip:
+				# noinspection PyArgumentList
+				e.Reset()
 
 	def Values(self):  # return total of group values - may only be meaningful for uniform stats in group
 		tot = [0, 0]

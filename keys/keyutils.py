@@ -120,7 +120,7 @@ def ParseConfigToDispOpt(item, deflabel):
 class DispOpt(object):
 	# typedesc colorset label  colorset is either a single color (default char and outline) or a triple (key, char, outline)
 	def __init__(self, item='', deflabel='', choosertype=None, chooser=None, color=()):
-		'''if item != '':
+		"""if item != '':
 			print('Old Display Opt')
 			parseditem = shlex.shlex(item, posix=True, punctuation_chars='()')
 			desc = list(parseditem)
@@ -172,7 +172,7 @@ class DispOpt(object):
 				desc.pop(0)
 			self.Label = deflabel if len(desc) == 0 else desc[0].split(';')
 		else:
-		'''
+		"""
 		self.ChooserType = choosertype
 		self.Chooser = chooser
 		self.Color = color

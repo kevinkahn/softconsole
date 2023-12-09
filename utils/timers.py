@@ -312,8 +312,8 @@ class CountedRepeatingPost(Thread):
 
 
 class OnceTimer(Thread):
-	def __init__(self, interval: float, paused: object = False, start: object = False,
-				 name: object = '', **kwargs: object) -> None:
+	def __init__(self, interval: float, paused: object = False, start: object = False, name: str = '',
+				 **kwargs: object) -> None:
 		Thread.__init__(self, name=name)
 		TimerHB.Entry(
 			"Created OnceTimer: {} int: {}  start: {} paused: {} args: {}".format(name, interval, start, paused,
@@ -335,12 +335,12 @@ class OnceTimer(Thread):
 
 	def run(self):
 		TimerHB.Entry('Start once: {}'.format(self.name))
-		self.kwargs['TargetTime'] = time.time() + self.interval
+		tt = time.time() + self.interval
+		self.kwargs['TargetTime'] = tt
 		self.finished.wait(self.interval)
 		if not self.finished.is_set():
 			TimerHB.Entry(
-				'Post once: {} diff: {} args: {}'.format(self.name, time.time() - self.kwargs['TargetTime'],
-														 self.kwargs))
+				f"Post once: {self.name} diff: {time.time() - tt} args: {self.kwargs}")
 			PostEvent(ConsoleEvent(CEvent.SchedEvent, **self.kwargs))
 		self.finished.set()
 		del TimerList[self.name]

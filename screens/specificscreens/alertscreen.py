@@ -20,6 +20,7 @@ ScreenType = 'Alert'
 
 alertscreens = {}
 
+
 class AlertsScreenDesc(screen.ScreenDesc):
 	global alertscreens
 
@@ -136,28 +137,28 @@ class AlertsScreenDesc(screen.ScreenDesc):
 
 	def ScreenContentRepaint(self):
 		h = 0
-		l = []
+		line = []
 
 		# todo process dynamics for message
 		Message = utilities.ExpandTextwitVars(self.Message, screenname=self.name)
 
 		for i, ln in enumerate(Message):
-			l.append(
+			line.append(
 				fonts.fonts.Font(self.getCharSize(i), self.Font).render(ln, 0, wc(self.KeyCharColorOn)))
-			h = h + l[i].get_height()
-		s = (self.messageareaheight - h) / (len(l))
+			h = h + line[i].get_height()
+		s = (self.messageareaheight - h) / (len(line))
 
 		messageimage = pg.Surface((hw.screenwidth - 2 * self.HorizBorder, self.messageareaheight))
 		messageimage.fill(wc(self.MessageBack))
 
 		vert_off = s / 2
-		for i in range(len(l)):
+		for i in range(len(line)):
 			if self.CenterMessage:
-				horiz_off = (hw.screenwidth - l[i].get_width()) / 2 - self.HorizBorder
+				horiz_off = (hw.screenwidth - line[i].get_width()) / 2 - self.HorizBorder
 			else:
 				horiz_off = self.HorizBorder
-			messageimage.blit(l[i], (horiz_off, vert_off))
-			vert_off = vert_off + s + l[i].get_height()
+			messageimage.blit(line[i], (horiz_off, vert_off))
+			vert_off = vert_off + s + line[i].get_height()
 		if self.BlinkState:
 			hw.screen.blit(messageimage, self.upperleft)
 		else:
@@ -179,5 +180,6 @@ class AlertsScreenDesc(screen.ScreenDesc):
 				logsupport.Logs.Log("Alert screen " + self.name + " cause cleared", severity=ConsoleDetail)
 		except Exception as E:
 			logsupport.Logs.Log(f"Alert screen exit error ({E})", severity=logsupport.ConsoleWarning)
+
 
 screens.screentypes[ScreenType] = AlertsScreenDesc

@@ -132,8 +132,8 @@ class ThermostatScreen2Desc(screen.BaseKeyScreenDesc):
 				self.ThermNode.address: self.Keys['Mode']}  # placeholder for thermostat node
 		utilities.register_example("ThermostatScreenDesc", self)
 
-	def PaintSetTemps(self, range):
-		if range:
+	def PaintSetTemps(self, trange):
+		if trange:
 			rL = fonts.fonts.Font(self.fsize[2]).render("{:2d}".format(self.t_low), 0,
 														wc(self.CharColor, factor=self.LocalOnly[0]))
 			rH = fonts.fonts.Font(self.fsize[2]).render("{:2d}".format(self.t_high), 0,
