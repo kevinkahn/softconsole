@@ -123,13 +123,13 @@ class ManualKeyDesc(TouchPoint):
 		self.KeyAlpha = None
 
 		# These all get really set in one of the two init methods
-		self.KeyColorOff = ''
-		self.KeyColorOn = ''
-		self.KeyLabelOn = ''
-		self.KeyLabelOff = ''
-		self.Fields = []
-		self.label = ['']
-		self.Var = ''
+		# self.KeyColorOff = ''
+		# self.KeyColorOn = ''
+		# self.KeyLabelOn = ''
+		# self.KeyLabelOff = ''
+		# self.Fields = []
+		# self.label = ['']
+		# self.Var = ''
 
 		if not hasattr(self, 'statebasedkey'):
 			self.statebasedkey = False
