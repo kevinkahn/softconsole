@@ -156,8 +156,7 @@ class ManualKeyDesc(TouchPoint):
 
 	# noinspection PyUnusedLocal
 	@staticmethod
-	def KeyParameters(label='', bcolor='black', charcoloron='white', charcoloroff='red', center=(0, 0),
-					  size=(0, 0),
+	def KeyParameters(label='', bcolor='black', charcoloron='white', charcoloroff='red', center=(0, 0), size=(0, 0),
 					  KOn=None, KOff=None, proc=None, procdbl=None, KCon='', KCoff='', KLon=('',), KLoff=('',),
 					  State=True, Blink=0, Verify=False):
 		# turn this into a dict that matches the section options

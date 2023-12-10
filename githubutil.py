@@ -87,7 +87,7 @@ def InstallStagedVersion(d, Bookworm=False):
 		print('Use softconsoleBW.service for systemctl')
 		shutil.copy('scripts/softconsoleBW.service', 'scripts/softconsole.service')
 
-	print(f'Process requirements from {os.getcwd()}', file=logf)
+	print(f'Process requirements file from {os.getcwd()}', file=logf)
 	# subprocess.call('bash ./scripts/upgradeprep.sh', shell=True, stdout=logf, stderr=logf)
 	subprocess.call('/home/pi/pyenv/bin/pip install -r requirements.txt', shell=True, stdout=logf, stderr=logf)
 	print('End processing requirements', file=logf)
