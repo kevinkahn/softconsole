@@ -9,6 +9,7 @@ from logsupport import ConsoleWarning
 from keyspecs.toucharea import ManualKeyDesc
 import functools
 
+
 class OnOffKey(ManualKeyDesc):
 	def __init__(self, thisscreen, keysection, kn, keytype='ONOFF'):
 		keyname, self.Hub = _resolvekeyname(kn, thisscreen.DefaultHubObj)
@@ -21,13 +22,15 @@ class OnOffKey(ManualKeyDesc):
 		self.statebasedkey = True
 		ManualKeyDesc.__init__(self, thisscreen, keysection, keyname)
 
-		if keyname == '*Action*': keyname = self.NodeName  # special case for alert screen action keys that always have same name
+		if keyname == '*Action*':
+			keyname = self.NodeName  # special case for alert screen action keys that always have same name
 		self.ControlObj, self.DisplayObj = self.Hub.GetNode(keyname, self.SceneProxy)
 
 		if self.ControlObjUndefined():
 			debug.debugPrint('Screen', "Screen", keyname, "unbound")
 			logsupport.Logs.Log('Key Binding missing: ' + self.name, severity=ConsoleWarning)
-		if hasattr(self.ControlObj, 'SendOnPct'): self.AllowSlider = True
+		if hasattr(self.ControlObj, 'SendOnPct'):
+			self.AllowSlider = True
 
 		if self.Verify:
 			self.VerifyScreen = supportscreens.VerifyScreen(self, self.GoMsg, self.NoGoMsg, self.KeyPressAction,
@@ -61,7 +64,8 @@ class OnOffKey(ManualKeyDesc):
 
 	def ConnectandGetNameOverride(self, keyname, keysection):
 		screen.AddUndefaultedParams(self, keysection, SceneProxy='', NodeName='')
-		if keyname == '*Action*': keyname = self.NodeName  # special case for alert screen action keys that always have same name
+		if keyname == '*Action*':
+			keyname = self.NodeName  # special case for alert screen action keys that always have same name
 		self.ControlObj, self.DisplayObj = self.Hub.GetNode(keyname, self.SceneProxy)
 		try:
 			if self.ControlObj.FriendlyName != '':
@@ -78,8 +82,7 @@ class OnOffKey(ManualKeyDesc):
 				else:
 					logsupport.Logs.Log(
 						"Node event to key {} on screen {} with non integer state: {}".format(self.name,
-																							  self.Screen.name,
-																							  evnt),
+																							  self.Screen.name, evnt),
 						severity=ConsoleWarning)
 					evnt.value = 1
 			except Exception as E:
@@ -90,14 +93,8 @@ class OnOffKey(ManualKeyDesc):
 					severity=ConsoleWarning)
 				evnt.value = 1
 
-		oldunknown = self.UnknownState
 		self.State = not (evnt.value == 0)  # K is off (false) only if state is 0
 		self.UnknownState = True if evnt.value == -1 else False
-		# if self.UnknownState:
-		# add node to unknowns list for hub
-		#	self.ControlObj.Hub.AddToUnknowns(self.ControlObj,evnt)
-		# elif oldunknown and not self.UnknownState:
-		#	self.ControlObj.Hub.DeleteFromUnknowns(self.ControlObj,evnt)
 		self.PaintKey()
 		displayupdate.updatedisplay()
 
@@ -128,7 +125,8 @@ class OnOffKey(ManualKeyDesc):
 
 		if not self.ControlObjUndefined():
 			poststate = self.ControlObj.SendOnOffCommand(self.State)
-			if poststate is not None: self.State = poststate
+			if poststate is not None:
+				self.State = poststate
 			self.ScheduleBlinkKey(self.Blink)
 		else:
 			logsupport.Logs.Log("Screen: " + self.Screen.name + " press unbound key: " + self.name,

@@ -72,9 +72,9 @@ class Touch(object):
 	@id.setter
 	def id(self, value):
 		if value != self._id:
-			if value == -1 and not TS_RELEASE in self.events:
+			if value == -1 and TS_RELEASE not in self.events:
 				self.events.append(TS_RELEASE)
-			elif not TS_PRESS in self.events:
+			elif TS_PRESS not in self.events:
 				self.events.append(TS_PRESS)
 
 		self._id = value
@@ -85,7 +85,7 @@ class Touch(object):
 
 	@x.setter
 	def x(self, value):
-		if value != self._x and not TS_MOVE in self.events:
+		if value != self._x and TS_MOVE not in self.events:
 			self.events.append(TS_MOVE)
 		self.last_x = self._x
 		self._x = value
@@ -96,7 +96,7 @@ class Touch(object):
 
 	@y.setter
 	def y(self, value):
-		if value != self._y and not TS_MOVE in self.events:
+		if value != self._y and TS_MOVE not in self.events:
 			self.events.append(TS_MOVE)
 		self.last_y = self._y
 		self._y = value
@@ -134,34 +134,28 @@ class Touchscreen(object):
 		# self.touchbuf = []
 		with open('touchdefinitions') as f:
 			defs = f.read().splitlines()
-			for l in defs:
-				touchitem = l.split('|')
+			for line in defs:
+				touchitem = line.split('|')
 				if touchitem[0][0] != '#':
 					self.touchdefs[touchitem[0]] = touchitem[1:]
-					if touchitem[1] in ('True', '1', 'true', 'TRUE') and not '.' in touchitem[0]:
+					if touchitem[1] in ('True', '1', 'true', 'TRUE') and '.' not in touchitem[0]:
 						# for capacitive screens autogenerate the rotations
 						self.touchdefs[touchitem[0] + '.flip'] = ['True', 0, 0, config.screenwidth, config.screenheight,
-																  1.0,
-																  1.0, 'False']
-						self.touchdefs[touchitem[0] + '.cc90'] = ['True', 0, 0, 0, config.screenwidth, 1.0, 1.0,
-																  'True']
+																  1.0, 1.0, 'False']
+						self.touchdefs[touchitem[0] + '.cc90'] = ['True', 0, 0, 0, config.screenwidth, 1.0, 1.0, 'True']
 						self.touchdefs[touchitem[0] + '.cc270'] = ['True', 0, 0, config.screenheight, 0, 1.0, 1.0,
 																   'True']
-			# else:
-			#	print('Ignore {}'.format(l))
 
 		# noinspection PyBroadException
 		try:
 			with open(configdir + '/touchdefinitions') as f:
 				defs = f.read().splitlines()
-				for l in defs:
-					touchitem = l.split('|')
+				for line in defs:
+					touchitem = line.split('|')
 					self.touchdefs[touchitem[0]] = touchitem[1:]
-		except:
+		except Exception:
 			pass
-		# print("Touchdefs:")
-		# for l in self.touchdefs:
-		#	print("{}: {}".format(l, self.touchdefs[l]))
+
 		self._use_multitouch = True
 		self.controller = "unknown"
 		self._shiftx = 0
@@ -230,7 +224,6 @@ class Touchscreen(object):
 		for event in self._lazy_read():
 			(tv_sec, tv_usec, ttype, code, value) = struct.unpack(self.EVENT_FORMAT, event)
 			self._event_queue.put(TouchEvent(tv_sec + (tv_usec / 1000000), ttype, code, value))
-		#self.touchbuf.append((time.time(),tv_sec, tv_usec, ttype, code, value))
 
 	def _wait_for_events(self, timeout=2):
 		return self._f_poll.poll(timeout)
@@ -249,11 +242,6 @@ class Touchscreen(object):
 					tch.handle_events()
 					self.lasttouch = time.time()
 					self.sentidle = False
-				# print('Syn')
-				# for e in self.touchbuf:
-				#	print(e)
-				# print('----')
-				# self.touchbuf=[]
 				return self.touches
 
 			if event.type == EV_KEY and not self._capscreen:
@@ -275,11 +263,9 @@ class Touchscreen(object):
 					if event.value == 1:
 						self._current_touch.events.append(TS_PRESS)
 						self.sentidle = False
-					#print('Press')
 					else:
 						self._current_touch.events.append(TS_RELEASE)
 						self.sentidle = False
-					#print('Rel')
 
 			if event.type == EV_ABS:  # Absolute cursor position
 				if event.code == ABS_MT_SLOT:
@@ -288,7 +274,6 @@ class Touchscreen(object):
 				if event.code == ABS_MT_TRACKING_ID:
 					self._current_touch.id = event.value
 					self.sentidle = False
-				#print('ID')
 
 				if event.code == ABS_MT_POSITION_X:
 					tmp = event.value + self._shiftx
@@ -325,7 +310,6 @@ class Touchscreen(object):
 
 	def _touch_device(self):
 		global ABS_MT_POSITION_Y, ABS_MT_POSITION_X
-		dev = 'unknown'
 		usedev = 'unknown'
 		possibletouchdevs = []
 		# return '/dev/input/touchscreen'
@@ -338,14 +322,11 @@ class Touchscreen(object):
 					if dev in self.touchdefs:
 						usedev = dev
 					else:
-						for l in self.touchdefs.keys():
-							if l[0] == '*':
-								targbase = l.split(".")[0][1:]
-								# print('Try targ {} in {}'.format(targbase, basedev))
+						for line in self.touchdefs.keys():
+							if line[0] == '*':
+								targbase = line.split(".")[0][1:]
 								if targbase in basedev:
 									usedev = '*' + targbase + '.' + self.touchmod if self.touchmod != '' else '*' + targbase
-							# print('Use {}'.format(usedev))
-					# print('Touchinfo: {}, {}, {}:  {} '.format(basedev, dev, usedev, self.touchdefs[usedev]))
 
 					if usedev in self.touchdefs:
 						self.controller = dev
@@ -371,10 +352,10 @@ class Touchscreen(object):
 						if not self._capscreen:
 							config.noisytouch = True
 							with open('/etc/pointercal', 'r') as pc:  # skip empty lines that Adafruit install may leave
-								l = '\n'
-								while l == '\n':
-									l = next(pc)
-								self.a = list(int(x) for x in l.split())
+								line = '\n'
+								while line == '\n':
+									line = next(pc)
+								self.a = list(int(x) for x in line.split())
 
 						return os.path.join('/dev', 'input', os.path.basename(evdev))
 
@@ -384,6 +365,7 @@ class Touchscreen(object):
 		raise RuntimeError('Unable to locate touchscreen device ({})'.format(possibletouchdevs))
 
 	def read(self):
+		# noinspection PyTypeChecker
 		return next(iter(self))
 
 
@@ -405,9 +387,9 @@ if __name__ == "__main__":
 		#Xx = (touch.x - b[0]) * 320 / (b[1] - b[0])
 		#Xy = (touch.y - b[2]) * 480 / (b[3] - b[2])
 		print(["Release", "Press", "Move"][event],
-			  tch.slot,
-			  tch.x,
-			  tch.y)
+			tch.slot,
+			tch.x,
+			tch.y)
 		return
 		# noinspection PyUnreachableCode
 		if event == 1:

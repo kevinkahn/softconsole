@@ -16,8 +16,10 @@ fixedoverrides = {'CharColor': 'white', 'BackgroundColor': 'royalblue', 'label':
 class MaintScreenDesc(screen.BaseKeyScreenDesc):
 	# noinspection PyDefaultArgument
 	def __init__(self, name, keys, overrides=None):
-		# keys is a dict of key descriptors the name is the key in the dict and the item is a tuple (label, tapproc, dbltapproc, verify, dispopts, defopts, var)
-		# the following works around what looks like a bug - if I just set overrides=fixoverrides above it keeps using last call's overrides
+		# keys is a dict of key descriptors the name is the key in the dict and the item is a tuple
+		# (label, tapproc, dbltapproc, verify, dispopts, defopts, var)
+		# the following works around what looks like a bug - if I just set overrides=fixoverrides
+		# above it keeps using last call's overrides
 		global fixedoverrides
 		ov = configobj.ConfigObj(overrides) if overrides is not None else configobj.ConfigObj(fixedoverrides)
 		super().__init__(ov, name)

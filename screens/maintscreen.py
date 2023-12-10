@@ -62,7 +62,7 @@ def SetUpMaintScreens():
 		logleveldispdn.append(DispOpt(choosertype=ChooseType.intval, chooser=i, color=('gold', 'blue', 'black'),
 									  deflabel=('Log More', 'Detail', logsupport.LogLevels[i])))
 	nextdisp = (
-	DispOpt(choosertype=ChooseType.Noneval, chooser=None, color=('pink', 'blue', 'black'), deflabel=('Next',)),)
+		DispOpt(choosertype=ChooseType.Noneval, chooser=None, color=('pink', 'blue', 'black'), deflabel=('Next',)),)
 	debFlagInput = [("LogLevelUp", None, None, False, '', loglevdispup, "System:LogLevel"),
 					("LogLevelDown", None, None, False, logleveldispdn, loglevdispdef, "System:LogLevel")]
 	for f in debug.DbgFlags:
@@ -88,7 +88,7 @@ def SetUpMaintScreens():
 
 		if nflags > 0:  # will need another flag screen so build a "next"
 			tmp['next'] = ('Next', None, None, False, nextdisp, None)
-		#		'Next', functools.partial(goto, MaintScreen),False,'')  # this gets fixed below to be a real next
+		# 'Next', functools.partial(goto, MaintScreen),False,'')  # this gets fixed below to be a real next
 		FlagsScreens.append(MaintScreenDesc('Flags Setting ({})'.format(flagscreencnt), tmp,
 											overrides=flagoverrides))  # this needs key descriptors passed in
 		flagscreencnt += 1
@@ -114,14 +114,15 @@ def SetUpMaintScreens():
 										  functools.partial(screen.PushToScreen, VersionsAdv, 'Maint'))),
 							('flags', ('Set Flags', functools.partial(screen.PushToScreen, FlagsScreens[0], 'Maint')))])
 
-	if Status is not None: TopLevel['status'] = (
-		'Network Consoles', functools.partial(screen.PushToScreen, Status, 'Maint'))
+	if Status is not None:
+		TopLevel['status'] = ('Network Consoles', functools.partial(screen.PushToScreen, Status, 'Maint'))
 	TopLevel['exit'] = ('Exit/Restart', functools.partial(screen.PushToScreen, Exits, 'Maint'))
 
 	MaintScreen = MaintScreenDesc('Console Maintenance', TopLevel)
 
 	for s in screenset:
 		s.userstore.ReParent(MaintScreen)
+
 
 # noinspection PyUnusedLocal,PyUnusedLocal,PyUnusedLocal
 def syncKeytoStore(storeitem, old, new, key, chgsource):
@@ -156,9 +157,11 @@ def adjloglevel(K):
 	logsupport.Logs.Log("Log Level changed via ", K.name, " to ", config.sysStore.LogLevel, severity=ConsoleWarning)
 	displayupdate.updatedisplay()
 
+
 # noinspection PyUnusedLocal
 def goto(newscreen):
 	SwitchScreen(newscreen, 'Bright', 'Maint goto' + newscreen.name, newstate='Maint')
+
 
 def PickStartingSpot():
 	if config.sysStore.ErrorNotice != -1:

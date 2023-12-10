@@ -14,6 +14,6 @@ class MissingHubStore(valuestore.ValueStore):
 		return None
 
 	def SetVal(self, name, val, modifier=None):
-		if not name in self.reportedlist:
+		if name not in self.reportedlist:
 			logsupport.Logs.Log('Attempt to set a value {} in dummy store {} item {}'.format(val, self.name, name))
 			self.reportedlist.append(name)

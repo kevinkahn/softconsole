@@ -107,8 +107,7 @@ class ThermostatScreen2Desc(screen.BaseKeyScreenDesc):
 																self.AdjButTops + arrowsize // 2),
 															   (arrowsize * 1.2, arrowsize * 1.2),
 															   proc=functools.partial(self.BumpTemp,
-																					  (True, True)[i],
-																					  (1, -1)[i]))
+																					  (True, True)[i], (1, -1)[i]))
 
 		self.ModeButPos = self.AdjButTops + scaleH(self.spacer[5])  # pixel
 
@@ -263,7 +262,8 @@ class ThermostatScreen2Desc(screen.BaseKeyScreenDesc):
 		self.ModeLocal = 0.0
 		self.FanLocal = 0.0
 		self.t_cur, self.t_low, self.t_high, self.t_state, self.mode, self.fan, self.range = self.ThermNode.GetFullThermInfo()
-		if self.Active: self.ReInitDisplay()
+		if self.Active:
+			self.ReInitDisplay()
 
 
 screens.screentypes["Thermostat2"] = ThermostatScreen2Desc

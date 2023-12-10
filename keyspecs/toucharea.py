@@ -36,11 +36,12 @@ class TouchPoint(object):
 		utilities.register_example("TouchPoint", self)
 
 	def ControlObjUndefined(self):
-		if self.ControlObj is None: return True
+		if self.ControlObj is None:
+			return True
 		# noinspection PyBroadException
 		try:
 			return self.ControlObj.Undefined
-		except:
+		except Exception:
 			return False
 
 	def touched(self, pos):
@@ -120,7 +121,18 @@ class ManualKeyDesc(TouchPoint):
 		self.displayoptions = []
 		self.defoption = None
 		self.KeyAlpha = None
-		if not hasattr(self, 'statebasedkey'): self.statebasedkey = False
+
+		# These all get really set in one of the two init methods
+		self.KeyColorOff = ''
+		self.KeyColorOn = ''
+		self.KeyLabelOn = ''
+		self.KeyLabelOff = ''
+		self.Fields = []
+		self.label = ['']
+		self.Var = ''
+
+		if not hasattr(self, 'statebasedkey'):
+			self.statebasedkey = False
 		self.builds = 0
 		self.timeused = 0
 
@@ -132,7 +144,8 @@ class ManualKeyDesc(TouchPoint):
 			self.UserKey = True
 			self.dosectioninit(*args)
 		else:
-			# signature: ManualKeyDesc(screen, keyname, label, bcolor, charcoloron, charcoloroff, center=, size=, KOn=, KOff=, proc=)
+			# signature:
+			# ManualKeyDesc(screen, keyname, label, bcolor, charcoloron, charcoloroff, center=, size=, KOn=, KOff=, proc=)
 			# initializing from program code case
 			self.UserKey = False
 			self.docodeinit(*args, **kwargs)
@@ -204,8 +217,8 @@ class ManualKeyDesc(TouchPoint):
 		TouchPoint.__init__(self, keyname, (0, 0), (0, 0))
 		screen.IncorporateParams(self, 'TouchArea', {'KeyColor', 'KeyOffOutlineColor', 'KeyOnOutlineColor',
 													 'KeyCharColorOn', 'KeyCharColorOff', 'KeyOutlineOffset',
-													 'KeyColorOn', 'KeyColorOff', 'KeyLabelOn', 'KeyLabelOff'},
-								 keysection)
+													 'KeyColorOn', 'KeyColorOff',
+													 'KeyLabelOn', 'KeyLabelOff'}, keysection)
 		screen.AddUndefaultedParams(self, keysection, FastPress=0, Verify=False, Blink=0, label=[''], Appearance=[],
 									DefaultAppearance='',
 									Var='', Fields=[])
@@ -236,7 +249,7 @@ class ManualKeyDesc(TouchPoint):
 											   color=(self.KeyColorOn, self.KeyCharColorOn, self.KeyOnOutlineColor),
 											   deflabel=self.KeyLabelOn))
 			self.displayoptions.append(DispOpt(choosertype=ChooseType.stateval, chooser='state*off', color=(
-			self.KeyColorOff + dull, self.KeyCharColorOff, self.KeyOffOutlineColor), deflabel=self.KeyLabelOff))
+				self.KeyColorOff + dull, self.KeyCharColorOff, self.KeyOffOutlineColor), deflabel=self.KeyLabelOff))
 
 		if self.DefaultAppearance == '':
 			self.defoption = DispOpt(choosertype=ChooseType.Noneval, color=(self.KeyColorOn,),
@@ -269,7 +282,8 @@ class ManualKeyDesc(TouchPoint):
 
 		if not self.LastImageValid:
 			self.BuildDynKey(val, 0, True, self.Fields)
-			if statickey: self.LastImageValid = True
+			if statickey:
+				self.LastImageValid = True
 
 		x = self.Center[0] - self.GappedSize[0] / 2
 		y = self.Center[1] - self.GappedSize[1] / 2
@@ -296,6 +310,7 @@ class ManualKeyDesc(TouchPoint):
 					self.BlinkTimer.cancel()
 					self.PaintKey()  # force to real state
 					displayupdate.updatedisplay()
+			# noinspection PyTypeChecker
 			self.BlinkTimer = timers.CountedRepeatingPost(.5, cycle, start=True, name=self.name + '-Blink',
 														  proc=self._FlashNo)
 			self.Screen.ScreenTimers.append((self.BlinkTimer, None))
@@ -323,6 +338,7 @@ class ManualKeyDesc(TouchPoint):
 					self.PaintKey()  # force to real state
 					self.BlinkState = 0
 					displayupdate.updatedisplay()
+			# noinspection PyTypeChecker
 			self.BlinkTimer = timers.CountedRepeatingPost(.5, cycle, start=True, name=self.name + '-Blink',
 														  proc=self.BlinkKey)
 			self.Screen.ScreenTimers.append((self.BlinkTimer, self.AbortBlink))
@@ -356,9 +372,9 @@ class ManualKeyDesc(TouchPoint):
 		textarea = (buttonsmaller[0] - 2, buttonsmaller[1] - 2)
 		fontchoice = self.ButtonFontSizes[firstfont]
 		if shrink:
-			for l in range(lines):
+			for line in range(lines):
 				for i in range(firstfont, len(self.ButtonFontSizes) - 1):
-					txtsize = fonts.fonts.Font(self.ButtonFontSizes[i], bold=True).size(lab[l])
+					txtsize = fonts.fonts.Font(self.ButtonFontSizes[i], bold=True).size(lab[line])
 					if lines * txtsize[1] >= textarea[1] or txtsize[0] >= textarea[0]:
 						fontchoice = self.ButtonFontSizes[i + 1]
 		return fontchoice
@@ -411,7 +427,8 @@ class ManualKeyDesc(TouchPoint):
 		lab2 = []
 		if self.UserKey and type(self) in BrightnessPossible:
 			try:
-				if hasattr(self.DisplayObj, 'brightness'): val = self.DisplayObj.brightness
+				if hasattr(self.DisplayObj, 'brightness'):
+					val = self.DisplayObj.brightness
 			except Exception as E:
 				logsupport.Logs.Log('Brightness exception: {} in {}'.format(E, self.name), severity=ConsoleWarning)
 
@@ -456,4 +473,3 @@ class ManualKeyDesc(TouchPoint):
 			self.KeyLabelOn = self.label
 		if self.KeyLabelOff == ['', ]:
 			self.KeyLabelOff = self.label
-

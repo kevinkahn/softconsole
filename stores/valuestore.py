@@ -8,7 +8,10 @@ import logsupport
 from logsupport import ConsoleError
 from utils.utilfuncs import safeprint
 
-ValueStores = OrderedDict()  # General store for named values storename:itemname accessed as ValueStore[storename].GetVal(itemname)
+ValueStores = OrderedDict()
+
+
+# General store for named values storename:itemname accessed as ValueStore[storename].GetVal(itemname)
 
 
 def _normalizename(name):
@@ -160,15 +163,11 @@ class StoreItem(object):
 		elif type(val) == self.Type:
 			self.Value = val
 		else:
-			# noinspection PyBroadException
 			try:
-				# noinspection PyAttributeOutsideInit
 				self.Value = val if self.Type is None else self.Type(val)
-			except:
-				logsupport.Logs.Log(
-					"Can't coerce type in UpdateVal required: {} got {} Value: {}".format(repr(self.Type),
-																						  repr(type(val)), val),
-					severity=ConsoleError)
+			except Exception as E:
+				logsupport.Logs.Log(f"Can't coerce type in UpdateVal required: {repr(self.Type)}"
+									f" got {repr(type(val))} Value: {val} ({E})")
 				raise
 		self.SetTime = time.time()
 
@@ -218,7 +217,7 @@ class ValueStore(object):
 		try:
 			indx = int(n2[0])
 			return t, indx
-		except:
+		except Exception:
 			return t[n2[0]], None
 
 	def LockStore(self):
@@ -239,7 +238,6 @@ class ValueStore(object):
 				raise AttributeError
 			else:
 				return None
-
 
 	def AddAlert(self, name, a):
 		# alert is proc to be called with signature (storeitem, old, new, param, chgsource)
@@ -270,7 +268,7 @@ class ValueStore(object):
 					logsupport.Logs.Log("Type already set for ", self.name, " new type: ", vtype)
 			else:
 				logsupport.Logs.Log("Can't set Type on array element for ", self.name, " new type: ", vtype)
-		except:
+		except Exception:
 			logsupport.Logs.Log("Type setting error", self.name, " new type: ", vtype)
 
 	# noinspection PyAttributeOutsideInit
@@ -283,10 +281,10 @@ class ValueStore(object):
 			for n in nmlist:
 				self.vars[n] = self.itemtyp(n, init, store=self)
 
-	def SetVal(self, name, val,
-			   modifier=None):  # modifier can be set by the caller if who caused the Val change is significant to any alerts
-		# currently, only isyvarchange uses to avoid looping by changing the value as a result of an ISY message causing a "send"
-		# of the change back to the ISY
+	def SetVal(self, name, val, modifier=None):
+		# modifier can be set by the caller if who caused the Val change is significant to any alerts
+		# currently, only isyvarchange uses to avoid looping by changing the value as a result of an ISY message
+		# causing a "send" of the change back to the ISY
 		n2 = self._normalizename(name)
 		n = n2[:]  # copy the name for filling in new item if needed
 		t = self.vars
@@ -301,7 +299,8 @@ class ValueStore(object):
 				t[n2[0]] = {} if not isinstance(n2[1], int) else self.itemtyp(StoreList(t), val, store=self)
 				t = t[n2[0]]
 				n2.pop(0)
-		# at this point n2 is last piece of name and t dict holding pointer to last piece of name (itemtype) or itemtype with array value
+		# at this point n2 is last piece of name and t dict holding pointer to
+		# last piece of name (itemtype) or itemtype with array value
 		if isinstance(n2[0], int):
 			# name is an array reference
 			if isinstance(t, self.itemtyp):
@@ -347,7 +346,8 @@ class ValueStore(object):
 				self.SetVal(k if itemname is None else itemname + ':' + k, v)
 
 	def items(self, parents=(), d=None):
-		if d is None: d = self.vars
+		if d is None:
+			d = self.vars
 		try:
 			for n, i in d.items():
 				if isinstance(i, dict):
