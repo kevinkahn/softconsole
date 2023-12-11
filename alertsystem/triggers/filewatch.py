@@ -77,7 +77,7 @@ def FileWatcher():
 			try:
 				t = os.path.getmtime(f)
 			except Exception as E:
-				if not f in BadFiles:
+				if f not in BadFiles:
 					logsupport.Logs.Log("Watched file {} became inaccessible ({})".format(f, E),
 										severity=logsupport.ConsoleWarning)
 					BadFiles.append(f)
@@ -93,7 +93,8 @@ def FileWatcher():
 
 
 # IF Invoke a screen PostEvent(ConsoleEvent(CEvent.SchedEvent, **self.kwargs)) with proc = Invoke
-# what does hitting ok on alert screen mean? vs defer should change the istrue to false and then set it back to true here?
+# what does hitting ok on alert screen mean?
+# vs defer should change the istrue to false and then set it back to true here?
 
 def ParseFile(store, fn, param):
 	with open(fn) as f:
@@ -101,11 +102,11 @@ def ParseFile(store, fn, param):
 	if param == 'SingleItem':
 		store.SetVal('file', tmp)
 	elif param == 'Settings':
-		for l in tmp:
-			t = l.strip()
+		for line in tmp:
+			t = line.strip()
 			if t != '':
 				try:
-					t = l.split('=', 1)
+					t = line.split('=', 1)
 					store.SetVal(t[0].strip(), t[1].strip())
 				except Exception as E:
 					logsupport.Logs.Log('Malformed settings ({}) for watched file {} ({})'.format(t, fn, E),

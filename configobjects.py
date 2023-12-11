@@ -1,6 +1,7 @@
 # noinspection PyProtectedMember
 
 import configobj
+# noinspection PyProtectedMember
 from configobj import Section
 import config
 import debug
@@ -32,7 +33,8 @@ class MyScreens(object):
 				if tempscreentype in screens.screentypes:
 					try:
 						NewScreen = screens.screentypes[tempscreentype](thisScreen, screenitem)
-						if clockedscreen != 0: NewScreen.SetScreenClock(clockedscreen)
+						if clockedscreen != 0:
+							NewScreen.SetScreenClock(clockedscreen)
 						logsupport.Logs.Log(tempscreentype + " screen " + screenitem, severity=ConsoleDetail)
 					except Exception as E:
 						NewScreen = None
@@ -88,7 +90,7 @@ class MyScreens(object):
 		logsupport.Logs.Log("Main Screen List:", severity=ConsoleDetail)
 		tmpchain = config.sysStore.MainChain[:]  # copy MainChain (not pointer to) because of possiblity of deletions
 		for scr in tmpchain:
-			if not scr in screens.MainDict:
+			if scr not in screens.MainDict:
 				logsupport.Logs.Log("--- Undefined Main List Screen:", scr, severity=ConsoleWarning)
 				config.sysStore.MainChain.remove(scr)
 			else:
@@ -96,7 +98,7 @@ class MyScreens(object):
 		logsupport.Logs.Log("Secondary Screen List:", severity=ConsoleDetail)
 		tmpchain = config.sysStore.SecondaryChain[:]
 		for scr in tmpchain:
-			if not scr in screens.SecondaryDict:
+			if scr not in screens.SecondaryDict:
 				logsupport.Logs.Log("--- Undefined Secondary List Screen:", scr, severity=ConsoleWarning)
 				config.sysStore.SecondaryChain.remove(scr)
 			else:
@@ -161,12 +163,13 @@ class MyScreens(object):
 		for k, s in GoToTargetList.items():
 			try:
 				k.targetscreen = screens.screenslist[s]
-				if s in screens.ExtraDict: del screens.ExtraDict[s]
+				if s in screens.ExtraDict:
+					del screens.ExtraDict[s]
 			except KeyError:
 				logsupport.Logs.Log("GoTo Key target {} doesn't exist".format(s))
 
 		logsupport.Logs.Log("Defined but unused screens:")
 		for nm, scr in screens.ExtraDict.items():
 			if (not isinstance(scr, screens.screentypes["Alert"])) and (
-			not scr in screens.DimIdleList):  # todo also add targets of gotos
+					scr not in screens.DimIdleList):  # todo also add targets of gotos
 				logsupport.Logs.Log("---Unused: " + nm, severity=ConsoleWarning)

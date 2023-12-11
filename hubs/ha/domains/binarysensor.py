@@ -12,15 +12,17 @@ class BinarySensor(HAnode):
 								severity=ConsoleWarning)
 		self.Hub.attrstore.SetVal(self.entity_id, self.state == 'on')
 		self.missinglast = 'Explicit' if self.state in (
-		'Xunknown', 'Xunavailable') else 'No'  # if unknown assume really not there (like pool stuff) options:
-		if self.missinglast == 'Explicit': print('Unavailable: {}'.format(self.entity_id))
+			'Xunknown', 'Xunavailable') else 'No'  # if unknown assume really not there (like pool stuff) options:
+		if self.missinglast == 'Explicit':
+			print('Unavailable: {}'.format(self.entity_id))
 
 	def SetSensorAlert(self, p):
 		self.Hub.attrstore.AddAlert(self.entity_id, p)
 
 	def Update(self, **ns):
 		# super(Sensor,self).Update(**ns)
-		if 'attributes' in ns: self.attributes = ns['attributes']
+		if 'attributes' in ns:
+			self.attributes = ns['attributes']
 		if 'state' in ns:
 			if ns['state'] == 'on':
 				st = True

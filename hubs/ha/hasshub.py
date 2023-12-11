@@ -576,17 +576,16 @@ class HA(object):
 					if ent not in self.Entities:
 						# not an entitity type that is currently known
 						debug.debugPrint('HASSgeneral', self.name,
-										 ' WS Stream item for unhandled entity: ' + ent + ' Added: ' + str(
-											 adds) + ' Deleted: ' + str(dels) + ' Changed: ' + str(chgs))
+										 ' WS Stream item for unhandled entity: ' + ent + ' Added: ' + str(adds) +
+										 ' Deleted: ' + str(dels) + ' Changed: ' + str(chgs))
 						if dom in self.addibledomains:
 							p2 = dict(new, **{'domain': dom, 'name': nm, 'object_id': ent})
 							N = hadomains[dom](self, p2)
 							self.Entities[ent] = N
 							N.AddPlayer()  # todo specific to media player?
 						if ent in self.Indirectors:  # expected node finally showed up
-							p2 = dict(new, **{'domain': dom,
-											  'name': new['attributes']['friendly_name'] if 'friendly_name' in new[
-												  'attributes'] else nm.replace('_', ' '), 'object_id': ent})
+							p2 = dict(new, **{'domain': dom, 'name': new['attributes']['friendly_name']
+							if 'friendly_name' in new['attributes'] else nm.replace('_', ' '), 'object_id': ent})
 							if dom in hadomains:
 								N = hadomains[dom](self, p2)
 								self.Indirectors[ent].SetRealNode(N)
@@ -1067,7 +1066,8 @@ class HA(object):
 			for s, c in d['services'].items():
 				if s in self.knownservices[d['domain']]:
 					logsupport.DevPrint(
-						'Duplicate service noted for domain {}: service: {} existing: {} new: {}'.format(d['domain'], s,
+						'Duplicate service noted for domain {}: service: {} existing: {} new: {}'.format(d['domain'],
+																										 s,
 																										 self.knownservices[
 																											 d[
 																												 'domain'][

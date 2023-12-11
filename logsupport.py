@@ -109,6 +109,7 @@ def LogProcess(q):
 			fh.flush()
 		signal.signal(signal.SIGHUP, signal.SIG_IGN)
 
+	# noinspection PyProtectedMember,PyUnusedLocal
 	def ExitAbort(signum, frame):
 		with open('/home/pi/tombstoneL', 'a') as tomb:
 			print(f'Logger {os.getpid()} exiting for signal {signum}', file=tomb, flush=True)
@@ -379,6 +380,7 @@ class Logger(object):
 			LoggerQueue.put((Command.LogEntry, ent[2], ent[1], ent[0]))
 		LoggerQueue.put((Command.LogEntry, 3, '-----End of PreLog Entries------', '-----------------'))
 
+	# noinspection PyProtectedMember
 	def Log(self, *args, **kwargs):
 		"""
 		params: args is one or more strings (like for print) and kwargs is severity=
@@ -472,10 +474,9 @@ class Logger(object):
 
 	def PageTitle(self, pageno, itemnumber):
 		if len(self.log) > itemnumber:
-			return "Local Log from {}           Page: {}       {}".format(self.log[itemnumber][2], pageno,
-																		  time.strftime('%c')), True
+			return f"Local Log from {self.log[itemnumber][2]}           Page: {pageno}       {time.strftime('%c')}", True
 		else:
-			return "Local Log No more entries        Page: {}      {}".format(pageno, time.strftime('%c')), False
+			return f"Local Log No more entries        Page: {pageno}      {time.strftime('%c')}", False
 
 
 def LineRenderer(itemnumber, logfont, uselog):

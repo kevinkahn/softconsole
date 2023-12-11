@@ -13,6 +13,7 @@ reporteddifferences = {}
 reftime = os.path.getmtime('console.py')  # use as install time of the console tar
 reftimes = datetime.datetime.fromtimestamp(reftime).strftime('%Y-%m-%d %H:%M:%S')
 
+
 def ConfigFilesChanged():
 	changes = False
 	# safeprint('CheckConfig')
@@ -61,8 +62,6 @@ def ConfigFilesChanged():
 					'Local config file {} {} newer than master: {}'.format(fb, ftimes, mts), severity=ConsoleWarning)
 		else:
 			pass
-	# with open('/home/pi/Console/configcheck', 'a') as lgf:
-	#	safeprint('{} ok {} vs {} diff: {}'.format(f, ftimes, mts, ftime-mt), file=lgf)
 
 	safeprint('Changes = {}'.format(changes))
 	return changes
@@ -83,7 +82,6 @@ class ConfigCheck(object):
 			else:
 				logsupport.Logs.Log('Restart config update')
 				UpdateRestartStatus('Configuration Update Needed', 'configcheck')
-
 
 
 alerttasks.alertprocs["ConfigCheck"] = ConfigCheck

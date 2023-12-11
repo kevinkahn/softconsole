@@ -34,24 +34,24 @@ class ClockScreenDesc(screen.ScreenDesc):
 		if not self.Active:
 			return  # handle race conditions where repaint queued just before screen switch
 		h = 0
-		l = []
+		line = []
 
 		for i in range(len(self.OutFormat)):
-			l.append(
+			line.append(
 				fonts.fonts.Font(self.CharSize[i], self.Font).render(time.strftime(self.OutFormat[i]),
 																	 0, wc(self.CharColor)))
-			h = h + l[i].get_height()
+			h = h + line[i].get_height()
 		if self.ExtraSize[0] != 0:
 			cb = CreateWeathBlock(self.ExtraFormat, self.DecodedExtraFields, self.Font,
 								  self.ExtraSize, self.CharColor, None, True, useicon=False)
 			h = h + cb.get_height()
-		s = (self.useablevertspace - h) / (len(l))
+		s = (self.useablevertspace - h) / (len(line))
 
 		vert_off = self.startvertspace
-		for i in range(len(l)):
-			horiz_off = (hw.screenwidth - l[i].get_width()) // 2
-			hw.screen.blit(l[i], (horiz_off, vert_off))
-			vert_off = vert_off + s + l[i].get_height()
+		for i in range(len(line)):
+			horiz_off = (hw.screenwidth - line[i].get_width()) // 2
+			hw.screen.blit(line[i], (horiz_off, vert_off))
+			vert_off = vert_off + s + line[i].get_height()
 		if self.ExtraSize[0] != 0:
 			# noinspection PyUnboundLocalVariable
 			horiz_off = (hw.screenwidth - cb.get_width()) // 2
@@ -62,5 +62,6 @@ class ClockScreenDesc(screen.ScreenDesc):
 
 	def ReInitDisplay(self):
 		super().ReInitDisplay()
+
 
 screens.screentypes["Clock"] = ClockScreenDesc

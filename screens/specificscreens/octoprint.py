@@ -13,6 +13,7 @@ import screens.supportscreens as supportscreens
 from guicore.switcher import SwitchScreen
 from keyspecs import toucharea
 from logsupport import ConsoleWarning
+# noinspection PyProtectedMember
 from keys.keyutils import _resolvekeyname
 import config
 

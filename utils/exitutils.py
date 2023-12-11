@@ -32,19 +32,20 @@ REMOTERESTART = 33
 ERRORRESTART = 34
 EXTERNALSIGTERM = 35  # from systemd on a stop or restart so could be either
 WATCHDOGTERM = 36
-EXTERNALSIGINT =37
+EXTERNALSIGINT = 37
 
 MAINTPIREBOOT = 41
 REMOTEPIREBOOT = 42
 ERRORPIREBOOT = 43
 
 
-def listthreads(l):
-	return ' ,'.join([i.name for i in l])
+def listthreads(lines):
+	return ' ,'.join([i.name for i in lines])
 
-reasonmap = {signal.SIGTERM:('termination signal', EXTERNALSIGTERM),
-				signal.SIGINT:('interrupt signal', EXTERNALSIGINT),
-				signal.SIGUSR1:('watchdog termination', WATCHDOGTERM) }
+
+reasonmap = {signal.SIGTERM: ('termination signal', EXTERNALSIGTERM),
+			 signal.SIGINT: ('interrupt signal', EXTERNALSIGINT),
+			 signal.SIGUSR1: ('watchdog termination', WATCHDOGTERM)}
 
 
 def exitlogging():
@@ -82,7 +83,6 @@ def EarlyAbort(scrnmsg, screen=True):
 	sys.exit(EARLYABORT)
 
 
-
 def Exit(ecode, immediate=False):
 	consoleup = time.time() - config.sysStore.ConsoleStartTime
 	logsupport.Logs.Log("Console was up: ", interval_str(consoleup))
@@ -92,7 +92,8 @@ def Exit(ecode, immediate=False):
 			file=f)
 	os.chdir(config.sysStore.ExecDir)  # set cwd to be correct when dirs move underneath us so that scripts execute
 	logsupport.Logs.Log("Console Exiting - Ecode: " + str(ecode))
-	if config.sysStore.Watchdog_pid != 0: os.kill(config.sysStore.Watchdog_pid, signal.SIGUSR1)
+	if config.sysStore.Watchdog_pid != 0:
+		os.kill(config.sysStore.Watchdog_pid, signal.SIGUSR1)
 	safeprint('Console exit with code: ' + str(ecode) + ' at ' + time.strftime('%m-%d-%y %H:%M:%S'))
 	if ecode in range(10, 20):
 		# exit console without restart
@@ -109,7 +110,8 @@ def Exit(ecode, immediate=False):
 		else:
 			logsupport.Logs.Log('Using rc.local restart model - consider switching to systemd')
 			subprocess.Popen('nohup sudo /bin/bash -e scripts/consoleexit ' + 'restart' +
-							 ' ' + config.sysStore.configfile + '>>' + config.sysStore.HomeDir + '/log.txt 2>&1 &', shell=True)
+							 ' ' + config.sysStore.configfile + '>>' + config.sysStore.HomeDir + '/log.txt 2>&1 &',
+							 shell=True)
 	elif ecode in range(40, 50):
 		# reboot the pi
 		subprocess.Popen(['sudo', 'shutdown', '-r', 'now'])
@@ -126,8 +128,8 @@ def Exit(ecode, immediate=False):
 		config.running = False
 		pg.display.quit()
 		pg.quit()
-		# noinspection PyProtectedMember
 		hw.CleanUp()
+		# noinspection PyProtectedMember
 		os._exit(ecode)  # use this vs sys.exit to avoid atexit interception
 	else:
 		config.ecode = ecode

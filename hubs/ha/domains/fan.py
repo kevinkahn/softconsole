@@ -3,6 +3,7 @@ from hubs.ha import haremote as ha
 from hubs.ha.hasshub import HAnode, RegisterDomain
 import logsupport
 
+
 class Fan(HAnode):
 	def __init__(self, HAitem, d):
 		super().__init__(HAitem, **d)

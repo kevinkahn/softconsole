@@ -36,7 +36,7 @@ def SetupHistoryBuffers(dirnm, maxlogs):
 	# noinspection PyBroadException
 	try:
 		os.rename('.HistoryBuffer', '.HistoryBuffer.1')
-	except:
+	except Exception:
 		pass
 	os.mkdir('.HistoryBuffer')
 	HBdir = dirnm + '/.HistoryBuffer/'
@@ -57,7 +57,7 @@ def DumpAll(idline, entrytime):
 		return
 	fn = HBdir + str(bufdumpseq) + '-' + entrytime
 	try:
-		#topper.mvtops(str(bufdumpseq) + '-' + entrytime)
+		# topper.mvtops(str(bufdumpseq) + '-' + entrytime)
 		bufdumpseq += 1
 		t = {}
 		curfirst = {}
@@ -71,8 +71,10 @@ def DumpAll(idline, entrytime):
 				curfirst[nm] = next(t[nm])
 				curtime[nm] = curfirst[nm][1]
 			except StopIteration:
-				if nm in curfirst: del curfirst[nm]
-				if nm in curtime:  del curtime[nm]
+				if nm in curfirst:
+					del curfirst[nm]
+				if nm in curtime:
+					del curtime[nm]
 			initial[nm] = '*'
 		if curfirst == {} or curtime == {}:
 			more = False
@@ -91,8 +93,7 @@ def DumpAll(idline, entrytime):
 							   '{:1s}{:10s}:({:3d}) {:.5f}: [{}] {}\n'.format(initial[nextup], nextup,
 																			  curfirst[nextup][0],
 																			  now - curfirst[nextup][1],
-																			  curfirst[nextup][3],
-																			  curfirst[nextup][2]))
+																			  curfirst[nextup][3], curfirst[nextup][2]))
 				initial[nextup] = ' '
 			try:
 				curfirst[nextup] = next(t[nextup])
@@ -100,7 +101,8 @@ def DumpAll(idline, entrytime):
 			except StopIteration:
 				del curfirst[nextup]
 				del curtime[nextup]
-			if curfirst == {} or curtime == {}: more = False
+			if curfirst == {} or curtime == {}:
+				more = False
 	except Exception as E:
 		AsyncFileWrite(fn, 'Error dumping buffer for: ' + entrytime + ': ' + idline + '\n')
 		AsyncFileWrite(fn, 'Exception was: ' + repr(E) + '\n')
@@ -142,10 +144,10 @@ class HistoryBuffer(object):
 		curind = self.current
 		self.buf = tempbuf
 		self.current = 0
-		#DevPrint('Enter HB content for: {} index {}'.format(self.name, curind))
+		# DevPrint('Enter HB content for: {} index {}'.format(self.name, curind))
 		for i in range(self.size):
 			j = (i + curind) % self.size
 			if cur[j].timeofentry != 0:
 				# DevPrint('Item from {}: {}/{}/{}/{}'.format(self.name, i, j, cur[j].timeofentry, cur[j].entry))
 				yield j, cur[j].timeofentry, cur[j].entry, cur[j].thread
-	#DevPrint('Content exit: {}/{}'.format(self.name, j))
+# DevPrint('Content exit: {}/{}'.format(self.name, j))

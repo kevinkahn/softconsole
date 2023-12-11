@@ -101,12 +101,12 @@ def ptf2(pstr):
 # noinspection PyBroadException
 try:
 	os.replace('/home/pi/Console/weathtrace', '/home/pi/Console/weathtrace.prev')
-except:
+except Exception:
 	pass
 # noinspection PyBroadException
 try:
 	os.replace('/home/pi/Console/weathhist', '/home/pi/Console/weathhist.prev')
-except:
+except Exception:
 	pass
 
 ItemTypes = {}

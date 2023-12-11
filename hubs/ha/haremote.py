@@ -1,5 +1,6 @@
 """
-Copied/shortened from the homeassisant git when this package was deprecated by them.  It provides a convenient call interface
+Copied/shortened from the homeassisant git when this package was deprecated by them.  
+It provides a convenient call interface
 to getting various info via the req url interface.  Could be cleaned up to just use the url interface if I thought that
 were to be stable
 
@@ -39,6 +40,7 @@ URL_API_SERVICES_SERVICE = '/api/services/{}/{}'
 class HomeAssistantError(Exception):
 	pass
 
+
 def split_entity_id(entity_id: str):
 	"""Split a state entity_id into domain, object_id."""
 	return entity_id.split(".", 1)
@@ -49,18 +51,18 @@ This is a standin for the actual HomeAssistant State class to allow accessing wi
 module
 '''
 
+
 class HAState(object):
 	"""Object to represent a state within the state machine.
+	
+	entity_id: the entity that is represented.
+	state: the state of the entity
+	attributes: extra information on entity and state
+	last_changed: last time the state was changed, not the attributes.
+	last_updated: last time this object was updated.
+	"""
 
-    entity_id: the entity that is represented.
-    state: the state of the entity
-    attributes: extra information on entity and state
-    last_changed: last time the state was changed, not the attributes.
-    last_updated: last time this object was updated.
-    """
-
-	def __init__(self, entity_id, state, attributes=None, last_changed=None,
-                 last_updated=None):
+	def __init__(self, entity_id, state, attributes=None, last_changed=None, last_updated=None):
 		"""Initialize a new state."""
 
 		self.entity_id = entity_id.lower()
@@ -91,33 +93,31 @@ class HAState(object):
 
 		Async friendly.
 
-        To be used for JSON serialization.
-        Ensures: state == State.from_dict(state.as_dict())
-        """
+		To be used for JSON serialization.
+		Ensures: state == State.from_dict(state.as_dict())
+		"""
 		return {'entity_id': self.entity_id,
-                'state': self.state,
-                'attributes': dict(self.attributes),
-                'last_changed': self.last_changed,
-                'last_updated': self.last_updated}
+				'state': self.state,
+				'attributes': dict(self.attributes),
+				'last_changed': self.last_changed,
+				'last_updated': self.last_updated}
 
 	@classmethod
 	def from_dict(cls, json_dict):
 		"""Initialize a state from a dict.
 
-        Async friendly.
+		Async friendly.
 
-        Ensures: state == State.from_json_dict(state.to_json_dict())
-        """
-		if not (json_dict and 'entity_id' in json_dict and
-                'state' in json_dict):
+		Ensures: state == State.from_json_dict(state.to_json_dict())
+		"""
+		if not (json_dict and 'entity_id' in json_dict and 'state' in json_dict):
 			return None
 
 		last_changed = json_dict.get('last_changed')
 
 		last_updated = json_dict.get('last_updated')
 
-		return cls(json_dict['entity_id'], json_dict['state'],
-                   json_dict.get('attributes'), last_changed, last_updated)
+		return cls(json_dict['entity_id'], json_dict['state'], json_dict.get('attributes'), last_changed, last_updated)
 
 	def __eq__(self, other):
 		"""Return the comparison of the state."""
@@ -130,9 +130,8 @@ class HAState(object):
 		"""Return the representation of the states."""
 
 		return "<HAstate {}={} attributes: {} @ {}>".format(
-            self.entity_id, self.state, self.attributes,
-            self.last_changed)
-
+			self.entity_id, self.state, self.attributes,
+			self.last_changed)
 
 
 class APIStatus(enum.Enum):
@@ -151,16 +150,16 @@ class APIStatus(enum.Enum):
 class API:
 	"""Object to pass around Home Assistant API location and credentials."""
 
-	def __init__(self, host: str, prefix, api_password: Optional[str] = None,
-				 port: Optional[int] = 8123,
+	def __init__(self, host: str, prefix, api_password: Optional[str] = None, port: Optional[int] = 8123,
 				 use_ssl: bool = False) -> None:
 		"""Init the API."""
+		self.use_ssl = use_ssl
 		self.host = host
 		self.port = port
 		self.api_password = api_password
 		self.base_url = prefix + host + ':' + str(port)
 
-		#	self.base_url += ':{}'.format(port)
+		# self.base_url += ':{}'.format(port)
 
 		self.status = None  # type: Optional[APIStatus]
 		self._headers = {CONTENT_TYPE: CONTENT_TYPE_JSON}
@@ -181,8 +180,7 @@ class API:
 
 		return self.status == APIStatus.OK
 
-	def __call__(self, method: str, path: str, data: Dict = None,
-				 timeout: int = 5) -> requests.Response:
+	def __call__(self, method: str, path: str, data: Dict = None, timeout: int = 5) -> requests.Response:
 		"""Make a call to the Home Assistant API."""
 		if data is None:
 			data_str = None
@@ -198,9 +196,6 @@ class API:
 					headers=self._headers)
 
 			return self.MainSession.request(method, url, data=data_str, timeout=timeout)
-		# return requests.request(
-		#	method, url, data=data_str, timeout=timeout,
-		#	headers=self._headers)
 
 		except requests.exceptions.ConnectionError:
 			raise HomeAssistantError("Error connecting to server")
@@ -271,8 +266,6 @@ def get_state(api: API, entity_id: str):
 	"""Query given API for state of entity_id."""
 	try:
 		req = api(METH_GET, URL_API_STATES_ENTITY.format(entity_id))
-		#logsupport.DevPrint('JSON: {}'.format((req.json())))
-		#logsupport.DevPrint('STAT: {}'.format(HAState.from_dict(req.json())))
 
 		return HAState.from_dict(req.json()) \
 			if req.status_code == 200 else None
@@ -287,8 +280,7 @@ def get_state(api: API, entity_id: str):
 def get_states(api: API):
 	"""Query given API for all states."""
 	try:
-		req = api(METH_GET,
-				  URL_API_STATES)
+		req = api(METH_GET, URL_API_STATES)
 
 		return [HAState.from_dict(item) for
 				item in req.json()]
@@ -316,24 +308,20 @@ def get_services(api: API) -> Dict:
 		logsupport.Logs.Log("HA Got unexpected services result")
 		return {}
 
-def safe_call_service(api: API, domain: str, service: str,
-					  service_data: Dict = None,
-					  timeout: int = 5) -> None:
+
+def safe_call_service(api: API, domain: str, service: str, service_data: Dict = None, timeout: int = 5) -> None:
 	try:
 		call_service(api, domain, service, service_data, timeout)
 	except Exception as E:
 		safeprint('Exc: {}'.format(E))
 
-def call_service(api: API, domain: str, service: str,
-				 service_data: Dict = None,
-				 timeout: int = 5) -> None:
+
+def call_service(api: API, domain: str, service: str, service_data: Dict = None, timeout: int = 5) -> None:
 	"""Call a service at the remote API."""
 	# print('Call svc {} {} {}'.format(domain,service,service_data))
 	for tryit in ('first try', 'retry'):
 		try:
-			req = api(METH_POST,
-					  URL_API_SERVICES_SERVICE.format(domain, service),
-					  service_data, timeout=timeout)
+			req = api(METH_POST, URL_API_SERVICES_SERVICE.format(domain, service), service_data, timeout=timeout)
 
 			if req.status_code != 200:
 				logsupport.Logs.Log(
@@ -355,6 +343,7 @@ def call_service(api: API, domain: str, service: str,
 				raise
 			else:
 				timeout = 2 * timeout
+
 
 def async_caller(api, domain, service, service_data, timeout):
 	n = threading.current_thread().name
@@ -380,6 +369,7 @@ def call_service_async(api: API, domain: str, service: str, service_data: Dict =
 	t = threading.Thread(name='HA-' + service, target=async_caller, daemon=True,
 						 args=(api, domain, service, service_data, timeout))
 	t.start()
+
 
 def get_config(api: API) -> Dict:
 	"""Return configuration."""

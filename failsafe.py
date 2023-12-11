@@ -66,10 +66,12 @@ def EndWatchDog(signum, frame):
 	os._exit(94)
 
 
+# noinspection PyUnusedLocal
 def AbortWatchDog(signum, frame):
 	with open('/home/pi/tombstoneW', 'a') as tomb:
 		print(f'Watchdog {os.getpid()} exiting for signal {signum}', file=tomb, flush=True)
 		traceback.print_stack(file=tomb)
+	# noinspection PyProtectedMember
 	os._exit(93)
 
 

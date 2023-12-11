@@ -12,7 +12,7 @@ class Fonts(object):
 		global monofont
 		pg.font.init()
 		f = pg.font.get_fonts()
-		if not monofont in f:
+		if monofont not in f:
 			# pre stretch system doesn't have noto mono
 			monofont = "droidsansmono"
 		self.fontcache = {"": {40: {True: {True: pg.font.SysFont("", hw.scaleH(40), True, True)}}}}
@@ -22,8 +22,6 @@ class Fonts(object):
 
 	def Font(self, fsize, face="", bold=False, italic=False):
 		def gennewfont(gname, gsize, gbold, gitalic):
-			# logsupport.Logs.Log('Generated Font: ', repr(name), str(size), str(utilities.scaleH(size)), str(bold),
-			#					str(italic))
 			return pg.font.SysFont(gname, hw.scaleH(gsize), gbold, gitalic)
 
 		size = int(fsize)

@@ -1,5 +1,6 @@
 import requests
 
+
 class Api(object):
     def __init__(self, key, https=True):
         self.key = key
@@ -74,5 +75,5 @@ class Api(object):
         weatherbitio_reponse = requests.get(url)
         weatherbitio_reponse.raise_for_status()
         json = weatherbitio_reponse.json()
-        #headers = weatherbitio_reponse.headers
+		# headers = weatherbitio_reponse.headers
         return json

@@ -75,7 +75,6 @@ def SetUpConsoleStatus():
 		return None
 
 
-
 def GenGoNodeCmdScreen():
 	IssueCmds = CommandScreen()
 	IssueCmds.userstore.ReParent(Status)
@@ -85,10 +84,11 @@ def GenGoNodeCmdScreen():
 
 def UpdateNodeStatus(nd, stat):
 	try:
-		if nd not in Nodes: Nodes[nd] = copy.deepcopy(EmptyNodeRecord)
+		if nd not in Nodes:
+			Nodes[nd] = copy.deepcopy(EmptyNodeRecord)
 
 		# handle old style records
-		if not 'registered' in stat and not 'stats' in stat:
+		if 'registered' not in stat and 'stats' not in stat:
 			tempSys = {'stats': {'System': {}}}
 			for nodestat in (
 					'queuetimemax24', 'queuetimemax24time', 'queuedepthmax24', 'maincyclecnt', 'queuedepthmax24time',
@@ -108,6 +108,7 @@ def UpdateNodeStatus(nd, stat):
 		config.sysStore.NetErrorIndicator = t
 	except Exception as E:
 		logsupport.Logs.Log('UpdtStat {}'.format(repr(E)))
+
 
 class ShowVersScreen(screen.BaseKeyScreenDesc):
 	def __init__(self, showhw):
@@ -143,6 +144,7 @@ class ShowVersScreen(screen.BaseKeyScreenDesc):
 				ln, ht, _ = screenutil.CreateTextBlock([ndln + ln1, '             ' + ln2], fontsz, 'white', False)
 			hw.screen.blit(ln, (10, linestart))
 			linestart += ht + fontsz // 2
+
 
 class StatusDisplayScreen(screen.BaseKeyScreenDesc):
 	def __init__(self):
@@ -231,14 +233,15 @@ class CommandScreen(screen.BaseKeyScreenDesc):
 																 center=(butcenterleft, vt), size=(butwidth, butht),
 																 proc=functools.partial(self.ShowCmds, 'Regular', '*'),
 																 procdbl=functools.partial(self.ShowCmds, 'Advanced',
-																						   '*')
-																 ))])
+																						   '*')))])
 
 		odd = False
 		for nd, ndinfo in Nodes.items():
 			offline = ndinfo['status'] in ('dead', 'unknown')
-			if not offline: self.NumNodes += 1
-			if nd == hw.hostname: continue
+			if not offline:
+				self.NumNodes += 1
+			if nd == hw.hostname:
+				continue
 			bcolor = 'grey' if offline else 'darkblue'
 			usecenter = butcenterleft if odd else butcenterright
 			self.Keys[nd] = toucharea.ManualKeyDesc(self, nd, label=(nd,), bcolor=bcolor, charcoloron='white',
@@ -248,7 +251,8 @@ class CommandScreen(screen.BaseKeyScreenDesc):
 																								'Regular', nd),
 													procdbl=functools.partial(self.ShowCmds, 'Dead', nd) if offline
 													else functools.partial(self.ShowCmds, 'Advanced', nd))
-			if not odd: vt += butht + 3
+			if not odd:
+				vt += butht + 3
 			odd = not odd
 
 		CmdProps = {'KeyCharColorOn': 'white', 'KeyColor': 'maroon', 'BackgroundColor': 'royalblue',
@@ -289,7 +293,8 @@ class CommandScreen(screen.BaseKeyScreenDesc):
 		else:
 			cmdsend = '{}|{}|{}|{}'.format(cmd, hw.hostname, MsgSeq, paramsetter())
 
-		if self.FocusNode == '*' or cmd == 'clearerrindicatormatch':  # special case match error clear case - goes to all even tho on specific screen
+		if self.FocusNode == '*' or cmd == 'clearerrindicatormatch':
+			# special case match error clear case - goes to all even tho on specific screen
 			Key.ExpectedNumResponses = self.NumNodes
 			config.MQTTBroker.Publish('cmd', cmdsend, 'all')
 		else:
@@ -341,6 +346,7 @@ class CommandScreen(screen.BaseKeyScreenDesc):
 			header, ht, wd = screenutil.CreateTextBlock(
 				'  Node       ', landfont, 'white', False)
 	'''
+
 
 def PickStartingSpot():
 	return 0

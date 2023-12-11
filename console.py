@@ -113,12 +113,13 @@ def handler(signum, frame):
 			hw.CleanUp()
 			try:
 				os.kill(config.sysStore.AsyncLogger_pid, signal.SIGABRT)
-			except Exception as E:
-				print(f'Failed to abort logger {E}', file=tomb)
+			except Exception as Exc:
+				print(f'Failed to abort logger {Exc}', file=tomb)
 			try:
 				os.kill(config.sysStore.Watchdog_pid, signal.SIGABRT)
-			except Exception as E:
-				print(f'Failed to abort watchdog {E}', file=tomb)
+			except Exception as Exc:
+				print(f'Failed to abort watchdog {Exc}', file=tomb)
+			# noinspection PyProtectedMember
 			os._exit(98)
 	else:
 		if config.Running:
@@ -130,6 +131,7 @@ def handler(signum, frame):
 			if config.sysStore.Topper_pid != 0:
 				os.kill(config.sysStore.Topper_pid, signal.SIGKILL)
 			hw.CleanUp()
+			# noinspection PyProtectedMember
 			os._exit(96)
 
 

@@ -13,19 +13,18 @@ from logsupport import ConsoleWarning, ConsoleDetail
 
 from stores import valuestore
 
-'''
+"""
 At the generic level defining the available fields seems reasonable; issue with the specific sources holding
 their mappings should they do it entirely inside their instance or use the mapinfo idea of the store; leaning
 toward the former since no real reason to store the map in the store and it is only used to populate the store
 on a refresh 
 icon/icon cache - should different sources have different caches?
   Different icons if multiple sources happen to get used?
-'''
+"""
 
-CondFields = (
-	('Time', str), ('Location', str), ('Temp', float), ('Sky', str), ('Feels', float), ('WindDir', str),
-	('WindMPH', float), ('WindGust', int), ('Sunrise', str), ('Sunset', str), ('Moonrise', str),
-	('Moonset', str), ('Humidity', str), ('Icon', pg.Surface), ('TimeEpoch', int), ('Age', None))
+CondFields = (('Time', str), ('Location', str), ('Temp', float), ('Sky', str), ('Feels', float), ('WindDir', str),
+			  ('WindMPH', float), ('WindGust', int), ('Sunrise', str), ('Sunset', str), ('Moonrise', str),
+			  ('Moonset', str), ('Humidity', str), ('Icon', pg.Surface), ('TimeEpoch', int), ('Age', None))
 FcstFields = (('Day', str), ('High', float), ('Low', float), ('Sky', str), ('WindSpd', float), ('WindDir', str),
 			  ('Icon', pg.Surface))
 CommonFields = (('FcstDays', int), ('FcstEpoch', int), ('FcstDate', str))

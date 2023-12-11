@@ -36,8 +36,8 @@ def debugPrintReal(flag, *args):
 						print(line.strip())
 				if logsupport.Logs is not None:
 					logsupport.Logs.Log(flag, '-> ', *args, severity=ConsoleDebug, debugitem=True)
-			except:
-				logsupport.Logs.Log("Internal debug print error: ", flag, ' ', repr(args), severity=ConsoleError)
+			except Exception as E:
+				logsupport.Logs.Log(f"Internal debug print error: {flag} {repr(args)} Exc: {E}", severity=ConsoleError)
 	else:
 		print("DEBUG FLAG NAME ERROR", flag)
 
@@ -58,7 +58,8 @@ def OptimizeDebug(store, old, new, param, modifier):
 	global debugPrint
 	flgCount = 0
 	for f in dbgStore:
-		if f.name[0] != 'LogLevel' and f.Value: flgCount += 1
+		if f.name[0] != 'LogLevel' and f.Value:
+			flgCount += 1
 	if flgCount > 0:
 		debugPrint = debugPrintReal
 	else:
@@ -78,7 +79,8 @@ def InitFlags(sect):
 	flgCount = 0
 	for flg in DbgFlags:
 		v = sect.get(flg, False)
-		if flg != 'LogLevel' and v: flgCount += 1
+		if flg != 'LogLevel' and v:
+			flgCount += 1
 		dbgStore.SetVal(flg, v)
 		dbgStore.AddAlert(flg, OptimizeDebug)
 	dbgStore.AddAlert('StoresDump', StoresDump)
@@ -120,7 +122,8 @@ def DumpStore(f, store, name, indent):
 
 # noinspection PyUnusedLocal
 def StoresDump(store, old, new, param, _):
-	if not new: return
+	if not new:
+		return
 	with open('/home/pi/Console/StoresDump.txt', mode='w') as f:
 		for store in valuestore.ValueStores.values():
 			DumpStore(f, store, store.name, '')
@@ -130,7 +133,8 @@ def StoresDump(store, old, new, param, _):
 
 # noinspection PyUnusedLocal,PyUnusedLocal,PyUnusedLocal
 def AlertsCheck(store, old, new, param, _):
-	if not new: return
+	if not new:
+		return
 	DumpAlerts()
 	dbgStore.SetVal('AlertsCheck', False)
 

@@ -102,6 +102,7 @@ Failsafe = multiprocessing.Process(target=failsafe.MasterWatchDog, name='Failsaf
 checksestablished = False
 logsupport.DevPrint('Created failsafe process')
 
+
 def SetUpIntegrity():
 	global checksestablished
 
