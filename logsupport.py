@@ -109,6 +109,12 @@ def LogProcess(q):
 			fh.flush()
 		signal.signal(signal.SIGHUP, signal.SIG_IGN)
 
+	def ExitAbort(signum, frame):
+		with open('/home/pi/tombstoneL', 'a') as tomb:
+			print(f'Logger {os.getpid()} exiting for signal {signum}', file=tomb, flush=True)
+			traceback.print_stack(file=tomb)
+		os._exit(95)
+
 	# noinspection PyUnusedLocal
 	def IgnoreHUP(signum, frame):
 		with open('/home/pi/Console/.HistoryBuffer/hlog', 'a') as fhlog:
@@ -119,6 +125,7 @@ def LogProcess(q):
 	signal.signal(signal.SIGINT, ExitLog)
 	signal.signal(signal.SIGUSR1, ExitLog)
 	signal.signal(signal.SIGHUP, IgnoreHUP)
+	signal.signal(signal.SIGABRT, ExitAbort)
 	disklogfile = None
 	running = True
 	lastmsgtime = 0
@@ -409,7 +416,11 @@ class Logger(object):
 
 			# Paint live log to screen during boot
 			if self.livelog and not debugitem:
-				self.livelogLock.acquire()
+				gotit = self.livelogLock.acquire(timeout=2)
+				if not gotit:
+					with open('/home/pi/tombstoneL', 'a') as tomb:
+						print(f'Lock aquistion failed for {os.getpid()} Entry: {entry}', file=tomb, flush=True)
+						os._exit(97)
 				if self.livelogpos == 0:
 					hw.screen.fill(wc('royalblue'))
 				self.livelogpos = self.RenderLogLine(entry, LogColors[severity], self.livelogpos)

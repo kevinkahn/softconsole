@@ -1,80 +1,70 @@
 #!/home/pi/pyenv/bin/python -u
 """
-Copyright 2016, 2017, 2018, 2019, 2020, 2021 Kevin Kahn
+Copyright 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023 Kevin Kahn
 
-   Licensed under the Apache License, Version 2.0 (the "License");
-   you may not use this file except in compliance with the License.
-   You may obtain a copy of the License at
+	Licensed under the Apache License, Version 2.0 (the "License");
+	you may not use this file except in compliance with the License.
+	You may obtain a copy of the License at
 
-	   http://www.apache.org/licenses/LICENSE-2.0
+		http://www.apache.org/licenses/LICENSE-2.0
 
-   Unless required by applicable law or agreed to in writing, software
-   distributed under the License is distributed on an "AS IS" BASIS,
-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-   See the License for the specific language governing permissions and
-   limitations under the License.
+	Unless required by applicable law or agreed to in writing, software
+	distributed under the License is distributed on an "AS IS" BASIS,
+	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+	See the License for the specific language governing permissions and
+	limitations under the License.
 """
 import os
 import subprocess
 import traceback
-
 from setproctitle import setproctitle
-
-os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
 from guicore.screencallmanager import pg
 from utils import tracebackplus
-
 import datetime
-
 import signal
 import sys
 import time
 import threading
-
 # noinspection PyProtectedMember
 from configobj import ConfigObj, Section
-
 import config
 import debug
-
 import screens.__screens as screens
 from utils import timers, utilities, displayupdate, hw, exitutils, utilfuncs
 from stores import mqttsupport, valuestore, localvarsupport, sysstore
-
-config.sysStore = valuestore.NewValueStore(sysstore.SystemStore('System'))
-config.sysStore.SetVal('ConsoleStartTime', time.time())
-
 import configobjects
 import atexit
-
 from guicore import displayscreen
-
 import logsupport
 from logsupport import ConsoleWarning, ConsoleError, ConsoleDetail
-
 from alertsystem import alerttasks
 from stores.weathprov.providerutils import SetUpTermShortener, WeathProvs
 from screens import screen, maintscreen
 import historybuffer
 import controlevents
+from config import configfilelist  # list of configfiles and their timestamps
+from stores import genericweatherstore
 
+import hubs.hubs
 
+os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
+config.sysStore = valuestore.NewValueStore(sysstore.SystemStore('System'))
+config.sysStore.SetVal('ConsoleStartTime', time.time())
 
 config.sysStore.SetVal('ExecDir', os.path.dirname(os.path.abspath(__file__)))
 config.sysStore.SetVal('HomeDir', os.path.dirname(config.sysStore.ExecDir))
 if os.path.exists(config.sysStore.HomeDir + '/.permissionchanges'):
 	with open(config.sysStore.HomeDir + '/.permissionchanges', 'r') as f:
 		perms = f.readlines()
-	for l in perms:
-		res = subprocess.call(l, shell=True)
-		logsupport.Logs.Log(f'Set permission {l[0:-1]} Result: {res}')
+	for line in perms:
+		res = subprocess.call(line, shell=True)
+		logsupport.Logs.Log(f'Set permission {line[0:-1]} Result: {res}')
 
 
 '''
 Constants
 '''
 configfilebase = "/home/pi/Console/"  # actual config file can be overridden from arg1
-from config import configfilelist  # list of configfiles and their timestamps
 
 setproctitle('Console Main')
 
@@ -105,32 +95,52 @@ def handler(signum, frame):
 			logsupport.DevPrint('Watchdog termination')
 			logsupport.Logs.Log("Console received a watchdog termination signal: {} - Exiting(1)".format(signum),
 								tb=True)
-			if config.sysStore.Watchdog_pid != 0: os.kill(config.sysStore.Watchdog_pid, signal.SIGUSR1)
+			if config.sysStore.Watchdog_pid != 0:
+				os.kill(config.sysStore.Watchdog_pid, signal.SIGUSR1)
 		elif not config.Exiting:
 			logsupport.DevPrint('Signal termination {}'.format(signum))
 			logsupport.Logs.Log("Console received termination signal: {} - Exiting(2)".format(signum))
-			if config.sysStore.Watchdog_pid != 0: os.kill(config.sysStore.Watchdog_pid, signal.SIGUSR1)
-			if config.sysStore.Topper_pid != 0: os.kill(config.sysStore.Topper_pid, signal.SIGKILL)
-
+			if config.sysStore.Watchdog_pid != 0:
+				os.kill(config.sysStore.Watchdog_pid, signal.SIGUSR1)
+			if config.sysStore.Topper_pid != 0:
+				os.kill(config.sysStore.Topper_pid, signal.SIGKILL)
+	elif signum == signal.SIGABRT:
+		with open('/home/pi/tombstone', 'a') as tomb:
+			print(f'Abort received - Main {os.getpid()}', file=tomb)
+			print(f'Abort received - Main {os.getpid()}')
+			traceback.print_stack(file=tomb)
+			traceback.print_stack()
+			hw.CleanUp()
+			try:
+				os.kill(config.sysStore.AsyncLogger_pid, signal.SIGABRT)
+			except Exception as E:
+				print(f'Failed to abort logger {E}', file=tomb)
+			try:
+				os.kill(config.sysStore.Watchdog_pid, signal.SIGABRT)
+			except Exception as E:
+				print(f'Failed to abort watchdog {E}', file=tomb)
+			os._exit(98)
 	else:
 		if config.Running:
 			logsupport.Logs.Log("Console received signal {} - Ignoring".format(signum))
 		else:
 			print('Development environment exit')
-			if config.sysStore.Watchdog_pid != 0: os.kill(config.sysStore.Watchdog_pid, signal.SIGUSR1)
-			if config.sysStore.Topper_pid != 0: os.kill(config.sysStore.Topper_pid, signal.SIGKILL)
+			if config.sysStore.Watchdog_pid != 0:
+				os.kill(config.sysStore.Watchdog_pid, signal.SIGUSR1)
+			if config.sysStore.Topper_pid != 0:
+				os.kill(config.sysStore.Topper_pid, signal.SIGKILL)
 			hw.CleanUp()
-			sys.exit(999)
-
+			os._exit(96)
 
 
 signal.signal(signal.SIGTERM, handler)
 signal.signal(signal.SIGINT, handler)
 signal.signal(signal.SIGUSR1, handler)
+signal.signal(signal.SIGABRT, handler)
 
 config.sysStore.SetVal('Console_pid', os.getpid())
 config.sysStore.SetVal('Watchdog_pid', 0)  # gets set for real later but for now make sure the variable exists
-config.sysStore.SetVal('Topper_pid',0)
+config.sysStore.SetVal('Topper_pid', 0)
 os.chdir(config.sysStore.ExecDir)  # make sure we are in the directory we are executing from
 config.sysStore.SetVal('consolestatus', 'started')
 config.sysStore.SetVal('hostname', hw.hostname)
@@ -145,7 +155,7 @@ configdir = os.path.dirname(config.sysStore.configfile)
 config.sysStore.configdir = configdir
 
 # Wait to import/initialize hubs until config info above is set so can use (e.g., HA params)
-import hubs.hubs
+
 import hubs.isy.isy as isy
 import hubs.ha.hasshub as hasshub
 import hubs.missing.missinghub as missinghub
@@ -167,8 +177,10 @@ except (IOError, ValueError):
 	config.sysStore.SetVal('versiondnld', 'none')
 	config.sysStore.SetVal('versioncommit', 'none')
 
-if config.sysStore.versionname == 'development': utilfuncs.isdevsystem = True
-if config.sysStore.versionname == 'homerelease': utilfuncs.ishomesystem = True
+if config.sysStore.versionname == 'development':
+	utilfuncs.isdevsystem = True
+if config.sysStore.versionname == 'homerelease':
+	utilfuncs.ishomesystem = True
 
 try:
 	sys.path.insert(0, '../')  # search for a localops module first in the home dir then one up
@@ -187,8 +199,8 @@ def CO_get(self, key, default, delkey=True):
 		rtn = sectionget(self, key, default)
 		if isinstance(default, bool) and isinstance(rtn, str):
 			rtn = rtn in ('True', 'true', 'TRUE', '1')
-		if isinstance(default,
-					  list):  # todo check this change carefuily.   Cases are [] which is list of strings, [val] which should be list of type(val)
+		if isinstance(default, list):
+			# todo check this change carefuily.   Cases are [] which is list of strings, [val] which should be list of type(val)
 			if len(default) == 0:  # it's a string list
 				if isinstance(rtn, str):
 					rtn = [rtn]
@@ -232,6 +244,7 @@ def CheckForTempConfigVersion(directory, fo):
 			fo = foveride
 	return fo
 
+
 try:
 	utilities.InitializeEnvironment()
 except Exception as E:
@@ -258,7 +271,9 @@ for root, dirs, files in os.walk(config.sysStore.ExecDir):
 
 
 logsupport.Logs.Log(
-	'Version/Sha/Dnld/Commit: {} {} {} {}'.format(config.sysStore.versionname, config.sysStore.versionsha, config.sysStore.versiondnld, config.sysStore.versioncommit))
+	'Version/Sha/Dnld/Commit: {} {} {} {}'.format(config.sysStore.versionname,
+												  config.sysStore.versionsha, config.sysStore.versiondnld,
+												  config.sysStore.versioncommit))
 
 """
 Dynamically load class definitions for all defined screen types, alert types, hubtypes, weather provider types
@@ -351,34 +366,15 @@ while includes:
 		logsupport.Logs.Log("MISSING config file " + f)
 		logsupport.Logs.Log('Excp: {}'.format(repr(E)))
 		configfilelist[f] = 0
-'''
-confserver = '/home/pi/.exconfs/'
-cfgdirserver = confserver + 'cfglib/'
-for f, ftime in configfilelist.items():
-	fl, fb = f.split('/')[-2:]
-	if fl == 'cfglib':
-		try:
-			mt = os.path.getmtime(cfgdirserver + fb)
-			mts = datetime.datetime.fromtimestamp(mt).strftime('%Y-%m-%d %H:%M:%S')
-		except Exception as E:
-			mts = 'None'
-			print('Error getting current library timestamp {}'.format(E))
-	else:
-		try:
-			mt = os.path.getmtime(confserver + fb)
-			mts = datetime.datetime.fromtimestamp(mt).strftime('%Y-%m-%d %H:%M:%S')
-		except Exception as E:
-			mts = 'None'
-			print('Error getting current base timestamp {}'.format(E))
 
-	print('{} of {} vs {} ({})'.format(f,datetime.datetime.fromtimestamp(ftime).strftime('%Y-%m-%d %H:%M:%S'),mts,mt-ftime))
-'''
+
 debug.InitFlags(ParsedConfigFile)
 isy.GetHandledNodeTypes(ParsedConfigFile)
 
 for nm, val in config.sysvals.items():
 	config.sysStore.SetVal([nm], val[0](ParsedConfigFile.get(nm, val[1])))
-	if val[2] is not None: config.sysStore.AddAlert(nm, val[2])
+	if val[2] is not None:
+		config.sysStore.AddAlert(nm, val[2])
 screen.InitScreenParams(ParsedConfigFile)
 
 screens.ScaleScreensInfo()
@@ -425,7 +421,7 @@ if config.sysStore.PersonalSystem:
 	logsupport.Logs.Log("Personal System")
 	logsupport.Logs.Log("Latency Tolerance: {}".format(controlevents.LateTolerance))
 if os.path.exists("../.freezeconfig"):
-	logsupport.Logs.Log('Configuration frozed', severity=ConsoleWarning)
+	logsupport.Logs.Log('Configuration frozen', severity=ConsoleWarning)
 if utilities.previousup > 0:
 	logsupport.Logs.Log("Previous Console Lifetime: ", str(datetime.timedelta(seconds=utilities.previousup)))
 if utilities.lastup > 0:
@@ -504,7 +500,8 @@ for i, v in ParsedConfigFile.items():
 			stype_vers = stype.split('.')
 			stype_base = stype_vers[0]
 			hubvers = 0 if len(stype_vers) == 1 else int(stype_vers[1])
-			if hubtyp == 'ISYDummy': hubvers = -1
+			if hubtyp == 'ISYDummy':
+				hubvers = -1
 			from hubs.hubs import HubInitError
 			if stype_base == hubtyp:
 				# noinspection PyBroadException
@@ -518,17 +515,15 @@ for i, v in ParsedConfigFile.items():
 				except BaseException as e:
 					logsupport.Logs.Log("Fatal console error - fix config file: ", e, severity=ConsoleError, tb=False)
 					tbinfo = traceback.format_exc().splitlines()
-					for l in tbinfo:
-						logsupport.Logs.Log(l)
+					for line in tbinfo:
+						logsupport.Logs.Log(line)
 					exitutils.Exit(exitutils.ERRORDIE, immediate=True)  # shutdown and don't try restart
 				del ParsedConfigFile[i]
-
-from stores import genericweatherstore
 
 for i, v in ParsedConfigFile.items():
 	if isinstance(v, Section):
 		# noinspection PyArgumentList
-		stype = v.get('type', '', delkey=False)  #todo check no type param
+		stype = v.get('type', '', delkey=False)  # todo check no type param
 		loccode = '*unset*'
 		for wptyp, info in WeathProvs.items():
 			if stype == wptyp:
@@ -625,21 +620,21 @@ try:
 		with open('/home/pi/Console/helpfile.txt', 'w') as hf:
 			print('System Parameters', file=hf)
 			print('-----------------', file=hf)
-			for I, v in config.sysvals.items():
-				print('  {} (default: {})'.format(I, v[1]), file=hf)
+			for Itm, v in config.sysvals.items():
+				print('  {} (default: {})'.format(Itm, v[1]), file=hf)
 			print(' ', file=hf)
 			print('General Screen Parameters:', file=hf)
 			print('--------------------------', file=hf)
-			for I, v in screen.ScreenParams.items():
-				print('  {} (default: {})'.format(I, v), file=hf)
+			for Itm, v in screen.ScreenParams.items():
+				print('  {} (default: {})'.format(Itm, v), file=hf)
 			print(' ')
 			print('Key Parameters:', file=hf)
 			print('---------------', file=hf)
-			for I, params in config.ItemTypes.items():
-				if I in ('SliderScreen', 'ManualKeyDesc', 'VerifyScreen', 'ListChooserSubScreen', 'PagedDisplay',
-						 'StatusDisplayScreen',
-						 'ShowVersScreen', 'MaintScreenDesc', 'ScreenDesc'): continue
-				print('Key: {}'.format(I), file=hf)
+			for Itm, params in config.ItemTypes.items():
+				if Itm in ('SliderScreen', 'ManualKeyDesc', 'VerifyScreen', 'ListChooserSubScreen', 'PagedDisplay',
+						   'StatusDisplayScreen', 'ShowVersScreen', 'MaintScreenDesc', 'ScreenDesc'):
+					continue
+				print('Key: {}'.format(Itm), file=hf)
 				for n in params:
 					print('     {}'.format(n), file=hf)
 # utilities.DumpDocumentation()

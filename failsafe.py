@@ -4,6 +4,7 @@ import signal
 import time
 import atexit
 import threading
+import traceback
 
 from setproctitle import setproctitle
 
@@ -62,7 +63,14 @@ def NoEventInjector():
 # noinspection PyProtectedMember,PyUnusedLocal
 def EndWatchDog(signum, frame):
 	DevPrint('Watchdog ending on shutdown {}'.format(signum))
-	os._exit(0)
+	os._exit(94)
+
+
+def AbortWatchDog(signum, frame):
+	with open('/home/pi/tombstoneW', 'a') as tomb:
+		print(f'Watchdog {os.getpid()} exiting for signal {signum}', file=tomb, flush=True)
+		traceback.print_stack(file=tomb)
+	os._exit(93)
 
 
 # noinspection PyProtectedMember
@@ -113,6 +121,7 @@ def MasterWatchDog():
 	signal.signal(signal.SIGINT, EndWatchDog)
 	signal.signal(signal.SIGUSR1, EndWatchDog)
 	signal.signal(signal.SIGHUP, IgnoreHUP)
+	signal.signal(signal.SIGABRT, AbortWatchDog)
 
 	# failsafehooks.hook()
 	atexit.register(failsafedeath)
