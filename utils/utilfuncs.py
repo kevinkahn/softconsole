@@ -8,10 +8,10 @@ import webcolors
 import importlib, os
 
 
-def importmodules(directory: str):
+def importmodules(dirname: str):
 	# dir of form relative path name
 	importlist = {}
-	path = directory.split('/')
+	path = dirname.split('/')
 	if path[0] == '':
 		del path[0]
 	pypath = '.'.join(path) + '.'
@@ -21,8 +21,10 @@ def importmodules(directory: str):
 		if '__' not in modulename:
 			splitname = os.path.splitext(modulename)
 			if splitname[1] == '.py':
-				# print('import {}{} using {}'.format(pypath, splitname[0], modulename))
-				importlist[splitname[0]] = importlib.import_module(pypath + splitname[0])
+				try:
+					importlist[splitname[0]] = importlib.import_module(pypath + splitname[0])
+				except Exception as E:
+					print(f'Import error: {E} on {pypath + splitname[0]}')
 	return importlist
 
 

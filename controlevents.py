@@ -14,8 +14,10 @@ import logsupport
 # noinspection PyArgumentList
 
 CEvent = Enum('ConsoleEvent',
-			  'FailSafePing ACTIVITYTIMER HubNodeChange ISYAlert ISYVar GeneralRepaint RunProc SchedEvent'
+			  'FailSafePing ACTIVITYTIMER HubNodeChange ISYAlert ISYVar GeneralRepaint RunProc SchedEvent '
 			  'MouseDown MouseUp MouseMotion MouseIdle')
+
+# todo why CEvent which locks down events but actual event code gets dynamically loaded?
 
 ConsoleOpsQueue = queue.Queue()  # master sequencer
 

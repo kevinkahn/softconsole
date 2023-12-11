@@ -291,7 +291,7 @@ def DoPygameOps():
 			FromPygame[callparms[0][0]].put((callparms[0], res))
 
 	except Exception as E:
-		print('Pygame Thread excetion {}'.format(E))
+		print('Pygame Thread exception {}'.format(E))
 
 
 PyGameExec = threading.Thread(target=DoPygameOps, name='PyGame call thread', daemon=True)
