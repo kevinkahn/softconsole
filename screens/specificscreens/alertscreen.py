@@ -64,8 +64,9 @@ class AlertsScreenDesc(screen.ScreenDesc):
 		self.timetoclear = 0
 
 		self.Keys = {'defer': toucharea.ManualKeyDesc(self, 'defer', ['Defer'], self.KeyColor, self.KeyCharColorOn,
-													  self.KeyCharColorOff, center=(
-			hw.screenwidth / 2, self.TopBorder + self.messageareaheight + 0.5 * alertbutheight),
+													  self.KeyCharColorOff,
+													  center=(hw.screenwidth / 2,
+															  self.TopBorder + self.messageareaheight + 0.5 * alertbutheight),
 													  size=(hw.screenwidth - 2 * self.HorizBorder, alertbutheight),
 													  proc=self.DeferAction)}
 

@@ -19,7 +19,7 @@ their mappings should they do it entirely inside their instance or use the mapin
 toward the former since no real reason to store the map in the store and it is only used to populate the store
 on a refresh 
 icon/icon cache - should different sources have different caches?
-  Different icons if multiple sources happen to get used?
+Different icons if multiple sources happen to get used?
 """
 
 CondFields = (('Time', str), ('Location', str), ('Temp', float), ('Sky', str), ('Feels', float), ('WindDir', str),

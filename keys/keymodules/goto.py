@@ -14,7 +14,7 @@ class GoToKey(ManualKeyDesc):
 	def __init__(self, thisscreen, keysection, keyname):
 		debug.debugPrint('Screen', "             New GoTo Key ", keyname)
 		if 'Verify' in keysection:
-			logsupport.Logs.Log('Verify not allowed for GoTo Key {} on {}'.format(keyname,thisscreen.name))
+			logsupport.Logs.Log('Verify not allowed for GoTo Key {} on {}'.format(keyname, thisscreen.name))
 			del keysection['Verify']
 		ManualKeyDesc.__init__(self, thisscreen, keysection, keyname)
 		screen.AddUndefaultedParams(self, keysection, ScreenName='**unspecified**')

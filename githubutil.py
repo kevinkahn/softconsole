@@ -96,7 +96,7 @@ def InstallStagedVersion(d, Bookworm=False):
 	os.chmod('runconsole.py', 0o555)
 	os.chmod('console.py', 0o555)
 
-	print('DO cp -f ' + 'scripts/softconsole.service /usr/lib/systemd/system', file=logf)
+	print('Copy softconsole.service file', file=logf)
 	suc = subprocess.call('sudo cp -f scripts/softconsole.service /usr/lib/systemd/system', shell=True)
 	print('Service copy result: []', format(suc), file=logf)
 	suc = subprocess.call('sudo systemctl daemon-reload', shell=True)

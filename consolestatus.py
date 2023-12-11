@@ -59,9 +59,9 @@ def SetUpConsoleStatus():
 		ShowHW = ShowVersScreen(True)
 		ShowVers = ShowVersScreen(False)
 		Status = MaintScreenDesc('Network Console Control',
-								 OrderedDict([('curstat', (
-									 'Networked Console Status',
-									 functools.partial(screen.PushToScreen, StatusDisp, 'Maint'))),
+								 OrderedDict([('curstat', ('Networked Console Status',
+														   functools.partial(screen.PushToScreen, StatusDisp,
+																			 'Maint'))),
 											  ('hw', ('Console Hardware/OS',
 													  functools.partial(screen.PushToScreen, ShowHW, 'Maint'))),
 											  ('versions', ('Console Versions',
@@ -381,11 +381,13 @@ def ReportStatus(status, retain=True, hold=0):
 
 	if logsupport.primaryBroker is not None:
 		stattoreport = {'stats': stats.GetReportables()[1]}
+		# rereport this because on powerup first NTP update can be after console starts
 		stattoreport.update({'status': status if heldstatus == '' else heldstatus,
 							 "uptime": time.time() - config.sysStore.ConsoleStartTime,
 							 "error": config.sysStore.ErrorNotice, 'rpttime': time.time(),
 							 "FirstUnseenErrorTime": config.sysStore.FirstUnseenErrorTime,
-							 'boottime': hw.boottime})  # rereport this because on powerup first NTP update can be after console starts
+							 'boottime': hw.boottime})
+
 		stat = json.dumps(stattoreport)
 
 		logsupport.primaryBroker.Publish(node=hw.hostname, topic='status', payload=stat, retain=retain, qos=1,

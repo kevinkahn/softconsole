@@ -66,7 +66,9 @@ class Alert(object):
 		tname = '*no timer*'
 		if self.timer is not None:
 			tname = self.timer.name
-		return f'{self.name}:{self.type} Alert({self.state}) Trigger: {repr(self.trigger)} \n  Invoke: {targtype}:{self.actionname} Target:{str(self.actiontarget)}\n  Params: {self.param}\n  Timer: {tname}'
+		return f'{self.name}:{self.type} Alert({self.state}) Trigger: {repr(self.trigger)} \n' \
+			   f' Invoke: {targtype}:{self.actionname} Target:{str(self.actiontarget)}\n' \
+			   f' Params: {self.param}\n  Timer: {tname}'
 
 
 def ArmAlerts():

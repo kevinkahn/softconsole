@@ -88,8 +88,8 @@ def Exit(ecode, immediate=False):
 	logsupport.Logs.Log("Console was up: ", interval_str(consoleup))
 	with open("{}/.RelLog".format(config.sysStore.HomeDir), "a") as f:
 		print(
-			f"  --->  At {datetime.fromtimestamp(config.sysStore.ConsoleStartTime).strftime('%c')} Exit code {ecode} was up {interval_str(consoleup)}",
-			file=f)
+			f"  --->  At {datetime.fromtimestamp(config.sysStore.ConsoleStartTime).strftime('%c')}"
+			f" Exit code {ecode} was up {interval_str(consoleup)}", file=f)
 	os.chdir(config.sysStore.ExecDir)  # set cwd to be correct when dirs move underneath us so that scripts execute
 	logsupport.Logs.Log("Console Exiting - Ecode: " + str(ecode))
 	if config.sysStore.Watchdog_pid != 0:

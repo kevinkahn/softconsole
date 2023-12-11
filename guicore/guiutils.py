@@ -66,7 +66,8 @@ def CycleStats():
 				else:
 					loglist(i, tab=tab + '    ')
 
-		for r in rpt: loglist(r)
+		for r in rpt:
+			loglist(r)
 
 	if time.time() - ckperf > 900:  # every 15 minutes
 		ckperf = time.time()
