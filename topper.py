@@ -38,16 +38,16 @@ def dotops():
 	signal.signal(signal.SIGHUP, IgnoreHUP)
 	while True:
 		try:
-			#os.system('date >> /home/pi/Console/wlan')
-			#os.system('iwconfig wlan0 >> /home/pi/Console/wlan')
+			# os.system('date >> /home/pi/Console/wlan')
+			# os.system('iwconfig wlan0 >> /home/pi/Console/wlan')
 			os.system('top -bn1 > '+topdir+'/Current/{:08d}'.format(topseq))
 			if topseq - 30 >= 0:
 				# noinspection PyBroadException
 				try:
 					os.remove(topdir + '/Current/{:08d}'.format(topseq - 30))
-				except:
+				except Exception:
 					pass
-			topseq +=1
+			topseq += 1
 		except Exception as E:
 			print('topper exception: {}'.format(E))
 		time.sleep(1)

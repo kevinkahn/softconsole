@@ -28,9 +28,9 @@ class Light(HAnode):
 			'brightness'] is not None:
 			safeprint('{} Update {}->{}'.format(time.strftime('%m-%d-%y %H:%M:%S', time.localtime()), oldbright,
 												self.attributes['brightness']))
-			if self.attributes['brightness'] < 25: safeprint(
-				'{} Update {} {} {}->{}'.format(time.strftime('%m-%d-%y %H:%M:%S', time.localtime()), self.name,
-												self.state, oldbright, self.attributes['brightness']))
+			if self.attributes['brightness'] < 25:
+				safeprint(f"{time.strftime('%m-%d-%y %H:%M:%S', time.localtime())} Update {self.name}"
+						  f" {self.state} {oldbright}->{self.attributes['brightness']}")
 		if 'brightness' in self.attributes and self.attributes['brightness'] is not None:
 			self.internalstate = self._NormalizeState(self.state, int(self.attributes['brightness']))
 
@@ -55,7 +55,7 @@ class Light(HAnode):
 
 	def GetBrightness(self):
 		if 'brightness' in self.attributes and self.attributes['brightness'] is not None:
-			t = 100 * (self.attributes['brightness'] / 255) if self.pctatidle == -1 else self.pctatidle
+			# t = 100 * (self.attributes['brightness'] / 255) if self.pctatidle == -1 else self.pctatidle
 			# if t < 5: safeprint('GetBright: {} {} {}'.format(self.name, t, self.pctatidle))
 			return 100 * (self.attributes['brightness'] / 255) if self.pctatidle == -1 else self.pctatidle
 		else:
@@ -67,7 +67,8 @@ class Light(HAnode):
 		if now - self.lastsendtime > 1 or final:
 			self.lastsendtime = now
 			try:
-				if brightpct < 5: safeprint('SendOnPct {} {}'.format(self.name, brightpct))
+				if brightpct < 5:
+					safeprint('SendOnPct {} {}'.format(self.name, brightpct))
 				if brightpct == 0:
 					safeprint('Send -> Turn Off')
 					ha.call_service(self.Hub.api, 'light', 'turn_off', {'entity_id': '{}'.format(self.entity_id)})
@@ -81,7 +82,8 @@ class Light(HAnode):
 
 	def IdleSend(self):
 		try:
-			if self.pctatidle < 5: safeprint('IdleSend {} {}'.format(self.name, self.pctatidle))
+			if self.pctatidle < 5:
+				safeprint('IdleSend {} {}'.format(self.name, self.pctatidle))
 			if self.pctatidle == 0:
 				safeprint('Send -> Turn Off ({})'.format(self.name))
 				ha.call_service(self.Hub.api, 'light', 'turn_off', {'entity_id': '{}'.format(self.entity_id)})

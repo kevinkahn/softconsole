@@ -301,8 +301,7 @@ def _safe_repr(obj, context, maxlevels, level):
 		del context[objid]
 		return pref + "{%s}" % _commajoin(components), readable, recursive
 
-	if (issubclass(typ, list) and r is list.__repr__) or \
-			(issubclass(typ, tuple) and r is tuple.__repr__):
+	if (issubclass(typ, list) and r is list.__repr__) or (issubclass(typ, tuple) and r is tuple.__repr__):
 		if issubclass(typ, list):
 			if not obj:
 				return "[]", True, False

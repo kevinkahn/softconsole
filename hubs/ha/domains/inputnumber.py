@@ -3,6 +3,7 @@ from hubs.ha import haremote as ha
 import logsupport
 from logsupport import ConsoleWarning
 
+
 class Input_Number(HAnode):  # not stateful since it updates directly to store value
 	def SetMinMax(self):
 		if 'min' in self.attributes:
@@ -59,7 +60,7 @@ class Input_Number(HAnode):  # not stateful since it updates directly to store v
 		except Exception as E:
 			logsupport.Logs.Log('Input_number update error: State: {}  Exc:{}'.format(repr(ns), repr(E)))
 			self.state = 'unknown'
-	#self.DisplayStuff('update2', True)
+# self.DisplayStuff('update2', True)
 
 
 RegisterDomain('input_number', Input_Number)

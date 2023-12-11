@@ -83,7 +83,8 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 		super().ReInitDisplay()
 
 	def ScreenContentRepaint(self):
-		if not self.Active: return  # handle race condition where repaint queued just before switch
+		if not self.Active:
+			return  # handle race condition where repaint queued just before switch
 		h = 0
 		renderedforecast = []
 		sizeindex = 0
@@ -95,23 +96,23 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 			renderedtime.append(fonts.fonts.Font(self.ClockSize, self.Font).render(
 				time.strftime(self.TimeFormat[i]), 0, wc(self.CharColor)))
 			h = h + renderedtime[-1].get_height()
-			if renderedtime[-1].get_width() > tw: tw = renderedtime[-1].get_width()
+			if renderedtime[-1].get_width() > tw:
+				tw = renderedtime[-1].get_width()
 			sizeindex += 1
 		renderedtimelabel.append(pg.Surface((tw, h)))
 		renderedtimelabel[-1].set_colorkey(wc('black'))
 		v = 0
-		for l in renderedtime:
-			renderedtimelabel[0].blit(l, (((tw - l.get_width()) / 2), v))
-			v = v + l.get_height()
+		for line in renderedtime:
+			renderedtimelabel[0].blit(line, (((tw - line.get_width()) / 2), v))
+			v = v + line.get_height()
 		spaces = 1
 
 		if self.LocationSize != 0:
 			t1 = fonts.fonts.Font(self.LocationSize, self.Font)
 			t2 = t1.render(fmt.format("{d}", d=self.scrlabel), 0, wc(self.CharColor))
 			renderedtimelabel.append(t2)
-			# renderedtimelabel.append(
-			#	fonts.fonts.Font(self.LocationSize, self.Font).render(
-			#		fmt.format("{d}", d=self.scrlabel), 0, wc(self.CharColor)))
+			# renderedtimelabel.append(fonts.fonts.Font(self.LocationSize, self.Font).render(
+			# fmt.format("{d}", d=self.scrlabel), 0, wc(self.CharColor)))
 			h = h + renderedtimelabel[-1].get_height()
 			spaces += 1
 		sizeindex += 1
@@ -131,9 +132,9 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 				horiz_off = (hw.screenwidth - tmlbl.get_width()) / 2
 				hw.screen.blit(tmlbl, (horiz_off, vert_off))
 				vert_off = vert_off + 20 + tmlbl.get_height()
-			for l in renderedlines:
-				hw.screen.blit(l, ((hw.screenwidth - l.get_width()) / 2, vert_off))
-				vert_off += l.get_height()
+			for line in renderedlines:
+				hw.screen.blit(line, ((hw.screenwidth - line.get_width()) / 2, vert_off))
+				vert_off += line.get_height()
 		else:
 			cb = CreateWeathBlock(self.ConditionFormat, self.DecodedCondFields, self.Font,
 								  self.CondSize, self.CharColor, self.condicon,
@@ -159,10 +160,11 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 									  self.FcstLayout == 'LineCentered', day=dy + self.SkipDays,
 									  maxiconsize=maxfcsticon, maxhorizwidth=screenmaxfcstwidth)
 				renderedforecast.append(fb)
-				if fb.get_width() > maxfcstwidth: maxfcstwidth = fb.get_width()
-				if fb.get_height() > maxfcstheight: maxfcstheight = fb.get_height()
+				if fb.get_width() > maxfcstwidth:
+					maxfcstwidth = fb.get_width()
+				if fb.get_height() > maxfcstheight:
+					maxfcstheight = fb.get_height()
 				forecastlines += 1
-
 
 			if self.FcstLayout in ('2ColVert', '2ColHoriz'):
 				h = h + maxfcstheight * ((self.ForecastDays + 1) // 2)
@@ -205,11 +207,13 @@ class TimeTempScreenDesc(screen.ScreenDesc):
 					h_off = (usewidth - fcst.get_width()) // 2
 				else:
 					vert_off = vert_off + s + fcstvert
-				if v_off > maxvert: maxvert = v_off
+				if v_off > maxvert:
+					maxvert = v_off
 				hw.screen.blit(fcst, (h_off, v_off))
 
-			if self.FcstLayout == '2ColVert': pg.draw.line(hw.screen, wc('white'),
-														   (usewidth, startvert + fcstvert // 3),
-														   (usewidth, maxvert + 2 * fcstvert / 3))
+			if self.FcstLayout == '2ColVert':
+				pg.draw.line(hw.screen, wc('white'), (usewidth, startvert + fcstvert // 3),
+							 (usewidth, maxvert + 2 * fcstvert / 3))
+
 
 screens.screentypes["TimeTemp"] = TimeTempScreenDesc

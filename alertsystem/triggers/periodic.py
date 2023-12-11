@@ -60,7 +60,8 @@ def Parse(nm, spec, action, actionname, param):
 			logsupport.Logs.Log("Periodic trigger cannot specify both interval and time(s): ", nm,
 								severity=logsupport.ConsoleWarning)
 			return None
-		if isinstance(at, str): at = [at]
+		if isinstance(at, str):
+			at = [at]
 		for t in at:
 			tm = parse(t, ignoretz=True)
 			secfrommid.append(tm.hour * 3600 + tm.minute * 60 + tm.second)

@@ -11,6 +11,7 @@ KeyTypes = {}
 
 utilfuncs.importmodules('keys/keymodules')
 
+
 # noinspection PyUnusedLocal
 def KeyWithVarChanged(storeitem, old, new, param, modifier):
 	debug.debugPrint('DaemonCtl', 'Var changed for key ', storeitem.name, ' from ', old, ' to ', new)

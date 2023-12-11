@@ -23,9 +23,8 @@ class Input_Boolean(HAnode):  # not stateful since it updates directly to store 
 								severity=ConsoleWarning)
 
 	def Update(self, **ns):
-		# super(Sensor,self).Update(**ns)
-		#		self.DisplayStuff('update')
-		if 'attributes' in ns: self.attributes = ns['attributes']
+		if 'attributes' in ns:
+			self.attributes = ns['attributes']
 		try:
 			if 'state' in ns:
 				if ns['state'] in ('', 'unknown', 'None', 'unavailable'):

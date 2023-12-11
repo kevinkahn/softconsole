@@ -13,9 +13,10 @@ class Sensor(HAnode):  # not stateful since it updates directly to store value
 			'Initialize attr store for sensor {} as {}'.format(self.entity_id, stringtonumeric(self.state)),
 			severity=logsupport.ConsoleDetail)
 		self.Hub.attrstore.SetVal(self.entity_id, stringtonumeric(self.state))
-		self.missinglast = 'Explicit' if self.state in (
-		'Xunknown', 'Xunavailable') else 'No'  # if unknown assume really not there (like pool stuff) options:
-		if self.missinglast == 'Explicit': safeprint('Unavailable: {}'.format(self.entity_id))
+		self.missinglast = 'Explicit' if self.state in ('Xunknown', 'Xunavailable') \
+			else 'No'  # if unknown assume really not there (like pool stuff) options:
+		if self.missinglast == 'Explicit':
+			safeprint('Unavailable: {}'.format(self.entity_id))
 		# 'No', 'Explicit', 'Implied', 'ExplictOnly':only set unavail on explicit report
 		self.gone = 0
 
@@ -24,7 +25,8 @@ class Sensor(HAnode):  # not stateful since it updates directly to store value
 
 	def Update(self, **ns):
 		# super(Sensor,self).Update(**ns)
-		if 'attributes' in ns: self.attributes = ns['attributes']
+		if 'attributes' in ns:
+			self.attributes = ns['attributes']
 		try:
 			if 'state' in ns:
 				try:
@@ -46,7 +48,7 @@ class Sensor(HAnode):  # not stateful since it updates directly to store value
 							pass  # safeprint('    Intermittent device {}  {}'.format(device, self.Hub.DevGoneCount(device)))
 						else:
 							# todo safeprint(
-							#	'    Gone from Hub: {} {} from {} {}'.format(self.Hub.name, self.entity_id, device, ns))
+							# '    Gone from Hub: {} {} from {} {}'.format(self.Hub.name, self.entity_id, device, ns))
 							logsupport.Logs.Log(
 								'Sensor data missing for {} value: {}, Device {} offline'.format(ns['entity_id'],
 																								 ns['state'], device),
@@ -58,8 +60,7 @@ class Sensor(HAnode):  # not stateful since it updates directly to store value
 									nd.missinglast = 'Implied'
 									if self.Hub.DevGoneCount(device) > 2:
 										pass  # safeprint('    Intermittent device {} {} {}'.format(device, ent,
-									#											self.Hub.DevGoneCount(
-									#												device)))
+									# self.Hub.DevGoneCount(device)))
 									else:
 										pass  # safeprint('    Imply {} from {}'.format(ent, device))
 
@@ -76,8 +77,7 @@ class Sensor(HAnode):  # not stateful since it updates directly to store value
 					if self.missinglast == 'Implied':
 						self.missinglast = 'No-ExplicitOnly'
 					# todo safeprint(
-					#	'Not whole device {} Ent: {} {}'.format(self.Hub.EntToDev[self.entity_id], self.entity_id,
-					#											ns))
+					# 'Not whole device {} Ent: {} {}'.format(self.Hub.EntToDev[self.entity_id], self.entity_id, ns))
 					elif self.missinglast in ('Explicit', 'ExplicitOnly'):
 						if self.Hub.DevGoneCount(device) < 3:
 							logsupport.Logs.Log(
@@ -87,7 +87,7 @@ class Sensor(HAnode):  # not stateful since it updates directly to store value
 																								   self.entity_id]),
 								severity=logsupport.ConsoleDetail)
 						# todo safeprint('Back: {} after {} Device {} {}'.format(self.entity_id, time.time() - self.gone,
-						#												  self.Hub.EntToDev[self.entity_id], ns))
+						# self.Hub.EntToDev[self.entity_id], ns))
 						self.missinglast = 'No' if self.missinglast == 'Explicit' else 'No-ExplicitOnly'
 					elif self.missinglast == 'No-ExplicitOnly':
 						# safeprint('Odd item {} state {} {}'.format(self.entity_id,self.missinglast, ns))

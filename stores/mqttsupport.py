@@ -73,14 +73,12 @@ class MQTTBroker(valuestore.ValueStore):
 			self.discon.Op()
 
 		# noinspection PyUnusedLocal
-
-
-		# noinspection PyUnusedLocal
 		def on_message(client, userdata, msg):
 			msgtopic = msg.topic
 			try:
 				self.rcvd.Op()
-				# command to force get: mosquitto_pub -t consoles/all/cmd -m getstable;  mosquitto_pub -t consoles/all/cmd -m restart
+				# command to force get:
+				# mosquitto_pub -t consoles/all/cmd -m getstable;  mosquitto_pub -t consoles/all/cmd -m restart
 				loopstart = time.time()
 				var = []
 				for t, item in userdata.topicindex.items():
@@ -208,7 +206,8 @@ class MQTTBroker(valuestore.ValueStore):
 					tpcvrt = str
 				thistopic = sect.get('Topic', nm[-1])
 				jsonflds = sect.get('json', '')
-				if jsonflds: jsonflds = jsonflds.split(':')
+				if jsonflds:
+					jsonflds = jsonflds.split(':')
 				tpc = (prefix + '/' + thistopic).lstrip('/')
 				rtn = MQitem(nm, tpc, tpcvrt, int(sect.get('Expires', 99999999999999999)), jsonflds, self)
 				if tpc in self.topicindex:
@@ -317,7 +316,8 @@ class MQTTBroker(valuestore.ValueStore):
 		self.Publish('resp', payld, node=fromnd)
 
 	def Publish(self, topic, payload=None, node=hw.hostname, qos=1, retain=False, viasvr=False):
-		if self.MQTTCommFailed: return
+		if self.MQTTCommFailed:
+			return
 		self.sent.Op()
 		fulltopic = 'consoles/' + node + '/' + topic
 		if self.MQTTrunning:
@@ -337,6 +337,7 @@ class MQTTBroker(valuestore.ValueStore):
 					self.MQTTCommFailed = True
 					logsupport.Logs.Log("MQTT single publish error ({})".format(repr(E)), severity=ConsoleError,
 										localonly=True)
+
 	# noinspection PyUnusedLocal
 	def PushToMQTT(self, storeitem, old, new, param, modifier):
 		self.Publish('/'.join(storeitem.name), str(new))

@@ -23,12 +23,6 @@ class NetworkHealth(object):
 			try:
 				subprocess.check_output(cmd, shell=True, universal_newlines=True, stderr=subprocess.STDOUT).splitlines()
 				ok = True
-				# for l in pingresult:
-				#	logsupport.LoggerQueue.put((logsupport.Command.FileWrite,'/home/pi/Console/.HistoryBuffer/hlog', 'a', 'Good ping: {}\n'.format(l)))
-				# wlanq = subprocess.check_output('iwconfig wlan0', shell=True, universal_newlines=True,
-				#								stderr=subprocess.STDOUT).splitlines()
-				# for l in wlanq:
-				#	logsupport.LoggerQueue.put((logsupport.Command.FileWrite,'/home/pi/Console/.HistoryBuffer/hlog', 'a', 'WLAN     : {}\n'.format(l)))
 				break
 			except subprocess.CalledProcessError as Res:
 				logsupport.DevPrint('Net Health Ping Error:')
@@ -37,17 +31,17 @@ class NetworkHealth(object):
 						logsupport.Command.FileWrite, '/home/pi/Console/.HistoryBuffer/hlog', 'a',
 						'Bad ping: {}\n'.format(Res.returncode)))
 				pingresult = Res.output.splitlines()
-				for l in pingresult:
+				for line in pingresult:
 					logsupport.LoggerQueue.put(
 						(logsupport.Command.FileWrite, '/home/pi/Console/.HistoryBuffer/hlog', 'a',
-						 'Bad ping: {}\n'.format(l)))
+						 'Bad ping: {}\n'.format(line)))
 				try:
 					wlanq = subprocess.check_output('iwconfig wlan0', shell=True, universal_newlines=True,
 													stderr=subprocess.STDOUT).splitlines()
-					for l in wlanq:
+					for line in wlanq:
 						logsupport.LoggerQueue.put(
 							(logsupport.Command.FileWrite, '/home/pi/Console/.HistoryBuffer/hlog', 'a',
-							 'WLAN    : {}\n'.format(l)))
+							 'WLAN    : {}\n'.format(line)))
 				except Exception as E:
 					logsupport.LoggerQueue.put(
 						(logsupport.Command.FileWrite, '/home/pi/Console/.HistoryBuffer/hlog', 'a',

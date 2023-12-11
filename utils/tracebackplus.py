@@ -233,7 +233,7 @@ class Hook:
 
 		try:
 			doc = formatter(info, self.context)
-		except:  # just in case something goes wrong
+		except Exception:  # just in case something goes wrong
 			doc = ''.join(traceback.format_exception(*info))
 
 		self.file.write(doc + '\n')
@@ -246,14 +246,14 @@ class Hook:
 				with os.fdopen(fd, 'w') as file:
 					file.write(doc)
 				msg = '%s contains the description of this error.' % path
-			except:
+			except Exception:
 				msg = 'Tried to save traceback to %s, but failed.' % path
 
 			self.file.write(msg + '\n')
 
 		try:
 			self.file.flush()
-		except:
+		except Exception:
 			pass
 
 

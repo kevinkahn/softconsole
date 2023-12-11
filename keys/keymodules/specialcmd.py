@@ -6,6 +6,7 @@ from keys.keyspecs import KeyTypes
 from keyspecs.toucharea import ManualKeyDesc
 import hubs.hubs
 
+
 class SpecCmd(ManualKeyDesc):
 	def __init__(self, thisscreen, keysection, keyname):
 		debug.debugPrint('Screen', "             New SpecCmd Key ", keyname)
@@ -59,7 +60,6 @@ class SpecCmd(ManualKeyDesc):
 			self.Proc = self.CmdKeyPressed
 			self.ProcDblTap = self.CmdKeyDblPressed
 
-
 	def GetSliderVal(self):
 		return self.entity
 
@@ -67,8 +67,10 @@ class SpecCmd(ManualKeyDesc):
 		if final:
 			temp = {list(self.sliderparam.keys())[0]: int(val)}
 			self.node.SendSpecialCmd(self.SliderCommand, self.target, temp)
+
 	def CmdKeyPressed(self):
-		if self.FastPress: return
+		if self.FastPress:
+			return
 		self.node.SendSpecialCmd(self.Command, self.target, self.param)
 		self.ScheduleBlinkKey(self.Blink)
 

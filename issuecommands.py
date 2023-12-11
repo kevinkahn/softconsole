@@ -158,11 +158,13 @@ def UnfreezeConfig(params=None, Key=None):
 	subprocess.Popen('rm /home/pi/.freezeconfig', shell=True)
 	CommandResp(Key, 'ok', params, None)
 
+
 def DumpHB(params=None, Key=None):
 	TempCheckSanity(Key, params)
 	entrytime = time.strftime('%m-%d-%y %H:%M:%S')
 	historybuffer.DumpAll('Command Dump', entrytime)
 	CommandResp(Key, 'ok', params, None)
+
 
 def EchoStat(params=None, Key=None):
 	TempCheckSanity(Key, params)
@@ -201,8 +203,8 @@ def GetVar(params=None, Key=None):
 	try:
 		p = json.loads(params[3])
 		assert (type(p) == dict)
-	except:
-		logsupport.Logs.Log('Non-dict paramater to remote GetVar command: {}'.format(params), severity=ConsoleWarning)
+	except Exception as E:
+		logsupport.Logs.Log(f'Non-dict paramater to remote GetVar command: {params} ({E}', severity=ConsoleWarning)
 		return
 	resp = {}
 	for v, val in p.items():
@@ -210,8 +212,8 @@ def GetVar(params=None, Key=None):
 			val = valuestore.GetVal(v)
 			logsupport.Logs.Log('Remote get of {} to {}'.format(v, val))
 			resp[v] = val
-		except:
-			logsupport.Logs.Log('Bad store attempt in remote SetVar command: {}={}'.format(v, val),
+		except Exception as E:
+			logsupport.Logs.Log(f'Bad store attempt in remote SetVar command: {v}={val} ({E}',
 								severity=ConsoleWarning)
 	CommandResp(Key, 'ok', params, resp)
 
@@ -224,15 +226,15 @@ def SetVar(params=None):
 	try:
 		p = json.loads(params[3])
 		assert (type(p) == dict)
-	except:
-		logsupport.Logs.Log('Non-dict paramater to remote SetVar command: {}'.format(params), severity=ConsoleWarning)
+	except Exception as E:
+		logsupport.Logs.Log(f'Non-dict paramater to remote SetVar command: {params} ({E})', severity=ConsoleWarning)
 		raise
 	for v, val in p.items():
 		try:
 			valuestore.SetVal(v, val)
 			logsupport.Logs.Log('Remote set of {} to {}'.format(v, val))
-		except:
-			logsupport.Logs.Log('Bad store attempt in remote SetVar command: {}={}'.format(v, val),
+		except Exception as E:
+			logsupport.Logs.Log(f'Bad store attempt in remote SetVar command: {v}={val} ({E})',
 								severity=ConsoleWarning)
 
 
@@ -359,8 +361,8 @@ def fetch_stable():
 			U.StageVersion(basedir + '/consolestable', 'currentrelease', 'Maint Dnld')
 		U.InstallStagedVersion(basedir + '/consolestable')
 		logsupport.Logs.Log("Staged version installed in consolestable")
-	except:
-		logsupport.Logs.Log('Failed release download', severity=ConsoleWarning)
+	except Exception as E:
+		logsupport.Logs.Log(f'Failed release download ({E})', severity=ConsoleWarning)
 	ReportStatus("done stable", hold=2)
 
 
@@ -373,8 +375,8 @@ def fetch_beta():
 		U.StageVersion(basedir + '/consolebeta', 'currentbeta', 'Maint Dnld')
 		U.InstallStagedVersion(basedir + '/consolebeta')
 		logsupport.Logs.Log("Staged version installed in consolebeta")
-	except:
-		logsupport.Logs.Log('Failed beta download', severity=ConsoleWarning)
+	except Exception as E:
+		logsupport.Logs.Log(f'Failed beta download ({E})', severity=ConsoleWarning)
 	ReportStatus("done beta", hold=2)
 
 
@@ -387,6 +389,6 @@ def fetch_dev():
 		U.StageVersion(basedir + '/consoledev', '*live*', 'Maint Dnld')
 		U.InstallStagedVersion(basedir + '/consoledev')
 		logsupport.Logs.Log("Staged version installed in consoledev")
-	except:
-		logsupport.Logs.Log('Failed dev download', severity=ConsoleWarning)
+	except Exception as E:
+		logsupport.Logs.Log(f'Failed dev download ({E})', severity=ConsoleWarning)
 	ReportStatus("done dev", hold=2)

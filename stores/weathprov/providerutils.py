@@ -67,7 +67,8 @@ def TryShorten(term):
 			if word.lower() in GenericShortener:
 				chg = True
 				phrase[i] = GenericShortener[word.lower()]
-				if word[0].isupper(): phrase[i] = phrase[i].capitalize()
+				if word[0].isupper():
+					phrase[i] = phrase[i].capitalize()
 		if chg:  # todo clean up reporting
 			newterm = ' '.join(phrase)
 			for punc in ('/', '.', '&', ','):
@@ -82,9 +83,9 @@ def TryShorten(term):
 		else:
 			logsupport.Logs.Log("Long term: " + term, severity=ConsoleWarning)
 		TermShortener[term] = newterm  # only report once
-		with open('{}/Console/termshortenlist.new'.format(config.sysStore.HomeDir), 'w') as f: # todo move to async?
+		with open('{}/Console/termshortenlist.new'.format(config.sysStore.HomeDir), 'w') as f:  # todo move to async?
 			json.dump(TermShortener, f, indent=4, separators=(',', ": "))
-		with open('{}/Console/problemterms.new'.format(config.sysStore.HomeDir), 'w') as f: # todo move to async?
+		with open('{}/Console/problemterms.new'.format(config.sysStore.HomeDir), 'w') as f:  # todo move to async?
 			json.dump(TermShortener, f, indent=4, separators=(',', ": "))
 			json.dump(StillLong, f, indent=4, separators=(',', ": "))
 	return newterm

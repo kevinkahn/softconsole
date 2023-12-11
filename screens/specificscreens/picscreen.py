@@ -43,7 +43,8 @@ class PictureScreenDesc(screen.ScreenDesc):
 			self.picturetime = 9999
 		else:
 			self.picturedir = utilities.inputfileparam(self.picturedir, config.sysStore.configdir, '/pics')
-			if '*' in self.picturedir: self.picturedir = self.picturedir.replace('*', config.sysStore.hostname)
+			if '*' in self.picturedir:
+				self.picturedir = self.picturedir.replace('*', config.sysStore.hostname)
 			logsupport.Logs.Log('Picture screen {} in directory mode for {}'.format(self.name, self.picturedir))
 			if not os.path.exists(self.picturedir):
 				logsupport.Logs.Log(
@@ -54,7 +55,8 @@ class PictureScreenDesc(screen.ScreenDesc):
 					logsupport.Logs.Log("Still no picture directory - defer screen start", severity=ConsoleWarning)
 					self.missingpicdir = True
 
-		if self.NavKeyAlpha == -1: self.NavKeyAlpha = None
+		if self.NavKeyAlpha == -1:
+			self.NavKeyAlpha = None
 		self.holdtime = 0
 		self.blankpic = (pg.Surface((1, 1)), 1, 1)
 		self.picshowing = self.blankpic[0]
@@ -92,7 +94,6 @@ class PictureScreenDesc(screen.ScreenDesc):
 												poststart=None, prerestart=None, postrestart=None,
 												checkok=None)
 		logsupport.Logs.Log(f'Exiting deferal thread for {self.name}')
-
 
 	def QueueSinglePic(self):
 		while True:
@@ -179,10 +180,12 @@ class PictureScreenDesc(screen.ScreenDesc):
 								severity=ConsoleWarning)
 
 	def InitDisplay(self, nav):
-		if not nav is None:
+		if nav is not None:
 			self.shownav = True
-			for n, k in nav.items(): k.SetOnAlpha(self.NavKeyAlpha)
-		if not self.singlepicmode: self.holdtime = 0
+			for n, k in nav.items():
+				k.SetOnAlpha(self.NavKeyAlpha)
+		if not self.singlepicmode:
+			self.holdtime = 0
 		super().InitDisplay(nav)
 
 	@staticmethod
@@ -192,11 +195,12 @@ class PictureScreenDesc(screen.ScreenDesc):
 		try:
 			exinfo = PIL.Image.open(pic).getexif()
 			exif = exinfo[PIL.ExifTags.Base.Orientation.value]
-		except:
+		except Exception:
 			exif = 1
-		#		print("{} rot: {}".format(pic,exif))
+
 		rot = [0, 0, 0, 180, 0, 0, 270, 0, 90][exif]
-		if rot != 0: rawp = pg.transform.rotate(rawp, rot)
+		if rot != 0:
+			rawp = pg.transform.rotate(rawp, rot)
 		ph = rawp.get_height()
 		pw = rawp.get_width()
 		vertratio = hw.screenheight / ph
@@ -232,7 +236,8 @@ class PictureScreenDesc(screen.ScreenDesc):
 																								 self.holdtime),
 										severity=ConsoleDetail)
 		hw.screen.blit(self.picshowing, (self.woffset, self.hoffset))
-		if self.shownav: self.PaintNavKeys()
+		if self.shownav:
+			self.PaintNavKeys()
 
 
 screens.screentypes[ScreenType] = PictureScreenDesc

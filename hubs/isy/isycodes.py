@@ -106,7 +106,7 @@ def formatwsitem(sid, seq, code, action, node, info, extra, hub):
 			pretty = pretty + EC + ': ' + str(action) + ' Node: ' + isynd + ' ' + str(info)
 		if extra:
 			pretty = pretty + 'Extra: ' + repr(extra)
-	except:
+	except Exception as E:
 		pretty = 'FORMATTING ERROR: ' + repr(sid) + repr(seq) + repr(code) + repr(action) + repr(node) + repr(
-			info) + repr(extra)
+			info) + repr(extra) + f'({E})'
 	return pretty

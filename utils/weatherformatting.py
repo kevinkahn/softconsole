@@ -57,8 +57,10 @@ def CreateWeathBlock(Format, Fields, WeathFont, FontSize, WeathColor, icon, cent
 			if tFS:
 				tfsize = int(tFS.pop(0))
 				tusefont = fonts.fonts.Font(tfsize, WeathFont)
-		if maxiconsize != 0: iconsize = min(iconsize, maxiconsize)
-		if icon is None: iconsize = 0
+		if maxiconsize != 0:
+			iconsize = min(iconsize, maxiconsize)
+		if icon is None:
+			iconsize = 0
 
 		for f in Format:
 			linetorender = fmt.format(f, d=vals)
@@ -76,9 +78,10 @@ def CreateWeathBlock(Format, Fields, WeathFont, FontSize, WeathColor, icon, cent
 			if FS:
 				fsize = int(FS.pop(0))
 				usefont = fonts.fonts.Font(fsize, WeathFont)
-		for l in rf:
-			fh += l.get_height()
-			if l.get_width() > fw: fw = l.get_width()
+		for line in rf:
+			fh += line.get_height()
+			if line.get_width() > fw:
+				fw = line.get_width()
 
 	except Exception as e:
 		logsupport.Logs.Log('Weather Formatting Error: ', repr(e), severity=ConsoleWarning)
@@ -86,7 +89,8 @@ def CreateWeathBlock(Format, Fields, WeathFont, FontSize, WeathColor, icon, cent
 			logsupport.Logs.Log(' No such weather field: ', e.args, severity=ConsoleWarning)
 		rf.append(usefont.render('Weather N/A', 0, wc(WeathColor)))
 		fh = rf[-1].get_height() * len(Format)  # force the height to always be equal even if error
-		if rf[-1].get_width() > fw: fw = rf[-1].get_width()
+		if rf[-1].get_width() > fw:
+			fw = rf[-1].get_width()
 	if icon is not None:
 		totw = fw + iconsize + ICONSPACE
 		hoff = iconsize + ICONSPACE
@@ -118,11 +122,11 @@ def CreateWeathBlock(Format, Fields, WeathFont, FontSize, WeathColor, icon, cent
 			logsupport.Logs.Log("Internal error - missing icon for: ", str(icon[0]), str(iconref), repr(E),
 								severity=ConsoleWarning)
 	# logsupport.Logs.Log("Temp msg: ", valuestore.ValueStores([icon[0], ('Cond', 'IconURL')]))
-	for l in rf:
+	for line in rf:
 		if centered:
-			fsfc.blit(l, (hoff + (fw - l.get_width()) / 2, v))
+			fsfc.blit(line, (hoff + (fw - line.get_width()) / 2, v))
 		else:
-			fsfc.blit(l, (hoff, v))
-		v += l.get_height()
+			fsfc.blit(line, (hoff, v))
+		v += line.get_height()
 	return fsfc
 

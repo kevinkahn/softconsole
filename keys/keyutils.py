@@ -8,6 +8,7 @@ from collections import namedtuple
 
 BrightnessPossible = []
 
+
 def _resolvekeyname(kn, DefHub):
 	knbase = kn.split('/')[0]  # remove any yniqueness suffix
 	t = knbase.split(':')
@@ -39,7 +40,7 @@ def _SetUpProgram(ProgramName, Parameter, thisscreen, kn):
 		pdict = None
 	else:
 		pdict = {}
-		if len(Parameter) == 1 and not ':' in Parameter[0]:
+		if len(Parameter) == 1 and ':' not in Parameter[0]:
 			pdict['Parameter'] = Parameter[0]
 		else:
 			for p in Parameter:
@@ -60,11 +61,13 @@ class ChooseType(Enum):
 
 CodeKeyDesc = namedtuple('CodeKeyDesc', 'Display Var statebased')
 
+
 def ParseConfigToDispOpt(item, deflabel):
 	try:
 		parseditem = shlex.shlex(item, posix=True, punctuation_chars='()')
 		desc = list(parseditem)
-		while ',' in desc: desc.remove(',')
+		while ',' in desc:
+			desc.remove(',')
 		if desc[1] == ':':
 			desc.pop(1)
 			ChooserType = ChooseType.rangeval
@@ -118,8 +121,10 @@ def ParseConfigToDispOpt(item, deflabel):
 
 
 class DispOpt(object):
-	# typedesc colorset label  colorset is either a single color (default char and outline) or a triple (key, char, outline)
-	def __init__(self, item='', deflabel='', choosertype=None, chooser=None, color=()):
+	# typedesc colorset label  colorset is either a single color (default char and outline)
+	# or a triple (key, char, outline)
+	def __init__(self, deflabel='', choosertype=None, chooser=None, color=()):
+		# Old header def __init__(self, item='', deflabel='', choosertype=None, chooser=None, color=()):
 		"""if item != '':
 			print('Old Display Opt')
 			parseditem = shlex.shlex(item, posix=True, punctuation_chars='()')

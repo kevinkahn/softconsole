@@ -17,6 +17,7 @@ import queue
 callhist = deque('', 20)
 pgstats = {'load': [0, 0], 'save': [0, 0]}
 
+
 def remote(func, *args, **kwargs):
 	if kwargs != {}:
 		print('KEYWORDS! {}'.format(kwargs))
@@ -222,6 +223,7 @@ SeqNumLast = {}
 initq = 0
 rem = 1
 remobj = 2
+
 
 def Send(calltype, obj, func, args, kwargs):
 	if func not in pgstats:

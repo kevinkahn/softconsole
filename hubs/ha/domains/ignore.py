@@ -26,8 +26,10 @@ class IgnoredDomain(HAnode):
 		# for ignored domains don't validate state info
 		return state
 
+
 def IgnoreDomainSpecificEvent(e, message):
 	logsupport.Logs.Log("Event {} to ignored domain {}".format(e, message), severity=logsupport.ConsoleDetail)
+
 
 def AddIgnoredDomain(dom):
 	global IngoredEntities
@@ -42,7 +44,7 @@ hasshub.AddIgnoredDomain = AddIgnoredDomain
 
 # logsupport.Logs.Log('Note: following HA domains are ignored by the console:')
 for d in hasshub.IgnoredDomains:
-	#	logsupport.Logs.Log('     {}'.format(d))
+	# logsupport.Logs.Log('     {}'.format(d))
 	reg = partial(IgnoredDomain, d)
 	IngoredEntities[d] = {}
 	RegisterDomain(d, reg, IgnoreDomainSpecificEvent)

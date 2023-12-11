@@ -48,8 +48,8 @@ def on_message(client, userdata, msg):
 				for n in NodeTally:
 					f.write('{}: {}\n'.format(n, NodeTally[n]))
 				f.write('----- Locations --------\n')
-				for l in LocationTally:
-					f.write('{}: {}    ({})\n'.format(LocNames[l], LocationTally[l], l))
+				for line in LocationTally:
+					f.write('{}: {}    ({})\n'.format(LocNames[line], LocationTally[line], line))
 			with open('watchw', 'a') as f:
 				f.write('------\n')
 

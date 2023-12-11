@@ -24,5 +24,5 @@ class LocalVars(valuestore.ValueStore):
 				self.SetVal(i, tpv)
 				self.SetType(i, tpcvrt)
 				safeprint('LocalVar call')
-				#self.SetAttr(i, (3, lclid))
+				# self.SetAttr(i, (3, lclid))
 				lclid += 1

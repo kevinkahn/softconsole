@@ -11,12 +11,12 @@ def PreOp():
 	# noinspection PyBroadException
 	try:
 		os.mkdir(config.sysStore.HomeDir + '/photos')
-	except:
+	except Exception:
 		pass
 	# noinspection PyBroadException
 	try:
 		os.mkdir(config.sysStore.HomeDir + '/.exconfs')
-	except:
+	except Exception:
 		pass
 	if not os.path.exists('/etc/fstab.sav'):
 		shutil.copyfile('/etc/fstab', '/etc/fstab.sav')
@@ -28,5 +28,6 @@ def PreOp():
 			fout.write(
 				"//pdxhome.pdxhome/data/ConsolePhotos /home/pi/photos cifs username=kevin,password=xxx,iocharset=utf8,ro 0 0\n")
 			fout.write(
-				"//pdxhome.pdxhome/data/PythonProjects/softconsole/example\\040configs /home/pi/.exconfs cifs username=kevin,password=xxx,iocharset=utf8,ro 0 0\n")
+				"//pdxhome.pdxhome/data/PythonProjects/softconsole/example\\040configs "
+				"/home/pi/.exconfs cifs username=kevin,password=xxx,iocharset=utf8,ro 0 0\n")
 		subprocess.run(["mount", "-a"])

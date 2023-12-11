@@ -61,7 +61,8 @@ class Input_Select(HAnode):  # not stateful since it updates directly to store v
 	# self.DisplayStuff('update2', True)
 
 	def _NormalizeState(self, state, brightness=None):  # may be overridden for domains with special state settings
-		if self.options is None: return None
+		if self.options is None:
+			return None
 		if state not in self.options:
 			logsupport.Logs.Log('Input_Select {} unknown option: {} not in {}'.format(self.name, state, self.options))
 			return self.options[0]

@@ -42,9 +42,9 @@ class ISYVars(valuestore.ValueStore):
 				else:
 					logsupport.Logs.Log("Attribute already set for ", self.name, " new attr: ", attr)
 			else:
-				logsupport.Logs.Log("Can't set attribute on array element for ", self.name, " new attr: ", attr)
-		except:
-			logsupport.Logs.Log("Attribute setting error", self.name, " new attr: ", attr)
+				logsupport.Logs.Log("Can't set attribute on array element for ", self.name, " new attr: {}", attr)
+		except Exception as E:
+			logsupport.Logs.Log(f"Attribute setting error {self.name} new attr: {attr}  ({E})")
 
 	def GetValByAttr(self, attr):
 		V = self.attrs[attr].Value
@@ -66,8 +66,8 @@ class ISYVars(valuestore.ValueStore):
 			n2 = self._normalizename(name)
 			item, index = self._accessitem(n2)
 			return item.Attribute
-		except:
-			logsupport.Logs.Log("Error accessing attribute ", self.name, ":", str(name), severity=ConsoleError)
+		except Exception as E:
+			logsupport.Logs.Log(f"Error accessing attribute {self.name}: {str(name)} ({E})", severity=ConsoleError)
 			return None
 
 	def SetValByAttr(self, attr, val, modifier=None):
@@ -80,10 +80,10 @@ class ISYVars(valuestore.ValueStore):
 	def CheckValsUpToDate(self, reload=False):
 		goodcheck = True
 		for v in self.items():
-			l = self.GetVal(v, forceactual=False)
+			line = self.GetVal(v, forceactual=False)
 			r = self.GetVal(v)
-			if l != r:
-				debug.debugPrint('StoreTrack', 'ISY Value Mismatch: (ISY) ', r, ' (Local) ', l)
+			if line != r:
+				debug.debugPrint('StoreTrack', 'ISY Value Mismatch: (ISY) ', r, ' (Local) ', line)
 				goodcheck = False
 		if goodcheck:
 			debug.debugPrint('StoreTrack', 'ISY Value Check OK')

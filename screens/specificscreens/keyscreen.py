@@ -32,7 +32,7 @@ class KeyScreenDesc(screen.BaseKeyScreenDesc):
 				m2 = ""
 				try:
 					m2 = ":{} via {}".format(j.ControlObj.name, j.DisplayObj.name)
-				except:
+				except Exception:
 					pass
 				debug.debugPrint('Screen', m1 + m2)
 
@@ -58,8 +58,8 @@ class KeyScreenDesc(screen.BaseKeyScreenDesc):
 		elif evnt.node != 0:
 			try:
 				K = self.HubInterestList[evnt.hub][evnt.node]
-			except:
-				debug.debugPrint('Screen', 'Bad key to KS - race?', self.name, str(evnt.node))
+			except Exception as E:
+				debug.debugPrint(f'Screen {self.name} Node {evnt.node} ({E})  Bad key to KS - race? ')
 				return  # treat as noop
 			debug.debugPrint('Screen', 'KS ISYEvent ', K.name, evnt, str(K.State))
 			if hasattr(K, 'HandleNodeEvent'):  # todo make all handle event key specifig
@@ -84,10 +84,10 @@ class KeyScreenDesc(screen.BaseKeyScreenDesc):
 			K = self.Keys[evnt.varinfo[0]]
 			K.PaintKey()
 			displayupdate.updatedisplay()
-		except:
+		except Exception as E:
 			debug.debugPrint('Screen', "Var change reported to screen that doesn't care", self.name,
-							 str(evnt.varinfo))  # todo event reporting correlation to screens could use rework
-			logsupport.Logs.Log("Var change reported to screen that doesn't care {} {}".format(self.name, evnt),
+							 str(evnt.varinfo), E)  # todo event reporting correlation to screens could use rework
+			logsupport.Logs.Log(f"Var change reported to screen that doesn't care {self.name} {evnt} ({E})",
 								severity=ConsoleWarning)
 
 

@@ -59,6 +59,8 @@ class VerifyScreen(screen.BaseKeyScreenDesc):
 	def InitDisplay(self, nav):
 		logsupport.Logs.Log('Entering Verify Screen: ' + self.name, severity=ConsoleDetail)
 		super(VerifyScreen, self).InitDisplay({})
+
+
 '''
 class ValueChangeScreen(screen.ScreenDesc):  # todo may need to call super class
 	# need to set no nav keys
@@ -171,6 +173,7 @@ class ValueChangeScreen(screen.ScreenDesc):  # todo may need to call super class
 		displayupdate.updatedisplay()
 		pass
 '''
+
 
 def TriangleCorners(c, hgt, invert):
 	h = .8 * hgt
@@ -332,7 +335,8 @@ class PagedDisplay(screen.BaseKeyScreenDesc):
 
 	# noinspection PyUnusedLocal
 	def NextPage(self):
-		if not self.oknext: return  # need to render previous call first
+		if not self.oknext:
+			return  # need to render previous call first
 		if self.item >= 0:
 			self.pageno += 1
 			self.startpage = self.item
@@ -346,7 +350,8 @@ class PagedDisplay(screen.BaseKeyScreenDesc):
 
 	# noinspection PyUnusedLocal
 	def PrevPage(self):
-		if not self.oknext: return
+		if not self.oknext:
+			return
 		if self.pageno > 0:
 			self.pageno -= 1
 			self.oknext = False
@@ -398,19 +403,19 @@ class PagedDisplay(screen.BaseKeyScreenDesc):
 		hw.screen.fill(wc(backcolor))
 		if pageno != -1:
 			hdr, moretorender = self.GetPageHeader(pageno + 1, itemnumber)
-			l = self.pagefont.render(hdr, False, wc(self.color))
-			hw.screen.blit(l, (10, pos))
+			line = self.pagefont.render(hdr, False, wc(self.color))
+			hw.screen.blit(line, (10, pos))
 			pos = pos + self.pagefont.get_linesize()
 		while moretorender:
-			l, moretorender = self.LineRenderer(itemnumber, self.pagefont)
-			hw.screen.blit(l, (10, pos))  # todo this can cause long lines to render off the screen
-			pos = pos + l.get_height()
+			line, moretorender = self.LineRenderer(itemnumber, self.pagefont)
+			hw.screen.blit(line, (10, pos))  # todo this can cause long lines to render off the screen
+			pos = pos + line.get_height()
 			itemnumber += 1
 			if pos > hw.screenheight - screens.screenStore.BotBorder:
 				return itemnumber if moretorender else -1
 
-		l = self.pagefont.render('***** End *****', False, wc(self.color))
-		hw.screen.blit(l, ((hw.screenwidth - l.get_width()) / 2, pos + l.get_height()))
+		line = self.pagefont.render('***** End *****', False, wc(self.color))
+		hw.screen.blit(line, ((hw.screenwidth - line.get_width()) / 2, pos + line.get_height()))
 		return -1
 
 
@@ -443,7 +448,8 @@ class SliderScreen(screen.BaseKeyScreenDesc):
 		self.NavKeysShowing = False
 		self.DefaultNavKeysShowing = False
 		self.HubInterestList = {}
-		if key.Hub is not None: self.AddToHubInterestList(key.Hub, key.DisplayObj.address, self)
+		if key.Hub is not None:
+			self.AddToHubInterestList(key.Hub, key.DisplayObj.address, self)
 		self.DimTO = 20
 		self.PersistTO = 10
 		self.label = screen.FlatenScreenLabel(key.label)
@@ -525,9 +531,9 @@ class SliderScreen(screen.BaseKeyScreenDesc):
 			t = self.font.render(str(int(self.curval)), False, wc(self.slidecolor))
 			hw.screen.blit(t, (self.starthorizspace * 2, self.startvertspace * 2))
 		if self.lastset == 0:
-			if self.IdleProc is not None: self.IdleProc()
+			if self.IdleProc is not None:
+				self.IdleProc()
 		self.lastset -= 1
-
 
 	def Motion(self, pos):
 		# pos is x,y don't care about y just x; convert x to a position on the slider with it at end if off slider

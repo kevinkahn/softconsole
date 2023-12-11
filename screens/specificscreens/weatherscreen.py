@@ -31,8 +31,10 @@ class WeatherScreenDesc(screen.ScreenDesc):
 		self.condformat = u"{d[0]} {d[1]}\u00B0F", u"  Feels like: {d[2]}\u00B0", "Wind {d[3]}@{d[4]}"
 		self.condfields = list(((self.location, 'Cond', x) for x in ('Sky', 'Temp', 'Feels', 'WindDir', 'WindMPH')))
 
-		# self.dayformat  = "Sunrise: {d[0]:02d}:{d[1]:02d}","Sunset:  {d[2]:02d}:{d[3]:02d}","Moon rise: {d[4]} set: {d[5]}","{d[6]}% illuminated"
-		# self.dayfields  = list(((self.location, 'Cond', x) for x in ('SunriseH','SunriseM','SunsetH','SunsetM','Moonrise','Moonset','MoonPct')))
+		# self.dayformat  = "Sunrise: {d[0]:02d}:{d[1]:02d}","Sunset:  {d[2]:02d}:{d[3]:02d}",
+		# "Moon rise: {d[4]} set: {d[5]}","{d[6]}% illuminated"
+		# self.dayfields  = list(((self.location, 'Cond', x) for x in
+		# ('SunriseH','SunriseM','SunsetH','SunsetM','Moonrise','Moonset','MoonPct')))
 		self.dayformat = "Sunrise: {d[0]}", "Sunset:  {d[1]}"  # , "Moon rise: {d[2]} set: {d[3]}"
 		self.dayfields = list(((self.location, 'Cond', x) for x in ('Sunrise', 'Sunset')))  # , 'Moonrise', 'Moonset')))
 
@@ -63,8 +65,8 @@ class WeatherScreenDesc(screen.ScreenDesc):
 		if not self.store.ValidWeather:
 			renderedlines = [
 				fonts.fonts.Font(45, "").render(x, 0, wc(self.CharColor)) for x in self.store.Status]
-			for l in renderedlines:
-				hw.screen.blit(l, ((hw.screenwidth - l.get_width()) / 2, vert_off))
+			for line in renderedlines:
+				hw.screen.blit(line, ((hw.screenwidth - line.get_width()) / 2, vert_off))
 				vert_off = vert_off + 60  # todo use useable space stuff and vert start
 		else:
 			renderedlines = []
@@ -89,9 +91,9 @@ class WeatherScreenDesc(screen.ScreenDesc):
 					CreateWeathBlock(self.footformat, self.footfields, "", [25], self.CharColor, None, True))
 				h = h + renderedlines[-1].get_height()
 				s = (self.useablevertspace - h) / (len(renderedlines) - 1) if len(renderedlines) > 1 else 0
-				for l in renderedlines:
-					hw.screen.blit(l, ((hw.screenwidth - l.get_width()) / 2, vert_off))
-					vert_off = vert_off + l.get_height() + s
+				for line in renderedlines:
+					hw.screen.blit(line, ((hw.screenwidth - line.get_width()) / 2, vert_off))
+					vert_off = vert_off + line.get_height() + s
 
 			else:
 				fcstlines = 0
@@ -109,9 +111,10 @@ class WeatherScreenDesc(screen.ScreenDesc):
 											 # todo compute font size based on useable
 											 (self.location, 'Fcst', 'Icon'), False, day=i,
 											 maxhorizwidth=screenmaxfcstwidth))
-						if renderedlines[-1].get_width() > maxfcstwidth: maxfcstwidth = renderedlines[-1].get_width()
-						if renderedlines[-1].get_height() > maxfcstheight: maxfcstheight = renderedlines[
-							-1].get_height()
+						if renderedlines[-1].get_width() > maxfcstwidth:
+							maxfcstwidth = renderedlines[-1].get_width()
+						if renderedlines[-1].get_height() > maxfcstheight:
+							maxfcstheight = renderedlines[-1].get_height()
 						fcstlines += 1
 				else:
 					renderedlines.append(fonts.fonts.Font(35, "").render("No Forecast Available", 0,
@@ -144,5 +147,6 @@ class WeatherScreenDesc(screen.ScreenDesc):
 
 	def ReInitDisplay(self):
 		super().ReInitDisplay()
+
 
 screens.screentypes["Weather"] = WeatherScreenDesc

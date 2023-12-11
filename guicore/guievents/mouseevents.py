@@ -37,8 +37,8 @@ def _MoveDist(x, y):
 
 
 screendiag = _MoveDist((hw.screenheight, hw.screenwidth), (0, 0))
-uppercorner = _MoveDist((0, 0), (
-hw.screenheight * .2, hw.screenwidth * .2))  # Define the upper corner as 20% circle at top left
+uppercorner = _MoveDist((0, 0), (hw.screenheight * .2, hw.screenwidth * .2))
+# Define the upper corner as 20% circle at top left
 
 dumptime = 0
 eventseq = []
@@ -47,8 +47,8 @@ DumpEvents = False
 
 def DumpEvent(event):
 	global dumptime
-	if DumpEvents: eventseq.append(
-		(event.type, event.pos, lastdowneventtime, event.mtime, mousestate, longtap, tapcount))
+	if DumpEvents:
+		eventseq.append((event.type, event.pos, lastdowneventtime, event.mtime, mousestate, longtap, tapcount))
 	return
 
 
@@ -95,11 +95,13 @@ def MouseDown(event):
 def CheckLong(event, reason):
 	global longtap, handledlong
 	longtap = event.mtime - lastdowneventtime > longtaptime
-	if DumpEvents: eventseq.append((reason, event.mtime - lastdowneventtime, waitcleartime))
+	if DumpEvents:
+		eventseq.append((reason, event.mtime - lastdowneventtime, waitcleartime))
 	if longtap:
 		config.resendidle = False
 		ProcessTap(-1, pos)
-		if DumpEvents: eventseq.append(('Early handle long', pos, tapcount))
+		if DumpEvents:
+			eventseq.append(('Early handle long', pos, tapcount))
 		handledlong = True
 		return True
 	else:
@@ -139,7 +141,8 @@ def MouseIdle(event):
 		config.resendidle = False
 		if handledlong:
 			handledlong = False
-			if DumpEvents: eventseq.append(('Clear handled long', tapcount, pos))
+			if DumpEvents:
+				eventseq.append(('Clear handled long', tapcount, pos))
 		else:
 			ProcessTap(-1 if longtap else tapcount, pos)
 		mousestate = MouseStates.idle
@@ -151,18 +154,22 @@ def MouseIdle(event):
 def CompressMotion(event):
 	global motionpos, lastmovetime, mousemoved
 	if _MoveDist(motionpos, event.pos) > 2 or event.mtime - lastmovetime > 1:
-		if DumpEvents: eventseq.append(
-			('report', time.time(), event.pos, _MoveDist(motionpos, event.pos), event.mtime - lastmovetime))
+		if DumpEvents:
+			eventseq.append(
+				('report', time.time(), event.pos, _MoveDist(motionpos, event.pos), event.mtime - lastmovetime))
 		motionpos = event.pos
 		lastmovetime = event.mtime
 		mousemoved = True
 		if config.AS.WatchMotion and (time.time() - waitcleartime > waitclearwindow or not config.noisytouch):
 			config.AS.Motion(event.pos)
 		else:
-			if DumpEvents: eventseq.append(('Motion wait', time.time() - waitcleartime, waitcleartime))
+			if DumpEvents:
+				eventseq.append(('Motion wait', time.time() - waitcleartime, waitcleartime))
 	else:
-		if DumpEvents: eventseq.append(
-			('squash', time.time(), event.pos, _MoveDist(motionpos, event.pos), event.mtime - lastmovetime))
+		if DumpEvents:
+			eventseq.append(
+				('squash', time.time(), event.pos, _MoveDist(motionpos, event.pos), event.mtime - lastmovetime))
+
 
 def MouseMotion(event):
 	global mousestate
@@ -175,6 +182,7 @@ def MouseMotion(event):
 							severity=ConsoleWarning)
 		return
 	CompressMotion(event)
+
 
 def GoToMaint():
 	if screenmgt.screenstate == 'Maint':
@@ -189,15 +197,18 @@ def GoToMaint():
 
 def ProcessTap(tapcnt, tappos):
 	global motionpos, eventseq, waitcleartime
-	if tapcnt == 0: return  # sometimes get spurious 0 tap because of a late idle event
+	if tapcnt == 0:
+		return  # sometimes get spurious 0 tap because of a late idle event
 
 	if time.time() - waitcleartime < waitclearwindow and config.noisytouch:
-		if DumpEvents: eventseq.append(('Tap wait clear', waitcleartime, time.time() - waitcleartime))
+		if DumpEvents:
+			eventseq.append(('Tap wait clear', waitcleartime, time.time() - waitcleartime))
 		return
 
 	if config.AS.WatchMotion:
 		# if Motion active for screen all taps are single
-		if DumpEvents: eventseq.append(('Force multi off', tapcnt))
+		if DumpEvents:
+			eventseq.append(('Force multi off', tapcnt))
 		tapcnt = 1
 	if DumpEvents:
 		try:
@@ -225,7 +236,8 @@ def ProcessTap(tapcnt, tappos):
 		return
 
 	elif 3 < tapcnt < 8:
-		if DumpEvents: eventseq.append(('Tap to Maint', tapcnt))
+		if DumpEvents:
+			eventseq.append(('Tap to Maint', tapcnt))
 		GoToMaint()
 		return
 
@@ -237,21 +249,24 @@ def ProcessTap(tapcnt, tappos):
 	if mousemoved:
 		if _MoveDist(tappos, (0, 0)) < uppercorner and _MoveDist(tappos,
 																 motionpos) / screendiag > .70:
-			if DumpEvents: eventseq.append(
-				('Gesture to Maint', _MoveDist(tappos, (0, 0)), _MoveDist(tappos, motionpos) / screendiag))
+			if DumpEvents:
+				eventseq.append(
+					('Gesture to Maint', _MoveDist(tappos, (0, 0)), _MoveDist(tappos, motionpos) / screendiag))
 			GoToMaint()
 			return
 		else:
 			movlen = _MoveDist(tappos, motionpos)
-			if DumpEvents: eventseq.append(
-				('Gesture', tappos, motionpos, _MoveDist(tappos, (0, 0)), movlen, movlen / screendiag, tapcnt))
+			if DumpEvents:
+				eventseq.append(
+					('Gesture', tappos, motionpos, _MoveDist(tappos, (0, 0)), movlen, movlen / screendiag, tapcnt))
 	# sending up a click - generate a dead time
 	waitcleartime = time.time()
 
 	if config.AS.Keys is not None:
 		for K in config.AS.Keys.values():
 			if K.touched(tappos):
-				if DumpEvents: eventseq.append(('Press', tapcnt))
+				if DumpEvents:
+					eventseq.append(('Press', tapcnt))
 				K.Pressed(tapcnt)
 				return
 

@@ -53,7 +53,8 @@ def CountFetchByNode(fn, fcst):
 		ByNodeStatGp.Op(name=fn)
 	else:
 		stats.CntStat(name=fn, PartOf=ByNodeStatGp, inc=1, init=1)
-	if fcst == 'True': ByNodeStatGp.Op(name=fn)
+	if fcst == 'True':
+		ByNodeStatGp.Op(name=fn)
 	config.ptf2('Called Countbynode {} {}'.format(fn, fcst))
 
 
@@ -64,7 +65,8 @@ def CountFetchByLoc(loc, fcst):
 		stats.CntStat(name=loc, title=WeatherMsgStoreName[
 			loc] if loc in WeatherMsgStoreName else loc,
 					  PartOf=ByLocStatGp, inc=1, init=1)
-	if fcst == 'True': ByLocStatGp.Op(name=loc)
+	if fcst == 'True':
+		ByLocStatGp.Op(name=loc)
 	config.ptf2('Called Countbyloc {} {}'.format(loc, fcst))
 
 
@@ -87,7 +89,7 @@ def TreeDict(d, args):
 		if isinstance(d, dict):
 			return TreeDict(d[args[0]], args[1:])
 		else:
-			return TreeDict(getattr(d,args[0]),args[1:])
+			return TreeDict(getattr(d, args[0]), args[1:])
 
 
 def geticon(nm):
@@ -155,15 +157,22 @@ def fcstlength(param):
 
 # for icons see https://www.weatherbit.io/api/codes
 
+
 '''
 Code	Description	Icons
--200	Thunderstorm with light rain	Weather API Day Thunderstorm with light raint01d, Weather API Night Thunderstorm with light raint01n
+-200	Thunderstorm with light rain	
+			Weather API Day Thunderstorm with light raint01d, Weather API Night Thunderstorm with light raint01n
 -201	Thunderstorm with rain	Weather API Day Thunderstorm with raint02d, Weather API Night Thunderstorm with raint02n
--202	Thunderstorm with heavy rain	Weather API Day Thunderstorm with raint03d, Weather API Night Thunderstorm with raint03n
--230	Thunderstorm with light drizzle	Weather API Day Thunderstorm with drizzlet04d, Weather API Night Thunderstorm with drizzlet04n
--231	Thunderstorm with drizzle	Weather API Day Thunderstorm with drizzlet04d, Weather API Night Thunderstorm with drizzlet04n
--232	Thunderstorm with heavy drizzle	Weather API Day Thunderstorm with drizzlet04d, Weather API Night Thunderstorm with drizzlet04n
--233	Thunderstorm with Hail	Weather API Day Thunderstorm with hailt05d, Weather API Night Thunderstorm with hailt05n
+-202	Thunderstorm with heavy rain	
+			Weather API Day Thunderstorm with raint03d, Weather API Night Thunderstorm with raint03n
+-230	Thunderstorm with light drizzle	
+			Weather API Day Thunderstorm with drizzlet04d, Weather API Night Thunderstorm with drizzlet04n
+-231	Thunderstorm with drizzle	
+			Weather API Day Thunderstorm with drizzlet04d, Weather API Night Thunderstorm with drizzlet04n
+-232	Thunderstorm with heavy drizzle	
+			Weather API Day Thunderstorm with drizzlet04d, Weather API Night Thunderstorm with drizzlet04n
+-233	Thunderstorm with Hail	
+			Weather API Day Thunderstorm with hailt05d, Weather API Night Thunderstorm with hailt05n
 -300	Light Drizzle	Weather API Day Drizzled01d, Weather API Night Drizzled01n
 -301	Drizzle	Weather API Day Drizzled02d, Weather API Night Drizzled02n
 -302	Heavy Drizzle	Weather API Day Drizzled03d, Weather API Night Drizzled03n
@@ -197,10 +206,10 @@ Code	Description	Icons
 900	Unknown Precipitation	Weather API Day Unknown Precipitationu00d, Weather API Night Unknown Precipitationu00n
 '''
 
-IconMap = {'c01':113, 'c02':116, 'c03':119, 'c04':122, 'a05':143, 'r05':176, 's01':179, 's04':182, 's02':185, 's03':185,
-		   's05':284, 'f01':227, 'r04':293, 'r06':305, 'r03':308, 'r01':302, 'r02':302, 'd03':308, 'd02':302, 'd01':302,
-		   's06':323, 't01':386, 't02':386, 't03':386, 't04':389, 't05':395, 'a01':248, 'a02':248, 'a03':248, 'a04':248,
-		   'a06':248}
+IconMap = {'c01': 113, 'c02': 116, 'c03': 119, 'c04': 122, 'a05': 143, 'r05': 176, 's01': 179, 's04': 182, 's02': 185,
+		   's03': 185, 's05': 284, 'f01': 227, 'r04': 293, 'r06': 305, 'r03': 308, 'r01': 302, 'r02': 302, 'd03': 308,
+		   'd02': 302, 'd01': 302, 's06': 323, 't01': 386, 't02': 386, 't03': 386, 't04': 389, 't05': 395, 'a01': 248,
+		   'a02': 248, 'a03': 248, 'a04': 248, 'a06': 248}
 
 CondFieldMap = {  # 'Time': (getdatetime, ('datetime',)),
 	'Time': (specgetdatetime, ('ts',)),
@@ -223,10 +232,10 @@ CondFieldMap = {  # 'Time': (getdatetime, ('datetime',)),
 FcstFieldMap = {'Day': (getdayname, ('ts',)),  # convert to day name
 				'High': (float, ('max_temp',)),
 				'Low': (float, ('min_temp',)),
-				'Sky': (TryShorten, ('weather','description')),
+				'Sky': (TryShorten, ('weather', 'description')),
 				'WindSpd': (float, ('wind_spd',)),
 				'WindDir': (degToCompass, ('wind_dir',)),
-				'Icon': (geticon, ('weather','icon'))  # get the surface
+				'Icon': (geticon, ('weather', 'icon'))  # get the surface
 				}
 
 icondir = config.sysStore.ExecDir + '/auxinfo/apixuicons/'
@@ -234,6 +243,7 @@ icondir = config.sysStore.ExecDir + '/auxinfo/apixuicons/'
 
 class WeatherbitWeatherSource(object):
 	def __init__(self, storename, location, apiky, units='I'):
+		self.wholoaded = None  # this is unneeded except to clear a pylint issue in load where there is an fn param
 		self.apikey = apiky
 		self.api = Api(self.apikey)
 		self.thisStoreName = storename
@@ -325,12 +335,6 @@ class WeatherbitWeatherSource(object):
 						'Fetched weather for {} ({}) locally'.format(self.thisStoreName, self.location))  # ,
 					# severity=ConsoleDetail)
 
-					# if ByLocStatGp.Exists(self.thisStoreName):
-					#	ByLocStatGp.Op(name=self.thisStoreName)
-					# else:
-					#	stats.CntStat(name=self.thisStoreName, title=WeatherMsgStoreName[
-					#		self.thisStoreName] if self.thisStoreName in WeatherMsgStoreName else self.thisStoreName,
-					#				  PartOf=ByLocStatGp, inc=1, init=1)
 					self.thisStore.CurFetchGood = True
 					return winfo
 
@@ -351,7 +355,7 @@ class WeatherbitWeatherSource(object):
 							resetin = float(
 								json.loads(E.response.text)['status_message'].split("after ", 1)[1].split(' ')[0])
 							self.resettime = time.strftime('%H:%M', time.localtime(time.time() + 60 * resetin))
-						except:
+						except Exception:
 							resetin = 0
 							self.resettime = '(unknown)'
 						logsupport.Logs.Log(
@@ -399,19 +403,18 @@ class WeatherbitWeatherSource(object):
 	def LoadWeather(self, winfo, weathertime, fn='unknown'):
 		# load weather from the cache (however it got there) into the store
 		# print('WBLoad {} {} {}'.format(self.thisStoreName, fn, weathertime))
+		self.wholoaded = fn  # unneeded except for pylint issue
 		forecast = '**unset**'
 		try:
 			current = winfo['current']
 			forecast = winfo['forecast']
-			# if ByNodeStatGp.Exists(fn):
-			#	ByNodeStatGp.Op(name=fn)
-			# else:
-			#	stats.CntStat(name=fn, PartOf=ByNodeStatGp, inc=1, init=1)
-			# self.thisStore.ValidWeather = False  # show as invalid for the short duration of the update - still possible to race but very unlikely.
+
 			specfields = self.thisStore.InitSourceSpecificFields(forecast[0])
 			tempfcstinfo = {}
-			for fn in FcstFieldMap: tempfcstinfo[fn] = []
-			for fn in specfields: tempfcstinfo[fn] = []
+			for fn in FcstFieldMap:
+				tempfcstinfo[fn] = []
+			for fn in specfields:
+				tempfcstinfo[fn] = []
 
 			self.thisStore.SetVal(('Cond', 'Location'), self.thisStoreName)
 			for fn, entry in CondFieldMap.items():

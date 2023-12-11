@@ -313,7 +313,8 @@ class ISYEventMonitor(object):
 							else:
 								logsupport.Logs.Log(self.hubname +
 													" Status change for " + N.name + '(' + str(enode) + ') to ' + str(
-									N.devState), severity=ConsoleDetailHigh)
+									N.devState),
+													severity=ConsoleDetailHigh)
 								# status changed to post to any alerts that want it
 								# since alerts can only react to the state of a node we check only on an ST message
 								# screens on the other hand may need to know about other actions (thermostat e.g.)

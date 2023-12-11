@@ -39,9 +39,6 @@ class OctoPrintScreenDesc(screen.BaseKeyScreenDesc):
 		self.OPbed = 'unknown'
 		self.ValidState = False
 
-		# self.PollTimer = timers.RepeatingPost(5.0, paused=True, start=True, name=self.name + '-Poll',
-		#									  proc=self.RefreshOctoStatus)
-
 		screen.IncorporateParams(self, 'OctoPrint', {'KeyColor'}, screensection)
 		screen.AddUndefaultedParams(self, screensection, address='', apikey='', extruder='tool0', port='5000',
 									pwrctl='')  # pwrctl = HASS:switch.prusa
@@ -70,25 +67,21 @@ class OctoPrintScreenDesc(screen.BaseKeyScreenDesc):
 
 		self.PowerKeys['printeron'] = toucharea.ManualKeyDesc(self, 'PowerOn', ['Power On'], self.KeyColor,
 															  'white', 'black',
-															  #															  self.CharColor, self.CharColor,
 															  center=(hw.screenwidth // 4, ctlpos * 4),
 															  size=(hw.screenwidth // 3, ctlhgt), KOn='', KOff='',
 															  proc=functools.partial(self.Power, 'printeron'))
 		self.PowerKeys['printeroff'] = toucharea.ManualKeyDesc(self, 'PowerOff', ['Power Off'], self.KeyColor,
 															   'white', 'black',
-															   #															   self.CharColor, self.CharColor,
 															   center=(3 * hw.screenwidth // 4, ctlpos * 4),
 															   size=(hw.screenwidth // 3, ctlhgt), KOn='', KOff='',
 															   proc=functools.partial(self.Power, 'printeroff'))
 		self.PowerKeys['connect'] = toucharea.ManualKeyDesc(self, 'Connect', ['Connect'], self.KeyColor,
 															'white', 'black',
-															#															self.CharColor, self.CharColor,
 															center=(hw.screenwidth // 4, ctlpos * 5),
 															size=(hw.screenwidth // 3, ctlhgt), KOn='', KOff='',
 															proc=functools.partial(self.Connect, 'connect'))
 		self.PowerKeys['disconnect'] = toucharea.ManualKeyDesc(self, 'Disconnect', ['Disconnect'], self.KeyColor,
 															   'white', 'black',
-															   #															   self.CharColor, self.CharColor,
 															   center=(3 * hw.screenwidth // 4, ctlpos * 5),
 															   size=(hw.screenwidth // 3, ctlhgt), KOn='', KOff='',
 															   proc=functools.partial(self.Connect, 'disconnect'))
@@ -177,8 +170,8 @@ class OctoPrintScreenDesc(screen.BaseKeyScreenDesc):
 			# noinspection PyBroadException
 			try:  # todo - this is a hack for the indirector nodes of HA - should be cleaned up to use Undefined
 				self.pwrHub.GetNode(self.devname)[0].SendOnOffCommand(opt == 'printeron')
-			except:
-				logsupport.Logs.Log("Screen: " + self.name + " power key unbound", severity=ConsoleWarning)
+			except Exception as E:
+				logsupport.Logs.Log(f"Screen: {self.name} power key unbound ({E})", severity=ConsoleWarning)
 		self.PowerKeys[opt].ScheduleBlinkKey(5)  # todo should give different feedback
 
 	# noinspection PyUnusedLocal
@@ -239,7 +232,8 @@ class OctoPrintScreenDesc(screen.BaseKeyScreenDesc):
 	# self.PollTimer.resume()
 
 	def ScreenContentRepaint(self):
-		if not self.Active:    return  # handle race where poll refresh gets posted just as Maint screen comes up
+		if not self.Active:
+			return  # handle race where poll refresh gets posted just as Maint screen comes up
 		try:
 			self.ShowControlScreen()
 			hw.screen.blit(self.title, ((hw.screenwidth - self.tw) / 2, 0))
@@ -248,8 +242,8 @@ class OctoPrintScreenDesc(screen.BaseKeyScreenDesc):
 		hw.screen.blit(self.title, ((hw.screenwidth - self.tw) / 2, 0))
 
 	# def AsyncRefreshOctoStatus(self):
-	#	T = threading.Thread(target=self.RefreshOctoStatus, daemon=True, name='OctoTrigRefresh')
-	#	T.start()
+	# T = threading.Thread(target=self.RefreshOctoStatus, daemon=True, name='OctoTrigRefresh')
+	# T.start()
 
 	def RefreshOctoStatus(self, param=None):
 		try:
@@ -258,7 +252,8 @@ class OctoPrintScreenDesc(screen.BaseKeyScreenDesc):
 			self.OPstate = r.json()['current']['state']
 			r = self.OctoGet('job').json()
 			self.OPfile = r['job']['file']['name']
-			if self.OPfile is None: self.OPfile = ''
+			if self.OPfile is None:
+				self.OPfile = ''
 			pct = r['progress']['completion']
 			self.OPcomppct = '- Done ' if pct is None else '{0:.0%} Done '.format(pct / 100)
 			tl = r['progress']['printTimeLeft']
@@ -279,13 +274,13 @@ class OctoPrintScreenDesc(screen.BaseKeyScreenDesc):
 				# noinspection PyBroadException
 				try:
 					self.OPtemp1 = 'Extruder: {0:.0f}/{1:.0f}'.format(temp1['actual'], temp1['target'])
-				except:
+				except Exception:
 					self.OPtemp1 = '-/-'
 				bed = r['temperature']['bed']
 				# noinspection PyBroadException
 				try:
 					self.OPbed = 'Bed: {0:.0f}/{1:.0f}'.format(bed['actual'], bed['target'])
-				except:
+				except Exception:
 					self.OPbed = '-/-'
 
 			elif self.OPstate in ['Closed', 'Offline']:
@@ -302,14 +297,12 @@ class OctoPrintScreenDesc(screen.BaseKeyScreenDesc):
 		except Exception as E:
 			logsupport.Logs.Log('Error fetching OctoPrint status: {}'.format(repr(E)))
 
-
 	def ShowControlScreen(self):
 
 		toblit = []
 		if self.ValidState:
 			statusblock, h, statusw = screenutil.CreateTextBlock(
-				[self.OPstate, self.OPfile, self.OPcomppct + self.OPtimeleft], 25,
-															 self.CharColor, True)
+				[self.OPstate, self.OPfile, self.OPcomppct + self.OPtimeleft], 25, self.CharColor, True)
 
 			vpos = self.titlespace + h
 
@@ -322,14 +315,13 @@ class OctoPrintScreenDesc(screen.BaseKeyScreenDesc):
 		else:
 			statusblock, h, statusw = screenutil.CreateTextBlock(['Not Available', ], 25, self.CharColor, True)
 
-
 		for i in toblit:
 			hw.screen.blit(i[0], i[1])
 		hw.screen.blit(statusblock, ((hw.screenwidth - statusw) // 2, self.titlespace))
 
 	def ExitScreen(self, viaPush):
 		super().ExitScreen(viaPush)
-	#self.PollTimer.pause()
+# self.PollTimer.pause()
 
 
 screens.screentypes["OctoPrint"] = OctoPrintScreenDesc

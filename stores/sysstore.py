@@ -24,9 +24,10 @@ class SystemStore(valuestore.ValueStore):
 			if len(n) == 1:
 				return time.time()
 			else:
-				tf = n[1].replace('*',':')
+				tf = n[1].replace('*', ':')
 				return time.strftime(tf)
-		if n[0] == 'UpTime': return time.time() - self.GetVal(['ConsoleStartTime'])
+		if n[0] == 'UpTime':
+			return time.time() - self.GetVal(['ConsoleStartTime'])
 		return None
 
 	def __setattr__(self, key, value):
@@ -37,12 +38,11 @@ class SystemStore(valuestore.ValueStore):
 
 	def __getattr__(self, key):
 		return self.GetVal(key)
-		#t = self.HandleSpecial(key)
-		#if t is None:
-		#	return self.GetVal(key)
-		#else:
-		#	return t
-		#if key == 'Time': return time.time()
-		#if key == 'UpTime': return time.time() - self.GetVal('ConsoleStartTime')
-		#return self.GetVal(key)
-
+	# t = self.HandleSpecial(key)
+	# if t is None:
+	# --return self.GetVal(key)
+	# else:
+	# --return t
+	# if key == 'Time': return time.time()
+	# if key == 'UpTime': return time.time() - self.GetVal('ConsoleStartTime')
+	# return self.GetVal(key)

@@ -7,6 +7,7 @@ from logsupport import ConsoleWarning
 from stores import valuestore
 from keyspecs.toucharea import ManualKeyDesc
 
+
 class VarKey(ManualKeyDesc):
 
 	def __init__(self, thisscreen, keysection, keyname):
@@ -25,7 +26,8 @@ class VarKey(ManualKeyDesc):
 		if self.ValueSeq:
 			self.Proc = self.VarKeyPressed
 			t = []
-			for n in self.ValueSeq: t.append(int(n))
+			for n in self.ValueSeq:
+				t.append(int(n))
 			self.ValueSeq = t
 		self.oldval = '*******'  # forces a display compute first time through
 		self.State = False
@@ -43,5 +45,6 @@ class VarKey(ManualKeyDesc):
 		else:
 			self.Program.RunProgram(param=self.Parameter)
 		self.ScheduleBlinkKey(self.Blink)
+
 
 KeyTypes['VARKEY'] = VarKey

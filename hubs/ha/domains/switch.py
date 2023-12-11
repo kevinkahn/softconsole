@@ -17,7 +17,9 @@ class Switch(HAnode):
 			debug.debugPrint('HASSgeneral', "Switch OnOff sent: ", selcmd[settoon], ' to ', self.entity_id)
 		except ha.HomeAssistantError:
 			# HA probably restarting
-			logsupport.Logs.Log("{} didn't respond to switch on/off for {} - probably restarting".format(self.Hub.name, self.name), severity = logsupport.ConsoleWarning)
+			logsupport.Logs.Log(
+				f"{self.Hub.name} didn't respond to switch on/off for {self.name} - probably restarting",
+				severity=logsupport.ConsoleWarning)
 
 
 RegisterDomain('switch', Switch)

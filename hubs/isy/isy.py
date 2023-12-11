@@ -26,7 +26,8 @@ def GetHandledNodeTypes(sect):
 	NodeServerSwitchTypes = t if isinstance(t, list) else [t]
 
 
-class CommsError(Exception): pass
+class CommsError(Exception):
+	pass
 
 
 class ISYNode(object):
@@ -72,6 +73,7 @@ class OnOffItem(ISYNode):
 		if r == "":  # error in comm - fake a response to see unavailable key
 			self.Hub.isyEM.FakeNodeChange()
 
+
 class Folder(TreeItem):
 	"""
 	Represents and ISY node/scene folder.
@@ -90,10 +92,12 @@ class Folder(TreeItem):
 class UnhandledNode(Folder, ISYNode):
 	def __init__(self, hub, flag, name, addr, parenttyp, parentaddr, enabled, props):
 		Folder.__init__(self, hub, flag, name, addr, parenttyp, parentaddr)
+		self.props = props  # unneeded except for pylinting
 		self.pnode = None  # for things like KPLs
 		self.enabled = enabled == "true"
 		self.hasstatus = False
 		self.devState = -1  # device status reported in the ISY event stream
+
 
 class Node(Folder, OnOffItem):
 	"""
@@ -130,7 +134,8 @@ class Node(Folder, OnOffItem):
 	@devState.setter
 	def devState(self, val):
 		self._devState = val
-		#print("Set {} to {}".format(self.name, val))
+
+	# print("Set {} to {}".format(self.name, val))
 	# return self._devState
 
 	def __repr__(self):
@@ -211,6 +216,7 @@ class Thermostat(Node):
 
 isycodes.ThermType = Thermostat
 
+
 class Scene(TreeItem, OnOffItem):
 	"""
 	Represents an ISY scene.
@@ -261,6 +267,7 @@ class Scene(TreeItem, OnOffItem):
 		# print('Idle send to scene {} {}'.format(self.name,self.valueatidle))
 		self.SendToSceneMembers(self.valueatidle)
 		self.valueatidle = -1
+
 
 class ProgramFolder(TreeItem):
 	"""
@@ -366,7 +373,7 @@ class ISY(object):
 					historybuffer.HBNet.Entry('ISY nodes get done')
 					logsupport.Logs.Log('{}: Successful node read: {}'.format(name, r.status_code))
 					break
-				except:
+				except Exception:
 					# after total power outage ISY is slower to come back than RPi so
 					# we wait testing periodically.  Eventually we try rebooting just in case our own network
 					# is what is hosed
@@ -388,9 +395,6 @@ class ISY(object):
 				raise ValueError
 
 			configdict = xmltodict.parse(r.text)['nodes']
-		# with open('/home/pi/Console/txml.dmp') as f:
-		#	rtxt = f.readline()
-		# configdict = xmltodict.parse(rtxt)['nodes']
 
 		if debug.dbgStore.GetVal('ISYLoad'):
 			with open('/home/pi/Console/xml.dmp', 'r') as f:
@@ -410,15 +414,15 @@ class ISY(object):
 			debug.ISYDump("isystream.dmp", "", pretty=False, new=True)
 
 		# Make sure that we have standardized info from ISY even if no or one folder, node, group
-		if not 'folder' in configdict:
+		if 'folder' not in configdict:
 			configdict['folder'] = []
 		elif not isinstance(configdict['folder'], list):
 			configdict['folder'] = [configdict['folder']]
-		if not 'node' in configdict:
+		if 'node' not in configdict:
 			configdict['node'] = []
 		elif not isinstance(configdict['node'], list):
 			configdict['node'] = [configdict['node']]
-		if not 'group' in configdict:
+		if 'group' not in configdict:
 			configdict['group'] = []
 		elif not isinstance(configdict['group'], list):
 			configdict['group'] = [configdict['group']]
@@ -460,7 +464,8 @@ class ISY(object):
 				nodedef = node['@nodeDefId'] if '@nodeDefId' in node else 'UnknownDef'
 				devtyp = node['type'].split('.')
 				family = node['family'] if 'family' in node else "Insteon"
-				if isinstance(family, dict): family = family['#text'] if '#text' in family else "Unknown"
+				if isinstance(family, dict):
+					family = family['#text'] if '#text' in family else "Unknown"
 				if family == "4":  # zwave device
 					zwdevtype = node['devtype']['cat']
 					if zwdevtype in ZWAVE_CAT_DIMMABLE:
@@ -478,7 +483,8 @@ class ISY(object):
 					else:
 						n = Node(self, flg, nm, addr, ptyp, parentaddr, enabld, prop)
 				else:
-					if nodedef not in UnhandledTypes: UnhandledTypes[nodedef] = []
+					if nodedef not in UnhandledTypes:
+						UnhandledTypes[nodedef] = []
 					UnhandledTypes[nodedef].append(nm)
 					n = UnhandledNode(self, flg, nm, addr, ptyp, parentaddr, enabld, prop)
 				fixlist.append((n, pnd))
@@ -500,14 +506,15 @@ class ISY(object):
 			# noinspection PyBroadException
 			try:
 				fixitem[0].pnode = self.NodesByAddr[fixitem[1]]
-			except:
-				logsupport.Logs.Log("Problem with processing node: ", fixitem[1], severity=ConsoleWarning)
+			except Exception as E:
+				logsupport.Logs.Log(f"Problem with processing node: {fixitem[1]} ({E})", severity=ConsoleWarning)
 
 		logsupport.Logs.Log('Unsupported Polisy Types and Nodes:')
 		if UnhandledTypes != {}:
 			for ut, nds in UnhandledTypes.items():
 				logsupport.Logs.Log('     {}'.format(ut))
-				for n in nds: logsupport.Logs.Log('       {}'.format(n))
+				for n in nds:
+					logsupport.Logs.Log('       {}'.format(n))
 
 		for scene in configdict['group']:
 			memberlist = []
@@ -577,14 +584,13 @@ class ISY(object):
 					logsupport.Logs.Log('{}: Successful programs read: {}'.format(self.name, r.status_code))
 					break
 				# except requests.exceptions.ConnectTimeout:
-				except:
+				except Exception as E:
 					# after total power outage ISY is slower to come back than RPi sowait testing periodically.
 					# Eventually we try rebooting just in case our own network is what is hosed
 					trycount -= 1
 					if trycount > 0:
 						logsupport.Logs.Log(
-							'{}:  Hub not responding ({}) (programs) at: {}'.format(self.name, trycount,
-																					self.ISYprefix))
+							f'{self.name}: Hub not responding ({trycount}) (programs) at: {self.ISYprefix} ({E})')
 						time.sleep(15)
 					else:
 						logsupport.Logs.Log('No ISY response restart (programs)')
@@ -630,8 +636,7 @@ class ISY(object):
 					r1 = self.ISYrequestsession.get(self.ISYprefix + 'vars/definitions/2', verify=False, timeout=5)
 					r2 = self.ISYrequestsession.get(self.ISYprefix + 'vars/definitions/1', verify=False, timeout=5)
 					historybuffer.HBNet.Entry('ISY vars get done')
-					# if r1.status_code == 200 and r2.status_code == 200: # good reads for both
-					#	break
+
 					if r1.status_code != 200 and 'Not Found' in r1.text:  # no state vars
 						statgood = False
 					elif r1.status_code != 200:
@@ -644,13 +649,13 @@ class ISY(object):
 						logsupport.Logs.Log("Bad ISY int var read" + r1.text + r2.text, severity=ConsoleWarning)
 						raise requests.exceptions.ConnectionError  # fake connection error on bad read
 					break
-				except:
+				except Exception as E:
 					# after total power outage ISY is slower to come back than RPi so we wait testing periodically
 					# Eventually we try rebooting just in case our own network is what is hosed
 					trycount -= 1
 					if trycount > 0:
 						logsupport.Logs.Log(
-							'{}:  Hub not responding (variables) at: {}'.format(self.name, self.ISYprefix))
+							f'{self.name}: Hub not responding (variables) at: {self.ISYprefix} ({E})')
 						time.sleep(15)
 					else:
 						logsupport.Logs.Log('No ISY response restart (vars)')
@@ -666,7 +671,8 @@ class ISY(object):
 		try:
 			if debug.dbgStore.GetVal('ISYLoad'):
 				configdictS = xmltodict.parse(vars1)['CList']['e']
-				if not isinstance(configdictS, list): configdictS = [configdictS]
+				if not isinstance(configdictS, list):
+					configdictS = [configdictS]
 			else:
 				configdictS = [] if not statgood else xmltodict.parse(r1.text)['CList']['e']  # is a list of vars
 			if debug.dbgStore.GetVal('ISYDump'):
@@ -676,13 +682,14 @@ class ISY(object):
 				self.Vars.SetVal(('State', v['@name']), None)
 				self.Vars.SetAttr(('State', v['@name']), (2, int(v['@id'])))
 				self.Vars.AddAlert(('State', v['@name']), self._ISYVarChanged)
-		except:
-			logsupport.Logs.Log('No state variables defined')
+		except Exception as E:
+			logsupport.Logs.Log(f'No state variables defined ({E})')
 		# noinspection PyBroadException
 		try:
 			if debug.dbgStore.GetVal('ISYLoad'):
 				configdictI = xmltodict.parse(vars2)['CList']['e']
-				if not isinstance(configdictI, list): configdictI = [configdictI]
+				if not isinstance(configdictI, list):
+					configdictI = [configdictI]
 			else:
 				configdictI = [] if not intgood else xmltodict.parse(r2.text)['CList']['e']
 			if debug.dbgStore.GetVal('ISYDump'):
@@ -692,8 +699,8 @@ class ISY(object):
 				self.Vars.SetVal(('Int', v['@name']), None)
 				self.Vars.SetAttr(('Int', v['@name']), (1, int(v['@id'])))
 				self.Vars.AddAlert(('Int', v['@name']), self._ISYVarChanged)
-		except:
-			logsupport.Logs.Log('No integer variables defined')
+		except Exception as E:
+			logsupport.Logs.Log(f'No integer variables defined ({E})')
 
 		'''
 		Add command varibles if needed
@@ -753,7 +760,8 @@ class ISY(object):
 		# sanity check all states in Hub against local cache
 		logsupport.Logs.Log("Running state check for ISY hub: ", self.name)
 		for nm, N in self._NodesByFullName.items():
-			if isinstance(N, Node): self._check_real_time_node_status(N)
+			if isinstance(N, Node):
+				self._check_real_time_node_status(N)
 
 	def try_ISY_comm(self, urlcmd, timeout=5, closeonfail=True, doasync=False):
 		# print('Command: {}'.format(urlcmd)) TestISY
@@ -799,7 +807,8 @@ class ISY(object):
 					historybuffer.HBNet.Entry('ISY comm done')
 				except requests.exceptions.ConnectTimeout as e:
 					self.HBDirect.Entry('(' + str(i) + ') ConnectionTimeout: ' + repr(e))
-					if error[-1] != 'ConnTO': error.append('ConnTO')
+					if error[-1] != 'ConnTO':
+						error.append('ConnTO')
 					logsupport.Logs.Log(self.name + " Comm Timeout: " + ' Cmd: ' + '*' + urlcmd + '*',
 										severity=ConsoleDetailHigh,
 										tb=False)
@@ -809,7 +818,8 @@ class ISY(object):
 				except requests.exceptions.ConnectionError as e:
 					# noinspection PyBroadException
 					self.HBDirect.Entry('(' + str(i) + ') ConnectionError: ' + repr(e))
-					if error[-1] != 'ConnErr': error.append('ConnErr')
+					if error[-1] != 'ConnErr':
+						error.append('ConnErr')
 					logsupport.Logs.Log(self.name + " Comm ConnErr: " + ' Cmd: ' + urlcmd,
 										severity=ConsoleDetailHigh,
 										tb=False)
@@ -819,11 +829,13 @@ class ISY(object):
 
 				except requests.exceptions.ReadTimeout as e:
 					self.HBDirect.Entry('(' + str(i) + ') ReadTimeout: ' + repr(e))
-					if error[-1] != 'ReadTO': error.append('ReadTO')
+					if error[-1] != 'ReadTO':
+						error.append('ReadTO')
 					raise CommsError
 				except Exception as e:
 					self.HBDirect.Entry('(' + str(i) + ') UnknownError: ' + repr(e))
-					if error[-1] != 'CommUnknErr': error.append('CommUnknErr')
+					if error[-1] != 'CommUnknErr':
+						error.append('CommUnknErr')
 					logsupport.Logs.Log(self.name + " Comm UnknownErr: " + ' Cmd: ' + urlcmd, severity=ConsoleError,
 										tb=False)
 					logsupport.Logs.Log("  Exception: ", repr(e))
@@ -833,7 +845,8 @@ class ISY(object):
 					return 'notfound'
 				if r.status_code != 200:
 					self.HBDirect.Entry('(' + str(i) + ') Not Success: ' + repr(r.status_code))
-					if error[-1] != 'FailReq': error.append('FailReq')
+					if error[-1] != 'FailReq':
+						error.append('FailReq')
 					logsupport.Logs.Log(
 						'Hub (' + self.name + ') Bad status:' + str(r.status_code) + ' on Cmd: ' + urlcmd,
 						severity=ConsoleError)
@@ -950,7 +963,8 @@ class ISY(object):
 			return None
 
 	def GetCurrentStatus(self, MonitorNode):
-		if not self._HubOnline: return -1
+		if not self._HubOnline:
+			return -1
 		if MonitorNode is not None:
 			return MonitorNode.devState
 		else:
@@ -966,7 +980,7 @@ class ISY(object):
 		with open('/home/pi/Console/{}Dump.txt'.format(self.name), mode='w') as f:
 			for n, nd in self._NodesByFullName.items():
 				if hasattr(nd, 'devState'):
-					f.write('Node({}): {} -> {} {}\n'.format(type(nd),n, nd.devState, type(nd.devState)))
+					f.write('Node({}): {} -> {} {}\n'.format(type(nd), n, nd.devState, type(nd.devState)))
 				else:
 					f.write('Node({}): {} has no devState \n'.format(type(nd), n))
 

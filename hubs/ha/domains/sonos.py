@@ -37,7 +37,8 @@ class MediaPlayer(HAnode):
 	def Update(self, **ns):
 		oldst = self.state
 		# print('Gotupdt {} {}'.format(self.state, ns))
-		if 'attributes' in ns: self.attributes = ns['attributes']
+		if 'attributes' in ns:
+			self.attributes = ns['attributes']
 		self.state = ns['state']
 		newst = self._NormalizeState(self.state)
 		if newst != self.internalstate:
@@ -53,7 +54,8 @@ class MediaPlayer(HAnode):
 				if oldst == -1:
 					logsupport.Logs.Log("Sonos room became available: ", self.Hub.Entities[self.entity_id].name)
 				self.sonos_group = self.attributes['sonos_group']
-				if 'source_list' in self.attributes: self.source_list = self.attributes['source_list']
+				if 'source_list' in self.attributes:
+					self.source_list = self.attributes['source_list']
 				self.muted = self.attributes['is_volume_muted'] if 'is_volume_muted' in self.attributes else 'True'
 				self.volume = self.attributes['volume_level'] if 'volume_level' in self.attributes else 0
 				self.song = self.attributes['media_title'] if 'media_title' in self.attributes else ''

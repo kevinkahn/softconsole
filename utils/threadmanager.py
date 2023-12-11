@@ -29,14 +29,12 @@ class ThreadItem(object):
 		self.RestartCount = 0
 
 
-#	def StopThread(self):
-#		self.Thread.stop()
-
 def SetUpHelperThread(name, proc, prestart=None, poststart=None, prerestart=None, postrestart=None, checkok=None,
 					  rpterr=True):
 	global HelperThreads, ThreadStarted
 	HelperThreads[name] = ThreadItem(name, proc, prestart, poststart, prerestart, postrestart, checkok, rpterr)
-	if ThreadStarted: StartThread(HelperThreads[name])
+	if ThreadStarted:
+		StartThread(HelperThreads[name])
 
 
 def DeleteHelperThread(name):
@@ -52,10 +50,12 @@ def DoRestart(T):
 		logsupport.Logs.Log(f'Helper Thread High Restart Count: {T.RestartCount}', severity=ConsoleWarning)
 	for i in range(10):
 		try:
-			if T.PreRestartThread is not None: T.PreRestartThread()
+			if T.PreRestartThread is not None:
+				T.PreRestartThread()
 			T.Thread = threading.Thread(name=T.name, target=T.Proc, daemon=True)
 			T.Thread.start()
-			if T.PostRestartThread is not None: T.PostRestartThread()
+			if T.PostRestartThread is not None:
+				T.PostRestartThread()
 			return True
 		except ThreadStartException:
 			logsupport.Logs.Log("Problem restarting helper thread (", T.seq, ") for: ", T.name)
@@ -65,7 +65,8 @@ def DoRestart(T):
 def CheckThreads():
 	try:
 		for T in HelperThreads.values():
-			if not T.Thread.is_alive():  # or T.ServiceNotOK this would be an optional procedure to do semantic checking a la heartbeat
+			if not T.Thread.is_alive():
+				# or T.ServiceNotOK this would be an optional procedure to do semantic checking a la heartbeat
 				rpt = T.ReportError if not callable(T.ReportError) else T.ReportError()
 				logsupport.Logs.Log("Thread for: " + T.name + " is dead",
 									severity=ConsoleWarning if rpt else logsupport.ConsoleInfo)
@@ -87,10 +88,12 @@ def CheckThreads():
 def StartThread(T):
 	T.seq += 1
 	logsupport.Logs.Log("Starting helper thread (", T.seq, ") for: ", T.name)
-	if T.PreStartThread is not None: T.PreStartThread()
+	if T.PreStartThread is not None:
+		T.PreStartThread()
 	T.Thread = threading.Thread(name=T.name, target=T.Proc, daemon=True)
 	T.Thread.start()
-	if T.PostStartThread is not None: T.PostStartThread()
+	if T.PostStartThread is not None:
+		T.PostStartThread()
 
 
 def StartThreads():

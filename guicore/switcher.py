@@ -9,8 +9,10 @@ import guicore.screenmgt as screenmgt
 
 
 def SwitchScreen(NS, newdim, reason, *, newstate=None, AsCover=False, push=False, clear=False):
-	if newstate is None: newstate = screenmgt.screenstate  # no state change
-	if NS == screens.HomeScreen: screenmgt.Chain = 0  # force to Main chain in case coming from secondary
+	if newstate is None:
+		newstate = screenmgt.screenstate  # no state change
+	if NS == screens.HomeScreen:
+		screenmgt.Chain = 0  # force to Main chain in case coming from secondary
 	oldname = 'None' if config.AS is None else config.AS.name
 	screenmgt.HBScreens.Entry(
 		'SwitchScreen old: {} new: {} chain: {} reason: {}'.format(oldname, NS.name, screenmgt.Chain, reason))
@@ -103,8 +105,6 @@ def SwitchScreen(NS, newdim, reason, *, newstate=None, AsCover=False, push=False
 
 	debug.debugPrint('Dispatch', "New watchlist(Main): " + str(config.AS.HubInterestList))
 
-	# if OS == screenmgt.AS:
-	#	safeprint('Double dispatch: {}'.format(screenmgt.AS.name))
 	try:
 		config.AS.InitDisplay(nav)
 	except Exception as e:

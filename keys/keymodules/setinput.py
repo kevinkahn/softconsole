@@ -42,9 +42,6 @@ class SetInputKey(ManualKeyDesc):
 		if self.label == ['']:
 			self.label = [self.entity.name]
 
-		# for item in self.Appearance:
-		#	self.displayoptions.append(DispOpt(item, self.label))
-
 		utilities.register_example("SetInputKey", self)
 
 	# noinspection PyUnusedLocal

@@ -5,7 +5,8 @@ from utils.utilfuncs import wc
 
 
 def fitFont(font, s, FitLine):
-	if not FitLine: return s
+	if not FitLine:
+		return s
 	s2 = s
 	starg = fonts.fonts.Font(s2, font).get_linesize()
 	while starg > s:
@@ -24,20 +25,21 @@ def CreateTextBlock(textlines, fontsizes, color, center, font=fonts.monofont, Fi
 		for i in range(len(lines) - t):
 			sizes.append(sizes[-1])
 	rl = []
-	for l, s in zip(lines, sizes):
+	for line, s in zip(lines, sizes):
 		for trys in [s, int(.75 * s), int(.625 * s)]:
 			usesz = fitFont(font, trys, FitLine)
-			line = fonts.fonts.Font(usesz, font).render(l, 0, wc(color))
-			if line.get_width() < MaxWidth: break
+			line = fonts.fonts.Font(usesz, font).render(line, 0, wc(color))
+			if line.get_width() < MaxWidth:
+				break
 		if line.get_width() > MaxWidth:
 			usesz = fitFont(font, s // 2, FitLine)
-			breaks = [i for i, ltr in enumerate(l) if ltr == ' '] + [len(l) - 1]
+			breaks = [i for i, ltr in enumerate(line) if ltr == ' '] + [len(line) - 1]
 			for indx, val in enumerate(breaks):
-				if fonts.fonts.Font(usesz, font).size(l[:breaks[indx]])[0] > MaxWidth:
+				if fonts.fonts.Font(usesz, font).size(line[:breaks[indx]])[0] > MaxWidth:
 					break
 			# noinspection PyUnboundLocalVariable
-			lleft = l[:breaks[indx - 1]]
-			lright = '  ' + l[breaks[indx - 1]:]
+			lleft = line[:breaks[indx - 1]]
+			lright = '  ' + line[breaks[indx - 1]:]
 			usesz = fitFont(font, s // 2, FitLine)
 			line1 = fonts.fonts.Font(usesz, font).render(lleft, 0, wc(color))
 			line2 = fonts.fonts.Font(usesz, font).render(lright, 0, wc(color))
@@ -52,11 +54,11 @@ def CreateTextBlock(textlines, fontsizes, color, center, font=fonts.monofont, Fi
 	blk = pg.Surface((w, h))
 	blk.set_colorkey(wc('black'))
 	v = 0
-	for l in rl:
+	for line in rl:
 		if center:
-			blk.blit(l, ((w - l.get_width()) / 2, v))
+			blk.blit(line, ((w - line.get_width()) / 2, v))
 		else:
-			blk.blit(l, (0, v))
-		v += l.get_height()
+			blk.blit(line, (0, v))
+		v += line.get_height()
 
 	return blk, blk.get_height(), blk.get_width()

@@ -30,7 +30,8 @@ class InternalProcKey(ManualKeyDesc):
 		super().InitDisplay()
 
 	def Pressed(self, tapcount):
-		if not self.UnknownState: super().Pressed(tapcount)
+		if not self.UnknownState:
+			super().Pressed(tapcount)
 
 
 class RemoteProcKey(InternalProcKey):

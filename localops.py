@@ -21,8 +21,6 @@ def PreOp():
 	global DeletedCfgs, CopiedConfig, NewCfgs, PreOpFailure
 	if not os.path.exists(config.sysStore.HomeDir + '/homesystem'):
 		return
-	# subprocess.run(
-	#	["mount", "-a"])  # this shouldn't be needed for automount but for photos it seems automount isn't working
 	confserver = '/home/pi/.exconfs/'
 	conflocal = config.sysStore.configdir + '/cfglib/'
 	cfgdirserver = confserver + 'cfglib/'
@@ -71,7 +69,7 @@ def PreOp():
 				# noinspection PyBroadException
 				try:
 					os.remove(config.sysStore.configdir + '/runonce.sh.done')
-				except:
+				except Exception:
 					pass
 				shutil.copy2(confserver + 'runonce.sh', config.sysStore.configdir + '/runonce.sh')
 				cp = subprocess.run('bash ' + config.sysStore.configdir + '/runonce.sh', stdout=subprocess.PIPE,
@@ -112,7 +110,7 @@ def PreOp():
 			# noinspection PyBroadException
 			try:
 				mtloc = os.path.getmtime(conflocal + f)
-			except:
+			except Exception:
 				mtloc = 0
 			if mt > mtloc:
 				NewCfgs.add(f)
@@ -152,14 +150,14 @@ def PreOp():
 def LogUp():
 	global NewCfgs, DeletedCfgs, PreOpFailure, CopiedConfig
 	logsupport.Logs.Log('-----Local Ops Executed-----')
-	for l in PreOpScripts:
-		logsupport.Logs.Log('PreOp Script: {}'.format(l))
+	for line in PreOpScripts:
+		logsupport.Logs.Log('PreOp Script: {}'.format(line))
 	for f in NewCfgs:
 		logsupport.Logs.Log("Updated cfg library element: {}".format(f))
 	if CopiedConfig:
 		logsupport.Logs.Log("Updated host config files: {}".format(CopiedConfig))
 	for f in DeletedCfgs:
 		logsupport.Logs.Log("Local config library file {} no longer exists in archive".format(f))
-	for l in PreOpFailure:
-		logsupport.Logs.Log('PreOp Error: {}'.format(l), severity=logsupport.ConsoleWarning)
+	for line in PreOpFailure:
+		logsupport.Logs.Log('PreOp Error: {}'.format(line), severity=logsupport.ConsoleWarning)
 	logsupport.Logs.Log('-----Local Ops Complete-----')

@@ -25,7 +25,8 @@ class RunProgram(ManualKeyDesc):
 			self.ProcDblTap = self.RunKeyDblPressed
 
 	def RunKeyPressed(self):
-		if self.FastPress: return
+		if self.FastPress:
+			return
 		self.Program.RunProgram(param=self.Parameter)
 		self.ScheduleBlinkKey(self.Blink)
 
