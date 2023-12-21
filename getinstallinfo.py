@@ -1,10 +1,10 @@
 import sys, time, os, wget, shutil, subprocess
 from functools import partial as p
-import githubutil as U
+
 
 gitselector = {'stable': 'currentrelease', 'personal': 'homerelease', 'beta': 'currentbeta'}
 gitprefix = 'https://raw.githubusercontent.com/kevinkahn/softconsole/'
-installscripts = {'vncserverpi.service': 'scripts/', 'lxterminal.conf': 'scripts/', 'githubutil.py': ''}
+installscripts = {'githubutil.py': ''}
 setgroupaccess = {}
 
 
@@ -14,8 +14,6 @@ def GetScripts(vers, save=''):
 			os.rename(s, '.consoleinstallleftovers/' + s + '.' + save)
 	for nm, floc in installscripts.items():
 		wget.download(gitprefix + gitselector[vers] + '/' + floc + nm, nm, bar=None)
-	shutil.chown('lxterminal.conf', user='pi', group='pi')
-
 
 def GetYN(prompt, Allownum=False):
 	while True:
@@ -159,6 +157,7 @@ AddToScript('Reboot', GetYN("Automatically reboot to clean system after install?
 GetScripts('personal' if personal else 'stable')
 if beta:
 	GetScripts('beta', save=('personal' if personal else 'stable'))
+import githubutil as U  # todo clean up this late import and the scripts stuff
 
 screentype = '--'
 

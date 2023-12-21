@@ -6,7 +6,7 @@ cfglib = cfglib
 include = /home/pi/Console/local/authall.cfg, mqtt.cfg, weathersources.cfg, timetempLQ.cfg,  myclock.cfg,pgaTstat.cfg, pgaalerts.cfg, pgaGR.cfg, pgaKitchen.cfg, pgaOutside.cfg, pgaShades3.cfg, timetempPDX.cfg, pgaScenes.cfg
 
 HomeScreenName = 'pgaGR'
-DimLevel = 10
+DimLevel = 25
 DimTO = 10
 PersistTO = 20
 
