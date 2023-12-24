@@ -23,9 +23,9 @@ exec 2>&1
 cd /home/pi
 LogBanner "This is the system setup script for console  for user pi"
 
-  LogBanner "If BookWorm: Remember to do rpi-update first!"
-  sleep 5
-  LogBanner "Continuing . . ."
+#  LogBanner "If BookWorm: Remember to do rpi-update first!"
+#  sleep 5
+#  LogBanner "Continuing . . ."
 
 
 DEBIAN_FRONTEND=noninteractive sudo apt-get -y install python3-wget
