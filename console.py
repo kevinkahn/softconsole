@@ -274,7 +274,7 @@ for root, dirs, files in os.walk(config.sysStore.ExecDir):
 				lastfn = fn
 ####
 
-logsupport.Logs.Log(f'Git Date/Seq: {config.sysStore.gitversion}/{config.sysStore.gitseq}')
+logsupport.Logs.Log(f'Git Date/Seq: {config.sysStore.gitcommit}/{config.sysStore.gitseq}')
 logsupport.Logs.Log(
 	'Version/Sha/Dnld/Commit: {} {} {} {}'.format(config.sysStore.versionname,
 												  config.sysStore.versionsha, config.sysStore.versiondnld,
