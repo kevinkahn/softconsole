@@ -44,6 +44,7 @@ import historybuffer
 import controlevents
 from config import configfilelist  # list of configfiles and their timestamps
 from stores import genericweatherstore
+import gitver
 
 import hubs.hubs
 
@@ -166,6 +167,8 @@ hubs.hubs.hubtypes['ISY'] = isy.ISY
 hubs.hubs.hubtypes['ISYDummy'] = isy.ISY
 hubs.hubs.hubtypes['HASS'] = hasshub.HA
 hubs.hubs.hubtypes['*missing*'] = missinghub.Hub
+config.sysStore.SetVal('gitcommit', gitver.committime)
+config.sysStore.SetVal('gitseq', gitver.commitseq)
 
 try:
 	with open('{}/versioninfo'.format(config.sysStore.ExecDir)) as f:
@@ -271,7 +274,7 @@ for root, dirs, files in os.walk(config.sysStore.ExecDir):
 				lastfn = fn
 ####
 
-
+logsupport.Logs.Log(f'Git Date/Seq: {config.sysStore.gitversion}/{config.sysStore.gitseq}')
 logsupport.Logs.Log(
 	'Version/Sha/Dnld/Commit: {} {} {} {}'.format(config.sysStore.versionname,
 												  config.sysStore.versionsha, config.sysStore.versiondnld,
