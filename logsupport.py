@@ -46,6 +46,9 @@ class TempLogger(object):
 		EarlyLog.append((time.strftime('%m-%d-%y %H:%M:%S'), entry, sev))
 		safeprint(" " + entry)
 
+	def write(self, item: str):
+		self.Log(item.strip())
+
 
 Logs = TempLogger()
 
@@ -379,6 +382,10 @@ class Logger(object):
 		for ent in EarlyLog:
 			LoggerQueue.put((Command.LogEntry, ent[2], ent[1], ent[0]))
 		LoggerQueue.put((Command.LogEntry, 3, '-----End of PreLog Entries------', '-----------------'))
+
+	def write(self, item: str):
+		# used for calling to routines that want to print to log
+		self.Log(item.strip())
 
 	# noinspection PyProtectedMember
 	def Log(self, *args, **kwargs):

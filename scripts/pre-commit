@@ -1,0 +1,5 @@
+#! /bin/bash
+
+python githookversion.py
+git add gitver.py
+git add requirements.txt

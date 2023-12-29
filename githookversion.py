@@ -1,5 +1,6 @@
 from datetime import datetime
 
+seq = 999999
 committime = datetime.now().strftime("%c")
 with open('gitver.py', 'r') as gitver:
 	lines = gitver.readlines()
@@ -21,7 +22,7 @@ with open('gitver.py', 'w') as gitver:
 		print(line, file=gitver)
 with open('requirements.txt', 'r') as rqmts:
 	lines = rqmts.readlines()
-	versline = f'#{committime}/{seq}\n'
+	versline = f'#{committime}/{seq + 1}\n'
 	if lines[0].startswith('#'):
 		lines[0] = versline
 	else:

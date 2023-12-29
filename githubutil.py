@@ -11,9 +11,9 @@ NOTE: This gets used in initial setup of console by the setup program
 """
 
 
-def StageVersion(vdir, tag, label, uselog=False, logger=None):
-	logf = open('stagelog.log', ('w', 'a')[uselog] if logger is None else logger)
-	print(datetime.datetime.now().strftime("%I:%M%p on %B %d, %Y"), file=logf)
+def StageVersion(vdir, tag, label, logger=None):
+	logf = open('stagelog.log', 'a' if logger is None else logger)
+	print(f'------------ {datetime.datetime.now().strftime("%I:%M%p on %B %d, %Y")}-------------', file=logf)
 	print("Staging " + tag + " in " + vdir + ' because ' + label, file=logf)
 
 	cwd = os.getcwd()

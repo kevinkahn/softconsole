@@ -354,12 +354,12 @@ def fetch_stable():
 			# personal system
 			logsupport.Logs.Log("New version fetch(homerelease)")
 			logsupport.DevPrint("New Version Fetch Requested (homesystem)")
-			U.StageVersion(basedir + '/consolestable', 'homerelease', 'Maint Dnld')
+			U.StageVersion(basedir + '/consolestable', 'homerelease', 'Maint Dnld', logger=logsupport.Logs.write)
 		else:
 			logsupport.Logs.Log("New version fetch(currentrelease)")
 			logsupport.DevPrint("New Version Fetch Requested (currentrelease)")
-			U.StageVersion(basedir + '/consolestable', 'currentrelease', 'Maint Dnld')
-		U.InstallStagedVersion(basedir + '/consolestable')
+			U.StageVersion(basedir + '/consolestable', 'currentrelease', 'Maint Dnld', logger=logsupport.Logs.write)
+		U.InstallStagedVersion(basedir + '/consolestable', logger=logsupport.Logs.write)
 		logsupport.Logs.Log("Staged version installed in consolestable")
 	except Exception as E:
 		logsupport.Logs.Log(f'Failed release download ({E})', severity=ConsoleWarning)
@@ -372,8 +372,8 @@ def fetch_beta():
 	logsupport.Logs.Log("New version fetch(currentbeta)")
 	# noinspection PyBroadException
 	try:
-		U.StageVersion(basedir + '/consolebeta', 'currentbeta', 'Maint Dnld')
-		U.InstallStagedVersion(basedir + '/consolebeta')
+		U.StageVersion(basedir + '/consolebeta', 'currentbeta', 'Maint Dnld', logger=logsupport.Logs.write)
+		U.InstallStagedVersion(basedir + '/consolebeta', logger=logsupport.Logs.write)
 		logsupport.Logs.Log("Staged version installed in consolebeta")
 	except Exception as E:
 		logsupport.Logs.Log(f'Failed beta download ({E})', severity=ConsoleWarning)
@@ -386,8 +386,8 @@ def fetch_dev():
 	logsupport.Logs.Log("New version fetch(currentdev)")
 	# noinspection PyBroadException
 	try:
-		U.StageVersion(basedir + '/consoledev', '*live*', 'Maint Dnld')
-		U.InstallStagedVersion(basedir + '/consoledev')
+		U.StageVersion(basedir + '/consoledev', '*live*', 'Maint Dnld', logger=logsupport.Logs.write)
+		U.InstallStagedVersion(basedir + '/consoledev', logger=logsupport.Logs.write)
 		logsupport.Logs.Log("Staged version installed in consoledev")
 	except Exception as E:
 		logsupport.Logs.Log(f'Failed dev download ({E})', severity=ConsoleWarning)
