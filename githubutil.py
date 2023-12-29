@@ -11,11 +11,8 @@ NOTE: This gets used in initial setup of console by the setup program
 """
 
 
-def StageVersion(vdir, tag, label, uselog=False):
-	if uselog:
-		logf = open('stagelog.log', 'a')
-	else:
-		logf = open('stagelog.log', 'w')
+def StageVersion(vdir, tag, label, uselog=False, logger=None):
+	logf = open('stagelog.log', ('w', 'a')[uselog] if logger is None else logger)
 	print(datetime.datetime.now().strftime("%I:%M%p on %B %d, %Y"), file=logf)
 	print("Staging " + tag + " in " + vdir + ' because ' + label, file=logf)
 
@@ -60,8 +57,8 @@ def StageVersion(vdir, tag, label, uselog=False):
 
 
 # noinspection PyBroadException
-def InstallStagedVersion(d, Bookworm=False):
-	logf = open('stagelog.log', 'a')
+def InstallStagedVersion(d, Bookworm=False, logger=None):
+	logf = open('stagelog.log', 'a') if logger is None else logger
 	print("Installing in {}".format(d), file=logf)
 	shutil.rmtree(d + '/previousversion', True)  # don't keep multiple previous version in tree
 	os.rename(d, d + '.TMP')  # move active directory to temp
@@ -88,7 +85,9 @@ def InstallStagedVersion(d, Bookworm=False):
 		shutil.copy('scripts/softconsoleBW.service', 'scripts/softconsole.service')
 
 	print(f'Process requirements file from {os.getcwd()}', file=logf)
-	# subprocess.call('bash ./scripts/upgradeprep.sh', shell=True, stdout=logf, stderr=logf)
+	with open('requirements.txt', 'r') as rqmts:
+		rqmtseq = rqmts.readline()
+		print(f'Install using requirements: {rqmtseq[1:]}', file=logf)
 	subprocess.call('/home/pi/pyenv/bin/pip install -r requirements.txt', shell=True, stdout=logf, stderr=logf)
 	print('End processing requirements', file=logf)
 

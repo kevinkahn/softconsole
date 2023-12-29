@@ -3,7 +3,6 @@ from datetime import datetime
 committime = datetime.now().strftime("%c")
 with open('gitver.py', 'r') as gitver:
 	lines = gitver.readlines()
-	print(lines)
 newlines = []
 for line in lines:
 	if line.strip().startswith('commitseq'):
@@ -14,12 +13,19 @@ for line in lines:
 	elif line.strip().startswith('committime'):
 		newlines.append(f'committime = \"{committime}\"')
 	elif line == '\n':
-		print('Skip nl')
 		pass
 	else:
 		newlines.append(line)
-print(lines)
 with open('gitver.py', 'w') as gitver:
 	for line in newlines:
-		print(line)
 		print(line, file=gitver)
+with open('requirements.txt', 'r') as rqmts:
+	lines = rqmts.readlines()
+	versline = f'#{committime}/{seq}\n'
+	if lines[0].startswith('#'):
+		lines[0] = versline
+	else:
+		lines.insert(0, versline)
+with open('requirements.txt', 'w') as rqmts:
+	for line in lines:
+		rqmts.write(line)
