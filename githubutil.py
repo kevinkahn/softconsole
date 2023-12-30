@@ -11,26 +11,33 @@ NOTE: This gets used in initial setup of console by the setup program
 """
 
 
-def DumpRunRes(res: subprocess.CompletedProcess, logf):
-	print(f'RUN: {res.args} Result: {res.returncode}', file=logf, end='')
+def DumpRunRes(res: subprocess.CompletedProcess, logf, endret):
+	print(f'RUN: {res.args} Result: {res.returncode}', file=logf, end=endret)
 	for line in res.stdout.splitlines():
-		print(line, file=logf, end='')
-	if res.returncode != 9:
-		print(f'---Error output--- {res.stderr}', file=logf, end='')
+		if line != '':
+			print(line, file=logf, end=endret)
+	if res.returncode != 0:
+		print(f'---Error output--- {res.stderr}', file=logf, end=endret)
 		for line in res.stderr.splitlines():
-			print(line, file=logf, end='')
+			print(line, file=logf, end=endret)
 
 def StageVersion(vdir, tag, label, logger=None):
-	logf = open('stagelog.log', 'a') if logger is None else logger
+	if logger is None:
+		logf = open('stagelog.log', 'a')
+		endret = '\n'
+	else:
+		logf = logger
+		endret = ''
 	logferror = open('stageerrlog.log', 'w')
-	print(f'------------ {datetime.datetime.now().strftime("%I:%M%p on %B %d, %Y")} ------------', file=logf)
-	print("Staging " + tag + " in " + vdir + ' because ' + label, file=logf)
+	print(f'------------ {datetime.datetime.now().strftime("%I:%M%p on %B %d, %Y")} ------------', file=logf,
+		  end=endret)
+	print("Staging " + tag + " in " + vdir + ' because ' + label, file=logf, end=endret)
 
 	cwd = os.getcwd()
 	try:
 		os.chdir(vdir)
 	except Exception as E:
-		print("Staging directory {} doesn't exist - try to create it ({})".format(vdir, E), file=logf)
+		print("Staging directory {} doesn't exist - try to create it ({})".format(vdir, E), file=logf, end=endret)
 		os.mkdir(vdir)
 		os.chdir(vdir)
 	shutil.rmtree('stagedversion', True)
@@ -45,10 +52,10 @@ def StageVersion(vdir, tag, label, logger=None):
 	else:
 		res = subprocess.run(f"wget https://github.com/kevinkahn/softconsole/archive/{tag}.tar.gz", shell=True,
 							 text=True, capture_output=True)
-		DumpRunRes(res, logf)
+		DumpRunRes(res, logf, endret)
 		res = subprocess.run(f'tar -zxls --strip-components=1 < {tag}.tar.gz', shell=True, text=True,
 							 capture_output=True)
-		DumpRunRes(res, logf)
+		DumpRunRes(res, logf, endret)
 		# subprocess.call('wget https://github.com/kevinkahn/softconsole/archive/' + tag + '.tar.gz',
 		#				shell=True, stdout=logferror, stderr=logferror)
 		#subprocess.call('tar -zxls --strip-components=1 < ' + tag + '.tar.gz', shell=True, stdout=logferror, stderr=logferror)
@@ -78,8 +85,13 @@ def StageVersion(vdir, tag, label, logger=None):
 
 # noinspection PyBroadException
 def InstallStagedVersion(d, Bookworm=False, logger=None):
-	logf = open('stagelog.log', 'a') if logger is None else logger
-	print("Installing in {}".format(d), file=logf)
+	if logger is None:
+		logf = open('stagelog.log', 'a')
+		endret = '\n'
+	else:
+		logf = logger
+		endret = ''
+	print("Installing in {}".format(d), file=logf, end=endret)
 	shutil.rmtree(d + '/previousversion', True)  # don't keep multiple previous version in tree
 	os.rename(d, d + '.TMP')  # move active directory to temp
 	os.rename(d + '.TMP/stagedversion', d)  # move new version into place
@@ -89,55 +101,55 @@ def InstallStagedVersion(d, Bookworm=False, logger=None):
 	if os.path.exists('../homesystem'):
 		res = subprocess.run('cp -u -r -p "example_configs"/* ../Console', shell=True, text=True, capture_output=True)
 		if res.returncode != 0:
-			print('Copy of example_configs failed on homesystem', file=logf)
-			DumpRunRes(res, logf)
+			print('Copy of example_configs failed on homesystem', file=logf, end=endret)
+			DumpRunRes(res, logf, endret)
 
 	if not os.path.exists('../Console/termshortenlist'):
 		try:
 			os.rename('example_configs/termshortenlist', '../Console/termshortenlist')
-			print("Initialized termshortenlist", file=logf)
+			print("Initialized termshortenlist", file=logf, end=endret)
 		except Exception:
-			print("Couldn't move termshortenlist in " + str(os.getcwd()), file=logf)
+			print("Couldn't move termshortenlist in " + str(os.getcwd()), file=logf, end=endret)
 
 	if Bookworm and os.path.exists('scripts/softconsoleBW.service'):
-		print('Use softconsoleBW.service for systemctl')
+		print('Use softconsoleBW.service for systemctl', file=logf, end=endret)
 		shutil.copy('scripts/softconsoleBW.service', 'scripts/softconsole.service')
 
 	print(f'Process requirements file from {os.getcwd()}', file=logf)
 	with open('requirements.txt', 'r') as rqmts:
 		rqmtseq = rqmts.readline()
-		print(f'Install using requirements: {rqmtseq[1:]}', file=logf)
+		print(f'Install using requirements: {rqmtseq[1:]}', file=logf, end=endret)
 	res = subprocess.run('/home/pi/pyenv/bin/pip install -r requirements.txt', shell=True, text=True,
 						 capture_output=True)
-	DumpRunRes(res, logf)
-	print('End processing requirements', file=logf)
+	DumpRunRes(res, logf, endret)
+	print('End processing requirements', file=logf, end=endret)
 
-	print(f'Setup systemd service from {d} {os.getcwd()}', file=logf)
+	print(f'Setup systemd service from {d} {os.getcwd()}', file=logf, end=endret)
 	os.chmod('runconsole.py', 0o555)
 	os.chmod('console.py', 0o555)
 
-	print('Copy softconsole.service file', file=logf)
+	print('Copy softconsole.service file', file=logf, end=endret)
 	res = subprocess.run('sudo cp -f scripts/softconsole.service /usr/lib/systemd/system', shell=True, text=True,
 						 capture_output=True)
-	DumpRunRes(res, logf)
+	DumpRunRes(res, logf, endret)
 	res = subprocess.run('sudo systemctl daemon-reload', shell=True, text=True, capture_output=True)
-	DumpRunRes(res, logf)
+	DumpRunRes(res, logf, endret)
 
 	if not os.path.exists('/home/pi/bin'):
 		os.mkdir('/home/pi/bin')
 	try:
 		shutil.copytree('scripts/Tools', '/home/pi/bin', dirs_exist_ok=True)
 	except Exception as E:
-		print(f"Exception copying Tools: {E} while in {os.getcwd()}", file=logf)
+		print(f"Exception copying Tools: {E} while in {os.getcwd()}", file=logf, end=endret)
 	if not os.path.exists('/home/pi/.ssh'):
-		print('Create .ssh dir', file=logf)
+		print('Create .ssh dir', file=logf, end=endret)
 		os.mkdir(f'/home/pi/.ssh')
 	if os.path.exists('/home/pi/bin/authorized_keys'):
 		shutil.copy('/home/pi/bin/authorized_keys', '/home/pi/.ssh')
 	if os.path.exists('/home/pi/bin/.bash_aliases'):
 		shutil.copy('/home/pi/bin/.bash_aliases', '/home/pi/.bash_aliases')
 	res = subprocess.run('chmod +x /home/pi/bin/*', shell=True, text=True, capture_output=True)
-	DumpRunRes(res, logf)
+	DumpRunRes(res, logf, endret)
 	try:
 		logf.close()
 	except AttributeError:
