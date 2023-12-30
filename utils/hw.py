@@ -189,8 +189,9 @@ def GoBright(level):
 
 
 def CleanUp():
-	try:
-		print("Cleaning up GPIO")
-		GPIO.cleanup()
-	except Exception as e:
-		print(f'Extra call to GPIO cleanup {e}')
+	if DimType in ('PWM18', 'PWM19'):
+		try:
+			print("Cleaning up GPIO")
+			GPIO.cleanup()
+		except Exception as e:
+			print(f'Extra call to GPIO cleanup {e}')

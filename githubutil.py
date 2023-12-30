@@ -115,7 +115,7 @@ def InstallStagedVersion(d, Bookworm=False, logger=None):
 		print('Use softconsoleBW.service for systemctl', file=logf, end=endret)
 		shutil.copy('scripts/softconsoleBW.service', 'scripts/softconsole.service')
 
-	print(f'Process requirements file from {os.getcwd()}', file=logf)
+	print(f'Process requirements file from {os.getcwd()}', file=logf, end=endret)
 	with open('requirements.txt', 'r') as rqmts:
 		rqmtseq = rqmts.readline()
 		print(f'Install using requirements: {rqmtseq[1:]}', file=logf, end=endret)
