@@ -95,7 +95,7 @@ def PreOp():
 		PreOpScripts.append('SKip config update because configs frozen')
 		return
 
-	try:
+	try:  # todo  retry mount?
 		cfgliblocal = set([f for f in os.listdir(conflocal) if os.path.isfile(os.path.join(conflocal, f))])
 		cfglibserver = set([f for f in os.listdir(cfgdirserver) if os.path.isfile(os.path.join(cfgdirserver, f))])
 	except Exception as E:
