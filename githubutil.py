@@ -22,7 +22,7 @@ def DumpRunRes(res: subprocess.CompletedProcess, logf):
 
 def StageVersion(vdir, tag, label, logger=None):
 	logf = open('stagelog.log', 'a') if logger is None else logger
-	logferror = open('stageerrlog.log')
+	logferror = open('stageerrlog.log', 'w')
 	print(f'------------ {datetime.datetime.now().strftime("%I:%M%p on %B %d, %Y")} ------------', file=logf)
 	print("Staging " + tag + " in " + vdir + ' because ' + label, file=logf)
 
