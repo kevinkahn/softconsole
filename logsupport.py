@@ -385,8 +385,6 @@ class Logger(object):
 
 	def write(self, item: str):
 		# used for calling to routines that want to print to log
-		print(f'=== {item}')
-		print(f'+++ {item.strip()}')
 		self.Log(item.strip())
 
 	# noinspection PyProtectedMember

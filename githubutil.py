@@ -12,13 +12,13 @@ NOTE: This gets used in initial setup of console by the setup program
 
 
 def DumpRunRes(res: subprocess.CompletedProcess, logf):
-	print(f'RUN: {res.args} Result: {res.returncode}', file=logf)
+	print(f'RUN: {res.args} Result: {res.returncode}', file=logf, end='')
 	for line in res.stdout.splitlines():
-		print(line, file=logf)
-	if res.stderr is not None:
-		print('---Error output---', file=logf)
+		print(line, file=logf, end='')
+	if res.returncode != 9:
+		print(f'---Error output--- {res.stderr}', file=logf, end='')
 		for line in res.stderr.splitlines():
-			print(line, file=logf)
+			print(line, file=logf, end='')
 
 def StageVersion(vdir, tag, label, logger=None):
 	logf = open('stagelog.log', 'a') if logger is None else logger
@@ -69,7 +69,10 @@ def StageVersion(vdir, tag, label, logger=None):
 		pass
 
 	os.chdir(cwd)
-	logf.close()
+	try:
+		logf.close()
+	except AttributeError:
+		pass
 	return f"{vdir}/stagedversion"
 
 
@@ -135,8 +138,10 @@ def InstallStagedVersion(d, Bookworm=False, logger=None):
 		shutil.copy('/home/pi/bin/.bash_aliases', '/home/pi/.bash_aliases')
 	res = subprocess.run('chmod +x /home/pi/bin/*', shell=True, text=True, capture_output=True)
 	DumpRunRes(res, logf)
-
-	logf.close()
+	try:
+		logf.close()
+	except AttributeError:
+		pass
 	os.chdir('..')
 
 
