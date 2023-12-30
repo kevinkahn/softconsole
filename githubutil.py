@@ -11,9 +11,19 @@ NOTE: This gets used in initial setup of console by the setup program
 """
 
 
+def DumpRunRes(res: subprocess.CompletedProcess, logf):
+	print(f'RUN: {res.args} Result: {res.returncode}', file=logf)
+	for line in res.stdout.splitlines():
+		print(line, file=logf)
+	if res.stderr is not None:
+		print('---Error output---', file=logf)
+		for line in res.stderr.splitlines():
+			print(line, file=logf)
+
 def StageVersion(vdir, tag, label, logger=None):
-	logf = open('stagelog.log', 'a' if logger is None else logger)
-	print(f'------------ {datetime.datetime.now().strftime("%I:%M%p on %B %d, %Y")}-------------', file=logf)
+	logf = open('stagelog.log', 'a') if logger is None else logger
+	logferror = open('stageerrlog.log')
+	print(f'------------ {datetime.datetime.now().strftime("%I:%M%p on %B %d, %Y")} ------------', file=logf)
 	print("Staging " + tag + " in " + vdir + ' because ' + label, file=logf)
 
 	cwd = os.getcwd()
@@ -26,15 +36,22 @@ def StageVersion(vdir, tag, label, logger=None):
 	shutil.rmtree('stagedversion', True)
 	os.mkdir('stagedversion')
 	os.chdir('stagedversion')
-	if tag == '*live*':
-		subprocess.call('wget https://github.com/kevinkahn/softconsole/tarball/master', shell=True, stdout=logf, stderr=logf)
-		subprocess.call('tar -zxls --strip-components=1 < master', shell=True, stdout=logf, stderr=logf)
-		subprocess.call('chown -R pi: *', shell=True, stdout=logf, stderr=logf)
+	if tag == '*live*':  # todo fix
+		subprocess.call('wget https://github.com/kevinkahn/softconsole/tarball/master', shell=True, stdout=logferror,
+						stderr=logferror)
+		subprocess.call('tar -zxls --strip-components=1 < master', shell=True, stdout=logferror, stderr=logferror)
+		subprocess.call('chown -R pi: *', shell=True, stdout=logferror, stderr=logferror)
 		os.remove('master')
 	else:
-		subprocess.call('wget https://github.com/kevinkahn/softconsole/archive/' + tag + '.tar.gz',
-						shell=True, stdout=logf, stderr=logf)
-		subprocess.call('tar -zxls --strip-components=1 < ' + tag + '.tar.gz', shell=True, stdout=logf, stderr=logf)
+		res = subprocess.run(f"wget https://github.com/kevinkahn/softconsole/archive/{tag}.tar.gz", shell=True,
+							 text=True, capture_output=True)
+		DumpRunRes(res, logf)
+		res = subprocess.run(f'tar -zxls --strip-components=1 < {tag}.tar.gz', shell=True, text=True,
+							 capture_output=True)
+		DumpRunRes(res, logf)
+		# subprocess.call('wget https://github.com/kevinkahn/softconsole/archive/' + tag + '.tar.gz',
+		#				shell=True, stdout=logferror, stderr=logferror)
+		#subprocess.call('tar -zxls --strip-components=1 < ' + tag + '.tar.gz', shell=True, stdout=logferror, stderr=logferror)
 		sha, cdate = GetSHA(tag)
 		with open('versioninfo', 'w') as f:
 			f.writelines(['{0}\n'.format(tag), '{0}\n'.format(sha), label + ': ' + time.strftime('%m-%d-%y %H:%M:%S\n'),
@@ -67,11 +84,10 @@ def InstallStagedVersion(d, Bookworm=False, logger=None):
 	os.chdir(d)
 
 	if os.path.exists('../homesystem'):
-		# noinspection PyBroadException
-		try:
-			subprocess.call('cp -u -r -p "example_configs"/* ../Console', shell=True, stdout=logf, stderr=logf)
-		except Exception:
+		res = subprocess.run('cp -u -r -p "example_configs"/* ../Console', shell=True, text=True, capture_output=True)
+		if res.returncode != 0:
 			print('Copy of example_configs failed on homesystem', file=logf)
+			DumpRunRes(res, logf)
 
 	if not os.path.exists('../Console/termshortenlist'):
 		try:
@@ -88,7 +104,9 @@ def InstallStagedVersion(d, Bookworm=False, logger=None):
 	with open('requirements.txt', 'r') as rqmts:
 		rqmtseq = rqmts.readline()
 		print(f'Install using requirements: {rqmtseq[1:]}', file=logf)
-	subprocess.call('/home/pi/pyenv/bin/pip install -r requirements.txt', shell=True, stdout=logf, stderr=logf)
+	res = subprocess.run('/home/pi/pyenv/bin/pip install -r requirements.txt', shell=True, text=True,
+						 capture_output=True)
+	DumpRunRes(res, logf)
 	print('End processing requirements', file=logf)
 
 	print(f'Setup systemd service from {d} {os.getcwd()}', file=logf)
@@ -96,10 +114,11 @@ def InstallStagedVersion(d, Bookworm=False, logger=None):
 	os.chmod('console.py', 0o555)
 
 	print('Copy softconsole.service file', file=logf)
-	suc = subprocess.call('sudo cp -f scripts/softconsole.service /usr/lib/systemd/system', shell=True)
-	print('Service copy result: []', format(suc), file=logf)
-	suc = subprocess.call('sudo systemctl daemon-reload', shell=True)
-	print('Reload result: {}'.format(suc), file=logf)
+	res = subprocess.run('sudo cp -f scripts/softconsole.service /usr/lib/systemd/system', shell=True, text=True,
+						 capture_output=True)
+	DumpRunRes(res, logf)
+	res = subprocess.run('sudo systemctl daemon-reload', shell=True, text=True, capture_output=True)
+	DumpRunRes(res, logf)
 
 	if not os.path.exists('/home/pi/bin'):
 		os.mkdir('/home/pi/bin')
@@ -114,7 +133,8 @@ def InstallStagedVersion(d, Bookworm=False, logger=None):
 		shutil.copy('/home/pi/bin/authorized_keys', '/home/pi/.ssh')
 	if os.path.exists('/home/pi/bin/.bash_aliases'):
 		shutil.copy('/home/pi/bin/.bash_aliases', '/home/pi/.bash_aliases')
-	subprocess.call('chmod +x /home/pi/bin/*', shell=True, stdout=logf, stderr=logf)
+	res = subprocess.run('chmod +x /home/pi/bin/*', shell=True, text=True, capture_output=True)
+	DumpRunRes(res, logf)
 
 	logf.close()
 	os.chdir('..')

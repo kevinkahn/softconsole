@@ -45,7 +45,7 @@ def DoFetchRestart():
 		logsupport.Logs.Log('Update fetch started')
 		ReportStatus("auto updt firmware", hold=1)
 		stagedvers = githubutil.StageVersion(config.sysStore.ExecDir, config.sysStore.versionname, 'Auto Dnld',
-											 logger=logsupport.Logs.write)
+											 logger=logsupport.Logs)
 		logsupport.Logs.Log(f'Update fetch thread staged in {stagedvers}')
 		ReportStatus("auto install firmware", hold=1)
 		utils.utilities.UpdateGitHubModule(stagedvers)
@@ -61,7 +61,7 @@ def DoFetchRestart():
 			logsupport.Logs.Log(f'Error reloading githubutil: {E}')
 		'''
 
-		githubutil.InstallStagedVersion(config.sysStore.ExecDir, logger=logsupport.Logs.write)
+		githubutil.InstallStagedVersion(config.sysStore.ExecDir, logger=logsupport.Logs)
 		logsupport.Logs.Log("Staged version installed in ", config.sysStore.ExecDir)
 		logsupport.Logs.Log('Restart for new version')
 		alertutils.UpdateRestartStatus('Autoversion Restart Event', 'autoversion')
