@@ -259,20 +259,8 @@ except Exception as E:
 if 'Zero' in hw.hwinfo:
 	controlevents.LateTolerance = 4.0
 
-lastfn = u""
-lastmod = 0
-
 with open('../running', 'w') as f:
 	print('Running at {}'.format(time.time()), file=f)
-
-for root, dirs, files in os.walk(config.sysStore.ExecDir):
-	for fname in files:
-		if fname.endswith(u".py"):
-			fn = os.path.join(root, fname)
-			if os.path.getmtime(fn) > lastmod:
-				lastmod = os.path.getmtime(fn)
-				lastfn = fn
-####
 
 """
 Dynamically load class definitions for all defined screen types, alert types, hubtypes, weather provider types
@@ -388,45 +376,44 @@ logsupport.Logs.Log(u"Soft Home Automation Console")
 logsupport.Logs.Log(u"  \u00A9 Kevin Kahn 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023")
 logsupport.Logs.Log("Software under Apache 2.0 License")
 logsupport.Logs.Log("Version Information:")
-logsupport.Logs.Log(f'Commit Date/Seq: {config.sysStore.gitcommit}/{config.sysStore.gitseq}')
-logsupport.Logs.Log(" Running under Python: ", sys.version)
+logsupport.Logs.Log(f'  Commit Date/Seq: {config.sysStore.gitcommit}/{config.sysStore.gitseq}')
+logsupport.Logs.Log("  Running under Python: ", sys.version)
 if not (sys.version_info[0] == 3 and sys.version_info[1] >= 5):
-	logsupport.Logs.Log("Softconsole untested on Python versions earlier than 3.5 - please upgrade!",
+	logsupport.Logs.Log("  Softconsole untested on Python versions earlier than 3.5 - please upgrade!",
 						severity=ConsoleError, tb=False)
 logsupport.Logs.Log(
-	f"Console Starting ({config.sysStore.Console_pid}) in {os.getcwd()} at {time.ctime(config.sysStore.ConsoleStartTime)}")
-logsupport.Logs.Log(" Last mod: ", lastfn)
-logsupport.Logs.Log(" Mod at: ", time.ctime(lastmod))
-logsupport.Logs.Log(" Tag: ", config.sysStore.versionname)
-logsupport.Logs.Log(" Sha: ", config.sysStore.versionsha)
-logsupport.Logs.Log(" How: ", config.sysStore.versiondnld)
-logsupport.Logs.Log(" Version date: ", config.sysStore.versioncommit)
+	f"  Console Starting ({config.sysStore.Console_pid}) in {os.getcwd()} at {time.ctime(config.sysStore.ConsoleStartTime)}")
+logsupport.Logs.Log("  Tag: ", config.sysStore.versionname)
+logsupport.Logs.Log("  Sha: ", config.sysStore.versionsha)
+logsupport.Logs.Log("  How: ", config.sysStore.versiondnld)
+logsupport.Logs.Log("  Version date: ", config.sysStore.versioncommit)
 
 with open("{}/.ConsoleStart".format(config.sysStore.HomeDir), "w") as f:
 	f.write(str(config.sysStore.ConsoleStartTime) + '\n')
 logsupport.Logs.Log('System Info:')
-logsupport.Logs.Log(f" Host name: {hw.hostname}")
-logsupport.Logs.Log(f" Screen type: {hw.screentype}")
+logsupport.Logs.Log(f"  Host name: {hw.hostname}")
+logsupport.Logs.Log(f"  Screen type: {hw.screentype}")
 if displayupdate.softrotate != 0:
-	logsupport.Logs.Log(" SW rotation by {} degrees cw".format(displayupdate.rotationangle[displayupdate.softrotate]))
+	logsupport.Logs.Log("  SW rotation by {} degrees cw".format(displayupdate.rotationangle[displayupdate.softrotate]))
 logsupport.Logs.Log(
-	f" Display device: {os.environ['SDL_FBDEV']} Driver: {os.environ['SDL_VIDEODRIVER']} Dim Method: {hw.DimType}")
-logsupport.Logs.Log(f" Touch controller: {utilities.ts.controller}")
+	f"  Display device: {os.environ['SDL_FBDEV']} Driver: {os.environ['SDL_VIDEODRIVER']} Dim Method: {hw.DimType}")
+logsupport.Logs.Log(f"  Touch controller: {utilities.ts.controller}")
 logsupport.Logs.Log(
-	" Capacitive: {} Shifts: x: {} y: {} Flips: x: {} y: {} Scale: x: {} y: {} swapaxes: {})".format(
+	"  Capacitive: {} Shifts: x: {} y: {} Flips: x: {} y: {} Scale: x: {} y: {} swapaxes: {})".format(
 		*utilities.ts.DumpTouchParams()))
-logsupport.Logs.Log(" Screen Orientation: ", ("Landscape", "Portrait")[displayupdate.portrait])
+logsupport.Logs.Log("  Screen Orientation: ", ("Landscape", "Portrait")[displayupdate.portrait])
 if config.sysStore.PersonalSystem:
-	logsupport.Logs.Log("Personal System")
-	logsupport.Logs.Log("Latency Tolerance: {}".format(controlevents.LateTolerance))
+	logsupport.Logs.Log("  Personal System")
+	logsupport.Logs.Log("  Latency Tolerance: {}".format(controlevents.LateTolerance))
+
+if utilities.previousup > 0:
+	logsupport.Logs.Log(f"  Previous Console Lifetime: {datetime.timedelta(seconds=utilities.previousup)}")
+if utilities.lastup > 0:
+	logsupport.Logs.Log(f"  Last Running at: {time.ctime(utilities.lastup)} with downtime "
+						f"{datetime.timedelta(seconds=(config.sysStore.ConsoleStartTime - utilities.lastup))}")
+
 if os.path.exists("../.freezeconfig"):
 	logsupport.Logs.Log('Configuration frozen', severity=ConsoleWarning)
-if utilities.previousup > 0:
-	logsupport.Logs.Log("Previous Console Lifetime: ", str(datetime.timedelta(seconds=utilities.previousup)))
-if utilities.lastup > 0:
-	logsupport.Logs.Log("Console Last Running at: ", time.ctime(utilities.lastup))
-	logsupport.Logs.Log("Previous Console Downtime: ",
-						str(datetime.timedelta(seconds=(config.sysStore.ConsoleStartTime - utilities.lastup))))
 try:
 	localops.LogUp()
 except AttributeError:
