@@ -274,12 +274,6 @@ for root, dirs, files in os.walk(config.sysStore.ExecDir):
 				lastfn = fn
 ####
 
-logsupport.Logs.Log(f'Git Date/Seq: {config.sysStore.gitcommit}/{config.sysStore.gitseq}')
-logsupport.Logs.Log(
-	'Version/Sha/Dnld/Commit: {} {} {} {}'.format(config.sysStore.versionname,
-												  config.sysStore.versionsha, config.sysStore.versiondnld,
-												  config.sysStore.versioncommit))
-
 """
 Dynamically load class definitions for all defined screen types, alert types, hubtypes, weather provider types
 and link them to how configuration happens
@@ -394,34 +388,34 @@ logsupport.Logs.Log(u"Soft Home Automation Console")
 logsupport.Logs.Log(u"  \u00A9 Kevin Kahn 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023")
 logsupport.Logs.Log("Software under Apache 2.0 License")
 logsupport.Logs.Log("Version Information:")
+logsupport.Logs.Log(f'Commit Date/Seq: {config.sysStore.gitcommit}/{config.sysStore.gitseq}')
 logsupport.Logs.Log(" Running under Python: ", sys.version)
 if not (sys.version_info[0] == 3 and sys.version_info[1] >= 5):
 	logsupport.Logs.Log("Softconsole untested on Python versions earlier than 3.5 - please upgrade!",
 						severity=ConsoleError, tb=False)
-logsupport.Logs.Log(" Run from: ", config.sysStore.ExecDir)
+logsupport.Logs.Log(
+	f"Console Starting ({config.sysStore.Console_pid}) in {os.getcwd()} at {time.ctime(config.sysStore.ConsoleStartTime)}")
 logsupport.Logs.Log(" Last mod: ", lastfn)
 logsupport.Logs.Log(" Mod at: ", time.ctime(lastmod))
 logsupport.Logs.Log(" Tag: ", config.sysStore.versionname)
 logsupport.Logs.Log(" Sha: ", config.sysStore.versionsha)
 logsupport.Logs.Log(" How: ", config.sysStore.versiondnld)
 logsupport.Logs.Log(" Version date: ", config.sysStore.versioncommit)
-logsupport.Logs.Log("Start time: ", time.ctime(config.sysStore.ConsoleStartTime))
+
 with open("{}/.ConsoleStart".format(config.sysStore.HomeDir), "w") as f:
 	f.write(str(config.sysStore.ConsoleStartTime) + '\n')
-logsupport.Logs.Log(f"Console Starting ({config.sysStore.Console_pid}) in {os.getcwd()}")
-logsupport.Logs.Log("Host name: ", hw.hostname)
-logsupport.Logs.Log("Screen type: {}".format(hw.screentype))
+logsupport.Logs.Log('System Info:')
+logsupport.Logs.Log(f" Host name: {hw.hostname}")
+logsupport.Logs.Log(f" Screen type: {hw.screentype}")
 if displayupdate.softrotate != 0:
-	logsupport.Logs.Log(
-		"Software rotation by {} degrees cw".format(displayupdate.rotationangle[displayupdate.softrotate]))
+	logsupport.Logs.Log(" SW rotation by {} degrees cw".format(displayupdate.rotationangle[displayupdate.softrotate]))
 logsupport.Logs.Log(
-	'(Display device: {} Driver: {} Dim Method: {})'.format(os.environ['SDL_FBDEV'], os.environ['SDL_VIDEODRIVER'],
-															hw.DimType))
-logsupport.Logs.Log("Touch controller: {}".format(utilities.ts.controller))
+	f" Display device: {os.environ['SDL_FBDEV']} Driver: {os.environ['SDL_VIDEODRIVER']} Dim Method: {hw.DimType}")
+logsupport.Logs.Log(f" Touch controller: {utilities.ts.controller}")
 logsupport.Logs.Log(
-	"(Capacitive: {} Shifts: x: {} y: {} Flips: x: {} y: {} Scale: x: {} y: {} swapaxes: {})".format(
+	" Capacitive: {} Shifts: x: {} y: {} Flips: x: {} y: {} Scale: x: {} y: {} swapaxes: {})".format(
 		*utilities.ts.DumpTouchParams()))
-logsupport.Logs.Log("Screen Orientation: ", ("Landscape", "Portrait")[displayupdate.portrait])
+logsupport.Logs.Log(" Screen Orientation: ", ("Landscape", "Portrait")[displayupdate.portrait])
 if config.sysStore.PersonalSystem:
 	logsupport.Logs.Log("Personal System")
 	logsupport.Logs.Log("Latency Tolerance: {}".format(controlevents.LateTolerance))
