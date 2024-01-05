@@ -66,6 +66,8 @@ def BoolTrueWord(v: str):
 		return False
 	if isinstance(v, bool):
 		return v
+	if isinstance(v, int):
+		return v == 1
 	try:
 		return v.lower() in ('true', 'on', 'yes')
 	except Exception as E:
@@ -77,6 +79,8 @@ def BoolFalseWord(v: str):
 		return True
 	if isinstance(v, bool):
 		return not v
+	if isinstance(v, int):
+		return v != 1
 	try:
 		return v.lower() in ('false', 'off', 'no')
 	except Exception as E:
