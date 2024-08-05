@@ -1,0 +1,1 @@
+cp -r /home/pi/consolerem/example_configs/* /home/pi/Console
