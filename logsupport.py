@@ -104,7 +104,8 @@ def LogProcess(q):
 	# noinspection PyUnusedLocal
 	def ExitLog(signum, frame):
 		nonlocal exiting
-		exiting = time.time()
+		if exiting == 0:
+			exiting = time.time()
 		with open('/home/pi/Console/.HistoryBuffer/hlog', 'a') as fh:
 			fh.write(
 				'{}({}): Logger process exiting for signal {} exiting: {}\n'.format(os.getpid(), time.time(), signum,
@@ -141,7 +142,7 @@ def LogProcess(q):
 				item = q.get(timeout=2)
 				lastmsgtime = time.time()
 				if exiting != 0:
-					if time.time() - exiting > 3:  # don't note items within few seconds of exit request just process them
+					if time.time() - exiting > 5:  # don't note items within few seconds of exit request just process them
 						with open('/home/pi/Console/.HistoryBuffer/hlog', 'a') as f:
 							f.write('@ {} late item: {} exiting {}\n'.format(time.time(), item, exiting))
 							f.flush()
@@ -304,6 +305,7 @@ class Logger(object):
 		self.livelog = True
 		self.livelogLock = Lock()
 		self.livelogpos = 0
+
 		if disklogging:
 			cwd = os.getcwd()
 			os.chdir(dirnm)
@@ -336,7 +338,7 @@ class Logger(object):
 
 	def ReturnRecent(self, loglevel, maxentries):
 		if loglevel == -1:
-			return self.log
+			return self.log[-config.sysStore.MaxLogHistory:]  # todo change to limit size?
 		else:
 			rtnval = []
 			logitem = len(self.log) - 1
@@ -358,7 +360,9 @@ class Logger(object):
 
 	def RecordMessage(self, severity, entry, entrytime, debugitem, tb):
 		if not debugitem:
-			self.log.append((severity, entry, entrytime))
+			rl, localheight = SplitLine(entry, 'black',
+										fonts.fonts.Font(config.sysStore.LogFontSize, face=fonts.monofont))
+			self.log.append((severity, entry, entrytime, localheight))
 			self.SetSeverePointer(severity)
 		if disklogging:
 			LoggerQueue.put((Command.LogEntry, severity, entry, entrytime))
@@ -451,30 +455,13 @@ class Logger(object):
 	def RenderLogLine(self, itext, clr, pos):  # todo switch initial log display to using LineRenderer
 		# odd logic below is to make sure that if an unbroken item would by itself exceed line length it gets forced out
 		# thus avoiding an infinite loop
-
-		text = re.sub('\s\s+', ' ', itext.rstrip())
-		ltext = re.split('([ :,])', text)
-		ltext.append('')
 		logfont = fonts.fonts.Font(config.sysStore.LogFontSize, face=fonts.monofont)
 
-		ptext = []
-		while len(ltext) > 1:
-			ptext.append(ltext[0])
-			del ltext[0]
-			while 1:
-				if len(ltext) == 0:
-					break
-				t = logfont.size(''.join(ptext) + ltext[0])[0]
-				if t > hw.screenwidth - 10:
-					break
-				else:
-					ptext.append(ltext[0])
-					del ltext[0]
-			l = logfont.render(''.join(ptext), False, wc(clr))
-			while self.screen.get_locked():
-				print("Locked {}".format(self.screen.get_locks()))
-			self.screen.blit(l, (10, pos))
-			ptext = ["    "]
+		lines, h = SplitLine(itext, clr, logfont)
+		while self.screen.get_locked():
+			print("Locked {}".format(self.screen.get_locks()))
+		for line in lines:
+			self.screen.blit(line, (10, pos))
 			pos = pos + logfont.get_linesize()
 		displayupdate.updatedisplay()
 		return pos
@@ -486,17 +473,37 @@ class Logger(object):
 			return f"Local Log No more entries        Page: {pageno}      {time.strftime('%c')}", False
 
 
-def LineRenderer(itemnumber, logfont, uselog):
+def LineRenderer(itemnumber, logfont, uselog, RenderHeight=0):
+	if RenderHeight > 0 and len(uselog[itemnumber]) > 3:
+		usedheight = 0
+		while itemnumber < len(uselog):
+			usedheight += uselog[itemnumber][3]
+			itemnumber += 1
+			if usedheight > RenderHeight:
+				break
+		return itemnumber, itemnumber + 1 < len(uselog), usedheight
 	if not (len(uselog) > itemnumber):
-		return ' ', False
+		return None, False, 0
 	itext = uselog[itemnumber][1]
+	rl, h = SplitLine(itext, LogColors[uselog[itemnumber][0]], logfont)
+
+	blk = pg.Surface((hw.screenwidth, h))
+	blk.set_colorkey(wc('black'))
+	v = 0
+	for line in rl:
+		blk.blit(line, (0, v))
+		v += line.get_height()
+
+	return blk, itemnumber + 1 < len(uselog), v
+
+
+def SplitLine(itext, color, logfont):
+	# takes a text line and returns rendered multiline if needed block and total height
 	rl = []
-	h = 0
-	color = LogColors[uselog[itemnumber][0]]
+	totalheight = 0
 	text = re.sub('\s\s+', ' ', itext.rstrip())
 	ltext = re.split('([ :,])', text)
 	ltext.append('')
-
 	ptext = []
 	while len(ltext) > 1:
 		# noinspection DuplicatedCode
@@ -512,13 +519,7 @@ def LineRenderer(itemnumber, logfont, uselog):
 				ptext.append(ltext[0])
 				del ltext[0]
 		rl.append(logfont.render(''.join(ptext), False, wc(color)))
-		h += rl[-1].get_height()
+		totalheight += rl[-1].get_height()
 		ptext = ["    "]
-	blk = pg.Surface((hw.screenwidth, h))
-	blk.set_colorkey(wc('black'))
-	v = 0
-	for line in rl:
-		blk.blit(line, (0, v))
-		v += line.get_height()
 
-	return blk, itemnumber + 1 < len(uselog)
+	return rl, totalheight

@@ -40,6 +40,7 @@ sysvals = {
 	'MultiTapTime': (int, 400, None, True),
 	'HomeScreenName': (str, '', None, True),
 	'MaxLogFiles': (int, 5, None, True),
+	'MaxLogHistory': (int, 100, None, True),
 	'LogFontSize': (int, 14, None, True),
 	'LogLevel': (int, 3, None, True),
 	'DimHomeScreenCoverName': (str, "", None, False),

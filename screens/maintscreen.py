@@ -168,6 +168,9 @@ def PickStartingSpot():
 		startat = config.sysStore.ErrorNotice
 		config.sysStore.ErrorNotice = -1
 		consolestatus.ReportStatus('error ind cleared')
-	else:
-		startat = 0
+	else:  # limit the lookback of log that happens by default
+		if len(logsupport.Logs.log) > config.sysStore.MaxLogHistory:
+			startat = len(logsupport.Logs.log) - config.sysStore.MaxLogHistory
+		else:
+			startat = 0
 	return startat

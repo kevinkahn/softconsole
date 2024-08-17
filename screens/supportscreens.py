@@ -340,7 +340,6 @@ class PagedDisplay(screen.BaseKeyScreenDesc):
 		if self.item >= 0:
 			self.pageno += 1
 			self.startpage = self.item
-			self.oknext = False
 		else:
 			if self.state != 'scroll':
 				self.state = 'init'
@@ -400,19 +399,32 @@ class PagedDisplay(screen.BaseKeyScreenDesc):
 		moretorender = True
 		itemnumber = start
 		pos = 0
-		hw.screen.fill(wc(backcolor))
+
 		if pageno != -1:
-			hdr, moretorender = self.GetPageHeader(pageno + 1, itemnumber)
-			line = self.pagefont.render(hdr, False, wc(self.color))
-			hw.screen.blit(line, (10, pos))
+			if self.state != 'scroll':
+				hw.screen.fill(wc(backcolor))
+				hdr, moretorender = self.GetPageHeader(pageno + 1, itemnumber)
+				line = self.pagefont.render(hdr, False, wc(self.color))
+				hw.screen.blit(line, (10, pos))
 			pos = pos + self.pagefont.get_linesize()
 		while moretorender:
-			line, moretorender = self.LineRenderer(itemnumber, self.pagefont)
-			hw.screen.blit(line, (10, pos))  # todo this can cause long lines to render off the screen
-			pos = pos + line.get_height()
-			itemnumber += 1
-			if pos > hw.screenheight - screens.screenStore.BotBorder:
-				return itemnumber if moretorender else -1
+
+			if self.state != 'scroll':
+				line, moretorender, lineheight = self.LineRenderer(itemnumber, self.pagefont, RenderHeight=0)
+				hw.screen.blit(line, (10, pos))
+				pos = pos + lineheight
+				# but then don't know how to do the scrolling computation below - could just punt and home slop allows right result
+				# pos = pos + self.pagefont.get_linesize()
+				itemnumber += 1
+				if pos > hw.screenheight - screens.screenStore.BotBorder:
+					return itemnumber if moretorender else -1
+			else:
+				line, moretorender, lineheight = self.LineRenderer(itemnumber, self.pagefont,
+																   RenderHeight=hw.screenheight - screens.screenStore.BotBorder)
+				pos = pos + lineheight
+				itemnumber = line if isinstance(line, int) else itemnumber + 1
+				if pos > hw.screenheight - screens.screenStore.BotBorder:
+					return itemnumber if moretorender else -1
 
 		line = self.pagefont.render('***** End *****', False, wc(self.color))
 		hw.screen.blit(line, ((hw.screenwidth - line.get_width()) / 2, pos + line.get_height()))
