@@ -108,7 +108,6 @@ def handler(signum, frame):
 	elif signum == signal.SIGABRT:
 		with open('/home/pi/tombstone', 'a') as tomb:
 			print(f'Abort received - Main {os.getpid()}', file=tomb)
-			print(f'Abort received - Main {os.getpid()}')
 			traceback.print_stack(file=tomb)
 			traceback.print_stack()
 			hw.CleanUp()
@@ -294,7 +293,6 @@ SetUpTermShortener()
 logsupport.Logs.Log("Configuration file: " + config.sysStore.configfile)
 
 if not os.path.isfile(config.sysStore.configfile):
-	print("Abort - no configuration file found")
 	logsupport.Logs.Log('Abort - no configuration file (' + hw.hostname + ')')
 	exitutils.EarlyAbort('No Configuration File (' + hw.hostname + ')')
 
@@ -638,6 +636,7 @@ config.ecode = 99
 gui.start()
 
 gui.join()
+
 logsupport.Logs.Log("Main line exit: ", config.ecode)
 timers.ShutTimers(config.terminationreason)
 logsupport.Logs.Log('Console exiting')

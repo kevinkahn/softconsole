@@ -56,10 +56,10 @@ def exitlogging():
 	if config.ecode not in (
 			EARLYABORT, MAINTEXIT, MAINTPISHUT, REMOTEPISHUT, MAINTRESTART, AUTORESTART, REMOTERESTART, EXTERNALSIGTERM,
 			MAINTPIREBOOT, REMOTEPIREBOOT):
-		logsupport.Logs.Log("Exiting with history trace (", repr(config.ecode), ')')
+		# logsupport.Logs.Log("Exiting with history trace (", repr(config.ecode), ')')
 		historybuffer.DumpAll('Exit Trace', time.strftime('%m-%d-%y %H:%M:%S'))
-	else:
-		logsupport.Logs.Log("Exiting without history trace")
+	# else:
+	#logsupport.Logs.Log("Exiting without history trace")
 	time.sleep(1)  # let messages get out
 	logsupport.LoggerQueue.put((logsupport.Command.CloseHlog, 'Exit Logging'))
 
