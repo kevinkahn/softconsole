@@ -6,7 +6,14 @@ import time
 import string
 import webcolors
 import importlib, os
+import datetime
 
+
+def disptime(form='long'):
+	if form == 'long':
+		return datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
+	elif form == 'log':
+		return datetime.datetime.now().strftime('%m-%d-%y %H:%M:%S')
 
 def importmodules(dirname: str):
 	# dir of form relative path name

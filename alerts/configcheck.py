@@ -16,7 +16,6 @@ reftimes = datetime.datetime.fromtimestamp(reftime).strftime('%Y-%m-%d %H:%M:%S'
 
 def ConfigFilesChanged():
 	changes = False
-	# safeprint('CheckConfig')
 	with open('/home/pi/Console/configcheck', 'w') as lgf:
 		safeprint('Config File Check', file=lgf)
 	for f, ftime in configfilelist.items():

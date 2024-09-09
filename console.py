@@ -47,6 +47,7 @@ from stores import genericweatherstore
 import gitver
 
 import hubs.hubs
+from utils.utilfuncs import disptime
 
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
 config.sysStore = valuestore.NewValueStore(sysstore.SystemStore('System'))
@@ -106,8 +107,8 @@ def handler(signum, frame):
 			if config.sysStore.Topper_pid != 0:
 				os.kill(config.sysStore.Topper_pid, signal.SIGKILL)
 	elif signum == signal.SIGABRT:
-		with open('/home/pi/tombstone', 'a') as tomb:
-			print(f'Abort received - Main {os.getpid()}', file=tomb)
+		with open('/home/pi/.tombstone', 'a') as tomb:
+			print(f'{disptime()} Abort received - Main {os.getpid()}', file=tomb)
 			traceback.print_stack(file=tomb)
 			traceback.print_stack()
 			hw.CleanUp()

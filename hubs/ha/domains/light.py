@@ -26,11 +26,9 @@ class Light(HAnode):
 		super().Update(**ns)
 		if self.entity_id == 'light.bar_lights' and 'brightness' in self.attributes and self.attributes[
 			'brightness'] is not None:
-			safeprint('{} Update {}->{}'.format(time.strftime('%m-%d-%y %H:%M:%S', time.localtime()), oldbright,
-												self.attributes['brightness']))
+			safeprint(f"Update {oldbright}->{self.attributes['brightness']}")
 			if self.attributes['brightness'] < 25:
-				safeprint(f"{time.strftime('%m-%d-%y %H:%M:%S', time.localtime())} Update {self.name}"
-						  f" {self.state} {oldbright}->{self.attributes['brightness']}")
+				safeprint(f"Update {self.name} {self.state} {oldbright}->{self.attributes['brightness']}")
 		if 'brightness' in self.attributes and self.attributes['brightness'] is not None:
 			self.internalstate = self._NormalizeState(self.state, int(self.attributes['brightness']))
 
@@ -55,8 +53,6 @@ class Light(HAnode):
 
 	def GetBrightness(self):
 		if 'brightness' in self.attributes and self.attributes['brightness'] is not None:
-			# t = 100 * (self.attributes['brightness'] / 255) if self.pctatidle == -1 else self.pctatidle
-			# if t < 5: safeprint('GetBright: {} {} {}'.format(self.name, t, self.pctatidle))
 			return 100 * (self.attributes['brightness'] / 255) if self.pctatidle == -1 else self.pctatidle
 		else:
 			return 0

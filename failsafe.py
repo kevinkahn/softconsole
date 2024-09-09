@@ -11,6 +11,7 @@ from setproctitle import setproctitle
 import config
 import logsupport as L
 from controlevents import CEvent, PostEvent, ConsoleEvent
+from utils.utilfuncs import disptime
 
 KeepAlive = multiprocessing.Event()
 FailsafeInterval = 60  # 1000000 if utils.utilfuncs.isdevsystem else 60
@@ -68,8 +69,8 @@ def EndWatchDog(signum, frame):
 
 # noinspection PyUnusedLocal
 def AbortWatchDog(signum, frame):
-	with open('/home/pi/tombstoneW', 'a') as tomb:
-		print(f'Watchdog {os.getpid()} exiting for signal {signum}', file=tomb, flush=True)
+	with open('/home/pi/.tombstoneW', 'a') as tomb:
+		print(f'{disptime()} Watchdog {os.getpid()} exiting for signal {signum}', file=tomb, flush=True)
 		traceback.print_stack(file=tomb)
 	# noinspection PyProtectedMember
 	os._exit(93)

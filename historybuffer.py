@@ -53,7 +53,7 @@ def NoteGCs(phase, info):
 def DumpAll(idline, entrytime):
 	global bufdumpseq
 	if HBdir == '':  # logs not yet set up
-		safeprint(time.strftime('%m-%d-%y %H:%M:%S') + ' Suppressing History Buffer Dump for {}'.format(idline))
+		safeprint(f'Suppressing History Buffer Dump for {idline}')
 		return
 	fn = HBdir + str(bufdumpseq) + '-' + entrytime
 	try:

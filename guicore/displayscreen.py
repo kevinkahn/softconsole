@@ -3,7 +3,7 @@ import time
 import os
 import guicore.guiutils as guiutils
 import screens.__screens as screens
-from utils.utilfuncs import safeprint
+from utils.utilfuncs import safeprint, disptime
 
 import guicore.screenmgt as screenmgt
 import guicore.switcher as switcher
@@ -140,7 +140,6 @@ def MainControlLoop():
 
 			# Dispatch Event
 			if event.type in EventDispatch:
-				# safeprint('Event: {}'.format(event.type))
 				EventDispatch[event.type](event)
 			else:
 				logsupport.Logs.Log("Unknown main event {}".format(repr(event)), severity=ConsoleError, hb=True,
@@ -157,7 +156,7 @@ def MainControlLoop():
 	except Exception as E:
 		logsupport.Logs.Log('Main display loop had exception: {}'.format(repr(E)))
 		with open('/home/pi/.tombstone', 'a') as tomb:
-			print(f'Exception exit from main loop for {os.getpid()} Exc: {E}', file=tomb)
+			print(f'{disptime()} Exception exit from main loop for {os.getpid()} Exc: {E}', file=tomb)
 		tbinfo = traceback.format_exc().splitlines()
 		for ln in tbinfo:
 			logsupport.Logs.Log(ln)

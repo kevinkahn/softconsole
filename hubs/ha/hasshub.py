@@ -573,7 +573,7 @@ class HA(object):
                     del d['old_state']
                     del d['entity_id']
                     if ent == 'light.bar_lights':
-                        safeprint(f"{time.strftime('%m-%d-%y %H:%M:%S', time.localtime())} {old} -> {new}")
+                        safeprint(f"{old} -> {new}")
                     prog = 1.5
                     chgs, dels, adds = findDiff(old, new)
                     prog = 2

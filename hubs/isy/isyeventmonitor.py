@@ -484,13 +484,10 @@ class ISYEventMonitor(object):
 			time.sleep(7)
 			with open('/home/pi/Console/isystream.dmp', 'r') as f:
 				f.readline()  # absorb first
-				# safeprint("Message1: {}".format(mes))
 				while True:
 					mes = f.readline().rstrip('\n')
 					if mes == '':
-						# safeprint('Done')
 						break
-					# safeprint("Message: {}".format(mes))
 					on_message(None, mes)
 				time.sleep(.4)
 			while True:

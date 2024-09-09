@@ -73,7 +73,7 @@ def EarlyAbort(scrnmsg, screen=True):
 		r = fonts.fonts.Font(40, '', True, True).render(scrnmsg, 0, wc("white"))
 		hw.screen.blit(r, ((hw.screenwidth - r.get_width()) / 2, hw.screenheight * .4))
 		displayupdate.updatedisplay()
-	safeprint(time.strftime('%m-%d-%y %H:%M:%S'), scrnmsg)
+	safeprint(scrnmsg)
 	time.sleep(10)
 	logsupport.Logs.livelog = False
 	timers.ShutTimers(scrnmsg)

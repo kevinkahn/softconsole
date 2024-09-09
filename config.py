@@ -81,7 +81,7 @@ def ptf(pstr):
 	# noinspection PyUnresolvedReferences
 	if sysStore.versionname in ('homerelease', 'development'):
 		with open('/home/pi/Console/weathtrace', 'a') as f:
-			safeprint('{}:{}'.format(time.strftime('%H:%M:%S', time.localtime(time.time())), pstr), file=f, flush=True)
+			safeprint(pstr, file=f, flush=True)
 
 
 lastfetch = 0
@@ -95,8 +95,7 @@ def ptf2(pstr):
 	# noinspection PyUnresolvedReferences
 	if sysStore.versionname in ('homerelease', 'development'):
 		with open('/home/pi/Console/weathhist', 'a') as f:
-			safeprint('{}{}:{}'.format(flag, time.strftime('%H:%M:%S', time.localtime(time.time())), pstr), file=f,
-					  flush=True)
+			safeprint(f"{flag} {pstr}", file=f, flush=True)
 
 
 # noinspection PyBroadException

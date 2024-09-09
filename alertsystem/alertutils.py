@@ -87,9 +87,6 @@ def ForceRestart(logmsg, exitreason):
 
 def UpdateRestartStatus(logmsg, exitreason):
 	ReportStatus('auto restart', hold=2)
-	varsnote = config.sysStore.configdir + '/.autovers'
-	with open(varsnote, 'w') as f:
-		safeprint(time.strftime('%c'), file=f)
 	controlevents.PostEvent(
 		controlevents.ConsoleEvent(controlevents.CEvent.RunProc, proc=partial(ForceRestart, logmsg, exitreason),
 								   name='ForceRestart'))

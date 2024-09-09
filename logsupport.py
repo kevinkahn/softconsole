@@ -11,6 +11,7 @@ import config
 from enum import Enum
 import re
 from utils.hw import disklogging
+from utils.utilfuncs import disptime
 
 from guicore.screencallmanager import pg
 
@@ -43,7 +44,7 @@ class TempLogger(object):
 		sev = 3 if 'severity' not in kwargs else kwargs['severity']
 		if not isinstance(entry, str):
 			entry = entry.encode('UTF-8', errors='backslashreplace')
-		EarlyLog.append((time.strftime('%m-%d-%y %H:%M:%S'), entry, sev))
+		EarlyLog.append((disptime('log'), entry, sev))
 		safeprint(" " + entry)
 
 	def write(self, item: str):
@@ -115,8 +116,8 @@ def LogProcess(q):
 
 	# noinspection PyProtectedMember,PyUnusedLocal
 	def ExitAbort(signum, frame):
-		with open('/home/pi/tombstoneL', 'a') as tomb:
-			print(f'Logger {os.getpid()} exiting for signal {signum}', file=tomb, flush=True)
+		with open('/home/pi/.tombstoneL', 'a') as tomb:
+			print(f'{disptime()} Logger {os.getpid()} exiting for signal {signum}', file=tomb, flush=True)
 			traceback.print_stack(file=tomb)
 		os._exit(95)
 
@@ -431,8 +432,9 @@ class Logger(object):
 			if self.livelog and not debugitem:
 				gotit = self.livelogLock.acquire(timeout=2)
 				if not gotit:
-					with open('/home/pi/tombstoneL', 'a') as tomb:
-						print(f'Lock aquistion failed for {os.getpid()} Entry: {entry}', file=tomb, flush=True)
+					with open('/home/pi/.tombstoneL', 'a') as tomb:
+						print(f'{disptime()} Lock aquistion failed for {os.getpid()} Entry: {entry}', file=tomb,
+							  flush=True)
 						os._exit(97)
 				if self.livelogpos == 0:
 					hw.screen.fill(wc('royalblue'))

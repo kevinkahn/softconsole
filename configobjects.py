@@ -59,14 +59,12 @@ class MyScreens(object):
 					screens.ExtraChain.append(NewScreen.name)
 
 		if utilfuncs.isdevsystem:
-			# todo safeprint('Add all screens for testing')
 			logsupport.Logs.Log("Adding all screens on Development system for testing")
 			allscreens = {**screens.MainDict, **screens.SecondaryDict, **screens.ExtraDict}
 			thisscreenpartial = None
 			scrnnum = 0
 			perscreen = 0
 			for sn, s in allscreens.items():
-				# todo safeprint('    Test {}'.format(sn))
 				if perscreen == 0:
 					if thisscreenpartial is not None:
 						config.sysStore.SecondaryChain.append('TestScreen-{}'.format(scrnnum))
