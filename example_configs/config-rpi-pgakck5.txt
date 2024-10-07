@@ -19,7 +19,7 @@ DimIdleListNames = MyClock, Portland, LQTT, TimeTemp
 DimIdleListTimes =	8, 8, 8
 
 #MainChain = pgawBR, Varkeytest, LQTT, climate.master_bedroom, climate.living_room, pgawBath
-MainChain = pgawBR, LQTT, climate.master_bedroom, climate.living_room, pgawBath1, pgawBath1
+MainChain = pgawBR, LQTT, climate.master_bedroom, climate.living_room, pgawBath2, pgawBath1
 SecondaryChain = Portland, Pumpkin, pgaOutside, pgaGR, pgaKitchen
 
 DefaultHub = HASSpga
