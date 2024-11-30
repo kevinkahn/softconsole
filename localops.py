@@ -129,10 +129,12 @@ def PreOp():
 		DeletedCfgs = set()
 
 	try:
-		cfgfilesrv = (confserver + 'config-' + config.sysStore.hostname + '.txt', confserver + 'termshortenlist')
+		cfgfilesrv = (confserver + 'config-' + config.sysStore.hostname + '.txt', confserver + 'termshortenlist',
+					  confserver + 'HAparameters.txt')
 		cfgfileloc = (config.sysStore.configdir + '/config-' + config.sysStore.hostname + '.txt',
-					  config.sysStore.configdir + '/termshortenlist')
-		for i in (0, 1):
+					  config.sysStore.configdir + '/termshortenlist',
+					  config.sysStore.configdir + '/HAparameters.txt')
+		for i in (0, 1, 2):
 			mt = os.path.getmtime(cfgfilesrv[i])
 			mtloc = os.path.getmtime(cfgfileloc[i])
 			if mt > mtloc:
