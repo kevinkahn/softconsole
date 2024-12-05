@@ -241,7 +241,7 @@ class HA(object):
     def HubLog(self, mess):
         ha.call_service(self.api, 'logbook', 'log', {'name': 'Softconsole', 'message': mess})
 
-    config.sysStore.HubLogger = HubLog
+    config.HubLogger = HubLog
 
     class HAClose(Exception):
         pass

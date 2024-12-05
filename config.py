@@ -54,9 +54,10 @@ sysvals = {
 	'LogStartTime': (int, 0, None, False),
 	'FirstUnseenErrorTime': (int, 0, None, False),
 	'ErrLogReconnects': (bool, False, None, True),
-	'LongTapTime': (int, 1300, None, False),  # time in msec
-	'HubLogger': (callable, None, None, None)
+	'LongTapTime': (int, 1300, None, False)  # time in msec
 }
+
+HubLogger = None
 
 # Non-user sysfile entries
 #  ConsoleStartTime

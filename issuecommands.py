@@ -193,7 +193,7 @@ def ClearIndicator(params=None, Key=None):
 	config.sysStore.ErrorNotice = -1  # clear indicator
 	ReportStatus('cleared indicator')
 	if config.sysStore.HubLogger is not None:
-		config.sysStore.HubLogger(hw.hostname + 'cleared error indicator')
+		config.sysStore.HubLogger(hw.hostname + 'cleared error indicator command')
 	CommandResp(Key, 'ok', params, None)
 
 
