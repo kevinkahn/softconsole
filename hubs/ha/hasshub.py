@@ -237,6 +237,12 @@ def RegisterDomain(domainname, domainmodule, eventhdlr=DomainSpecificEvent, spec
 
 
 class HA(object):
+
+    def HubLog(self, mess):
+        ha.call_service(self.api, 'logbook', 'log', {'name': 'Softconsole', 'message': mess})
+
+    config.sysStore.HubLogger = HubLog
+
     class HAClose(Exception):
         pass
 
@@ -446,8 +452,9 @@ class HA(object):
         i = 3
         while i > 0:
             try:
-                ha.call_service(self.api, 'logbook', 'log',
-                                {'name': 'Softconsole', 'message': hw.hostname + ' connected'})
+                self.HubLog(hw.hostname + ' connected')
+                # ha.call_service(self.api, 'logbook', 'log',
+                #                {'name': 'Softconsole', 'message': hw.hostname + ' connected'})
                 return
             except ha.HomeAssistantError:
                 i -= 1

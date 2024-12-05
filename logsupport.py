@@ -332,10 +332,12 @@ class Logger(object):
 			sys.stderr = Stream_to_Logger()
 			os.chdir(cwd)
 
-	def SetSeverePointer(self, severity):
+	def SetSeverePointer(self, severity, entry=''):
 		if severity in [ConsoleWarning, ConsoleError] and config.sysStore.ErrorNotice == -1:
 			config.sysStore.FirstUnseenErrorTime = time.time()
 			config.sysStore.ErrorNotice = len(self.log) - 1
+			if config.sysStore.HubLogger is not None:
+				config.sysStore.HubLogger(hw.hostname + 'error indicator set for ' + entry)
 
 	def ReturnRecent(self, loglevel, maxentries):
 		if loglevel == -1:
@@ -364,7 +366,7 @@ class Logger(object):
 			rl, localheight = SplitLine(entry, 'black',
 										fonts.fonts.Font(config.sysStore.LogFontSize, face=fonts.monofont))
 			self.log.append((severity, entry, entrytime, localheight))
-			self.SetSeverePointer(severity)
+			self.SetSeverePointer(severity, entry=entry)
 		if disklogging:
 			LoggerQueue.put((Command.LogEntry, severity, entry, entrytime))
 			if tb:

@@ -167,6 +167,8 @@ def PickStartingSpot():
 	if config.sysStore.ErrorNotice != -1:
 		startat = config.sysStore.ErrorNotice
 		config.sysStore.ErrorNotice = -1
+		if config.sysStore.HubLogger is not None:
+			config.sysStore.HubLogger(hw.hostname + 'cleared error indicator via local log display')
 		consolestatus.ReportStatus('error ind cleared')
 	else:  # limit the lookback of log that happens by default
 		if len(logsupport.Logs.log) > config.sysStore.MaxLogHistory:
