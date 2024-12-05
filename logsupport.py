@@ -336,8 +336,8 @@ class Logger(object):
 		if severity in [ConsoleWarning, ConsoleError] and config.sysStore.ErrorNotice == -1:
 			config.sysStore.FirstUnseenErrorTime = time.time()
 			config.sysStore.ErrorNotice = len(self.log) - 1
-			if config.sysStore.HubLogger is not None:
-				config.sysStore.HubLogger(hw.hostname + 'error indicator set for ' + entry)
+			if config.HubLogger is not None:
+				config.HubLogger(hw.hostname + 'error indicator set for ' + entry)
 
 	def ReturnRecent(self, loglevel, maxentries):
 		if loglevel == -1:

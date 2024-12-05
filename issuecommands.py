@@ -192,8 +192,8 @@ def ClearIndicator(params=None, Key=None):
 	TempCheckSanity(Key, params)
 	config.sysStore.ErrorNotice = -1  # clear indicator
 	ReportStatus('cleared indicator')
-	if config.sysStore.HubLogger is not None:
-		config.sysStore.HubLogger(hw.hostname + 'cleared error indicator command')
+	if config.HubLogger is not None:
+		config.HubLogger(hw.hostname + 'cleared error indicator command')
 	CommandResp(Key, 'ok', params, None)
 
 
@@ -250,8 +250,8 @@ def SendErrMatch(params=None, Key=None):
 		return
 	if logsupport.Logs.MatchLastErr(lev, msg, logsupport.ConsoleWarning):
 		config.sysStore.ErrorNotice = -1  # clear indicator
-		if config.sysStore.HubLogger is not None:
-			config.sysStore.HubLogger(hw.hostname + 'cleared error indicator via match')
+		if config.HubLogger is not None:
+			config.HubLogger(hw.hostname + 'cleared error indicator via match')
 		ReportStatus('cleared indicator')
 		CommandResp(Key, 'ok', params, None)
 	else:
