@@ -486,6 +486,7 @@ class HA(object):
                     return
                 else:
                     time.sleep(1)
+        logsupport.Logs.Log('Announce')
         HubAnnounce()
 
     def RegisterEntity(self, domain, entity, item):
@@ -909,7 +910,7 @@ class HA(object):
             raise ValueError
         logsupport.Logs.Log(
             "{}: Creating structure for Home Assistant hub version {} at {}".format(hubname, version, addr))
-        HubLogging = {'HubReport': self.HubReport, 'HubAnnounce': self.HubAnnounce}
+        HubLogging = {'HubReport': HubReport, 'HubAnnounce': HubAnnounce}
         config.HubLogging = HubLogging
 
         # import supported domains
