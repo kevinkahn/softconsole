@@ -225,7 +225,6 @@ specialcommands = {}
 
 def DomainSpecificEvent(e, message):
     logsupport.Logs.Log('Default event handler {} {}'.format(e, message))
-    pass
 
 
 def RegisterDomain(domainname, domainmodule, eventhdlr=DomainSpecificEvent, speccmd=None):
@@ -238,10 +237,31 @@ def RegisterDomain(domainname, domainmodule, eventhdlr=DomainSpecificEvent, spec
 
 class HA(object):
 
-    def HubLog(self, mess):
-        ha.call_service(self.api, 'logbook', 'log', {'name': 'Softconsole', 'message': mess})
+    def HubReport(self, target, update):
+        config.MQTTBroker.PublishRawJSON(target, update)
 
-    config.HubLogger = HubLog
+    def HubAnnounce(self):
+        target = f"homeassistant/sensor/{hw.hostname}/config"
+        discovery = {
+            "dev": {"ids": hw.hostname,
+                    "name": hw.hostname
+                    },
+            "cmps": {
+                "errorstate": {
+                    "p": "sensor",
+                    "value_template": "{{ value_json.errorcode}}",
+                    "unique_id": hw.hostname + "errorcode",
+                    "state_topic": f"homeassistant/sensor/{hw.hostname}/errorstate"
+                },
+                "logmess": {
+                    "p": "sensor",
+                    "value_template": "{{ value_json.message}}",
+                    "unique_id": hw.hostname + "logmess",
+                    "state_topic": f"homeassistant/sensor/{hw.hostname}/logmess"
+                }
+            }
+        }
+        config.MQTTBroker.PublishRawJSON(target, discovery)
 
     class HAClose(Exception):
         pass
@@ -452,9 +472,8 @@ class HA(object):
         i = 3
         while i > 0:
             try:
-                self.HubLog(hw.hostname + ' connected')
-                # ha.call_service(self.api, 'logbook', 'log',
-                #                {'name': 'Softconsole', 'message': hw.hostname + ' connected'})
+                ha.call_service(self.api, 'logbook', 'log',
+                                {'name': 'Softconsole', 'message': hw.hostname + ' connected'})
                 return
             except ha.HomeAssistantError:
                 i -= 1
@@ -886,6 +905,8 @@ class HA(object):
             raise ValueError
         logsupport.Logs.Log(
             "{}: Creating structure for Home Assistant hub version {} at {}".format(hubname, version, addr))
+        HubLogging = {'HubReport': self.HubReport, 'HubAnnounce': self.HubAnnounce}
+        config.HubLogging = HubLogging
 
         # import supported domains
         self.dyndomains = utilfuncs.importmodules('hubs/ha/domains')

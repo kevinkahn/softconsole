@@ -57,7 +57,7 @@ sysvals = {
 	'LongTapTime': (int, 1300, None, False)  # time in msec
 }
 
-HubLogger = None
+HubLogging = None
 
 # Non-user sysfile entries
 #  ConsoleStartTime

@@ -336,8 +336,9 @@ class Logger(object):
 		if severity in [ConsoleWarning, ConsoleError] and config.sysStore.ErrorNotice == -1:
 			config.sysStore.FirstUnseenErrorTime = time.time()
 			config.sysStore.ErrorNotice = len(self.log) - 1
-			if config.HubLogger is not None:
-				config.HubLogger(hw.hostname + 'error indicator set for ' + entry)
+			if config.HubLogging is not None:
+				config.HubLogging['HubReport'](f"homeassistant/sensor/{hw.hostname}/errorstate",
+											   {"errorcode": config.sysStore.ErrorNotice})
 
 	def ReturnRecent(self, loglevel, maxentries):
 		if loglevel == -1:
