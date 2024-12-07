@@ -235,33 +235,36 @@ def RegisterDomain(domainname, domainmodule, eventhdlr=DomainSpecificEvent, spec
     specialcommands[domainname] = speccmd
 
 
-class HA(object):
+def HubReport(target, update):
+    config.MQTTBroker.PublishRawJSON(target, update)
 
-    def HubReport(self, target, update):
-        config.MQTTBroker.PublishRawJSON(target, update)
 
-    def HubAnnounce(self):
-        target = f"homeassistant/sensor/{hw.hostname}/config"
-        discovery = {
-            "dev": {"ids": hw.hostname,
-                    "name": hw.hostname
-                    },
-            "cmps": {
-                "errorstate": {
-                    "p": "sensor",
-                    "value_template": "{{ value_json.errorcode}}",
-                    "unique_id": hw.hostname + "errorcode",
-                    "state_topic": f"homeassistant/sensor/{hw.hostname}/errorstate"
+def HubAnnounce():
+    target = f"homeassistant/sensor/{hw.hostname}/config"
+    discovery = {
+        "dev": {"ids": hw.hostname,
+                "name": hw.hostname
                 },
-                "logmess": {
-                    "p": "sensor",
-                    "value_template": "{{ value_json.message}}",
-                    "unique_id": hw.hostname + "logmess",
-                    "state_topic": f"homeassistant/sensor/{hw.hostname}/logmess"
-                }
+        "cmps": {
+            "errorstate": {
+                "p": "sensor",
+                "value_template": "{{ value_json.errorcode}}",
+                "unique_id": hw.hostname + "errorcode",
+                "state_topic": f"homeassistant/sensor/{hw.hostname}/errorstate"
+            },
+            "logmess": {
+                "p": "sensor",
+                "value_template": "{{ value_json.message}}",
+                "unique_id": hw.hostname + "logmess",
+                "state_topic": f"homeassistant/sensor/{hw.hostname}/logmess"
             }
         }
-        config.MQTTBroker.PublishRawJSON(target, discovery)
+    }
+    config.MQTTBroker.PublishRawJSON(target, discovery)
+
+class HA(object):
+
+
 
     class HAClose(Exception):
         pass
@@ -483,6 +486,7 @@ class HA(object):
                     return
                 else:
                     time.sleep(1)
+        HubAnnounce()
 
     def RegisterEntity(self, domain, entity, item):
         if domain in self.DomainEntityReg:
