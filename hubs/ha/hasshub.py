@@ -260,7 +260,7 @@ def HubAnnounce():
             }
         }
     }
-    config.MQTTBroker.PublishRawJSON(target, discovery)
+    config.MQTTBroker.PublishRawJSON(target, discovery, retain=True)
 
 class HA(object):
 
@@ -473,6 +473,8 @@ class HA(object):
             time.sleep(1)
             i = 0
         i = 3
+        logsupport.Logs.Log('Announce')
+        HubAnnounce()
         while i > 0:
             try:
                 ha.call_service(self.api, 'logbook', 'log',
@@ -486,8 +488,6 @@ class HA(object):
                     return
                 else:
                     time.sleep(1)
-        logsupport.Logs.Log('Announce')
-        HubAnnounce()
 
     def RegisterEntity(self, domain, entity, item):
         if domain in self.DomainEntityReg:

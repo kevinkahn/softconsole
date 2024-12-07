@@ -338,10 +338,11 @@ class MQTTBroker(valuestore.ValueStore):
 					logsupport.Logs.Log("MQTT single publish error ({})".format(repr(E)), severity=ConsoleError,
 										localonly=True)
 
-	def PublishRawJSON(self, fulltopic, payload, qos=1, retain=True):
+	def PublishRawJSON(self, fulltopic, payload, qos=1, retain=False):
 		logsupport.Logs.Log(f"PubRaw {fulltopic}: {payload}")
 		try:
-			self.MQTTclient.publish(fulltopic, json.dumps(payload), qos=qos, retain=retain)
+			res = self.MQTTclient.publish(fulltopic, json.dumps(payload), qos=qos, retain=retain)
+			logsupport.Logs.Log(f"Result {res}")
 		except Exception as E:
 			self.MQTTCommFailed = True
 			logsupport.Logs.Log('MQTT Publish error ({})'.format(repr(E)), severity=ConsoleError, localonly=True)
