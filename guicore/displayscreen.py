@@ -68,6 +68,10 @@ def MainControlLoop():
 
 	guiutils.SetUpStats()
 
+	for h in hubs.hubs.Hubs:
+		if hasattr(h, 'Announce'):
+			h.Announce()
+
 	try:
 		while config.Running:  # Operational Control Loop
 			guiutils.CycleStats()

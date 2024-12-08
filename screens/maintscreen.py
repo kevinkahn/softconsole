@@ -1,6 +1,7 @@
 import functools
 from collections import OrderedDict
 
+from hubs import hubs
 from utils import displayupdate, hw
 from guicore.switcher import SwitchScreen
 import config
@@ -167,8 +168,7 @@ def PickStartingSpot():
 	if config.sysStore.ErrorNotice != -1:
 		startat = config.sysStore.ErrorNotice
 		config.sysStore.ErrorNotice = -1
-		if config.HubLogger is not None:
-			config.HubLogger(hw.hostname + 'cleared error indicator via local log display')
+		hubs.HubLog(config.sysStore.ErrorNotice)
 		consolestatus.ReportStatus('error ind cleared')
 	else:  # limit the lookback of log that happens by default
 		if len(logsupport.Logs.log) > config.sysStore.MaxLogHistory:

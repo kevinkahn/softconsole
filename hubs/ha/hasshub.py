@@ -235,36 +235,7 @@ def RegisterDomain(domainname, domainmodule, eventhdlr=DomainSpecificEvent, spec
     specialcommands[domainname] = speccmd
 
 
-def HubReport(target, update):
-    config.MQTTBroker.PublishRawJSON(target, update)
-
-
-def HubAnnounce():
-    target = f"homeassistant/sensor/{hw.hostname}/config"
-    discovery = {
-        "dev": {"ids": hw.hostname,
-                "name": hw.hostname
-                },
-        "cmps": {
-            "errorstate": {
-                "p": "sensor",
-                "value_template": "{{ value_json.errorcode}}",
-                "unique_id": hw.hostname + "errorcode",
-                "state_topic": f"homeassistant/sensor/{hw.hostname}/errorstate"
-            },
-            "logmess": {
-                "p": "sensor",
-                "value_template": "{{ value_json.message}}",
-                "unique_id": hw.hostname + "logmess",
-                "state_topic": f"homeassistant/sensor/{hw.hostname}/logmess"
-            }
-        }
-    }
-    config.MQTTBroker.PublishRawJSON(target, discovery, retain=True)
-
 class HA(object):
-
-
 
     class HAClose(Exception):
         pass
@@ -473,8 +444,7 @@ class HA(object):
             time.sleep(1)
             i = 0
         i = 3
-        logsupport.Logs.Log('Announce')
-        HubAnnounce()
+
         while i > 0:
             try:
                 ha.call_service(self.api, 'logbook', 'log',
@@ -515,6 +485,42 @@ class HA(object):
                 logsupport.Logs.Log(
                     "{}: Exception in getting current states for {} Exception: {}".format(self.name, e.entity_id, E),
                     severity=ConsoleWarning)
+
+    def Announce(self):
+        target = f"homeassistant/device/{hw.hostname}/config"
+        discovery = {
+            "dev": {
+                "ids": hw.hostname,
+                "name": hw.hostname
+            },
+            "o": {
+                "name": "softconsole"
+            },
+            "cmps": {
+                "errorcode": {
+                    "name": "errorcode",
+                    "p": "sensor",
+                    "value_template": "{{ value_json.errorcode}}",
+                    "unique_id": "rpi-kck5-errorcode"
+                },
+                "logitem": {
+                    "name": "logitem",
+                    "p": "sensor",
+                    "value_template": "{{ value_json.logitem}}",
+                    "unique_id": "rpi-kck5-logitem"
+                }
+            },
+            "state_topic": hw.hostname + "/errstate",
+            "qos": 2
+        }
+
+        config.MQTTBroker.PublishRawJSON(target, discovery, retain=True)
+
+    def HubLog(self, code=-1, message=None):
+        logmess = {"errorcode": code, "logitem": message}
+        config.MQTTBroker.PublishRawJSON(hw.hostname + "/errstate", logmess)
+        if code == -1:
+            pass  # issue a purge to the sensor log
 
     def HAevents(self):
 
@@ -910,8 +916,6 @@ class HA(object):
             raise ValueError
         logsupport.Logs.Log(
             "{}: Creating structure for Home Assistant hub version {} at {}".format(hubname, version, addr))
-        HubLogging = {'HubReport': HubReport, 'HubAnnounce': HubAnnounce}
-        config.HubLogging = HubLogging
 
         # import supported domains
         self.dyndomains = utilfuncs.importmodules('hubs/ha/domains')

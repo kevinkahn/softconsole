@@ -10,6 +10,7 @@ from setproctitle import setproctitle
 import config
 from enum import Enum
 import re
+from hubs import hubs
 from utils.hw import disklogging
 from utils.utilfuncs import disptime
 
@@ -336,9 +337,7 @@ class Logger(object):
 		if severity in [ConsoleWarning, ConsoleError] and config.sysStore.ErrorNotice == -1:
 			config.sysStore.FirstUnseenErrorTime = time.time()
 			config.sysStore.ErrorNotice = len(self.log) - 1
-			if config.HubLogging is not None:
-				config.HubLogging['HubReport'](f"homeassistant/sensor/{hw.hostname}/errorstate",
-											   {"errorcode": config.sysStore.ErrorNotice})
+			hubs.HubLog(config.sysStore.ErrorNotice, entry)
 
 	def ReturnRecent(self, loglevel, maxentries):
 		if loglevel == -1:
