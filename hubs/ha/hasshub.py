@@ -501,13 +501,13 @@ class HA(object):
                     "name": "logitem",
                     "p": "sensor",
                     "value_template": "{{ value_json.logitem}}",
-                    "unique_id": "rpi-kck5-logitem"
+                    "unique_id": f"{hw.hostname}-logitem"
                 },
                 "errorcode": {
                     "name": "errorcode",
                     "p": "sensor",
                     "value_template": "{{ value_json.errorcode}}",
-                    "unique_id": "rpi-kck5-errorcode"
+                    "unique_id": f"{hw.hostname}-errorcode"
                 }
             },
             "state_topic": f"{self.name}/{hw.hostname}/errstate",
