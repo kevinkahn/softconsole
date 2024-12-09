@@ -70,7 +70,10 @@ def MainControlLoop():
 
 	for h in hubs.hubs.Hubs:
 		if hasattr(h, 'Announce'):
+			logsupport.Logs.Log('Announce to hub')
 			h.Announce()
+		else:
+			logsupport.Logs.Log(f'no announce {h}')
 
 	try:
 		while config.Running:  # Operational Control Loop
