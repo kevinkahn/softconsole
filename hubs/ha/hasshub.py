@@ -497,17 +497,17 @@ class HA(object):
                 "name": "softconsole"
             },
             "cmps": {
-                "errorcode": {
-                    "name": "errorcode",
-                    "p": "sensor",
-                    "value_template": "{{ value_json.errorcode}}",
-                    "unique_id": "rpi-kck5-errorcode"
-                },
                 "logitem": {
                     "name": "logitem",
                     "p": "sensor",
                     "value_template": "{{ value_json.logitem}}",
                     "unique_id": "rpi-kck5-logitem"
+                },
+                "errorcode": {
+                    "name": "errorcode",
+                    "p": "sensor",
+                    "value_template": "{{ value_json.errorcode}}",
+                    "unique_id": "rpi-kck5-errorcode"
                 }
             },
             "state_topic": f"{self.name}/{hw.hostname}/errstate",
@@ -517,13 +517,12 @@ class HA(object):
         config.MQTTBroker.PublishRawJSON(target, discovery, retain=True)
 
     def HubLog(self, code=-1, message=None):
-        logmess = {"errorcode": code, "logitem": message}
+        logmess = {"logitem": message, "errorcode": code}
         config.MQTTBroker.PublishRawJSON(f"{self.name}/{hw.hostname}/errstate", logmess, retain=True)
         if code == -1:
-            pass  # issue a purge to the sensor log
-            ha.call_service(self.api, 'switch', "turn_on", {'entity_id': 'switch.office_downlights'})
             ha.call_service(self.api, 'recorder', 'purge_entities',
-                            {'keep_days': 0, 'entity_id': f"sensor.{hw.hostname}_logitem"})
+                            {'entity_id': f"sensor.{hw.hostname}_logitem".replace('-', '_')})
+            logsupport.Logs.Log(f"sensor.{hw.hostname}_logitem")
 
     def HAevents(self):
 
