@@ -8,6 +8,6 @@ class HubInitError(Exception):
 
 
 def HubLog(code, message=None):
-	for h in Hubs:
+	for hnm, h in Hubs.items():
 		if hasattr(h, 'HubLog'):
 			h.HubLog(code, message)

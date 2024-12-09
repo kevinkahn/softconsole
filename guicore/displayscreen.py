@@ -68,12 +68,14 @@ def MainControlLoop():
 
 	guiutils.SetUpStats()
 
-	for h in hubs.hubs.Hubs:
+	for hnm, h in hubs.hubs.Hubs.items():
 		if hasattr(h, 'Announce'):
 			logsupport.Logs.Log('Announce to hub')
 			h.Announce()
 		else:
 			logsupport.Logs.Log(f'no announce {h}')
+
+	hubs.hubs.HubLog(config.sysStore.ErrorNotice)
 
 	try:
 		while config.Running:  # Operational Control Loop

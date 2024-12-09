@@ -487,7 +487,7 @@ class HA(object):
                     severity=ConsoleWarning)
 
     def Announce(self):
-        target = f"homeassistant/device/{hw.hostname}/config"
+        target = f"{self.name}/device/{hw.hostname}/config"
         discovery = {
             "dev": {
                 "ids": hw.hostname,
