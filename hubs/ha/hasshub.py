@@ -510,7 +510,7 @@ class HA(object):
                     "unique_id": "rpi-kck5-logitem"
                 }
             },
-            "state_topic": hw.hostname + "/errstate",
+            "state_topic": f"{self.name}/{hw.hostname}/errstate",
             "qos": 2
         }
 
@@ -518,9 +518,10 @@ class HA(object):
 
     def HubLog(self, code=-1, message=None):
         logmess = {"errorcode": code, "logitem": message}
-        config.MQTTBroker.PublishRawJSON(hw.hostname + "/errstate", logmess)
+        config.MQTTBroker.PublishRawJSON(f"{self.name}/{hw.hostname}/errstate", logmess, retain=True)
         if code == -1:
             pass  # issue a purge to the sensor log
+            ha.call_service(self.api, 'recorder', 'purge_entities', {'entity_id': f"sensor.{hw.hostname}_logitem"})
 
     def HAevents(self):
 
