@@ -521,7 +521,9 @@ class HA(object):
         config.MQTTBroker.PublishRawJSON(f"{self.name}/{hw.hostname}/errstate", logmess, retain=True)
         if code == -1:
             pass  # issue a purge to the sensor log
-            ha.call_service(self.api, 'recorder', 'purge_entities', {'entity_id': f"sensor.{hw.hostname}_logitem"})
+            ha.call_service(self.api, 'switch', "turn_on", {'entity_id': 'switch.office_downlights'})
+            ha.call_service(self.api, 'recorder', 'purge_entities',
+                            {'keep_days': 0, 'entity_id': f"sensor.{hw.hostname}_logitem"})
 
     def HAevents(self):
 
