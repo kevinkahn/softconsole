@@ -517,6 +517,10 @@ class HA(object):
         config.MQTTBroker.PublishRawJSON(target, discovery, retain=True)
 
     def HubLog(self, code=-1, message=None):
+        if code != -1 and self.LastErrorCode == -1:
+            # handle odd case where first log message isn't logged by HA?
+            logmess = {"logitem": "Error indicator set", "errorcode": code}
+            config.MQTTBroker.PublishRawJSON(f"{self.name}/{hw.hostname}/errstate", logmess, retain=True)
         logmess = {"logitem": message, "errorcode": code}
         config.MQTTBroker.PublishRawJSON(f"{self.name}/{hw.hostname}/errstate", logmess, retain=True)
         if code == -1:
@@ -901,6 +905,7 @@ class HA(object):
         # noinspection PyUnusedLocal
 
     def __init__(self, hubname, addr, user, password, version):
+        self.LastErrorCode = -1
         self.SpecialCmds = {}
         self.restarting = False
         self.restartingtime = 0
