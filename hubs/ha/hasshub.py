@@ -523,6 +523,7 @@ class HA(object):
             config.MQTTBroker.PublishRawJSON(f"{self.name}/{hw.hostname}/errstate", logmess, retain=True)
         logmess = {"logitem": message, "errorcode": code}
         config.MQTTBroker.PublishRawJSON(f"{self.name}/{hw.hostname}/errstate", logmess, retain=True)
+        self.LastErrorCode = code
         if code == -1:
             ha.call_service(self.api, 'recorder', 'purge_entities',
                             {'entity_id': f"sensor.{hw.hostname}_logitem".replace('-', '_')})
