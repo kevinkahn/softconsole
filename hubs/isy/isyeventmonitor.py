@@ -373,7 +373,7 @@ class ISYEventMonitor(object):
 							self.isy.Vars.SetValByAttr((vartype, varid), varval, modifier=True)
 						except KeyError:
 							logsupport.Logs.Log(
-								"Unknown variable from " + self.hubname + " - probably added since startup",
+								"Unrecognized variable from " + self.hubname + " - probably added since startup",
 								severity=ConsoleWarning)
 
 					elif prcode == 'Heartbeat':

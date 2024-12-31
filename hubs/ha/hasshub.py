@@ -716,7 +716,7 @@ class HA(object):
                     # HA just finished initializing everything, so we may have been quicker - refresh all state
                     self.GetAllCurrentState()
                 else:
-                    logsupport.Logs.Log('{} Unknown event: {}'.format(self.name, message), severity=ConsoleWarning)
+                    logsupport.Logs.Log('{} Unrecognized event: {}'.format(self.name, message), severity=ConsoleWarning)
                     ignoredeventtypes.append(m['event_type'])  # only log once
                     debug.debugPrint('HASSgeneral', "Unknown event: " + str(m))
             except Exception as E:
@@ -758,7 +758,8 @@ class HA(object):
                 else:
                     logsupport.Logs.Log(self.name + ' WS OS error', repr(error), severity=ConsoleError, tb=False)
             else:
-                logsupport.Logs.Log(self.name + ": Unknown Error in WS stream " + str(self.HAnum) + ':' + repr(error),
+                logsupport.Logs.Log(
+                    self.name + ": Unrecognized Error in WS stream " + str(self.HAnum) + ':' + repr(error),
                                     severity=ConsoleWarning)
             # noinspection PyBroadException
             try:

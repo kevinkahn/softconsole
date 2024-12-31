@@ -344,7 +344,7 @@ def IssueCommand(source, cmd, seq, fromnd, param=None):
 		except Exception as E:
 			logsupport.Logs.Log('Exc: {}'.format(repr(E)))
 	else:
-		logsupport.Logs.Log('{}: Unknown remote command request: {}'.format(source, cmd),
+		logsupport.Logs.Log('{}:Unrecognized remote command request: {}'.format(source, cmd),
 							severity=ConsoleWarning)
 
 
