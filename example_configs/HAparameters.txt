@@ -37,6 +37,7 @@ recorder_hourly_statistics_generated
 recorder_5min_statistics_generated
 zha_event
 category_registry_updated
+lock_code_manager_lock_state_changed
 [IgnoredDomains]
 event
 sun

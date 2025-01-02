@@ -1,5 +1,5 @@
 cfglib = cfglib
-include = /home/pi/Console/local/auth.cfg, picscreen.cfg, weathLQ.cfg, weathPDX.cfg,timetempPDX.cfg,pdxBR.cfg, pdxBR2.cfg, pdxshadeswest.cfg, pdxshadesnorthbath.cfg, condotstats.cfg, mqtt.cfg, weathersources.cfg, timetempLQ.cfg, pdxalerts.cfg
+include = /home/pi/Console/local/authall.cfg, picscreen.cfg, weathLQ.cfg, weathPDX.cfg,timetempPDX.cfg,pdxBR.cfg, pdxBR2.cfg, pdxshadeswest.cfg, pdxshadesnorthbath.cfg, condotstats.cfg, mqtt.cfg, weathersources.cfg, timetempLQ.cfg, pdxalerts.cfg
 
 HomeScreenName = BR
 DimLevel = 40
