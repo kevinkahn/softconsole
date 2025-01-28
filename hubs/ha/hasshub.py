@@ -517,6 +517,9 @@ class HA(object):
         config.MQTTBroker.PublishRawJSON(target, discovery, retain=True)
 
     def HubLog(self, code=-1, message=None):
+        if config.MQTTBroker is None:
+            logsupport.Logs.Log(f"Can't issue HubLog until MQTT is running - Code: {code} Message: {message}")
+            return
         if code != -1 and self.LastErrorCode == -1:
             # handle odd case where first log message isn't logged by HA?
             logmess = {"logitem": "Error indicator set", "errorcode": code}
@@ -525,9 +528,12 @@ class HA(object):
         config.MQTTBroker.PublishRawJSON(f"{self.name}/{hw.hostname}/errstate", logmess, retain=True)
         self.LastErrorCode = code
         if code == -1:
-            ha.call_service(self.api, 'recorder', 'purge_entities',
-                            {'entity_id': f"sensor.{hw.hostname}_logitem".replace('-', '_')})
-            logsupport.Logs.Log(f"sensor.{hw.hostname}_logitem")
+            try:
+                ha.call_service(self.api, 'recorder', 'purge_entities',
+                                {'entity_id': f"sensor.{hw.hostname}_logitem".replace('-', '_')})
+                logsupport.Logs.Log(f"sensor.{hw.hostname}_logitem")
+            except Exception as E:
+                logsupport.Logs.Log(f"Failed purge call for sensor.{hw.hostname}_logitem: {E}")
 
     def HAevents(self):
 

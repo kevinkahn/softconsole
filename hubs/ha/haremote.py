@@ -337,7 +337,8 @@ def call_service(api: API, domain: str, service: str, service_data: Dict = None,
 				return
 
 		except HomeAssistantError as e:
-			logsupport.Logs.Log("HA service call failed ({}) timeout: {} exc: {}".format(tryit, timeout, repr(e)),
+			logsupport.Logs.Log(
+				f"HA svc call {tryit} failed for {domain}.{service}({service_data}) T/O:{timeout}): {e}",
 								severity=logsupport.ConsoleWarning if tryit == 'retry' else logsupport.ConsoleInfo)
 			if tryit == 'retry':
 				raise

@@ -1,0 +1,37 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Development" type="PythonConfigurationType" factoryName="Python" singleton="true" show_console_on_std_err="true" show_console_on_std_out="true">
+    <module name="softconsole" />
+    <option name="ENV_FILES" value="" />
+    <option name="INTERPRETER_OPTIONS" value="" />
+    <option name="PARENT_ENVS" value="true" />
+    <envs>
+      <env name="PYTHONUNBUFFERED" value="1" />
+      <env name="PYDEVD_LOAD_VALUES_ASYNC" value="True" />
+    </envs>
+    <option name="SDK_HOME" value="" />
+    <option name="SDK_NAME" value="Remote Python 3.11.2 (sftp://pi@rpi-dev7x.pgawhome:22/home/pi/pyenv/bin/python)" />
+    <option name="WORKING_DIRECTORY" value="/home/pi/consolerem" />
+    <option name="IS_MODULE_SDK" value="false" />
+    <option name="ADD_CONTENT_ROOTS" value="true" />
+    <option name="ADD_SOURCE_ROOTS" value="true" />
+    <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+    <PathMappingSettings>
+      <option name="pathMappings">
+        <list>
+          <mapping local-root="$PROJECT_DIR$" remote-root="/home/pi/consolerem" />
+        </list>
+      </option>
+    </PathMappingSettings>
+    <option name="SCRIPT_NAME" value="console.py" />
+    <option name="PARAMETERS" value="" />
+    <option name="SHOW_COMMAND_LINE" value="true" />
+    <option name="EMULATE_TERMINAL" value="false" />
+    <option name="MODULE_MODE" value="false" />
+    <option name="REDIRECT_INPUT" value="false" />
+    <option name="INPUT_FILE" value="" />
+    <method v="2">
+      <option name="RemoteToolBeforeRunTask" enabled="true" actionId="RemoteTool_External Tools_Copy config up" />
+      <option name="RemoteToolBeforeRunTask" enabled="true" actionId="RemoteTool_External Tools_Copy termshorten up" />
+    </method>
+  </configuration>
+</component>
