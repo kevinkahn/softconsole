@@ -319,7 +319,7 @@ def safe_call_service(api: API, domain: str, service: str, service_data: Dict = 
 def call_service(api: API, domain: str, service: str, service_data: Dict = None, timeout: int = 5) -> None:
 	"""Call a service at the remote API."""
 	# print('Call svc {} {} {}'.format(domain,service,service_data))
-	for tryit in ('first try', 'retry'):
+	for tryit in ('first try', 'retry', 'finaltry'):
 		try:
 			req = api(METH_POST, URL_API_SERVICES_SERVICE.format(domain, service), service_data, timeout=timeout)
 
@@ -332,15 +332,15 @@ def call_service(api: API, domain: str, service: str, service_data: Dict = None,
 																											service,
 																											service_data))
 			else:
-				if tryit == 'retry':
-					logsupport.Logs.Log('Retry worked ({}.{})'.format(domain, service))
+				if tryit in ('retry', 'finaltry'):
+					logsupport.Logs.Log(f'Attempt {tryit} worked ({domain}.{service})')
 				return
 
 		except HomeAssistantError as e:
 			logsupport.Logs.Log(
 				f"HA svc call {tryit} failed for {domain}.{service}({service_data}) T/O:{timeout}): {e}",
 								severity=logsupport.ConsoleWarning if tryit == 'retry' else logsupport.ConsoleInfo)
-			if tryit == 'retry':
+			if tryit == 'finaltry':
 				raise
 			else:
 				timeout = 2 * timeout
