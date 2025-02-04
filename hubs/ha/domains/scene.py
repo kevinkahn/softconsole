@@ -21,7 +21,7 @@ class Scene(HAnode):
 			ha.call_service(self.Hub.api, 'scene', 'turn_on', {'entity_id': '{}'.format(self.entity_id)}, timeout=10)
 			debug.debugPrint('HASSgeneral', "Scene On sent to ", self.entity_id)
 			logsupport.Logs.Log(
-				'Scene on complete for {} took {} seconds'.format(self.entity_id, time.time() - scnstart))
+				f'Scene on {self.opthreadcnt} complete for {self.entity_id} took {time.time() - scnstart} seconds')
 			self.opthreadcnt -= 1
 		except ha.HomeAssistantError:
 			# HA probably restarting
