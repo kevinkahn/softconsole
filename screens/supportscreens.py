@@ -36,7 +36,7 @@ class VerifyScreen(screen.BaseKeyScreenDesc):
 		self.ClearScreenTitle()  # don't use parent screen title
 		self.CallingScreen = callingscreen  # todo either eliminare or use for something - note could be none from maint exit
 		screen.AddUndefaultedParams(self, None, TitleFontSize=40, SubFontSize=25)
-		self.SetScreenTitle(self.label, 40, charcolor)
+		self.SetScreenTitle(self.label, 60, charcolor)
 		self.Keys['yes'] = toucharea.ManualKeyDesc(self, 'yes', gomsg, bcolor, keycoloroff, charcolor, State=state)
 		self.Keys['yes'].Proc = self.Verified
 		self.Keys['no'] = toucharea.ManualKeyDesc(self, 'no', nogomsg, bcolor, keycoloroff, charcolor, State=state)
