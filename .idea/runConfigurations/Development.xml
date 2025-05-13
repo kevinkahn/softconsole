@@ -8,9 +8,8 @@
       <env name="PYDEVD_LOAD_VALUES_ASYNC" value="True" />
     </envs>
     <option name="SDK_HOME" value="" />
-    <option name="SDK_NAME" value="Remote Python 3.11.2 (sftp://pi@rpi-dev7x.pgawhome:22/home/pi/pyenv/bin/python)" />
     <option name="WORKING_DIRECTORY" value="/home/pi/consolerem" />
-    <option name="IS_MODULE_SDK" value="false" />
+    <option name="IS_MODULE_SDK" value="true" />
     <option name="ADD_CONTENT_ROOTS" value="true" />
     <option name="ADD_SOURCE_ROOTS" value="true" />
     <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
@@ -28,9 +27,6 @@
     <option name="MODULE_MODE" value="false" />
     <option name="REDIRECT_INPUT" value="false" />
     <option name="INPUT_FILE" value="" />
-    <method v="2">
-      <option name="RemoteToolBeforeRunTask" enabled="true" actionId="RemoteTool_External Tools_Copy config up" />
-      <option name="RemoteToolBeforeRunTask" enabled="true" actionId="RemoteTool_External Tools_Copy termshorten up" />
-    </method>
+    <method v="2" />
   </configuration>
 </component>

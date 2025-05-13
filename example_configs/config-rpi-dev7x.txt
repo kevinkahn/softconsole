@@ -15,11 +15,11 @@ HomeScreenName = 'pgawBR'
 DimLevel = 10
 DimTO = 10
 PersistTO = 3
-DimIdleListNames = PDXTTbig, Pic, MyClock, LQTTbig, Pumpkin
+DimIdleListNames = PDXTTbig, Pictures, MyClock, LQTTbig, Pumpkin
 
 DimIdleListTimes =	5, 20, 5, 5, 5, 5
 
-MainChain = pgawBR, pgaShades, pgaScenes, Prusa, pgawBath, wxHouse, Pic, Pumpkin, climate.air_conditionerbr_hvac,climate.air_conditionerlr_hvac,Test1, pgaGR, pgaKitchen, pgaOutside
+MainChain = pgawBR, pgaShades, pgaScenes, Prusa, pgawBath, wxHouse, Pumpkin, climate.air_conditionerbr_hvac,climate.air_conditionerlr_hvac,Test1, pgaGR, pgaKitchen, pgaOutside
 SecondaryChain = Portland, LQTTbig, climate.master_bedroom, climate.living_room
 
 DefaultHub = HASS
