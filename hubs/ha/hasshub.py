@@ -762,7 +762,8 @@ class HA(object):
                 if error.errno == errno.ENETUNREACH:
                     logsupport.Logs.Log(self.name + " WS network down", severity=ConsoleWarning)
                 else:
-                    logsupport.Logs.Log(self.name + ' WS OS error', repr(error), severity=ConsoleError, tb=False)
+                    reconsev = ConsoleWarning if config.sysStore.ErrLogReconnects else logsupport.ConsoleInfo
+                    logsupport.Logs.Log(self.name + ' WS OS error', repr(error), severity=reconsev, tb=False)
             else:
                 logsupport.Logs.Log(
                     self.name + ": Unrecognized Error in WS stream " + str(self.HAnum) + ':' + repr(error),
@@ -781,6 +782,7 @@ class HA(object):
         def on_close(qws, code, reason):
 
             self.HB.Entry('Close')
+            reconsev = ConsoleWarning if config.sysStore.ErrLogReconnects else logsupport.ConsoleInfo
             logsupport.Logs.Log(
                 self.name + " WS stream " + str(self.HAnum) + " closed: " + str(code) + ' : ' + str(reason),
                 tb=False, hb=True)

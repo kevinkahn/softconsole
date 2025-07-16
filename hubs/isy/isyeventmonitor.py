@@ -218,7 +218,8 @@ class ISYEventMonitor(object):
 		def on_close(qws, code, reason):
 			self.isy.HBWS.Entry("Close")
 			reconsev = ConsoleWarning if config.sysStore.ErrLogReconnects else logsupport.ConsoleInfo
-			logsupport.Logs.Log("{} WS stream {} closed: {}:{}".format(self.hubname, self.QHnum, code, reason),
+			logsupport.Logs.Log(
+				"{} WS stream {} closed(on_close): {}:{}".format(self.hubname, self.QHnum, code, reason),
 								severity=reconsev, hb=True)
 			debug.debugPrint('DaemonCtl', "ISY Websocket stream closed", str(code), str(reason))
 
