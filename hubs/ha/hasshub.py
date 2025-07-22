@@ -762,7 +762,7 @@ class HA(object):
                 if error.errno == errno.ENETUNREACH:
                     logsupport.Logs.Log(self.name + " WS network down", severity=ConsoleWarning)
                 else:
-                    reconsev = ConsoleWarning if config.sysStore.ErrLogReconnects else logsupport.ConsoleInfo
+                    reconsev = ConsoleWarning if config.sysStore else logsupport.ConsoleInfo
                     logsupport.Logs.Log(self.name + ' WS OS error', repr(error), severity=reconsev, tb=False)
             else:
                 logsupport.Logs.Log(
