@@ -412,7 +412,7 @@ class HA(object):
 
     def PreRestartHAEvents(self):
         self.haconnectstate = "Prestart"
-        trycnt = 60
+        trycnt = 20
         waittime = 0
         while True:
             self.config = ha.get_config(self.api)
@@ -420,13 +420,15 @@ class HA(object):
                 break  # HA is up
             trycnt -= 1
             if trycnt < 0:
-                waittime += 5
-                logsupport.Logs.Log(f"{self.name}: Waiting for HA to come up ({waittime} minutes - retrying: ",
+                waittime += 1
+                logsupport.Logs.Log(f"{self.name}: Waiting for HA to come up ({waittime} minutes - retrying{trycnt}: ",
                                     severity=ConsoleWarning)
-                trycnt = 60
+                trycnt = 20
             else:
-                logsupport.Logs.Log(f"{self.name}: Waiting for HA to come up - retrying")
+                pass
+                # logsupport.Logs.Log(f"{self.name}: Waiting for HA to come up - retrying {trycnt}")
             time.sleep(5)  # don't flood network
+        # logsupport.Logs.Log(f'{self.name}: Should be up and stable')
         self.watchstarttime = time.time()
         self.HAnum += 1
 
@@ -444,20 +446,25 @@ class HA(object):
             time.sleep(1)
             i = 0
         i = 3
-
+        time.sleep(2)  # delay to be sure logbook is up
         while i > 0:
+            #logsupport.Logs.Log(f'Try connect message {i}')
             try:
                 ha.call_service(self.api, 'logbook', 'log',
                                 {'name': 'Softconsole', 'message': hw.hostname + ' connected'})
+                logsupport.Logs.Log(f'{self.name}: Logbook message ok on try {(3, 2, 1)[i - 1]}')
                 return
             except ha.HomeAssistantError:
+                logsupport.Logs.Log("Caught service call error")
                 i -= 1
                 if i == 0:
                     logsupport.Logs.Log(self.name + " not responding to service call after restart",
                                         severity=ConsoleWarning)
                     return
                 else:
-                    time.sleep(1)
+                    time.sleep(3)  # things get busy when all consoles are trying to log
+            except Exception as E:
+                logsupport.Logs.Log(f"Some other error occurred: {repr(E)}")
 
     def RegisterEntity(self, domain, entity, item):
         if domain in self.DomainEntityReg:
@@ -611,6 +618,9 @@ class HA(object):
                 m = mdecode['event']
                 del mdecode['event']
                 d = m['data']
+                # if m['event_type'] != 'state_changed':
+                #    #and d['component'] == 'logbook'):
+                #    logsupport.Logs.Log(f"{self.name} Event {m['event_type']}:   {d}")
 
                 if m['event_type'] == 'state_changed':
                     prog = 1
@@ -720,7 +730,10 @@ class HA(object):
                         domainspecificevents[d](ev, message)
                 elif m['event_type'] == 'homeassistant_started':
                     # HA just finished initializing everything, so we may have been quicker - refresh all state
-                    self.GetAllCurrentState()
+                    logsupport.Logs.Log(f"{self.name} Reports started")
+                    # self.GetAllCurrentState()
+                elif m['event_type'] == 'homeassistant_stop':
+                    logsupport.Logs.Log(f"{self.name} Stopped - awaiting a restart")
                 else:
                     logsupport.Logs.Log('{} Unrecognized event: {}'.format(self.name, message), severity=ConsoleWarning)
                     ignoredeventtypes.append(m['event_type'])  # only log once

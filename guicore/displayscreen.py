@@ -70,7 +70,7 @@ def MainControlLoop():
 
 	for hnm, h in hubs.hubs.Hubs.items():
 		if hasattr(h, 'Announce'):
-			logsupport.Logs.Log('Announce to hub')
+            logsupport.Logs.Log(f'Announce to hub {h.name}')
 			h.Announce()
 		else:
 			logsupport.Logs.Log(f'no announce {h}')

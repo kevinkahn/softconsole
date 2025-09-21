@@ -1,12 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="PublishConfigData" autoUpload="Always" serverName="pi@rpi-dev7x:22 password" promptOnLocalOverwrite="false" exclude=".svn;.cvs;.idea;.DS_Store;.git;.hg;*.pyc" confirmBeforeUploading="false" autoUploadExternalChanges="true" showExcludedInSync="true">
+  <component name="PublishConfigData" autoUpload="Always" serverName="pi@rpi-dev7x:22 agent" promptOnLocalOverwrite="false" exclude=".svn;.cvs;.idea;.DS_Store;.git;.hg;*.pyc" confirmBeforeUploading="false" autoUploadExternalChanges="true" showExcludedInSync="true">
     <option name="confirmBeforeUploading" value="false" />
     <serverData>
-      <paths name="pi@rpi-dev7x:22 password">
+      <paths name="pi@rpi-dev7x:22 agent">
         <serverdata>
           <mappings>
-            <mapping deploy="/home/pi/consolerem" local="$PROJECT_DIR$" />
+            <mapping deploy="/consolerem" local="$PROJECT_DIR$" web="/" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="pi@rpi-dev7x:22 agent (2)">
+        <serverdata>
+          <mappings>
+            <mapping local="$PROJECT_DIR$" web="/" />
           </mappings>
         </serverdata>
       </paths>

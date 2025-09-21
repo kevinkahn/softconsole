@@ -344,6 +344,8 @@ def call_service(api: API, domain: str, service: str, service_data: Dict = None,
 				raise
 			else:
 				timeout = 2 * timeout
+    logsupport.Logs.Log("Raise service call error")
+    raise HomeAssistantError
 
 
 def async_caller(api, domain, service, service_data, timeout):
