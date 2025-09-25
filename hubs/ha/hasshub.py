@@ -345,7 +345,7 @@ class HA(object):
 
 	def AddDevice(self, device, entitylist):
 		if device is None:
-			print('Add none device?')
+			safeprint('Add none device?')
 			return
 		self.DeviceToEnt[device] = entitylist
 		self.DevGoneCounts[device] = 0
@@ -538,7 +538,7 @@ class HA(object):
 			try:
 				ha.call_service(self.api, 'recorder', 'purge_entities',
 				                {'entity_id': f"sensor.{hw.hostname}_logitem".replace('-', '_')})
-				logsupport.Logs.Log(f"sensor.{hw.hostname}_logitem")
+			# logsupport.Logs.Log(f"{self.name}: sensor.{hw.hostname}_logitem")
 			except Exception as E:
 				logsupport.Logs.Log(f"Failed purge call for sensor.{hw.hostname}_logitem: {E}")
 
@@ -1017,9 +1017,9 @@ class HA(object):
 		self.AlertNodes = {}
 		self.lasterror = None
 		if password != '':
-			self.api = ha.API(self.addr, prefix, password, port=int(self.port))
+			self.api = ha.API(self.addr, prefix, password, port=int(self.port), localname=self.name)
 		else:
-			self.api = ha.API(self.addr, prefix, port=int(self.port))
+			self.api = ha.API(self.addr, prefix, port=int(self.port), localname=self.name)
 		for i in range(9 if config.sysStore.versionname not in ('none', 'development') else 1):
 			hassok = False
 			apistat = ha.validate_api(self.api)

@@ -151,13 +151,14 @@ class API:
 	"""Object to pass around Home Assistant API location and credentials."""
 
 	def __init__(self, host: str, prefix, api_password: Optional[str] = None, port: Optional[int] = 8123,
-				 use_ssl: bool = False) -> None:
+	             use_ssl: bool = False, localname="Unnamed") -> None:
 		"""Init the API."""
 		self.use_ssl = use_ssl
 		self.host = host
 		self.port = port
 		self.api_password = api_password
 		self.base_url = prefix + host + ':' + str(port)
+		self.name = localname
 
 		# self.base_url += ':{}'.format(port)
 
@@ -272,7 +273,7 @@ def get_state(api: API, entity_id: str):
 
 	except (HomeAssistantError, ValueError):
 		# ValueError if req.json() can't parse the json
-		logsupport.Logs.Log("Error fetching state", severity=logsupport.ConsoleWarning)
+		logsupport.Logs.Log(f"{api.name}: Error fetching state", severity=logsupport.ConsoleWarning)
 
 		return None
 
@@ -288,7 +289,7 @@ def get_states(api: API):
 	except (HomeAssistantError, ValueError, AttributeError):
 		# ValueError if req.json() can't parse the json
 		# _LOGGER.exception("Error fetching states")
-		logsupport.Logs.Log("Error fetching states in get_states", severity=logsupport.ConsoleWarning)
+		logsupport.Logs.Log(f"{api.name}Error fetching states in get_states", severity=logsupport.ConsoleWarning)
 
 		return []
 
@@ -305,7 +306,7 @@ def get_services(api: API) -> Dict:
 
 	except (HomeAssistantError, ValueError):
 		# ValueError if req.json() can't parse the json
-		logsupport.Logs.Log("HA Got unexpected services result")
+		logsupport.Logs.Log(f"{api.name}: Got unexpected services result")
 		return {}
 
 
@@ -325,26 +326,21 @@ def call_service(api: API, domain: str, service: str, service_data: Dict = None,
 
 			if req.status_code != 200:
 				logsupport.Logs.Log(
-					"HA Error calling service ({}) {} - {} Request: domain: {} service: {} data: {}".format(tryit,
-																											req.status_code,
-																											req.text,
-																											domain,
-																											service,
-																											service_data))
+					f"{api.name}: Error calling service ({tryit}) {req.status_code} - {req.text} Request: domain: {domain} service: {service} data: {service_data}")
 			else:
 				if tryit in ('retry', 'finaltry'):
-					logsupport.Logs.Log(f'Attempt {tryit} worked ({domain}.{service})')
+					logsupport.Logs.Log(f'{api.name}: Attempt {tryit} worked ({domain}.{service})')
 				return
 
 		except HomeAssistantError as e:
 			logsupport.Logs.Log(
-				f"HA svc call {tryit} failed for {domain}.{service}({service_data}) T/O:{timeout}): {e}",
+				f"{api.name}:Service call {tryit} failed for {domain}.{service}({service_data}) T/O:{timeout}): {e}",
 								severity=logsupport.ConsoleWarning if tryit == 'retry' else logsupport.ConsoleInfo)
 			if tryit == 'finaltry':
 				raise
 			else:
 				timeout = 2 * timeout
-	logsupport.Logs.Log("Raise service call error")
+	logsupport.Logs.Log(f"{api.name}: Raise service call error")
 	raise HomeAssistantError
 
 
@@ -357,14 +353,11 @@ def async_caller(api, domain, service, service_data, timeout):
 
 		if req.status_code != 200:
 			logsupport.Logs.Log(
-				"HA Error calling service {} - {} Request: domain: {} service: {} data: {}".format(req.status_code,
-																								   req.text, domain,
-																								   service,
-																								   service_data))
+				f"{api.name}: Error calling service {req.status_code} - {req.text} Request: domain: {domain} service: {service} data: {service_data}")
 	# call_service(api, domain, service, service_data, timeout)
 	except Exception as E:
 		logsupport.Logs.Log(
-			'Comm error in async call of {} {} {} Exc: {}'.format(domain, service, service_data, repr(E)))
+			f'{api.name}: Comm error in async call of {domain} {service} {service_data} Exc: {repr(E)}')
 		safeprint('Async exc: {} {}'.format(n, repr(E)))
 
 
@@ -390,12 +383,12 @@ def get_config(api: API) -> Dict:
 
 	except ValueError as E:
 		# ValueError if req.json() can't parse the JSON
-		logsupport.Logs.Log("Got unexpected configuration results from HA:{}".format(repr(E)),
+		logsupport.Logs.Log(f"{api.name}: Got unexpected configuration results from HA:{repr(E)}",
 							severity=logsupport.ConsoleWarning, hb=True)
 		logsupport.Logs.Log("Result: " + repr(req))
 		return {}
 	except HomeAssistantError as E:
 		# probably lost network to hub
-		logsupport.Logs.Log("Got unexpected configuration results from HA:{}".format(repr(E)),
+		logsupport.Logs.Log(f"{api.name}: Got unexpected configuration results from HA:{repr(E)}",
 							severity=logsupport.ConsoleDetail)
 		return {}
